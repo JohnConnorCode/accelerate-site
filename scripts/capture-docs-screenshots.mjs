@@ -66,6 +66,12 @@ const SHOTS = [
     wait: { role: "heading", name: /contact/i },
   },
   {
+    id: "contacts/record",
+    scenario: "northline-roofing",
+    route: "contacts/lena.walsh@northlineroofing.example",
+    wait: { role: "heading", name: "Lena Walsh" },
+  },
+  {
     id: "contacts/import",
     scenario: "northline-roofing",
     route: "contact-imports",

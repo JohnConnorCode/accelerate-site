@@ -93,7 +93,7 @@ export default function WorkPage() {
   const router = useAdminNavigation();
   const tab =
     params.get("tab") === "approvals" ? "approvals" : params.get("tab") === "ai" ? "ai" : "tasks";
-  const [owner, setOwner] = useState("team");
+  const [owner, setOwner] = useState("me");
   const [status, setStatus] = useState("pending");
   const [search, setSearch] = useState("");
   const [source, setSource] = useState("");
@@ -107,6 +107,8 @@ export default function WorkPage() {
   const [selectedViewId, setSelectedViewId] = useState("");
   const [viewName, setViewName] = useState("");
   const [viewVisibility, setViewVisibility] = useState<"private" | "workspace">("private");
+  const [viewEditorOpen, setViewEditorOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -114,6 +116,7 @@ export default function WorkPage() {
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
   const [priority, setPriority] = useState("medium");
+  const [snoozeDate, setSnoozeDate] = useState("");
   const [review, setReview] = useState<ActionRow | null>(null);
   const taskParams = new URLSearchParams({ status, owner, page: String(page), pageSize: "100" });
   if (source) taskParams.set("source", source);
@@ -151,7 +154,7 @@ export default function WorkPage() {
     const saved = readWorkflowPreference(preferenceScope, taskViewDescriptor);
     setLayout(saved.layout);
     setVisibleFields(saved.visibleFields);
-    setOwner(saved.filters?.owner ?? "team");
+    setOwner(saved.filters?.owner ?? "me");
     setStatus(saved.filters?.status ?? "pending");
     setSource(saved.filters?.source ?? "");
     setSearch(saved.filters?.search ?? "");
@@ -176,7 +179,20 @@ export default function WorkPage() {
     (item) => item.kind === "draft_followup" && item.status !== "completed",
   );
   const visible = tasks;
-  const filtersChanged = owner !== "team" || status !== "pending" || Boolean(source || search);
+  const taskGridColumns = taskViewDescriptor.fields
+    .filter((field) => visibleFields.includes(field.id))
+    .map((field) =>
+      field.id === "task"
+        ? "minmax(0, 2fr)"
+        : field.id === "related"
+          ? "minmax(0, 1fr)"
+          : field.id === "due"
+            ? "120px"
+            : "72px",
+    )
+    .join(" ");
+  useEffect(() => setSelectedIndex(-1), [tab, page, owner, status, source, deferredSearch, layout]);
+  const filtersChanged = owner !== "me" || status !== "pending" || Boolean(source || search);
   const viewChanged =
     filtersChanged ||
     layout !== "list" ||
@@ -319,6 +335,7 @@ export default function WorkPage() {
     setTitle(row.title);
     setDue(row.due_date ?? "");
     setPriority(row.priority === "normal" ? "medium" : row.priority);
+    setSnoozeDate("");
     setError("");
   };
   const mutateTask = async (row: TaskRow, complete = false) => {
@@ -343,11 +360,93 @@ export default function WorkPage() {
       setBusy(false);
     }
   };
+  const snoozeTask = async (row: TaskRow) => {
+    if (busy || !snoozeDate) return;
+    setBusy(true);
+    setError("");
+    try {
+      await fetchJson("/api/admin/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: row.id, status: "snoozed", snoozed_until: snoozeDate }),
+      });
+      closeTask();
+      await changed();
+      toast.success("Task snoozed");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not snooze the task.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.repeat) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      const inDialog = target?.closest("[role='dialog']");
+      if (review && inDialog && (event.key === "a" || event.key === "r")) {
+        event.preventDefault();
+        const decision = event.key === "a" ? "approve" : "reject";
+        const button = inDialog.querySelector<HTMLButtonElement>(
+          `[data-review-decision="${decision}"]`,
+        );
+        if (button && !button.disabled) button.click();
+        return;
+      }
+      if (inDialog || task || review || busy) return;
+      const rows =
+        tab === "tasks" && layout === "list" ? visible : tab === "approvals" ? actions : [];
+      if (!rows.length) return;
+      if (event.key === "j" || event.key === "k") {
+        event.preventDefault();
+        const next = Math.max(
+          0,
+          Math.min(rows.length - 1, selectedIndex + (event.key === "j" ? 1 : -1)),
+        );
+        setSelectedIndex(next);
+        const id = rows[next]?.id;
+        if (id)
+          document.getElementById(`work-row-${id}`)?.querySelector<HTMLElement>("button")?.focus();
+      } else if (event.key === "Enter" || event.key === "e" || event.key === "s") {
+        if (selectedIndex < 0) return;
+        if (target?.closest("button, a, [role='button']") && !target.closest("[data-record-row]"))
+          return;
+        if (tab === "approvals" && event.key !== "Enter") return;
+        event.preventDefault();
+        if (tab === "tasks") {
+          const row = visible[Math.min(selectedIndex, visible.length - 1)];
+          if (row) {
+            edit(row);
+            if (event.key === "s") {
+              const tomorrow = new Date();
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              setSnoozeDate(
+                `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`,
+              );
+              window.setTimeout(() => document.getElementById("work-snooze-date")?.focus(), 40);
+            }
+          }
+        } else {
+          const row = actions[Math.min(selectedIndex, actions.length - 1)];
+          if (row) setReview(row);
+        }
+      } else if (tab === "approvals" && (event.key === "a" || event.key === "r")) {
+        if (selectedIndex < 0) return;
+        event.preventDefault();
+        const row = actions[Math.min(selectedIndex, actions.length - 1)];
+        if (row) setReview(row);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
   return (
     <div className="space-y-5 pb-8">
       <PageHeader
         title={adminPageName("work")}
-        subtitle="Track assigned tasks and review actions waiting for your approval."
+        subtitle="Your tasks, approvals, and AI work."
+        compact
         utilityActions={
           <button
             type="button"
@@ -381,6 +480,9 @@ export default function WorkPage() {
           </Link>
         ))}
       </nav>
+      <p className="hidden text-xs text-[var(--admin-muted)] sm:block">
+        Keyboard: j/k move · Enter open · e edit · s snooze · a/r review approval
+      </p>
       {(error || tasksQuery.error || actionsQuery.error) && (
         <p
           role="alert"
@@ -392,7 +494,7 @@ export default function WorkPage() {
       {tab === "tasks" ? (
         <>
           {!demo?.scenarioId && (
-            <AdminSurface padding="md">
+            <AdminSurface padding="sm" elevation="flat">
               <div className="flex flex-wrap items-end gap-3">
                 <label className="min-w-40 flex-1 text-xs font-medium text-[var(--admin-ink)]">
                   Saved views
@@ -410,6 +512,21 @@ export default function WorkPage() {
                     ))}
                   </select>
                 </label>
+                <button
+                  type="button"
+                  className="admin-button admin-button--secondary"
+                  aria-expanded={viewEditorOpen}
+                  aria-controls="work-view-editor"
+                  onClick={() => setViewEditorOpen((open) => !open)}
+                >
+                  {viewEditorOpen ? "Done" : "Save view"}
+                </button>
+              </div>
+              <div
+                id="work-view-editor"
+                hidden={!viewEditorOpen}
+                className="mt-3 flex flex-wrap items-end gap-3 border-t border-[var(--admin-border)] pt-3"
+              >
                 <label className="min-w-40 flex-1 text-xs font-medium text-[var(--admin-ink)]">
                   View name
                   <input
@@ -469,103 +586,106 @@ export default function WorkPage() {
               )}
             </AdminSurface>
           )}
-          <AdminSurface padding="none" elevation="flat">
-            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--admin-border)] px-5 py-4">
-              <div>
-                <h2 className="text-base font-semibold text-[var(--admin-ink)]">Follow-ups</h2>
-                <p className="mt-1 text-xs text-[var(--admin-muted)]">
-                  Keep the draft, sent message, and next check together until the contact replies.
-                </p>
+          {(followups.length > 0 || todayQuery.error) && (
+            <AdminSurface padding="none" elevation="flat">
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--admin-border)] px-5 py-4">
+                <div>
+                  <h2 className="text-base font-semibold text-[var(--admin-ink)]">Follow-ups</h2>
+                  <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                    Keep the draft, sent message, and next check together until the contact replies.
+                  </p>
+                </div>
+                <Link
+                  href="/admin/work?tab=approvals"
+                  className="admin-button admin-button-secondary"
+                >
+                  Review approvals {actions.length ? `(${actions.length})` : ""}
+                </Link>
               </div>
-              <Link
-                href="/admin/work?tab=approvals"
-                className="admin-button admin-button-secondary"
-              >
-                Review approvals {actions.length ? `(${actions.length})` : ""}
-              </Link>
-            </div>
-            {todayQuery.error ? (
-              <p role="status" className="px-5 py-4 text-sm text-[var(--admin-muted)]">
-                Follow-up status is unavailable. Refresh to try again.
-              </p>
-            ) : followups.length ? (
-              <ul>
-                {followups.map((item) => {
-                  const draftSaved = item.outcome?.includes("Gmail draft saved") ?? false;
-                  const draftUncertain = item.error?.includes("Gmail") ?? false;
-                  const followupSent = item.outcome?.includes("Follow-up sent from Gmail") ?? false;
-                  return (
-                    <li
-                      key={item.id}
-                      className="border-b border-[var(--admin-border)] px-5 py-4 last:border-b-0"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
-                              {item.title}
-                            </h3>
-                            <span className="rounded-full bg-[var(--admin-surface-subtle)] px-2 py-0.5 text-[10px] font-medium capitalize text-[var(--admin-muted)]">
-                              {draftUncertain
-                                ? "reconciliation needed"
-                                : item.status.replaceAll("_", " ")}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-xs text-[var(--admin-muted)]">
-                            {item.error || item.outcome || "Review the linked follow-up."}
-                          </p>
-                          {item.nextCheckReason && item.nextCheckReason !== item.outcome && (
+              {todayQuery.error ? (
+                <p role="status" className="px-5 py-4 text-sm text-[var(--admin-muted)]">
+                  Follow-up status is unavailable. Refresh to try again.
+                </p>
+              ) : followups.length ? (
+                <ul>
+                  {followups.map((item) => {
+                    const draftSaved = item.outcome?.includes("Gmail draft saved") ?? false;
+                    const draftUncertain = item.error?.includes("Gmail") ?? false;
+                    const followupSent =
+                      item.outcome?.includes("Follow-up sent from Gmail") ?? false;
+                    return (
+                      <li
+                        key={item.id}
+                        className="border-b border-[var(--admin-border)] px-5 py-4 last:border-b-0"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
+                                {item.title}
+                              </h3>
+                              <span className="rounded-full bg-[var(--admin-surface-subtle)] px-2 py-0.5 text-[10px] font-medium capitalize text-[var(--admin-muted)]">
+                                {draftUncertain
+                                  ? "reconciliation needed"
+                                  : item.status.replaceAll("_", " ")}
+                              </span>
+                            </div>
                             <p className="mt-1 text-xs text-[var(--admin-muted)]">
-                              {item.nextCheckReason}
+                              {item.error || item.outcome || "Review the linked follow-up."}
                             </p>
-                          )}
-                          {item.nextCheckAt && (
-                            <p className="mt-1 text-[11px] text-[var(--admin-muted)]">
-                              Next check {new Date(item.nextCheckAt).toLocaleString()}
-                            </p>
-                          )}
+                            {item.nextCheckReason && item.nextCheckReason !== item.outcome && (
+                              <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                                {item.nextCheckReason}
+                              </p>
+                            )}
+                            {item.nextCheckAt && (
+                              <p className="mt-1 text-[11px] text-[var(--admin-muted)]">
+                                Next check {new Date(item.nextCheckAt).toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {draftSaved || draftUncertain ? (
+                              <a
+                                href="https://mail.google.com/mail/u/0/#drafts"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="admin-button admin-button--primary"
+                              >
+                                {draftUncertain
+                                  ? "Check Gmail Drafts before retrying"
+                                  : "Open Gmail Drafts"}
+                              </a>
+                            ) : followupSent ? (
+                              <Link href={item.href} className="admin-button admin-button--primary">
+                                Open opportunity
+                              </Link>
+                            ) : item.status === "waiting" ? (
+                              <Link
+                                href="/admin/work?tab=approvals"
+                                className="admin-button admin-button--primary"
+                              >
+                                Review approval
+                              </Link>
+                            ) : (
+                              <Link href={item.href} className="admin-button admin-button--primary">
+                                Open follow-up
+                              </Link>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          {draftSaved || draftUncertain ? (
-                            <a
-                              href="https://mail.google.com/mail/u/0/#drafts"
-                              target="_blank"
-                              rel="noreferrer"
-                              className="admin-button admin-button--primary"
-                            >
-                              {draftUncertain
-                                ? "Check Gmail Drafts before retrying"
-                                : "Open Gmail Drafts"}
-                            </a>
-                          ) : followupSent ? (
-                            <Link href={item.href} className="admin-button admin-button--primary">
-                              Open opportunity
-                            </Link>
-                          ) : item.status === "waiting" ? (
-                            <Link
-                              href="/admin/work?tab=approvals"
-                              className="admin-button admin-button--primary"
-                            >
-                              Review approval
-                            </Link>
-                          ) : (
-                            <Link href={item.href} className="admin-button admin-button--primary">
-                              Open follow-up
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="px-5 py-4 text-sm text-[var(--admin-muted)]">
-                No open follow-ups. New follow-up work appears here when a customer or opportunity
-                needs a response.
-              </p>
-            )}
-          </AdminSurface>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="px-5 py-4 text-sm text-[var(--admin-muted)]">
+                  No open follow-ups. New follow-up work appears here when a customer or opportunity
+                  needs a response.
+                </p>
+              )}
+            </AdminSurface>
+          )}
           <div
             id="work-filters"
             data-expanded={filtersOpen}
@@ -688,8 +808,8 @@ export default function WorkPage() {
               onClick={() => setFiltersOpen(!filtersOpen)}
             >
               {filtersOpen ? "Hide filters" : "Filters"}
-              {owner !== "team" || status !== "pending" || source
-                ? ` (${Number(owner !== "team") + Number(status !== "pending") + Number(Boolean(source))})`
+              {owner !== "me" || status !== "pending" || source
+                ? ` (${Number(owner !== "me") + Number(status !== "pending") + Number(Boolean(source))})`
                 : ""}
             </button>
             <p role="status" className="text-[var(--admin-muted)]">
@@ -703,7 +823,7 @@ export default function WorkPage() {
                 type="button"
                 className="admin-button admin-button-secondary"
                 onClick={() => {
-                  setOwner("team");
+                  setOwner("me");
                   setStatus("pending");
                   setSource("");
                   setSearch("");
@@ -801,7 +921,10 @@ export default function WorkPage() {
             <>
               <AdminSurface padding="none" elevation="flat">
                 <div className="admin-work-heading" aria-hidden="true">
-                  <div className="admin-work-columns">
+                  <div
+                    className="admin-work-columns"
+                    style={{ "--admin-work-grid": taskGridColumns } as React.CSSProperties}
+                  >
                     {visibleFields.includes("task") && <span>Task</span>}
                     {visibleFields.includes("related") && <span>Related record</span>}
                     {visibleFields.includes("due") && <span>Due</span>}
@@ -810,9 +933,15 @@ export default function WorkPage() {
                   <span>Action</span>
                 </div>
                 <ul>
-                  {visible.map((row) => (
-                    <li key={row.id} data-source-type="task" data-source-id={row.id}>
+                  {visible.map((row, index) => (
+                    <li
+                      key={row.id}
+                      id={`work-row-${row.id}`}
+                      data-source-type="task"
+                      data-source-id={row.id}
+                    >
                       <AdminRecordRow
+                        selected={selectedIndex === index}
                         label={`Open task ${row.title}`}
                         onOpen={() => edit(row)}
                         actions={
@@ -836,9 +965,7 @@ export default function WorkPage() {
                       >
                         <span
                           className="admin-work-columns"
-                          style={{
-                            gridTemplateColumns: `repeat(${visibleFields.length}, minmax(0, 1fr))`,
-                          }}
+                          style={{ "--admin-work-grid": taskGridColumns } as React.CSSProperties}
                         >
                           {visibleFields.includes("task") && (
                             <span className="min-w-0">
@@ -881,9 +1008,27 @@ export default function WorkPage() {
                   ))}
                 </ul>
                 {!visible.length && (
-                  <p className="p-5 text-sm text-[var(--admin-muted)]">
-                    {tasksQuery.isPending ? "Loading tasks…" : "No tasks match these filters."}
-                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-5">
+                    <p className="text-sm text-[var(--admin-muted)]">
+                      {tasksQuery.isPending
+                        ? "Loading tasks…"
+                        : owner === "me"
+                          ? "No open tasks assigned to you in this view."
+                          : "No tasks match these filters."}
+                    </p>
+                    {!tasksQuery.isPending && owner === "me" && (
+                      <button
+                        type="button"
+                        className="admin-button admin-button--secondary"
+                        onClick={() => {
+                          setOwner("team");
+                          setPage(1);
+                        }}
+                      >
+                        View team work
+                      </button>
+                    )}
+                  </div>
                 )}
               </AdminSurface>
             </>
@@ -917,9 +1062,15 @@ export default function WorkPage() {
       ) : (
         <AdminSurface padding="none" elevation="flat">
           <ul>
-            {actions.map((row) => (
-              <li key={row.id} data-source-type="approval" data-source-id={row.id}>
+            {actions.map((row, index) => (
+              <li
+                key={row.id}
+                id={`work-row-${row.id}`}
+                data-source-type="approval"
+                data-source-id={row.id}
+              >
                 <AdminRecordRow
+                  selected={selectedIndex === index}
                   label={`Review ${row.title}`}
                   onOpen={() => {
                     setReview(row);
@@ -1017,6 +1168,30 @@ export default function WorkPage() {
             </label>
             {task?.description && (
               <p className="text-sm text-[var(--admin-muted)]">{task.description}</p>
+            )}
+            {task?.status !== "completed" && (
+              <div className="rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] p-3">
+                <label className="grid gap-1 text-sm text-[var(--admin-ink)]">
+                  Snooze until
+                  <input
+                    id="work-snooze-date"
+                    type="date"
+                    className={control}
+                    value={snoozeDate}
+                    onChange={(event) => setSnoozeDate(event.target.value)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="admin-button admin-button--secondary mt-3"
+                  disabled={busy || !snoozeDate}
+                  onClick={() => {
+                    if (task) void snoozeTask(task);
+                  }}
+                >
+                  Snooze task
+                </button>
+              </div>
             )}
             {task?.opportunity_id && (
               <Link

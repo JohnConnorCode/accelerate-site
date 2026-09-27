@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-center-daily-work-navigation",
+    slug: "command-center-daily-work-navigation",
+    title: "Command Center puts daily work and contact context first",
+    description:
+      "The workspace rail now groups routes under Today, Work, Records, Conversations, Knowledge, Coworkers, Apps and Settings, with a shorter mobile dock. Today shows the source and next step for attention items. Work opens on personal tasks, keeps saved-view editing secondary, and adds keyboard triage and dated snooze through the existing task service. Contact records now bring next steps, recent open work, conversations, opportunities and history together, with Ask AI available from the record.",
+    category: "improvement",
+    publishedAt: "2026-09-27",
+  },
+  {
     id: "home-system-hero",
     slug: "home-system-hero",
     title: "A clearer, faster first impression",

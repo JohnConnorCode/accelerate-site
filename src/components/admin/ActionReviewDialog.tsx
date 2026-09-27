@@ -389,6 +389,7 @@ export function ActionReviewDialog({
         <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
           <button
             type="button"
+            data-review-decision="reject"
             disabled={busy}
             onClick={onReject}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-danger)] transition-[background-color,transform] duration-150 hover:bg-[var(--admin-danger-soft)] active:scale-[0.96] disabled:opacity-50"
@@ -405,6 +406,7 @@ export function ActionReviewDialog({
             </button>
             <button
               type="button"
+              data-review-decision="approve"
               disabled={busy || Boolean(isToday && !todayPreview.data)}
               onClick={onApprove}
               className="admin-button admin-button--primary"

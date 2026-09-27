@@ -57,6 +57,14 @@ export const adminPageGuidance: Record<string, AdminPageGuidance> = {
     ],
     guideHref: "/docs/start/daily-path",
   },
+  coworkers: {
+    description: "Inspect AI coworker work, outcomes and actions awaiting a person.",
+    steps: [
+      "Open a work item to read the coworker's result and linked source.",
+      "Review consequential proposals in Work before approving or rejecting them.",
+    ],
+    guideHref: "/docs/command-center/work",
+  },
   pipeline: {
     description: "See where each opportunity stands and decide how to move it forward.",
     steps: [

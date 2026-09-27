@@ -67,9 +67,9 @@ One shared operating layer for the businesses that need it, and how to run the d
 - [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-19): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
 - [Setup, integrations, and health](https://www.acceleratewith.us/docs/command-center/setup) (updated 2026-09-21): Read Setup Center and Integrations, tell missing configuration from a real receipt, and recover when health is degraded.
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-19): Find supported capabilities, their business purpose and the setup or review each needs.
-- [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-19): Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.
+- [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-27): Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-19): Every new lead, message, and staged action that hasn't found an owner yet, in one queue.
-- [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-24): Review tasks, approvals and AI work, and save task views for your workspace.
+- [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-27): Review tasks, approvals and AI work, and save task views for your workspace.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-30): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-19): Trace a change back to who made it, what happened, and when.
 - [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-26): Ask a specific question, see the records it used to answer, and review anything it proposes.
@@ -83,7 +83,7 @@ The reply-ready inbox for Gmail, forms, chat, and transcripts.
 ## Contacts
 Identity resolution, intake, and reviewed list imports.
 
-- [Contacts](https://www.acceleratewith.us/docs/contacts/overview) (updated 2026-09-24): Find customer records, review unfamiliar senders and follow the work linked to each person.
+- [Contacts](https://www.acceleratewith.us/docs/contacts/overview) (updated 2026-09-27): Find customer records, review unfamiliar senders and follow the work linked to each person.
 - [Import contacts](https://www.acceleratewith.us/docs/contacts/import) (updated 2026-09-19): Review a CSV or pasted list, resolve contact matches and confirm the records to import.
 
 ## Pipeline

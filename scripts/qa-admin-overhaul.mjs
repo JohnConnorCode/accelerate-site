@@ -185,9 +185,12 @@ try {
         await page.waitForFunction((title) => document.title.startsWith(title), name);
         if (width === 390)
           await page.getByRole("button", { name: "Open More", exact: true }).click();
-        const disclosure = page.getByRole("button", { name: group, exact: true });
+        const section = page.locator(`section[data-nav-section="${group}"]:visible`).first();
+        const disclosure = section.getByRole("button", {
+          name: new RegExp(`^(Expand|Collapse) ${group} links$`),
+        });
         if ((await disclosure.getAttribute("aria-expanded")) === "false") await disclosure.click();
-        const link = page.getByRole("link", { name, exact: true }).first();
+        const link = section.getByRole("link", { name, exact: true }).first();
         await link.waitFor({ state: "visible" });
         assert.equal(
           await link.getAttribute("aria-current"),
@@ -227,7 +230,7 @@ try {
           waitUntil: "networkidle",
           timeout: 60000,
         });
-        await assertIdentity("Email Sequences", "Marketing");
+        await assertIdentity("Email Sequences", "Conversations");
         const palette = await search("Architect");
         const result = palette
           .getByRole("button")
@@ -238,10 +241,10 @@ try {
           (url) =>
             url.pathname === `${prefix}/ai` && url.searchParams.get("purpose") === "architect",
         );
-        await assertIdentity("Architect", "Insights & AI");
+        await assertIdentity("Architect", "Knowledge");
         await page.screenshot({ path: `${output}/${label}-architect.png` });
         await page.goBack({ waitUntil: "networkidle" });
-        await assertIdentity("Email Sequences", "Marketing");
+        await assertIdentity("Email Sequences", "Conversations");
         await setCampaigns(false);
         await page.waitForFunction(
           () => !document.querySelector('a.admin-nav-link[href$="/email-sequences"]'),
@@ -255,7 +258,7 @@ try {
         await disabledPalette.waitFor({ state: "detached" });
         await setCampaigns(true);
         await page.reload({ waitUntil: "networkidle" });
-        await assertIdentity("Email Sequences", "Marketing");
+        await assertIdentity("Email Sequences", "Conversations");
         const restoredPalette = await search("Email Sequences");
         await restoredPalette.getByText("Email Sequences", { exact: true }).waitFor();
         await page.keyboard.press("Escape");

@@ -4486,12 +4486,40 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             ? [
                 {
                   id: opportunity.id,
+                  name: opportunity.name,
                   stage: opportunity.stage,
                   estimated_value: opportunity.value,
                   won_value: opportunity.stage === "won" ? opportunity.value : 0,
                 },
               ]
             : [],
+          work: {
+            available: true,
+            items: contactTasks
+              .filter((task) => task.status !== "completed" && task.status !== "cancelled")
+              .slice(0, 5)
+              .map(({ id, title, status, due_date, priority }) => ({
+                id,
+                title,
+                status,
+                due_date,
+                priority,
+              })),
+          },
+          conversations: {
+            available: true,
+            items: conversation
+              ? [
+                  {
+                    id: conversation.id,
+                    channel: "gmail",
+                    subject: conversation.subject,
+                    status: "open",
+                    last_message_at: conversation.messages.at(-1)?.at ?? null,
+                  },
+                ]
+              : [],
+          },
         },
       });
     }
