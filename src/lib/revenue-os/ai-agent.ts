@@ -39,6 +39,33 @@ import {
 export const MAX_TOOL_TURNS = 5;
 export const SYSTEM_CONTRACT = `You are ${tenant.brand.name}'s founder-only Revenue OS copilot. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every write or outbound action must use a propose_* tool and clearly tell the founder it is awaiting approval. When the founder asks for a write or outbound action, gather what it needs and stage it in this run; approval is the confirmation step, so do not stop to ask permission first. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. Stripe remains the payment authority. Subscription checkout and account management are customer-facing workflows; do not claim a charge, renewal, invoice, or subscription change without current registered evidence, and do not attempt those actions unless a registered tool explicitly exposes them. ${tenant.ai.voice}`;
 
+/** A proposal is only queued work. Never let model wording turn it into a completed effect. */
+export function finalizeStagedAnswer(answer: string, stagedCount: number): string {
+  if (!stagedCount) return answer;
+  if (
+    /\b(?:sent|emailed|delivered|published|charged|paid|executed|applied|scheduled|updated|created|deleted|completed)\b/i.test(
+      answer,
+    ) ||
+    !/\bapprov(?:al|e|ed|ing)\b/i.test(answer)
+  )
+    return `I staged ${stagedCount === 1 ? "a proposal" : `${stagedCount} proposals`} for your approval. Nothing has been sent or changed. Review ${stagedCount === 1 ? "it" : "them"} in Work.`;
+  return answer;
+}
+
+/** Explicit outreach starts with its existing proposal bundle, saving discovery steps. */
+export function defaultCommandBundle(
+  pack: RevenueToolPackId,
+  bundles: readonly { bundleId: string; moduleId: string; toolNames: string[] }[],
+): string | null {
+  if (pack !== "outreach") return null;
+  return (
+    bundles.find(
+      (bundle) =>
+        bundle.moduleId === "core-conversations" && bundle.toolNames.includes("propose_send_email"),
+    )?.bundleId ?? null
+  );
+}
+
 export interface CommandMessage {
   role: "user" | "assistant";
   content: string;
@@ -239,12 +266,10 @@ export async function runRevenueCommandAgent(
         conversationId: options.conversationId,
         tenantConfig: options.tenantConfig,
       });
-      if (
-        activeBundleId &&
-        !availableRevenueToolBundles(liveContext).some(
-          (bundle) => bundle.bundleId === activeBundleId,
-        )
-      )
+      const availableBundles = availableRevenueToolBundles(liveContext);
+      if (turn === 0 && !activeBundleId)
+        activeBundleId = defaultCommandBundle(selectedPack, availableBundles);
+      if (activeBundleId && !availableBundles.some((bundle) => bundle.bundleId === activeBundleId))
         activeBundleId = null;
       const budget = stepBudgetState(turn, MAX_TOOL_TURNS);
       // On the final step no tool is advertised, so the model cannot open work
@@ -271,13 +296,15 @@ export async function runRevenueCommandAgent(
         ],
         tools: activeTools,
       };
-      let bufferedAnswer = "";
+      let streamedAnswer = false;
       const response = options.onAssistantDelta
         ? await openRouterChatStream(request, (delta) => {
-            // Stream live; the final event still carries the validated answer,
-            // and a rejected or interim turn is reset below.
-            bufferedAnswer += delta;
-            options.onAssistantDelta?.(delta);
+            // Once an action is staged, hold model wording until its approval
+            // status is checked. A false completion claim must never flash onscreen.
+            if (!stagedToolNames.size) {
+              streamedAnswer = true;
+              options.onAssistantDelta?.(delta);
+            }
           })
         : await openRouterChat(request);
       inputTokens += response.usage?.prompt_tokens ?? 0;
@@ -298,7 +325,7 @@ export async function runRevenueCommandAgent(
       });
       const uses = assistant.tool_calls ?? [];
       // Text streamed on a tool turn is working narration, not the answer.
-      if (uses.length && bufferedAnswer) options.onAssistantReset?.();
+      if (uses.length && streamedAnswer) options.onAssistantReset?.();
       if (!uses.length) {
         const text = assistant.content?.trim() || "";
         // Earlier answers in this conversation were validated when given, so
@@ -312,7 +339,7 @@ export async function runRevenueCommandAgent(
           const safeAnswer = groundedAnswerFailure(
             grounding.reason || "The answer could not be verified",
           );
-          if (bufferedAnswer) options.onAssistantReset?.();
+          if (streamedAnswer) options.onAssistantReset?.();
           options.onAssistantDelta?.(safeAnswer);
           await finishAgentRun(supabase, run, "partial", {
             toolNames,
@@ -328,15 +355,18 @@ export async function runRevenueCommandAgent(
             activeToolBundleId: activeBundleId,
           };
         }
-        if (options.onAssistantDelta && !bufferedAnswer) options.onAssistantDelta(text);
+        const safeText = finalizeStagedAnswer(text, stagedToolNames.size);
+        if (streamedAnswer && safeText !== text) options.onAssistantReset?.();
+        if (options.onAssistantDelta && (!streamedAnswer || safeText !== text))
+          options.onAssistantDelta(safeText);
         await finishAgentRun(supabase, run, "completed", {
           toolNames,
           inputTokens,
           outputTokens,
-          resultPreview: text,
+          resultPreview: safeText,
         });
         return {
-          text,
+          text: safeText,
           runId: run.id,
           proposedActions: [...stagedToolNames],
           activeToolBundleId: activeBundleId,
