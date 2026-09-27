@@ -45,7 +45,7 @@ const SHOTS = [
     id: "command-center/inbox",
     scenario: "northline-roofing",
     route: "inbox",
-    wait: { role: "heading", name: "Inbox" },
+    wait: { role: "heading", name: "Intake review" },
   },
   {
     id: "command-center/work",

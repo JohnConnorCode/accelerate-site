@@ -423,7 +423,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "A mobile-ready workspace",
     promise:
-      "Today, inbox, pipeline, records, and setup all work from a phone browser, including the pipeline board.",
+      "Today, Intake review, Pipeline, Records, and Setup all work from a phone browser, including the pipeline board.",
     detail:
       "The board scrolls freely, keeps its column controls at every screen size, and supports dragging, touch, and a stage control for moving a card without dragging. Deployments with a dedicated app address also support installation, connection status and local drafts that you can read and reuse after reconnecting.",
   },
@@ -500,11 +500,11 @@ export const capabilities: Capability[] = [
   {
     id: "own-db",
     category: "govern",
-    title: "Shared infrastructure, isolated data",
+    title: "Workspace data boundaries",
     promise:
-      "One maintained application and database serves everyone, while each business's records stay separated by tenant context, membership, and row-level policy.",
+      "Keep business records separated by workspace access, or run a self-hosted installation on infrastructure you control.",
     detail:
-      "You get the benefit of a single system that is patched and improved once, without sharing data between businesses.",
+      "Managed workspaces use tenant-scoped records, active membership, and row-level policy. A self-hosted installation uses your own database and provider accounts; agree on export and handoff responsibilities before a managed implementation.",
   },
   {
     id: "roles",
@@ -520,7 +520,7 @@ export const capabilities: Capability[] = [
     title: "Connection and execution health",
     promise: "Find missing setup, failed jobs and results that need recovery.",
     detail:
-      "Setup Center and operational health views show supported checks with their evidence. Follow the named recovery step and verify the specific connection or job afterward.",
+      "Setup and operational health views show supported checks with their evidence. Follow the named recovery step and verify the specific connection or job afterward.",
   },
   {
     id: "ownership",

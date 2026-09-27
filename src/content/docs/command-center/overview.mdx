@@ -1,48 +1,54 @@
 ---
 title: "The Command Center"
 description: "Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust."
-updated: "2026-09-19"
+updated: "2026-09-27"
 ---
 
-A customer’s question may involve a conversation, an opportunity and a promise your team made last week. Command Center keeps those records connected, so you can understand the situation and decide what should happen next. Start with Today for priorities, then open the source record to do the work.
+A customer asks about a proposal while a teammate is waiting on the same account. Command Center brings the conversation, opportunity and assigned work into one workspace, so you can answer with the full context and keep the next step visible.
 
 <DocsFigure
   src="/images/docs/command-center/today.png"
   width={1440}
   height={1000}
-  alt="Today, the starting view for priorities and decisions in the fictional Northline Roofing workspace."
-  caption="Today, the starting view for priorities and decisions. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+  loading="eager"
+  alt="Today showing priorities and decisions in the fictional Northline Roofing workspace."
+  caption="Today in the fictional Northline Roofing workspace. The screen is real; its customer and work records are fictional."
 />
 
-[Try your first workflow](/docs/start/daily-path) in the fictional demo to see this before you set anything up. You will review a proposed action and check its result without connecting a single account.
+## Follow a piece of work
 
-## Where the work happens
+<StepByStep>
+  <Step number={1} title="Start with Today">
+    Open [Today](/docs/command-center/today) to see sourced decisions, follow-up and business
+    changes. Open an item to learn why it needs attention and which record it came from.
+  </Step>
+  <Step number={2} title="Read the source record">
+    Use [Contacts](/docs/contacts) for the customer history, [Conversations](/docs/conversations)
+    for the thread, or [Pipeline](/docs/pipeline) for the opportunity and its next action.
+  </Step>
+  <Step number={3} title="Move the next step forward">
+    Use [Work](/docs/command-center/work) to edit, snooze or complete an assigned task. If Ask AI
+    prepares a change, inspect its exact target and content in
+    [Approvals](/docs/command-center/approvals) before deciding.
+  </Step>
+  <Step number={4} title="Check what happened">
+    Open [Activity](/docs/command-center/activity) and the affected record. A saved task, an
+    approved request, and a message delivered by a provider are different results.
+  </Step>
+</StepByStep>
 
-Today also supports saved personal and shared arrangements. Combine a sourced business
-brief, decisions, commitments, coworker progress and enabled App follow-up, then
-adjust the layout to fit a focused day or a broad review. Sparse and empty views
-offer a starting point without inventing records. The [Today guide](/docs/command-center/today)
-walks through saving an arrangement and acting from its source context.
+For example, Northline Roofing can open a proposal follow-up from Today, check the customer's latest reply, and set the existing task's due date in Work. The task stays with the customer context, so a teammate can understand the work without reconstructing the story.
 
-**[Today](/docs/command-center/today)** is where your day starts: replies waiting on you, tasks due, and proposals ready for a decision, ranked with the reason each one is there. **[Inbox](/docs/command-center/inbox)** is what to triage before it becomes urgent, new inquiries and messages that still need an owner. When you are ready to answer someone, **[Conversations](/docs/conversations/reply)** has the thread and a composer that already knows who you are replying to and what deal they are attached to.
+## Choose the next guide
 
-Moving a deal forward happens on the **[Pipeline](/docs/pipeline/board)** board, where every card carries its stage, its value, and the people connected to it. **[Contacts](/docs/contacts)** is where you find a person or company and see everything linked to them in one place. When your assistant has prepared something, **[Approvals](/docs/command-center/approvals)** is where you decide whether it runs, and **[Activity](/docs/command-center/activity)** is where you go afterward to confirm it happened. **[Ask AI](/docs/command-center/ask)** answers a specific question using whatever the workspace can see, and shows you the records it used to answer it. **[Work](/docs/command-center/work)** is the filtered task-and-approval list underneath all of it, the same records as Today, organized for editing rather than triage.
+[Intake review](/docs/command-center/inbox) groups incoming items by type when you need to clear new work. [Ask AI](/docs/command-center/ask) helps with a question across the records your workspace can access. Saved Today views let a person or administrator arrange the daily page, while Work offers personal and shared task views for editing.
 
-Recurring revenue sits alongside that operating work. With Stripe subscriptions enabled, admins create plans in **[Subscriptions](/docs/plugins/stripe-subscriptions)** and customers use a branded Plans and account flow to check out, manage payment details, and understand renewal status. The account keeps asynchronous Stripe confirmation and payment attention visible instead of presenting a missing record as success.
+Optional [Apps and plugins](/docs/plugins) add specialized workflows while keeping their own records and approval rules. For example, a configured [subscription workflow](/docs/plugins/stripe-subscriptions) lets a customer manage a recurring plan, while Work still shows the team's internal follow-up.
 
-## Review the next action
-
-The assistant can read connected context and prepare a proposed change, such as a reply, stage move or task. Open the proposal to inspect its exact target and content before approving it. Approval authorizes execution; the resulting receipt tells you what happened.
-
-Some internal actions can become eligible for less frequent review under an `ask_until_trusted` policy. The graduation scan looks for at least three approvals over seven days and checks the action's eligibility. You still decide whether to change its policy. External sends, campaign activation and invoice actions retain their required human review. [Approvals](/docs/command-center/approvals) explains the current rules.
-
-Manual controls use their screen's confirmation and authorization rules. Check the saved result after either path: a prepared draft, an approved request, a provider-accepted send and confirmed delivery are distinct states.
-
-## What your workspace can do
-
-What you see depends on which modules are turned on and which providers you have connected and verified. Seeing a capability listed in the [reference](/docs/command-center/capabilities) tells you the product supports it; it does not tell you your workspace has connected that provider yet. [Setup Center](/docs/workspace/setup) is where to check before you promise a live workflow to your team.
+Start with the [fictional demo path](/docs/start/daily-path) if you want to practice without connecting an account. For a connected installation, use [Setup](/docs/command-center/setup) to verify the sources your workflow needs. The [capability reference](/docs/command-center/capabilities) describes supported work, and the [extension guides](/docs/extend) show how builders can add their own screens and tools.
 
 ## What to check
 
-- For installation and hosting your own instance, see [Self-hosting](/docs/self-hosting).
-- For adding a screen, an integration, or a new AI tool, see [Build on it](/docs/extend).
+- Check [Setup](/docs/command-center/setup) before relying on connected email, calendar, AI or payment data. A listed capability may still need configuration in your workspace.
+- Confirm the affected record and action result after a decision. A prepared draft or approved proposal does not by itself confirm delivery to a customer.
+- Ask AI can propose supported changes, while manual controls use their own confirmation and access rules. The [approvals guide](/docs/command-center/approvals) explains how eligible actions can earn a proposed increase in autonomy.

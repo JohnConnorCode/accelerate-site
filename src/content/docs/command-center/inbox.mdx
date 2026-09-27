@@ -1,29 +1,50 @@
 ---
-title: "Inbox"
-description: "Every new lead, message, and staged action that hasn't found an owner yet, in one queue."
-updated: "2026-09-19"
+title: "Triage new work in Intake review"
+description: "Find new inquiries, handoffs, tasks and proposed actions, then open the record that needs attention."
+updated: "2026-09-27"
 ---
 
-A website inquiry, a contact import and a chat handoff each need someone to decide what happens next. **Inbox** brings review work together so you can inspect the source, resolve its context and choose the appropriate follow-up.
+A new inquiry arrives while your team is busy with existing customers. **Intake review** at `/admin/inbox` puts incoming items and follow-ups in one queue, so someone can find the source and take the next step before it is forgotten.
 
 <DocsFigure
   src="/images/docs/command-center/inbox.png"
-  alt="Inbox in the fictional Northline Roofing workspace, showing new leads waiting for triage."
+  alt="Intake review showing incoming items in the fictional Northline Roofing workspace."
   width={1440}
   height={1000}
-  caption="Inbox in the fictional Northline Roofing workspace. This is the real interface with fictional demo data."
+  caption="Intake review in the fictional Northline Roofing workspace. The screen is real; its records are fictional."
 />
 
-## Filtering to one kind of thing
+## Work through the queue
 
-The default view, All, shows everything at once, with live counts that update as new items arrive. You can narrow it to just leads, contacts, chat handoffs, tasks, proposals, partners, coworker output, or staged actions when you want to work through one category without the rest competing for your attention.
+<StepByStep>
+  <Step number={1} title="Find the item">
+    Start with **All**, or choose the screen's **Leads**, **Contacts**, **Chat**, **Tasks**,
+    **Proposals**, **Partners**, **Coworkers**, or **Actions** filter. Use **Search the queue** to
+    narrow the visible items by name or text.
+  </Step>
+  <Step number={2} title="Open its source">
+    Select a row to open its record. Read the customer context and decide the follow-up there;
+    Intake review gathers the items, while the owning screen holds the full details.
+  </Step>
+  <Step number={3} title="Finish or review">
+    You can complete a task or mark a contact reviewed from its row. Choosing **Approve** on an
+    action opens its exact review in Work, where you inspect the target and proposed change before
+    deciding. Other items continue in their own record.
+  </Step>
+  <Step number={4} title="Check the result">
+    The completed task or reviewed contact leaves this queue. For a proposed action, check
+    [Approvals](/docs/command-center/approvals) and its recorded result before repeating it.
+  </Step>
+</StepByStep>
 
-## Working a row
+For example, Northline Roofing can open a new website inquiry, read the linked contact and conversation, then reply from Conversations. If the team records a follow-up task, it remains visible in [Work](/docs/command-center/work) until it is completed.
 
-Opening a row takes you to the actual record it belongs to, where you reply, accept, reject, or assign it using the same services the rest of the workspace already runs on. Inbox itself is a queue over those records, not a separate system with its own rules, so nothing you do here behaves differently than doing the equivalent action from the record's own screen.
+## Choose the right starting place
 
-Refresh reloads the list without navigating you away from the page, and if that reload fails, the last good list you saw stays visible rather than disappearing, so a flaky connection does not leave you staring at an empty screen.
+[Today](/docs/command-center/today) ranks the decisions and commitments that need attention now. Intake review groups incoming items by type, including work that may not be urgent yet. Use [Conversations](/docs/conversations/reply) when you are ready to read a thread and send a reply.
 
-## How this differs from Today and Conversations
+## What to check
 
-Today ranks the most urgent subset of work across your whole workspace, including some of what shows up here, but organized by urgency rather than by where the item entered. Conversations is where you write and send a reply to a thread. Inbox is the catch-all for anything new that has not been worked yet, regardless of urgency. A reasonable rhythm is Today to start your morning, Inbox to clear whatever is new, and Conversations whenever you are specifically answering someone.
+- If the list looks empty, clear the selected filter and search before concluding that the queue is clear.
+- Choose **Refresh** for a new read. If it fails, the last loaded list may remain on screen; use the shown error and retry before treating its counts as current.
+- An action's **Approve** control takes you to Work for exact review. Confirm the recipient, content and result there rather than assuming the row click executed it.

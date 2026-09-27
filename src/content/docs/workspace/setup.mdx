@@ -1,37 +1,37 @@
 ---
 title: "Set up a working workspace"
 description: "Verify the connections one real workflow needs, before layering on more."
-updated: "2026-09-19"
+updated: "2026-09-27"
 ---
 
-A saved connection still needs to demonstrate that the intended workflow can run. **Setup Center** shows readiness checks and recovery steps, so you can verify one useful path, such as replying to a customer, before adding more connections.
+A saved connection still needs to demonstrate that the intended workflow can run. **Setup** shows readiness checks and recovery steps, so you can verify one useful path, such as replying to a customer, before adding more connections.
 
 <DocsFigure
   src="/images/docs/workspace/setup.png"
-  alt="Setup Center in the fictional Northline Roofing workspace, showing production readiness at 100 percent with connected providers."
+  alt="Setup in the fictional Northline Roofing workspace, showing production readiness at 100 percent with connected providers."
   width={1440}
   height={1000}
-  caption="Setup Center in the fictional Northline Roofing workspace: every required check connected and verified. Fictional demo data."
+  caption="Setup in the fictional Northline Roofing workspace: every required check connected and verified. Fictional demo data."
 />
 
 ## 1. Confirm your workspace
 
-Sign in and check that you are in the intended business. If you cannot access it, ask the workspace administrator to check your active membership. For a new installation, follow [Self-hosting](/docs/self-hosting) first.
+Sign in and check that you are in the intended business. Setup requires the installation's platform administrator account; other members can use [Integrations](/docs/workspace/integrations) according to their workspace role. For a new installation, follow [Self-hosting](/docs/self-hosting) first.
 
-## 2. Open Setup Center
+## 2. Open Setup
 
 Open `/admin/setup` in the workspace. Review the status and action attached to each check.
 
-| Status               | What to do                                         |
-| -------------------- | -------------------------------------------------- |
-| Ready                | Read what was verified and when                    |
-| Needs action         | Complete the named setup step                      |
-| Degraded             | Inspect the failure and recovery guidance          |
-| Optional or disabled | Decide whether your workflow needs this capability |
+| Status                | What to do                                         |
+| --------------------- | -------------------------------------------------- |
+| Ready                 | Read what was verified and when                    |
+| Action needed         | Complete the named setup step                      |
+| Degraded              | Inspect the failure and recovery guidance          |
+| Optional, Not enabled | Decide whether your workflow needs this capability |
 
 ## 3. Connect what you need
 
-Use [Integrations](/docs/workspace/integrations) for the relevant provider. AI work needs an available model configuration; real email needs a verified send path, though you can explore the fictional demo without either. A stored API key only tells you it was saved, not that the connection works, so return to Setup Center and inspect the verification result once you've configured it.
+Use [Integrations](/docs/workspace/integrations) for the relevant provider. AI work needs an available model configuration; real email needs a verified send path, though you can explore the fictional demo without either. A stored API key only tells you it was saved, not that the connection works, so return to Setup and inspect the verification result once you've configured it.
 
 ## 4. Prove it with a small, controlled test
 
@@ -49,7 +49,7 @@ Today links source and job status to the operational receipts. Live failed work 
 
 ### Read Drive indexing results
 
-Select approved Google Drive folders in the Google connection settings, then inspect the next Drive run in Setup Center. The run reports stored files, extracted text, unchanged files, unsupported formats, inaccessible files and incomplete listings. Indexing uses the connected Google account and makes no model request.
+Select approved Google Drive folders in the Google connection settings, then inspect the next Drive run in Setup. The run reports stored files, extracted text, unchanged files, unsupported formats, inaccessible files and incomplete listings. Indexing uses the connected Google account and makes no model request.
 
 Google Docs and Slides export as text. Sheets export the first sheet as CSV; other sheets are not included. Plain text, Markdown, CSV and JSON files are read directly. Binary Office files and PDFs remain unsupported metadata records. A file larger than the 2 MB text limit or an unreadable file is reported as inaccessible rather than indexed successfully.
 
@@ -68,7 +68,7 @@ If a run is partial, inspect its counts before retrying. Check folder access and
 Maya wants the workspace to retain the text of an approved “Customer onboarding” Google Doc.
 
 1. In the Google connection settings, select only the folder approved for this workspace. Confirm that the connected Google account can open and download the document.
-2. Inspect the next Drive run in Setup Center. Look for an extracted-text result for the supported document, rather than relying only on a successful connection check.
+2. Inspect the next Drive run in Setup. Look for an extracted-text result for the supported document, rather than relying only on a successful connection check.
 3. Inspect a later run after an edit. A matching indexed revision may be reported as unchanged; a changed revision needs extraction again.
 4. If the folder also contains a PDF, expect an unsupported metadata record. Do not interpret that result as the PDF's text being available to AI.
 
