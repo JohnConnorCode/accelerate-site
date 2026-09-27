@@ -26,6 +26,11 @@ account to approve its own PR. The integration owner reviews the code and result
 before a normal merge. Team installations must explicitly design their review
 policy rather than silently inheriting the single-owner configuration.
 
+CI runs a focused docs path only when every changed file is in the public docs
+allowlist. It still builds, checks strict docs coverage, exercises desktop and
+mobile docs journeys and reports the required `verify` result. Shared code,
+verification scripts, workflow edits and mixed PRs use the full matrix.
+
 ## Complete the handoff
 
 1. Verify the exact candidate and recheck its head before merging. Squash merging
