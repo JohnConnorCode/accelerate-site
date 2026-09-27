@@ -71,15 +71,19 @@ export function AIReadinessPanel() {
             AI Readiness Assessment
           </h2>
         </div>
-        <p className="text-xs text-white-muted">Server-confirmed assessment records</p>
+        <p className="text-xs text-white-muted">Browser activity and saved reports</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-        <Metric label="Started sessions" value={number(funnel.starts)} icon={BarChart3} />
+        <Metric
+          label="Started sessions"
+          value={data.eventAnalyticsReady ? number(funnel.starts) : "—"}
+          icon={BarChart3}
+        />
         <Metric label="Previewed" value={number(funnel.previews)} icon={Target} />
         <Metric label="Unlocked" value={number(funnel.unlocked)} icon={Users} />
         <Metric label="Site URLs provided" value={number(funnel.websiteAudited)} icon={Target} />
         <Metric
-          label="Unlock rate"
+          label="Report unlock rate"
           value={
             data.completionRate === null || data.completionRate === undefined
               ? "—"
@@ -163,7 +167,8 @@ export function AIReadinessPanel() {
               )}
               <p className="mt-4 text-xs leading-5 text-white-muted">
                 Counts use anonymous, session-scoped visitor IDs. Answers, names, and email
-                addresses are not included in event analytics.
+                addresses are not included in event analytics. Started sessions use browser events;
+                previews and unlocked reports use saved assessment records.
               </p>
               {data.eventAnalyticsCapped && (
                 <p className="mt-2 text-xs leading-5 text-amber-300">

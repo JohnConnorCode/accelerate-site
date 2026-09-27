@@ -448,7 +448,7 @@ function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
                 </a>
                 <span className="shrink-0 text-xs text-[var(--soft)]">
                   {page.status === "completed"
-                    ? `${page.score ?? "—"}/100${page.statusCode ? ` · HTTP ${page.statusCode}` : ""}`
+                    ? `${page.score === null ? "No score" : `${page.score}/100`}${page.statusCode ? ` · HTTP ${page.statusCode}` : ""}`
                     : `${page.status}${page.statusCode ? ` · HTTP ${page.statusCode}` : ""}`}
                 </span>
               </li>
