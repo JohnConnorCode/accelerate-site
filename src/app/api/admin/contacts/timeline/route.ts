@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
           ? supabase
               .from("companies")
               .select("id,name,domain,industry,website")
+              .eq("tenant_id", auth.tenant.id)
               .eq("id", canonicalContact.company_id)
               .maybeSingle()
           : Promise.resolve({ data: null, error: null }),
@@ -52,6 +53,7 @@ export async function GET(request: NextRequest) {
           .select(
             "id,name,stage,estimated_value,won_value,next_action,next_action_at,source,created_at",
           )
+          .eq("tenant_id", auth.tenant.id)
           .eq("contact_id", canonicalContact.id)
           .order("created_at", { ascending: false }),
         loadActivityTimeline(supabase, { contactId: canonicalContact.id, limit: 200 })
@@ -60,12 +62,14 @@ export async function GET(request: NextRequest) {
         supabase
           .from("conversations")
           .select("id,channel,subject,status,last_message_at,opportunity_id")
+          .eq("tenant_id", auth.tenant.id)
           .eq("contact_id", canonicalContact.id)
           .order("last_message_at", { ascending: false })
           .limit(100),
         supabase
           .from("tasks")
           .select("id,title,description,status,due_date,priority,created_at,opportunity_id")
+          .eq("tenant_id", auth.tenant.id)
           .eq("contact_id", canonicalContact.id)
           .order("created_at", { ascending: false })
           .limit(100),
@@ -328,6 +332,31 @@ export async function GET(request: NextRequest) {
       contact: canonicalContact,
       company: canonicalCompanyResult.data,
       opportunities: canonicalOpportunityResult.data || [],
+      work: {
+        available: !canonicalTaskResult.error,
+        items: (canonicalTaskResult.data || [])
+          .filter((task) => task.status !== "completed" && task.status !== "cancelled")
+          .slice(0, 5)
+          .map(({ id, title, status, due_date, priority }) => ({
+            id,
+            title,
+            status,
+            due_date,
+            priority,
+          })),
+      },
+      conversations: {
+        available: !canonicalConversationResult.error,
+        items: (canonicalConversationResult.data || [])
+          .slice(0, 5)
+          .map(({ id, channel, subject, status, last_message_at }) => ({
+            id,
+            channel,
+            subject,
+            status,
+            last_message_at,
+          })),
+      },
     },
   });
 }

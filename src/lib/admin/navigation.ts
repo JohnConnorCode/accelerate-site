@@ -227,6 +227,15 @@ export const adminNavSections: AdminNavSection[] = [
         moreGroup: "Intelligence",
       },
       {
+        id: "coworkers",
+        label: "Coworkers",
+        href: "/admin/coworkers",
+        icon: Bot,
+        description: "Review AI coworker work, outcomes, and actions that need approval.",
+        keywords: "agents AI work runs coworkers",
+        moreGroup: "Intelligence",
+      },
+      {
         id: "architect",
         label: "Architect",
         href: "/admin/ai?purpose=architect",

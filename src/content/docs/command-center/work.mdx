@@ -1,7 +1,7 @@
 ---
 title: "Manage tasks and approvals in Work"
 description: "Review tasks, approvals and AI work, and save task views for your workspace."
-updated: "2026-09-24"
+updated: "2026-09-27"
 ---
 
 A follow-up task needs a clear owner, date and result. **Work**, at `/admin/work`, gives you tasks, pending decisions and AI work status in one place. Today draws attention to the same underlying work, while Work lets you inspect the details.
@@ -14,9 +14,9 @@ A follow-up task needs a clear owner, date and result. **Work**, at `/admin/work
   caption="Work in the fictional Northline Roofing workspace: the same tasks Today shows, organized for editing. Fictional demo data."
 />
 
-Choose **List**, **Board**, or **Calendar** above Tasks. List aligns the related record, due date and priority. Board groups the same tasks by open, snoozed and completed status. Calendar places dated tasks on their local day and calls out overdue, due today, upcoming and undated work; select an item to open its existing inspector and edit the date through the normal save flow. No task receives a date automatically. **Fields** controls which list and board details are visible. Your browser remembers layout, fields and filters for the signed-in member and workspace; **Reset view** restores open team work and the default layout. On smaller screens, use the month grid and select a task to reach its inspector.
+Work opens on **My work** and open tasks, so assigned follow-ups appear first. If that view is empty, choose **View team work** to see the wider queue. Choose **List**, **Board**, or **Calendar** above Tasks. List aligns the related record, due date and priority. Board groups the same tasks by open, snoozed and completed status. Calendar places dated tasks on their local day and calls out overdue, due today, upcoming and undated work; select an item to open its existing inspector and edit the date through the normal save flow. No task receives a date automatically. **Fields** controls which list and board details are visible. Your browser remembers layout, fields and filters for the signed-in member and workspace; **Reset view** restores open personal work and the default layout. On smaller screens, use the month grid and select a task to reach its inspector.
 
-In a connected workspace, enter a name and choose **Save new** to keep the current filters, layout and visible fields across devices. Choose **Only me** for a private view or **Workspace** to share it with active members. Select a saved view to restore it. The owner can **Update** or **Remove** it; removing a view does not delete its tasks. The fictional demo keeps its local browser preference without saving views to a production account.
+In a connected workspace, choose **Save view** to open the view editor, enter a name and choose **Save new** to keep the current filters, layout and visible fields across devices. Choose **Only me** for a private view or **Workspace** to share it with active members. Select a saved view to restore it. The owner can **Update** or **Remove** it; removing a view does not delete its tasks. The fictional demo keeps its local browser preference without saving views to a production account.
 
 ## Finding and editing a task
 
@@ -40,7 +40,9 @@ In a connected workspace, enter a name and choose **Save new** to keep the curre
   </Step>
 </StepByStep>
 
-Use the completion control specifically when work is finished. Today also offers snooze until tomorrow, and a snoozed task stays visible in Work's **Snoozed** view rather than disappearing, so nothing gets lost by deferring it. Completing a snoozed task clears the snooze and records completion against that same original task, not a new one.
+Use the completion control specifically when work is finished. To defer a task, open it, choose **Snooze until**, and select **Snooze task**. It stays visible in Work's **Snoozed** view, so nothing gets lost by deferring it. Completing a snoozed task clears the snooze and records completion against that same original task, not a new one.
+
+In the list, press **j** or **k** to select a row. Press **Enter** or **e** to open a task, or **s** to open its snooze date. On the Approvals tab, **a** and **r** open the selected decision for review; inside that review, those keys approve or reject it. The exact action remains visible before you decide. These shortcuts stay inactive while you type in a field.
 
 The ownership filter is a lens for browsing, not an assignment tool: changing whose work you're looking at does not reassign anything. Assignment follows whatever workflow originally created the task, and a custom App can keep its own native queue and lifecycle entirely separate from this one.
 

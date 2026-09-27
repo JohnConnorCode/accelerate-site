@@ -132,7 +132,7 @@ export const capabilities: Capability[] = [
     title: "Customer records",
     promise: "Find the available conversations, notes and commitments linked to a person.",
     detail:
-      "Open a contact and follow its linked records to understand the relationship. Missing sources or unresolved identities remain visible work for the team to check.",
+      "Open a contact to see its next step, recent open work, linked conversations, opportunities and timeline together. Ask AI opens a draft question about that record; the person decides when to send it. Missing sources or unresolved identities remain visible work for the team to check.",
   },
   {
     id: "companies",
@@ -156,7 +156,7 @@ export const capabilities: Capability[] = [
     title: "Tasks and commitments",
     promise: "Give work a title, date and source context so the team can follow it through.",
     detail:
-      "Use Work to view the same tasks as a list, status board or date calendar. Filter ownership, status and source; save a personal or workspace view; then edit or complete work through its existing task service. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
+      "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
   },
   {
     id: "notes",
@@ -396,9 +396,9 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "The web workspace",
     promise:
-      "Today leads with decisions and follow-up, business changes and pipeline facts support the queue, and the same tasks and approvals stay editable in Work.",
+      "Today leads with sourced decisions and follow-up; the same tasks and approvals stay editable in Work.",
     detail:
-      "Personal and shared arrangements are both available, wide desktop layouts keep independent columns, and narrower screens fall back to a readable single order.",
+      "Eight primary destinations group the workspace around Today, Work, Records, Conversations, Knowledge, Coworkers, Apps and Settings. Personal and shared Today arrangements are available, wide desktop layouts keep independent columns, and the mobile dock keeps the three daily destinations within reach.",
   },
   {
     id: "chat",

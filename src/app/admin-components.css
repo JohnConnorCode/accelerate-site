@@ -106,7 +106,7 @@ body.admin-app-open {
   position: absolute;
   inset-block: 0.25rem;
   left: 0.25rem;
-  width: calc((100% - 0.5rem) / 5);
+  width: calc((100% - 0.5rem) / 4);
   border-radius: var(--admin-control-radius);
   background: var(--admin-nav-active-bg);
   box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--admin-nav-accent) 78%, transparent);
@@ -1731,9 +1731,14 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   }
 }
 .admin-work-columns {
-  display: grid;
-  gap: 6px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
   min-width: 0;
+}
+.admin-work-columns > span:first-child {
+  flex-basis: 100%;
 }
 .admin-work-heading {
   display: none;
@@ -1746,9 +1751,13 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 }
 @container admin-page (min-width: 900px) {
   .admin-work-columns {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 120px 72px;
+    display: grid;
+    grid-template-columns: var(--admin-work-grid, minmax(0, 2fr) minmax(0, 1fr) 120px 72px);
     align-items: center;
     gap: 16px;
+  }
+  .admin-work-columns > span:first-child {
+    flex-basis: auto;
   }
   .admin-work-heading {
     display: flex;
