@@ -154,7 +154,9 @@ try {
         const menu = page.getByRole("navigation", { name: "Primary", exact: true });
         await menu.getByRole("button", { name: "Industries", exact: true }).focus();
         await page.keyboard.press("Enter");
-        assert(await menu.getByRole("link", { name: "All industries", exact: true }).isVisible());
+        await menu
+          .getByRole("link", { name: "All industries", exact: true })
+          .waitFor({ state: "visible" });
         await page.keyboard.press("Escape");
       } else {
         const trigger = page.getByRole("button", { name: "Open navigation menu" });
@@ -163,7 +165,9 @@ try {
         const menu = page.getByRole("navigation", { name: "Mobile", exact: true });
         await menu.getByRole("button", { name: "Industries", exact: true }).focus();
         await page.keyboard.press("Enter");
-        assert(await menu.getByRole("link", { name: "All industries", exact: true }).isVisible());
+        await menu
+          .getByRole("link", { name: "All industries", exact: true })
+          .waitFor({ state: "visible" });
         await page.keyboard.press("Escape");
         await page.locator("#mobile-site-navigation").waitFor({ state: "hidden" });
         assert(await trigger.evaluate((element) => element === document.activeElement));

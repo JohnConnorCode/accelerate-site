@@ -8,6 +8,7 @@ const base = process.env.DOCS_QA_URL ?? "http://localhost:3025";
 const output = process.env.DOCS_QA_OUTPUT ?? "/tmp/accelerate-docs-takeover-qa";
 const routes = [
   "/docs",
+  "/docs/recipes",
   "/docs/start/daily-path",
   "/docs/start/business-owners",
   "/docs/start/agencies",
@@ -62,6 +63,23 @@ async function main() {
           const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
           assert.equal(response?.status(), 200, route);
           await page.locator("main h1").waitFor({ state: "visible" });
+          if (route === "/docs/recipes") {
+            await expect(page.getByRole("searchbox", { name: "Search the docs" })).toBeVisible();
+            await expect(
+              page.locator('section[aria-label="Search documentation"] label'),
+            ).toHaveCount(0);
+            await expect(
+              page.locator(".docs-entrance").getByRole("link", { name: "All docs" }),
+            ).toHaveCount(1);
+            await expect(
+              page.locator(".docs-entrance").getByRole("navigation", { name: "Breadcrumb" }),
+            ).toHaveCount(0);
+          }
+          if (route === "/docs/command-center/today") {
+            await expect(
+              page.locator(".docs-entrance").getByRole("link", { name: "Command Center" }),
+            ).toHaveCount(1);
+          }
           const overflow = await page.evaluate(
             () => document.documentElement.scrollWidth > innerWidth + 1,
           );

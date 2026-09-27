@@ -1,17 +1,18 @@
 import { RecipeIngredients, RecipeIndex } from "@/components/command-center/WorkflowRecipes";
 import { DocsFigure } from "@/components/docs/DocsFigure";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import { Calendar } from "lucide-react";
+import { Calendar, ChevronLeft } from "lucide-react";
 import { getAllDocsParams, getDocsPage } from "@/lib/docs";
 import { seoMetadata } from "@/lib/og";
 import { formatDateOnly } from "@/lib/date-format";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
-import { DocsBreadcrumbs, DocsPager } from "@/components/docs/DocsNav";
+import { DocsPager } from "@/components/docs/DocsNav";
 import {
   Callout,
   CodeBlock,
@@ -65,6 +66,7 @@ export default async function DocsPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const page = getDocsPage(slug);
   if (!page) notFound();
+  const isSectionOverview = page.entry === page.section.pages[0];
 
   const { content: mdxContent } = await compileMDX({
     source: page.content,
@@ -80,10 +82,13 @@ export default async function DocsPage({ params }: { params: Promise<{ slug: str
 
   return (
     <>
-      <DocsBreadcrumbs items={page.breadcrumbs} />
-      <p className="mb-4 font-mono text-[0.66rem] uppercase tracking-[0.2em] text-white-muted">
-        {page.section.title}
-      </p>
+      <Link
+        href={isSectionOverview ? "/docs" : `/docs/${page.section.id}`}
+        className="mb-5 inline-flex min-h-10 items-center gap-1.5 text-sm text-white-muted transition-colors hover:text-heading"
+      >
+        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+        {isSectionOverview ? "All docs" : page.section.title}
+      </Link>
       <h1 className="max-w-[22ch] text-balance font-display text-[clamp(2rem,4.5vw,3.25rem)] font-medium leading-[1.04] tracking-[-0.04em] text-heading">
         {page.frontmatter.title}
       </h1>
