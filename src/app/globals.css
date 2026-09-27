@@ -3418,12 +3418,20 @@ summary:focus-visible {
   inset: 0;
 }
 @keyframes ambient-scroll-a {
-  from { transform: translateY(-90px); }
-  to { transform: translateY(90px); }
+  from {
+    transform: translateY(-90px);
+  }
+  to {
+    transform: translateY(90px);
+  }
 }
 @keyframes ambient-scroll-b {
-  from { transform: translateY(90px); }
-  to { transform: translateY(-90px); }
+  from {
+    transform: translateY(90px);
+  }
+  to {
+    transform: translateY(-90px);
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {

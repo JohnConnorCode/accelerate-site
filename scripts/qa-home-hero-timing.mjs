@@ -101,9 +101,9 @@ if (
 )
   failures.push("reduced motion did not render the full static hero");
 if (
-  await page.locator("#systems .ambient-drift").evaluateAll((nodes) =>
-    nodes.some((node) => getComputedStyle(node).animationName !== "none"),
-  )
+  await page
+    .locator("#systems .ambient-drift")
+    .evaluateAll((nodes) => nodes.some((node) => getComputedStyle(node).animationName !== "none"))
 )
   failures.push("reduced motion did not stop ambient scroll depth");
 await page.screenshot({ path: `${output}/mobile-reduced.png`, fullPage: false });
