@@ -78,7 +78,7 @@
     "src/app/api/admin/collections/reminders/route.ts": "04216824ae8bab39007829cd39dc033a7c55407b16040e739cfbc68aae5d302d",
     "src/app/api/admin/collections/route.ts": "11969cd591fe4f421e4a59b2359fc643309db8fb0ee043a54dc418f2ac1d7d66",
     "src/app/api/admin/collections/workspace/route.ts": "6570443cb6cc77d53e128dd6fd435afede6d6ad6e75731bb753f1d9eba124780",
-    "src/app/api/admin/contacts/directory/route.ts": "ef51272352955ee9168442aaf3276c2c0a8d7c98ead3fb52a42ad2a3e93dbac8",
+    "src/app/api/admin/contacts/directory/route.ts": "1ca4fedf5bead3f4a43767e7c31f4a1481c412d2f87cda6d74bc26d427e27d37",
     "src/app/api/admin/contacts/export/route.ts": "8a25082eec41bafa5cdf74c482b9fe0bedde5d4f3190693394b695ca54df6c21",
     "src/app/api/admin/contacts/route.ts": "32bcdb9034bcbb27c885dee932c2c36eed10d735ffa8cc12e1ed13e2b2a6a475",
     "src/app/api/admin/contacts/timeline/route.ts": "535d569ca9780a3af998c6e1c2e34a4f69edf717f597fffb64a3af39469bc36c",
@@ -339,6 +339,7 @@
     "src/lib/revenue-os/google.ts": "8a2525b55980e7ffa5c2480bb5245e19489bb3835a01fefb0092a044a5093214",
     "src/lib/revenue-os/health.ts": "d2aec6b40a32001b1a6f89d07fb29d00f5fca19d051ca301cdecd3fac3220d92",
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
+    "src/lib/revenue-os/identity.ts": "cb0b7bbff0e3efd674652a9e84000e6f8db56fe2033763541e6068ae4be0a6ed",
     "src/lib/revenue-os/inbound.ts": "32e579b58271f5870400442b92e8e16a2f54b2d22d7125faa385e3d3926bbece",
     "src/lib/revenue-os/integration-adapters.ts": "7f427bb456d210228a21a62dc8afe84514a5c1c3f864815157d93742cf871baf",
     "src/lib/revenue-os/integrations.ts": "8d4d468661f4325468c53e9dfd613fa5ecc7c84b85ece0cb36f8f5b00c7aa304",
@@ -819,7 +820,7 @@
       "adapters": [
         {
           "path": "src/app/api/admin/contacts/directory/route.ts",
-          "domainImports": ["@/lib/revenue-os/audit"],
+          "domainImports": ["@/lib/revenue-os/identity"],
           "directTables": ["contacts"]
         },
         {
@@ -837,7 +838,7 @@
           "directTables": ["contact_submissions"]
         }
       ],
-      "boundary": "Directory creation requires an active admin and writes a tenant-scoped canonical contact with an audit receipt. Website requests remain retained source rows with their own IDs.",
+      "boundary": "Directory reads require an active admin and filter by tenant. Creation calls the tenant-bound identity service for exact email matching, canonical insert and audit receipt. Website requests remain retained source rows with their own IDs.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
