@@ -136,7 +136,7 @@ export default function DebateProductionsPage() {
         {list.error && <p role="alert">{list.error.message}</p>}
         {(list.data ?? []).map((item) => <Link key={item.production.id}
           href={`/admin/debates?production=${item.production.id}`}
-          className="block rounded-lg border border-[var(--admin-border)] p-3 hover:bg-[var(--admin-surface-hover)]">
+          className="block rounded-lg border border-[var(--admin-border)] p-3 hover:shadow-sm">
           <strong className="block">{item.production.title}</strong>
           <span className="text-sm text-[var(--admin-muted)]">{item.nextAction.reason}</span>
         </Link>)}

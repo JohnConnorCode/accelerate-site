@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 125,
-  "mutationHandlerCount": 110,
+  "routeCount": 126,
+  "mutationHandlerCount": 112,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -1372,9 +1372,10 @@
         "@/lib/admin/auth",
         "@/lib/revenue-os/actions",
         "@/lib/revenue-os/google",
-        "next/server"
+        "next/server",
+        "node:crypto"
       ],
-      "sourceSha256": "e71ad8ae4e543356b264f0cac9729f08d1ddbc9826d92bd5e4a7c37ef81f6e10"
+      "sourceSha256": "6185a515cf0b4e5c5d1eb5f27f8f67a349af0c60b31104a9dd10fc02b5caebe4"
     },
     {
       "source": "src/app/api/admin/revenue-os/conversations/route.ts",
@@ -1391,6 +1392,25 @@
         "next/server"
       ],
       "sourceSha256": "1b637573f2ddd5024d10ffcf0ff3626aa2c70139003630e5742f05f3bb7f3abb"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/debates/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/debate-bookings",
+        "@/lib/revenue-os/debate-invitations",
+        "next/server"
+      ],
+      "sourceSha256": "5be18b6433de24807a19a24e4a003c601e5c80d576aad17daa0617d965e7d24d"
     },
     {
       "source": "src/app/api/admin/revenue-os/identity-review/route.ts",
