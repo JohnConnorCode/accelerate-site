@@ -10,7 +10,13 @@ import {
   validateGroundedRevenueAnswer,
 } from "@/lib/revenue-os/ai-context";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
-import { MAX_TOOL_TURNS, SYSTEM_CONTRACT } from "@/lib/revenue-os/ai-agent";
+import {
+  defaultCommandBundle,
+  finalizeStagedAnswer,
+  MAX_TOOL_TURNS,
+  SYSTEM_CONTRACT,
+} from "@/lib/revenue-os/ai-agent";
+import { selectRevenueToolPack } from "@/lib/revenue-os/ai-tools";
 import { coworkerSystemPrompt, MAX_COWORKER_TOOL_TURNS } from "@/lib/revenue-os/coworker-agent";
 import {
   BUDGET_WARN_STEPS,
@@ -35,6 +41,8 @@ function jobContractParts(job: string): unknown[] {
       return [
         ...shared,
         SYSTEM_CONTRACT,
+        selectRevenueToolPack.toString(),
+        defaultCommandBundle.toString(),
         MAX_TOOL_TURNS,
         // The budget reminder is part of this job's prompt, so removing it must
         // retire the evidence rather than slip through an unchanged fingerprint.
@@ -50,6 +58,7 @@ function jobContractParts(job: string): unknown[] {
           toolPack: "<pack>",
         }),
         validateGroundedRevenueAnswer.toString(),
+        finalizeStagedAnswer.toString(),
         unsourcedDollarFigures.toString(),
       ];
     case "coworker-task":
