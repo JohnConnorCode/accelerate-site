@@ -1,7 +1,11 @@
 import { createHash } from "node:crypto";
 import { AI_JOBS, DEFAULT_JOB_REASONING } from "./model-registry";
-import { approvedPricingPromptContext } from "./approved-pricing";
-import { PROPOSAL_SCHEMA, PROPOSAL_SYSTEM_PROMPT, validateProposal } from "./proposal-draft";
+import { assertApprovedPricingRows } from "./approved-pricing";
+import {
+  PROPOSAL_SCHEMA,
+  PROPOSAL_SYSTEM_PROMPT_TEMPLATE,
+  validateProposal,
+} from "./proposal-draft";
 import {
   AI_CONTEXT_VERSION,
   buildCoworkerGroundingContract,
@@ -11,10 +15,10 @@ import {
 } from "@/lib/revenue-os/ai-context";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
 import {
+  COPILOT_SYSTEM_CONTRACT_TEMPLATE,
   defaultCommandBundle,
   finalizeStagedAnswer,
   MAX_TOOL_TURNS,
-  SYSTEM_CONTRACT,
 } from "@/lib/revenue-os/ai-agent";
 import { selectRevenueToolPack } from "@/lib/revenue-os/ai-tools";
 import { coworkerSystemPrompt, MAX_COWORKER_TOOL_TURNS } from "@/lib/revenue-os/coworker-agent";
@@ -26,7 +30,7 @@ import {
 import {
   checkGrounding,
   RESPONDER_POLICY_VERSION,
-  RESPONDER_SYSTEM_PROMPT,
+  RESPONDER_SYSTEM_PROMPT_TEMPLATE,
 } from "@/lib/revenue-os/auto-responder";
 
 /**
@@ -40,7 +44,8 @@ function jobContractParts(job: string): unknown[] {
     case "copilot-answer":
       return [
         ...shared,
-        SYSTEM_CONTRACT,
+        // Installation identity and voice are configuration; safety rules live in the template.
+        COPILOT_SYSTEM_CONTRACT_TEMPLATE,
         selectRevenueToolPack.toString(),
         defaultCommandBundle.toString(),
         MAX_TOOL_TURNS,
@@ -79,15 +84,15 @@ function jobContractParts(job: string): unknown[] {
       return [
         ...shared,
         RESPONDER_POLICY_VERSION,
-        RESPONDER_SYSTEM_PROMPT,
+        RESPONDER_SYSTEM_PROMPT_TEMPLATE,
         checkGrounding.toString(),
       ];
     case "proposal-draft":
       return [
         ...shared,
-        PROPOSAL_SYSTEM_PROMPT,
+        PROPOSAL_SYSTEM_PROMPT_TEMPLATE,
         PROPOSAL_SCHEMA,
-        approvedPricingPromptContext(),
+        assertApprovedPricingRows.toString(),
         validateProposal.toString(),
       ];
     default:

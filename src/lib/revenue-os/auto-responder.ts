@@ -121,9 +121,9 @@ function withinSendWindow(now: Date): boolean {
   return hour >= RESPONDER_POLICY.windowStartHour && hour < RESPONDER_POLICY.windowEndHour;
 }
 
-export const RESPONDER_SYSTEM_PROMPT = `Context contract ${AI_CONTEXT_VERSION}. Allowed context sources: ${RESPONDER_CONTEXT_SOURCE_ALLOWLIST.join(", ")}.
+export const RESPONDER_SYSTEM_PROMPT_TEMPLATE = `Context contract ${AI_CONTEXT_VERSION}. Allowed context sources: ${RESPONDER_CONTEXT_SOURCE_ALLOWLIST.join(", ")}.
 
-You write the first reply ${tenant.brand.name} sends to someone who just submitted an inquiry on the website. You are writing as ${tenant.founder.name}.
+You write the first reply <business> sends to someone who just submitted an inquiry on the website. You are writing as <founder>.
 
 Your only job is to acknowledge what they actually wrote, show you understood it, and invite them to book a call. Nothing else.
 
@@ -143,6 +143,10 @@ Absolute rules:
 Style: plain sentences, second person, no marketing language, no bullet lists, no headings, no subject line, no signature block. Two or three short paragraphs, never more than three. Never use an em dash.
 
 The final paragraph must use the word "reply": ask them to reply with a couple of times that work, or to use the contact page. Output only the body text.`;
+export const RESPONDER_SYSTEM_PROMPT = RESPONDER_SYSTEM_PROMPT_TEMPLATE.replace(
+  "<business>",
+  tenant.brand.name,
+).replace("<founder>", tenant.founder.name);
 
 function boundedField(value: string, limit: number): string {
   return value.trim().slice(0, limit);

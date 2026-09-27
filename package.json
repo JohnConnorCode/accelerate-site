@@ -216,7 +216,7 @@
     "test:command-center-scheduler": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-command-center-scheduler.ts",
     "test:agent-memory-review": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-memory-review.ts",
     "test:agent-streaming": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-streaming.ts",
-    "test:eval-contract": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-eval-contract.ts",
+    "test:eval-contract": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-eval-contract.ts && NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-eval-contract.ts",
     "test:work-scheduler-dedupe": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-work-scheduler-dedupe.ts",
     "test:priority-selector": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-priority-selector.ts",
     "test:activity-ledger": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-activity-ledger.ts",
