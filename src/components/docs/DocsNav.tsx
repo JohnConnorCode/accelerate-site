@@ -2,30 +2,6 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { docsTrackForSlug, docsTracks, flattenDocsPages } from "@/content/docs/manifest";
 
-export function DocsBreadcrumbs({ items }: { items: Array<{ title: string; href: string }> }) {
-  return (
-    <nav
-      aria-label="Breadcrumb"
-      className="mb-8 flex min-h-8 flex-wrap items-center gap-1.5 font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted"
-    >
-      {items.map((item, index) => (
-        <span key={item.href} className="flex items-center gap-1.5">
-          {index > 0 && <ChevronRight className="h-3 w-3" aria-hidden="true" />}
-          {index === items.length - 1 ? (
-            <span aria-current="page" className="text-white-secondary">
-              {item.title}
-            </span>
-          ) : (
-            <Link href={item.href} className="transition-colors hover:text-white-secondary">
-              {item.title}
-            </Link>
-          )}
-        </span>
-      ))}
-    </nav>
-  );
-}
-
 export function DocsPager({ slug }: { slug: string[] }) {
   const pages = flattenDocsPages();
   const index = pages.findIndex(

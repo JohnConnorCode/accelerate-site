@@ -23,7 +23,6 @@ export interface DocsPage {
   frontmatter: DocsFrontmatter;
   content: string;
   readingTime: string;
-  breadcrumbs: Array<{ title: string; href: string }>;
   prev: DocsPageEntry | null;
   next: DocsPageEntry | null;
 }
@@ -61,7 +60,6 @@ export function getDocsPage(parts: string[]): DocsPage | null {
   const section = docsManifest.find((s) => s.pages.includes(entry))!;
   const pages = flattenDocsPages();
   const index = pages.indexOf(entry);
-  const sectionHref = `/docs/${section.id}`;
   return {
     entry,
     section,
@@ -72,13 +70,6 @@ export function getDocsPage(parts: string[]): DocsPage | null {
     },
     content,
     readingTime: readingTime(content).text,
-    breadcrumbs: [
-      { title: "Docs", href: "/docs" },
-      { title: section.title, href: sectionHref },
-      ...(entry.slug.length > 1 || entry.title !== section.title
-        ? [{ title: entry.title, href: `/docs/${entry.slug.join("/")}` }]
-        : []),
-    ],
     prev: index > 0 ? (pages[index - 1] ?? null) : null,
     next: index < pages.length - 1 ? (pages[index + 1] ?? null) : null,
   };
