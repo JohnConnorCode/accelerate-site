@@ -171,7 +171,7 @@ export function AIReadinessPanel() {
                 previews and unlocked reports use saved assessment records.
               </p>
               {data.eventAnalyticsCapped && (
-                <p className="mt-2 text-xs leading-5 text-amber-300">
+                <p className="mt-2 text-xs leading-5 text-[var(--admin-warning)]">
                   More than 10,000 events matched this window. Step counts show the latest 10,000.
                 </p>
               )}
