@@ -56,9 +56,7 @@ export function CalendlyEmbed() {
           Open calendar <span aria-hidden="true">↗</span>
         </a>
       </div>
-      <div
-        className="relative h-[700px] w-full overflow-hidden bg-white"
-      >
+      <div className="relative h-[700px] w-full overflow-hidden bg-white">
         <iframe
           src={EMBED_SRC}
           title="Book a 30-minute strategy call"
