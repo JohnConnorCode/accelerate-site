@@ -201,7 +201,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${display.variable} ${editorial.variable} ${mono.variable}`}
+      className={`${display.variable} ${sans.variable} ${mono.variable} ${editorial.variable}`}
       suppressHydrationWarning
     >
       <head>

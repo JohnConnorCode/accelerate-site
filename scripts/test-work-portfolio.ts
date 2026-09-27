@@ -97,9 +97,10 @@ assert.ok(
   publicStyles.includes(".motion-ready .work-reveal:not(.in)"),
   "Work must keep a delayed-hydration pending frame",
 );
-assert.ok(
-  publicStyles.includes(".motion-ready .hero:not(.loaded) .swap"),
-  "Hero PROFIT must wait on the loaded gate",
+assert.match(
+  publicStyles,
+  /\.motion-ready \.hero:not\(\.loaded\) \.hero-inline-cta\s*\{[^}]*opacity:\s*1;[^}]*filter:\s*none;/,
+  "Hero CTA must remain visible before hydration",
 );
 
 assert.deepEqual(

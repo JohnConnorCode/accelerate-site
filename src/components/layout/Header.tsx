@@ -121,6 +121,7 @@ export function Header({
         animate="visible"
         className={cn(
           "site-header fixed top-0 left-0 right-0 z-[90] transition-[background-color,backdrop-filter,box-shadow] duration-300",
+          pathname === "/" && "home-header",
           scrolled && "is-scrolled shadow-[0_12px_40px_rgba(11,11,11,0.08)]",
         )}
         style={{

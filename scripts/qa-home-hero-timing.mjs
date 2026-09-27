@@ -4,35 +4,8 @@ import { chromium } from "playwright";
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-home-hero-timing";
 await mkdir(output, { recursive: true });
-
 const browser = await chromium.launch({ headless: true });
 const failures = [];
-const timelines = {};
-
-function timingSnapshot() {
-  const style = (selector, pseudo = null) =>
-    getComputedStyle(document.querySelector(selector), pseudo);
-  const words = [...document.querySelectorAll(".hero .word > span")].map((node) => {
-    const value = getComputedStyle(node);
-    return {
-      name: value.animationName,
-      duration: value.animationDuration,
-      delay: value.animationDelay,
-    };
-  });
-  const strike = style(".hero .strike", "::after");
-  const profit = style(".hero-profit");
-  const rule = style(".hero-profit", "::after");
-  const cta = style(".hero-inline-cta");
-  return {
-    words,
-    strike: { duration: strike.transitionDuration, delay: strike.transitionDelay },
-    profit: { duration: profit.transitionDuration, delay: profit.transitionDelay },
-    rule: { duration: rule.transitionDuration, delay: rule.transitionDelay },
-    cta: { duration: cta.transitionDuration, delay: cta.transitionDelay },
-    overflow: document.documentElement.scrollWidth > innerWidth + 1,
-  };
-}
 
 for (const [label, viewport] of [
   ["desktop", { width: 1440, height: 900 }],
@@ -44,74 +17,61 @@ for (const [label, viewport] of [
   page.on("console", (message) => {
     if (message.type() === "error") failures.push(`${label}: console ${message.text()}`);
   });
-  await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  const firstPaint = await page.evaluate(() => {
+    const cta = document.querySelector(".hero-inline-cta");
+    return {
+      opacity: Number(getComputedStyle(cta).opacity),
+      aboveFold: cta.getBoundingClientRect().bottom <= innerHeight,
+      fullText: document.querySelector(".hero .h1")?.getAttribute("aria-label"),
+      overflow: document.documentElement.scrollWidth > innerWidth + 1,
+    };
+  });
+  if (firstPaint.opacity < 0.99 || !firstPaint.aboveFold || firstPaint.overflow)
+    failures.push(`${label}: CTA is hidden, below the fold, or page overflows at first paint`);
+  if (!firstPaint.fullText?.includes("PROFIT"))
+    failures.push(`${label}: headline is not complete in server HTML`);
+  await page.screenshot({ path: `${output}/${label}-first.png`, fullPage: false });
   await page.locator(".hero.loaded").waitFor({ timeout: 5_000 });
-  timelines[label] = await page.evaluate(timingSnapshot);
-  if (timelines[label].overflow) failures.push(`${label}: horizontal overflow`);
-  await page.waitForTimeout(1_000);
-  await page.screenshot({ path: `${output}/${label}-headline.png`, fullPage: false });
-  await page.waitForTimeout(3_850);
-  await page.screenshot({ path: `${output}/${label}-profit.png`, fullPage: false });
-  await page.waitForTimeout(1_350);
-  await page.screenshot({ path: `${output}/${label}-cta.png`, fullPage: false });
-  await page.waitForTimeout(1_200);
+  await page.waitForTimeout(1_600);
   const settled = await page.evaluate(() => ({
-    profit: Number(getComputedStyle(document.querySelector(".hero-profit")).opacity),
     cta: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
+    profit: Number(getComputedStyle(document.querySelector(".hero-profit")).opacity),
+    strike: getComputedStyle(document.querySelector(".strike"), "::after").transform,
+    word: document.querySelector(".hero-scramble-display")?.textContent?.trim(),
   }));
-  if (settled.profit < 0.99 || settled.cta < 0.99)
-    failures.push(`${label}: hero did not settle after the shared sequence`);
+  if (settled.cta < 0.99 || settled.profit < 0.99 || settled.strike === "matrix(0, 0, 0, 1, 0, 0)")
+    failures.push(`${label}: hero did not settle within 1.6 seconds`);
+  if (settled.word !== "the right AI") failures.push(`${label}: scramble did not resolve`);
+  await page.screenshot({ path: `${output}/${label}-settled.png`, fullPage: false });
   await context.close();
 }
 
-const comparable = (value) =>
-  JSON.stringify({
-    words: value.words,
-    strike: value.strike,
-    profit: value.profit,
-    rule: value.rule,
-    cta: value.cta,
-  });
-if (comparable(timelines.desktop) !== comparable(timelines.mobile))
-  failures.push(
-    `desktop/mobile timing mismatch: ${comparable(timelines.desktop)} !== ${comparable(timelines.mobile)}`,
-  );
-
-{
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    reducedMotion: "reduce",
-  });
-  const page = await context.newPage();
-  page.on("pageerror", (error) => failures.push(`reduced-motion: ${error.message}`));
-  page.on("console", (message) => {
-    if (message.type() === "error") failures.push(`reduced-motion: ${message.text()}`);
-  });
-  await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  const reduced = await page.evaluate(() => ({
-    highlightedVisible:
-      getComputedStyle(document.querySelector(".hero-intelligent-static")).display !== "none",
-    highlightedText: document.querySelector(".hero-intelligent-static")?.textContent?.trim(),
-    words: [...document.querySelectorAll(".hero .word > span")].every(
-      (node) => getComputedStyle(node).animationName === "none",
-    ),
-    profit: Number(getComputedStyle(document.querySelector(".hero-profit")).opacity),
-    cta: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
-  }));
-  if (
-    !reduced.words ||
-    reduced.profit < 0.99 ||
-    reduced.cta < 0.99 ||
-    !reduced.highlightedVisible ||
-    reduced.highlightedText !== "intelligent automation"
-  )
-    failures.push("mobile reduced motion did not render the complete hero immediately");
-  await context.close();
-}
-
+const context = await browser.newContext({
+  viewport: { width: 390, height: 844 },
+  reducedMotion: "reduce",
+});
+const page = await context.newPage();
+await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+const reduced = await page.evaluate(() => ({
+  word: document.querySelector(".hero-scramble-display")?.textContent?.trim(),
+  animations: [...document.querySelectorAll(".hero .word > span")].map(
+    (node) => getComputedStyle(node).animationName,
+  ),
+  cta: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
+}));
+if (
+  reduced.word !== "the right AI" ||
+  reduced.cta < 0.99 ||
+  reduced.animations.some((name) => name !== "none")
+)
+  failures.push("reduced motion did not render the full static hero");
+await page.screenshot({ path: `${output}/mobile-reduced.png`, fullPage: false });
+await context.close();
 await browser.close();
+
 if (failures.length) {
-  console.error(JSON.stringify({ result: "failed", failures, timelines }, null, 2));
+  console.error(JSON.stringify({ result: "failed", failures }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ result: "passed", timelines, screenshots: output }, null, 2));
+console.log(JSON.stringify({ result: "passed", screenshots: output }, null, 2));

@@ -62,10 +62,9 @@ routing or creating surface-specific history systems.
 
 - Public hydration is not a route transition. Initial public server content
   remains visible and must not animate out before animating in. The homepage
-  hero is the exception: it owns a mount-time `.loaded` gate. PROFIT and the
-  booking button enter with delayed CSS transitions off that gate, so the hero
-  must start unloaded and generic first-paint visibility rules must not force
-  those two beats visible. The admin is an application workspace: its first
+  hero owns a short, replayable `.loaded` decorative sequence, but its full
+  headline and booking button remain visible before hydration. The admin is
+  an application workspace: its first
   committed destination and every later route commit run the same single
   semantic entrance sequence.
 - Public and admin routes each have one entrance owner. Admin route motion is a

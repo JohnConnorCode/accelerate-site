@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "home-system-hero",
+    slug: "home-system-hero",
+    title: "A clearer, faster first impression",
+    description:
+      "The homepage now shows the full message and booking action immediately. A compact system diagram makes the strategy, custom build, managed execution, and team enablement offer easier to scan. The signature headline scramble and PROFIT reveal finish quickly, while the former full-screen pointer spotlight has been removed. The home navigation and service links use a restrained electric accent, and reduced-motion visitors see the complete static layout.",
+    category: "improvement",
+    publishedAt: "2026-09-26",
+  },
+  {
     id: "ask-ai-outreach-proposal-clarity",
     slug: "ask-ai-outreach-proposal-clarity",
     title: "Ask AI makes outreach proposals clearer",
