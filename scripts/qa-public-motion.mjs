@@ -518,10 +518,13 @@ for (const config of [
       const opening = await page.evaluate(() => ({
         cta: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
         fullText: document.querySelector(".hero .h1")?.getAttribute("aria-label"),
-        aboveFold: document.querySelector(".hero-inline-cta").getBoundingClientRect().bottom <= innerHeight,
+        aboveFold:
+          document.querySelector(".hero-inline-cta").getBoundingClientRect().bottom <= innerHeight,
       }));
       if (opening.cta < 0.99 || !opening.aboveFold || !opening.fullText?.includes("PROFIT"))
-        failures.push(`mobile reload ${reload}: hero action or headline is not visible immediately`);
+        failures.push(
+          `mobile reload ${reload}: hero action or headline is not visible immediately`,
+        );
       await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
       await page.waitForTimeout(1_600);
       const settled = await page.evaluate(() => ({
@@ -535,7 +538,9 @@ for (const config of [
     await page.goBack();
     await page.waitForURL(baseUrl + "/");
     await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
-    const restoredCta = await page.locator(".hero-inline-cta").evaluate((node) => Number(getComputedStyle(node).opacity));
+    const restoredCta = await page
+      .locator(".hero-inline-cta")
+      .evaluate((node) => Number(getComputedStyle(node).opacity));
     if (restoredCta < 0.99) failures.push("mobile back navigation: hero CTA became hidden");
     await page.waitForTimeout(1_600);
     await page.screenshot({ path: `${output}/mobile-home-hero-settled.png`, fullPage: false });
@@ -639,7 +644,11 @@ const firstPaint = await firstFramePage.evaluate(() => ({
   eyebrowOpacity: Number(getComputedStyle(document.querySelector(".hero-eyebrow")).opacity),
   ctaOpacity: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
 }));
-if (!firstPaint.headline?.includes("PROFIT") || firstPaint.eyebrowOpacity < 0.99 || firstPaint.ctaOpacity < 0.99)
+if (
+  !firstPaint.headline?.includes("PROFIT") ||
+  firstPaint.eyebrowOpacity < 0.99 ||
+  firstPaint.ctaOpacity < 0.99
+)
   failures.push(`home first paint hid the message or action (${JSON.stringify(firstPaint)})`);
 await firstFrameNavigation;
 await firstFramePage.locator(".hero.loaded").waitFor({ timeout: 4_000 });

@@ -55,10 +55,16 @@ const page = await context.newPage();
 await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
 const reduced = await page.evaluate(() => ({
   word: document.querySelector(".hero-scramble-display")?.textContent?.trim(),
-  animations: [...document.querySelectorAll(".hero .word > span")].map((node) => getComputedStyle(node).animationName),
+  animations: [...document.querySelectorAll(".hero .word > span")].map(
+    (node) => getComputedStyle(node).animationName,
+  ),
   cta: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
 }));
-if (reduced.word !== "the right AI" || reduced.cta < 0.99 || reduced.animations.some((name) => name !== "none"))
+if (
+  reduced.word !== "the right AI" ||
+  reduced.cta < 0.99 ||
+  reduced.animations.some((name) => name !== "none")
+)
   failures.push("reduced motion did not render the full static hero");
 await page.screenshot({ path: `${output}/mobile-reduced.png`, fullPage: false });
 await context.close();
