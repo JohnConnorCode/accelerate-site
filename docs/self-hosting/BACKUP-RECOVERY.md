@@ -53,6 +53,6 @@ Use the guarded rollback command in [Deployment](../../DEPLOY.md#rollback) to se
 
 ## Automated proof and its limits
 
-`npm run resources:run -- npm run test:cold-start:postgres` creates a disposable native database, exercises concurrent rate limits, saves a contact/task, dumps the database and restores it into another disposable database. It verifies membership, the completed task and migration replay after restoration. It requires PostgreSQL client/server tools, including `pg_dump` and `pg_restore`.
+`npm run resources:run -- npm run test:cold-start:postgres` creates a disposable native database, exercises concurrent rate limits, saves a contact/task, dumps the database and restores it into another disposable database. It verifies membership, the completed task and migration replay after restoration. It requires PostgreSQL 15+ binaries on `PATH`, including `initdb`, `pg_ctl`, `psql`, `pg_dump` and `pg_restore`.
 
 Auth and Storage interfaces in that test are simulated. Hosted Auth, uploaded-object restoration and a human recovery drill need their own receipts. Never label the native test as a completed hosted restore.

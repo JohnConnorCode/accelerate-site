@@ -4,6 +4,7 @@ import { domainFromEmailOrWebsite, normalizeEmail } from "./db";
 import { recordAudit } from "./audit";
 import { isConfiguredAdmin } from "@/lib/admin/access";
 import { recordActivity } from "./activities";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 
 export interface ResolveIdentityInput {
   name: string;
@@ -30,27 +31,64 @@ export function exactIlike(value: string): string {
 export async function findCanonicalContactByEmail(
   supabase: SupabaseClient,
   value: string | null | undefined,
+  tenantId?: string,
 ): Promise<CanonicalEmailMatch | null> {
   const email = normalizeEmail(value);
   if (!email) return null;
-  const [primary, alternate] = await Promise.all([
-    supabase
-      .from("contacts")
-      .select("id,full_name,primary_email")
-      .ilike("primary_email", exactIlike(email))
-      .limit(3),
-    supabase
-      .from("contacts")
-      .select("id,full_name,primary_email")
-      .contains("alternate_emails", [email])
-      .limit(3),
-  ]);
+  let primaryQuery = supabase
+    .from("contacts")
+    .select("id,full_name,primary_email")
+    .ilike("primary_email", exactIlike(email));
+  let alternateQuery = supabase
+    .from("contacts")
+    .select("id,full_name,primary_email")
+    .contains("alternate_emails", [email]);
+  if (tenantId) {
+    primaryQuery = primaryQuery.eq("tenant_id", tenantId);
+    alternateQuery = alternateQuery.eq("tenant_id", tenantId);
+  }
+  const [primary, alternate] = await Promise.all([primaryQuery.limit(3), alternateQuery.limit(3)]);
   if (primary.error) throw new Error(primary.error.message);
   if (alternate.error) throw new Error(alternate.error.message);
   const matches = new Map<string, CanonicalEmailMatch>();
   for (const row of [...(primary.data ?? []), ...(alternate.data ?? [])]) matches.set(row.id, row);
   if (matches.size > 1) throw new Error(`Ambiguous contact identity for ${email}`);
   return [...matches.values()][0] ?? null;
+}
+
+/** Manual creation uses the same exact identity check as imports and requires
+ * the authenticated workspace's tenant-bound database. */
+export async function createManualContact(
+  supabase: SupabaseClient,
+  input: { name: string; email: string; phone?: string; actorEmail?: string | null },
+) {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Contact creation requires a tenant-bound workspace");
+  const email = normalizeEmail(input.email);
+  if (!email || !input.name.trim()) throw new Error("Enter a name and valid email address");
+  if (await findCanonicalContactByEmail(supabase, email, tenantId))
+    return { status: "duplicate" as const };
+  const { data, error } = await supabase
+    .from("contacts")
+    .insert({
+      tenant_id: tenantId,
+      full_name: input.name.trim(),
+      primary_email: email,
+      phone: input.phone?.trim() || null,
+      source: "manual",
+    })
+    .select("id,full_name,primary_email")
+    .single();
+  if (error?.code === "23505") return { status: "duplicate" as const };
+  if (error || !data) throw new Error(error?.message || "Contact could not be added");
+  await recordAudit(supabase, {
+    actorEmail: input.actorEmail,
+    action: "contact.created",
+    entityType: "contact",
+    entityId: data.id,
+    after: data,
+  });
+  return { status: "created" as const, contact: data };
 }
 
 /** Exact phone lookup, for channels (WhatsApp, SMS) whose messages often

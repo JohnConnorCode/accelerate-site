@@ -14,6 +14,10 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- A newly connected workspace can add a contact directly from Contacts and create a follow-up from that contact's record. The task is linked to the contact timeline and refuses cross-workspace contact IDs. The fictional demo persists newly added contacts instead of claiming success without saving them.
+
+- The local cold-start PostgreSQL check now reports a clear version requirement before migrations; self-hosting and recovery guides specify PostgreSQL 15+ for this native test.
+
 - Bundle licensed fonts locally so production and cold-install builds no longer depend on Google Fonts availability. Existing font families and theme variables are preserved.
 
 - Shared record openers, keyboard actions and public motion behavior are reconciled across the admin workspace. Production builds retain native document-runtime verification while using the stable Webpack path and Next.js proxy convention.

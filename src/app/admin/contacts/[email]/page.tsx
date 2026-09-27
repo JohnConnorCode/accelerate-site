@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -59,6 +60,16 @@ export default function ContactTimelinePage() {
   );
   const timeline = relationship.data?.timeline ?? [];
   const canonical = relationship.data?.canonical ?? null;
+  const contact = canonical?.contact ?? null;
+  const refetch = relationship.refetch;
+
+  useEffect(() => {
+    const refresh = (event: Event) => {
+      if (event instanceof CustomEvent && event.detail?.id === contact?.id) void refetch();
+    };
+    window.addEventListener("admin:refresh-contact", refresh);
+    return () => window.removeEventListener("admin:refresh-contact", refresh);
+  }, [contact?.id, refetch]);
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
@@ -104,6 +115,21 @@ export default function ContactTimelinePage() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+              {contact && (
+                <button
+                  type="button"
+                  className="admin-button admin-button--primary"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("admin:add-task", {
+                        detail: { contactId: contact.id, contactName: contact.full_name },
+                      }),
+                    )
+                  }
+                >
+                  Add follow-up
+                </button>
+              )}
               {canonical?.status === "connected" ? (
                 <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                   <CircleCheckBig className="h-3.5 w-3.5" /> Revenue OS connected

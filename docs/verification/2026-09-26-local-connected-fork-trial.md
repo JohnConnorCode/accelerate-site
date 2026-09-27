@@ -1,0 +1,13 @@
+# Isolated connected fork trial (2026-09-26)
+
+This is partial local evidence, not a hosted installation or release acceptance. The application source was `bb67b6b8ae1953b7b341ddea5b90b51876be32d8` (PR #152 on main); the install-guide correction in PR #153 was reviewed separately. No original Accelerate database, Auth project, customer data, or hosting project was used.
+
+An isolated Supabase CLI 2.72.7 stack ran PostgreSQL 17, Auth, REST, Storage, Kong and local mail capture. The guided `npm run setup` plan targeted only `127.0.0.1`, listed 117 pending migrations and a fictional owner. `npm run setup -- --apply --project local` passed all eight steps: database preflight, owner lookup and creation, database identity match, migration ledger, workspace read, membership read and membership verification. The resulting workspace was Harbor Workspace with `founder@local.test` as its fictional owner. A real local Supabase email/password API sign-in returned a session, and a Chromium browser sign-in reached `/t/accelerate/admin/today`.
+
+The browser was opened at `localhost:3000`; Next.js development mode blocked hot-reload resources when opened at `127.0.0.1:3000`. The documented `npm run dev` origin worked. The fresh Contacts directory loaded but offered no direct contact creation. List import expected OpenRouter, which was intentionally disconnected. The missing direct action is addressed in the follow-up first-contact fix; contact/task persistence and sign-out were not completed in this trial.
+
+The Supabase images exhausted the shared Mac's disk safety margin; the repository resource gate stopped the development server at 0.9 GiB free. The disposable local containers, volumes, images, build output and test credentials were removed. Disk recovered to about 12 GiB free. Do not count this as hosted Auth/Storage, backup, browser-write, independent-human, or production evidence.
+
+## Separate fictional-demo check
+
+On the first-contact candidate rebased onto PR #153, the credential-free Northline Roofing demo accepted a new fictional contact. The new row remained after reload. Its record hub accepted a related follow-up and showed the task after another reload. The Add contact dialog opened at 1440 px and 390 px; the mobile viewport had no horizontal overflow. The demo runtime now persists the contact in session storage and rejects duplicate email, rather than returning a successful response without a saved row. This checks the fictional demo only; the connected write path still needs a new isolated run.

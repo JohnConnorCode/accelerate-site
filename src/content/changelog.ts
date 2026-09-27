@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-26",
   },
   {
+    id: "ask-ai-outreach-proposal-clarity",
+    slug: "ask-ai-outreach-proposal-clarity",
+    title: "Ask AI makes outreach proposals clearer",
+    description:
+      "When you ask Ask AI to email someone, its governed proposal tool is available from the start of the request. If it stages a proposal, the assistant reports that status without calling the message sent. Open Work to check the recipient and wording, approve the action, then inspect its result.",
+    category: "improvement",
+    publishedAt: "2026-09-26",
+  },
+  {
     id: "approval-queue-triage-gate",
     slug: "approval-queue-triage-gate",
     title: "A quieter approvals queue that explains itself",

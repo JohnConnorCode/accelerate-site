@@ -17,6 +17,8 @@ import assert from "node:assert/strict";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { failJobRun, finishJobRun, startJobRun, withJobRun } from "../src/lib/revenue-os/runs";
 import { createRevenueTask } from "../src/lib/revenue-os/tasks";
+import { createManualContact } from "../src/lib/revenue-os/identity";
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import {
   globalDailySendCap,
   normalizeCampaignPolicy,
@@ -286,6 +288,78 @@ async function main() {
     2,
     "without a dedupe key every task must be created",
   );
+
+  const tenantA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const tenantB = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  const manualContacts = new MemorySupabase({
+    contacts: [
+      {
+        id: "other-tenant-contact",
+        tenant_id: tenantB,
+        primary_email: "maya@example.test",
+        full_name: "Other Maya",
+      },
+    ],
+    audit_log: [],
+  });
+  const manualDatabase = bindTenantDatabaseForTest(manualContacts.client as never, tenantA);
+  const createdContact = await createManualContact(manualDatabase, {
+    name: "Maya Trial",
+    email: "MAYA@example.test",
+    actorEmail: "founder@local.test",
+  });
+  assert.equal(createdContact.status, "created", "another tenant's email must not block creation");
+  assert.equal(manualContacts.rows("contacts")[1]?.tenant_id, tenantA);
+  assert.equal(manualContacts.rows("audit_log").length, 1);
+  const duplicateContact = await createManualContact(manualDatabase, {
+    name: "Another Maya",
+    email: "maya@example.test",
+    actorEmail: "founder@local.test",
+  });
+  assert.equal(duplicateContact.status, "duplicate");
+  assert.equal(manualContacts.rows("contacts").length, 2);
+  await rejects(
+    () =>
+      createManualContact(manualContacts.client as never, {
+        name: "Unbound",
+        email: "unbound@example.test",
+        actorEmail: "founder@local.test",
+      }),
+    "tenant-bound",
+    "an unbound caller cannot create a contact",
+  );
+  const linked = new MemorySupabase({
+    contacts: [
+      { id: "contact-a", tenant_id: tenantA },
+      { id: "contact-b", tenant_id: tenantB },
+    ],
+    tasks: [],
+    audit_log: [],
+    activities: [],
+  });
+  const tenantDatabase = bindTenantDatabaseForTest(linked.client as never, tenantA);
+  await createRevenueTask(tenantDatabase, {
+    title: "Call Jane",
+    source: "manual",
+    actorEmail: "founder@local.test",
+    relatedType: "contact",
+    relatedId: "contact-a",
+    relatedName: "Jane",
+  });
+  assert.equal(linked.rows("tasks")[0]?.contact_id, "contact-a");
+  await rejects(
+    () =>
+      createRevenueTask(tenantDatabase, {
+        title: "Call another tenant",
+        source: "manual",
+        actorEmail: "founder@local.test",
+        relatedType: "contact",
+        relatedId: "contact-b",
+      }),
+    "unavailable",
+    "a related follow-up must not link a contact from another workspace",
+  );
+  assert.equal(linked.rows("tasks").length, 1);
 
   await rejects(
     () =>

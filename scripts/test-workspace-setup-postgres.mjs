@@ -58,6 +58,11 @@ const config = setupConfiguration({
 assert.equal(config.ready, true);
 let started = false;
 try {
+  const postgresMajor = Number(run("initdb", ["--version"]).match(/\(PostgreSQL\) (\d+)/)?.[1]);
+  assert(
+    postgresMajor >= 15,
+    "Cold-start test requires PostgreSQL 15+ binaries on PATH (initdb, pg_ctl, psql, pg_dump, pg_restore).",
+  );
   run("initdb", ["-D", join(root, "data"), "-A", "trust", "-U", "postgres"]);
   run("pg_ctl", [
     "-D",

@@ -22,8 +22,8 @@
     "src/app/admin/clients/page.tsx": "3aee0d1f0797d216b6baf11676984cc4a3acdd01086a85eccc860d9fd4479c8e",
     "src/app/admin/collections/page.tsx": "0564cde5a5e31bd65faeb64668a47ce9fbef778d7d6d0b0570fc93e9471e8482",
     "src/app/admin/contact-imports/page.tsx": "e6391ae36168d9554a45d83790d5fa56a866029e55710dea679a2ce207d97d18",
-    "src/app/admin/contacts/[email]/page.tsx": "d1d6bc748e4df396c95b433e9d54337122163282ebdcab85b0cb65e81302ce0d",
-    "src/app/admin/contacts/page.tsx": "b6245e686271125fbb9a44f37ffcc03af1f79b8ade547f6598c6fc1b463ec3bd",
+    "src/app/admin/contacts/[email]/page.tsx": "d8b67d120a8d711bde2fb433d33eb7a7f3a64967db14fc2f2e9e33dca140598a",
+    "src/app/admin/contacts/page.tsx": "466e503e618bacebc3e6fbdebc5dfecce2ecb7b8041258b8e26c13dfd57037a7",
     "src/app/admin/content/page.tsx": "a0030f8d7358b117a1ee97ddc8321aefdeb07f665c9d72238929f441035fef60",
     "src/app/admin/conversations/page.tsx": "bd265281c241928e52d832a844116dc577d206d47c4738cb59952be96c9dc19d",
     "src/app/admin/email-sequences/page.tsx": "a0653d19827ea87cffd77c12501180118ce97099238e09ed1617c27e23aaa881",
@@ -78,6 +78,7 @@
     "src/app/api/admin/collections/reminders/route.ts": "04216824ae8bab39007829cd39dc033a7c55407b16040e739cfbc68aae5d302d",
     "src/app/api/admin/collections/route.ts": "11969cd591fe4f421e4a59b2359fc643309db8fb0ee043a54dc418f2ac1d7d66",
     "src/app/api/admin/collections/workspace/route.ts": "6570443cb6cc77d53e128dd6fd435afede6d6ad6e75731bb753f1d9eba124780",
+    "src/app/api/admin/contacts/directory/route.ts": "1ca4fedf5bead3f4a43767e7c31f4a1481c412d2f87cda6d74bc26d427e27d37",
     "src/app/api/admin/contacts/export/route.ts": "8a25082eec41bafa5cdf74c482b9fe0bedde5d4f3190693394b695ca54df6c21",
     "src/app/api/admin/contacts/route.ts": "32bcdb9034bcbb27c885dee932c2c36eed10d735ffa8cc12e1ed13e2b2a6a475",
     "src/app/api/admin/contacts/timeline/route.ts": "535d569ca9780a3af998c6e1c2e34a4f69edf717f597fffb64a3af39469bc36c",
@@ -176,7 +177,7 @@
     "src/components/admin/AdminAuthLayout.tsx": "52ff564e4ebb8e3f755b97ba7a609e41dd06a5a8f513ec8c98115c114e12ec52",
     "src/components/admin/AdminButton.tsx": "d31ec6fd7aa2d9778b08d5c5ebf14afee9ce0a3abf72edc1dbe858aa162d320d",
     "src/components/admin/AdminConfirmationProvider.tsx": "c194e2b52066576006d44b7a7401c0e81f0ba34ac7fd1023a0a35bab2e59cb35",
-    "src/components/admin/AdminCreateTaskModal.tsx": "f8c573364f9088abaaf88c782fb4f5217632fdf1950ed07a887597a30015e13f",
+    "src/components/admin/AdminCreateTaskModal.tsx": "d266f1bbe609f7dc004a0d8d49249ee593c8e6b706c298ae098850e4be32cd16",
     "src/components/admin/AdminDemoBoundary.tsx": "d98b0fa181be2d7b9abe8e908f5de1ffad127542816faf74509f98846ea2c126",
     "src/components/admin/AdminDensityControl.tsx": "f57410fbe25fae548a806878ff866ebce7b905147dd6d08eee260a0696c6e622",
     "src/components/admin/AdminDesignPreview.tsx": "b253e6b1a04bad3692b012f37530e5e457dd497af57cb5a86fc0358929a5cbf5",
@@ -304,7 +305,7 @@
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
-    "src/lib/revenue-os/ai-agent.ts": "c5f6cb65ad1252f1a89d6c6dfcbfbdade228be8133b8eb8a5a914a7458f89292",
+    "src/lib/revenue-os/ai-agent.ts": "799722bd7990ab4d3b3969c7fc76df8916b88c46d9aba16445a5e25294a67475",
     "src/lib/revenue-os/ai-conversations.ts": "e1c24666ab9b00840d804e7301d347dada1e424c85637710811e2d603ac952b7",
     "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "87a1920d2f8c49a557cf3c54577909548fdcfcf64a8b30a8c5b8cc4a2aefe54b",
@@ -338,6 +339,7 @@
     "src/lib/revenue-os/google.ts": "8a2525b55980e7ffa5c2480bb5245e19489bb3835a01fefb0092a044a5093214",
     "src/lib/revenue-os/health.ts": "d2aec6b40a32001b1a6f89d07fb29d00f5fca19d051ca301cdecd3fac3220d92",
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
+    "src/lib/revenue-os/identity.ts": "cb0b7bbff0e3efd674652a9e84000e6f8db56fe2033763541e6068ae4be0a6ed",
     "src/lib/revenue-os/inbound.ts": "32e579b58271f5870400442b92e8e16a2f54b2d22d7125faa385e3d3926bbece",
     "src/lib/revenue-os/integration-adapters.ts": "7f427bb456d210228a21a62dc8afe84514a5c1c3f864815157d93742cf871baf",
     "src/lib/revenue-os/integrations.ts": "8d4d468661f4325468c53e9dfd613fa5ecc7c84b85ece0cb36f8f5b00c7aa304",
@@ -814,8 +816,13 @@
     {
       "route": "/admin/contacts",
       "page": "src/app/admin/contacts/page.tsx",
-      "primaryAction": "Review submissions, export and delete selected records",
+      "primaryAction": "Find and add canonical contacts; review website requests",
       "adapters": [
+        {
+          "path": "src/app/api/admin/contacts/directory/route.ts",
+          "domainImports": ["@/lib/revenue-os/identity"],
+          "directTables": ["contacts"]
+        },
         {
           "path": "src/app/api/admin/contacts/export/route.ts",
           "domainImports": [],
@@ -831,7 +838,7 @@
           "directTables": ["contact_submissions"]
         }
       ],
-      "boundary": "List rows are contact_submissions, not the canonical contacts table; preserve source IDs.",
+      "boundary": "Directory reads require an active admin and filter by tenant. Creation calls the tenant-bound identity service for exact email matching, canonical insert and audit receipt. Website requests remain retained source rows with their own IDs.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
@@ -841,7 +848,7 @@
     {
       "route": "/admin/contacts/[email]",
       "page": "src/app/admin/contacts/[email]/page.tsx",
-      "primaryAction": "Inspect a contact timeline",
+      "primaryAction": "Inspect a contact timeline and add a linked follow-up",
       "adapters": [
         {
           "path": "src/app/api/admin/contacts/timeline/route.ts",
@@ -862,9 +869,14 @@
             "tasks",
             "website_grades"
           ]
+        },
+        {
+          "path": "src/app/api/admin/tasks/route.ts",
+          "domainImports": ["@/lib/revenue-os/action-executor"],
+          "directTables": ["tasks"]
         }
       ],
-      "boundary": "URL identity is email; do not infer canonical uniqueness from the route parameter.",
+      "boundary": "The route accepts a contact ID or email. A linked follow-up must resolve the contact within the active tenant before task creation and appears on that contact's timeline.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"

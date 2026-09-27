@@ -114,7 +114,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do we control what AI can do?",
     answer:
-      "AI-proposed changes go through the shared approval process. You review the target and exact change, and execution checks current permissions and source state. External sends and other consequential operations retain required human approval. Internal autonomy depends on the action’s policy, and you can disable optional modules or plugins.",
+      "AI-proposed changes go through the shared approval process. If you ask Ask AI to email someone, it can stage the exact message in the conversation and directs you to Work to check the recipient and wording. Approval and execution have separate results, so inspect the receipt after approving. External sends and other consequential operations retain required human approval. Internal autonomy depends on the action’s policy, and you can disable optional modules or plugins.",
   },
   {
     question: "Do I have to learn new software?",
