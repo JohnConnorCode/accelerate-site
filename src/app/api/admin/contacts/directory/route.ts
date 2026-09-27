@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
-import { recordAudit } from "@/lib/revenue-os/audit";
+import { createManualContact } from "@/lib/revenue-os/identity";
 
 const newContact = z
   .object({
@@ -39,34 +39,28 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const body = newContact.safeParse(await request.json().catch(() => null));
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch (error) {
+    console.warn(
+      "[contacts/directory] invalid JSON",
+      error instanceof Error ? error.name : "unknown",
+    );
+    return NextResponse.json({ error: "Enter a name and valid email address" }, { status: 400 });
+  }
+  const body = newContact.safeParse(payload);
   if (!body.success)
     return NextResponse.json({ error: "Enter a name and valid email address" }, { status: 400 });
 
-  const { data, error } = await auth.database
-    .from("contacts")
-    .insert({
-      tenant_id: auth.tenant.id,
-      full_name: body.data.name,
-      primary_email: body.data.email,
-      phone: body.data.phone || null,
-      source: "manual",
-    })
-    .select("id,full_name,primary_email")
-    .single();
-  if (error?.code === "23505")
+  const result = await createManualContact(auth.database, {
+    ...body.data,
+    actorEmail: auth.user.email,
+  });
+  if (result.status === "duplicate")
     return NextResponse.json(
       { error: "A contact with this email already exists" },
       { status: 409 },
     );
-  if (error || !data)
-    return NextResponse.json({ error: "Contact could not be added" }, { status: 500 });
-  await recordAudit(auth.database, {
-    actorEmail: auth.user.email,
-    action: "contact.created",
-    entityType: "contact",
-    entityId: data.id,
-    after: data,
-  });
-  return NextResponse.json({ contact: data }, { status: 201 });
+  return NextResponse.json({ contact: result.contact }, { status: 201 });
 }
