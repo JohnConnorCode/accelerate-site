@@ -131,6 +131,11 @@ export interface TenantConfig {
  * Accelerate's bootstrap/default tenant and public marketing identity. Tenant
  * workspaces validate stored configuration against this same interface.
  */
+export const DEFAULT_AI_VOICES = {
+  branded: "Be concise and operational. Never call the business an agency.",
+  neutral: "Use clear, helpful language. Do not invent business facts.",
+} as const;
+
 const agencyTenant: TenantConfig = {
   brand: {
     name: "Accelerate",
@@ -153,7 +158,7 @@ const agencyTenant: TenantConfig = {
   ai: {
     businessDescriptor:
       "Accelerate, an AI strategy, solutions, and execution partner for small business",
-    voice: "Be concise and operational. Never call the business an agency.",
+    voice: DEFAULT_AI_VOICES.branded,
     positioning:
       "Accelerate learns how a small business works, identifies where AI and automation can free time or increase revenue, then advises, builds, integrates, runs, trains, and improves the right custom solution. We do not call ourselves an agency, and we do not force every business into the same product.",
   },
@@ -218,7 +223,7 @@ export const tenant: TenantConfig =
         capabilities: { publicBooking: false },
         ai: {
           businessDescriptor: `${neutralName}, an independently operated business workspace`,
-          voice: "Use clear, helpful language. Do not invent business facts.",
+          voice: DEFAULT_AI_VOICES.neutral,
           positioning:
             "An owned website and business workspace with shared records, reviewed actions, and configurable integrations.",
         },

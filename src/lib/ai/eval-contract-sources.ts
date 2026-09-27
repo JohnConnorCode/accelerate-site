@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { AI_JOBS, DEFAULT_JOB_REASONING } from "./model-registry";
 import { approvedPricingPromptContext } from "./approved-pricing";
-import { PROPOSAL_SCHEMA, PROPOSAL_SYSTEM_PROMPT, validateProposal } from "./proposal-draft";
+import { PROPOSAL_SCHEMA, PROPOSAL_SYSTEM_PROMPT_TEMPLATE, validateProposal } from "./proposal-draft";
 import {
   AI_CONTEXT_VERSION,
   buildCoworkerGroundingContract,
@@ -10,11 +10,12 @@ import {
   validateGroundedRevenueAnswer,
 } from "@/lib/revenue-os/ai-context";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
+import { DEFAULT_AI_VOICES } from "@/config/tenant";
 import {
+  COPILOT_SYSTEM_CONTRACT_TEMPLATE,
   defaultCommandBundle,
   finalizeStagedAnswer,
   MAX_TOOL_TURNS,
-  SYSTEM_CONTRACT,
 } from "@/lib/revenue-os/ai-agent";
 import { selectRevenueToolPack } from "@/lib/revenue-os/ai-tools";
 import { coworkerSystemPrompt, MAX_COWORKER_TOOL_TURNS } from "@/lib/revenue-os/coworker-agent";
@@ -26,7 +27,7 @@ import {
 import {
   checkGrounding,
   RESPONDER_POLICY_VERSION,
-  RESPONDER_SYSTEM_PROMPT,
+  RESPONDER_SYSTEM_PROMPT_TEMPLATE,
 } from "@/lib/revenue-os/auto-responder";
 
 /**
@@ -40,7 +41,9 @@ function jobContractParts(job: string): unknown[] {
     case "copilot-answer":
       return [
         ...shared,
-        SYSTEM_CONTRACT,
+        // Installation identity is data; both built-in voice instructions are policy.
+        COPILOT_SYSTEM_CONTRACT_TEMPLATE,
+        DEFAULT_AI_VOICES,
         selectRevenueToolPack.toString(),
         defaultCommandBundle.toString(),
         MAX_TOOL_TURNS,
@@ -79,13 +82,13 @@ function jobContractParts(job: string): unknown[] {
       return [
         ...shared,
         RESPONDER_POLICY_VERSION,
-        RESPONDER_SYSTEM_PROMPT,
+        RESPONDER_SYSTEM_PROMPT_TEMPLATE,
         checkGrounding.toString(),
       ];
     case "proposal-draft":
       return [
         ...shared,
-        PROPOSAL_SYSTEM_PROMPT,
+        PROPOSAL_SYSTEM_PROMPT_TEMPLATE,
         PROPOSAL_SCHEMA,
         approvedPricingPromptContext(),
         validateProposal.toString(),

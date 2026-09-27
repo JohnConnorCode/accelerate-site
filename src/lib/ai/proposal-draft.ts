@@ -2,7 +2,7 @@ import { tenant } from "@/config/tenant";
 import { approvedPricingPromptContext, assertApprovedPricingRows } from "@/lib/ai/approved-pricing";
 
 /** Proposal drafting contract, shared by the generate route and the model eval. */
-export const PROPOSAL_SYSTEM_PROMPT = `You generate JSON business proposals for ${tenant.ai.businessDescriptor}, which builds and runs custom AI systems for small businesses.
+export const PROPOSAL_SYSTEM_PROMPT_TEMPLATE = `You generate JSON business proposals for <business-descriptor>, which builds and runs custom AI systems for small businesses.
 
 Style:
 - Confident, specific, revenue-first. Talk in jobs, clients, appointments, revenue, not "leads."
@@ -27,6 +27,10 @@ You always return ONLY a valid JSON object with exactly this shape:
 }
 
 No commentary outside the JSON. No markdown fences.`;
+export const PROPOSAL_SYSTEM_PROMPT = PROPOSAL_SYSTEM_PROMPT_TEMPLATE.replace(
+  "<business-descriptor>",
+  tenant.ai.businessDescriptor,
+);
 
 export const PROPOSAL_SCHEMA = {
   type: "object",
