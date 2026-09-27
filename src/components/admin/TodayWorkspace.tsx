@@ -19,6 +19,7 @@ import {
 import { PageHeader } from "./PageHeader";
 import { AdminDialog } from "./AdminDialog";
 import { AdminAsyncRegion } from "./AdminAsyncRegion";
+import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ActionReviewDialog, type ActionRow } from "./ActionReviewDialog";
 import { TodayViewEditor } from "./TodayViewEditor";
 import { useAdminAI } from "./AdminAIProvider";
@@ -941,7 +942,7 @@ export function TodayWorkspace() {
         loading={query.isPending}
         hasData={Boolean(snapshot)}
         label="Loading Today"
-        loadingFallback={<div className={styles.skeleton} />}
+        loadingFallback={<LoadingSkeleton variant="today" />}
       >
         {snapshot && (
           <div

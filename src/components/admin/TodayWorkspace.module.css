@@ -691,11 +691,6 @@
   margin: 12px 0;
   font-size: var(--admin-text-label);
 }
-.skeleton {
-  height: 180px;
-  background: var(--admin-surface-subtle);
-  border-radius: var(--admin-control-radius);
-}
 @media (max-width: 640px) {
   .toolbar {
     margin: 18px 0;

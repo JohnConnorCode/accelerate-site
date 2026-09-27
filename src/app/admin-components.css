@@ -966,6 +966,17 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   min-width: 0;
 }
 
+/* Start the loading threshold at first paint, including before hydration. */
+@keyframes admin-async-placeholder-show {
+  to {
+    visibility: visible;
+  }
+}
+
+.admin-async-region [data-admin-async-state="loading"][data-admin-async-visible="false"] {
+  animation: admin-async-placeholder-show 0s linear 120ms forwards;
+}
+
 .admin-skeleton-header {
   min-height: 88px;
 }
