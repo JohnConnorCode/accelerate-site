@@ -11,7 +11,7 @@ Style:
 - Pricing can only use the approved service catalog below. For every priced item, use the exact catalog name and exact one-time/monthly amounts. Do not invent discounts, bundles, taxes, terms, or custom prices. If no catalog item fits, use null for pricing and state that founder scope confirmation is required.
 
 APPROVED SERVICE CATALOG (the only source permitted for money):
-${approvedPricingPromptContext()}
+<approved-service-catalog>
 
 You always return ONLY a valid JSON object with exactly this shape:
 {
@@ -30,7 +30,7 @@ No commentary outside the JSON. No markdown fences.`;
 export const PROPOSAL_SYSTEM_PROMPT = PROPOSAL_SYSTEM_PROMPT_TEMPLATE.replace(
   "<business-descriptor>",
   tenant.ai.businessDescriptor,
-);
+).replace("<approved-service-catalog>", approvedPricingPromptContext());
 
 export const PROPOSAL_SCHEMA = {
   type: "object",

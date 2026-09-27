@@ -293,7 +293,7 @@
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
     "src/lib/ai/openrouter-models.ts": "005042ecb73505abc050af9b753e47db588f80fcfe3598fd81a04112a7b72784",
     "src/lib/ai/openrouter.ts": "5da3d5a8f6e0dd66d99e56554aec3f62095df6a59f04a66124de39eb15a89be7",
-    "src/lib/ai/proposal-draft.ts": "87250c55a12582108e168bc917b2a279cc5e103c64be20657665b2823cbc5f2f",
+    "src/lib/ai/proposal-draft.ts": "29261d2c18f3327e757c9755a16ad2b198e6022387479d24fd7db69084fd251a",
     "src/lib/email/blocks.ts": "694fecaa691755074a7eafa07f2cb8170af100bb2b2c0614e70f5a344eec2e0b",
     "src/lib/email/booking.ts": "b6559df14564fd4d7a208c11c246f711f1f410023301494655a9c7b4856b034a",
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { AI_JOBS, DEFAULT_JOB_REASONING } from "./model-registry";
-import { approvedPricingPromptContext } from "./approved-pricing";
+import { assertApprovedPricingRows } from "./approved-pricing";
 import {
   PROPOSAL_SCHEMA,
   PROPOSAL_SYSTEM_PROMPT_TEMPLATE,
@@ -14,7 +14,6 @@ import {
   validateGroundedRevenueAnswer,
 } from "@/lib/revenue-os/ai-context";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
-import { DEFAULT_AI_VOICES } from "@/config/tenant";
 import {
   COPILOT_SYSTEM_CONTRACT_TEMPLATE,
   defaultCommandBundle,
@@ -45,9 +44,8 @@ function jobContractParts(job: string): unknown[] {
     case "copilot-answer":
       return [
         ...shared,
-        // Installation identity is data; both built-in voice instructions are policy.
+        // Installation identity and voice are configuration; safety rules live in the template.
         COPILOT_SYSTEM_CONTRACT_TEMPLATE,
-        DEFAULT_AI_VOICES,
         selectRevenueToolPack.toString(),
         defaultCommandBundle.toString(),
         MAX_TOOL_TURNS,
@@ -94,7 +92,7 @@ function jobContractParts(job: string): unknown[] {
         ...shared,
         PROPOSAL_SYSTEM_PROMPT_TEMPLATE,
         PROPOSAL_SCHEMA,
-        approvedPricingPromptContext(),
+        assertApprovedPricingRows.toString(),
         validateProposal.toString(),
       ];
     default:
