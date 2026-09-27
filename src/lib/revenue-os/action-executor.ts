@@ -313,7 +313,9 @@ export async function approveAndExecuteAction(
           !Array.isArray(replyTarget.cc) ||
           !replyTarget.cc.every((email) => typeof email === "string")
         )
-          throw new Error("Gmail reply approval has no verified thread target; prepare a fresh reply");
+          throw new Error(
+            "Gmail reply approval has no verified thread target; prepare a fresh reply",
+          );
         result = await sendGmailReply(supabase, {
           conversationId,
           body: stringValue(payload, "body")!,

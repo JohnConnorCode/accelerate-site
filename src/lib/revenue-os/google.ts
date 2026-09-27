@@ -284,7 +284,9 @@ function parseAddress(value: string | null): string | null {
  * fetch failure degrades to account-only rather than failing the sync.
  */
 async function listGmailOwnerEmails(
-  token: string, accountEmail: string, strict = false,
+  token: string,
+  accountEmail: string,
+  strict = false,
 ): Promise<Set<string>> {
   const owners = new Set<string>();
   const account = normalizeEmail(accountEmail);
@@ -433,10 +435,12 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       }
       const rows = messages.map((message) => {
         const from = parseAddress(header(message, "From"));
-        const recipients = [...new Set([
-          ...parseAddressList(header(message, "To")),
-          ...parseAddressList(header(message, "Cc")),
-        ])];
+        const recipients = [
+          ...new Set([
+            ...parseAddressList(header(message, "To")),
+            ...parseAddressList(header(message, "Cc")),
+          ]),
+        ];
         const outbound = isOutbound(from);
         return {
           tenant_id: tenantId,
@@ -931,12 +935,17 @@ export async function createVerifiedCalendarInvitation(
   const { token, connection } = await getGoogleAccessToken(supabase);
   const ownerEmail = normalizeEmail(connection.account_email as string);
   if (!ownerEmail) throw new Error("Google account email is unavailable; reconnect Workspace");
-  if (!((connection.scopes as string[] | undefined) ?? []).includes("https://www.googleapis.com/auth/calendar.events"))
+  if (
+    !((connection.scopes as string[] | undefined) ?? []).includes(
+      "https://www.googleapis.com/auth/calendar.events",
+    )
+  )
     throw new Error("Google Calendar event permission is missing");
   const attendees = [...new Set(input.attendees.map((email) => normalizeEmail(email)))].filter(
     (email): email is string => Boolean(email && email !== ownerEmail),
   );
-  if (attendees.length !== 2) throw new Error("A debate invitation requires two verified participants");
+  if (attendees.length !== 2)
+    throw new Error("A debate invitation requires two verified participants");
   const eventId = createHash("sha256")
     .update(`${tenantId}:${input.productionId}:${input.attemptKey}:${input.startAt}:${input.endAt}`)
     .digest("hex");
@@ -969,12 +978,20 @@ export async function createVerifiedCalendarInvitation(
       singleEvents: "true",
       maxResults: "100",
     });
-    const busy = await googleFetch<{ items?: Array<{ id?: string; status?: string; transparency?: string }>; nextPageToken?: string }>(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,
-      { headers: auth },
-    );
-    if (busy.nextPageToken) throw new Error("Calendar availability could not be checked completely");
-    if (busy.items?.some((item) => item.id !== eventId && item.status !== "cancelled" && item.transparency !== "transparent"))
+    const busy = await googleFetch<{
+      items?: Array<{ id?: string; status?: string; transparency?: string }>;
+      nextPageToken?: string;
+    }>(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`, {
+      headers: auth,
+    });
+    if (busy.nextPageToken)
+      throw new Error("Calendar availability could not be checked completely");
+    if (
+      busy.items?.some(
+        (item) =>
+          item.id !== eventId && item.status !== "cancelled" && item.transparency !== "transparent",
+      )
+    )
       throw new Error("John's calendar has a conflicting event at the approved time");
     try {
       await googleFetch<CalendarEvent>(
@@ -998,60 +1015,80 @@ export async function createVerifiedCalendarInvitation(
         },
       );
     } catch (error) {
-      if (error instanceof GoogleApiError && error.status >= 400 && error.status < 500 && error.status !== 409)
+      if (
+        error instanceof GoogleApiError &&
+        error.status >= 400 &&
+        error.status < 500 &&
+        error.status !== 409
+      )
         throw error;
       // The provider may have accepted the insert before a timeout or 5xx.
       // Re-read the deterministic id; never issue a second insert blindly.
     }
     event = await googleFetch<CalendarEvent>(url, { headers: auth });
   }
-  const actualAttendees = new Set((event.attendees ?? []).map((person) => normalizeEmail(person.email)));
-  const conferenceReady = Boolean(event.hangoutLink ||
-    event.conferenceData?.entryPoints?.some((point) => point.entryPointType === "video"));
+  const actualAttendees = new Set(
+    (event.attendees ?? []).map((person) => normalizeEmail(person.email)),
+  );
+  const conferenceReady = Boolean(
+    event.hangoutLink ||
+    event.conferenceData?.entryPoints?.some((point) => point.entryPointType === "video"),
+  );
   if (
-    event.id !== eventId || event.status !== "confirmed" ||
-    event.summary !== input.summary || event.description !== input.description ||
+    event.id !== eventId ||
+    event.status !== "confirmed" ||
+    event.summary !== input.summary ||
+    event.description !== input.description ||
     event.extendedProperties?.private?.debateProductionId !== input.productionId ||
     (!event.organizer?.self && normalizeEmail(event.organizer?.email ?? "") !== ownerEmail) ||
     Date.parse(event.start?.dateTime ?? "") !== Date.parse(input.startAt) ||
     Date.parse(event.end?.dateTime ?? "") !== Date.parse(input.endAt) ||
-    attendees.some((email) => !actualAttendees.has(email)) || actualAttendees.size !== attendees.length
-  ) throw new Error("Existing Google event differs from the approved invitation; reconcile it manually");
+    attendees.some((email) => !actualAttendees.has(email)) ||
+    actualAttendees.size !== attendees.length
+  )
+    throw new Error(
+      "Existing Google event differs from the approved invitation; reconcile it manually",
+    );
   const { data: saved, error: saveError } = await supabase
     .from("calendar_events")
-    .upsert({
-      tenant_id: tenantId,
-      provider: "google",
-      external_id: eventId,
-      calendar_id: "primary",
-      title: event.summary ?? input.summary,
-      description: input.description,
-      location: input.location ?? null,
-      start_at: input.startAt,
-      end_at: input.endAt,
-      status: event.status ?? "confirmed",
-      html_link: event.htmlLink ?? null,
-      attendees: event.attendees ?? [],
-      metadata: {
-        organizer: event.organizer ?? null,
-        hangout_link: event.hangoutLink ?? null,
-        debate_integrity: "verified",
-        debate_verified_at: new Date().toISOString(),
-        debate_production_id: input.productionId,
-        debate_expected_organizer: ownerEmail,
-        debate_expected_summary: input.summary,
-        debate_expected_description: input.description,
-        debate_expected_location: input.location ?? null,
-        debate_expected_end_at: input.endAt,
-        debate_conference_required: input.createMeet,
-        debate_conference_ready: conferenceReady,
+    .upsert(
+      {
+        tenant_id: tenantId,
+        provider: "google",
+        external_id: eventId,
+        calendar_id: "primary",
+        title: event.summary ?? input.summary,
+        description: input.description,
+        location: input.location ?? null,
+        start_at: input.startAt,
+        end_at: input.endAt,
+        status: event.status ?? "confirmed",
+        html_link: event.htmlLink ?? null,
+        attendees: event.attendees ?? [],
+        metadata: {
+          organizer: event.organizer ?? null,
+          hangout_link: event.hangoutLink ?? null,
+          debate_integrity: "verified",
+          debate_verified_at: new Date().toISOString(),
+          debate_production_id: input.productionId,
+          debate_expected_organizer: ownerEmail,
+          debate_expected_summary: input.summary,
+          debate_expected_description: input.description,
+          debate_expected_location: input.location ?? null,
+          debate_expected_end_at: input.endAt,
+          debate_conference_required: input.createMeet,
+          debate_conference_ready: conferenceReady,
+        },
+        synced_at: new Date().toISOString(),
       },
-      synced_at: new Date().toISOString(),
-    }, { onConflict: "tenant_id,provider,external_id" })
+      { onConflict: "tenant_id,provider,external_id" },
+    )
     .select("id")
     .single();
   if (saveError || !saved)
-    throw new Error("Google accepted the invitation but its local receipt is missing; reconcile before retrying");
+    throw new Error(
+      "Google accepted the invitation but its local receipt is missing; reconcile before retrying",
+    );
   return {
     calendarEventId: saved.id,
     providerEventId: eventId,
@@ -1069,19 +1106,28 @@ export async function verifyDebateCalendarEvent(
 ) {
   const tenantId = tenantIdForDatabase(supabase);
   if (!tenantId) throw new Error("Calendar verification requires an explicit workspace");
-  const { data: local, error } = await supabase.from("calendar_events")
+  const { data: local, error } = await supabase
+    .from("calendar_events")
     .select("id,external_id,provider,title,description,location,start_at,end_at,metadata")
-    .eq("tenant_id", tenantId).eq("id", input.calendarEventId).maybeSingle();
+    .eq("tenant_id", tenantId)
+    .eq("id", input.calendarEventId)
+    .maybeSingle();
   if (error || !local || local.provider !== "google")
     throw new Error("Linked Google event is unavailable");
   const { token, connection } = await getGoogleAccessToken(supabase);
   const ownerEmail = normalizeEmail(connection.account_email as string);
   if (!ownerEmail) throw new Error("Google account email is unavailable");
   let event: {
-    id: string; status?: string; summary?: string; description?: string; location?: string;
-    htmlLink?: string; hangoutLink?: string;
+    id: string;
+    status?: string;
+    summary?: string;
+    description?: string;
+    location?: string;
+    htmlLink?: string;
+    hangoutLink?: string;
     organizer?: { email?: string; self?: boolean };
-    start?: { dateTime?: string }; end?: { dateTime?: string };
+    start?: { dateTime?: string };
+    end?: { dateTime?: string };
     attendees?: Array<{ email: string; responseStatus?: string }>;
     conferenceData?: { entryPoints?: Array<{ uri?: string; entryPointType?: string }> };
   } | null = null;
@@ -1095,17 +1141,26 @@ export async function verifyDebateCalendarEvent(
   }
   const actual = new Set((event?.attendees ?? []).map((person) => normalizeEmail(person.email)));
   const expected = new Set(input.participantEmails.map(normalizeEmail));
-  const conferenceReady = Boolean(event?.hangoutLink ||
-    event?.conferenceData?.entryPoints?.some((point) => point.entryPointType === "video"));
-  const integrity = Boolean(event && event.id === local.external_id && event.status === "confirmed" &&
+  const conferenceReady = Boolean(
+    event?.hangoutLink ||
+    event?.conferenceData?.entryPoints?.some((point) => point.entryPointType === "video"),
+  );
+  const integrity = Boolean(
+    event &&
+    event.id === local.external_id &&
+    event.status === "confirmed" &&
     (event.organizer?.self || normalizeEmail(event.organizer?.email ?? "") === ownerEmail) &&
     event.summary === local.metadata?.debate_expected_summary &&
     (event.description ?? null) === local.metadata?.debate_expected_description &&
     (event.location ?? null) === local.metadata?.debate_expected_location &&
     Date.parse(event.start?.dateTime ?? "") === Date.parse(input.startAt) &&
-    Date.parse(event.end?.dateTime ?? "") === Date.parse(local.metadata?.debate_expected_end_at ?? "") &&
-    actual.size === expected.size && [...expected].every((email) => actual.has(email)));
-  const { error: updateError } = await supabase.from("calendar_events")
+    Date.parse(event.end?.dateTime ?? "") ===
+      Date.parse(local.metadata?.debate_expected_end_at ?? "") &&
+    actual.size === expected.size &&
+    [...expected].every((email) => actual.has(email)),
+  );
+  const { error: updateError } = await supabase
+    .from("calendar_events")
     .update({
       status: event?.status ?? "cancelled",
       attendees: event?.attendees ?? [],
@@ -1119,10 +1174,16 @@ export async function verifyDebateCalendarEvent(
         debate_verified_at: new Date().toISOString(),
       },
       synced_at: new Date().toISOString(),
-    }).eq("tenant_id", tenantId).eq("id", local.id);
+    })
+    .eq("tenant_id", tenantId)
+    .eq("id", local.id);
   if (updateError) throw new Error(updateError.message);
-  return { providerEventId: local.external_id, status: event?.status ?? "cancelled",
-    integrity: integrity ? "verified" : "mismatch", attendees: event?.attendees ?? [] };
+  return {
+    providerEventId: local.external_id,
+    status: event?.status ?? "cancelled",
+    integrity: integrity ? "verified" : "mismatch",
+    attendees: event?.attendees ?? [],
+  };
 }
 
 export async function syncDrive(supabase: SupabaseClient) {
@@ -1456,7 +1517,9 @@ export async function readGmailReplyTarget(
   conversationId: string,
 ): Promise<GmailReplyTarget> {
   const { token, connection } = await getGoogleAccessToken(supabase);
-  return (await loadGmailReplyTarget(supabase, conversationId, token, connection.account_email as string)).target;
+  return (
+    await loadGmailReplyTarget(supabase, conversationId, token, connection.account_email as string)
+  ).target;
 }
 
 /** Full active thread plus bounded related sent history for grounded reply preparation. */
@@ -1465,21 +1528,32 @@ export async function readCompleteGmailThread(supabase: SupabaseClient, conversa
   if (!tenantId) throw new Error("Gmail thread requires an explicit workspace");
   const target = await readGmailReplyTarget(supabase, conversationId);
   const [thread, sent] = await Promise.all([
-    supabase.from("messages")
-      .select("id,external_id,direction,sender_email,recipient_emails,subject,body_text,sent_at,received_at,status")
-      .eq("tenant_id", tenantId).eq("conversation_id", conversationId)
-      .order("created_at", { ascending: true }).limit(201),
-    supabase.from("messages")
+    supabase
+      .from("messages")
+      .select(
+        "id,external_id,direction,sender_email,recipient_emails,subject,body_text,sent_at,received_at,status",
+      )
+      .eq("tenant_id", tenantId)
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true })
+      .limit(201),
+    supabase
+      .from("messages")
       .select("id,conversation_id,subject,body_text,sent_at")
-      .eq("tenant_id", tenantId).eq("direction", "outbound")
+      .eq("tenant_id", tenantId)
+      .eq("direction", "outbound")
       .contains("recipient_emails", [target.to])
       .neq("conversation_id", conversationId)
-      .order("created_at", { ascending: false }).limit(20),
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
   if (thread.error || sent.error) throw new Error("Gmail context could not be loaded");
   const messages = thread.data ?? [];
-  if (messages.length !== target.messageCount || messages.length > 200 ||
-      messages.reduce((sum, message) => sum + (message.body_text?.length ?? 0), 0) > 50_000)
+  if (
+    messages.length !== target.messageCount ||
+    messages.length > 200 ||
+    messages.reduce((sum, message) => sum + (message.body_text?.length ?? 0), 0) > 50_000
+  )
     throw new Error("The active Gmail thread exceeds the safe automated review limit");
   return {
     conversationId,
@@ -1511,7 +1585,8 @@ async function loadGmailReplyTarget(
     .maybeSingle();
   if (conversationError) throw new Error(conversationError.message);
   if (!conversation?.external_id) throw new Error("Gmail conversation not found");
-  if (conversation.status === "archived") throw new Error("Cannot send reply: conversation is archived");
+  if (conversation.status === "archived")
+    throw new Error("Cannot send reply: conversation is archived");
   const { data: latest, error: messageError } = await supabase
     .from("messages")
     .select("external_id,sender_email,recipient_emails,subject,references_header,metadata")
@@ -1531,7 +1606,8 @@ async function loadGmailReplyTarget(
   const providerIds = (thread.messages ?? []).map((message) => message.id);
   if (providerIds.length > 200 || current.labelIds?.includes("DRAFT"))
     throw new Error("This Gmail thread needs manual review before replying");
-  const canonical = await supabase.from("messages")
+  const canonical = await supabase
+    .from("messages")
     .select("external_id")
     .eq("conversation_id", conversationId)
     .not("external_id", "is", null)

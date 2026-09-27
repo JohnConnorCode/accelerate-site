@@ -49,10 +49,16 @@ export function nextDebateAction(state: DebateBookingState): {
   for (const milestone of DEBATE_MILESTONES.slice(0, 7)) {
     const status = state.milestones[milestone];
     if (status === "verified") continue;
-    if ((status === "declined" || status === "cancelled") &&
-      !(milestone === "invitation" && status === "cancelled" && !state.event))
-      return { kind: "escalation", milestone,
-        reason: `${milestone.replaceAll("_", " ")} was declined or cancelled`, booked: false };
+    if (
+      (status === "declined" || status === "cancelled") &&
+      !(milestone === "invitation" && status === "cancelled" && !state.event)
+    )
+      return {
+        kind: "escalation",
+        milestone,
+        reason: `${milestone.replaceAll("_", " ")} was declined or cancelled`,
+        booked: false,
+      };
     const kind: DebateNextAction =
       milestone === "counterpart"
         ? state.milestones.counterpart === "proposed"
@@ -66,9 +72,10 @@ export function nextDebateAction(state: DebateBookingState): {
     return {
       kind,
       milestone,
-      reason: milestone === "invitation" && state.milestones.invitation === "cancelled"
-        ? "The canceled invitation needs a reviewed replacement"
-        : `${milestone.replaceAll("_", " ")} is not verified`,
+      reason:
+        milestone === "invitation" && state.milestones.invitation === "cancelled"
+          ? "The canceled invitation needs a reviewed replacement"
+          : `${milestone.replaceAll("_", " ")} is not verified`,
       booked: false,
     };
   }
@@ -123,8 +130,12 @@ export function nextDebateAction(state: DebateBookingState): {
     ["publication", "publication"],
   ] as const) {
     if (state.milestones[milestone] === "declined" || state.milestones[milestone] === "cancelled")
-      return { kind: "escalation", milestone,
-        reason: `${milestone.replaceAll("_", " ")} was declined or cancelled`, booked: false };
+      return {
+        kind: "escalation",
+        milestone,
+        reason: `${milestone.replaceAll("_", " ")} was declined or cancelled`,
+        booked: false,
+      };
     if (state.milestones[milestone] !== "verified")
       return {
         kind,

@@ -340,14 +340,18 @@ export async function loadOperatorQueue(
     const soon = Boolean(target && Date.parse(target) < Date.now() + 14 * 86_400_000);
     items.push({
       id: `debate:${debate.production.id}`,
-      kind: debate.nextAction.kind === "reply" || debate.nextAction.kind === "follow_up"
-        ? "reply" : "task",
+      kind:
+        debate.nextAction.kind === "reply" || debate.nextAction.kind === "follow_up"
+          ? "reply"
+          : "task",
       title: debate.production.title,
       summary: debate.nextAction.reason,
       urgency: debate.nextAction.kind === "escalation" ? "high" : soon ? "high" : "normal",
       dueAt: target,
       sourceTimestamp: debate.production.updated_at,
-      priorityReason: debate.nextAction.booked ? "Production milestone due" : "Debate booking is incomplete",
+      priorityReason: debate.nextAction.booked
+        ? "Production milestone due"
+        : "Debate booking is incomplete",
       recommendedNextAction: `Open the production and resolve ${debate.nextAction.milestone?.replaceAll("_", " ") ?? "the blocker"}.`,
       href: `/admin/debates?production=${debate.production.id}`,
       entityType: "debate_production",

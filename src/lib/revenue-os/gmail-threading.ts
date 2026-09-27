@@ -36,7 +36,10 @@ export function gmailReplyRecipients(input: {
   const recipients = external([...input.to, ...input.cc]);
   const to = sender[0] ?? recipients[0];
   if (!to) throw new Error("Could not identify the Gmail reply recipient");
-  return { to, cc: [...new Set([...sender.slice(1), ...recipients])].filter((email) => email !== to) };
+  return {
+    to,
+    cc: [...new Set([...sender.slice(1), ...recipients])].filter((email) => email !== to),
+  };
 }
 
 /** Extract every `<token>` RFC Message-ID from a raw header value. */

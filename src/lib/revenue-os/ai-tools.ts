@@ -577,19 +577,26 @@ const PLUGIN_TOOL_EXECUTORS = {
 const registry: AiToolRegistration[] = [
   {
     name: "read_complete_gmail_thread",
-    description: "Read every message in one current Gmail thread and recent sent mail to its reply recipient. Refuses stale or incomplete sync and oversized threads. Use before drafting a reply or interpreting a participant commitment.",
-    inputSchema: { type: "object", properties: { conversationId: { type: "string", format: "uuid" } },
-      required: ["conversationId"], additionalProperties: false },
+    description:
+      "Read every message in one current Gmail thread and recent sent mail to its reply recipient. Refuses stale or incomplete sync and oversized threads. Use before drafting a reply or interpreting a participant commitment.",
+    inputSchema: {
+      type: "object",
+      properties: { conversationId: { type: "string", format: "uuid" } },
+      required: ["conversationId"],
+      additionalProperties: false,
+    },
     outputSchema: { type: "object" },
     serviceTarget: "revenue-os.gmail-thread",
     connectionRequirement: "none",
     impact: "read",
     confirmationRequired: false,
-    execute: ({ supabase }, input) => readCompleteGmailThread(supabase, String(input.conversationId)),
+    execute: ({ supabase }, input) =>
+      readCompleteGmailThread(supabase, String(input.conversationId)),
   },
   {
     name: "get_debate_production",
-    description: "Read a bounded debate production and each cited commitment, claim status, calendar response and first missing milestone. An interested person is not a confirmed booking.",
+    description:
+      "Read a bounded debate production and each cited commitment, claim status, calendar response and first missing milestone. An interested person is not a confirmed booking.",
     inputSchema: {
       type: "object",
       properties: { productionId: { type: "string", format: "uuid" } },
@@ -601,30 +608,35 @@ const registry: AiToolRegistration[] = [
     impact: "read",
     confirmationRequired: false,
     execute: ({ supabase }, input) =>
-      input.productionId ? loadDebateProduction(supabase, String(input.productionId))
+      input.productionId
+        ? loadDebateProduction(supabase, String(input.productionId))
         : listDebateProductions(supabase, 10).then((productions) => ({ productions })),
   },
   {
     name: "propose_debate_milestone",
-    description: "Stage one cited debate commitment from an indexed Gmail message or Drive transcript. The founder reviews the source and exact status before it becomes verified.",
+    description:
+      "Stage one cited debate commitment from an indexed Gmail message or Drive transcript. The founder reviews the source and exact status before it becomes verified.",
     inputSchema: z.toJSONSchema(debateMilestoneSchema),
     outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.debate-bookings",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: ({ supabase, actorEmail }, input) => proposeDebateMilestone(supabase, input, actorEmail),
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeDebateMilestone(supabase, input, actorEmail),
   },
   {
     name: "propose_debate_invitation",
-    description: "Stage one exact Google Calendar invitation after verified question, counterpart, format and date commitments and two participant acceptance messages. Approval sends it; the provider event is read back.",
+    description:
+      "Stage one exact Google Calendar invitation after verified question, counterpart, format and date commitments and two participant acceptance messages. Approval sends it; the provider event is read back.",
     inputSchema: z.toJSONSchema(debateInvitationSchema),
     outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.debate-bookings",
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
-    execute: ({ supabase, actorEmail }, input) => proposeDebateInvitation(supabase, input, actorEmail),
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeDebateInvitation(supabase, input, actorEmail),
   },
   {
     name: "list_content_calendar",

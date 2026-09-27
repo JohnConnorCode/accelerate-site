@@ -39,7 +39,8 @@ const ACTION_CONSEQUENCE: Record<string, string> = {
     "Saves the exact Today arrangement and preferences shown below. Business records are unchanged. Only the proposing member can approve it.",
   send_email: "Sends this email immediately. It cannot be recalled.",
   send_gmail_reply: "Sends this reply from your Gmail account immediately. It cannot be recalled.",
-  create_debate_invitation: "Sends one Google Calendar invitation to both named participants immediately. They will be notified. The event is read back and recorded before success is claimed.",
+  create_debate_invitation:
+    "Sends one Google Calendar invitation to both named participants immediately. They will be notified. The event is read back and recorded before success is claimed.",
   create_gmail_draft:
     "Saves this exact reply as an editable Gmail draft. It is not sent. You can review, edit, or send it in Gmail Drafts.",
   activate_campaign:
@@ -166,9 +167,14 @@ export function ActionReviewDialog({
     action.action_type === "activate_campaign";
   const invitation = action.action_type === "create_debate_invitation" ? action.payload : null;
   const milestone = action.action_type === "record_debate_milestone" ? action.payload : null;
-  const acceptances = Array.isArray(invitation?.acceptances) ? invitation.acceptances as Array<{
-    sender?: string; excerpt?: string; messageId?: string; conversationId?: string;
-  }> : [];
+  const acceptances = Array.isArray(invitation?.acceptances)
+    ? (invitation.acceptances as Array<{
+        sender?: string;
+        excerpt?: string;
+        messageId?: string;
+        conversationId?: string;
+      }>)
+    : [];
   return (
     <AdminDialog
       open={open}
@@ -330,30 +336,84 @@ export function ActionReviewDialog({
             </dl>
           )}
 
-          {invitation && <section className="space-y-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] p-4 text-xs">
-            <h3 className="font-semibold">Exact invitation</h3>
-            <p><strong>Recipients:</strong> {Array.isArray(invitation.attendees) ? invitation.attendees.join(", ") : "Missing"}</p>
-            <p><strong>Start:</strong> {String(invitation.startAt ?? "")} · <strong>End:</strong> {String(invitation.endAt ?? "")} · {String(invitation.timeZone ?? "")}</p>
-            <p><strong>Title:</strong> {String(invitation.summary ?? "")}</p>
-            <p><strong>Location:</strong> {String(invitation.location || (invitation.createMeet ? "Google Meet requested" : "None"))}</p>
-            <p className="whitespace-pre-wrap"><strong>Invitation text:</strong><br />{String(invitation.description ?? "")}</p>
-            <h4 className="font-semibold">Participant acceptance sources</h4>
-            {acceptances.map((acceptance) => <p key={acceptance.messageId} className="rounded-lg border border-[var(--admin-border)] p-2">
-              <strong>{acceptance.sender}</strong> · message {acceptance.messageId}<br />
-              {acceptance.excerpt}
-              {acceptance.conversationId && <><br /><a className="underline" href={`/admin/conversations?thread=${acceptance.conversationId}`}>Read full thread</a></>}
-            </p>)}
-          </section>}
+          {invitation && (
+            <section className="space-y-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] p-4 text-xs">
+              <h3 className="font-semibold">Exact invitation</h3>
+              <p>
+                <strong>Recipients:</strong>{" "}
+                {Array.isArray(invitation.attendees) ? invitation.attendees.join(", ") : "Missing"}
+              </p>
+              <p>
+                <strong>Start:</strong> {String(invitation.startAt ?? "")} · <strong>End:</strong>{" "}
+                {String(invitation.endAt ?? "")} · {String(invitation.timeZone ?? "")}
+              </p>
+              <p>
+                <strong>Title:</strong> {String(invitation.summary ?? "")}
+              </p>
+              <p>
+                <strong>Location:</strong>{" "}
+                {String(
+                  invitation.location || (invitation.createMeet ? "Google Meet requested" : "None"),
+                )}
+              </p>
+              <p className="whitespace-pre-wrap">
+                <strong>Invitation text:</strong>
+                <br />
+                {String(invitation.description ?? "")}
+              </p>
+              <h4 className="font-semibold">Participant acceptance sources</h4>
+              {acceptances.map((acceptance) => (
+                <p
+                  key={acceptance.messageId}
+                  className="rounded-lg border border-[var(--admin-border)] p-2"
+                >
+                  <strong>{acceptance.sender}</strong> · message {acceptance.messageId}
+                  <br />
+                  {acceptance.excerpt}
+                  {acceptance.conversationId && (
+                    <>
+                      <br />
+                      <a
+                        className="underline"
+                        href={`/admin/conversations?thread=${acceptance.conversationId}`}
+                      >
+                        Read full thread
+                      </a>
+                    </>
+                  )}
+                </p>
+              ))}
+            </section>
+          )}
 
-          {milestone && <section className="space-y-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] p-4 text-xs">
-            <h3 className="font-semibold">Commitment to record</h3>
-            <p><strong>{String(milestone.milestone ?? "").replaceAll("_", " ")}:</strong> {String(milestone.status ?? "")} · {String(milestone.value ?? "")}</p>
-            <p><strong>Source:</strong> {String(milestone.sourceType ?? "").replaceAll("_", " ")} · {String(milestone.sourceId ?? "")}</p>
-            <p><strong>Observed:</strong> {String(milestone.observedAt ?? "")}</p>
-            {typeof action.evidence?.excerpt === "string" && <p className="whitespace-pre-wrap"><strong>Source excerpt:</strong><br />{action.evidence.excerpt}</p>}
-            {typeof action.evidence?.sourceHref === "string" && <a className="underline"
-              href={action.evidence.sourceHref}>Open cited source</a>}
-          </section>}
+          {milestone && (
+            <section className="space-y-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] p-4 text-xs">
+              <h3 className="font-semibold">Commitment to record</h3>
+              <p>
+                <strong>{String(milestone.milestone ?? "").replaceAll("_", " ")}:</strong>{" "}
+                {String(milestone.status ?? "")} · {String(milestone.value ?? "")}
+              </p>
+              <p>
+                <strong>Source:</strong> {String(milestone.sourceType ?? "").replaceAll("_", " ")} ·{" "}
+                {String(milestone.sourceId ?? "")}
+              </p>
+              <p>
+                <strong>Observed:</strong> {String(milestone.observedAt ?? "")}
+              </p>
+              {typeof action.evidence?.excerpt === "string" && (
+                <p className="whitespace-pre-wrap">
+                  <strong>Source excerpt:</strong>
+                  <br />
+                  {action.evidence.excerpt}
+                </p>
+              )}
+              {typeof action.evidence?.sourceHref === "string" && (
+                <a className="underline" href={action.evidence.sourceHref}>
+                  Open cited source
+                </a>
+              )}
+            </section>
+          )}
 
           {!isToday && !layoutSummary && !invitation && !milestone && fields.length > 0 && (
             <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">

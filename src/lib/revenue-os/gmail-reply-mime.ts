@@ -82,8 +82,9 @@ export function prepareGmailReply(input: {
     throw new Error("Gmail replies require the original message id so the thread stays intact");
   }
   const subject = buildGmailReplySubject(input.conversationSubject, input.latest.subject);
-  const ccRecipients = [...new Set((input.ccRecipients ?? []).map((email) => email.trim().toLowerCase()))]
-    .filter((email) => email && email !== input.ownerEmail && email !== input.recipient);
+  const ccRecipients = [
+    ...new Set((input.ccRecipients ?? []).map((email) => email.trim().toLowerCase())),
+  ].filter((email) => email && email !== input.ownerEmail && email !== input.recipient);
   const parent = resolveReplyParent({
     latestExternalId: input.latest.external_id,
     latestRfcId: input.latest.rfc_message_id ?? null,

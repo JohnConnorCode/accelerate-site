@@ -159,13 +159,15 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     actionType: "create_debate_invitation",
     impact: "external_action",
     reversibility: "irreversible",
-    rationale: "A calendar invitation notifies participants and requires exact human approval and provider verification.",
+    rationale:
+      "A calendar invitation notifies participants and requires exact human approval and provider verification.",
   },
   {
     actionType: "record_debate_milestone",
     impact: "internal_write",
     reversibility: "compensable",
-    rationale: "A later sourced booking correction can supersede this claim; the prior evidence and audit remain.",
+    rationale:
+      "A later sourced booking correction can supersede this claim; the prior evidence and audit remain.",
   },
   {
     actionType: "transition_opportunity",

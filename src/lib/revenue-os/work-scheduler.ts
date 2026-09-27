@@ -326,7 +326,9 @@ export async function scheduleRecurringWork(
     daily.created += bookings.created;
     daily.skipped += bookings.skipped;
   } catch (error) {
-    daily.errors.push(`Debate invitation reconciliation: ${error instanceof Error ? error.message : String(error)}`);
+    daily.errors.push(
+      `Debate invitation reconciliation: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 
   // Monday = day 1 in ISO weekday.

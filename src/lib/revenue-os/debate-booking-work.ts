@@ -13,7 +13,8 @@ export async function scheduleDebateBookingReconciliation(db: SupabaseClient) {
   const tenant = await db.from("tenants").select("config").eq("id", tenantId).single();
   if (tenant.error) throw new Error("Booking module configuration is unavailable");
   if (!isModuleEnabled("bookings", tenant.data.config)) return { created: 0, skipped: 0 };
-  const events = await db.from("debate_productions")
+  const events = await db
+    .from("debate_productions")
     .select("id,title,target_at")
     .eq("tenant_id", tenantId)
     .not("calendar_event_id", "is", null)
@@ -30,7 +31,8 @@ export async function scheduleDebateBookingReconciliation(db: SupabaseClient) {
     const result = await createWorkItem(db, {
       kind: "debate_invitation_reconcile",
       objective: `Verify invitation: ${production.title}`,
-      reason: "A linked invitation needs a current Google Calendar receipt and participant responses",
+      reason:
+        "A linked invitation needs a current Google Calendar receipt and participant responses",
       source: "debate_bookings",
       priority: "high",
       entityType: "debate_production",
@@ -49,7 +51,8 @@ export function registerDebateBookingWorkHandlers() {
   registerWorkKindHandler("debate_invitation_reconcile", async (db, work) => {
     if (!work.entity_id) throw new Error("Debate reconciliation has no production id");
     const booking = await loadDebateProduction(db, work.entity_id);
-    if (!booking.calendar) return { status: "skipped", outcome: "The invitation was already reopened" };
+    if (!booking.calendar)
+      return { status: "skipped", outcome: "The invitation was already reopened" };
     await refreshDebateInvitation(db, work.entity_id);
     const refreshed = await loadDebateProduction(db, work.entity_id);
     return {

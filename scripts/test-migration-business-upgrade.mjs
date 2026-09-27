@@ -213,9 +213,23 @@ DO $$ BEGIN
  END IF;
 END $$;
 ROLLBACK;`);
-assert.equal(sql(`SELECT has_function_privilege('authenticated',
-  'public.record_debate_milestone(uuid,text,text,text,text,text,timestamptz,text)','EXECUTE');`), "f");
-assert.equal(sql("SELECT has_table_privilege('authenticated','public.debate_milestones','INSERT');"), "f");
-assert.equal(sql("SELECT has_table_privilege('authenticated','public.debate_productions','UPDATE');"), "f");
-assert.equal(sql("SELECT has_table_privilege('authenticated','public.debate_productions','INSERT');"), "f");
-console.log("PASS: booking create replay, claim supersession, date protection, foreign evidence and invitation checks; direct writes are closed.");
+assert.equal(
+  sql(`SELECT has_function_privilege('authenticated',
+  'public.record_debate_milestone(uuid,text,text,text,text,text,timestamptz,text)','EXECUTE');`),
+  "f",
+);
+assert.equal(
+  sql("SELECT has_table_privilege('authenticated','public.debate_milestones','INSERT');"),
+  "f",
+);
+assert.equal(
+  sql("SELECT has_table_privilege('authenticated','public.debate_productions','UPDATE');"),
+  "f",
+);
+assert.equal(
+  sql("SELECT has_table_privilege('authenticated','public.debate_productions','INSERT');"),
+  "f",
+);
+console.log(
+  "PASS: booking create replay, claim supersession, date protection, foreign evidence and invitation checks; direct writes are closed.",
+);

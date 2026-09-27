@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { nextDebateAction, type DebateBookingState } from "../src/lib/revenue-os/debate-booking-contract";
+import {
+  nextDebateAction,
+  type DebateBookingState,
+} from "../src/lib/revenue-os/debate-booking-contract";
 
 const agreed: DebateBookingState["milestones"] = {
   topic_interest: "verified",
@@ -64,30 +67,52 @@ assert.equal(
   true,
 );
 assert.equal(
-  nextDebateAction({ milestones: { ...agreed, invitation: "cancelled" }, participantEmails: participants }).kind,
+  nextDebateAction({
+    milestones: { ...agreed, invitation: "cancelled" },
+    participantEmails: participants,
+  }).kind,
   "invitation",
   "a reconciled cancellation should ask for a replacement",
 );
 assert.equal(
-  nextDebateAction({ milestones: agreed, participantEmails: participants, event: { ...acceptedEvent, fresh: false } }).booked,
+  nextDebateAction({
+    milestones: agreed,
+    participantEmails: participants,
+    event: { ...acceptedEvent, fresh: false },
+  }).booked,
   false,
   "a stale calendar observation cannot confirm a booking",
 );
 assert.equal(
-  nextDebateAction({ milestones: agreed, participantEmails: participants, event: { ...acceptedEvent, integrity: false } }).booked,
+  nextDebateAction({
+    milestones: agreed,
+    participantEmails: participants,
+    event: { ...acceptedEvent, integrity: false },
+  }).booked,
   false,
   "a changed provider event cannot confirm a booking",
 );
 assert.equal(
-  nextDebateAction({ milestones: agreed, participantEmails: participants, event: { ...acceptedEvent, conferenceReady: false } }).booked,
+  nextDebateAction({
+    milestones: agreed,
+    participantEmails: participants,
+    event: { ...acceptedEvent, conferenceReady: false },
+  }).booked,
   false,
   "a requested but missing conference link cannot confirm a booking",
 );
 assert.equal(
-  nextDebateAction({ milestones: agreed, participantEmails: participants, event: {
-    ...acceptedEvent,
-    attendees: [...acceptedEvent.attendees, { email: "unexpected@example.test", responseStatus: "accepted" }],
-  } }).booked,
+  nextDebateAction({
+    milestones: agreed,
+    participantEmails: participants,
+    event: {
+      ...acceptedEvent,
+      attendees: [
+        ...acceptedEvent.attendees,
+        { email: "unexpected@example.test", responseStatus: "accepted" },
+      ],
+    },
+  }).booked,
   false,
   "an unapproved extra attendee cannot be part of a confirmed booking",
 );
