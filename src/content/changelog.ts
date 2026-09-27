@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "ai-readiness-evidence-and-roadmap",
+    slug: "ai-readiness-evidence-and-roadmap",
+    title: "AI Readiness shows the evidence behind its plan",
+    description:
+      "The assessment now shows which answers shaped its recommendation and explains when there is too little scored evidence for an overall score. Its report and PDF use a 90-day pilot roadmap with a measured baseline and human review points. An optional website check samples the homepage and up to three linked public pages, naming pages it could not review. Resources separates assessment engagement, report downloads and website check outcomes; these activity counts are limited to the selected window and available event records.",
+    category: "improvement",
+    publishedAt: "2026-09-27",
+  },
+  {
     id: "command-center-public-guides",
     slug: "command-center-public-guides",
     title: "Clearer Command Center setup and daily-work guides",

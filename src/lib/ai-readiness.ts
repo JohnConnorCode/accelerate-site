@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const AI_READINESS_VERSION = "2026-09-v2";
+export const AI_READINESS_VERSION = "2026-09-v3";
 
 export const readinessDimensions = [
   {
@@ -264,6 +264,7 @@ export type WebsiteAuditFinding = {
   title: string;
   detail: string;
   action: string;
+  page?: string;
 };
 
 export type WebsiteAuditCategory = {
@@ -283,6 +284,13 @@ export type WebsiteAudit = {
   summary: string;
   categories: WebsiteAuditCategory[];
   findings: WebsiteAuditFinding[];
+  pages?: Array<{
+    url: string;
+    status: "completed" | "unreachable" | "blocked" | "too_large";
+    statusCode?: number;
+    title?: string;
+    score: number | null;
+  }>;
   note: string;
 };
 
@@ -375,12 +383,19 @@ export type DimensionScore = {
   description: string;
 };
 
+export type ReadinessEvidence = {
+  dimension: string;
+  question: string;
+  answer: string;
+};
+
 export type ReadinessReport = {
   version: string;
   score: number | null;
   scoreLabel: string;
   coverage: number;
   dimensionScores: DimensionScore[];
+  evidence: ReadinessEvidence[];
   recommendations: Array<(typeof recommendationCatalog)[RecommendationKey]>;
   strongestDimension: string | null;
   focusDimension: string | null;
@@ -393,7 +408,7 @@ export type ReadinessReport = {
 };
 
 export function scoreLabel(score: number | null, coverage: number) {
-  if (score === null) return coverage < 70 ? "More answers needed" : "Ready for a guided review";
+  if (score === null) return coverage < 70 ? "More evidence needed" : "Ready for a guided review";
   if (score < 40) return "Build the foundation";
   if (score < 65) return "Ready for a focused pilot";
   if (score < 85) return "Ready to connect the pieces";
@@ -406,10 +421,13 @@ export function calculateReadiness(
 ): ReadinessReport {
   const dimensionScores: DimensionScore[] = readinessDimensions.map((dimension) => {
     const questions = readinessQuestions.filter((question) => question.dimension === dimension.key);
-    const answered = questions.filter(
+    const scored = questions.filter(
       (question) =>
         answers[question.id] &&
         question.options.find((option) => option.value === answers[question.id])?.score !== null,
+    ).length;
+    const answered = questions.filter((question) =>
+      question.options.some((option) => option.value === answers[question.id]),
     ).length;
     const points = questions.reduce(
       (sum, question) =>
@@ -417,8 +435,8 @@ export function calculateReadiness(
         (question.options.find((option) => option.value === answers[question.id])?.score ?? 0),
       0,
     );
-    const complete = answered >= 2;
-    const score = complete ? Math.round((points / (answered * 3)) * 100) : null;
+    const complete = scored >= 2;
+    const score = complete ? Math.round((points / (scored * 3)) * 100) : null;
     return {
       key: dimension.key,
       label: dimension.label,
@@ -426,7 +444,7 @@ export function calculateReadiness(
       score,
       answered,
       total: questions.length,
-      coverage: Math.round((answered / questions.length) * 100),
+      coverage: Math.round((scored / questions.length) * 100),
     };
   });
   const validScores = dimensionScores.filter(
@@ -443,8 +461,33 @@ export function calculateReadiness(
           validScores.reduce((sum, dimension) => sum + dimension.score, 0) / dimensionScores.length,
         )
       : null;
+  const scoredCoverage = Math.round(
+    dimensionScores.reduce((sum, dimension) => sum + dimension.coverage, 0) /
+      dimensionScores.length,
+  );
   const strongest = validScores.slice().sort((a, b) => b.score - a.score)[0] ?? null;
   const focus = validScores.slice().sort((a, b) => a.score - b.score)[0] ?? null;
+  const evidenceDimension =
+    (focus && dimensionScores.find((dimension) => dimension.key === focus.key)) ??
+    dimensionScores.find((dimension) => dimension.score === null) ??
+    dimensionScores[0];
+  const evidence = evidenceDimension
+    ? readinessQuestions
+        .filter((question) => question.dimension === evidenceDimension.key)
+        .flatMap((question) => {
+          const answer = question.options.find((option) => option.value === answers[question.id]);
+          return answer
+            ? [
+                {
+                  dimension: evidenceDimension.label,
+                  question: question.prompt,
+                  answer: answer.label,
+                },
+              ]
+            : [];
+        })
+        .slice(0, 3)
+    : [];
   const recKey: RecommendationKey =
     profile.bottleneck === "unknown"
       ? focus?.key === "process"
@@ -460,10 +503,10 @@ export function calculateReadiness(
   const recommendations = [primary, fallback].filter(
     (value, index, list) => list.findIndex((item) => item.key === value.key) === index,
   );
-  const label = scoreLabel(score, coverage);
+  const label = scoreLabel(score, scoredCoverage);
   const summary =
     score === null
-      ? `You have answered ${coverage}% of the assessment. Finish the remaining areas to get a complete readiness score; your current answers already point to ${primary.title.toLowerCase()} as a useful place to start.`
+      ? `You answered ${coverage}% of the assessment, but there is not enough scored evidence for a complete readiness score yet. Your responses still point to ${primary.title.toLowerCase()} as a useful place to start.`
       : `Your current readiness is ${score}/100. ${primary.title} is the clearest first opportunity because it fits the work and constraints you described.`;
   const pilot = {
     title: primary.title,
@@ -474,26 +517,27 @@ export function calculateReadiness(
   };
   const actionPlan = [
     {
-      week: "Week 1",
-      title: "Choose one workflow",
-      detail: `Map the current steps for ${primary.title.toLowerCase()}, including where information is lost and where a person must decide.`,
+      week: "Days 1–30",
+      title: "Choose a workflow and baseline",
+      detail: `Map the current steps for ${primary.title.toLowerCase()}. Name an owner, confirm the source data, and record the current state for ${primary.metric.toLowerCase()} before setting a target.`,
     },
     {
-      week: "Week 2",
-      title: "Set the baseline",
-      detail: `Record the current state for ${primary.metric.toLowerCase()} and confirm the owner, source data, and review boundary.`,
-    },
-    {
-      week: "Week 3",
-      title: "Run a small pilot",
+      week: "Days 31–60",
+      title: "Run a limited pilot",
       detail:
-        "Use a limited set of real cases, review every exception, and record what the workflow got wrong or missed.",
+        "Test the mapped workflow on a small set of real cases. Keep a person in the review loop, log exceptions, and compare results with the baseline.",
     },
     {
-      week: "Week 4",
-      title: "Decide what to improve",
+      week: "Days 61–90",
+      title: "Review evidence and improve",
       detail:
-        "Compare the baseline, team feedback, and exception log. Expand only what is useful and safe.",
+        "Compare the pilot with the baseline. Review misses, team feedback, and operating impact before changing the workflow or expanding access.",
+    },
+    {
+      week: "Ongoing",
+      title: "Expand only what works",
+      detail:
+        "Keep an owner, review boundary, and measure. Expand only when results are useful, repeatable, and safe; pause when evidence is unclear.",
     },
   ];
   return {
@@ -502,6 +546,7 @@ export function calculateReadiness(
     scoreLabel: label,
     coverage,
     dimensionScores,
+    evidence,
     recommendations,
     strongestDimension: strongest?.label ?? null,
     focusDimension: focus?.label ?? null,
@@ -520,6 +565,7 @@ export function publicPreview(report: ReadinessReport) {
     scoreLabel: report.scoreLabel,
     coverage: report.coverage,
     dimensionScores: report.dimensionScores,
+    evidence: report.evidence,
     strongestDimension: report.strongestDimension,
     focusDimension: report.focusDimension,
     summary: report.summary,

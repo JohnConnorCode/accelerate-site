@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
+import { AI_READINESS_EVENT_NAMES, summarizeAIReadinessEvents } from "@/lib/ai-readiness-analytics";
 
 type AssessmentRow = {
   id: string;
@@ -36,6 +37,15 @@ export async function GET(request: NextRequest) {
     .order("created_at", { ascending: false })
     .limit(10000);
 
+  const eventResult = await auth.database
+    .from("website_events")
+    .select("visitor_id,event_name,properties", { count: "exact" })
+    .like("path", "/ai-readiness%")
+    .in("event_name", AI_READINESS_EVENT_NAMES)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(10000);
+
   if (result.error) {
     if (missingSchemaCodes.has(result.error.code || ""))
       return NextResponse.json({ schemaReady: false, windowDays: days });
@@ -44,6 +54,7 @@ export async function GET(request: NextRequest) {
   }
 
   const rows = (result.data || []) as AssessmentRow[];
+  const eventAnalytics = summarizeAIReadinessEvents(eventResult.data || []);
   const unlocked = rows.filter(
     (row) => Boolean(row.unlocked_at) || ["unlocked", "completed"].includes(row.status),
   );
@@ -76,15 +87,24 @@ export async function GET(request: NextRequest) {
     ),
   );
   const websiteAudited = rows.filter((row) => Boolean(row.profile?.websiteUrl?.trim())).length;
-
   return NextResponse.json({
     schemaReady: true,
     windowDays: days,
     funnel: {
-      starts: rows.length,
+      starts: eventAnalytics.starts,
       previews: previewed.length,
       unlocked: unlocked.length,
       websiteAudited,
+    },
+    eventAnalyticsReady: !eventResult.error,
+    eventAnalyticsCapped: (eventResult.count || 0) > 10000,
+    eventFunnel: {
+      stepViews: eventAnalytics.stepViews,
+      questionViews: eventAnalytics.questionViews,
+      pdfDownloads: eventAnalytics.pdfDownloads,
+      scanCompletions: eventAnalytics.scanCompletions,
+      scanPartials: eventAnalytics.scanPartials,
+      scanFailures: eventAnalytics.scanFailures,
     },
     averageScore,
     completionRate: rows.length ? Math.round((unlocked.length / rows.length) * 1000) / 10 : null,

@@ -11,15 +11,22 @@ const MAX_HTML_BYTES = 400_000;
 const MAX_REDIRECTS = 3;
 const FETCH_TIMEOUT_MS = 8_000;
 
-function emptyAudit(url: string, status: WebsiteAudit["status"], summary: string): WebsiteAudit {
+function emptyAudit(
+  url: string,
+  status: WebsiteAudit["status"],
+  summary: string,
+  statusCode?: number,
+): WebsiteAudit {
   return {
     url,
     checkedAt: new Date().toISOString(),
     status,
+    statusCode,
     score: null,
     summary,
     categories: [],
     findings: [],
+    pages: [{ url, status, statusCode, score: null }],
     note: "This is a surface audit of the public homepage. It does not run Lighthouse, crawl the site, or inspect private systems.",
   };
 }
@@ -416,7 +423,153 @@ function analyze(
     summary: `The homepage scored ${score}/100 on visible foundations. ${findings.filter((finding) => finding.severity === "priority").length} priority issue${findings.filter((finding) => finding.severity === "priority").length === 1 ? "" : "s"} deserve attention before adding more automation.`,
     categories,
     findings: findings.slice(0, 8),
-    note: "This is a surface audit of the public homepage. It uses HTML and response signals; it is not a Lighthouse performance test or a full site crawl.",
+    pages: [
+      {
+        url: finalUrl,
+        status: "completed",
+        statusCode,
+        title,
+        score,
+      },
+    ],
+    note: "This is a bounded review of the homepage and up to three linked public pages. It uses returned HTML and response signals; it is not Lighthouse or a full crawl.",
+  };
+}
+
+export function discoverInternalPages(html: string, baseUrl: URL) {
+  const candidates = new Map<string, number>();
+  for (const match of html.matchAll(/<a\b[^>]*\bhref\s*=\s*(["'])(.*?)\1/gi)) {
+    const href = match[2]?.replace(/&amp;/gi, "&").trim();
+    if (!href) continue;
+    try {
+      const candidate = new URL(href, baseUrl);
+      if (candidate.origin !== baseUrl.origin) continue;
+      candidate.hash = "";
+      candidate.search = "";
+      if (
+        candidate.pathname === "/" ||
+        candidate.pathname.length > 180 ||
+        /\.(?:avif|css|gif|ico|jpe?g|js|json|pdf|png|svg|txt|webp|xml|zip)$/i.test(
+          candidate.pathname,
+        )
+      )
+        continue;
+      const path = candidate.pathname.toLowerCase();
+      const score =
+        Number(
+          /about|service|solution|industry|industries|product|pricing|contact|team/.test(path),
+        ) *
+          10 +
+        Number((path.match(/\//g) || []).length <= 2) * 2;
+      candidates.set(candidate.href, Math.max(score, candidates.get(candidate.href) ?? 0));
+    } catch {
+      // Ignore malformed links. This is an intentionally small public-page sample.
+    }
+  }
+  return [...candidates]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([href]) => href);
+}
+
+async function auditDiscoveredPage(rawUrl: string, origin: string): Promise<WebsiteAudit> {
+  const initial = await publicUrl(rawUrl);
+  if (!initial || initial.origin !== origin)
+    return emptyAudit(rawUrl, "blocked", "This linked page could not be checked safely.");
+  let current = initial;
+  try {
+    for (let redirect = 0; redirect <= MAX_REDIRECTS; redirect += 1) {
+      const response = await fetchPublicHomepage(current);
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        const next = location ? await publicUrl(new URL(location, current).href) : null;
+        if (!next || next.origin !== origin || redirect === MAX_REDIRECTS)
+          return emptyAudit(
+            rawUrl,
+            "blocked",
+            "The linked page redirected outside the submitted site.",
+          );
+        current = next;
+        continue;
+      }
+      if (!response.ok)
+        return {
+          ...emptyAudit(
+            rawUrl,
+            "unreachable",
+            `The linked page returned HTTP ${response.status}.`,
+            response.status,
+          ),
+        };
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType && !/html|xhtml/i.test(contentType))
+        return emptyAudit(rawUrl, "unreachable", "The linked page did not return HTML.");
+      const html = await readHtml(response);
+      if (html === null)
+        return emptyAudit(rawUrl, "too_large", "The linked page was too large for a quick review.");
+      return analyze(rawUrl, current.href, response.status, html, response.headers);
+    }
+  } catch {
+    return emptyAudit(rawUrl, "unreachable", "The linked page could not be reached in time.");
+  }
+  return emptyAudit(rawUrl, "unreachable", "The linked page could not be checked.");
+}
+
+export function combinePageAudits(home: WebsiteAudit, additional: WebsiteAudit[]): WebsiteAudit {
+  const completed = [home, ...additional].filter((audit) => audit.status === "completed");
+  const pages = [home, ...additional].flatMap((audit) => audit.pages || []);
+  if (completed.length < 2)
+    return {
+      ...home,
+      pages,
+      note: `${home.note} ${additional.length ? `${additional.length} linked page${additional.length === 1 ? " was" : "s were"} discovered; none could be fully reviewed.` : "No additional internal pages were discovered in the returned HTML."}`,
+    };
+
+  const categories = home.categories.map((item) => {
+    const scores = completed
+      .map((audit) => audit.categories.find((candidate) => candidate.key === item.key)?.score)
+      .filter((score): score is number => typeof score === "number");
+    const score = clamp(scores.reduce((sum, value) => sum + value, 0) / scores.length);
+    return {
+      ...item,
+      score,
+      summary: `Average ${score}/100 across ${scores.length} reviewed pages. Homepage signal: ${item.summary}`,
+    };
+  });
+  const findingMap = new Map<string, WebsiteAuditFinding>();
+  for (const audit of completed) {
+    const pathname = audit.finalUrl
+      ? new URL(audit.finalUrl).pathname
+      : new URL(audit.url).pathname;
+    for (const finding of audit.findings) {
+      const key = `${finding.severity}|${finding.category}|${finding.title}`;
+      const existing = findingMap.get(key);
+      findingMap.set(key, {
+        ...finding,
+        page: existing?.page ? `${existing.page}, ${pathname}` : pathname,
+        detail: existing ? `${existing.detail} Also found on ${pathname}.` : finding.detail,
+      });
+    }
+  }
+  const findings = [...findingMap.values()]
+    .sort(
+      (a, b) =>
+        ({ priority: 0, improvement: 1, strength: 2 })[a.severity] -
+        { priority: 0, improvement: 1, strength: 2 }[b.severity],
+    )
+    .slice(0, 10);
+  const score = clamp(
+    completed.reduce((sum, audit) => sum + (audit.score ?? 0), 0) / completed.length,
+  );
+  const failed = pages.filter((page) => page.status !== "completed").length;
+  return {
+    ...home,
+    score,
+    categories,
+    findings,
+    pages,
+    summary: `Reviewed ${completed.length} public pages with an average surface score of ${score}/100. ${findings.filter((finding) => finding.severity === "priority").length} priority issue${findings.filter((finding) => finding.severity === "priority").length === 1 ? "" : "s"} detected.${failed ? ` ${failed} discovered page${failed === 1 ? " was" : "s were"} not fully reviewed.` : ""}`,
+    note: `Scores average visible HTML signals across ${completed.length} sampled public pages. ${failed ? `${failed} discovered page${failed === 1 ? " was" : "s were"} unavailable or blocked. ` : ""}The scan follows at most three internal links returned in homepage HTML. JavaScript-rendered content may be missed; this is not Lighthouse or a full crawl.`,
   };
 }
 
@@ -448,25 +601,42 @@ export async function auditWebsite(rawUrl?: string): Promise<WebsiteAudit | null
       }
       if (!response.ok)
         return {
-          ...emptyAudit(url, "unreachable", `The homepage returned HTTP ${response.status}.`),
+          ...emptyAudit(
+            url,
+            "unreachable",
+            `The homepage returned HTTP ${response.status}.`,
+            response.status,
+          ),
           finalUrl: current.href,
-          statusCode: response.status,
         };
       const contentType = response.headers.get("content-type") || "";
       if (contentType && !/html|xhtml/i.test(contentType))
         return {
-          ...emptyAudit(url, "unreachable", "The URL did not return an HTML homepage."),
+          ...emptyAudit(
+            url,
+            "unreachable",
+            "The URL did not return an HTML homepage.",
+            response.status,
+          ),
           finalUrl: current.href,
-          statusCode: response.status,
         };
       const html = await readHtml(response);
       if (html === null)
         return {
-          ...emptyAudit(url, "too_large", "The homepage was too large for a quick surface audit."),
+          ...emptyAudit(
+            url,
+            "too_large",
+            "The homepage was too large for a quick surface audit.",
+            response.status,
+          ),
           finalUrl: current.href,
-          statusCode: response.status,
         };
-      return analyze(url, current.href, response.status, html, response.headers);
+      const homepage = analyze(url, current.href, response.status, html, response.headers);
+      const discovered = discoverInternalPages(html, current);
+      const additional = await Promise.all(
+        discovered.map((pageUrl) => auditDiscoveredPage(pageUrl, current.origin)),
+      );
+      return combinePageAudits(homepage, additional);
     }
   } catch {
     return {

@@ -80,7 +80,8 @@ export function AIReadinessReport({
             <div className="pb-2">
               <p className="font-semibold text-white">{report.scoreLabel}</p>
               <p className="mt-1 text-sm text-white/60">
-                {report.coverage}% of answers provide signal.
+                {report.coverage}% answer coverage. This score uses your responses, not a peer
+                benchmark.
               </p>
             </div>
           </div>
@@ -103,13 +104,62 @@ export function AIReadinessReport({
             </div>
             <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
               <span
-                className="block h-full rounded-full bg-[var(--ink)] dark:bg-white"
+                className={`${styles.scoreBar} block h-full rounded-full bg-[var(--ink)] dark:bg-white`}
                 style={{ width: `${dimension.score ?? dimension.coverage}%` }}
               />
             </div>
             <p className="mt-3 text-xs leading-5 text-[var(--soft)]">{dimension.description}</p>
           </div>
         ))}
+      </Section>
+
+      <Section
+        bleed
+        className={`${styles.reportSection} grid gap-6 rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] lg:grid-cols-[.8fr_1.2fr] sm:p-8`}
+      >
+        <div>
+          <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
+            Read your score
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.035em]">
+            A readiness signal, not a guarantee
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-[var(--soft)]">
+            The score averages five dimensions equally. Each dimension needs at least two scored
+            answers; “not sure” responses do not count as evidence. We show an overall score only
+            when every dimension has enough signal.
+          </p>
+        </div>
+        <div>
+          <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
+            {report.score === null ? "Signals so far" : "Evidence from your answers"}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-[var(--soft)]">
+            {report.score === null
+              ? "These responses come from the area with the least scored signal so far. The overall score stays blank until every dimension has enough evidence."
+              : "These responses come from your lowest-scoring dimension. Recommendations also account for the priority and workflow constraint you selected."}
+          </p>
+          {report.evidence.length ? (
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+              {report.evidence.map((item) => (
+                <li
+                  key={`${item.question}-${item.answer}`}
+                  className={`${styles.sequenceItem} rounded-xl border border-black/10 bg-white/60 p-4 dark:border-white/10 dark:bg-white/[0.03]`}
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--soft)]">
+                    {item.dimension}
+                  </p>
+                  <p className="mt-2 text-sm leading-5">{item.question}</p>
+                  <p className="mt-2 text-sm font-semibold">{item.answer}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-[var(--soft)]">
+              Complete more scored answers to see which signals shaped your focus area.
+            </p>
+          )}
+        </div>
       </Section>
 
       {report.websiteAudit && <WebsiteAuditSection audit={report.websiteAudit} />}
@@ -127,7 +177,7 @@ export function AIReadinessReport({
           {report.recommendations.map((recommendation, index) => (
             <article
               key={recommendation.key}
-              className="rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-7"
+              className={`${styles.sequenceItem} rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-7`}
             >
               <div className="flex gap-4">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-sm font-semibold text-[var(--paper)] dark:bg-white dark:text-black">
@@ -229,11 +279,11 @@ export function AIReadinessReport({
         className={`${styles.reportSection} rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8`}
       >
         <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
-          30-day action plan
+          90-day action plan
         </p>
-        <div className="mt-6 grid gap-6 md:grid-cols-4">
+        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {report.actionPlan.map((step) => (
-            <div key={step.week}>
+            <div key={step.week} className={styles.sequenceItem}>
               <p className="font-mono text-xs text-[var(--soft)]">{step.week}</p>
               <h3 className="mt-2 font-semibold">{step.title}</h3>
               <p className="mt-2 text-sm leading-6 text-[var(--soft)]">{step.detail}</p>
@@ -297,7 +347,7 @@ function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
         {audit.score !== null && (
           <div className="shrink-0 rounded-2xl bg-[var(--ink)] px-5 py-4 text-right text-[var(--paper)]">
             <p className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-white/60">
-              Surface score
+              Sampled-page score
             </p>
             <p className="mt-1 font-display text-4xl font-semibold tabular-nums">
               {audit.score}
@@ -358,6 +408,9 @@ function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
                         <p className="mt-2 text-sm leading-5 text-[var(--soft)]">
                           {finding.detail}
                         </p>
+                        {finding.page && (
+                          <p className="mt-2 text-xs text-[var(--soft)]">Seen on {finding.page}</p>
+                        )}
                         <p className="mt-2 text-sm leading-5">
                           <span className="font-semibold">Next:</span> {finding.action}
                         </p>
@@ -369,6 +422,39 @@ function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
             </div>
           )}
         </>
+      )}
+      {!!audit.pages?.length && (
+        <div className="mt-7 border-t border-black/10 pt-6 dark:border-white/10">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h3 className="font-semibold">Pages reviewed</h3>
+            <p className="text-xs text-[var(--soft)]">
+              {audit.pages.filter((page) => page.status === "completed").length} of{" "}
+              {audit.pages.length} returned a full review
+            </p>
+          </div>
+          <ul className="mt-3 divide-y divide-black/10 dark:divide-white/10">
+            {audit.pages.map((page) => (
+              <li
+                key={page.url}
+                className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
+              >
+                <a
+                  href={page.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="min-w-0 break-all font-medium underline decoration-black/20 underline-offset-4 dark:decoration-white/25"
+                >
+                  {page.title || page.url}
+                </a>
+                <span className="shrink-0 text-xs text-[var(--soft)]">
+                  {page.status === "completed"
+                    ? `${page.score === null ? "No score" : `${page.score}/100`}${page.statusCode ? ` · HTTP ${page.statusCode}` : ""}`
+                    : `${page.status}${page.statusCode ? ` · HTTP ${page.statusCode}` : ""}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       <p className="mt-6 text-xs leading-5 text-[var(--soft)]">
         {audit.note} Checked {new Date(audit.checkedAt).toLocaleDateString()}.

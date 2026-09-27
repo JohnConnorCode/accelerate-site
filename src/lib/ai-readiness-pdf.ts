@@ -101,6 +101,22 @@ function buildPages(report: ReadinessReport) {
     10,
     "0.28 0.28 0.26",
   );
+  rule();
+  heading("How to read this score");
+  paragraph(
+    "The score averages five dimensions equally. Each dimension needs at least two scored answers. 'Not sure' responses do not count as evidence. An overall score appears only when every dimension has enough signal. This is a readiness signal, not a peer benchmark or a guarantee of savings or revenue.",
+    10,
+    15,
+  );
+  if (report.evidence.length) {
+    heading("Evidence from your answers");
+    for (const item of report.evidence) {
+      ensure(35);
+      text(page.commands, MARGIN, y, item.dimension, 9, "0.28 0.28 0.26");
+      y -= 14;
+      paragraph(`${item.question} Your answer: ${item.answer}.`, 10, 15);
+    }
+  }
   y = 438;
   heading("Your five readiness dimensions");
   for (const dimension of report.dimensionScores) {
@@ -123,12 +139,20 @@ function buildPages(report: ReadinessReport) {
     rule();
     heading("Website snapshot");
     paragraph(`${report.websiteAudit.url}. ${report.websiteAudit.summary}`, 10, 15);
+    for (const sampledPage of report.websiteAudit.pages || []) {
+      ensure(20);
+      paragraph(
+        `${sampledPage.status.toUpperCase()} ${sampledPage.title || sampledPage.url}${sampledPage.score === null ? "" : ` (${sampledPage.score}/100)`}${sampledPage.statusCode ? ` HTTP ${sampledPage.statusCode}` : ""}`,
+        9,
+        13,
+      );
+    }
     if (report.websiteAudit.score !== null) {
       text(
         page.commands,
         MARGIN,
         y,
-        `SURFACE SCORE  ${report.websiteAudit.score}/100`,
+        `SAMPLED-PAGE SCORE  ${report.websiteAudit.score}/100`,
         10,
         "0.1 0.1 0.1",
       );
@@ -143,7 +167,11 @@ function buildPages(report: ReadinessReport) {
         y -= 16;
         for (const finding of report.websiteAudit.findings.slice(0, 4)) {
           ensure(42);
-          paragraph(`${finding.title}. ${finding.action}`, 9, 13);
+          paragraph(
+            `${finding.title}${finding.page ? ` (seen on ${finding.page})` : ""}. ${finding.action}`,
+            9,
+            13,
+          );
         }
       }
     } else {
@@ -172,7 +200,7 @@ function buildPages(report: ReadinessReport) {
     15,
   );
   rule();
-  heading("30-day action plan");
+  heading("90-day action plan");
   for (const step of report.actionPlan) {
     ensure(46);
     text(page.commands, MARGIN, y, `${step.week}  ${step.title}`, 11, "0.05 0.05 0.05");
@@ -184,7 +212,7 @@ function buildPages(report: ReadinessReport) {
     page.commands,
     MARGIN,
     42,
-    "Scores describe readiness signals, not a guarantee of savings or revenue.",
+    "Scores describe readiness signals, not a peer benchmark or a guarantee of savings or revenue.",
     8,
     "0.45 0.45 0.42",
   );

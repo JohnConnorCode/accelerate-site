@@ -8,6 +8,16 @@ type Analytics = {
   schemaReady: boolean;
   windowDays?: number;
   funnel?: { starts: number; previews: number; unlocked: number; websiteAudited?: number };
+  eventAnalyticsReady?: boolean;
+  eventAnalyticsCapped?: boolean;
+  eventFunnel?: {
+    stepViews: { label: string; value: number }[];
+    questionViews: { label: string; value: number }[];
+    pdfDownloads: number;
+    scanCompletions: number;
+    scanPartials: number;
+    scanFailures: number;
+  };
   averageScore?: number | null;
   completionRate?: number | null;
   bottlenecks?: { label: string; value: number }[];
@@ -61,15 +71,19 @@ export function AIReadinessPanel() {
             AI Readiness Assessment
           </h2>
         </div>
-        <p className="text-xs text-white-muted">Server-confirmed assessment records</p>
+        <p className="text-xs text-white-muted">Browser activity and saved reports</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-        <Metric label="Started" value={number(funnel.starts)} icon={BarChart3} />
+        <Metric
+          label="Started sessions"
+          value={data.eventAnalyticsReady ? number(funnel.starts) : "—"}
+          icon={BarChart3}
+        />
         <Metric label="Previewed" value={number(funnel.previews)} icon={Target} />
         <Metric label="Unlocked" value={number(funnel.unlocked)} icon={Users} />
-        <Metric label="Sites audited" value={number(funnel.websiteAudited)} icon={Target} />
+        <Metric label="Site URLs provided" value={number(funnel.websiteAudited)} icon={Target} />
         <Metric
-          label="Unlock rate"
+          label="Report unlock rate"
           value={
             data.completionRate === null || data.completionRate === undefined
               ? "—"
@@ -88,6 +102,82 @@ export function AIReadinessPanel() {
         />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
+        <GlassCard>
+          <p className="admin-eyebrow">Assessment progress · unique sessions</p>
+          {!data.eventAnalyticsReady ? (
+            <p className="mt-4 text-sm text-white-muted">
+              Detailed step analytics are unavailable. Check first-party analytics access for this
+              workspace.
+            </p>
+          ) : (
+            <>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {(data.eventFunnel?.stepViews || []).map((item) => (
+                  <div key={item.label} className="rounded-xl border border-border-glass p-3">
+                    <p className="text-xs capitalize text-white-muted">{item.label}</p>
+                    <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                      {number(item.value)}
+                    </p>
+                  </div>
+                ))}
+                <div className="rounded-xl border border-border-glass p-3">
+                  <p className="text-xs text-white-muted">PDF download clicks</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                    {number(data.eventFunnel?.pdfDownloads)}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border-glass p-3">
+                  <p className="text-xs text-white-muted">Website scans completed</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                    {number(data.eventFunnel?.scanCompletions)}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border-glass p-3">
+                  <p className="text-xs text-white-muted">Website scans partial</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                    {number(data.eventFunnel?.scanPartials)}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border-glass p-3">
+                  <p className="text-xs text-white-muted">Website scan failures</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                    {number(data.eventFunnel?.scanFailures)}
+                  </p>
+                </div>
+              </div>
+              {!!data.eventFunnel?.questionViews.length && (
+                <details className="mt-4 rounded-xl border border-border-glass p-3">
+                  <summary className="cursor-pointer text-sm font-medium text-white-secondary">
+                    Question-by-question views
+                  </summary>
+                  <div className="mt-3 space-y-2">
+                    {data.eventFunnel.questionViews.map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex items-center justify-between gap-4 text-sm"
+                      >
+                        <span className="text-white-muted">{item.label}</span>
+                        <span className="font-semibold tabular-nums text-white-primary">
+                          {number(item.value)} sessions
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+              <p className="mt-4 text-xs leading-5 text-white-muted">
+                Counts use anonymous, session-scoped visitor IDs. Answers, names, and email
+                addresses are not included in event analytics. Started sessions use browser events;
+                previews and unlocked reports use saved assessment records.
+              </p>
+              {data.eventAnalyticsCapped && (
+                <p className="mt-2 text-xs leading-5 text-[var(--admin-warning)]">
+                  More than 10,000 events matched this window. Step counts show the latest 10,000.
+                </p>
+              )}
+            </>
+          )}
+        </GlassCard>
         <GlassCard>
           <p className="admin-eyebrow">Common constraints</p>
           <div className="mt-4 space-y-3">

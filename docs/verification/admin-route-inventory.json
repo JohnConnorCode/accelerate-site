@@ -166,7 +166,7 @@
     "src/app/api/admin/website-grades/route.ts": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98",
     "src/app/api/admin/work/agent-items/route.ts": "7cd6c8e2873c0c8d96a3008470453e6118f3486d8e2a19092f1fd50f1028fce5",
     "src/components/admin/AICapabilities.tsx": "a002a0ed29cca7fbbb4be4599b317dafbf5be1fad7b8ad17aef54864945c3b2b",
-    "src/components/admin/AIReadinessPanel.tsx": "900a125a59bf92a1d91c7757b53deaf99c327aa7cc5f7aa92f731642a13064ce",
+    "src/components/admin/AIReadinessPanel.tsx": "4a2f79fb03c96f6c8763118392a4bdb5d7c5ce5ccc9351f8bbed2a31828cc18f",
     "src/components/admin/AIRunHistory.tsx": "b3aa372fb87a449cb0a895c9d0e15ea0060e2d27c522043952cb2eb0837accdc",
     "src/components/admin/ActionReviewDialog.tsx": "8c99546ad09be803afc85b7311023a32097a74b4de63910b956663fe0cca7bb7",
     "src/components/admin/AddLeadModal.tsx": "11b0ff48f8565c956a81384c6b7e8f7ecc2258e1fe4fa2af5c18837dc53173de",
