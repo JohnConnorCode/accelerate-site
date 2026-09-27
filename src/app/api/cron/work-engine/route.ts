@@ -4,6 +4,7 @@ import {
 } from "@/lib/revenue-os/learning-signals";
 import { registerKnowledgeHandlers } from "@/lib/revenue-os/knowledge-documents";
 import { registerSocialWorkHandlers } from "@/lib/revenue-os/social-marketing-work";
+import { registerDebateBookingWorkHandlers } from "@/lib/revenue-os/debate-booking-work";
 import { ProviderCircuit } from "@/lib/revenue-os/bounded-execution";
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
@@ -31,6 +32,7 @@ registerFinanceWorkHandlers();
 registerOperationsWorkHandlers();
 registerTrustGraduationHandlers();
 registerProactiveIntelHandlers();
+registerDebateBookingWorkHandlers();
 
 // A warm process can reuse this admission hint; it is not a durable provider circuit.
 const tenantCircuits = new Map<string, ProviderCircuit>();

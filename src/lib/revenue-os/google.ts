@@ -22,7 +22,12 @@ import { recordActivity } from "./activities";
 import { recordAudit } from "./audit";
 import { associateConversationParticipants } from "./conversations";
 import { prepareGmailReply } from "./gmail-reply-mime";
-import { parseAddressList, parseRfcMessageId, resolveGmailDirection } from "./gmail-threading";
+import {
+  gmailReplyRecipients,
+  parseAddressList,
+  parseRfcMessageId,
+  resolveGmailDirection,
+} from "./gmail-threading";
 import { assertGmailDraftTarget } from "./work-drafts";
 import { createPreCallBriefWork, createPostMeetingProcessWork } from "./meeting-intel-coworker";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
@@ -278,7 +283,9 @@ function parseAddress(value: string | null): string | null {
  * chronology, unread counts, and reply detection. Best-effort: an alias
  * fetch failure degrades to account-only rather than failing the sync.
  */
-async function listGmailOwnerEmails(token: string, accountEmail: string): Promise<Set<string>> {
+async function listGmailOwnerEmails(
+  token: string, accountEmail: string, strict = false,
+): Promise<Set<string>> {
   const owners = new Set<string>();
   const account = normalizeEmail(accountEmail);
   if (account) owners.add(account);
@@ -292,6 +299,7 @@ async function listGmailOwnerEmails(token: string, accountEmail: string): Promis
       if (alias) owners.add(alias);
     }
   } catch (error) {
+    if (strict) throw new Error("Gmail aliases could not be verified; do not send this reply yet");
     console.error("[google/gmail-aliases]", error);
   }
   return owners;
@@ -425,7 +433,10 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       }
       const rows = messages.map((message) => {
         const from = parseAddress(header(message, "From"));
-        const to = parseAddress(header(message, "To"));
+        const recipients = [...new Set([
+          ...parseAddressList(header(message, "To")),
+          ...parseAddressList(header(message, "Cc")),
+        ])];
         const outbound = isOutbound(from);
         return {
           tenant_id: tenantId,
@@ -433,7 +444,7 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
           external_id: message.id,
           direction: outbound ? "outbound" : "inbound",
           sender_email: from,
-          recipient_emails: to ? [to] : [],
+          recipient_emails: recipients,
           subject: header(message, "Subject"),
           body_text: decodeBody(message.payload) || message.snippet || "",
           status: message.labelIds?.includes("DRAFT")
@@ -683,15 +694,27 @@ export async function syncCalendar(supabase: SupabaseClient) {
     timeMin,
     timeMax,
     singleEvents: "true",
+    showDeleted: "true",
     orderBy: "startTime",
     maxResults: "500",
   });
   try {
-    const data = await googleFetch<{ items?: Array<Record<string, unknown>> }>(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    const externalIds = (data.items ?? []).map((event) => String(event.id)).filter(Boolean);
+    const events: Array<Record<string, unknown>> = [];
+    let pageToken: string | undefined;
+    for (let page = 0; page < 20; page++) {
+      if (pageToken) params.set("pageToken", pageToken);
+      const data = await googleFetch<{
+        items?: Array<Record<string, unknown>>;
+        nextPageToken?: string;
+      }>(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      events.push(...(data.items ?? []));
+      pageToken = data.nextPageToken;
+      if (!pageToken) break;
+    }
+    if (pageToken) throw new Error("Calendar sync exceeded 20 pages; completeness is unknown");
+    const externalIds = events.map((event) => String(event.id)).filter(Boolean);
     const { data: existingEvents, error: existingError } = externalIds.length
       ? await supabase
           .from("calendar_events")
@@ -704,7 +727,7 @@ export async function syncCalendar(supabase: SupabaseClient) {
       (existingEvents ?? []).map((event) => [event.external_id, event]),
     );
     const rows = await Promise.all(
-      (data.items ?? []).map(async (event) => {
+      events.map(async (event) => {
         const start = event.start as { dateTime?: string; date?: string } | undefined;
         const end = event.end as { dateTime?: string; date?: string } | undefined;
         const attendees = Array.isArray(event.attendees) ? event.attendees : [];
@@ -766,6 +789,16 @@ export async function syncCalendar(supabase: SupabaseClient) {
             identity_resolution:
               contactMatches.size > 1 ? "ambiguous" : contact ? "matched" : "unmatched",
             campaign_stop_receipt: existingMetadata.campaign_stop_receipt ?? null,
+            debate_integrity: existingMetadata.debate_integrity ?? null,
+            debate_verified_at: existingMetadata.debate_verified_at ?? null,
+            debate_production_id: existingMetadata.debate_production_id ?? null,
+            debate_expected_organizer: existingMetadata.debate_expected_organizer ?? null,
+            debate_expected_summary: existingMetadata.debate_expected_summary ?? null,
+            debate_expected_description: existingMetadata.debate_expected_description ?? null,
+            debate_expected_location: existingMetadata.debate_expected_location ?? null,
+            debate_expected_end_at: existingMetadata.debate_expected_end_at ?? null,
+            debate_conference_required: existingMetadata.debate_conference_required ?? null,
+            debate_conference_ready: existingMetadata.debate_conference_ready ?? null,
             booking_occurred_at: typeof event.created === "string" ? event.created : null,
           },
           synced_at: new Date().toISOString(),
@@ -875,6 +908,221 @@ export async function syncCalendar(supabase: SupabaseClient) {
     });
     throw error;
   }
+}
+
+/** Create one reviewed invitation, then read it back before claiming success. */
+export async function createVerifiedCalendarInvitation(
+  supabase: SupabaseClient,
+  input: {
+    productionId: string;
+    attemptKey: string;
+    summary: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    timeZone: string;
+    attendees: string[];
+    location?: string | null;
+    createMeet: boolean;
+  },
+) {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Calendar invitation requires an explicit workspace");
+  const { token, connection } = await getGoogleAccessToken(supabase);
+  const ownerEmail = normalizeEmail(connection.account_email as string);
+  if (!ownerEmail) throw new Error("Google account email is unavailable; reconnect Workspace");
+  if (!((connection.scopes as string[] | undefined) ?? []).includes("https://www.googleapis.com/auth/calendar.events"))
+    throw new Error("Google Calendar event permission is missing");
+  const attendees = [...new Set(input.attendees.map((email) => normalizeEmail(email)))].filter(
+    (email): email is string => Boolean(email && email !== ownerEmail),
+  );
+  if (attendees.length !== 2) throw new Error("A debate invitation requires two verified participants");
+  const eventId = createHash("sha256")
+    .update(`${tenantId}:${input.productionId}:${input.attemptKey}:${input.startAt}:${input.endAt}`)
+    .digest("hex");
+  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`;
+  const auth = { Authorization: `Bearer ${token}` };
+  type CalendarEvent = {
+    id: string;
+    status?: string;
+    summary?: string;
+    description?: string;
+    htmlLink?: string;
+    hangoutLink?: string;
+    organizer?: { email?: string; self?: boolean };
+    start?: { dateTime?: string };
+    end?: { dateTime?: string };
+    attendees?: Array<{ email: string; responseStatus?: string }>;
+    conferenceData?: { entryPoints?: Array<{ uri?: string; entryPointType?: string }> };
+    extendedProperties?: { private?: { debateProductionId?: string } };
+  };
+  let event: CalendarEvent | null = null;
+  try {
+    event = await googleFetch<CalendarEvent>(url, { headers: auth });
+  } catch (error) {
+    if (!(error instanceof GoogleApiError) || error.status !== 404) throw error;
+  }
+  if (!event) {
+    const params = new URLSearchParams({
+      timeMin: input.startAt,
+      timeMax: input.endAt,
+      singleEvents: "true",
+      maxResults: "100",
+    });
+    const busy = await googleFetch<{ items?: Array<{ id?: string; status?: string; transparency?: string }>; nextPageToken?: string }>(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,
+      { headers: auth },
+    );
+    if (busy.nextPageToken) throw new Error("Calendar availability could not be checked completely");
+    if (busy.items?.some((item) => item.id !== eventId && item.status !== "cancelled" && item.transparency !== "transparent"))
+      throw new Error("John's calendar has a conflicting event at the approved time");
+    try {
+      await googleFetch<CalendarEvent>(
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all&conferenceDataVersion=1",
+        {
+          method: "POST",
+          headers: { ...auth, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: eventId,
+            summary: input.summary,
+            description: input.description,
+            location: input.location ?? undefined,
+            start: { dateTime: input.startAt, timeZone: input.timeZone },
+            end: { dateTime: input.endAt, timeZone: input.timeZone },
+            attendees: attendees.map((email) => ({ email, responseStatus: "needsAction" })),
+            ...(input.createMeet
+              ? { conferenceData: { createRequest: { requestId: eventId.slice(0, 32) } } }
+              : {}),
+            extendedProperties: { private: { debateProductionId: input.productionId } },
+          }),
+        },
+      );
+    } catch (error) {
+      if (error instanceof GoogleApiError && error.status >= 400 && error.status < 500 && error.status !== 409)
+        throw error;
+      // The provider may have accepted the insert before a timeout or 5xx.
+      // Re-read the deterministic id; never issue a second insert blindly.
+    }
+    event = await googleFetch<CalendarEvent>(url, { headers: auth });
+  }
+  const actualAttendees = new Set((event.attendees ?? []).map((person) => normalizeEmail(person.email)));
+  const conferenceReady = Boolean(event.hangoutLink ||
+    event.conferenceData?.entryPoints?.some((point) => point.entryPointType === "video"));
+  if (
+    event.id !== eventId || event.status !== "confirmed" ||
+    event.summary !== input.summary || event.description !== input.description ||
+    event.extendedProperties?.private?.debateProductionId !== input.productionId ||
+    (!event.organizer?.self && normalizeEmail(event.organizer?.email ?? "") !== ownerEmail) ||
+    Date.parse(event.start?.dateTime ?? "") !== Date.parse(input.startAt) ||
+    Date.parse(event.end?.dateTime ?? "") !== Date.parse(input.endAt) ||
+    attendees.some((email) => !actualAttendees.has(email)) || actualAttendees.size !== attendees.length
+  ) throw new Error("Existing Google event differs from the approved invitation; reconcile it manually");
+  const { data: saved, error: saveError } = await supabase
+    .from("calendar_events")
+    .upsert({
+      tenant_id: tenantId,
+      provider: "google",
+      external_id: eventId,
+      calendar_id: "primary",
+      title: event.summary ?? input.summary,
+      description: input.description,
+      location: input.location ?? null,
+      start_at: input.startAt,
+      end_at: input.endAt,
+      status: event.status ?? "confirmed",
+      html_link: event.htmlLink ?? null,
+      attendees: event.attendees ?? [],
+      metadata: {
+        organizer: event.organizer ?? null,
+        hangout_link: event.hangoutLink ?? null,
+        debate_integrity: "verified",
+        debate_verified_at: new Date().toISOString(),
+        debate_production_id: input.productionId,
+        debate_expected_organizer: ownerEmail,
+        debate_expected_summary: input.summary,
+        debate_expected_description: input.description,
+        debate_expected_location: input.location ?? null,
+        debate_expected_end_at: input.endAt,
+        debate_conference_required: input.createMeet,
+        debate_conference_ready: conferenceReady,
+      },
+      synced_at: new Date().toISOString(),
+    }, { onConflict: "tenant_id,provider,external_id" })
+    .select("id")
+    .single();
+  if (saveError || !saved)
+    throw new Error("Google accepted the invitation but its local receipt is missing; reconcile before retrying");
+  return {
+    calendarEventId: saved.id,
+    providerEventId: eventId,
+    htmlLink: event.htmlLink ?? null,
+    organizer: ownerEmail,
+    attendees: event.attendees ?? [],
+    conferencePending: input.createMeet && !conferenceReady,
+  };
+}
+
+/** Refresh a production's exact provider event, including cancellations and attendee replies. */
+export async function verifyDebateCalendarEvent(
+  supabase: SupabaseClient,
+  input: { calendarEventId: string; participantEmails: string[]; startAt: string },
+) {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Calendar verification requires an explicit workspace");
+  const { data: local, error } = await supabase.from("calendar_events")
+    .select("id,external_id,provider,title,description,location,start_at,end_at,metadata")
+    .eq("tenant_id", tenantId).eq("id", input.calendarEventId).maybeSingle();
+  if (error || !local || local.provider !== "google")
+    throw new Error("Linked Google event is unavailable");
+  const { token, connection } = await getGoogleAccessToken(supabase);
+  const ownerEmail = normalizeEmail(connection.account_email as string);
+  if (!ownerEmail) throw new Error("Google account email is unavailable");
+  let event: {
+    id: string; status?: string; summary?: string; description?: string; location?: string;
+    htmlLink?: string; hangoutLink?: string;
+    organizer?: { email?: string; self?: boolean };
+    start?: { dateTime?: string }; end?: { dateTime?: string };
+    attendees?: Array<{ email: string; responseStatus?: string }>;
+    conferenceData?: { entryPoints?: Array<{ uri?: string; entryPointType?: string }> };
+  } | null = null;
+  try {
+    event = await googleFetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(local.external_id)}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+  } catch (caught) {
+    if (!(caught instanceof GoogleApiError) || caught.status !== 404) throw caught;
+  }
+  const actual = new Set((event?.attendees ?? []).map((person) => normalizeEmail(person.email)));
+  const expected = new Set(input.participantEmails.map(normalizeEmail));
+  const conferenceReady = Boolean(event?.hangoutLink ||
+    event?.conferenceData?.entryPoints?.some((point) => point.entryPointType === "video"));
+  const integrity = Boolean(event && event.id === local.external_id && event.status === "confirmed" &&
+    (event.organizer?.self || normalizeEmail(event.organizer?.email ?? "") === ownerEmail) &&
+    event.summary === local.metadata?.debate_expected_summary &&
+    (event.description ?? null) === local.metadata?.debate_expected_description &&
+    (event.location ?? null) === local.metadata?.debate_expected_location &&
+    Date.parse(event.start?.dateTime ?? "") === Date.parse(input.startAt) &&
+    Date.parse(event.end?.dateTime ?? "") === Date.parse(local.metadata?.debate_expected_end_at ?? "") &&
+    actual.size === expected.size && [...expected].every((email) => actual.has(email)));
+  const { error: updateError } = await supabase.from("calendar_events")
+    .update({
+      status: event?.status ?? "cancelled",
+      attendees: event?.attendees ?? [],
+      html_link: event?.htmlLink ?? null,
+      metadata: {
+        ...(local.metadata ?? {}),
+        organizer: event?.organizer ?? null,
+        hangout_link: event?.hangoutLink ?? null,
+        debate_integrity: integrity ? "verified" : "mismatch",
+        debate_conference_ready: conferenceReady,
+        debate_verified_at: new Date().toISOString(),
+      },
+      synced_at: new Date().toISOString(),
+    }).eq("tenant_id", tenantId).eq("id", local.id);
+  if (updateError) throw new Error(updateError.message);
+  return { providerEventId: local.external_id, status: event?.status ?? "cancelled",
+    integrity: integrity ? "verified" : "mismatch", attendees: event?.attendees ?? [] };
 }
 
 export async function syncDrive(supabase: SupabaseClient) {
@@ -1043,7 +1291,13 @@ async function fetchDriveDocumentText(
 
 export async function sendGmailReply(
   supabase: SupabaseClient,
-  input: { conversationId: string; body: string; actorEmail: string; idempotencyKey?: string },
+  input: {
+    conversationId: string;
+    body: string;
+    actorEmail: string;
+    idempotencyKey?: string;
+    expectedTarget?: GmailReplyTarget;
+  },
 ) {
   const body = input.body.trim();
   if (!body) throw new Error("Reply body is required");
@@ -1067,33 +1321,22 @@ export async function sendGmailReply(
   }
 
   const { token, connection } = await getGoogleAccessToken(supabase);
-  const { data: conversation, error: conversationError } = await supabase
-    .from("conversations")
-    .select("id,external_id,subject,contact_id,opportunity_id,metadata")
-    .eq("id", input.conversationId)
-    .eq("channel", "gmail")
-    .maybeSingle();
-  if (conversationError) throw new Error(conversationError.message);
-  if (!conversation?.external_id) throw new Error("Gmail conversation not found");
-  const { data: latest, error: messageError } = await supabase
-    .from("messages")
-    .select("external_id,sender_email,recipient_emails,subject,references_header,metadata")
-    .eq("conversation_id", input.conversationId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (messageError) throw new Error(messageError.message);
-  if (!latest) throw new Error("This conversation has no message to reply to");
+  const { target, conversation, latest } = await loadGmailReplyTarget(
+    supabase,
+    input.conversationId,
+    token,
+    connection.account_email as string,
+  );
+  if (input.expectedTarget && JSON.stringify(input.expectedTarget) !== JSON.stringify(target))
+    throw new Error("The Gmail thread or recipients changed after approval; prepare a fresh reply");
   const ownerEmail = normalizeEmail(connection.account_email as string);
-  const metadata = (conversation.metadata ?? {}) as { contact_email?: string };
-  const recipient = normalizeEmail(metadata.contact_email || latest.sender_email);
-  if (!ownerEmail || !recipient) throw new Error("Could not identify the Gmail reply recipient");
-  const latestMetadata = (latest.metadata ?? {}) as { rfc_message_id?: string };
+  if (!ownerEmail) throw new Error("Google account email is unavailable; reconnect Workspace");
   const prepared = prepareGmailReply({
     ownerEmail,
-    recipient,
+    recipient: target.to,
+    ccRecipients: target.cc,
     conversationSubject: conversation.subject,
-    latest: { ...latest, rfc_message_id: latestMetadata.rfc_message_id ?? null },
+    latest,
     body,
   });
 
@@ -1104,7 +1347,7 @@ export async function sendGmailReply(
     idempotency_key: input.idempotencyKey || null,
     direction: "outbound",
     sender_email: ownerEmail,
-    recipient_emails: [prepared.recipient],
+    recipient_emails: [prepared.recipient, ...prepared.ccRecipients],
     subject: prepared.subject,
     body_text: body,
     status: "processing",
@@ -1152,6 +1395,7 @@ export async function sendGmailReply(
     idempotencyKey: input.idempotencyKey || null,
     ownerEmail,
     recipient: prepared.recipient,
+    ccRecipients: prepared.ccRecipients,
     subject: prepared.subject,
     body,
     sentId: sent.id,
@@ -1170,7 +1414,7 @@ export async function sendGmailReply(
     recordActivity(supabase, {
       activityType: "email_sent",
       title: prepared.subject,
-      summary: `Gmail reply sent to ${prepared.recipient}`,
+      summary: `Gmail reply sent to ${[prepared.recipient, ...prepared.ccRecipients].join(", ")}`,
       contactId: conversation.contact_id,
       opportunityId: conversation.opportunity_id,
       conversationId: conversation.id,
@@ -1190,11 +1434,132 @@ export async function sendGmailReply(
         provider_id: sent.id,
         message_id: message.id,
         recipient: prepared.recipient,
+        cc: prepared.ccRecipients,
         in_reply_to: prepared.inReplyTo,
       },
     }),
   ]);
   return { providerId: sent.id, messageId: message.id, conversationId: conversation.id };
+}
+
+export interface GmailReplyTarget {
+  threadId: string;
+  latestMessageId: string;
+  messageCount: number;
+  to: string;
+  cc: string[];
+}
+
+/** Bind an approval to the actual provider thread, not a possibly stale local copy. */
+export async function readGmailReplyTarget(
+  supabase: SupabaseClient,
+  conversationId: string,
+): Promise<GmailReplyTarget> {
+  const { token, connection } = await getGoogleAccessToken(supabase);
+  return (await loadGmailReplyTarget(supabase, conversationId, token, connection.account_email as string)).target;
+}
+
+/** Full active thread plus bounded related sent history for grounded reply preparation. */
+export async function readCompleteGmailThread(supabase: SupabaseClient, conversationId: string) {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Gmail thread requires an explicit workspace");
+  const target = await readGmailReplyTarget(supabase, conversationId);
+  const [thread, sent] = await Promise.all([
+    supabase.from("messages")
+      .select("id,external_id,direction,sender_email,recipient_emails,subject,body_text,sent_at,received_at,status")
+      .eq("tenant_id", tenantId).eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true }).limit(201),
+    supabase.from("messages")
+      .select("id,conversation_id,subject,body_text,sent_at")
+      .eq("tenant_id", tenantId).eq("direction", "outbound")
+      .contains("recipient_emails", [target.to])
+      .neq("conversation_id", conversationId)
+      .order("created_at", { ascending: false }).limit(20),
+  ]);
+  if (thread.error || sent.error) throw new Error("Gmail context could not be loaded");
+  const messages = thread.data ?? [];
+  if (messages.length !== target.messageCount || messages.length > 200 ||
+      messages.reduce((sum, message) => sum + (message.body_text?.length ?? 0), 0) > 50_000)
+    throw new Error("The active Gmail thread exceeds the safe automated review limit");
+  return {
+    conversationId,
+    threadId: target.threadId,
+    latestMessageId: target.latestMessageId,
+    replyTo: target.to,
+    replyCc: target.cc,
+    complete: true,
+    messages,
+    recentSentToRecipient: (sent.data ?? []).map((message) => ({
+      ...message,
+      bodyExcerpt: message.body_text?.slice(0, 500) ?? null,
+      body_text: undefined,
+    })),
+  };
+}
+
+async function loadGmailReplyTarget(
+  supabase: SupabaseClient,
+  conversationId: string,
+  token: string,
+  accountEmail: string,
+) {
+  const { data: conversation, error: conversationError } = await supabase
+    .from("conversations")
+    .select("id,external_id,subject,contact_id,opportunity_id,metadata,status")
+    .eq("id", conversationId)
+    .eq("channel", "gmail")
+    .maybeSingle();
+  if (conversationError) throw new Error(conversationError.message);
+  if (!conversation?.external_id) throw new Error("Gmail conversation not found");
+  if (conversation.status === "archived") throw new Error("Cannot send reply: conversation is archived");
+  const { data: latest, error: messageError } = await supabase
+    .from("messages")
+    .select("external_id,sender_email,recipient_emails,subject,references_header,metadata")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (messageError) throw new Error(messageError.message);
+  if (!latest) throw new Error("This conversation has no message to reply to");
+  const thread = await googleFetch<{ id: string; messages?: GmailMessage[] }>(
+    `https://gmail.googleapis.com/gmail/v1/users/me/threads/${encodeURIComponent(conversation.external_id)}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  const current = thread.messages?.at(-1);
+  if (!current?.id || current.id !== latest.external_id || thread.id !== conversation.external_id)
+    throw new Error("The Gmail thread changed since its last sync; refresh it before replying");
+  const providerIds = (thread.messages ?? []).map((message) => message.id);
+  if (providerIds.length > 200 || current.labelIds?.includes("DRAFT"))
+    throw new Error("This Gmail thread needs manual review before replying");
+  const canonical = await supabase.from("messages")
+    .select("external_id")
+    .eq("conversation_id", conversationId)
+    .not("external_id", "is", null)
+    .order("created_at", { ascending: true })
+    .limit(201);
+  if (canonical.error) throw new Error(canonical.error.message);
+  const localIds = new Set((canonical.data ?? []).map((message) => message.external_id));
+  if (canonical.data?.length !== providerIds.length || providerIds.some((id) => !localIds.has(id)))
+    throw new Error("The complete Gmail thread is not synced; refresh it before replying");
+  const owners = await listGmailOwnerEmails(token, accountEmail, true);
+  const recipients = gmailReplyRecipients({
+    from: parseAddressList(header(current, "From")),
+    to: parseAddressList(header(current, "To")),
+    cc: parseAddressList(header(current, "Cc")),
+    ownerEmails: owners,
+  });
+  const latestMetadata = (latest.metadata ?? {}) as { rfc_message_id?: string };
+  return {
+    target: {
+      threadId: conversation.external_id,
+      latestMessageId: current.id,
+      messageCount: providerIds.length,
+      to: recipients.to,
+      cc: recipients.cc,
+    } satisfies GmailReplyTarget,
+    conversation,
+    latest: { ...latest, rfc_message_id: latestMetadata.rfc_message_id ?? null },
+  };
 }
 
 const GMAIL_DRAFTS_URL = "https://mail.google.com/mail/u/0/#drafts";
@@ -1551,6 +1916,7 @@ export async function recordGmailSendReceipt(
     idempotencyKey: string | null;
     ownerEmail: string;
     recipient: string;
+    ccRecipients?: string[];
     subject: string;
     body: string;
     sentId: string;
@@ -1571,7 +1937,7 @@ export async function recordGmailSendReceipt(
         idempotency_key: input.idempotencyKey,
         direction: "outbound",
         sender_email: input.ownerEmail,
-        recipient_emails: [input.recipient],
+        recipient_emails: [input.recipient, ...(input.ccRecipients ?? [])],
         subject: input.subject,
         body_text: input.body,
         status: "sent",

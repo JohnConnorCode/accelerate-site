@@ -30,7 +30,7 @@ import { ACTION_REVERSIBILITY, reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
 import { transitionOpportunity } from "./pipeline";
 import { activateCampaign, duplicateCampaign } from "./campaigns";
-import { createGmailDraft, sendGmailReply } from "./google";
+import { createGmailDraft, sendGmailReply, type GmailReplyTarget } from "./google";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import {
   createRevenueTask,
@@ -294,6 +294,7 @@ export async function approveAndExecuteAction(
       }
       case "send_gmail_reply": {
         const conversationId = stringValue(payload, "conversationId")!;
+        const replyTarget = payload.replyTarget as GmailReplyTarget | undefined;
         const { data: conv, error: convError } = await supabase
           .from("conversations")
           .select("id,status")
@@ -303,12 +304,35 @@ export async function approveAndExecuteAction(
         if (conv && conv.status === "archived") {
           throw new Error("Cannot send reply: conversation is archived");
         }
+        if (
+          !replyTarget ||
+          typeof replyTarget.threadId !== "string" ||
+          typeof replyTarget.latestMessageId !== "string" ||
+          !Number.isInteger(replyTarget.messageCount) ||
+          typeof replyTarget.to !== "string" ||
+          !Array.isArray(replyTarget.cc) ||
+          !replyTarget.cc.every((email) => typeof email === "string")
+        )
+          throw new Error("Gmail reply approval has no verified thread target; prepare a fresh reply");
         result = await sendGmailReply(supabase, {
           conversationId,
           body: stringValue(payload, "body")!,
           actorEmail,
           idempotencyKey: `action:${id}`,
+          expectedTarget: replyTarget,
         });
+        break;
+      }
+      case "create_debate_invitation": {
+        if (mode !== "approved") throw new Error("Debate invitations require exact human approval");
+        const { executeDebateInvitation } = await import("./debate-invitations");
+        result = await executeDebateInvitation(supabase, payload, actorEmail);
+        break;
+      }
+      case "record_debate_milestone": {
+        if (mode !== "approved") throw new Error("Booking commitments require human confirmation");
+        const { executeProposedDebateMilestone } = await import("./debate-bookings");
+        result = await executeProposedDebateMilestone(supabase, payload, actorEmail);
         break;
       }
       case "create_gmail_draft": {

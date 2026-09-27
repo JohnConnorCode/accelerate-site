@@ -115,6 +115,14 @@ import type { AiToolConnectionRequirement } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
+import { readCompleteGmailThread, readGmailReplyTarget } from "./google";
+import {
+  debateMilestoneSchema,
+  listDebateProductions,
+  loadDebateProduction,
+  proposeDebateMilestone,
+} from "./debate-bookings";
+import { debateInvitationSchema, proposeDebateInvitation } from "./debate-invitations";
 import { reversibilityOf } from "./action-reversibility-contract";
 import {
   assertGmailDraftTarget,
@@ -567,6 +575,57 @@ const PLUGIN_TOOL_EXECUTORS = {
 >;
 
 const registry: AiToolRegistration[] = [
+  {
+    name: "read_complete_gmail_thread",
+    description: "Read every message in one current Gmail thread and recent sent mail to its reply recipient. Refuses stale or incomplete sync and oversized threads. Use before drafting a reply or interpreting a participant commitment.",
+    inputSchema: { type: "object", properties: { conversationId: { type: "string", format: "uuid" } },
+      required: ["conversationId"], additionalProperties: false },
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.gmail-thread",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => readCompleteGmailThread(supabase, String(input.conversationId)),
+  },
+  {
+    name: "get_debate_production",
+    description: "Read a bounded debate production and each cited commitment, claim status, calendar response and first missing milestone. An interested person is not a confirmed booking.",
+    inputSchema: {
+      type: "object",
+      properties: { productionId: { type: "string", format: "uuid" } },
+      additionalProperties: false,
+    },
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.debate-bookings",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) =>
+      input.productionId ? loadDebateProduction(supabase, String(input.productionId))
+        : listDebateProductions(supabase, 10).then((productions) => ({ productions })),
+  },
+  {
+    name: "propose_debate_milestone",
+    description: "Stage one cited debate commitment from an indexed Gmail message or Drive transcript. The founder reviews the source and exact status before it becomes verified.",
+    inputSchema: z.toJSONSchema(debateMilestoneSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.debate-bookings",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) => proposeDebateMilestone(supabase, input, actorEmail),
+  },
+  {
+    name: "propose_debate_invitation",
+    description: "Stage one exact Google Calendar invitation after verified question, counterpart, format and date commitments and two participant acceptance messages. Approval sends it; the provider event is read back.",
+    inputSchema: z.toJSONSchema(debateInvitationSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.debate-bookings",
+    connectionRequirement: "none",
+    impact: "external_action",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) => proposeDebateInvitation(supabase, input, actorEmail),
+  },
   {
     name: "list_content_calendar",
     description:
@@ -3230,6 +3289,7 @@ const registry: AiToolRegistration[] = [
           return proposal;
         }
       }
+      const replyTarget = await readGmailReplyTarget(supabase, conversationId);
       return proposeAction(supabase, {
         actionType: "send_gmail_reply",
         title: `Reply to: ${conv?.subject || "Conversation"}`,
@@ -3239,6 +3299,7 @@ const registry: AiToolRegistration[] = [
           conversationId,
           body,
           reasoning,
+          replyTarget,
           ...(workItem ? { workItemId: workItem.id } : {}),
         },
         reasoning,
@@ -3257,6 +3318,10 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "read_complete_gmail_thread",
+    "get_debate_production",
+    "propose_debate_milestone",
+    "propose_debate_invitation",
     "generate_content_brief",
     "get_social_workspace",
     "prepare_social_week",
@@ -3563,6 +3628,10 @@ const CORE_PROFILE_TOOL_NAMES = [
 
 const OPS_PROFILE_TOOL_NAMES = [
   ...CORE_PROFILE_TOOL_NAMES,
+  "read_complete_gmail_thread",
+  "get_debate_production",
+  "propose_debate_milestone",
+  "propose_debate_invitation",
   "search_conversations",
   "get_claimable_work",
   "get_claims_for_entity",

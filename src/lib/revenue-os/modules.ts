@@ -185,6 +185,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     navLinkIds: ["conversations"],
     routes: ["/admin/conversations"],
     aiToolNames: [
+      "read_complete_gmail_thread",
       "propose_send_email",
       "search_conversations",
       "propose_conversation_reply",
@@ -358,7 +359,9 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     isCore: false,
     defaultEnabled: true,
     navLinkIds: ["bookings"],
-    routes: ["/admin/bookings"],
+    routes: ["/admin/bookings", "/admin/debates"],
+    aiToolNames: ["get_debate_production", "propose_debate_milestone", "propose_debate_invitation"],
+    aiToolPacks: ["core"],
     setupChecks: ["calendly", "calendar_sync"],
   },
   {

@@ -60,7 +60,8 @@ export async function loadTodaySnapshot(
           (item) =>
             (item.sourceType !== "proposal" || enabled.has("proposals")) &&
             (item.sourceType !== "campaign_member" || enabled.has("campaigns")) &&
-            (item.sourceType !== "calendar_event" || enabled.has("bookings")),
+            (item.sourceType !== "calendar_event" || enabled.has("bookings")) &&
+            (item.sourceType !== "debate_production" || enabled.has("bookings")),
         );
       },
       [],

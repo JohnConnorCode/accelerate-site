@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "debate-booking-production-loop",
+    slug: "debate-booking-production-loop",
+    title: "Debate bookings track the next confirmed commitment",
+    description:
+      "Debate productions now keep guest interest, pairing, question, format, date, invitation, production and publication as separate sourced stages. Today shows the first missing commitment. A reviewed invitation uses two inbound acceptance messages, exact saved contact addresses and a Google Calendar read-back; daily work rechecks linked events for cancellations, changes and participant responses. Gmail replies are checked against the complete provider thread before sending.",
+    category: "improvement",
+    publishedAt: "2026-09-27",
+  },
+  {
     id: "command-center-daily-work-navigation",
     slug: "command-center-daily-work-navigation",
     title: "Command Center puts daily work and contact context first",

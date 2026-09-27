@@ -382,6 +382,14 @@ export const capabilities: Capability[] = [
       "Pipeline follow-up and Overdue commitments apply defined rules to available records. Inspect the source and report coverage before drawing conclusions about the customer.",
   },
   {
+    id: "debate-productions",
+    category: "learn",
+    title: "Advance a debate production",
+    promise: "Track each participant commitment and the first step still missing.",
+    detail:
+      "The Bookings module keeps topic interest, pairing, question, format, date and the verified Google invitation separate. Today links to the production. Review two inbound participant acceptances before approving an invitation, then recheck the provider event and responses.",
+  },
+  {
     id: "questions",
     category: "learn",
     title: "Keep open questions with the work",

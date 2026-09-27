@@ -31,6 +31,7 @@ export function buildGmailReferencesHeader(
 export function buildGmailReplyRaw(input: {
   from: string;
   to: string;
+  cc?: string[];
   subject: string;
   messageId?: string;
   inReplyTo: string | null;
@@ -41,6 +42,7 @@ export function buildGmailReplyRaw(input: {
   return [
     `From: ${header(input.from)}`,
     `To: ${header(input.to)}`,
+    input.cc?.length ? `Cc: ${input.cc.map(header).join(", ")}` : null,
     `Subject: ${header(input.subject)}`,
     input.messageId ? `Message-ID: ${header(input.messageId)}` : null,
     input.inReplyTo ? `In-Reply-To: ${input.inReplyTo}` : null,
@@ -57,6 +59,7 @@ export function buildGmailReplyRaw(input: {
 export function prepareGmailReply(input: {
   ownerEmail: string;
   recipient: string;
+  ccRecipients?: string[];
   conversationSubject: string | null | undefined;
   latest: {
     external_id: string | null;
@@ -79,6 +82,8 @@ export function prepareGmailReply(input: {
     throw new Error("Gmail replies require the original message id so the thread stays intact");
   }
   const subject = buildGmailReplySubject(input.conversationSubject, input.latest.subject);
+  const ccRecipients = [...new Set((input.ccRecipients ?? []).map((email) => email.trim().toLowerCase()))]
+    .filter((email) => email && email !== input.ownerEmail && email !== input.recipient);
   const parent = resolveReplyParent({
     latestExternalId: input.latest.external_id,
     latestRfcId: input.latest.rfc_message_id ?? null,
@@ -91,9 +96,11 @@ export function prepareGmailReply(input: {
     inReplyTo,
     references,
     recipient: input.recipient,
+    ccRecipients,
     raw: buildGmailReplyRaw({
       from: input.ownerEmail,
       to: input.recipient,
+      cc: ccRecipients,
       subject,
       messageId: input.messageId,
       inReplyTo,

@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "When is a debate actually booked?",
+    answer:
+      "Use Debate productions in Bookings to confirm each commitment separately. Topic interest or a proposed counterpart does not establish agreement. An approved invitation is sent to the two saved participants after their inbound acceptances are reviewed. Check the live Google event, its time and attendees, any requested Meet link, and both participants' responses. Today shows the first missing or disputed step, while the scheduled work engine rechecks linked invitations when configured.",
+  },
+  {
     question: "Can my team sign in with Google?",
     answer:
       "Yes, once the installer enables Google in Supabase Auth and configures its OAuth client. The sign-in screen then shows Continue with Google alongside email and password. Google confirms identity; active workspace membership still determines who can open a workspace. This sign-in setup is separate from connecting Google Workspace data such as Gmail, Calendar or Drive.",
