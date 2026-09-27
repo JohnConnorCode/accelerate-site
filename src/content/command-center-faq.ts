@@ -57,6 +57,11 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes. Choose one of six fictional businesses in the demo chooser. Each opens the real workspace with sample customers, conversations and tasks. No signup is required, and simulated changes stay in your browser session. The workflow recipes explain how to combine features and plugins in a connected workspace.",
   },
   {
+    question: "What should I connect first?",
+    answer:
+      "Explore a fictional business in the demo first. For your own installation, connect the database and owner account, then save a contact and a task and confirm they remain after a reload. Add Gmail, Calendar, AI or payments when a specific workflow needs them. Setup shows which connections have a successful result, while the public guides walk through the first task and recovery.",
+  },
+  {
     question: "Can we create our own workspace theme?",
     answer:
       "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Nine built-in appearances have distinct palettes, typography, corners and depth, including matte Material, silver macOS and the Capy-inspired graphite-and-seafoam theme. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing, touch controls stay easy to reach, and transitions respect reduced motion. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
@@ -134,7 +139,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Where does our data live?",
     answer:
-      "The Command Center uses shared infrastructure with explicit tenant isolation. Your workspace has its own membership boundary, tenant-scoped records, provider configuration, and audit trail. You own the data and can export it whenever you want.",
+      "A managed Command Center uses tenant-scoped records, active membership and an audit trail to separate business workspaces. A self-hosted installation uses the database and provider accounts you control. For a managed implementation, agree on export, backup and handoff responsibilities in the written scope.",
   },
   {
     question: "Can we control our AI provider costs?",
@@ -157,6 +162,7 @@ export const commandCenterFaqs: FAQ[] = [
 export const productFaqs = commandCenterFaqs.filter((faq) =>
   [
     "Can I try Command Center before setting it up?",
+    "What should I connect first?",
     "Can Ask AI check the content calendar?",
     "Can we build a completely different App or interface?",
     "Can AI create Apps inside Command Center?",

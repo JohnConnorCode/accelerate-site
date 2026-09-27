@@ -165,7 +165,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["command-center", "setup"],
         title: "Setup, integrations, and health",
         description:
-          "Read Setup Center and Integrations, tell missing configuration from a real receipt, and recover when health is degraded.",
+          "Check which connections are ready, run a first sync, and recover a failed setup check.",
       },
       {
         slug: ["command-center", "capabilities"],
@@ -181,9 +181,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["command-center", "inbox"],
-        title: "Inbox",
+        title: "Triage new work in Intake review",
         description:
-          "Every new lead, message, and staged action that hasn't found an owner yet, in one queue.",
+          "Find new inquiries, handoffs, tasks and proposed actions, then open the record that needs attention.",
       },
       {
         slug: ["command-center", "work"],

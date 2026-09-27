@@ -410,7 +410,8 @@ async function main() {
           );
           await service.press("Enter");
           await page.waitForURL("**/services#strategy");
-          await page.goBack({ waitUntil: "domcontentloaded" });
+          // History scroll restoration can move these links under the floating dock.
+          await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
           for (const href of ["#systems", "#selected-work", "#command-center"]) {
             const link = page
               .getByRole("navigation", { name: "Explore the homepage" })

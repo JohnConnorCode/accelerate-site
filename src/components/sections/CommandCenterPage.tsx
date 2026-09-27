@@ -80,6 +80,9 @@ export function CommandCenterPageContent() {
                 Try fictional business data without an account. Own the source and build around the
                 way your team works.
               </p>
+              <Link href="/docs/command-center" className={styles.textLink}>
+                Read the operator guide <ArrowRight size={16} aria-hidden="true" />
+              </Link>
             </div>
           </div>
           <div className={styles.figure} id="demo">
