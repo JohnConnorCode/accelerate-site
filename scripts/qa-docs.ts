@@ -380,7 +380,7 @@ async function main() {
               await page.getByRole("button", { name: "Close navigation menu" }).click();
           }
           await page.waitForFunction(() => {
-            const cta = document.querySelector(".hero-inline-cta");
+            const cta = document.querySelector(".home-hero-cta");
             return cta && getComputedStyle(cta).opacity === "1";
           });
           await page.screenshot({ path: `${output}/${width}-${theme}-home-hero.png` });

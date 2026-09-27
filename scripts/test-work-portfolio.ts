@@ -99,8 +99,8 @@ assert.ok(
 );
 assert.match(
   publicStyles,
-  /\.motion-ready \.hero:not\(\.loaded\) \.hero-inline-cta\s*\{[^}]*opacity:\s*1;[^}]*filter:\s*none;/,
-  "Hero CTA must remain visible before hydration",
+  /\.home-hero-cta \{[^}]*min-height:\s*56px/,
+  "Hero CTA keeps a clear hit target",
 );
 
 assert.deepEqual(
