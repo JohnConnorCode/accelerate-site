@@ -3403,15 +3403,47 @@ summary:focus-visible {
   animation: atmo-b 38s ease-in-out infinite;
 }
 
-/* Ambient floating atmosphere (AmbientField component) — reuses the
-   .atmo-a/.atmo-b drift above (already covered by the reduced-motion
-   block below) rather than authoring new keyframes. Monochrome only. */
+/* Idle drift stays on each blob; the full-section wrapper adds scroll depth
+   in browsers with CSS view timelines. Overflow clip keeps the viewport as
+   the timeline's scroll container. */
 .ambient-field {
   position: absolute;
   inset: 0;
-  overflow: hidden;
+  overflow: clip;
   pointer-events: none;
   z-index: -1;
+}
+.ambient-drift {
+  position: absolute;
+  inset: 0;
+}
+@keyframes ambient-scroll-a {
+  from {
+    transform: translateY(-90px);
+  }
+  to {
+    transform: translateY(90px);
+  }
+}
+@keyframes ambient-scroll-b {
+  from {
+    transform: translateY(90px);
+  }
+  to {
+    transform: translateY(-90px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .ambient-drift--1 {
+      animation: ambient-scroll-a linear both;
+      animation-timeline: view(block);
+    }
+    .ambient-drift--2 {
+      animation: ambient-scroll-b linear both;
+      animation-timeline: view(block);
+    }
+  }
 }
 .ambient-blob {
   position: absolute;
@@ -3433,7 +3465,7 @@ summary:focus-visible {
   background: radial-gradient(circle, var(--ambient-2) 0%, transparent 70%);
 }
 @media (max-width: 640px) {
-  .ambient-blob--2 {
+  .ambient-drift--2 {
     display: none;
   }
 }
@@ -4133,11 +4165,7 @@ summary:focus-visible {
     background-color 0.3s ease,
     box-shadow 0.3s ease;
 }
-/* No hover lift (transform) here — this element IS the ScrollParallax
-   motion.div, which already owns `transform` via an inline style for the
-   scroll-linked drift; an inline style always beats a stylesheet rule
-   regardless of :hover, so a translateY here would silently never
-   render. Elevate through shadow/background depth instead. */
+/* Elevate this frosted card through surface depth on hover. */
 .ev-c:hover {
   background: var(--surface-bg-strong);
   box-shadow:
@@ -4196,10 +4224,7 @@ summary:focus-visible {
     background-color 0.3s ease,
     box-shadow 0.3s ease;
 }
-/* Same reasoning as .ev-c:hover — this element is the ScrollParallax
-   motion.div itself, so no transform here. An outer drop-shadow won't
-   read against the ink-panel's black background, so elevate via a
-   brighter surface + a stronger inset catch-light instead. */
+/* On the dark panel, a brighter surface and inset light read better than a shadow. */
 .oc-col:hover {
   background: var(--surface-bg-strong);
   box-shadow:
@@ -5978,10 +6003,7 @@ a.team-card-float:focus-visible {
    blurred in inside them. The container reveal was already running an
    IntersectionObserver and toggling `.in`, which nothing read.
 
-   Opacity only, deliberately: both elements ARE the ScrollParallax node and
-   carry an inline transform, and both have a backdrop-filter, so animating
-   transform would fight the parallax and animating filter would hit the same
-   Chromium trap `.deck` documents. */
+   Opacity only keeps the entrance light on these backdrop-filter surfaces. */
 @keyframes card-fade-in {
   from {
     opacity: 0;

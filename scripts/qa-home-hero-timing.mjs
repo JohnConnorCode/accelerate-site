@@ -44,6 +44,40 @@ for (const [label, viewport] of [
     failures.push(`${label}: hero did not settle within 1.6 seconds`);
   if (settled.word !== "the right AI") failures.push(`${label}: scramble did not resolve`);
   await page.screenshot({ path: `${output}/${label}-settled.png`, fullPage: false });
+  await page.keyboard.press("Tab");
+  if (await page.evaluate(() => Boolean(document.activeElement?.closest(".ambient-field"))))
+    failures.push(`${label}: decorative ambient layer entered the tab order`);
+  await page.evaluate(() => document.activeElement?.blur());
+
+  const ambient = page.locator("#systems .ambient-drift--1");
+  if ((await ambient.count()) !== 1) failures.push(`${label}: systems ambient layer is missing`);
+  else {
+    const firstScroll = await ambient.evaluate((node) => {
+      document.documentElement.style.scrollBehavior = "auto";
+      const top = node.getBoundingClientRect().top + scrollY - innerHeight * 0.2;
+      scrollTo(0, top);
+      return scrollY;
+    });
+    await page.waitForTimeout(750);
+    const firstTransform = await ambient.evaluate((node) => getComputedStyle(node).transform);
+    await page.screenshot({ path: `${output}/${label}-systems.png`, fullPage: false });
+    await page.evaluate((top) => scrollTo(0, top + innerHeight * 0.7), firstScroll);
+    await page.waitForTimeout(100);
+    const scrollMotion = await ambient.evaluate((node) => ({
+      animation: getComputedStyle(node).animationName,
+      transform: getComputedStyle(node).transform,
+      height: node.getBoundingClientRect().height,
+      sectionHeight: node.closest("section")?.getBoundingClientRect().height,
+      supported: CSS.supports("animation-timeline", "view()"),
+    }));
+    if (scrollMotion.height !== scrollMotion.sectionHeight)
+      failures.push(`${label}: ambient layer does not fill its section`);
+    if (
+      scrollMotion.supported &&
+      (scrollMotion.animation !== "ambient-scroll-a" || scrollMotion.transform === firstTransform)
+    )
+      failures.push(`${label}: ambient scroll depth did not move`);
+  }
   await context.close();
 }
 
@@ -66,6 +100,12 @@ if (
   reduced.animations.some((name) => name !== "none")
 )
   failures.push("reduced motion did not render the full static hero");
+if (
+  await page
+    .locator("#systems .ambient-drift")
+    .evaluateAll((nodes) => nodes.some((node) => getComputedStyle(node).animationName !== "none"))
+)
+  failures.push("reduced motion did not stop ambient scroll depth");
 await page.screenshot({ path: `${output}/mobile-reduced.png`, fullPage: false });
 await context.close();
 await browser.close();
