@@ -312,6 +312,10 @@ async function main() {
           .getByRole("link", { name: "Documentation", exact: true })
           .click();
         await page.waitForURL("**/docs");
+        await page
+          .getByRole("heading", { level: 1, name: "Put your workspace to work." })
+          .waitFor();
+        await page.waitForLoadState("networkidle");
         await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
         const homeDocs = page
           .locator("#command-center")
