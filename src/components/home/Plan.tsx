@@ -64,15 +64,7 @@ export function Plan({ content = homePlanContent }: { content?: HomePlanContent 
             </Reveal>
           </div>
 
-          {/* No ScrollParallax wrapper here —
-              it continuously writes `transform` on this element's parent
-              via direct DOM mutation on every scroll frame, which is
-              exactly when the blur-in reveal below is supposed to be
-              playing. Two independent things fighting for paint frames on
-              a large backdrop-filter element was starving the reveal
-              transition. PlanDeck already has its own idle float-gentle
-              bob, so it isn't static once revealed.
-              PlanDeck is ~490px tall — the default rootMargin fires once
+          {/* PlanDeck is ~490px tall — the default rootMargin fires once
               any sliver crosses in, so a tall card finished its reveal
               transition long before it was meaningfully on screen and
               read as "just appears" instead of animating in. A negative
