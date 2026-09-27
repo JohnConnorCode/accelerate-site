@@ -10,4 +10,12 @@ The Supabase images exhausted the shared Mac's disk safety margin; the repositor
 
 ## Separate fictional-demo check
 
-On the first-contact candidate rebased onto PR #153, the credential-free Northline Roofing demo accepted a new fictional contact. The new row remained after reload. Its record hub accepted a related follow-up and showed the task after another reload. The Add contact dialog opened at 1440 px and 390 px; the mobile viewport had no horizontal overflow. The demo runtime now persists the contact in session storage and rejects duplicate email, rather than returning a successful response without a saved row. This checks the fictional demo only; the connected write path still needs a new isolated run.
+On the first-contact candidate rebased onto PR #153, the credential-free Northline Roofing demo accepted a new fictional contact. The new row remained after reload. Its record hub accepted a related follow-up and showed the task after another reload. The Add contact dialog opened at 1440 px and 390 px; the mobile viewport had no horizontal overflow. The demo runtime now persists the contact in session storage and rejects duplicate email, rather than returning a successful response without a saved row. This checks the fictional demo only; the connected write path was exercised separately below.
+
+## Separate connected CI continuation (2026-09-27)
+
+[PR #156's isolated connected run](https://github.com/JohnConnorCode/accelerate-site/actions/runs/36288584600) passed on head `8a9081c588c9c6226b4f815b588eb4670be0b674` with PR merge commit `cfdf0c8d5677621ce2033e31e6bd711548879dc8`. It used a fresh GitHub runner, Supabase CLI 2.72.7, PostgreSQL 17, local Auth and REST, and no original Accelerate project or customer data. The actual setup applied 117 migrations and passed owner creation, database identity match, workspace read and membership verification for fictional Harbor Workspace.
+
+Chromium then signed the owner in on desktop and mobile, created separate fictional contacts and contact-linked follow-ups, reloaded each record to verify persistence, rejected duplicate email, and confirmed sign-out protected the workspace. The mobile contact dialog had no horizontal overflow. The run retained a commit-specific JSON receipt and desktop/mobile screenshots; those screenshots were opened and reviewed. Credentials and the disposable database were not retained as artifacts.
+
+This closes the earlier connected contact/task browser gap for a local Supabase installation. It is not hosted Supabase evidence, a human installation trial, password-reset proof, backup/restore proof, connected AI proof or open-source launch acceptance.

@@ -104,6 +104,7 @@ if (mode === "prepare") {
           await dialog.evaluate((node) => node.scrollWidth <= node.clientWidth + 2),
           `${label} contact dialog must not overflow horizontally`,
         );
+        await dialog.screenshot({ path: `${output}/${label}-add-contact.png` });
         await dialog.getByRole("button", { name: "Add contact" }).click();
         await page.getByText(name, { exact: true }).first().waitFor();
         await page.reload();
