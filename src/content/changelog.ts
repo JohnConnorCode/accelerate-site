@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-27",
   },
   {
+    id: "home-editorial-hero",
+    slug: "home-editorial-hero",
+    title: "A clearer homepage opening",
+    description:
+      "The homepage now opens with a readable statement of how Accelerate helps, one explanation of the offer, and a direct booking action. The diagram, text scramble, crossed-out outcome and electric accent have been removed. A short entrance follows the site's motion curve, and reduced-motion visitors see the complete content without animation. Desktop and mobile use the same paper-and-ink visual language as the rest of the site.",
+    category: "improvement",
+    publishedAt: "2026-09-27",
+  },
+  {
     id: "ai-readiness-evidence-and-roadmap",
     slug: "ai-readiness-evidence-and-roadmap",
     title: "AI Readiness shows the evidence behind its plan",

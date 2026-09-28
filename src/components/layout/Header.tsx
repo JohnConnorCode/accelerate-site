@@ -51,6 +51,7 @@ export function Header({
   const reducedMotion = useReducedMotion();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileControlsReady, setMobileControlsReady] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchMounted, setSearchMounted] = useState(false);
   const openSearch = useCallback(() => {
@@ -62,6 +63,10 @@ export function Header({
   const headerRef = useRef<HTMLElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setMobileControlsReady(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const isAIReadiness = pathname === "/ai-readiness" || pathname.startsWith("/ai-readiness/");
   // active when on the exact route or any child route (e.g. /work/[slug])
   const isActive = (href: string) =>
@@ -287,10 +292,11 @@ export function Header({
             <motion.button
               variants={headerCtaReveal}
               type="button"
+              disabled={!mobileControlsReady}
               onClick={openSearch}
               aria-label="Search the site"
               className={cn(
-                "relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]",
+                "relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96] disabled:cursor-wait",
                 focusRing,
               )}
             >
@@ -298,8 +304,9 @@ export function Header({
             </motion.button>
             <motion.button
               variants={headerCtaReveal}
+              disabled={!mobileControlsReady}
               className={cn(
-                "relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]",
+                "relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96] disabled:cursor-wait",
                 focusRing,
               )}
               ref={mobileTriggerRef}

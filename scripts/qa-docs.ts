@@ -312,6 +312,10 @@ async function main() {
           .getByRole("link", { name: "Documentation", exact: true })
           .click();
         await page.waitForURL("**/docs");
+        await page
+          .getByRole("heading", { level: 1, name: "Put your workspace to work." })
+          .waitFor();
+        await page.waitForLoadState("networkidle");
         await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
         const homeDocs = page
           .locator("#command-center")
@@ -380,7 +384,7 @@ async function main() {
               await page.getByRole("button", { name: "Close navigation menu" }).click();
           }
           await page.waitForFunction(() => {
-            const cta = document.querySelector(".hero-inline-cta");
+            const cta = document.querySelector(".home-hero-cta");
             return cta && getComputedStyle(cta).opacity === "1";
           });
           await page.screenshot({ path: `${output}/${width}-${theme}-home-hero.png` });

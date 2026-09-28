@@ -259,43 +259,18 @@ assert.doesNotMatch(
   "Learn listings must not serialize MDX bodies",
 );
 const hero = readFileSync("src/components/home/Hero.tsx", "utf8");
-assert.match(
-  hero,
-  /const \[loaded, setLoaded\] = useState\(false\)/,
-  "Hero keeps a replayable entrance",
-);
-assert.match(hero, /if \(event\.persisted\) replay\(\)/, "Hero replays on bfcache restore");
-assert.match(hero, /useState\(text\)/, "Scramble must start with server-visible words");
-assert.match(hero, /hero-system-node/, "Hero keeps the lightweight system graphic");
+assert.match(hero, /home-hero-heading/, "Hero renders one readable heading");
+assert.match(hero, /home-hero-cta/, "Hero keeps the booking action in the first screen");
 assert.doesNotMatch(
   hero,
-  /animateSpotlight|useScroll|useMotionValue/,
-  "Hero must not run a full-screen animation loop",
+  /ScrambleText|hero-system-node|animateSpotlight|useScroll|useMotionValue/,
+  "Hero must not use the retired scramble, diagram, or animation loop",
 );
+assert.match(styles, /@keyframes home-hero-enter/, "Hero keeps a short entrance");
 assert.match(
   styles,
-  /\.motion-ready \.hero:not\(\.loaded\) \.hero-inline-cta\s*\{[^}]*opacity:\s*1;[^}]*filter:\s*none;/,
-  "Hero CTA is visible before hydration",
-);
-assert.match(
-  styles,
-  /\.hero\.loaded \.word > span \{[^}]*hero-word-enter/,
-  "Words retain the short entrance",
-);
-assert.match(
-  styles,
-  /\.hero\.loaded \.strike::after \{[^}]*0\.6s/,
-  "Strike remains in the sequence",
-);
-assert.match(
-  styles,
-  /\.hero\.loaded \.hero-profit \{[^}]*0\.75s/,
-  "PROFIT remains in the sequence",
-);
-assert.match(
-  styles,
-  /\.hero\.loaded \.rev-ul::after \{[^}]*1\.05s/,
-  "Outcome underline closes the sequence",
+  /@media \(prefers-reduced-motion: no-preference\)/,
+  "Hero entrance respects reduced motion",
 );
 const rootNotFound = readFileSync("src/app/not-found.tsx", "utf8");
 const marketingNotFound = readFileSync("src/app/(marketing)/not-found.tsx", "utf8");

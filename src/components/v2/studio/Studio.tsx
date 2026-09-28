@@ -22,7 +22,7 @@ export function Studio() {
   return (
     <>
       {/* The hero keeps its message and CTA in the opening viewport. The
-          explanatory beat follows the system graphic before the marquee. */}
+          explanatory beat follows before the marquee. */}
       <div className="hero-band">
         <Hero />
         <HeroStatement />
