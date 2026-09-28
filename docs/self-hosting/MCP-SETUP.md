@@ -7,7 +7,7 @@ the local runner do not receive that delegation or gain direct editor execution.
 
 Accelerate Revenue OS includes an authoritative **Model Context Protocol (MCP)** server. It speaks the handshake-based ("legacy," in the [MCP spec's own current terminology](https://modelcontextprotocol.io/specification/versioning)) `initialize` lifecycle and negotiates whichever of `2025-06-18`, `2025-03-26`, or `2024-11-05` a connecting client requests, over the Streamable HTTP transport.
 
-This allows external AI clients, including **Claude Desktop**, **Claude Code**, **ChatGPT** (native Connectors), **Cursor**, and **Google Antigravity**, to securely read bounded workspace state and stage actionable proposals into the operator's review queue.
+Compatible MCP clients, including **Claude Desktop**, **Claude Code**, **Cursor**, and **Google Antigravity**, can read bounded workspace state and stage actionable proposals into the operator's review queue. Check each client's current transport and authentication support before connecting it.
 
 ---
 
@@ -15,7 +15,7 @@ This allows external AI clients, including **Claude Desktop**, **Claude Code**, 
 
 1. **Bounded Reads Only**: Read tools (`get_today_snapshot`, `search_pipeline`, `get_record_timeline`, `search_knowledge_base`) return bounded query windows with sensitive credentials and tokens scrubbed.
 2. **Action Queue Gating**: Mutations (`propose_task`, `propose_task_update`, `propose_stage_change`, `propose_send_email`, `propose_campaign_activation`, `propose_founder_note`, `propose_layout_change`) **never** write directly to production state. Instead, they insert staged proposals into `action_queue` requiring explicit operator approval from `/admin/today` or the Command Center before execution. There is no tool that approves a proposal — approval only happens from an authenticated admin session, deliberately, so nothing can both propose and approve its own change through the same channel.
-3. **Deterministic Tenant Isolation**: External requests authenticate via founder session cookies or per-tenant `REVENUE_OS_API_KEY` Bearer tokens.
+3. **Deterministic Tenant Isolation**: The tenant HTTP endpoint accepts the key issued for that workspace in Integrations. The platform endpoint and local runner have separate installation-level credentials and scope.
 
 ---
 
@@ -95,74 +95,45 @@ export SUPABASE_SERVICE_ROLE_KEY="<service-key>"
 
 ---
 
-## 3. ChatGPT Setup
+## 3. ChatGPT compatibility
 
-ChatGPT's app-wide **Connectors** feature is the current, correct way to connect ChatGPT
-itself (not a Custom GPT) to a remote MCP server, and it speaks MCP directly over the
-Streamable HTTP transport this server implements, with no OpenAPI schema and no wrapping the
-protocol in an Action. Available on ChatGPT Pro, Plus, Business, Enterprise, and
-Education plans.
+The workspace endpoint is `https://<your-domain>/api/public/<tenantSlug>/mcp`.
+It accepts a workspace Bearer key generated in **Integrations**. This is useful
+for MCP clients that support custom Bearer credentials, but **do not generate or
+rotate a workspace key for ChatGPT setup**: [OpenAI's authentication guide](https://developers.openai.com/plugins/build/auth)
+says ChatGPT cannot present custom API keys. The workspace endpoint does not
+implement the OAuth flow required for an authenticated ChatGPT MCP app.
 
-The older **Custom GPT Actions** mechanism (an OpenAPI schema attached to one specific
-Custom GPT) still exists as a separate path, but it is not what connects the ChatGPT app
-itself, and it forces the model to hand-construct raw JSON-RPC request bodies to get
-anything done. Use native Connectors unless you specifically need a Custom GPT.
+[OpenAI's current availability guide](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt)
+also says custom MCP apps are **web only**. Full MCP write support is in beta
+for Business, Enterprise, and Edu workspaces; Pro is limited to read/fetch.
+A workspace key therefore cannot enable Command Center control in the ChatGPT
+phone app, regardless of plan.
 
-### Endpoints
+The separately scoped [Site Studio OAuth connection](SITE-STUDIO-CHATGPT.md)
+is the path for owner-delegated website editing in a supported ChatGPT web
+workspace, after installation-level OAuth configuration and a real-client
+verification. It does not expose the ordinary workspace tools. Check that the
+OAuth metadata endpoint is configured before attempting a connection; a route
+existing in source or a public MCP health response is not connection proof.
 
-- **Platform Endpoint**: `https://<your-domain>/api/mcp`
-- **Tenant-Scoped Endpoint**: `https://<your-domain>/api/public/<tenantSlug>/mcp`
+### What a workspace MCP proposal means
 
-Generate the tenant MCP key first, from `/admin/integrations` on your deployment
-(`Integrations & Modules` → the MCP card). The key is shown once at generation time;
-store it somewhere you can paste from.
-
-### Step-by-Step Connector Setup
-
-1. In the ChatGPT app, open **Settings → Connectors**.
-2. Enable **Developer mode** if you don't see an option to add a custom connector yet
-   (Settings → Connectors → Advanced).
-3. Click **Add custom connector** (sometimes labeled **Create**).
-4. **Name**: `Revenue OS` (or your workspace's brand name).
-5. **URL**: `https://<your-domain>/api/public/<tenantSlug>/mcp` for a single-workspace
-   deployment, or the platform endpoint above for the reference deployment.
-6. **Authentication**: choose **API Key**, then paste the tenant MCP key you generated
-   in `/admin/integrations` as a **Bearer token**. Selecting the wrong auth mode here is
-   the single most common connection failure; this server only accepts a Bearer token,
-   never OAuth or no-auth.
-7. Save, then open a chat and explicitly **enable the connector for that conversation**
-   (adding it in Settings does not turn it on everywhere by default). ChatGPT then calls
-   `tools/list` and shows you the available actions, every tool in the reference table
-   near the end of this document, grouped by what it reads versus what it proposes.
-8. Ask a question that needs a read tool (_"what's on my plate today?"_) to prove the
-   read path, then ask for something that needs a proposal (_"mark the roofer follow-up
-   task done"_) to prove the write path. ChatGPT will show you the tool call it wants to
-   make and wait for your confirmation before sending it; that confirmation is in
-   addition to, not instead of, the founder approval this server's own action queue
-   still requires at `/admin/today` before anything actually changes.
-
-### What "write to the database" means here
-
-No tool in this registry ever writes directly. Every mutating tool, including
-`propose_task_update`, which is what lets ChatGPT mark a task complete, snooze it, or
-edit its title, priority, or due date, stages a proposal in `action_queue` and returns
-its id. Nothing happens until a human approves it from `/admin/today` or the Command
-Center. ChatGPT can find a task's id from `get_today_snapshot`'s queue (task entries are
-`"task:<id>"`) or `get_pending_actions`; either the bare id or the `"task:"`-prefixed
-form works.
+Workspace MCP mutation tools stage proposals rather than directly changing the
+target record. For example, `propose_task_update` can stage a task completion,
+snooze, or edit in `action_queue` and return its proposal ID. The target task
+changes only after an operator approves the proposal in Today or Command Center.
+A compatible client can find a task ID in `get_today_snapshot` or
+`get_pending_actions`.
 
 ### Troubleshooting
 
-- **Connector saves but ChatGPT never calls a tool.** You added it in Settings but did
-  not enable it for the current conversation; re-check step 7.
-- **"Invalid or missing tenant MCP API key."** The auth mode is set to something other
-  than API Key/Bearer, the key was mistyped, or the key belongs to a different tenant
-  than the URL you configured. Regenerate the key from `/admin/integrations` if unsure.
-- **Connection looks like a network error with no useful message.** This is almost
-  always an auth-mode mismatch (see above) rather than the server being unreachable;
-  confirm `GET https://<your-domain>/api/public/<tenantSlug>/mcp` returns
-  `{"status":"ok",...}` in a browser first to rule out a DNS/deploy problem before
-  troubleshooting auth.
+- **"Invalid or missing tenant MCP API key."** In a compatible client, check that
+  the key is sent as a Bearer credential and matches the tenant slug in the URL.
+  Generating a replacement rotates the existing credential.
+- **The host cannot connect.** Check DNS and deployment reachability. A public
+  `GET` to the tenant endpoint should return `{"status":"ok",...}`. That response
+  does not verify authentication, tool discovery, or a tool call.
 
 ---
 
@@ -224,7 +195,11 @@ In Antigravity CLI or IDE, declare Revenue OS in your `~/.gemini/antigravity/con
 
 ---
 
-## Available MCP Capabilities Reference
+## Selected workspace MCP capabilities
+
+This table illustrates common operations. The authenticated `tools/list` response
+is authoritative for the deployed version, selected profile, enabled modules and
+ready connections. The workspace MCP surface does not cover every admin action.
 
 ### 1. Tools (`tools/list` & `tools/call`)
 

@@ -29,7 +29,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I edit my website from ChatGPT?",
     answer:
-      "Yes, after your installer configures the owner-only Site Studio OAuth connection. It can read and edit website content, prepare an exact preview, save drafts, publish and restore revisions through the same editor services. Access lasts 30 days and can be revoked in Site Studio. ChatGPT manages write confirmations; the server records delegated authority and execution receipts. Ordinary workspace MCP keys remain proposal-only, and the website connection cannot operate other workspace tools.",
+      "In a supported ChatGPT web workspace, yes, after your installer configures and verifies the owner-only Site Studio OAuth connection. It can read and edit website content, prepare an exact preview, save drafts, publish and restore revisions through the same editor services. Access lasts 30 days and can be revoked in Site Studio. Custom MCP apps are not currently available in the ChatGPT phone app. Ordinary workspace MCP keys cannot be pasted into ChatGPT and do not grant website execution or access to every workspace action.",
   },
   {
     question: "Can I run the workspace for my own business?",
