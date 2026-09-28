@@ -58,7 +58,7 @@ export const homeFaqSchema = z
     "Each FAQ needs both a question and an answer",
   );
 
-export const homeHeroSchema = z
+const legacyHomeHeroSchema = z
   .object({
     eyebrow: label,
     prefix: label,
@@ -71,6 +71,19 @@ export const homeHeroSchema = z
     ctaHref: href,
   })
   .strict();
+export const homeHeroSchema = z.union([
+  z
+    .object({
+      eyebrow: label,
+      heading: label,
+      emphasis: label,
+      support: text,
+      ctaLabel: label,
+      ctaHref: href,
+    })
+    .strict(),
+  legacyHomeHeroSchema,
+]);
 export const homeMarqueeSchema = z.object({ items: z.array(label).min(1).max(30) }).strict();
 export const homeProcessSchema = z
   .object({

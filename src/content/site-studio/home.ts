@@ -38,13 +38,11 @@ export const homeFaqContent = {
 };
 
 export const homeHeroContent = {
-  eyebrow: "AI strategy, custom systems, and execution",
-  prefix: "We design, build, and run",
-  highlighted: "the right AI",
-  suffix: "to improve",
-  replacedWord: "productivity",
-  finalWord: "PROFIT",
-  support: "A practical path from AI strategy to the systems and execution your business needs.",
+  eyebrow: "AI strategy · custom systems · ongoing execution",
+  heading: "The right AI starts with",
+  emphasis: "your business.",
+  support:
+    "We find where AI can free up time or increase revenue, build what your team needs, and stay to run and improve it.",
   ctaLabel: "Book a free strategy session",
   ctaHref: "/contact",
 };

@@ -86,14 +86,13 @@ for (const viewport of viewports) {
       await page.waitForTimeout(1_600);
       await page.screenshot({ path: `${output}/home-${viewport.name}.png`, fullPage: false });
       const visibility = await page.evaluate(() => ({
-        profit: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
-        cta: Number.parseFloat(
-          getComputedStyle(document.querySelector(".hero-inline-cta")).opacity,
+        heading: Number.parseFloat(
+          getComputedStyle(document.querySelector(".home-hero-heading")).opacity,
         ),
+        cta: Number.parseFloat(getComputedStyle(document.querySelector(".home-hero-cta")).opacity),
       }));
-      if (visibility.profit < 0.99 || visibility.cta < 0.99) {
+      if (visibility.heading < 0.99 || visibility.cta < 0.99)
         failures.push(`${viewport.name} /: reduced-motion hero content is not fully visible`);
-      }
     }
   }
 
@@ -118,36 +117,36 @@ await motionPage.waitForTimeout(1_600);
 const hero = await motionPage.evaluate(() => {
   const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
   const header = rect(".site-header");
-  const eyebrow = rect(".hero-eyebrow");
-  const struck = rect(".strike");
-  const profit = rect(".hero-profit");
-  const cta = rect(".hero-inline-cta");
+  const eyebrow = rect(".home-hero-eyebrow");
+  const support = rect(".home-hero-support");
+  const cta = rect(".home-hero-cta");
   const statement = rect(".hero-statement");
   return {
     headerGap: eyebrow.top - header.bottom,
-    outcomeGap: profit.top - struck.bottom,
-    actionGap: cta.top - rect(".hero-support").bottom,
-    profitOpacity: Number.parseFloat(
-      getComputedStyle(document.querySelector(".hero-profit")).opacity,
+    copyGap: support.top - rect(".home-hero-heading").bottom,
+    actionGap: cta.top - support.bottom,
+    headingOpacity: Number.parseFloat(
+      getComputedStyle(document.querySelector(".home-hero-heading")).opacity,
     ),
     ctaOpacity: Number.parseFloat(
-      getComputedStyle(document.querySelector(".hero-inline-cta")).opacity,
+      getComputedStyle(document.querySelector(".home-hero-cta")).opacity,
     ),
+    ctaBottom: cta.bottom,
     statementTop: statement.top,
     viewportHeight: innerHeight,
   };
 });
 if (hero.headerGap < 20)
   failures.push(`phone hero: only ${hero.headerGap.toFixed(1)}px below the header`);
-if (hero.outcomeGap > 48)
-  failures.push(`phone hero: ${hero.outcomeGap.toFixed(1)}px between productivity and PROFIT`);
+if (hero.copyGap < 24 || hero.copyGap > 80)
+  failures.push(`phone hero: ${hero.copyGap.toFixed(1)}px between headline and support copy`);
 if (hero.actionGap < 12 || hero.actionGap > 48)
   failures.push(`phone hero: ${hero.actionGap.toFixed(1)}px between support copy and CTA`);
-if (hero.profitOpacity < 0.99 || hero.ctaOpacity < 0.99)
-  failures.push("phone hero: outcome or CTA hidden after the short entrance");
-if (hero.statementTop < hero.viewportHeight - 1)
+if (hero.headingOpacity < 0.99 || hero.ctaOpacity < 0.99 || hero.ctaBottom > hero.viewportHeight)
+  failures.push("phone hero: headline or CTA is hidden after the short entrance");
+if (hero.statementTop < hero.ctaBottom + 80)
   failures.push(
-    `phone hero: explanatory statement begins ${hero.statementTop.toFixed(1)}px into the opening viewport instead of below the fold`,
+    `phone hero: explanatory statement crowds the booking action (${hero.statementTop.toFixed(1)}px)`,
   );
 await motionPage.screenshot({ path: `${output}/home-phone-motion-settled.png`, fullPage: false });
 await motionPage.locator(".hero-statement").scrollIntoViewIfNeeded();

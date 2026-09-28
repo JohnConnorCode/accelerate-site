@@ -516,30 +516,29 @@ for (const config of [
     for (let reload = 1; reload <= 3; reload += 1) {
       await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
       const opening = await page.evaluate(() => ({
-        cta: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
-        fullText: document.querySelector(".hero .h1")?.getAttribute("aria-label"),
+        cta: Number(getComputedStyle(document.querySelector(".home-hero-cta")).opacity),
+        heading: document.querySelector(".home-hero-heading")?.textContent?.trim(),
         aboveFold:
-          document.querySelector(".hero-inline-cta").getBoundingClientRect().bottom <= innerHeight,
+          document.querySelector(".home-hero-cta").getBoundingClientRect().bottom <= innerHeight,
       }));
-      if (opening.cta < 0.99 || !opening.aboveFold || !opening.fullText?.includes("PROFIT"))
+      if (opening.cta < 0.99 || !opening.aboveFold || !opening.heading)
         failures.push(
           `mobile reload ${reload}: hero action or headline is not visible immediately`,
         );
-      await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
-      await page.waitForTimeout(1_600);
+      await page.waitForTimeout(800);
       const settled = await page.evaluate(() => ({
-        word: document.querySelector(".hero-scramble-display")?.textContent?.trim(),
-        profit: Number(getComputedStyle(document.querySelector(".hero-profit")).opacity),
+        heading: Number(getComputedStyle(document.querySelector(".home-hero-heading")).opacity),
+        cta: Number(getComputedStyle(document.querySelector(".home-hero-cta")).opacity),
       }));
-      if (settled.word !== "the right AI" || settled.profit < 0.99)
-        failures.push(`mobile reload ${reload}: short hero sequence did not settle`);
+      if (settled.heading < 0.99 || settled.cta < 0.99)
+        failures.push(`mobile reload ${reload}: hero entrance did not settle`);
     }
     await page.goto(`${baseUrl}/services`, { waitUntil: "domcontentloaded" });
     await page.goBack();
     await page.waitForURL(baseUrl + "/");
-    await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
+    await page.locator(".home-hero-heading").waitFor({ timeout: 4_000 });
     const restoredCta = await page
-      .locator(".hero-inline-cta")
+      .locator(".home-hero-cta")
       .evaluate((node) => Number(getComputedStyle(node).opacity));
     if (restoredCta < 0.99) failures.push("mobile back navigation: hero CTA became hidden");
     await page.waitForTimeout(1_600);
@@ -638,20 +637,15 @@ await firstFramePage.route("**/_next/static/chunks/*.js", async (route) => {
   await route.continue();
 });
 const firstFrameNavigation = firstFramePage.goto(`${baseUrl}/`, { waitUntil: "load" });
-await firstFramePage.waitForSelector(".hero .hero-eyebrow");
+await firstFramePage.waitForSelector(".home-hero-eyebrow");
 const firstPaint = await firstFramePage.evaluate(() => ({
-  headline: document.querySelector(".hero .h1")?.getAttribute("aria-label"),
-  eyebrowOpacity: Number(getComputedStyle(document.querySelector(".hero-eyebrow")).opacity),
-  ctaOpacity: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
+  headline: document.querySelector(".home-hero-heading")?.textContent?.trim(),
+  cta: document.querySelector(".home-hero-cta")?.textContent?.trim(),
 }));
-if (
-  !firstPaint.headline?.includes("PROFIT") ||
-  firstPaint.eyebrowOpacity < 0.99 ||
-  firstPaint.ctaOpacity < 0.99
-)
-  failures.push(`home first paint hid the message or action (${JSON.stringify(firstPaint)})`);
+if (!firstPaint.headline || !firstPaint.cta)
+  failures.push(`home first paint omitted the message or action (${JSON.stringify(firstPaint)})`);
 await firstFrameNavigation;
-await firstFramePage.locator(".hero.loaded").waitFor({ timeout: 4_000 });
+await firstFramePage.locator(".home-hero-heading").waitFor({ timeout: 4_000 });
 await firstFramePage.waitForTimeout(160);
 await firstFramePage.screenshot({
   path: `${output}/mobile-home-eyebrow-entry.png`,

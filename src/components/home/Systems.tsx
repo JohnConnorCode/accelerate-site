@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Reveal } from "./reveal";
 import { AmbientField } from "./AmbientField";
 import { homeSystemsContent } from "@/content/site-studio/home";
@@ -67,7 +66,7 @@ export function Systems({ content = homeSystemsContent }: { content?: HomeSystem
         <ol className="engagement-list" aria-label={content.listLabel}>
           {content.modes.map((mode, i) => (
             <Reveal key={mode.key} rv as="li" className="engagement-item">
-              <Link href={mode.href} className="engagement-link">
+              <a href={mode.href} className="engagement-link">
                 <span className="engagement-index" aria-hidden="true">
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -83,7 +82,7 @@ export function Systems({ content = homeSystemsContent }: { content?: HomeSystem
                 <span className="engagement-arrow" aria-hidden="true">
                   ↗
                 </span>
-              </Link>
+              </a>
             </Reveal>
           ))}
         </ol>
