@@ -140,23 +140,25 @@ export function WorkspaceMcpConnections({
             {grant.revoked_at ? "Revoked" : `Expires ${new Date(grant.expires_at).toLocaleString()}`}
           </p>
           {!grant.revoked_at && (
-            <button
-              type="button"
-              className="admin-button admin-button--secondary"
-              disabled={pending}
-              onClick={() => change({ operation: "revoke", grantId: grant.id })}
-            >
-              Revoke access
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                className="admin-button admin-button--secondary"
+                disabled={pending}
+                onClick={() => change({ operation: "revoke", grantId: grant.id })}
+              >
+                Revoke access
+              </button>
+              <button
+                type="button"
+                className="admin-button admin-button--secondary"
+                disabled={pending}
+                onClick={() => change({ operation: "renew" })}
+              >
+                Renew for 30 days
+              </button>
+            </div>
           )}
-          <button
-            type="button"
-            className="admin-button admin-button--secondary"
-            disabled={pending}
-            onClick={() => change({ operation: "renew" })}
-          >
-            Renew for 30 days
-          </button>
         </section>
       ))}
     </AdminSurface>
