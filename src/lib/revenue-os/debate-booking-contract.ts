@@ -86,25 +86,31 @@ export function nextDebateAction(state: DebateBookingState): {
       reason: "The verified invitation has no confirmed Google Calendar event",
       booked: false,
     };
-  if (state.event.fresh === false)
+  if (state.event.fresh !== true)
     return {
       kind: "escalation",
       milestone: "invitation",
       reason: "The invitation has not been verified against Google Calendar recently",
       booked: false,
     };
-  if (state.event.integrity === false)
+  if (state.event.integrity !== true)
     return {
       kind: "escalation",
       milestone: "invitation",
-      reason: "The current Google event differs from the approved invitation",
+      reason:
+        state.event.integrity === false
+          ? "The current Google event differs from the approved invitation"
+          : "The current Google event has not been checked against the approved invitation",
       booked: false,
     };
-  if (state.event.conferenceReady === false)
+  if (state.event.conferenceReady !== true)
     return {
       kind: "follow_up",
       milestone: "invitation",
-      reason: "The requested Google Meet link has not been verified on the invitation",
+      reason:
+        state.event.conferenceReady === false
+          ? "The requested Google Meet link has not been verified on the invitation"
+          : "Conference readiness has not been verified on the invitation",
       booked: false,
     };
   const participants = [...new Set(state.participantEmails.map((email) => email.toLowerCase()))];

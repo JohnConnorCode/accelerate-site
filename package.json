@@ -300,7 +300,7 @@
     "test:radar-workspace": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-workspace-host.ts && NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-workspace-demo.ts",
     "test:radar-relationships": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-relationships.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-relationship-evidence.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-relationship-service.ts",
     "test:docs-coverage": "npx tsx --test scripts/test-docs-coverage.ts",
-    "test:booking-mode": "npx tsx scripts/test-booking-mode-contract.ts",
+    "test:booking-mode": "npx tsx scripts/test-booking-mode-contract.ts && npx tsx scripts/test-debate-booking.ts",
     "test:proposal-lifecycle": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-proposal-lifecycle.ts",
     "test:radar-outreach": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-recorded-email-guards.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-outreach-contract.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-outreach-drafting.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-outreach-service.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-outreach-demo.ts",
     "test:health-output": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-health-output.ts",
