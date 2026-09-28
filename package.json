@@ -282,6 +282,7 @@
     "test:form-builder:postgres": "node scripts/test-form-builder-postgres.mjs",
     "test:site-editor": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-site-editor.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-site-editor-auth.ts",
     "test:site-editor:postgres": "node scripts/test-site-editor-postgres.mjs",
+    "test:workspace-mcp-oauth": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-workspace-mcp-oauth.ts",
     "test:plugin-cold-start": "node scripts/test-plugin-cold-start.mjs",
     "agent:show": "npx tsx scripts/agent-dispatch.ts show",
     "backlog:audit": "npx tsx scripts/audit-backlog.ts",

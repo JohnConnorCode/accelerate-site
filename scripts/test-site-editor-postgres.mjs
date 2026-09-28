@@ -59,7 +59,7 @@ try {
     session = b,
     client = "33333333-3333-4333-8333-333333333333";
   const resource = "https://example.test/api/mcp/site-studio";
-  sql(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS; CREATE ROLE supabase_auth_admin;
+  sql(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS; CREATE ROLE supabase_auth_admin; CREATE ROLE authenticator LOGIN;
     CREATE SCHEMA private; CREATE SCHEMA auth;
     CREATE TABLE auth.users(id uuid PRIMARY KEY,email text);
     CREATE TABLE auth.sessions(id uuid PRIMARY KEY,user_id uuid);
@@ -82,6 +82,7 @@ try {
     "20260917-site-studio-drafts.sql",
     "20260919203846_site_studio_defaults.sql",
     "20260919210534_site_editor_delegation.sql",
+    "20261001-workspace-mcp-oauth.sql",
   ])
     sql(readFileSync(`migrations/${file}`, "utf8"));
   const json = (value) => "'" + JSON.stringify(value).replaceAll("'", "''") + "'::jsonb";
@@ -254,8 +255,96 @@ try {
     "mcp_site_editor",
     "a non-owner cannot obtain ordinary database authority through the scoped client",
   );
+  const workspaceClient = "55555555-5555-4555-8555-555555555555";
+  const workspaceResource = "https://example.test/api/public/accelerate/mcp/oauth";
+  const workspaceGrant = JSON.parse(
+    sql(
+      `${context} SELECT manage_workspace_mcp_delegation('grant','${user}','${workspaceClient}','${workspaceResource}','owner@example.test',NULL)`,
+    ),
+  );
+  assert.equal(
+    JSON.parse(
+      sql(
+        `SET ROLE supabase_auth_admin; SELECT site_editor_access_token_hook(${json({ client_id: workspaceClient, claims: { sub: user, aud: "authenticated", role: "authenticated" } })})`,
+      ),
+    ).claims.aud,
+    workspaceResource,
+  );
+  assert.equal(
+    JSON.parse(
+      sql(
+        `SET ROLE supabase_auth_admin; SELECT site_editor_access_token_hook(${json({ client_id: workspaceClient, claims: { sub: user, aud: "authenticated", role: "authenticated" } })})`,
+      ),
+    ).claims.role,
+    "mcp_workspace",
+  );
+  sql(
+    `${context} SELECT authorize_workspace_mcp_delegation('${workspaceGrant.id}','${user}','${workspaceClient}','${session}','${workspaceResource}')`,
+  );
+  assert.throws(
+    () =>
+      sql(
+        `${context} SELECT authorize_workspace_mcp_delegation('${workspaceGrant.id}','${user}','${workspaceClient}','${session}','${resource}')`,
+      ),
+    /expired or revoked/,
+  );
+  assert.throws(
+    () =>
+      sql(
+        `${context} SELECT manage_workspace_mcp_delegation('grant','${user}','${client}','${workspaceResource}','owner@example.test',NULL)`,
+      ),
+    /another MCP resource/,
+  );
+  for (const role of ["anon", "authenticated", "mcp_workspace", "mcp_site_editor"]) {
+    assert.throws(
+      () => sql(`SET ROLE ${role}; SELECT * FROM workspace_mcp_delegations`),
+      /permission denied/,
+    );
+  }
+  const authenticatorArgs = [...args];
+  authenticatorArgs[authenticatorArgs.indexOf("-U") + 1] = "authenticator";
+  assert.throws(
+    () => run("psql", authenticatorArgs, "SET ROLE mcp_workspace"),
+    /permission denied/,
+    "the Data API authenticator cannot assume the restricted OAuth role",
+  );
+  sql("DELETE FROM auth.sessions");
+  assert.throws(
+    () =>
+      sql(
+        `${context} SELECT authorize_workspace_mcp_delegation('${workspaceGrant.id}','${user}','${workspaceClient}','${session}','${workspaceResource}')`,
+      ),
+    /session revoked/,
+  );
+  sql(`INSERT INTO auth.sessions VALUES('${session}','${user}')`);
+  sql("UPDATE tenant_memberships SET status='revoked'");
+  assert.throws(
+    () =>
+      sql(
+        `${context} SELECT authorize_workspace_mcp_delegation('${workspaceGrant.id}','${user}','${workspaceClient}','${session}','${workspaceResource}')`,
+      ),
+    /membership revoked/,
+  );
+  sql("UPDATE tenant_memberships SET status='active'");
+  assert.throws(
+    () =>
+      sql(
+        `SET app.tenant='${b}'; SET ROLE service_role; SELECT authorize_workspace_mcp_delegation('${workspaceGrant.id}','${user}','${workspaceClient}','${session}','${workspaceResource}')`,
+      ),
+    /expired or revoked/,
+  );
+  sql(
+    `${context} SELECT manage_workspace_mcp_delegation('revoke','${user}','${workspaceClient}','${workspaceResource}','owner@example.test','${workspaceGrant.id}')`,
+  );
+  assert.throws(
+    () =>
+      sql(
+        `${context} SELECT authorize_workspace_mcp_delegation('${workspaceGrant.id}','${user}','${workspaceClient}','${session}','${workspaceResource}')`,
+      ),
+    /expired or revoked/,
+  );
   console.log(
-    "PASS: native PostgreSQL delegated command serialization, exact proposal binding, truthful receipts, no fabricated human approval, token-role isolation, disabled/suspended tenant and revoked membership/session/grant refusal.",
+    "PASS: Site Studio delegated execution and workspace MCP OAuth token roles, audience binding, table isolation, grant and session revocation.",
   );
 } finally {
   if (started) run("pg_ctl", ["-D", data, "-m", "immediate", "-w", "stop"]);

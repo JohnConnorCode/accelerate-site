@@ -239,6 +239,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
           npm run test:form-builder
           npm run test:site-editor
+          npm run test:workspace-mcp-oauth
           PATH="$(pg_config --bindir):$PATH" npm run test:form-builder:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:site-editor:postgres
 

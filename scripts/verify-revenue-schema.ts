@@ -32,6 +32,8 @@ const releaseMigration = (table: string, column?: string) => {
   if (table === "learning_signals") return "migrations/20260928-learning-signals.sql";
   if (table === "site_editor_delegations")
     return "migrations/20260919210534_site_editor_delegation.sql";
+  if (table === "workspace_mcp_delegations")
+    return "migrations/20261001-workspace-mcp-oauth.sql";
   if (table === "form_submission_commands" && column === "request_hash")
     return "migrations/20260919203846_form_submission_safety.sql";
   if (
@@ -100,7 +102,9 @@ const migrationFor = (table: string, column?: string): string =>
                       ? "migrations/20260830-shared-database-tenancy.sql"
                       : "migrations/20260816-revenue-os.sql");
 const migrationForIndex = (name: string) =>
-  ["billing_plans_active_idx", "billing_subscriptions_customer_idx"].includes(name)
+  name.startsWith("workspace_mcp_")
+    ? "migrations/20261001-workspace-mcp-oauth.sql"
+    : ["billing_plans_active_idx", "billing_subscriptions_customer_idx"].includes(name)
     ? "migrations/20260925-stripe-subscriptions.sql"
     : name === "site_website_revision_history"
       ? "migrations/20260909012125-installation-website-revisions.sql"

@@ -40,7 +40,9 @@ write is a requirement; use the editor's own approval workflow instead.
 3. Enable the native Supabase OAuth server. Pre-register the client with the
    exact redirect URL displayed by ChatGPT and authorization-code/PKCE S256
    support. Keep dynamic registration disabled for this connection. Set the
-   consent URL to `https://<your-domain>/admin/site/connect`.
+   authorization path to `/admin/oauth/consent`. The same dispatcher serves
+   the separate workspace MCP connection and routes each pre-registered client
+   to its exact consent screen.
 4. Put the registered client UUID in `SITE_STUDIO_OAUTH_CLIENT_IDS`. Separate
    multiple registered IDs with commas. Client secrets belong only in the
    approved provider/client configuration, never in this variable or chat.
