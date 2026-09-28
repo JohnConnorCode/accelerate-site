@@ -151,7 +151,8 @@ try {
     failures.push(`launcher: Protected API escaped: ${new URL(route.request().url()).pathname}`);
     await route.abort();
   });
-  await launcher.goto(`${base}/demo/command-center`, { waitUntil: "networkidle" });
+  await launcher.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded" });
+  await launcher.locator('a[href^="/demo/command-center/"]').first().waitFor();
   const scenarioIds = await launcher
     .locator('a[href^="/demo/command-center/"]')
     .evaluateAll((links) => [
