@@ -22,7 +22,7 @@ export function DocsMobileNav() {
   return (
     <details
       ref={detailsRef}
-      className="mb-8 rounded-xl border border-[var(--rule)] px-4 py-3 lg:hidden"
+      className="docs-mobile-nav mb-8 rounded-xl border border-[var(--rule)] px-4 py-3 lg:hidden"
     >
       <summary className="cursor-pointer text-sm font-semibold text-heading">
         {section

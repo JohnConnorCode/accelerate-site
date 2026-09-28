@@ -13,17 +13,12 @@ import { seoMetadata } from "@/lib/og";
 import { formatDateOnly } from "@/lib/date-format";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { DocsPager } from "@/components/docs/DocsNav";
-import {
-  Callout,
-  CodeBlock,
-  ComparisonTable,
-  QuoteBlock,
-  StepByStep,
-  Step,
-} from "@/components/mdx";
+import { Callout, CodeBlock, ComparisonTable, QuoteBlock } from "@/components/mdx";
 import { DocsCapabilityCatalog } from "@/components/docs/DocsCapabilityCatalog";
 import { DocsApprovalLoop } from "@/components/docs/DocsApprovalLoop";
 import { DocsAiToolCatalog } from "@/components/docs/DocsAiToolCatalog";
+import { DocsSteps, DocsStep } from "@/components/docs/DocsSteps";
+import styles from "@/components/docs/docs.module.css";
 
 // Docs prose stays reference-dense: explanatory components only. Conversion
 // components (CTACard, ToolRecommendation, booking CTAs) are deliberately
@@ -36,8 +31,8 @@ const docsComponents = {
   CodeBlock,
   ComparisonTable,
   QuoteBlock,
-  StepByStep,
-  Step,
+  StepByStep: DocsSteps,
+  Step: DocsStep,
   DocsCapabilityCatalog,
   DocsApprovalLoop,
   DocsAiToolCatalog,
@@ -81,21 +76,27 @@ export default async function DocsPage({ params }: { params: Promise<{ slug: str
   });
 
   return (
-    <>
+    <article className={styles.guide}>
       <Link
         href={isSectionOverview ? "/docs" : `/docs/${page.section.id}`}
-        className="mb-5 inline-flex min-h-10 items-center gap-1.5 text-sm text-white-muted transition-colors hover:text-heading"
+        className={`${styles.backLink} mb-5 inline-flex min-h-10 items-center gap-1.5 text-sm text-white-muted`}
       >
         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
         {isSectionOverview ? "All docs" : page.section.title}
       </Link>
-      <h1 className="max-w-[22ch] text-balance font-display text-[clamp(2rem,4.5vw,3.25rem)] font-medium leading-[1.04] tracking-[-0.04em] text-heading">
+      <h1
+        className={`${styles.guideTitle} max-w-[22ch] text-balance font-display font-medium text-heading`}
+      >
         {page.frontmatter.title}
       </h1>
-      <p className="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-white-secondary">
+      <p
+        className={`${styles.guideLede} mt-4 max-w-2xl text-pretty leading-relaxed text-white-secondary`}
+      >
         {page.frontmatter.description}
       </p>
-      <p className="mt-4 flex items-center gap-1.5 text-sm text-white-muted">
+      <p
+        className={`${styles.guideMeta} mt-5 flex flex-wrap items-center gap-1.5 text-sm text-white-muted`}
+      >
         <Calendar className="h-4 w-4" aria-hidden="true" />
         Updated{" "}
         {formatDateOnly(page.frontmatter.updated, {
@@ -106,7 +107,7 @@ export default async function DocsPage({ params }: { params: Promise<{ slug: str
         <span aria-hidden="true">·</span> {page.readingTime}
       </p>
 
-      <div data-docs-body className="mt-10 flex gap-12">
+      <div data-docs-body className="mt-10 flex gap-10 xl:gap-12">
         <div className="min-w-0 flex-1">
           <div data-docs-content className="prose-docs">
             {mdxContent}
@@ -119,6 +120,6 @@ export default async function DocsPage({ params }: { params: Promise<{ slug: str
           </div>
         </aside>
       </div>
-    </>
+    </article>
   );
 }
