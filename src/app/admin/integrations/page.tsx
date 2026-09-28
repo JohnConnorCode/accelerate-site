@@ -256,6 +256,16 @@ function ProviderCard({
 
         <p className="admin-copy mt-4 text-pretty text-sm leading-6">{provider.description}</p>
 
+        {provider.id === "mcp" && (
+          <Link
+            href="/admin/mcp/connect"
+            className="mt-3 inline-flex min-h-10 items-center gap-1 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4"
+          >
+            Manage workspace OAuth connections{" "}
+            <ArrowRight className="size-3.5" aria-hidden="true" />
+          </Link>
+        )}
+
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {provider.capabilities.map((capability) => {
             const capabilityMeta = statusMeta[capability.status];

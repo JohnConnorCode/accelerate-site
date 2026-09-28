@@ -15,6 +15,7 @@ Read these to run your own instance.
 - [self-hosting/SELF-HOSTING.md](self-hosting/SELF-HOSTING.md) — the fastest path from clone to a running workspace.
 - [self-hosting/REVENUE-OS-SETUP.md](self-hosting/REVENUE-OS-SETUP.md) — the full numbered setup: migrations, Google Workspace, Resend, AI architecture, production environment.
 - [self-hosting/MCP-SETUP.md](self-hosting/MCP-SETUP.md) — workspace MCP setup for compatible clients and current ChatGPT compatibility limits.
+- [self-hosting/WORKSPACE-MCP-OAUTH.md](self-hosting/WORKSPACE-MCP-OAUTH.md) — scoped ChatGPT web OAuth setup for workspace MCP tools.
 - [self-hosting/ARCHITECTURE.md](self-hosting/ARCHITECTURE.md) — request path, tenancy model, source map, at a glance.
 
 ## Contributing code

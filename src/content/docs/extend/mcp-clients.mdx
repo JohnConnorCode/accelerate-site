@@ -23,7 +23,9 @@ Client configuration screens differ. Use your client's current MCP instructions 
 
 The ChatGPT phone app currently does not support custom MCP apps. ChatGPT also cannot present a custom workspace API key to an authenticated MCP server. The Bearer-key steps above are for compatible MCP clients, not ChatGPT; do not generate or rotate a workspace key for that purpose. See [OpenAI's MCP availability](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt) and [authentication requirements](https://developers.openai.com/plugins/build/auth).
 
-ChatGPT web requires a separately configured OAuth connection. The Site Studio connection below is scoped to the installation website and does not expose ordinary workspace tools.
+ChatGPT web requires a separately configured OAuth connection. To use the registered workspace tools, an installer follows the [workspace MCP OAuth guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/WORKSPACE-MCP-OAUTH.md). The separate Site Studio connection below is scoped to the installation website and does not expose ordinary workspace tools.
+
+The workspace OAuth endpoint is `https://<your-domain>/api/public/<tenantSlug>/mcp/oauth`. An active workspace admin consents for 30 days and can revoke access in **Integrations → Manage workspace OAuth connections**. Available tools still follow the module, connection and approval rules below. Verify one read, one proposal and its separate approval in the intended workspace before relying on the connection.
 
 ## Choose a tool list
 

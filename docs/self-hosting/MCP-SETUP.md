@@ -117,6 +117,11 @@ verification. It does not expose the ordinary workspace tools. Check that the
 OAuth metadata endpoint is configured before attempting a connection; a route
 existing in source or a public MCP health response is not connection proof.
 
+For the ordinary registered workspace tools in ChatGPT web, use the separate
+[workspace MCP OAuth setup](WORKSPACE-MCP-OAUTH.md). Its endpoint has a distinct
+resource audience and a revocable admin delegation. It does not change the
+Bearer-key endpoint above or grant Site Studio website execution.
+
 ### What a workspace MCP proposal means
 
 Workspace MCP mutation tools stage proposals rather than directly changing the

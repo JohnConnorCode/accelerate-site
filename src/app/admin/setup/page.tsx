@@ -226,10 +226,10 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   mcp_server: {
     steps: [
-      "Revenue OS includes a built-in MCP server complying with the 2024-11-05 protocol specification.",
-      "For Claude Desktop or Claude Code, configure stdio execution using scripts/revenue-os-mcp.ts.",
-      "For ChatGPT or Cursor, connect via the HTTP JSON-RPC endpoint at /api/mcp with your REVENUE_OS_API_KEY Bearer token.",
-      "All 14 registered AI tools run with bounded query limits; mutations always stage in action_queue for founder review.",
+      "Command Center exposes registered workspace tools over MCP. Available tools depend on the deployed registry, modules and provider connections.",
+      "Use a tenant MCP key with clients that support custom Bearer credentials. The local stdio runner is an installation-admin path with separate credentials.",
+      "ChatGPT web requires the separately configured workspace OAuth endpoint. Custom MCP apps are not currently available in the ChatGPT phone app.",
+      "Workspace changes are staged for review in Approvals. This MCP surface does not cover every admin action or approve its own proposals.",
     ],
     href: "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/MCP-SETUP.md",
     linkLabel: "Open MCP Integration Guide",

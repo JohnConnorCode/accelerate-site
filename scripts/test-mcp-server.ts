@@ -167,6 +167,15 @@ async function main() {
   assert.ok(toolsResult.tools.some((t) => t.name === "propose_task"));
   assert.ok(toolsResult.tools.some((t) => t.name === "propose_task_update"));
   assert.ok(toolsResult.registryVersion, "tools/list must report the registry version it served");
+  const oauthTools = (
+    (await handleMcpRequest(toolsReq, { ...context, oauthAuthenticated: true }))!.result as {
+      tools: Array<{ securitySchemes?: unknown }>;
+    }
+  ).tools;
+  assert.ok(oauthTools.length > 0);
+  assert.deepEqual(oauthTools[0]!.securitySchemes, [
+    { type: "oauth2", scopes: ["openid", "email"] },
+  ]);
 
   // Task-focused profiles bound what a client is told about, and always carry
   // a discovery path to the rest of the authorized registry. An omitted or

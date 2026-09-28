@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-29.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-01.1";
 
 export const TENANT_SCOPED_TABLES = [
   "ai_readiness_assessments",
@@ -26,6 +26,7 @@ export const TENANT_SCOPED_TABLES = [
   "site_website_revisions",
   "site_website_receipts",
   "site_editor_delegations",
+  "workspace_mcp_delegations",
   "site_drafts",
   "site_draft_revisions",
   "radar_current_assessments",
@@ -207,6 +208,19 @@ const BASE_REVENUE_SCHEMA_TABLES = [
   },
   {
     table: "site_editor_delegations",
+    columns: [
+      "id",
+      "tenant_id",
+      "user_id",
+      "client_id",
+      "resource",
+      "created_at",
+      "expires_at",
+      "revoked_at",
+    ],
+  },
+  {
+    table: "workspace_mcp_delegations",
     columns: [
       "id",
       "tenant_id",
@@ -826,6 +840,8 @@ export const REVENUE_SCHEMA_CONSTRAINTS = [
 ] as const;
 
 export const REVENUE_SCHEMA_INDEXES = [
+  "workspace_mcp_delegation_lookup",
+  "workspace_mcp_one_active_delegation",
   "site_website_revision_history",
   "site_drafts_live_slug",
   "site_drafts_recent",
@@ -871,6 +887,14 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
+  {
+    name: "public.manage_workspace_mcp_delegation(text,uuid,text,text,text,uuid)",
+    migration: "migrations/20261001-workspace-mcp-oauth.sql",
+  },
+  {
+    name: "public.authorize_workspace_mcp_delegation(uuid,uuid,text,uuid,text)",
+    migration: "migrations/20261001-workspace-mcp-oauth.sql",
+  },
   {
     name: "public.consume_rate_limit(text,integer,integer)",
     migration: "migrations/20260929-shared-rate-limits.sql",
