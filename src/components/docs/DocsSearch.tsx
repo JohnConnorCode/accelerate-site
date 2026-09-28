@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { searchEntries } from "@/lib/search/score";
@@ -14,6 +14,11 @@ export function DocsSearch() {
   const [query, setQuery] = useState("");
   const [entries, setEntries] = useState<SearchEntry[]>([]);
   const [state, setState] = useState<LoadState>("idle");
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const results = useMemo(() => searchEntries(entries, query.trim(), 8), [entries, query]);
   async function load() {
     if (state === "ready" || state === "loading") return;
@@ -38,6 +43,7 @@ export function DocsSearch() {
           id={id}
           type="search"
           aria-label="Search the docs"
+          disabled={!ready}
           value={query}
           onFocus={() => void load()}
           onChange={(event) => {
