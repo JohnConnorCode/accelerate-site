@@ -88,9 +88,8 @@ async function main() {
   };
   try {
     assert.equal(workspaceMcpOAuthConfig("northline").resource, resource);
-    const { GET: metadata } = await import(
-      "../src/app/.well-known/oauth-protected-resource/api/public/[tenantSlug]/mcp/oauth/route"
-    );
+    const { GET: metadata } =
+      await import("../src/app/.well-known/oauth-protected-resource/api/public/[tenantSlug]/mcp/oauth/route");
     const meta = await metadata(new Request(resource), {
       params: Promise.resolve({ tenantSlug: "northline" }),
     });
@@ -139,8 +138,7 @@ async function main() {
     );
   } finally {
     globalThis.fetch = previousFetch;
-    for (const key of Object.keys(process.env))
-      if (!(key in previous)) delete process.env[key];
+    for (const key of Object.keys(process.env)) if (!(key in previous)) delete process.env[key];
     Object.assign(process.env, previous);
   }
 }

@@ -25,9 +25,9 @@ const grantSchema = z.object({
 
 /** One pre-registered OAuth client per workspace. A client ID must never select two resources. */
 export function configuredWorkspaceMcpOAuthClients(): Record<string, string> {
-  const parsed = z.record(slug, z.uuid()).parse(
-    JSON.parse(process.env.MCP_WORKSPACE_OAUTH_CLIENTS || "{}"),
-  );
+  const parsed = z
+    .record(slug, z.uuid())
+    .parse(JSON.parse(process.env.MCP_WORKSPACE_OAUTH_CLIENTS || "{}"));
   const ids = Object.values(parsed);
   const siteIds = (process.env.SITE_STUDIO_OAUTH_CLIENT_IDS || "")
     .split(",")
@@ -48,10 +48,8 @@ export function workspaceMcpOAuthConfig(tenantSlug: string) {
   return {
     clientId,
     resource: new URL(`/api/public/${tenant}/mcp/oauth`, site).href,
-    metadata: new URL(
-      `/.well-known/oauth-protected-resource/api/public/${tenant}/mcp/oauth`,
-      site,
-    ).href,
+    metadata: new URL(`/.well-known/oauth-protected-resource/api/public/${tenant}/mcp/oauth`, site)
+      .href,
     issuer: new URL("/auth/v1", process.env.NEXT_PUBLIC_SUPABASE_URL).href,
   };
 }

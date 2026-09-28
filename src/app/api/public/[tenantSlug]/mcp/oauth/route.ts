@@ -41,6 +41,7 @@ export async function POST(
   try {
     config = workspaceMcpOAuthConfig(tenantSlug);
   } catch {
+    console.warn("[workspace-mcp] OAuth configuration unavailable");
     return NextResponse.json(
       { error: "Workspace MCP OAuth is not configured" },
       { status: 503, headers },
@@ -52,6 +53,7 @@ export async function POST(
     if (!token || token.length > 16_000) throw new Error("Bearer token required");
     connection = await authenticateWorkspaceMcp(token, tenantSlug);
   } catch {
+    console.warn("[workspace-mcp] OAuth authorization refused");
     return NextResponse.json(
       { error: "Connect as an active workspace admin with an approved OAuth delegation." },
       {
@@ -79,6 +81,7 @@ export async function POST(
     )
       throw new Error("Invalid request");
   } catch {
+    console.warn("[workspace-mcp] Invalid MCP request");
     return NextResponse.json(
       { jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid bounded JSON-RPC request" } },
       { status: 400, headers },

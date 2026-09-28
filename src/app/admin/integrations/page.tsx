@@ -261,7 +261,8 @@ function ProviderCard({
             href="/admin/mcp/connect"
             className="mt-3 inline-flex min-h-10 items-center gap-1 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4"
           >
-            Manage workspace OAuth connections <ArrowRight className="size-3.5" aria-hidden="true" />
+            Manage workspace OAuth connections{" "}
+            <ArrowRight className="size-3.5" aria-hidden="true" />
           </Link>
         )}
 

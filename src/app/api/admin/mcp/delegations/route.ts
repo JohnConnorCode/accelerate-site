@@ -9,9 +9,19 @@ import {
 } from "@/lib/revenue-os/workspace-mcp-oauth";
 
 const headers = { "Cache-Control": "private, no-store" };
-const authorizationId = z.string().min(1).max(128).regex(/^[a-zA-Z0-9_-]+$/);
+const authorizationId = z
+  .string()
+  .min(1)
+  .max(128)
+  .regex(/^[a-zA-Z0-9_-]+$/);
 const command = z.discriminatedUnion("operation", [
-  z.object({ operation: z.literal("consent"), authorizationId, decision: z.enum(["approve", "deny"]) }).strict(),
+  z
+    .object({
+      operation: z.literal("consent"),
+      authorizationId,
+      decision: z.enum(["approve", "deny"]),
+    })
+    .strict(),
   z.object({ operation: z.literal("revoke"), grantId: z.uuid() }).strict(),
   z.object({ operation: z.literal("renew") }).strict(),
 ]);
@@ -32,15 +42,22 @@ export async function GET(request: Request) {
         (details.data.client.id !== config.clientId || details.data.user.id !== auth.user.id)
       )
         throw new Error("This OAuth client is not allowed for this workspace");
-      return NextResponse.json({ authorization: details.data, resource: config.resource }, { headers });
+      return NextResponse.json(
+        { authorization: details.data, resource: config.resource },
+        { headers },
+      );
     }
     return NextResponse.json(
       { delegations: await listWorkspaceMcpDelegations(auth), resource: config.resource },
       { headers },
     );
   } catch {
+    console.warn("[workspace-mcp] Connection read refused");
     return NextResponse.json(
-      { error: "Workspace MCP OAuth is unavailable. Check the client, native OAuth server, and migration." },
+      {
+        error:
+          "Workspace MCP OAuth is unavailable. Check the client, native OAuth server, and migration.",
+      },
       { status: 403, headers },
     );
   }
@@ -50,7 +67,10 @@ export async function POST(request: Request) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   if (request.headers.get("origin") !== new URL(request.url).origin)
-    return NextResponse.json({ error: "Confirm connections on this installation" }, { status: 403, headers });
+    return NextResponse.json(
+      { error: "Confirm connections on this installation" },
+      { status: 403, headers },
+    );
   try {
     const config = workspaceMcpOAuthConfig(auth.tenant.slug);
     const input = command.parse(await readBoundedJson(request, 4096));
@@ -97,6 +117,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ redirectUrl: result.data.redirect_url }, { headers });
   } catch {
+    console.warn("[workspace-mcp] Connection change refused");
     return NextResponse.json(
       { error: "Connection change failed. Reload before retrying." },
       { status: 400, headers },

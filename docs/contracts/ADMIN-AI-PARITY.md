@@ -94,6 +94,18 @@ authorize enabling it or allowing the AI to grant itself privileges.
 
 ## Coverage and contributor gate
 
+### Workspace MCP OAuth connection
+
+`/api/admin/mcp/delegations` handles an administrator's OAuth consent, renewal,
+and revocation for a tenant-bound connection. These are secure human handoffs,
+not model-callable business operations. The separate
+`/api/public/<tenantSlug>/mcp/oauth` endpoint exposes only registered workspace
+tools after checking the live user, native OAuth grant, session, active admin
+membership, and 30-day local delegation. Business changes still require a
+separate Command Center approval. This connection does not add universal admin
+operation coverage or Site Studio execution. See the
+[setup and verification guide](../self-hosting/WORKSPACE-MCP-OAUTH.md).
+
 ### Scoped Site Studio standing delegation
 
 The installation owner can explicitly grant a pre-registered native OAuth client

@@ -117,6 +117,7 @@ const KNOWN_UNOWNED_ADMIN_ROUTES = new Set([
   "/admin",
   "/admin/ai-operations",
   "/admin/login",
+  "/admin/oauth/consent",
   "/admin/update-password",
 ]);
 const declaredRoutes = modules.flatMap((mod) => mod.routes);

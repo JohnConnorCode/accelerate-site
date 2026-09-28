@@ -75,8 +75,8 @@ export function WorkspaceMcpConnections({
         not cover every admin action.
       </p>
       <p className="admin-copy">
-        Access lasts 30 days and can be revoked here. Custom ChatGPT MCP apps currently work on
-        web, not in the phone app. A workspace MCP key is not used for this OAuth connection.
+        Access lasts 30 days and can be revoked here. Custom ChatGPT MCP apps currently work on web,
+        not in the phone app. A workspace MCP key is not used for this OAuth connection.
       </p>
       {(notice || query.error) && (
         <p role="status" className="admin-copy">
@@ -137,7 +137,9 @@ export function WorkspaceMcpConnections({
         <section key={grant.id} className="space-y-3 border-t border-[var(--admin-border)] pt-4">
           <p className="admin-copy break-all">Client {grant.client_id}</p>
           <p className="admin-copy">
-            {grant.revoked_at ? "Revoked" : `Expires ${new Date(grant.expires_at).toLocaleString()}`}
+            {grant.revoked_at
+              ? "Revoked"
+              : `Expires ${new Date(grant.expires_at).toLocaleString()}`}
           </p>
           {!grant.revoked_at && (
             <div className="flex flex-wrap gap-3">

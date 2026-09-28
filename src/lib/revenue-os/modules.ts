@@ -468,7 +468,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     isCore: false,
     defaultEnabled: true,
     navLinkIds: ["integrations"],
-    routes: ["/admin/integrations", "/admin/plugins"],
+    routes: ["/admin/integrations", "/admin/mcp/connect", "/admin/plugins"],
   },
 ] as const;
 

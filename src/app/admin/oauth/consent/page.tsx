@@ -42,6 +42,8 @@ export default async function McpOAuthConsent({
   }
   const tenantSlug = Object.keys(clients).find((slug) => clients[slug] === clientId);
   if (tenantSlug)
-    redirect(`/admin/mcp/connect?authorization_id=${authorizationId.data}&tenantSlug=${tenantSlug}`);
+    redirect(
+      `/admin/mcp/connect?authorization_id=${authorizationId.data}&tenantSlug=${tenantSlug}`,
+    );
   return <p>This OAuth client is not registered for a Command Center connection.</p>;
 }
