@@ -104,8 +104,8 @@ assert.match(
 );
 assert.match(
   mobileNav,
-  /requestAnimationFrame\(\(\) => closeButtonRef\.current\?\.focus\(\)\)/,
-  "The open drawer must receive focus on the next paint instead of waiting on animation timing",
+  /useLayoutEffect\(\(\) => \{\s*if \(isOpen\) \{\s*closeButtonRef\.current\?\.focus\(\);/,
+  "The open drawer must receive focus before paint so a later frame cannot steal keyboard focus",
 );
 assert.match(
   publicHeader,
