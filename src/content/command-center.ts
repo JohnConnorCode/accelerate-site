@@ -422,9 +422,9 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "Your own assistant, connected",
     promise:
-      "Claude, ChatGPT, Cursor, and Antigravity connect over MCP and reach the same tools the workspace uses.",
+      "Connect a compatible MCP assistant to bounded workspace reads and proposals for review.",
     detail:
-      "Workspace connections return bounded reads and stage changes for review. The separate owner-only Site Studio connection can execute exact website proposals under revocable OAuth delegation, with client-managed confirmations and recorded results.",
+      "Workspace connections use tenant keys with clients that support custom Bearer credentials; coverage depends on registered tools and enabled modules. A separate, configured Site Studio OAuth connection can give supported ChatGPT web workspaces owner-delegated website editing, with recorded results.",
   },
   {
     id: "sms",

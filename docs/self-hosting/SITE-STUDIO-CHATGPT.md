@@ -6,6 +6,10 @@ access to CRM, messages, workspace settings, arbitrary actions or tenant-owned
 service-page drafts. The ordinary workspace MCP endpoints and keys retain their
 existing proposal-only behavior.
 
+As of September 2026, [OpenAI supports custom MCP apps on ChatGPT web only](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt).
+Full write-capable MCP is a Business, Enterprise, and Edu beta. A workspace key
+cannot enable this connection or make it available in the ChatGPT phone app.
+
 ## What you authorize
 
 The owner grants one pre-registered OAuth client Site Studio control for 30 days.
@@ -122,8 +126,8 @@ signed fixture tokens, mocked native responses and isolated local PostgreSQL;
 they are not proof of a deployed OAuth exchange. Before release, retain the
 exact application commit, migration receipt, native OAuth configuration check,
 real-client read/save/publish/revoke evidence, and desktop/mobile editor checks.
-ChatGPT web and desktop support must be tested separately in the intended
-account; do not infer desktop compatibility from an HTTP or web-client test.
+Test ChatGPT web in the intended account; OpenAI currently lists custom MCP apps
+as web only. Do not infer any other client support from an HTTP or web-client test.
 
 Provider references: [ChatGPT developer mode](https://developers.openai.com/api/docs/guides/developer-mode),
 [MCP app authentication](https://developers.openai.com/plugins/build/auth),

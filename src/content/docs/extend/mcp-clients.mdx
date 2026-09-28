@@ -1,7 +1,7 @@
 ---
 title: "Connect an MCP client"
 description: "Point an external assistant at the right workspace, and verify a read before trusting it."
-updated: "2026-09-19"
+updated: "2026-09-28"
 ---
 
 The recommended way to connect a workspace is the tenant HTTP endpoint, authenticated with the MCP key issued specifically for that workspace. The local stdio runner is a separate self-hosting path, with different credentials and a different scope, covered further down.
@@ -18,6 +18,12 @@ https://<your-domain>/api/public/<tenantSlug>/mcp
 ```
 
 Client configuration screens differ. Use your client's current MCP instructions for its connection fields. The endpoint and workspace credential above are the Command Center settings it needs.
+
+## ChatGPT compatibility
+
+The ChatGPT phone app currently does not support custom MCP apps. ChatGPT also cannot present a custom workspace API key to an authenticated MCP server. The Bearer-key steps above are for compatible MCP clients, not ChatGPT; do not generate or rotate a workspace key for that purpose. See [OpenAI's MCP availability](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt) and [authentication requirements](https://developers.openai.com/plugins/build/auth).
+
+ChatGPT web requires a separately configured OAuth connection. The Site Studio connection below is scoped to the installation website and does not expose ordinary workspace tools.
 
 ## Choose a tool list
 
