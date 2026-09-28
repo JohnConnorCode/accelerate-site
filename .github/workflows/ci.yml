@@ -29,8 +29,34 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.detect.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Detect docs-only pull request
+        id: detect
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != pull_request ] || ! git diff --no-renames --name-only "$BASE_SHA" HEAD > "$RUNNER_TEMP/changed-files" || [ ! -s "$RUNNER_TEMP/changed-files" ]; then
+            echo 'docs_only=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          while IFS= read -r path; do
+            case "$path" in
+              'src/app/(marketing)/docs/'*|src/components/docs/*|src/content/docs/*|src/lib/docs.ts|scripts/qa-docs.ts|public/images/docs/*|public/docs-llms.txt) ;;
+              *) echo 'docs_only=false' >> "$GITHUB_OUTPUT"; exit 0 ;;
+            esac
+          done < "$RUNNER_TEMP/changed-files"
+          echo 'docs_only=true' >> "$GITHUB_OUTPUT"
+
   checks:
-    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only }}
+    needs: scope
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -254,7 +280,29 @@ jobs:
           NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-stage-history-analytics.ts
           npm run test:analytics-decision-model
 
+  docs-checks:
+    needs: scope
+    if: ${{ needs.scope.outputs.docs_only == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify:docs
+      - run: npm run test:docs-coverage
+      - run: npm run docs:llms:check
+      - run: npm run test:search
+      - run: npm run test:no-fabricated-claims
+      - run: npm run test:house-style-copy
+      - run: npm run lint -- --max-warnings=0
+      - run: npm run format:check
+
   build:
+    needs: scope
     if: ${{ !inputs.admin_design_only && !inputs.cold_start_only }}
     runs-on: ubuntu-latest
     # Full browser coverage can take 30 minutes before evidence and cache uploads.
@@ -284,20 +332,27 @@ jobs:
         run: npm run build
 
       - name: Verify compiled document extraction
+        if: ${{ needs.scope.outputs.docs_only != 'true' }}
         run: NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-document-extraction.ts --compiled
 
       - name: Verify complete built documentation coverage
         run: npm run verify:public-prerender
 
+      - name: Verify strict docs coverage
+        if: ${{ needs.scope.outputs.docs_only == 'true' }}
+        run: npm run verify:docs -- --strict
+
       - name: Verify deployable plugin engine package
+        if: ${{ needs.scope.outputs.docs_only != 'true' }}
         run: node scripts/check-plugin-host-package.mjs
 
       - name: Install browser for first-run verification
         run: npx playwright install --with-deps chromium
       - name: Verify industry and Chicago release pages
+        if: ${{ needs.scope.outputs.docs_only != 'true' }}
         run: node scripts/qa-chicago-industries.mjs
       - name: Retain industry and Chicago browser evidence
-        if: ${{ always() }}
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: industry-chicago-browser-evidence
@@ -309,6 +364,7 @@ jobs:
           # NextURL canonicalizes loopback IPs to localhost. Keep the server's
           # initURL on that same origin so demo rewrites never become self-proxies.
           PUBLIC_PAGES_ONLY: ${{ inputs.public_pages_only }}
+          DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
           PLAYWRIGHT_BASE_URL: http://localhost:3018
         run: |
           setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-first-run-server.log 2>&1 &
@@ -328,7 +384,7 @@ jobs:
           # Run every group and collect every exit status before stopping the server.
           (
             set -e
-            if [ "$PUBLIC_PAGES_ONLY" = "true" ]; then exit 0; fi
+            if [ "$PUBLIC_PAGES_ONLY" = "true" ] || [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
@@ -351,6 +407,7 @@ jobs:
           (
             set -e
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
+            if [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
             node scripts/qa-demo-business-workflows.mjs
@@ -358,7 +415,7 @@ jobs:
           public_qa_pid=$!
           (
             set -e
-            if [ "$PUBLIC_PAGES_ONLY" = "true" ]; then exit 0; fi
+            if [ "$PUBLIC_PAGES_ONLY" = "true" ] || [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
             node scripts/qa-social-marketing.mjs
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
@@ -378,8 +435,10 @@ jobs:
           done
           # Measure navigation performance without competing browser suites on
           # this runner. Keep the same 200ms limit and retain failure evidence.
-          if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
-          if ! node scripts/qa-home-hero-timing.mjs; then browser_status=1; fi
+          if [ "$DOCS_ONLY" != "true" ]; then
+            if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
+            if ! node scripts/qa-home-hero-timing.mjs; then browser_status=1; fi
+          fi
           exit "$browser_status"
       - name: Retain first-run browser evidence
         if: ${{ always() }}
@@ -419,7 +478,8 @@ jobs:
           retention-days: 7
 
   full-product-fork:
-    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
+    needs: scope
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -464,7 +524,8 @@ jobs:
           retention-days: 7
 
   neutral-starter:
-    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only }}
+    needs: scope
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -518,20 +579,29 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # Keep the existing required check name and fail if either job fails or skips.
+  # Keep the required check name; accept only the jobs expected for the detected scope.
   verify:
     if: ${{ always() && !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only }}
-    needs: [checks, build, full-product-fork, neutral-starter]
+    needs: [scope, checks, docs-checks, build, full-product-fork, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
       - name: Require all verification jobs
         env:
           CHECKS_RESULT: ${{ needs.checks.result }}
+          DOCS_CHECKS_RESULT: ${{ needs.docs-checks.result }}
+          DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
+          SCOPE_RESULT: ${{ needs.scope.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
           FULL_FORK_RESULT: ${{ needs.full-product-fork.result }}
-        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success && test "$NEUTRAL_RESULT" = success && test "$FULL_FORK_RESULT" = success
+        run: |
+          test "$SCOPE_RESULT" = success && test "$BUILD_RESULT" = success || exit 1
+          if [ "$DOCS_ONLY" = true ]; then
+            test "$DOCS_CHECKS_RESULT" = success && test "$CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = skipped && test "$FULL_FORK_RESULT" = skipped || exit 1
+          else
+            test "$DOCS_ONLY" = false && test "$CHECKS_RESULT" = success && test "$DOCS_CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = success && test "$FULL_FORK_RESULT" = success || exit 1
+          fi
 
   admin-design:
     if: ${{ inputs.admin_design_only }}

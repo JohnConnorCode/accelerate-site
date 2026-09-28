@@ -178,57 +178,123 @@ try {
       /if ! node scripts\/qa-public-navigation-profile\.mjs --services-only; then browser_status=1; fi/,
     );
   });
-  check("CI aggregate fails on every failed, cancelled or skipped dependency", () => {
+  check("docs-only CI scope excludes shared code and workflow edits", () => {
+    const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
+    const detector = workflow
+      .match(
+        /- name: Detect docs-only pull request[\s\S]*?\n        run: \|\n((?:          .*\n)+)/,
+      )?.[1]
+      ?.replace(/^ {10}/gm, "");
+    assert.ok(detector);
+    const scopeRepo = resolve(scratch, "scope-repo");
+    mkdirSync(scopeRepo);
+    git(["init", "--template=", "--initial-branch=main"], scopeRepo);
+    git(["config", "user.name", "Workflow Test"], scopeRepo);
+    git(["config", "user.email", "workflow@example.test"], scopeRepo);
+    writeFileSync(resolve(scopeRepo, "README.md"), "base\n");
+    git(["add", "."], scopeRepo);
+    git(["commit", "-qm", "Base"], scopeRepo);
+    const base = git(["rev-parse", "HEAD"], scopeRepo);
+    const output = resolve(scratch, "scope-output");
+    const classify = (paths, eventName = "pull_request") => {
+      git(["reset", "--hard", base], scopeRepo);
+      git(["clean", "-fd"], scopeRepo);
+      for (const path of paths) {
+        mkdirSync(dirname(resolve(scopeRepo, path)), { recursive: true });
+        writeFileSync(resolve(scopeRepo, path), "changed\n");
+      }
+      git(["add", "."], scopeRepo);
+      git(["commit", "-qm", "Change"], scopeRepo);
+      writeFileSync(output, "");
+      const result = spawnSync("bash", ["-e", "-c", detector], {
+        cwd: scopeRepo,
+        env: {
+          ...env,
+          GITHUB_EVENT_NAME: eventName,
+          BASE_SHA: base,
+          RUNNER_TEMP: scratch,
+          GITHUB_OUTPUT: output,
+        },
+        encoding: "utf8",
+      });
+      assert.equal(result.status, 0, result.stderr);
+      return readFileSync(output, "utf8").trim();
+    };
+    assert.equal(classify(["src/content/docs/start/overview.mdx"]), "docs_only=true");
+    assert.equal(
+      classify(["src/components/docs/DocsSearch.tsx", "scripts/qa-docs.ts"]),
+      "docs_only=true",
+    );
+    assert.equal(
+      classify(["src/content/docs/start/overview.mdx", "src/app/admin/page.tsx"]),
+      "docs_only=false",
+    );
+    assert.equal(classify([".github/workflows/ci.yml"]), "docs_only=false");
+    assert.equal(classify(["scripts/verify-docs.ts"]), "docs_only=false");
+    assert.equal(classify(["src/content/docs/start/overview.mdx"], "push"), "docs_only=false");
+  });
+  check("CI aggregate requires the matching docs or full verification path", () => {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     assert.match(
       workflow,
-      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only && !inputs\.public_pages_only && !inputs\.cold_start_only \}\}\s+needs: \[checks, build, full-product-fork, neutral-starter\]/,
+      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only && !inputs\.public_pages_only && !inputs\.cold_start_only \}\}\s+needs: \[scope, checks, docs-checks, build, full-product-fork, neutral-starter\]/,
     );
     assert.match(workflow, /admin_design_only:[\s\S]*?type: boolean\s+default: false/);
     assert.match(workflow, /public_pages_only:[\s\S]*?type: boolean\s+default: false/);
-    assert.ok(
-      workflow.includes(
-        `build:\n    if: \${{ !inputs.admin_design_only && !inputs.cold_start_only }}`,
-      ),
-    );
-    for (const job of ["checks", "neutral-starter"])
-      assert.ok(
-        workflow.includes(
-          `${job}:\n    if: \${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only }}`,
-        ),
-      );
     assert.match(workflow, /cold_start_only:[\s\S]*?type: boolean\s+default: false/);
-    assert.ok(
-      workflow.includes(
-        `full-product-fork:\n    if: \${{ !inputs.admin_design_only && !inputs.public_pages_only }}`,
-      ),
+    assert.match(workflow, /scope:\s+runs-on: ubuntu-latest/);
+    assert.match(workflow, /docs_only: \$\{\{ steps\.detect\.outputs\.docs_only \}\}/);
+    assert.match(
+      workflow,
+      /case "\$path" in[\s\S]*?'src\/app\/\(marketing\)\/docs\/'\*[\s\S]*?\*\) echo 'docs_only=false'/,
     );
+    assert.match(
+      workflow,
+      /docs-checks:\s+needs: scope\s+if: \$\{\{ needs\.scope\.outputs\.docs_only == 'true' \}\}/,
+    );
+    assert.match(
+      workflow,
+      /build:\s+needs: scope\s+if: \$\{\{ !inputs\.admin_design_only && !inputs\.cold_start_only \}\}/,
+    );
+    for (const job of ["checks", "full-product-fork", "neutral-starter"])
+      assert.match(
+        workflow,
+        new RegExp(job + ":[\\s\\S]*?needs: scope[\\s\\S]*?docs_only != 'true'"),
+      );
     assert.match(workflow, /admin-design:\s+if: \$\{\{ inputs\.admin_design_only \}\}/);
-    const command = workflow.match(/run: (test "\$CHECKS_RESULT"[^\n]+)/)?.[1];
+    const command = workflow
+      .match(
+        /- name: Require all verification jobs[\s\S]*?\n        run: \|\n((?:          .*\n)+)/,
+      )?.[1]
+      ?.replace(/^ {10}/gm, "");
     assert.ok(command);
-    for (const checks of ["success", "failure", "cancelled", "skipped"]) {
-      for (const build of ["success", "failure", "cancelled", "skipped"]) {
-        for (const neutral of ["success", "failure", "cancelled", "skipped"]) {
-          for (const fullFork of ["success", "failure", "cancelled", "skipped"]) {
-            const result = spawnSync("sh", ["-c", command], {
-              env: {
-                ...env,
-                CHECKS_RESULT: checks,
-                BUILD_RESULT: build,
-                NEUTRAL_RESULT: neutral,
-                FULL_FORK_RESULT: fullFork,
-              },
-            });
-            assert.equal(
-              result.status === 0,
-              checks === "success" &&
-                build === "success" &&
-                neutral === "success" &&
-                fullFork === "success",
-            );
-          }
-        }
+    const verify = (results) =>
+      spawnSync("bash", ["-e", "-c", command], { env: { ...env, ...results } }).status === 0;
+    const full = {
+      SCOPE_RESULT: "success",
+      DOCS_ONLY: "false",
+      CHECKS_RESULT: "success",
+      DOCS_CHECKS_RESULT: "skipped",
+      BUILD_RESULT: "success",
+      NEUTRAL_RESULT: "success",
+      FULL_FORK_RESULT: "success",
+    };
+    const docs = {
+      ...full,
+      DOCS_ONLY: "true",
+      CHECKS_RESULT: "skipped",
+      DOCS_CHECKS_RESULT: "success",
+      NEUTRAL_RESULT: "skipped",
+      FULL_FORK_RESULT: "skipped",
+    };
+    assert.ok(verify(full));
+    assert.ok(verify(docs));
+    for (const results of [full, docs]) {
+      for (const key of Object.keys(results)) {
+        assert.equal(verify({ ...results, [key]: "failure" }), false, key + " failed");
+        assert.equal(verify({ ...results, [key]: "cancelled" }), false, key + " cancelled");
       }
+      assert.equal(verify({ ...results, BUILD_RESULT: "skipped" }), false);
     }
     assert.match(workflow, /merge_group:/);
     assert.doesNotMatch(workflow, /run: npm run typecheck/);
@@ -245,7 +311,7 @@ try {
     assert.equal(run("git", ["config", "--get", "core.hooksPath"]).status, 1);
     assert.match(readFileSync(legacyHook, "utf8"), /preserved legacy hook/);
   });
-  console.log(JSON.stringify({ result: "passed", cases, aggregateCombinations: 256 }));
+  console.log(JSON.stringify({ result: "passed", cases }));
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }
