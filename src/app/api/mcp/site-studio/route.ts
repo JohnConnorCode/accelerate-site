@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         status: 401,
         headers: {
           ...headers,
-          "WWW-Authenticate": `Bearer resource_metadata="${config.metadata}", scope="openid email"`,
+          "WWW-Authenticate": `Bearer resource_metadata="${config.metadata}", scope="openid email", error="invalid_token", error_description="Connect as the installation owner"`,
         },
       },
     );

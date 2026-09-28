@@ -424,7 +424,7 @@ export const capabilities: Capability[] = [
     promise:
       "Connect a compatible MCP assistant to bounded workspace reads and proposals for review.",
     detail:
-      "Workspace connections use tenant keys with clients that support custom Bearer credentials; coverage depends on registered tools and enabled modules. A separate, configured Site Studio OAuth connection can give supported ChatGPT web workspaces owner-delegated website editing, with recorded results.",
+      "Compatible clients can use tenant keys; supported ChatGPT web workspaces can use a separately configured OAuth connection. Both reach registered workspace tools with module and approval rules. A distinct owner-only Site Studio OAuth connection can edit the installation website under revocable delegation, with recorded results.",
   },
   {
     id: "sms",

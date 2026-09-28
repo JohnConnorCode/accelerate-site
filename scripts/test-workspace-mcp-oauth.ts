@@ -102,6 +102,7 @@ async function main() {
     });
     assert.equal(challenge.status, 401);
     assert.match(challenge.headers.get("www-authenticate") ?? "", /resource_metadata=/);
+    assert.match(challenge.headers.get("www-authenticate") ?? "", /error="invalid_token"/);
     const accepted = await authenticateWorkspaceMcp(token(), "northline");
     assert.equal(accepted.auth.tenant.id, tenantId);
     assert.equal(accepted.auth.user.email, "admin@example.test");

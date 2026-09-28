@@ -58,7 +58,7 @@ export async function POST(
         status: 401,
         headers: {
           ...headers,
-          "WWW-Authenticate": `Bearer resource_metadata="${config.metadata}", scope="openid email"`,
+          "WWW-Authenticate": `Bearer resource_metadata="${config.metadata}", scope="openid email", error="invalid_token", error_description="Connect as an active workspace admin"`,
         },
       },
     );
@@ -95,6 +95,7 @@ export async function POST(
       },
       toolProfile: parseTaskToolProfile(new URL(request.url).searchParams.get("profile")),
       principalKind: "workspace_member",
+      oauthAuthenticated: true,
     }),
   );
   if (result === null) return new NextResponse(null, { status: 204, headers });

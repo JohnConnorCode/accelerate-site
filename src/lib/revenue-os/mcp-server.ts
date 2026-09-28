@@ -79,6 +79,8 @@ export interface McpServerContext {
   /** Server-owned restriction for the dedicated editor OAuth endpoint. */
   allowedToolNames?: readonly string[];
   siteEditorDelegation?: SiteEditorDelegation;
+  /** The request was verified through an OAuth resource endpoint. */
+  oauthAuthenticated?: boolean;
 }
 
 /**
@@ -314,7 +316,7 @@ export async function handleMcpRequest(
                 tool.name === "execute_site_change",
               openWorldHint: tool.impact === "external_action" || tool.name === "suggest_site_page",
             },
-            ...(context.siteEditorDelegation
+            ...(context.siteEditorDelegation || context.oauthAuthenticated
               ? { securitySchemes: [{ type: "oauth2", scopes: ["openid", "email"] }] }
               : {}),
           }));

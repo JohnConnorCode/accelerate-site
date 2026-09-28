@@ -47,8 +47,9 @@ write is a requirement; use the editor's own approval workflow instead.
    multiple registered IDs with commas. Client secrets belong only in the
    approved provider/client configuration, never in this variable or chat.
 5. Enable the native Custom Access Token hook
-   `public.site_editor_access_token_hook`. **This opt-in hook dedicates native
-   OAuth token issuance to Site Studio:** unknown OAuth clients are refused.
+   `public.site_editor_access_token_hook`. **This opt-in hook restricts native
+   OAuth tokens to pre-registered Site Studio or workspace MCP resources:**
+   unknown OAuth clients are refused.
    Review any existing native OAuth consumers before enabling it. Ordinary
    first-party sign-ins, without `client_id`, are unchanged. The consent service
    records the scoped client before issuing its first authorization code.
