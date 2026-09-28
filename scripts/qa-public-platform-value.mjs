@@ -36,6 +36,8 @@ server?.stderr.on("data", (chunk) => {
   log += chunk;
 });
 const checks = [];
+// Background requests can keep networkidle pending after a page is usable.
+// Wait for the rendered controls and images each check actually inspects.
 // Public analytics needs a connected database. Visual QA keeps it local and records this boundary.
 async function isolateAnalytics(context) {
   await context.route("**/api/analytics/events", (route) => route.fulfill({ status: 204 }));
@@ -133,7 +135,7 @@ try {
       if (process.argv.includes("--remaining") && ["today", "subscriptions"].includes(route))
         continue;
       await page.goto(`${base}/demo/command-center/${scenario}/${route}`, {
-        waitUntil: "networkidle",
+        waitUntil: "domcontentloaded",
         timeout: 90000,
       });
       await page.locator(".admin-shell").waitFor();
@@ -155,7 +157,7 @@ try {
         await page.getByRole("button", { name: "Review & Send", exact: true }).click();
         await page.getByRole("button", { name: "Confirm send", exact: true }).click();
         await page.getByText(reply, { exact: true }).waitFor();
-        await page.reload({ waitUntil: "networkidle" });
+        await page.reload({ waitUntil: "domcontentloaded" });
         await page.getByText(reply, { exact: true }).waitFor();
         checks.push({
           workflow: "inquiry",
@@ -181,7 +183,7 @@ try {
           .filter({ has: page.getByText(taskTitle, { exact: true }) });
         await createdTask.getByRole("button", { name: "Mark complete", exact: true }).click();
         await createdTask.getByText("completed", { exact: true }).waitFor();
-        await page.reload({ waitUntil: "networkidle" });
+        await page.reload({ waitUntil: "domcontentloaded" });
         await createdTask.getByText("completed", { exact: true }).waitFor();
         checks.push({
           workflow: route,
@@ -207,7 +209,7 @@ try {
         await page
           .getByRole("button", { name: "Approve & send invoice", exact: true })
           .waitFor({ state: "detached" });
-        await page.reload({ waitUntil: "networkidle" });
+        await page.reload({ waitUntil: "domcontentloaded" });
         await page
           .getByText("Simulated send completed. No Stripe request or customer email was sent.", {
             exact: true,
@@ -262,10 +264,11 @@ try {
         "/industries/home-services",
       ]) {
         const response = await page.goto(base + route, {
-          waitUntil: "networkidle",
+          waitUntil: "domcontentloaded",
           timeout: 90000,
         });
         assert(response?.ok(), `${route}: HTTP ${response?.status()}`);
+        await page.locator("h1").waitFor();
         await page.evaluate(() =>
           document.querySelectorAll("nextjs-portal").forEach((node) => node.remove()),
         );
@@ -322,10 +325,15 @@ try {
           "/industries/nonprofits",
         ]) {
           const response = await page.goto(base + route, {
-            waitUntil: "networkidle",
+            waitUntil: "domcontentloaded",
             timeout: 60000,
           });
           assert(response?.ok(), `${route}: HTTP ${response?.status()}`);
+          await page.locator("h1").waitFor();
+          await page.waitForFunction(
+            (expected) => document.documentElement.dataset.theme === expected,
+            theme,
+          );
           assert(
             await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches),
             "Reduced motion enabled",
@@ -404,7 +412,7 @@ try {
           const height = await page.locator("body").evaluate((node) => node.scrollHeight);
           checks.push({ route, width, theme, height, status: "passed" });
         }
-        await page.goto(`${base}/command-center`, { waitUntil: "networkidle" });
+        await page.goto(`${base}/command-center`, { waitUntil: "domcontentloaded" });
         const reference = page.getByText("Browse and search the complete capability reference", {
           exact: true,
         });
@@ -437,7 +445,7 @@ try {
           await page.evaluate(() => document.activeElement !== document.body),
           "Keyboard focus remains on controls",
         );
-        await page.goto(`${base}/demo/command-center`, { waitUntil: "networkidle" });
+        await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded" });
         for (const [label, scenario, route, recipe] of [
           ["Answer an inquiry", "northline-roofing", "conversations", "roofing-inquiry"],
           [
@@ -481,7 +489,7 @@ try {
           theme,
           status: "passed",
         });
-        await page.goto(`${base}/docs`, { waitUntil: "networkidle" });
+        await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
         await page.getByRole("searchbox", { name: "Search the docs" }).fill("roofing inquiry");
         const result = page
           .getByRole("region", { name: "Search documentation" })
@@ -510,17 +518,19 @@ try {
     });
     const page = await context.newPage();
     for (const industry of industries) {
-      await page.goto(`${base}/industries/${industry}`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/industries/${industry}`, { waitUntil: "domcontentloaded" });
+      await page.locator("#workflow-recipes article").first().waitFor();
       assert.equal(await page.locator("#workflow-recipes article").count(), 2, industry);
     }
-    await page.goto(`${base}/demo/command-center`, { waitUntil: "networkidle" });
+    await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded" });
+    await page.locator("#business-demos article").first().waitFor();
     assert.equal(await page.locator("#business-demos article").count(), 6);
     assert.equal(
       await page.locator('meta[name="robots"]').getAttribute("content"),
       "noindex, nofollow",
     );
     for (const scenario of scenarios) {
-      await page.goto(`${base}/demo/command-center`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded" });
       await page
         .locator(`#business-demos a[href='/demo/command-center/${scenario}/today']`)
         .click();
@@ -534,10 +544,10 @@ try {
       );
       if (scenario === "northline-roofing") {
         await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
-        await page.reload({ waitUntil: "networkidle" });
+        await page.reload({ waitUntil: "domcontentloaded" });
         await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
       }
-      await page.goto(`${base}/demo/command-center`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded" });
       assert.equal(
         await page.locator("html").getAttribute("data-theme"),
         "dark",
