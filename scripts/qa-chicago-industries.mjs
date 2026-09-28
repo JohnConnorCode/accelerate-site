@@ -160,6 +160,7 @@ try {
         await page.keyboard.press("Escape");
       } else {
         const trigger = page.getByRole("button", { name: "Open navigation menu" });
+        await trigger.click({ trial: true });
         await trigger.focus();
         await page.keyboard.press("Enter");
         const menu = page.getByRole("navigation", { name: "Mobile", exact: true });

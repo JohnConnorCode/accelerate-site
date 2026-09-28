@@ -123,6 +123,7 @@ try {
             "Custom name leaves the menu fully on screen",
           );
           assert.ok(bounds.width >= 44 && bounds.height >= 44, "Menu retains its touch target");
+          await menu.click({ trial: true });
           await menu.focus();
           await page.keyboard.press("Enter");
           const close = page.getByRole("button", { name: "Close navigation menu", exact: true });
