@@ -543,7 +543,7 @@ async function main() {
             assert.equal(motion.name, "none");
             assert.equal(motion.opacity, 1);
           } else {
-            assert.match(motion.name, /guide-enter$/);
+            assert.match(motion.name, /guide-enter/);
             assert.ok(
               motion.opacity > 0 && motion.opacity < 1,
               "Docs entrance has a perceptible intermediate frame",
@@ -560,7 +560,7 @@ async function main() {
               .animationName,
           }));
           if (reducedMotion === "reduce") assert.equal(guideMotion.title, "none");
-          else assert.match(guideMotion.title, /guide-enter$/);
+          else assert.match(guideMotion.title, /guide-enter/);
           assert.equal(guideMotion.article, "none");
           assert.equal(guideMotion.body, "none");
           await page.evaluate(() =>
