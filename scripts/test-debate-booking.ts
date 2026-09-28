@@ -60,12 +60,26 @@ assert.equal(
 const acceptedEvent = {
   status: "confirmed",
   attendees: participants.map((email) => ({ email, responseStatus: "accepted" })),
+  fresh: true,
+  integrity: true,
+  conferenceReady: true,
 };
 assert.equal(
   nextDebateAction({ milestones: agreed, participantEmails: participants, event: acceptedEvent })
     .booked,
   true,
 );
+for (const proof of ["fresh", "integrity", "conferenceReady"] as const) {
+  assert.equal(
+    nextDebateAction({
+      milestones: agreed,
+      participantEmails: participants,
+      event: { ...acceptedEvent, [proof]: undefined },
+    }).booked,
+    false,
+    `missing ${proof} proof cannot confirm a booking`,
+  );
+}
 assert.equal(
   nextDebateAction({
     milestones: { ...agreed, invitation: "cancelled" },
