@@ -3,7 +3,7 @@
 import { websiteHeaderContent } from "@/content/site-studio/shared";
 import type { WebsiteHeader } from "@/lib/site-studio/website-chrome";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -44,12 +44,12 @@ export function MobileNav({
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isOpen) {
-      const frame = requestAnimationFrame(() => closeButtonRef.current?.focus());
-      return () => cancelAnimationFrame(frame);
+      closeButtonRef.current?.focus();
+    } else {
+      setExpandedItem(null);
     }
-    setExpandedItem(null);
   }, [isOpen]);
 
   useEffect(() => {
