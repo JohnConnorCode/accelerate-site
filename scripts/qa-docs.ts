@@ -527,13 +527,14 @@ async function main() {
           await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
           await page.locator(".docs-entrance h1").waitFor();
           const motion = await page.locator(".docs-entrance h1").evaluate((heading) => {
-            const animation = heading.getAnimations()[0];
+            const owner = heading.closest("header") ?? heading;
+            const animation = owner.getAnimations()[0];
             if (animation) {
               animation.pause();
               const timing = animation.effect!.getTiming();
               animation.currentTime = Number(timing.delay) + Number(timing.duration) / 2;
             }
-            const style = getComputedStyle(heading);
+            const style = getComputedStyle(owner);
             const result = {
               name: style.animationName,
               opacity: Number(style.opacity),
@@ -546,7 +547,7 @@ async function main() {
             assert.equal(motion.name, "none");
             assert.equal(motion.opacity, 1);
           } else {
-            assert.equal(motion.name, "docs-enter");
+            assert.match(motion.name, /guide-enter/);
             assert.ok(
               motion.opacity > 0 && motion.opacity < 1,
               "Docs entrance has a perceptible intermediate frame",
@@ -556,12 +557,16 @@ async function main() {
           await page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
           await page.waitForURL("**/docs/start/daily-path");
           await page.locator("[data-docs-content]").waitFor();
-          assert.equal(
-            await page
-              .locator(".docs-entrance h1")
-              .evaluate((element) => getComputedStyle(element).animationName),
-            reducedMotion === "reduce" ? "none" : "docs-enter",
-          );
+          const guideMotion = await page.locator(".docs-entrance h1").evaluate((heading) => ({
+            title: getComputedStyle(heading).animationName,
+            article: getComputedStyle(heading.closest("article")!).animationName,
+            body: getComputedStyle(document.querySelector("[data-docs-content] > *")!)
+              .animationName,
+          }));
+          if (reducedMotion === "reduce") assert.equal(guideMotion.title, "none");
+          else assert.match(guideMotion.title, /guide-enter/);
+          assert.equal(guideMotion.article, "none");
+          assert.equal(guideMotion.body, "none");
           await page.evaluate(() =>
             document
               .getAnimations()

@@ -37,7 +37,7 @@ export function DocsSearch() {
   const searching = query.trim().length > 0;
   return (
     <section aria-label="Search documentation" className="mb-8">
-      <div className="flex items-center gap-3 rounded-xl border border-[var(--rule)] bg-[var(--surface-bg)] px-3 focus-within:ring-2 focus-within:ring-[var(--fg)]">
+      <div className="docs-search-field flex items-center gap-3 rounded-xl border border-[var(--rule)] px-3 focus-within:ring-2 focus-within:ring-[var(--fg)]">
         <Search className="h-4 w-4 shrink-0 text-white-secondary" aria-hidden="true" />
         <input
           id={id}
@@ -94,7 +94,11 @@ export function DocsSearch() {
           <ul className="mt-3 divide-y divide-[var(--rule)] rounded-xl border border-[var(--rule)] px-4">
             {results.map((entry) => (
               <li key={entry.id}>
-                <Link href={entry.href} onClick={() => setQuery("")} className="block py-4">
+                <Link
+                  href={entry.href}
+                  onClick={() => setQuery("")}
+                  className="docs-result-link block py-4"
+                >
                   <span className="block font-medium text-heading underline decoration-transparent underline-offset-4 hover:decoration-current">
                     {entry.title}
                   </span>

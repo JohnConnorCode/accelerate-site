@@ -7,7 +7,7 @@ import { RecipeCards } from "@/components/command-center/WorkflowRecipes";
 import { DocsFigure } from "@/components/docs/DocsFigure";
 import { DocsSectionIcon } from "@/components/docs/docs-section-icon";
 import { seoMetadata } from "@/lib/og";
-import styles from "@/components/command-center/product.module.css";
+import styles from "@/components/docs/docs.module.css";
 
 export const metadata: Metadata = seoMetadata({
   title: "Documentation",
@@ -18,16 +18,20 @@ export const metadata: Metadata = seoMetadata({
 
 export default function DocsLandingPage() {
   return (
-    <>
-      <p className="label">Documentation</p>
-      <h1 className={styles.heading}>Put your workspace to work.</h1>
-      <p className={styles.lede}>
-        Choose a task, understand the pieces it needs and follow the result back to the record.
-        These guides help business teams run Command Center and builders adapt the platform around
-        their work.
-      </p>
-      <div className={`${styles.grid} mt-8`}>
-        <section className={styles.card} aria-labelledby="run-business">
+    <div className={styles.landing}>
+      <header className={styles.landingHero}>
+        <p className="label">Documentation</p>
+        <h1 className={styles.landingTitle}>
+          Put your workspace <em>to work.</em>
+        </h1>
+        <p className={styles.landingLede}>
+          Choose a task, understand the pieces it needs and follow the result back to the record.
+          These guides help business teams run Command Center and builders adapt the platform around
+          their work.
+        </p>
+      </header>
+      <div className={styles.pathGrid}>
+        <section className={styles.pathCard} aria-labelledby="run-business">
           <p className="label">Business users</p>
           <h2 id="run-business" className="my-3 font-display text-2xl font-medium">
             Run your business
@@ -36,15 +40,16 @@ export default function DocsLandingPage() {
             Try a workflow in the fictional demo, then learn how to connect your workspace and
             operate it day to day.
           </p>
-          <Link className={styles.textLink} href="/docs/start/daily-path">
-            Try your first workflow <ArrowRight size={16} aria-hidden="true" />
-          </Link>
-          <br />
-          <Link className={styles.textLink} href="/docs/start/business-owners">
-            Plan your first connected workflow
-          </Link>
+          <div className={styles.pathActions}>
+            <Link className={styles.textLink} href="/docs/start/daily-path">
+              Try your first workflow <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+            <Link className={styles.textLink} href="/docs/start/business-owners">
+              Plan your first connected workflow
+            </Link>
+          </div>
         </section>
-        <section className={styles.card} aria-labelledby="build-platform">
+        <section className={styles.pathCard} aria-labelledby="build-platform">
           <p className="label">Builders and agencies</p>
           <h2 id="build-platform" className="my-3 font-display text-2xl font-medium">
             Build on the platform
@@ -53,18 +58,19 @@ export default function DocsLandingPage() {
             Run the source, make a small change and reuse business records, permissions and services
             in your own extension.
           </p>
-          <Link className={styles.textLink} href="/docs/extend/first-change">
-            Make your first change <ArrowRight size={16} aria-hidden="true" />
-          </Link>
-          <br />
-          <Link className={styles.textLink} href="/docs/start/agencies">
-            Set up a client pilot
-          </Link>
+          <div className={styles.pathActions}>
+            <Link className={styles.textLink} href="/docs/extend/first-change">
+              Make your first change <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+            <Link className={styles.textLink} href="/docs/start/agencies">
+              Set up a client pilot
+            </Link>
+          </div>
         </section>
       </div>
-      <section className="mt-12" aria-labelledby="recipes-heading">
+      <section className={styles.landingSection} aria-labelledby="recipes-heading">
         <p className="label">Features working together</p>
-        <h2 id="recipes-heading" className={styles.heading}>
+        <h2 id="recipes-heading" className={styles.sectionTitle}>
           Start with a complete recipe.
         </h2>
         <p className="mb-6 leading-relaxed text-white-secondary">
@@ -87,8 +93,8 @@ export default function DocsLandingPage() {
         alt="Today in the fictional Northline Roofing workspace, with priorities and decisions."
         caption="Today brings the work needing attention into one view. Open its source record to understand the context, then inspect the saved result after acting. The example uses fictional demo data."
       />
-      <section aria-labelledby="docs-directory" className="mt-12">
-        <h2 id="docs-directory" className={styles.heading}>
+      <section aria-labelledby="docs-directory" className={styles.landingSection}>
+        <h2 id="docs-directory" className={styles.sectionTitle}>
           Find the guide you need.
         </h2>
         <p className="mb-6 leading-relaxed text-white-secondary">
@@ -96,18 +102,18 @@ export default function DocsLandingPage() {
           individual capabilities; recipes show how to combine them.
         </p>
         {docsTracks.map((track) => (
-          <section key={track.id} className="my-10" aria-labelledby={`track-${track.id}`}>
-            <h3 id={`track-${track.id}`} className="mb-5 font-display text-xl font-medium">
+          <section key={track.id} className={styles.track} aria-labelledby={`track-${track.id}`}>
+            <h3 id={`track-${track.id}`} className={styles.trackTitle}>
               {track.title}
             </h3>
-            <div className={styles.grid}>
+            <div className={styles.directoryGrid}>
               {docsManifest
                 .filter((section) => section.track === track.id)
                 .map((section) => (
                   <Link
                     key={section.id}
                     href={`/docs/${section.id}`}
-                    className="flex min-w-0 gap-3 border-t border-[var(--rule)] py-5"
+                    className={styles.directoryLink}
                   >
                     <DocsSectionIcon sectionId={section.id} className="mt-1 h-5 w-5 shrink-0" />
                     <span>
@@ -122,7 +128,7 @@ export default function DocsLandingPage() {
           </section>
         ))}
       </section>
-      <aside className={styles.card}>
+      <aside className={styles.helpCard}>
         <h2 className="mb-3 font-display text-xl font-medium">Something did not work?</h2>
         <p>
           Start with the symptom, check the connection or saved action result, and follow the
@@ -132,6 +138,6 @@ export default function DocsLandingPage() {
           Find the recovery guide <ArrowRight size={16} aria-hidden="true" />
         </Link>
       </aside>
-    </>
+    </div>
   );
 }

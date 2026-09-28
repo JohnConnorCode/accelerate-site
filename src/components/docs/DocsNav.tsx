@@ -32,7 +32,7 @@ export function DocsPager({ slug }: { slug: string[] }) {
         <Link
           href={`/docs/${prev.slug.join("/")}`}
           rel="prev"
-          className="group flex items-center gap-2 rounded-xl border border-[var(--rule)] px-4 py-3 transition-colors hover:border-[var(--fg)]"
+          className="docs-pager-link group flex items-center gap-2 rounded-xl border border-[var(--rule)] px-4 py-3 hover:border-[var(--fg)]"
         >
           <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span>
@@ -49,7 +49,7 @@ export function DocsPager({ slug }: { slug: string[] }) {
         <Link
           href={`/docs/${next.slug.join("/")}`}
           rel="next"
-          className="group flex items-center justify-end gap-2 rounded-xl border border-[var(--rule)] px-4 py-3 text-right transition-colors hover:border-[var(--fg)] sm:col-start-2"
+          className="docs-pager-link group flex items-center justify-end gap-2 rounded-xl border border-[var(--rule)] px-4 py-3 text-right hover:border-[var(--fg)] sm:col-start-2"
         >
           <span>
             <span className="block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white-muted">

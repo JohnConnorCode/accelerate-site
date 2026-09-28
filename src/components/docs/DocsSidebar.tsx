@@ -54,10 +54,11 @@ function DocsSidebarSections({
             <Link
               href={`/docs/${section.id}`}
               className={cn(
-                "flex min-h-10 items-center gap-2 text-sm font-semibold transition-colors",
+                "docs-sidebar-link flex min-h-10 items-center gap-2 text-sm font-semibold",
                 expanded ? "text-heading" : "text-white-secondary hover:text-heading",
               )}
               aria-current={undefined}
+              data-active={expanded}
             >
               <DocsSectionIcon sectionId={section.id} className="h-4 w-4 shrink-0" />
               {section.title}
@@ -76,7 +77,7 @@ function DocsSidebarSections({
                         href={href}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "-ml-px flex min-h-10 items-center border-l py-2 pl-3 text-sm transition-colors",
+                          "docs-sidebar-page -ml-px flex min-h-10 items-center border-l py-2 pl-3 text-sm",
                           active
                             ? "border-[var(--fg)] font-medium text-heading"
                             : "border-transparent text-white-secondary hover:text-heading",
