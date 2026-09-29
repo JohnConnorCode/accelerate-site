@@ -156,7 +156,7 @@ export const capabilities: Capability[] = [
     title: "Tasks and commitments",
     promise: "Give work a title, date and source context so the team can follow it through.",
     detail:
-      "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
+      "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. Ask AI can prepare task reopening and description edits for review, with stale-change checks before execution. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
   },
   {
     id: "notes",

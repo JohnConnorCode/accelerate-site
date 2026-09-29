@@ -46,6 +46,12 @@ In the list, press **j** or **k** to select a row. Press **Enter** or **e** to o
 
 The ownership filter is a lens for browsing, not an assignment tool: changing whose work you're looking at does not reassign anything. Assignment follows whatever workflow originally created the task, and a custom App can keep its own native queue and lifecycle entirely separate from this one.
 
+## Updating a task with Ask AI
+
+Ask AI can prepare a task completion, reopening, snooze, or an edit to its title, description, priority, or due date. For example, ask it to reopen a completed customer follow-up and then replace its instructions with the next agreed step. Identify the exact task, inspect each proposed change in **Approvals**, and approve the change you want to keep. Check the resulting task in **Tasks** afterward.
+
+Repeating an unchanged request while its proposal is pending reuses that proposal. If someone edits the task before execution, the proposal fails with a request to review fresh task details. Ask for a new proposal against the current task; its existing work and history stay attached to the same record.
+
 ## Reviewing a decision
 
 Open **Approvals**, select a proposal, and inspect its exact content, target, and consequence before deciding. Today and Work share the same review inspector and execution service underneath, so a decision you make here behaves identically to making it from Today. Once you decide, that pending approval clears from both views at once; it never creates a second record of the same decision.
@@ -59,6 +65,8 @@ Read [approval results](/docs/command-center/approvals) before you interpret wha
 [Activity](/docs/command-center/activity) keeps the recorded history of what changed here. A completed task confirms the task is done, and nothing more: it does not confirm a payment arrived, an email sent, or a customer accepted a proposal, so open the relevant record for those results specifically.
 
 ## What to check
+
+- Use the task controls for deletion or assignment workflows. The AI task-update tool supports the changes listed above; broader customer-record editing and import operations have separate coverage.
 
 - If saving fails, the inspector keeps whatever you typed and shows the error rather than discarding your edit; refresh the record before retrying if the operation might be stale.
 - An empty filtered list usually means your ownership or status filter is narrower than you meant, not that the workspace has no work.
