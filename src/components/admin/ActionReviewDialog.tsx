@@ -97,7 +97,7 @@ const PAYLOAD_FIELD_ORDER = [
 ];
 const BODY_FIELDS = new Set(["body", "text", "message", "description"]);
 
-function payloadEntries(payload: Record<string, unknown> | null) {
+function payloadEntries(payload: Record<string, unknown> | null, actionType: string) {
   if (!payload) return { fields: [] as Array<[string, string]>, body: null as string | null };
   const fields: Array<[string, string]> = [];
   let body: string | null = null;
@@ -107,6 +107,9 @@ function payloadEntries(payload: Record<string, unknown> | null) {
     return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi) || a.localeCompare(b);
   });
   for (const key of keys) {
+    // The task snapshot fences execution; proposed fields and the explicit
+    // clearing summary are the human-facing change, not this internal JSON.
+    if (actionType === "update_task" && key === "expectedState") continue;
     const value = payload[key];
     if (value === null || value === undefined || value === "") continue;
     const text = typeof value === "string" ? value : JSON.stringify(value);
@@ -154,7 +157,7 @@ export function ActionReviewDialog({
       </AdminDialog>
     );
   }
-  const { fields, body } = payloadEntries(action.payload);
+  const { fields, body } = payloadEntries(action.payload, action.action_type);
   const layoutSummary =
     action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
   const consequence =
