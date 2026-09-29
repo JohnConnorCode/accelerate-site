@@ -152,6 +152,14 @@ async function main() {
     assert.equal(recovery.status, 200);
     assert.equal(recoverCalls, 1);
     assert.match(recovery.headers.get("set-cookie") || "", /code-verifier/);
+    const { GET: callback } = await import("../src/app/auth/callback/route");
+    const invalidCallback = await callback(
+      new NextRequest("https://internal.test/auth/callback?type=recovery"),
+    );
+    assert.equal(
+      invalidCallback.headers.get("location"),
+      "https://canonical.test/admin/login?error=reset_failed",
+    );
   } finally {
     globalThis.fetch = savedFetch;
     names.forEach((name, index) => {
