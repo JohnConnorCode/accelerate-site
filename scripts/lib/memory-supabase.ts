@@ -240,9 +240,10 @@ export class MemorySupabase {
       return self;
     };
 
-    self.insert = (next: Row) => {
+    self.insert = (next: Row | Row[]) => {
       op = "insert";
-      payload = next;
+      batchPayload = Array.isArray(next) ? next : null;
+      payload = Array.isArray(next) ? {} : next;
       return self;
     };
     self.update = (next: Row) => {
@@ -305,70 +306,76 @@ export class MemorySupabase {
       }
 
       if (op === "insert") {
-        if (
-          table === "clients" &&
-          payload.opportunity_id &&
-          this.tables[table]!.some(
-            (row) =>
-              row.tenant_id === payload.tenant_id && row.opportunity_id === payload.opportunity_id,
+        const incoming = batchPayload ?? [payload];
+        for (const [index, next] of incoming.entries()) {
+          const existing = [...this.tables[table]!, ...incoming.slice(0, index)];
+          if (
+            table === "clients" &&
+            next.opportunity_id &&
+            existing.some(
+              (row) =>
+                row.tenant_id === next.tenant_id && row.opportunity_id === next.opportunity_id,
+            )
           )
-        )
-          return resolve({ data: null, error: { code: "23505", message: "Duplicate engagement" } });
-
-        if (
-          table === "ai_messages" &&
-          payload.client_message_id &&
-          this.tables[table]!.some(
-            (row) =>
-              row.conversation_id === payload.conversation_id &&
-              row.client_message_id === payload.client_message_id,
+            return resolve({
+              data: null,
+              error: { code: "23505", message: "Duplicate engagement" },
+            });
+          if (
+            table === "ai_messages" &&
+            next.client_message_id &&
+            existing.some(
+              (row) =>
+                row.conversation_id === next.conversation_id &&
+                row.client_message_id === next.client_message_id,
+            )
           )
-        ) {
-          return resolve({
-            data: null,
-            error: { code: "23505", message: "duplicate AI client message" },
-          });
+            return resolve({
+              data: null,
+              error: { code: "23505", message: "duplicate AI client message" },
+            });
+          if (
+            table === "ai_conversation_sources" &&
+            next.client_source_id &&
+            existing.some(
+              (row) =>
+                row.conversation_id === next.conversation_id &&
+                row.client_source_id === next.client_source_id,
+            )
+          )
+            return resolve({
+              data: null,
+              error: { code: "23505", message: "duplicate AI source" },
+            });
+          // Honour the partial unique index the real action_queue carries.
+          const key = next.dedupe_key;
+          if (
+            key &&
+            existing.some(
+              (row) =>
+                row.dedupe_key === key &&
+                row.tenant_id === next.tenant_id &&
+                (row.status === "pending" ||
+                  (table === "action_queue" &&
+                    next.source_context === "plugin" &&
+                    row.source_context === "plugin") ||
+                  (table === "tasks" &&
+                    ["plugin", "delivery_handoff"].includes(String(next.source)) &&
+                    row.source === next.source)),
+            )
+          )
+            return resolve({
+              data: null,
+              error: { code: "23505", message: "duplicate key value violates unique constraint" },
+            });
         }
-        if (
-          table === "ai_conversation_sources" &&
-          payload.client_source_id &&
-          this.tables[table]!.some(
-            (row) =>
-              row.conversation_id === payload.conversation_id &&
-              row.client_source_id === payload.client_source_id,
-          )
-        ) {
-          return resolve({
-            data: null,
-            error: { code: "23505", message: "duplicate AI source" },
-          });
-        }
-        // Honour the partial unique index the real action_queue carries: one
-        // pending row per dedupe key. Several tests hinge on that constraint.
-        const key = payload.dedupe_key;
-        if (
-          key &&
-          this.tables[table]!.some(
-            (row) =>
-              row.dedupe_key === key &&
-              row.tenant_id === payload.tenant_id &&
-              (row.status === "pending" ||
-                (table === "action_queue" &&
-                  payload.source_context === "plugin" &&
-                  row.source_context === "plugin") ||
-                (table === "tasks" &&
-                  ["plugin", "delivery_handoff"].includes(String(payload.source)) &&
-                  row.source === payload.source)),
-          )
-        ) {
-          return resolve({
-            data: null,
-            error: { code: "23505", message: "duplicate key value violates unique constraint" },
-          });
-        }
-        const row: Row = { id: this.idFactory(++this.sequence), status: "pending", ...payload };
-        this.tables[table]!.push(row);
-        return resolve({ data: one ? row : [row], error: null });
+        const created = incoming.map((next) => ({
+          id: this.idFactory(++this.sequence),
+          status: "pending",
+          ...next,
+        }));
+        this.tables[table]!.push(...created);
+        return resolve({ data: one ? (created[0] ?? null) : created, error: null });
       }
 
       let matched = this.tables[table]!.filter((row) => filters.every((keep) => keep(row)));
