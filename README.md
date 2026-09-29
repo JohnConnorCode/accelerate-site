@@ -1,13 +1,13 @@
-# Accelerate Revenue OS
+# Accelerate Command Center
 
 [![CI](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml/badge.svg)](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Accelerate is an **open-source AI command center for your business**. Bring customer records, conversations, pipeline, tasks and business actions into one workspace, where your team and AI can work with shared context.
+Accelerate is an **open-source workspace for customer work**. When an inquiry arrives, its conversation, customer record and next action can stay together. Your team sees what needs attention, and AI can use the same context to prepare supported work.
 
-Ask what needs attention, inspect the records behind an answer, and review supported changes before they run. Connect existing services, or build an adapter for another data source. Extend the application with your own screens, reports and workflows while reusing its identity, permissions and action services.
+Open the record behind a suggestion, review the proposed change when its policy requires it, and check the recorded result. Build your own screens, reports and workflows on the same identity, permissions and action services.
 
-You control the deployment, your Supabase database and your provider accounts. The MIT license lets you inspect, modify and build on the source. Connected providers still process the information you send them, and hosting and model usage have their normal costs.
+Try six fictional businesses without an account or provider keys. When you are ready for your own team, connect a Supabase project and provider accounts you control. The application source is MIT licensed; hosting and provider usage have their normal costs.
 
 **See what you can build:** [ten plugin examples](https://www.acceleratewith.us/docs/plugins), from Business Pulse reports and onboarding checklists to Stripe invoicing, Collections and Opportunity Radar. Each guide explains what works today, how to try it and how to adapt the pattern. You can use a coding assistant to develop extensions against those examples and the shared contracts.
 
@@ -15,7 +15,7 @@ You control the deployment, your Supabase database and your provider accounts. T
 
 ![The Today command center, showing a founder's priority queue, open pipeline value, and pending approvals for a fictional roofing company workspace.](docs/images/command-center-workspace.png)
 
-> **Project status:** Active and production-derived. The fictional demo works with zero setup and no provider credentials. A connected workspace needs your own Supabase project and, optionally, your own provider accounts. Read the security and tenancy contracts before you put real customer data anywhere near it.
+> **Start here:** The fictional demo works with zero setup and no provider credentials. A connected workspace needs your own Supabase project. Verify sign-in, saved records, tenant isolation and backups before importing real customer data.
 
 ## Quick start
 
@@ -68,7 +68,7 @@ See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 
 The rules below are enforced in code, not asked for in a prompt.
 
-**Mutating tools propose; they never act.** The tool registry checks impact at runtime. A tool registered as a read that stages a write throws, and a tool registered as a write that fails to stage one throws too. Approved proposals then execute through the same domain services the interface uses.
+**Mutating tools use the action policy.** They stage governed work through the same services as the interface. Eligible actions can earn standing permission after reviewed history; restricted actions retain human review. The tool registry checks declared impact at runtime.
 
 **Execution re-reads reality first.** A proposal expires rather than firing if the record moved underneath it: a contact who unsubscribed, a conversation that was archived, an opportunity already past the stage the proposal assumed.
 

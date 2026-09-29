@@ -257,7 +257,9 @@ try {
       });
       const page = await context.newPage();
       for (const route of [
+        "/",
         "/command-center",
+        "/open-source",
         "/demo/command-center",
         "/docs",
         "/docs/recipes/roofing-inquiry",
@@ -348,26 +350,21 @@ try {
             await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
             `${route}: horizontal overflow at ${width}`,
           );
-          // Visit the whole page so lazy screenshots load through their normal viewport behavior.
-          await page.evaluate(async () => {
-            for (let y = 0; y < document.body.scrollHeight; y += window.innerHeight) {
-              window.scrollTo(0, y);
-              await new Promise(requestAnimationFrame);
-              await new Promise(requestAnimationFrame);
-            }
-          });
           for (const img of await page.locator("img").all()) {
             if (
               (await img.isVisible()) &&
               !(await img.evaluate((node) => Boolean(node.closest('[aria-hidden="true"]'))))
             ) {
+              // Enter the viewport before decoding so lazy, responsive images use
+              // their selected srcset URL instead of the oversized fallback src.
+              await img.scrollIntoViewIfNeeded();
               await img.evaluate(async (node) => {
                 await Promise.race([
                   node.decode(),
                   new Promise((_, reject) =>
                     setTimeout(
                       () => reject(new Error(`Image did not load: ${node.currentSrc || node.src}`)),
-                      15000,
+                      30000,
                     ),
                   ),
                 ]);

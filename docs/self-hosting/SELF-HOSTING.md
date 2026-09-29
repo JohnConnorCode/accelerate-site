@@ -1,6 +1,6 @@
 # Self-hosting
 
-This guide separates safe local exploration from a connected deployment. Do not point a fork at the original Accelerate database, Vercel project, provider accounts, domains, or customer records.
+Use this guide to go from a fictional customer workflow to a workspace that saves your own records and tasks. Start with the demo, then connect a Supabase project you control, sign in, and verify a saved result before importing real customer data. Keep your fork separate from Accelerate's database, hosting, provider accounts and domains.
 
 A full repository fork defaults to the [neutral distribution](NEUTRAL-DISTRIBUTION.md) profile. It includes the entire application and an editable public Command Center homepage. Every installation, including ours, can turn bundled agency presentation on with `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` or off with `neutral`. Use the same profile at build and runtime, then rebuild and deploy. Profile selection never changes saved drafts or publication history and does not select a different product or hosting account.
 

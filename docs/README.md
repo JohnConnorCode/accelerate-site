@@ -1,8 +1,8 @@
 # Command Center documentation
 
-Start with the [public documentation](https://www.acceleratewith.us/docs) for a visual introduction to the open-source AI Command Center, then explore the [plugin examples](https://www.acceleratewith.us/docs/plugins) to see how you can shape it around your business.
+Start with the [fictional demo](https://www.acceleratewith.us/demo/command-center): open a customer record, review the next action, and check the result. The [public documentation](https://www.acceleratewith.us/docs) follows that work step by step, then shows how to connect your own workspace and build on the source.
 
-The references below cover running your own installation and contributing to the shared platform.
+Use the [plugin examples](https://www.acceleratewith.us/docs/plugins) to see how existing records, permissions and action history support new business workflows. The references below cover installation and contribution.
 
 ## Platform vision
 
