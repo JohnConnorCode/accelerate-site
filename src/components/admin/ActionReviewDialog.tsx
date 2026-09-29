@@ -35,6 +35,8 @@ function triageReason(triage: Record<string, unknown> | null | undefined): strin
  * before the button, not after.
  */
 const ACTION_CONSEQUENCE: Record<string, string> = {
+  update_collection_policy:
+    "Updates this collection case and its follow-up work after rechecking current invoice and recipient facts. No reminder is sent and no invoice is changed.",
   today_view_change:
     "Saves the exact Today arrangement and preferences shown below. Business records are unchanged. Only the proposing member can approve it.",
   send_email: "Sends this email immediately. It cannot be recalled.",
@@ -157,7 +159,20 @@ export function ActionReviewDialog({
       </AdminDialog>
     );
   }
-  const { fields, body } = payloadEntries(action.payload, action.action_type);
+  const policy = action.action_type === "update_collection_policy" ? action.payload : null;
+  const policyFacts = policy?.facts as
+    { name?: string; email?: string; currency?: string } | undefined;
+  const { fields, body } = payloadEntries(
+    policy
+      ? {
+          customer: policyFacts?.name,
+          email: policyFacts?.email,
+          currency: policyFacts?.currency?.toUpperCase(),
+          description: action.description,
+        }
+      : action.payload,
+    action.action_type,
+  );
   const layoutSummary =
     action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
   const consequence =

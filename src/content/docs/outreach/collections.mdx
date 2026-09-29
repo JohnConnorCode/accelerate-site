@@ -1,7 +1,7 @@
 ---
 title: "Review collection reminders"
 description: "Chase what invoicing confirms is owed, with every reminder requiring your approval."
-updated: "2026-09-19"
+updated: "2026-09-29"
 ---
 
 Chasing an overdue balance well means working from what your invoicing provider confirms is owed, not from an estimate somebody entered into the pipeline months ago and never updated. Collections keeps overdue invoices, payment promises, disputes, and reminder receipts together for exactly that reason, built on verified invoice balances rather than opportunity estimates, and every reminder still requires your approval before it goes out.
@@ -21,6 +21,31 @@ Try the [fictional SuperDebate workspace](/demo/command-center/superdebate/colle
 5. Choose **Queue reviewed reminder** to submit it to the approval queue. Choose **Approve and send** only after checking the proposed message. The executor checks the current invoice and case again before dispatch.
 
 A changed balance, recipient, dispute, pause, contact restriction, or disabled plugin can prevent the queued reminder from sending. Refresh the case and prepare a new preview when the facts change.
+
+## Change a case through Ask AI
+
+Ask AI or an authorized workspace MCP client to change a case's dispute, pause,
+pause-until date, payment promise, owner email or next action. Identify one customer
+and currency case. For example, ask: “Pause collections for Evan Cole while we
+resolve the billing question.” The assistant reads current invoice evidence and
+stages a proposal; the saved case stays unchanged until you approve it.
+
+Open the proposed change in **Collections** or the approval queue. Check the current
+and proposed values, then choose **Approve policy change** in Collections or reject
+it. Ask for another proposal if the values need editing. A changed case revision,
+recipient or invoice balance invalidates the earlier preview, so review a fresh
+proposal before proceeding. Approval changes the case and its follow-up work;
+prepare and approve any reminder separately.
+
+Policy previews support cases with 1–25 tracked invoices and require working Stripe
+access. If invoice verification fails, retry after restoring the connection or
+review the case directly in Collections. Invoice tracking and refresh remain
+workspace controls. Restore earlier policy values with a new reviewed change;
+there is no automatic undo of history or previously sent mail.
+
+The fictional demo supports owner, pause and resume requests. Try “Set the collection
+owner for Evan Cole to finance@northline.example” in the roofing workspace, then
+review the simulated proposal. Demo results stay in your browser session.
 
 ## Read the receipt before retrying
 

@@ -1,4 +1,12 @@
 import { z } from "zod";
+import { collectionCasePatchSchema } from "./collection-contract";
+
+export const collectionPolicyPreviewSchema = z
+  .object({ caseId: z.uuid(), patch: collectionCasePatchSchema })
+  .strict();
+export const collectionPolicyProposalSchema = collectionPolicyPreviewSchema
+  .extend({ digest: z.string().regex(/^[a-f0-9]{64}$/) })
+  .strict();
 
 export const collectionContextInputSchema = z
   .object({
@@ -17,6 +25,24 @@ export const collectionProposalInputSchema = collectionPreviewInputSchema
 
 /** Shared discovery metadata; provider and database authority stays server-only. */
 export const COLLECTION_AGENT_TOOLS = {
+  policyPreview: {
+    name: "preview_collection_policy",
+    description:
+      "Preview exact before/after changes to a collection case: dispute, pause, pause-until date, payment promise, owner or next action. Reads current verified invoice facts. Does not change policy, billing or send reminders.",
+    impact: "read",
+    connectionRequirement: "host_verified",
+    confirmationRequired: false,
+    serviceTarget: "revenue-os.collection-policy",
+  },
+  policyPropose: {
+    name: "propose_collection_policy",
+    description:
+      "Stage the exact collection policy preview for human approval. Supply caseId, patch and digest from preview_collection_policy. Changed case, recipient or billing facts require a new preview. No invoice changes or reminders are sent.",
+    impact: "internal_write",
+    connectionRequirement: "host_verified",
+    confirmationRequired: true,
+    serviceTarget: "revenue-os.collection-policy",
+  },
   list: {
     name: "get_collection_cases",
     description:

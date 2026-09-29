@@ -1,4 +1,5 @@
 import { taskReviewStateSchema } from "./operator-task-patch";
+import { executeCollectionPolicy } from "./collection-policy";
 import { bulkEnrollContacts, bulkSuppressContacts, bulkTagContacts } from "./contact-bulk";
 import { executeRadarOutreach } from "./radar-outreach";
 import "server-only";
@@ -238,6 +239,12 @@ export async function approveAndExecuteAction(
           break;
         }
         result = await executeRuntimeAction(supabase, action.action_type, payload, actorEmail);
+        break;
+      }
+      case "update_collection_policy": {
+        if (mode !== "approved")
+          throw new Error("Collection policy changes require human approval");
+        result = await executeCollectionPolicy(supabase, payload, actorEmail);
         break;
       }
       case "send_collection_reminder": {
