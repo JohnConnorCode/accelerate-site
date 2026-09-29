@@ -84,7 +84,7 @@ The reply-ready inbox for Gmail, forms, chat, and transcripts.
 Identity resolution, intake, and reviewed list imports.
 
 - [Contacts](https://www.acceleratewith.us/docs/contacts/overview) (updated 2026-09-27): Find customer records, review unfamiliar senders and follow the work linked to each person.
-- [Import contacts](https://www.acceleratewith.us/docs/contacts/import) (updated 2026-09-27): Review a CSV or pasted list, resolve contact matches and confirm the records to import.
+- [Import contacts](https://www.acceleratewith.us/docs/contacts/import) (updated 2026-09-29): Review a CSV or pasted list, resolve contact matches and confirm the records to import.
 
 ## Pipeline
 Opportunities, stages, value, and closed revenue in one operating view.
