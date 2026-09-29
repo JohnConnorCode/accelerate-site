@@ -1,7 +1,7 @@
 ---
 title: "Receivables Collections"
 description: "Chase an overdue balance from verified invoice evidence, with every reminder reviewed first."
-updated: "2026-09-09"
+updated: "2026-09-29"
 ---
 
 Collections shows what a plugin can become once it outgrows being a small report: a dedicated operator workspace combining verified invoice observations, customer context, and follow-up decisions in one place. A person can see exactly why a balance needs attention, record a promise or a hold against it, and review the actual reminder before it ever goes out.
@@ -35,7 +35,7 @@ A changed balance or a new hold can invalidate a preview you already reviewed, s
 
 A plugin can be more than a small report. Collections adds its own case lifecycle and interface while reusing customer identity, Stripe access, task scheduling records, branding, approvals and email delivery. The business-specific decision logic stays separate from the shared services that execute an action.
 
-Study the [plugin source and architecture](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/receivables-collections/README.md) to see the bounded decision program, case records and host integration. AI tools can read cases, preview a reminder and propose it through the same services; they cannot approve or send it themselves.
+Study the [plugin source and architecture](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/receivables-collections/README.md) to see the bounded decision program, case records and host integration. AI tools can read cases, preview and propose reminders, and prepare exact case policy changes through the same services. A policy proposal covers holds, disputes, payment promises, ownership and next actions; approval checks current case, recipient and invoice facts. Policy changes send no email. The assistant cannot approve its own work. See the [case policy workflow](/docs/outreach/collections#change-a-case-through-ask-ai) for a worked example and recovery.
 
 ## Costs, disabling and recovery
 

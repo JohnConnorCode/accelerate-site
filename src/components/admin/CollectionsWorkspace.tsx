@@ -451,7 +451,9 @@ export function CollectionsWorkspace() {
                       {a.preview && (
                         <details className="group my-3 text-sm">
                           <summary className="flex cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
-                            Review queued recipient and content
+                            {a.actionType === "update_collection_policy"
+                              ? "Review proposed policy"
+                              : "Review queued recipient and content"}
                             <ChevronDown
                               className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
                               aria-hidden="true"
@@ -479,7 +481,9 @@ export function CollectionsWorkspace() {
                               disabled={busy}
                               onClick={() => void perform(() => decide(a.id, "approve"))}
                             >
-                              Approve and send
+                              {a.actionType === "update_collection_policy"
+                                ? "Approve policy change"
+                                : "Approve and send"}
                             </button>
                             <button
                               type="button"
@@ -491,27 +495,29 @@ export function CollectionsWorkspace() {
                             </button>
                           </>
                         )}
-                        {a.status === "failed" && a.result?.status !== "skipped" && (
-                          <button
-                            type="button"
-                            className={button}
-                            disabled={busy}
-                            onClick={() =>
-                              void perform(async () => {
-                                const data = await request<{ result: { state: string } }>(
-                                  "/api/admin/revenue-os/actions",
-                                  "PATCH",
-                                  { id: a.id, decision: "reconcile" },
-                                );
-                                setNotice(
-                                  `Receipt ${data.result.state}. Recovery does not send another email.`,
-                                );
-                              })
-                            }
-                          >
-                            Reconcile receipt
-                          </button>
-                        )}
+                        {a.actionType !== "update_collection_policy" &&
+                          a.status === "failed" &&
+                          a.result?.status !== "skipped" && (
+                            <button
+                              type="button"
+                              className={button}
+                              disabled={busy}
+                              onClick={() =>
+                                void perform(async () => {
+                                  const data = await request<{ result: { state: string } }>(
+                                    "/api/admin/revenue-os/actions",
+                                    "PATCH",
+                                    { id: a.id, decision: "reconcile" },
+                                  );
+                                  setNotice(
+                                    `Receipt ${data.result.state}. Recovery does not send another email.`,
+                                  );
+                                })
+                              }
+                            >
+                              Reconcile receipt
+                            </button>
+                          )}
                       </div>
                     </li>
                   ))}

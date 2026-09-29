@@ -62,6 +62,7 @@ const ACTION_CAPABILITIES: Record<string, string> = {
   send_radar_outreach: "email.send",
   review_radar_relationship: "crm.write",
   send_collection_reminder: "email.send",
+  update_collection_policy: "crm.write",
   send_email: "email.send",
   create_gmail_draft: "email.draft",
   send_gmail_reply: "email.send",

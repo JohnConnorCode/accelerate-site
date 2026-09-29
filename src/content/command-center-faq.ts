@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I change collection follow-up from Ask AI?",
+    answer:
+      "Yes. With Collections and Stripe invoicing enabled, ask for a case pause, dispute, payment promise, owner or next action. The assistant checks the selected case and its current invoices, then proposes the exact change for your approval. Review it in Collections or the approval queue. A changed balance, recipient or policy requires another preview. The policy change does not send a reminder; prepare and approve that separately. Invoice tracking and refresh still use the Collections workspace.",
+  },
+  {
     question: "When is a debate actually booked?",
     answer:
       "Use Debate productions in Bookings to confirm each commitment separately. Topic interest or a proposed counterpart does not establish agreement. An approved invitation is sent to the two saved participants after their inbound acceptances are reviewed. Check the live Google event, its time and attendees, any requested Meet link, and both participants' responses. Today shows the first missing or disputed step, while the scheduled work engine rechecks linked invitations when configured.",
