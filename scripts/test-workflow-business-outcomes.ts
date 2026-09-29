@@ -66,7 +66,6 @@ async function main() {
     other = "22222222-2222-4222-8222-222222222222",
     user = "33333333-3333-4333-8333-333333333333",
     meetingId = "55555555-5555-4555-8555-555555555555";
-  let opportunityId: string;
   const mem = new AuthorizedMemorySupabase({
     tenants: [
       {
@@ -109,7 +108,7 @@ async function main() {
     opportunityName: "Implementation",
     source: "controlled_inquiry",
   });
-  opportunityId = inquiry.id;
+  const opportunityId = inquiry.id;
   await transitionOpportunity(db, {
     id: opportunityId,
     to: "qualified",
