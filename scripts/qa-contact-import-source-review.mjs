@@ -114,9 +114,7 @@ try {
               if (window.importQa.count === 500) {
                 window.importQa.entrance = new Promise((resolve, reject) => {
                   const sample = () => {
-                    const last = [...document.querySelectorAll(".admin-main button")].find(
-                      (button) => /Person 500/.test(button.textContent),
-                    );
+                    const last = document.querySelector('[data-contact-import-row="49"]');
                     let visible = Boolean(last);
                     for (let parent = last?.parentElement; parent; parent = parent.parentElement)
                       visible &&= Number(getComputedStyle(parent).opacity) >= 0.999;
@@ -243,9 +241,47 @@ try {
         });
         await source.fill("500 fictional rows");
         await page.getByTestId("contact-import-analyze").click();
-        await page.getByRole("button", { name: /^500\s*Person 500/ }).waitFor();
+        await page.getByRole("button", { name: /^50\s*Person 50/ }).waitFor();
         const animationMs = await page.evaluate(() => window.importQa.entrance);
-        assert.ok(animationMs <= 460, `last-row entrance ${animationMs}ms`);
+        assert.ok(animationMs <= 460, `500-row review first-page entrance ${animationMs}ms`);
+        const visited = [];
+        for (let pageIndex = 0; pageIndex < 10; pageIndex++) {
+          visited.push(
+            ...(await page
+              .locator("[data-contact-import-row]")
+              .evaluateAll((nodes) => nodes.map((node) => Number(node.dataset.contactImportRow)))),
+          );
+          if (pageIndex < 9) {
+            const next = page.getByRole("button", { name: "Next page", exact: true });
+            await next.focus();
+            await page.keyboard.press("Enter");
+            await page
+              .getByRole("status")
+              .filter({ hasText: `Showing ${(pageIndex + 1) * 50 + 1}-` })
+              .waitFor();
+          }
+        }
+        assert.deepEqual(
+          visited,
+          Array.from({ length: 500 }, (_, index) => index),
+        );
+        await page.getByRole("button", { name: /^500\s*Person 500/ }).click();
+        await page.getByRole("button", { name: /^Exclude row 500:/ }).click();
+        await page.getByText("Unsaved changes", { exact: true }).waitFor();
+        await page.getByRole("button", { name: "Save", exact: true }).click();
+        await page.getByText("Review saved", { exact: true }).waitFor();
+        await page.waitForFunction(() =>
+          window.importQa.writes.some(
+            (body) => body.action === "save_review" && body.rows.length === 500,
+          ),
+        );
+        const largeSave = await page.evaluate(() =>
+          window.importQa.writes.findLast((body) => body.action === "save_review"),
+        );
+        assert.equal(largeSave.rows.length, 500);
+        assert.equal(largeSave.rows[499].included, false);
+        assert.equal(typeof largeSave.expectedRevision, "string");
+        await page.screenshot({ path: `${out}/${scenario}-${width}-500-rows.png`, fullPage: true });
         results.push({ scenario, width, animationMs, rows: 500 });
       }
       assert.deepEqual(errors, []);
@@ -255,7 +291,7 @@ try {
     }
   writeFileSync(`${out}/results.json`, JSON.stringify({ status: "passed", results }, null, 2));
   console.log(
-    "PASS: six scenarios, desktop/mobile, light/dark, reduced motion, strict UTF-8, source-backed correction, keyboard inclusion, edit locking, approval cancellation, cached history, 500-row entrance and zero escaped writes.",
+    "PASS: six scenarios, desktop/mobile, light/dark, reduced motion, strict UTF-8, source-backed correction, keyboard inclusion, edit locking, approval cancellation, cached history, bounded 500-row review with every source row and zero escaped writes.",
   );
 } finally {
   await browser.close();

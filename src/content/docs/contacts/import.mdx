@@ -42,6 +42,8 @@ The review keeps every accepted source row in its original order. When the AI ca
 
 Check names, email addresses, phone numbers, company information, and each row's import decision. Correct errors and exclude rows you do not want. Inspect possible matches rather than assuming similar names identify the same person.
 
+Large batches show 50 source rows per page. Use **Next page** and **Previous page** to review the rest. Row numbers, selected counts, saving and approval still cover the complete batch.
+
 If a row has no proposed contact, open it and fill in the name and contact method only when the source supports them. Edited fields have length limits; shorten an oversized value when the review tells you which field exceeded its limit.
 
 Company information can remain unlinked when there is not enough evidence to identify the business. Resolve warnings deliberately; do not invent missing fields.
@@ -49,6 +51,8 @@ Company information can remain unlinked when there is not enough evidence to ide
 ## 4. Confirm the import
 
 Save your review changes, then choose **Review approval**. Inspect the exact snapshot and choose **Approve and import** only when it is correct.
+
+A save commits every reviewed row and its history together. A failed save leaves the previous review and approval unchanged. A successful edit clears the earlier approval. If another operator saved or started importing the batch, reload the latest review before saving. Already imported rows keep their original receipt and cannot be edited through a retry review.
 
 ## 5. Verify the result
 

@@ -24,7 +24,8 @@ import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
-import { adminListItemVariants, adminSectionVariants } from "@/lib/admin/motion";
+import { Pagination } from "@/components/admin/Pagination";
+import { adminListItemVariants, adminSectionVariants, adminEase } from "@/lib/admin/motion";
 import { cn } from "@/lib/utils";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
@@ -129,6 +130,7 @@ export default function ContactImportsPage() {
   );
   const history = historyQuery.data?.batches ?? [];
   const [activeRowId, setActiveRowId] = useState<string | null>(null);
+  const [reviewPage, setReviewPage] = useState(1);
   const [busy, setBusy] = useState<"analyze" | "save" | "execute" | "history" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [schemaReady, setSchemaReady] = useState(true);
@@ -136,6 +138,8 @@ export default function ContactImportsPage() {
   const [saved, setSaved] = useState(true);
 
   const rows = useMemo(() => batch?.rows ?? [], [batch?.rows]);
+  const pageSize = 50;
+  const pageRows = rows.slice((reviewPage - 1) * pageSize, reviewPage * pageSize);
   const activeRow = rows.find((row) => row.id === activeRowId) ?? rows[0] ?? null;
   const selectedRows = rows.filter((row) => row.included && row.action !== "skip");
   const summary = useMemo(
@@ -154,6 +158,7 @@ export default function ContactImportsPage() {
     try {
       const data = await api({ action: "analyze", sourceText, filename, instructions });
       setBatch(data.batch);
+      setReviewPage(1);
       setActiveRowId(data.batch?.rows?.[0]?.id ?? null);
       setSaved(true);
       setSchemaReady(true);
@@ -228,6 +233,7 @@ export default function ContactImportsPage() {
       const data = await api({
         action: "save_review",
         batchId: batch.id,
+        expectedRevision: batch.updated_at,
         rows: rows.map((row) => ({
           id: row.id,
           included: row.included,
@@ -237,6 +243,7 @@ export default function ContactImportsPage() {
       });
       setBatch(data.batch);
       setSaved(true);
+      void historyQuery.refetch();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not save review");
     } finally {
@@ -283,6 +290,7 @@ export default function ContactImportsPage() {
     try {
       const data = await api(undefined, id);
       setBatch(data.batch);
+      setReviewPage(1);
       setActiveRowId(data.batch?.rows?.[0]?.id ?? null);
       setSaved(true);
     } catch (cause) {
@@ -327,7 +335,7 @@ export default function ContactImportsPage() {
             variants={adminSectionVariants}
             initial="hidden"
             animate="visible"
-            exit={{ opacity: 0, y: -8 }}
+            exit={{ opacity: 0, y: -8, transition: { duration: 0.12, ease: adminEase } }}
             className="admin-split"
           >
             <AdminSurface padding="lg" className="overflow-hidden">
@@ -441,7 +449,7 @@ export default function ContactImportsPage() {
             variants={adminSectionVariants}
             initial="hidden"
             animate="visible"
-            exit={{ opacity: 0, y: -8 }}
+            exit={{ opacity: 0, y: -8, transition: { duration: 0.12, ease: adminEase } }}
           >
             <div className="mb-5 admin-grid admin-grid--metrics">
               <Metric
@@ -499,8 +507,11 @@ export default function ContactImportsPage() {
                       {labelStatus(batch.status)}
                     </span>
                   </div>
-                  <div className="max-h-[690px] divide-y divide-[var(--admin-rule)] overflow-y-auto">
-                    {rows.map((row) => (
+                  <div
+                    key={reviewPage}
+                    className="max-h-[690px] divide-y divide-[var(--admin-rule)] overflow-y-auto"
+                  >
+                    {pageRows.map((row) => (
                       <RowListItem
                         key={row.id}
                         row={row}
@@ -510,6 +521,18 @@ export default function ContactImportsPage() {
                         onToggle={() => patchRow(row.id, { included: !row.included })}
                       />
                     ))}
+                  </div>
+                  <div className="px-4 pb-4">
+                    <Pagination
+                      page={reviewPage}
+                      pageSize={pageSize}
+                      total={rows.length}
+                      totalPages={Math.ceil(rows.length / pageSize)}
+                      onPageChange={(page) => {
+                        setReviewPage(page);
+                        setActiveRowId(rows[(page - 1) * pageSize]?.id ?? null);
+                      }}
+                    />
                   </div>
                 </AdminSurface>
                 <AdminSurface padding="lg" className="h-fit lg:sticky lg:top-6">
@@ -675,6 +698,7 @@ function RowListItem({
 }) {
   return (
     <div
+      data-contact-import-row={row.row_index}
       className={cn(
         "flex min-h-[76px] items-center gap-2 px-3 py-2 transition-[background-color] duration-150",
         active

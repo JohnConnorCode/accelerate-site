@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { randomBytes, generateKeyPairSync, randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -8,7 +8,39 @@ const mode = process.argv[2];
 const ownerEmail = "founder@local.test";
 const base = "http://localhost:3000";
 
-if (mode === "prepare") {
+if (mode === "configure-native") {
+  const root = process.argv[3];
+  assert.equal(root, `${process.env.RUNNER_TEMP}/fork-connected-ci`);
+  const path = `${root}/supabase/config.toml`;
+  let config = await readFile(path, "utf8");
+  config = config.replace(/(\[auth\.oauth_server\][\s\S]*?)(?=\n\[|$)/, (block) =>
+    block
+      .replace(/^enabled = false$/m, "enabled = true")
+      .replace(/^authorization_url_path = .*$/m, 'authorization_url_path = "/admin/oauth/consent"'),
+  );
+  config = config.replace(
+    /^# signing_keys_path = .*$/m,
+    'signing_keys_path = "./signing_keys.json"',
+  );
+  config +=
+    '\n[auth.hook.custom_access_token]\nenabled = true\nuri = "pg-functions://postgres/public/site_editor_access_token_hook"\n';
+  assert.match(config, /\[auth\.oauth_server\][\s\S]*?\nenabled = true/);
+  const { privateKey } = generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+  await writeFile(
+    `${root}/supabase/signing_keys.json`,
+    JSON.stringify([
+      {
+        ...privateKey.export({ format: "jwk" }),
+        kid: randomUUID(),
+        alg: "ES256",
+        use: "sig",
+      },
+    ]),
+    { mode: 0o600 },
+  );
+  await writeFile(path, config, { mode: 0o600 });
+  console.log("Configured fictional native OAuth and asymmetric signing for isolated CI.");
+} else if (mode === "prepare") {
   const statusFile = process.argv[3];
   if (!statusFile) throw new Error("Pass the local Supabase status env file");
   process.loadEnvFile(statusFile);

@@ -128,6 +128,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260930-triage-gate.sql",
   "migrations/20260927-debate-bookings.sql",
   "migrations/20261001-workspace-mcp-oauth.sql",
+  "migrations/20260929211535_contact_import_review_atomic.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

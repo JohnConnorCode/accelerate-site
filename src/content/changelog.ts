@@ -15,7 +15,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "workspace-mcp-and-import-review",
     title: "Workspace MCP connections and contact review are more reliable",
     description:
-      "Stdio clients can now connect through a workspace’s authenticated HTTP endpoint without a database service-role credential. Tool discovery and invocation recheck live workspace and module access. Bearer clients can stage exact Content Calendar edits for administrator approval. Contact review shows original source values and row numbers, refuses incorrectly encoded uploads, retains cached history and reveals large lists without a growing row delay.",
+      "Stdio clients can now connect through a workspace’s authenticated HTTP endpoint without a database service-role credential. Tool discovery and invocation recheck live workspace and module access. Bearer clients can stage exact Content Calendar edits for administrator approval. Contact review shows original source values and row numbers, refuses incorrectly encoded uploads, retains cached history and pages large lists in groups of 50 without dropping source rows. Review saves commit every row, approval invalidation and history together; stale saves and edits to imported rows are refused.",
     category: "improvement",
     publishedAt: "2026-09-29",
   },

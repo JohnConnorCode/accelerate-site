@@ -7,12 +7,22 @@ import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
 import {
   analyzeContactImport,
   buildContactImportAiContext,
+  contactImportSchemaUnavailable,
   detectContactImportSourceType,
   parseContactImportSource,
   saveContactImportReview,
   validateContactImportAiEnvelope,
   validateContactImportFields,
 } from "../src/lib/revenue-os/contact-imports";
+
+assert.equal(
+  contactImportSchemaUnavailable(
+    Object.assign(new Error("Could not find the function public.save_contact_import_review"), {
+      code: "PGRST202",
+    }),
+  ),
+  true,
+);
 
 const csv = parseContactImportSource(
   '\uFEFFname,email,notes,empty\r\n"Jane ""JJ"" Doe",jane@example.test,"first line\r\nsecond line",\r\n',
@@ -245,6 +255,10 @@ async function main() {
 
     const batch = await analyzeContactImport(database, input);
     assert.ok(batch?.rows);
+    // PostgreSQL supplies this default; the memory fixture has no schema defaults.
+    batch.updated_at = "2026-09-29T12:00:00.000Z";
+    memory.rows("contact_import_batches").find((row) => row.id === batch.id)!.updated_at =
+      batch.updated_at;
     assert.equal(providerCalls, 1);
     assert.equal(batch.source_row_count, 3);
     assert.equal(batch.proposed_row_count, 3);
@@ -268,6 +282,7 @@ async function main() {
     await assert.rejects(
       saveContactImportReview(database, {
         batchId: batch.id,
+        expectedRevision: batch.updated_at,
         actorEmail: input.actorEmail,
         rows: batch.rows.map((row, index) => ({
           id: row.id,
@@ -287,6 +302,7 @@ async function main() {
     await assert.rejects(
       saveContactImportReview(database, {
         batchId: batch.id,
+        expectedRevision: batch.updated_at,
         actorEmail: input.actorEmail,
         rows: batch.rows.map((row, index) => ({
           id: row.id,
@@ -302,6 +318,72 @@ async function main() {
       before,
       "Invalid later action leaves all review rows untouched",
     );
+
+    let failSave = false;
+    memory.rpc("save_contact_import_review", (args) => {
+      if (failSave)
+        return { error: { code: "XX000", message: "controlled review commit failure" } };
+      assert.equal(args.p_expected_updated_at, batch.updated_at);
+      const prepared = args.p_rows as Array<Record<string, unknown>>;
+      for (const row of prepared) {
+        assert.equal("raw_data" in row, false);
+        assert.equal("imported_contact_id" in row, false);
+      }
+      for (const row of prepared) {
+        const stored = memory.rows("contact_import_rows").find((value) => value.id === row.id)!;
+        Object.assign(stored, row, {
+          // Model PostgreSQL's JSON key order changing across the RPC boundary.
+          reviewed_data: Object.fromEntries(Object.entries(row.reviewed_data as object).reverse()),
+        });
+      }
+      Object.assign(
+        memory.rows("contact_import_batches").find((value) => value.id === batch.id)!,
+        {
+          status: "ready",
+          approval_digest: null,
+          approved_by: null,
+          approved_at: null,
+          review_digest: args.p_review_digest,
+          summary: args.p_summary,
+          updated_at: new Date(Date.parse(batch.updated_at) + 1000).toISOString(),
+        },
+      );
+      return args.p_batch_id;
+    });
+    const review = {
+      batchId: batch.id,
+      expectedRevision: batch.updated_at,
+      actorEmail: input.actorEmail,
+      rows: batch.rows.map((row) => ({
+        id: row.id,
+        included: row.included,
+        action: row.action,
+        data: row.reviewed_data,
+      })),
+    };
+    const snapshot = JSON.stringify(memory.tables);
+    failSave = true;
+    await assert.rejects(
+      saveContactImportReview(database, review),
+      /controlled review commit failure/,
+    );
+    assert.equal(
+      JSON.stringify(memory.tables),
+      snapshot,
+      "failed commit leaves source and approval intact",
+    );
+    failSave = false;
+    const committed = await saveContactImportReview(database, review);
+    assert.ok(committed?.review_digest);
+    assert.equal(committed.approval_digest, null);
+    await assert.rejects(saveContactImportReview(database, review), /review changed/);
+    const { approveContactImport } = await import("../src/lib/revenue-os/contact-imports");
+    const approved = await approveContactImport(database, {
+      batchId: batch.id,
+      actorEmail: input.actorEmail,
+      expectedDigest: committed.review_digest,
+    });
+    assert.equal(approved?.status, "approved", "review digest survives database JSON key ordering");
 
     modelContacts = [];
     const omitted = await analyzeContactImport(database, input);

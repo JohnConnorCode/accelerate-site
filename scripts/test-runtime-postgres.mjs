@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { proveAutonomyPolicyWrites } from "./lib/autonomy-policy-write-postgres-proof.mjs";
 import { proveModelBudgets } from "./lib/model-budget-postgres-proof.mjs";
+import { proveContactImportReview } from "./lib/contact-import-review-postgres-proof.mjs";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -264,11 +265,13 @@ try {
     /unavailable/,
   );
   const modelChecks = await proveModelBudgets({ sql, asyncSql, context, a, b });
+  const importChecks = await proveContactImportReview({ sql, asyncSql, context, a, b });
   console.log(
     JSON.stringify({
       result: "passed",
       checks: [
         ...modelChecks,
+        ...importChecks,
         "idempotent-migrations",
         "policy-write-before-after-duplicates",
         "policy-write-concurrency-and-reapproval",

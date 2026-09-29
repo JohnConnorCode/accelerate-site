@@ -6,12 +6,15 @@ on:
     paths:
       - .github/workflows/connected-fork.yml
       - scripts/qa-connected-fork.mjs
+      - scripts/qa-native-workspace-mcp-oauth.ts
       - scripts/workspace-setup.mjs
       - scripts/lib/workspace-setup.mjs
       - src/app/admin/contacts/**
       - src/app/api/admin/contacts/**
       - src/lib/revenue-os/identity.ts
       - src/lib/revenue-os/tasks.ts
+      - src/lib/revenue-os/workspace-mcp-oauth.ts
+      - src/app/api/public/*/mcp/**
       - migrations/**
 
 permissions:
@@ -36,6 +39,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/fork-connected-ci"
           supabase init --yes --workdir "$RUNNER_TEMP/fork-connected-ci"
           sed -i 's/^major_version = .*/major_version = 17/' "$RUNNER_TEMP/fork-connected-ci/supabase/config.toml"
+          node scripts/qa-connected-fork.mjs configure-native "$RUNNER_TEMP/fork-connected-ci"
           supabase start --workdir "$RUNNER_TEMP/fork-connected-ci" \
             --exclude realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor \
             > "$RUNNER_TEMP/supabase-start.log" 2>&1
@@ -44,6 +48,8 @@ jobs:
           echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
       - name: Install the actual fork and owner
         run: npm run setup -- --apply --project fork-connected-ci
+      - name: Verify native OAuth exchange and canonical MCP boundaries
+        run: NODE_OPTIONS=--conditions=react-server npx tsx scripts/qa-native-workspace-mcp-oauth.ts
       - name: Build and exercise connected desktop/mobile journeys
         run: |
           npm run build
@@ -55,6 +61,14 @@ jobs:
         with:
           name: connected-fork-evidence
           path: ${{ runner.temp }}/accelerate-connected-fork/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain native OAuth evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-workspace-mcp-oauth-evidence
+          path: ${{ runner.temp }}/accelerate-native-mcp-oauth/
           if-no-files-found: ignore
           retention-days: 7
       - name: Stop isolated local services
