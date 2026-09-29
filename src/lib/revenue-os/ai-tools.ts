@@ -1,3 +1,4 @@
+import { previewCollectionPolicy, proposeCollectionPolicy } from "./collection-policy";
 import { getFirstUseProgress } from "./first-use";
 import { listLearningSignals, recordCorrectionSignal } from "./learning-signals";
 import { listKnowledgeDocuments, proposeKnowledgeChange } from "./knowledge-documents";
@@ -142,6 +143,8 @@ import { previewInvoicePage, proposeInvoicePage } from "./invoice-pages";
 import {
   COLLECTION_AGENT_TOOLS,
   COLLECTION_AGENT_TOOL_NAMES,
+  collectionPolicyPreviewSchema,
+  collectionPolicyProposalSchema,
   collectionContextInputSchema,
   collectionPreviewInputSchema,
   collectionProposalInputSchema,
@@ -1007,6 +1010,19 @@ const registry: AiToolRegistration[] = [
     outputSchema: ACTION_OUTPUT_SCHEMA,
     execute: ({ supabase, actorEmail }, input) =>
       proposeWorkspaceBrandUpdate(supabase, input, actorEmail),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.policyPreview,
+    inputSchema: z.toJSONSchema(collectionPolicyPreviewSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => previewCollectionPolicy(supabase, input),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.policyPropose,
+    inputSchema: z.toJSONSchema(collectionPolicyProposalSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeCollectionPolicy(supabase, input, actorEmail),
   },
   {
     ...COLLECTION_AGENT_TOOLS.list,
