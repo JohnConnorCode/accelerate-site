@@ -2051,7 +2051,13 @@ const registry: AiToolRegistration[] = [
       return proposeAction(supabase, {
         actionType: "update_task",
         title,
-        description: value(input, "title") ? `New title: ${value(input, "title")}` : undefined,
+        description: [
+          `Task: ${expectedState.title}`,
+          changes.description === null ? "Clear the description." : null,
+          changes.dueDate === null ? "Clear the due date." : null,
+        ]
+          .filter(Boolean)
+          .join(" "),
         urgency: "normal",
         payload,
         sourceContext: "admin_ai",

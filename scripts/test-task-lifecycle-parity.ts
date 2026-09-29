@@ -98,6 +98,10 @@ async function main() {
     );
     assert.equal(mem.rows("action_queue").find((r) => r.id === revised.id)!.status, "failed");
     const clear = await call({ taskId: "task-1", changeType: "edit", description: "" });
+    assert.match(
+      String(mem.rows("action_queue").find((r) => r.id === clear.id)!.description),
+      /Clear the description/,
+    );
     await approveAndExecuteAction(context.supabase, clear.id, actorEmail);
     assert.equal(row().description, null);
     await compensateAction(context.supabase, clear.id, actorEmail);
