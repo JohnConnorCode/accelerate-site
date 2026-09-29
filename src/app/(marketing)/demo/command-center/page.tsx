@@ -182,6 +182,7 @@ export default function AdminDemoLauncher() {
                         width={1440}
                         height={1000}
                         sizes="(max-width: 760px) 100vw, 400px"
+                        unoptimized
                       />
                       <figcaption className={styles.note}>
                         {preview.screen} · Fictional demo data

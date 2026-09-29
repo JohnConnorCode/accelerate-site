@@ -24,6 +24,10 @@ For a hosted installation, use a **new empty project** you control. Copy `.env.e
 Enable Supabase email/password authentication and configure the application origin
 and `/auth/callback` redirect URL in Auth settings. These are project settings;
 a database key cannot configure them. They remain a documented dashboard step.
+Password recovery uses Supabase Auth email when `RESEND_API_KEY` is unset, so confirm
+that your Auth email delivery works before relying on the workspace. Supabase's
+default hosted sender is limited; configure SMTP for regular use. When Resend is
+configured, Command Center sends its own recovery email instead.
 
 ## 3. Plan and apply workspace setup
 
