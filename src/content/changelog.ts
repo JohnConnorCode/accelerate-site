@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "approved-ai-task-lifecycle",
+    slug: "approved-ai-task-lifecycle",
+    title: "Ask AI can reopen tasks and revise their instructions",
+    description:
+      "Ask AI and connected MCP assistants can now prepare task reopening and description edits, including clearing instructions. Review the change in Approvals, then check its result in Tasks. Repeating an unchanged pending request reuses its proposal, and intervening task edits require a fresh review before execution.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "debate-booking-production-loop",
     slug: "debate-booking-production-loop",
     title: "Debate bookings track the next confirmed commitment",

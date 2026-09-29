@@ -21,7 +21,14 @@ export async function proveToolProfileTasks() {
     for (const profile of ["full", "core", "ops"] as const) {
       const mem = new MemorySupabase({
         tenants: [{ id: "profile-tenant", status: "active", config: {} }],
-        tasks: [{ id: "profile-task", title: "Review fixture deliverable", status: "open" }],
+        tasks: [
+          {
+            id: "profile-task",
+            title: "Review fixture deliverable",
+            priority: "medium",
+            status: "pending",
+          },
+        ],
         plugins: [
           {
             plugin_key: "fixture-plugin",
@@ -107,7 +114,7 @@ export async function proveToolProfileTasks() {
           assert.equal((proposed.payload as Record<string, unknown>).changeType, "complete");
           assert.equal(
             mem.rows("tasks")[0]!.status,
-            "open",
+            "pending",
             "Proposal must not complete the task before approval",
           );
         } else {

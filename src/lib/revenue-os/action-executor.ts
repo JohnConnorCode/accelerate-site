@@ -1,3 +1,4 @@
+import { taskReviewStateSchema } from "./operator-task-patch";
 import { bulkEnrollContacts, bulkSuppressContacts, bulkTagContacts } from "./contact-bulk";
 import { executeRadarOutreach } from "./radar-outreach";
 import "server-only";
@@ -450,6 +451,10 @@ export async function approveAndExecuteAction(
       }
       case "update_task": {
         const taskId = stringValue(payload, "taskId")!;
+        const expectedState =
+          payload.expectedState === undefined
+            ? undefined
+            : taskReviewStateSchema.parse(payload.expectedState);
         const { data: taskBefore } = await supabase
           .from("tasks")
           .select("id,title,description,priority,due_date,status,snoozed_until,completed_at")
@@ -471,17 +476,18 @@ export async function approveAndExecuteAction(
           : null;
         const changeType = stringValue(payload, "changeType")!;
         if (changeType === "complete") {
-          result = await completeOperatorTask(supabase, { id: taskId, actorEmail });
+          result = await completeOperatorTask(supabase, { id: taskId, actorEmail, expectedState });
         } else if (changeType === "snooze") {
           result = await snoozeOperatorTask(supabase, {
             id: taskId,
             until: stringValue(payload, "until")!,
             actorEmail,
+            expectedState,
           });
         } else if (changeType === "reopen") {
           result = await patchOperatorTask(
             supabase,
-            { id: taskId, status: "pending", actorEmail },
+            { id: taskId, status: "pending", actorEmail, expectedState },
             false,
           );
         } else if (changeType === "edit") {
@@ -504,6 +510,7 @@ export async function approveAndExecuteAction(
                 ? null
                 : (stringValue(payload, "dueDate", false) ?? undefined),
             actorEmail,
+            expectedState,
           });
         } else {
           throw new Error(`Unknown task update changeType "${changeType}"`);
