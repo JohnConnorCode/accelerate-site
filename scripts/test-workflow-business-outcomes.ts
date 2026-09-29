@@ -1,4 +1,4 @@
-import { transitionOpportunity } from "../src/lib/revenue-os/pipeline";
+import { createOpportunity, transitionOpportunity } from "../src/lib/revenue-os/pipeline";
 import { completeOperatorTask } from "../src/lib/revenue-os/tasks";
 import { writeJourneyEvidence } from "./lib/reference-journey-evidence";
 import { retrievePluginKnowledge } from "../src/lib/revenue-os/plugin-knowledge";
@@ -65,8 +65,8 @@ async function main() {
   const tenantId = "11111111-1111-4111-8111-111111111111",
     other = "22222222-2222-4222-8222-222222222222",
     user = "33333333-3333-4333-8333-333333333333",
-    opportunityId = "44444444-4444-4444-8444-444444444444",
     meetingId = "55555555-5555-4555-8555-555555555555";
+  let opportunityId: string;
   const mem = new AuthorizedMemorySupabase({
     tenants: [
       {
@@ -79,7 +79,7 @@ async function main() {
     ],
     tenant_memberships: [{ tenant_id: tenantId, user_id: user, status: "active" }],
     kanban_columns: [
-      ...["qualified", "won"].map((column_key) => ({
+      ...["new", "qualified", "won"].map((column_key) => ({
         tenant_id: tenantId,
         board_key: "pipeline",
         column_key,
@@ -87,9 +87,7 @@ async function main() {
         metadata: { role: column_key === "won" ? "won" : "open" },
       })),
     ],
-    opportunities: [
-      { id: opportunityId, tenant_id: tenantId, name: "Implementation", stage: "qualified" },
-    ],
+    opportunities: [],
     calendar_events: [
       {
         id: meetingId,
@@ -103,6 +101,22 @@ async function main() {
   mem.idFactory = (sequence) => `aaaaaaaa-aaaa-4aaa-8aaa-${String(sequence).padStart(12, "0")}`;
   const db = bindTenantDatabase(mem.client, tenantId, true),
     foreign = bindTenantDatabase(mem.client, other, true);
+  const inquiry = await createOpportunity(db, {
+    actorEmail: "qa@example.example",
+    name: "Delivery Customer",
+    email: "delivery@example.test",
+    companyName: "Customer Company",
+    opportunityName: "Implementation",
+    source: "controlled_inquiry",
+  });
+  opportunityId = inquiry.id;
+  await transitionOpportunity(db, {
+    id: opportunityId,
+    to: "qualified",
+    actorEmail: "qa@example.example",
+    source: "reference_journey",
+    reason: "Reviewed delivery inquiry",
+  });
   await transitionOpportunity(db, {
     id: opportunityId,
     to: "won",
@@ -111,7 +125,9 @@ async function main() {
     reason: "Customer accepted the reviewed delivery scope",
   });
   assert.equal(
-    mem.rows("stage_events").find((row) => row.opportunity_id === opportunityId)?.to_stage,
+    mem
+      .rows("stage_events")
+      .find((row) => row.opportunity_id === opportunityId && row.to_stage === "won")?.to_stage,
     "won",
   );
   const brand = await readWorkspaceBrand(db);
@@ -313,13 +329,24 @@ async function main() {
         tenantId,
         timingsMs: { approvalMs, completionMs: performance.now() - completionStarted },
         opportunityId,
+        contactId: inquiry.contact_id,
+        companyId: inquiry.company_id,
         actionId: action.id,
         taskId: row.id,
         assigneeUserId: user,
         dueDate: row.due_date,
-        stages: ["qualified", "won", "reviewed_plan", "approved_assigned_task", "completed"],
+        stages: [
+          "inquiry",
+          "qualified",
+          "won",
+          "reviewed_plan",
+          "approved_assigned_task",
+          "completed",
+        ],
         task: row,
-        stageEvent: mem.rows("stage_events").find((row) => row.opportunity_id === opportunityId),
+        stageEvent: mem
+          .rows("stage_events")
+          .find((row) => row.opportunity_id === opportunityId && row.to_stage === "won"),
         approval: mem.rows("action_queue").find((row) => row.id === action.id)?.approved_by,
       });
     }
