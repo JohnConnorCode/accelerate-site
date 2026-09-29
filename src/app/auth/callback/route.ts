@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { activateInvitedTenantMembership } from "@/lib/tenancy/lifecycle";
+import { commandCenterOrigin } from "@/lib/command-center/runtime";
 
 function validTenantId(value: string | null): value is string {
   return Boolean(
@@ -29,7 +30,9 @@ function copyResponseCookies(source: NextResponse, target: NextResponse) {
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin =
+    commandCenterOrigin || process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");

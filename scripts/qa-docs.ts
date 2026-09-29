@@ -313,7 +313,7 @@ async function main() {
           .click();
         await page.waitForURL("**/docs");
         await page
-          .getByRole("heading", { level: 1, name: "Put your workspace to work." })
+          .getByRole("heading", { level: 1, name: "From inquiry to recorded result." })
           .waitFor();
         await page.waitForLoadState("networkidle");
         await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });

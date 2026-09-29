@@ -59,6 +59,7 @@ export function WorkflowShowcase() {
                   width={1440}
                   height={1000}
                   sizes="(max-width: 760px) 100vw, 650px"
+                  unoptimized
                 />
               </a>
               <figcaption className={styles.note}>

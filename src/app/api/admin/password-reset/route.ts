@@ -1,6 +1,7 @@
 import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
 import { isConfiguredAdmin } from "@/lib/admin/access";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
@@ -16,11 +17,7 @@ function requestKey(request: NextRequest) {
   return `admin-password-reset:${ip}`;
 }
 
-/**
- * Recovery links are generated and delivered by our app, rather than the
- * hosted Supabase email template. This preserves the initiating origin
- * (including localhost) and avoids a fragile remote redirect allow-list.
- */
+/** Use the configured sender when present; otherwise use Supabase Auth email. */
 export async function POST(request: NextRequest) {
   if (
     !isSupabasePublicConfigured(
@@ -64,6 +61,38 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const resetUrl = new URL(
+      "/auth/callback",
+      commandCenterOrigin || process.env.NEXT_PUBLIC_SITE_URL || request.url,
+    );
+    resetUrl.searchParams.set("next", "/admin/update-password");
+
+    if (!process.env.RESEND_API_KEY) {
+      const response = NextResponse.json(
+        { success: true },
+        { headers: { "Cache-Control": "no-store" } },
+      );
+      const auth = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll: () => request.cookies.getAll(),
+            setAll: (cookies) => {
+              for (const { name, value, options } of cookies) {
+                response.cookies.set(name, value, options);
+              }
+            },
+          },
+        },
+      );
+      const { error } = await auth.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: resetUrl.toString(),
+      });
+      if (error) throw error;
+      return response;
+    }
+
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "recovery",
       email: normalizedEmail,
@@ -71,7 +100,6 @@ export async function POST(request: NextRequest) {
     const tokenHash = data.properties?.hashed_token;
     if (error || !tokenHash) throw error || new Error("Recovery token generation failed.");
 
-    const resetUrl = new URL("/auth/callback", commandCenterOrigin || request.url);
     resetUrl.searchParams.set("token_hash", tokenHash);
     resetUrl.searchParams.set("type", "recovery");
     resetUrl.searchParams.set("next", "/admin/update-password");

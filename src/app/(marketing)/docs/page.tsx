@@ -12,7 +12,7 @@ import styles from "@/components/docs/docs.module.css";
 export const metadata: Metadata = seoMetadata({
   title: "Documentation",
   description:
-    "Run a useful business workflow or build on Accelerate. Practical setup guides, industry recipes, features, plugins and extension references.",
+    "Follow a customer inquiry from context to next action and recorded result. Then connect your own workspace or build on the open-source foundation.",
   path: "/docs",
 });
 
@@ -22,23 +22,23 @@ export default function DocsLandingPage() {
       <header className={styles.landingHero}>
         <p className="label">Documentation</p>
         <h1 className={styles.landingTitle}>
-          Put your workspace <em>to work.</em>
+          From inquiry to <em>recorded result.</em>
         </h1>
         <p className={styles.landingLede}>
-          Choose a task, understand the pieces it needs and follow the result back to the record.
-          These guides help business teams run Command Center and builders adapt the platform around
-          their work.
+          Start with a fictional customer inquiry and follow the record, decision and next action
+          through Command Center. Then use these guides to connect your own workspace or build the
+          workflow your team needs.
         </p>
       </header>
       <div className={styles.pathGrid}>
         <section className={styles.pathCard} aria-labelledby="run-business">
           <p className="label">Business users</p>
           <h2 id="run-business" className="my-3 font-display text-2xl font-medium">
-            Run your business
+            Run a customer workflow
           </h2>
           <p>
-            Try a workflow in the fictional demo, then learn how to connect your workspace and
-            operate it day to day.
+            See what needs attention, open the customer context, review a proposed action and check
+            what happened. The demo works without an account.
           </p>
           <div className={styles.pathActions}>
             <Link className={styles.textLink} href="/docs/start/daily-path">
@@ -52,11 +52,11 @@ export default function DocsLandingPage() {
         <section className={styles.pathCard} aria-labelledby="build-platform">
           <p className="label">Builders and agencies</p>
           <h2 id="build-platform" className="my-3 font-display text-2xl font-medium">
-            Build on the platform
+            Build on the same foundation
           </h2>
           <p>
-            Run the source, make a small change and reuse business records, permissions and services
-            in your own extension.
+            Start the source locally, connect a database you control and add a workflow that uses
+            the existing records, permissions and action history.
           </p>
           <div className={styles.pathActions}>
             <Link className={styles.textLink} href="/docs/extend/first-change">
@@ -69,13 +69,13 @@ export default function DocsLandingPage() {
         </section>
       </div>
       <section className={styles.landingSection} aria-labelledby="recipes-heading">
-        <p className="label">Features working together</p>
+        <p className="label">A complete example</p>
         <h2 id="recipes-heading" className={styles.sectionTitle}>
-          Start with a complete recipe.
+          Choose a result, then follow the steps.
         </h2>
         <p className="mb-6 leading-relaxed text-white-secondary">
-          Each recipe names the features and plugins, the setup and the steps, the saved result, and
-          a path for adapting it. Choose an industry example close to your work.
+          Each recipe starts with work a team needs to finish, shows the screens and setup involved,
+          and names the result to check. Choose the example closest to your business.
         </p>
         <RecipeCards
           recipes={workflowRecipes.filter((item) =>

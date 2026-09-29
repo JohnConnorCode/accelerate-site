@@ -8,9 +8,9 @@ import { openSourceFaqs } from "@/content/open-source";
 const bundledMetadata = seoMetadata({
   title: "Open Source",
   description:
-    "The Command Center is MIT licensed and open source. Run it yourself for free, or have Accelerate build and run a custom managed version for your business.",
-  ogTitle: "The Command Center Is Open Source",
-  ogSubtitle: "Self-host it free, or have us build and run it for you",
+    "Own the customer workspace behind your team's records, next actions and AI work. Try the demo, self-host the MIT-licensed source, or work with Accelerate.",
+  ogTitle: "Keep customer work connected. Own the system behind it.",
+  ogSubtitle: "Try the demo, self-host the source, or build with Accelerate",
   path: "/open-source",
 });
 

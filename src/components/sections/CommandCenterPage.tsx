@@ -55,18 +55,18 @@ export function CommandCenterPageContent() {
         <div className="wrap">
           <div className={styles.intro}>
             <div>
-              <p className="label">Command Center · Open-source business platform</p>
+              <p className="label">Command Center · Open-source customer workspace</p>
               <h1 className={styles.title} data-hero-step={1}>
-                Your customer work.
+                Know what happened.
                 <br />
-                <em>Connected.</em>
+                <em>Move the work forward.</em>
               </h1>
             </div>
             <div>
               <p className={styles.lede} data-hero-step={2}>
-                Keep customer conversations, follow-up and delivery in one workspace your team and
-                AI can use. Adapt the open-source platform to your process, with Accelerate’s help
-                or your own builders.
+                Keep the conversation, customer record and next action together. Your team can see
+                what needs attention, while AI uses the same context to prepare supported work.
+                Review the action and follow its recorded result.
               </p>
               <div className={styles.actions} data-hero-step={3}>
                 <Link href="/demo/command-center#workflows" className={styles.primary}>
@@ -98,7 +98,7 @@ export function CommandCenterPageContent() {
       <section className={styles.section} id="how">
         <div className="wrap">
           <p className="label">See a complete piece of work</p>
-          <h2 className={styles.heading}>Start with a result your team needs.</h2>
+          <h2 className={styles.heading}>From a new inquiry to a recorded next step.</h2>
           <WorkflowShowcase />
         </div>
       </section>

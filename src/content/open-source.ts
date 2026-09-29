@@ -19,12 +19,12 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
     title: "Run it yourself.",
     scope: "Free, MIT licensed",
     description:
-      "Clone the repository, connect your own Supabase project, and run the same Command Center codebase behind our own agency. You own the code, the database, and any AI provider key you connect. Nothing phones home to us.",
+      "Start with the fictional demo, then connect a Supabase project you control. The same application runs our agency workspace. You own your deployment, data and AI provider account, and can change the source around your business.",
     included: [
       "The complete source, MIT licensed, no seat limits or usage tiers",
       "CRM, pipeline, inbox, campaigns, proposals, and analytics in one application",
       "AI operations with approval gates and an audit trail, using your own OpenRouter key",
-      "A Model Context Protocol server, so Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity reach the same tools under the same approval rules",
+      "An MCP server for supported external assistants, using the workspace's permissions and action rules",
       "Pluggable modules a workspace turns on and off, extendable from a manifest without forking",
       "An ordered database migration catalog and full documentation for tenancy and security",
       "A public roadmap, with acceptance criteria written out for every planned change",
@@ -38,11 +38,11 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
     title: "We build and run it for you.",
     scope: "Scoped on a strategy session",
     description:
-      "The same system, configured for how your team already works, deployed on infrastructure we manage, and kept running by the people who wrote it. This is managed execution, the same offer behind every Accelerate engagement, applied to this product.",
+      "We start with the customer workflow your team needs, configure the shared workspace around it, and operate the agreed solution with you. The build, connections, support and costs are scoped before work begins.",
     included: [
       "Your own isolated workspace, configured around your existing tools",
       "Migrations, updates, security patches, and monitoring handled for you",
-      "Integrations connected: Google Workspace, Resend, Calendly, and the rest of your stack",
+      "The integrations required by the agreed workflow, connected and verified",
       "Direct support from the engineers who built it, not a support queue",
       "Training for your team and ongoing improvement as the business changes",
     ],
@@ -94,12 +94,12 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "What does self-hosting actually require?",
     answer:
-      "Node.js, a Supabase project you control, and running the documented migration catalog. There is also a Deploy with Vercel button in the README that needs no environment variables at all: it boots straight to the marketing site and the fictional demo, then points you at the setup path when you are ready to connect a real workspace.",
+      "The site and fictional demo run with Node.js and no provider keys. A connected workspace also needs a Supabase project you control and the documented setup. The README's Deploy with Vercel button starts the neutral site and demo first; follow the self-hosting guide to add sign-in and persisted records.",
   },
   {
     question: "Can I point Claude or ChatGPT at my own workspace?",
     answer:
-      "Yes. The repository ships a Model Context Protocol server, with setup guides for Claude Desktop, Claude Code, ChatGPT's native Connectors, Cursor, and Antigravity. Read tools return bounded queries. Anything that would change a record, complete or reschedule a task, or send a message becomes a staged proposal in the approval queue instead, so an outside assistant works under the same rules the interface does.",
+      "The repository ships an MCP server and client-specific setup guides. A client needs your configured workspace connection; ChatGPT web also needs the documented OAuth setup. Reads respect workspace access. Changes use the same action policy and recorded result as the interface, including human review where required.",
   },
   {
     question: "Can I add my own features without forking?",
@@ -114,7 +114,7 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "How mature is the codebase?",
     answer:
-      "It runs a real, working agency today. Every automated test and verification script in the repository runs against it, migrations are ordered with a documented rollback path, tenant isolation is enforced at the database level, and the commit history is public to read before you decide anything.",
+      "It runs our agency workspace today. The repository includes ordered migrations, tenancy and security contracts, automated checks, a fictional demo and public commit history. A connected installation still needs its own Auth, provider and recovery verification before real customer data is imported.",
   },
   {
     question: "Why not just build this myself?",

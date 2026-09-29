@@ -9,7 +9,7 @@ import { homeFaqs } from "../home-faq";
 export const homeStatementContent = {
   eyebrow: "Built around your business",
   heading: "We start with the work your team does every day.",
-  body: "We identify where work is slow or revenue is missed, then build and improve the smallest useful system. That can include CRM connections, voice-to-text workflows, or better inquiry capture.",
+  body: "A new inquiry can disappear between a form and an inbox. We find problems like that, build the useful AI and integrations, and help your team run the result in production.",
   systemsLabel: "How we help",
   systemsHref: "#systems",
   workLabel: "See our work",
@@ -42,7 +42,7 @@ export const homeHeroContent = {
   heading: "The right AI starts with",
   emphasis: "your business.",
   support:
-    "We find where AI can free up time or increase revenue, build what your team needs, and stay to run and improve it.",
+    "We map the work your team does today, build useful AI and integrations around it, and help run and improve the result.",
   ctaLabel: "Book a free strategy session",
   ctaHref: "/contact",
 };

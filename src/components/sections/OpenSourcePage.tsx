@@ -26,13 +26,7 @@ import {
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { cn } from "@/lib/utils";
-import {
-  OPEN_SOURCE_PATHS,
-  OPEN_SOURCE_STATS,
-  TECH_STACK,
-  QUICK_START,
-  openSourceFaqs,
-} from "@/content/open-source";
+import { OPEN_SOURCE_PATHS, TECH_STACK, QUICK_START, openSourceFaqs } from "@/content/open-source";
 import type { OpenSourcePath } from "@/content/open-source";
 import { PRODUCT_SCREENSHOTS } from "@/content/product-screenshots";
 import { trackConversion } from "@/lib/analytics";
@@ -144,18 +138,17 @@ export function OpenSourcePageContent() {
                 <RevealHeading
                   as="h1"
                   className={HERO_HEADING}
-                  lead="The Command Center is"
-                  accent="open source."
+                  lead="Keep customer work connected."
+                  accent="Own the system behind it."
                   entrance="parent"
                 />
               </HeroEntranceItem>
               <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                  Contacts, pipeline, inbox, proposals, and an AI layer that actually knows the
-                  business: most service businesses build all of it from scratch. This is that
-                  backend, already built and running a real agency, published under the MIT license.
-                  Run it yourself and own every part of it, or have us build and run a custom
-                  version for your business.
+                  Start with a customer record, its conversation and the next action in one place.
+                  Your team and AI can work from the same context, with permissions and recorded
+                  results. The MIT-licensed source runs our own agency workspace. Fork it for your
+                  business, or have us build and operate your version.
                 </p>
               </HeroEntranceItem>
               <HeroEntranceItem step={4}>
@@ -172,11 +165,11 @@ export function OpenSourcePageContent() {
                     <ArrowUpRight className="h-4 w-4" />
                   </a>
                   <Link
-                    href="/command-center"
+                    href="/demo/command-center"
                     data-cursor="link"
                     className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
                   >
-                    See the full product
+                    Try the fictional demo
                   </Link>
                 </div>
               </HeroEntranceItem>
@@ -188,30 +181,15 @@ export function OpenSourcePageContent() {
         </Container>
       </PublicHeroEntrance>
 
-      {/* stats */}
-      <Section width="wide" className="pt-0">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 border-y border-[color-mix(in_srgb,var(--fg)_12%,transparent)] py-10 sm:grid-cols-4">
-          {OPEN_SOURCE_STATS.map((stat, i) => (
-            <AnimateOnScroll key={stat.label} as="div" delay={i * 0.05} className="text-center">
-              <p className="font-display text-4xl font-extrabold tracking-[-0.02em] text-heading sm:text-5xl">
-                {stat.value}
-              </p>
-              <p className="mt-2 text-sm font-semibold text-white-secondary">{stat.label}</p>
-              <p className="mt-0.5 text-xs leading-snug text-white-muted">{stat.detail}</p>
-            </AnimateOnScroll>
-          ))}
-        </div>
-      </Section>
-
       {/* two paths */}
       <Section width="wide">
         <Eyebrow className="mb-6">two ways to run it</Eyebrow>
         <Heading size={2} as="h2" className="mb-3 max-w-2xl">
-          Read the code, or start with a conversation.
+          Run it yourself, or let us run it with you.
         </Heading>
         <p className="mb-10 max-w-2xl text-base leading-relaxed text-white-muted">
-          Neither path is the default. Self-hosting and a managed build solve different problems,
-          and you can move between them as the business changes.
+          Either way, start with one workflow your team needs. Self-host on your own infrastructure
+          or work with the team that builds and operates this system.
         </p>
         <div className="grid items-stretch gap-6 md:grid-cols-2 lg:gap-8">
           {OPEN_SOURCE_PATHS.map((path, index) => (
@@ -224,14 +202,14 @@ export function OpenSourcePageContent() {
       <Section width="wide" divide>
         <div className="grid min-w-0 items-start gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
           <div className="min-w-0">
-            <Eyebrow className="mb-6">running in minutes</Eyebrow>
+            <Eyebrow className="mb-6">try it locally</Eyebrow>
             <Heading size={2} as="h2" className="max-w-md">
-              Four commands to a running workspace.
+              Four commands to the site and demo.
             </Heading>
             <p className="mt-5 max-w-md text-base leading-relaxed text-white-muted">
-              The public site and fictional demo run with zero external services. Connecting a real
-              workspace with your own Supabase project is a second step. Follow the installation
-              walkthrough in our docs.
+              Explore the public site and fictional business workflows without an account or
+              provider keys. To save work for your own team, connect a Supabase project you control
+              and follow the installation guide.
             </p>
             <Link
               href="/docs/self-hosting"
@@ -266,18 +244,19 @@ export function OpenSourcePageContent() {
           <div className="min-w-0">
             <Eyebrow className="mb-6">why it&apos;s open</Eyebrow>
             <Heading size={2} as="h2" className="max-w-lg">
-              Owning the code is the easy part. Trusting what runs in it is the work.
+              Build on context your team can trust.
             </Heading>
             <p className="mt-6 max-w-lg text-sm leading-relaxed text-white-muted">
-              An agent can scaffold a CRM in an afternoon now. What decides whether you can hand it
-              real customers is what happens the moment it acts on their behalf.
+              A new screen is useful when it can see the right records and leave a reliable result.
+              Accelerate gives your own workflows and AI tools the same identity, permissions and
+              action history as the workspace.
             </p>
           </div>
           <ul className="flex flex-col gap-6" role="list">
             {[
               {
-                title: "The AI proposes, a person approves",
-                body: "Every write an agent attempts becomes a staged proposal in an approval queue. The tool registry refuses at runtime if a tool marked read stages a write, or if a tool marked write does not.",
+                title: "AI earns more responsibility",
+                body: "Supported actions begin with review. After a record of successful approvals, an owner can grant eligible actions standing permission. Restricted actions keep their required human decision.",
               },
               {
                 title: "Answers have to cite what they read",
@@ -319,13 +298,13 @@ export function OpenSourcePageContent() {
 
       {/* more screens */}
       <Section width="wide" divide>
-        <Eyebrow className="mb-6">every screen</Eyebrow>
+        <Eyebrow className="mb-6">inside the workspace</Eyebrow>
         <Heading size={2} as="h2" className="mb-3 max-w-2xl">
-          Seven screens, nine appearances.
+          Follow the work across records, decisions and results.
         </Heading>
         <p className="mb-10 max-w-2xl text-base leading-relaxed text-white-muted">
-          The slider above is a preview, not the whole product. Open any screen full size, and arrow
-          through the rest from there.
+          These are real workspace screens with fictional records. Open one full size to see the
+          context behind a task, then try the corresponding workflow in the demo.
         </p>
         <MoreScreens />
       </Section>

@@ -63,9 +63,9 @@ export const docsManifest: DocsSection[] = [
     pages: [
       {
         slug: ["start", "overview"],
-        title: "An AI command center you can make your own",
+        title: "From a customer question to a clear next step",
         description:
-          "Connect your business, work with AI that earns more trust over time, and build on an open-source foundation you control.",
+          "See the customer history, decide what happens next, and build on an open-source workspace you control.",
       },
       {
         slug: ["start", "how-it-works"],

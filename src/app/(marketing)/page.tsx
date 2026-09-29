@@ -13,9 +13,9 @@ import { Studio } from "@/components/v2/studio/Studio";
 import { marketingPositioning } from "@/content/marketing-positioning";
 
 const bundledMetadata = seoMetadata({
-  title: "Accelerate | Custom AI Strategy, Solutions & Execution",
+  title: "Accelerate | AI Strategy, Systems & Execution",
   description: marketingPositioning.shortOffer,
-  ogTitle: "The Right AI Solution for Your Business",
+  ogTitle: "Find the work costing time and revenue",
   ogSubtitle: "Strategy, custom builds, execution, training, and ongoing improvement",
   path: "/",
 });
