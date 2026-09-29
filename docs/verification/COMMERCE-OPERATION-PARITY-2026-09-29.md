@@ -7,27 +7,27 @@ remains open. This is not a full commercial-operation parity or deployment claim
 
 ## Semantic operation matrix
 
-| Operation / admin adapter | Existing owner | AI/MCP coverage in this candidate |
-| --- | --- | --- |
-| Proposal list/detail, `proposals GET` | Route query | Gap: dashboard context is not full proposal reading |
-| Proposal draft generation, `proposals/generate POST` | Route, shared AI gateway and proposal validator | Gap: extract canonical generation; model-produced pricing must not become trusted billing input |
-| Proposal creation, `proposals POST` | Route insert and audit | Gap: move into validated, replay-safe domain owner before exposing a tool |
-| Draft content, title, commercial totals, client name edits, `proposals PATCH` | `applyProposalWrite` / `updateProposalDraft` | Gap: exact preview and approved command adapter |
-| Proposal status transition / decline reason, `proposals PATCH` | `applyProposalWrite`, proposal host RPC | Gap: lifecycle-specific approved tools; preserve public decisions and expiry |
-| Stripe billing choices / invoice receipt / operation history, `invoicing GET` | Stripe host and action query | Partial: existing invoice workflow tools, no complete invoice-history tool |
-| Invoice index pagination, `invoicing/list GET` | Route validation / `tenantStripeClient` | Gap: conversational paginated index |
-| Create Stripe invoice draft, workflow adapter | `prepareWorkflowPlugin` / `reviewStripeInvoice` / executor | Existing approved workflow; no new billing writer |
-| Propose invoice send, `invoicing POST` | `proposeStripeInvoiceSend` | Existing `propose_invoice_send` |
-| Read published invoice pages, `invoicing/pages GET` | `listInvoicePages` | Gap: page-list tool |
-| Generate page design, `invoicing/pages POST generate` | `generateInvoiceDesign` | Gap: conversational design generation |
-| Preview / propose page publication, `POST preview/propose` | `previewInvoicePage` / `proposeInvoicePage` | Existing invoice-page tools, exact digest and approval |
-| Revoke invoice page, `POST revoke` | `revokeInvoicePage` | Gap: approved revocation adapter |
-| Read cases and workspace, `collections GET`, `collections/workspace GET` | `listCollectionCases` / `readCollectionWorkspace` | Existing bounded `get_collection_cases` |
-| Track / refresh explicitly selected invoices, `collections POST` | `syncCollectionCases` | Gap: governed conversational refresh adapter |
-| Edit dispute, pause, pause-until, promise date, owner, next action, `collections PATCH` | `updateCollectionCase` | **Implemented:** `preview_collection_policy` → `propose_collection_policy` → explicit approved executor → same writer |
-| Preview / propose reminder, `collections/reminders POST` | Reminder host | Existing preview/proposal tools; separate reminder approval remains required |
-| Approve, reject, retry / reconcile actions | Canonical action service and executor | Human approval controls, never model self-approval |
-| Credential entry and OAuth consent | Integrations settings | Secure human handoff; credentials never enter tool inputs |
+| Operation / admin adapter                                                               | Existing owner                                             | AI/MCP coverage in this candidate                                                                                     |
+| --------------------------------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Proposal list/detail, `proposals GET`                                                   | Route query                                                | Gap: dashboard context is not full proposal reading                                                                   |
+| Proposal draft generation, `proposals/generate POST`                                    | Route, shared AI gateway and proposal validator            | Gap: extract canonical generation; model-produced pricing must not become trusted billing input                       |
+| Proposal creation, `proposals POST`                                                     | Route insert and audit                                     | Gap: move into validated, replay-safe domain owner before exposing a tool                                             |
+| Draft content, title, commercial totals, client name edits, `proposals PATCH`           | `applyProposalWrite` / `updateProposalDraft`               | Gap: exact preview and approved command adapter                                                                       |
+| Proposal status transition / decline reason, `proposals PATCH`                          | `applyProposalWrite`, proposal host RPC                    | Gap: lifecycle-specific approved tools; preserve public decisions and expiry                                          |
+| Stripe billing choices / invoice receipt / operation history, `invoicing GET`           | Stripe host and action query                               | Partial: existing invoice workflow tools, no complete invoice-history tool                                            |
+| Invoice index pagination, `invoicing/list GET`                                          | Route validation / `tenantStripeClient`                    | Gap: conversational paginated index                                                                                   |
+| Create Stripe invoice draft, workflow adapter                                           | `prepareWorkflowPlugin` / `reviewStripeInvoice` / executor | Existing approved workflow; no new billing writer                                                                     |
+| Propose invoice send, `invoicing POST`                                                  | `proposeStripeInvoiceSend`                                 | Existing `propose_invoice_send`                                                                                       |
+| Read published invoice pages, `invoicing/pages GET`                                     | `listInvoicePages`                                         | Gap: page-list tool                                                                                                   |
+| Generate page design, `invoicing/pages POST generate`                                   | `generateInvoiceDesign`                                    | Gap: conversational design generation                                                                                 |
+| Preview / propose page publication, `POST preview/propose`                              | `previewInvoicePage` / `proposeInvoicePage`                | Existing invoice-page tools, exact digest and approval                                                                |
+| Revoke invoice page, `POST revoke`                                                      | `revokeInvoicePage`                                        | Gap: approved revocation adapter                                                                                      |
+| Read cases and workspace, `collections GET`, `collections/workspace GET`                | `listCollectionCases` / `readCollectionWorkspace`          | Existing bounded `get_collection_cases`                                                                               |
+| Track / refresh explicitly selected invoices, `collections POST`                        | `syncCollectionCases`                                      | Gap: governed conversational refresh adapter                                                                          |
+| Edit dispute, pause, pause-until, promise date, owner, next action, `collections PATCH` | `updateCollectionCase`                                     | **Implemented:** `preview_collection_policy` → `propose_collection_policy` → explicit approved executor → same writer |
+| Preview / propose reminder, `collections/reminders POST`                                | Reminder host                                              | Existing preview/proposal tools; separate reminder approval remains required                                          |
+| Approve, reject, retry / reconcile actions                                              | Canonical action service and executor                      | Human approval controls, never model self-approval                                                                    |
+| Credential entry and OAuth consent                                                      | Integrations settings                                      | Secure human handoff; credentials never enter tool inputs                                                             |
 
 Additional surfaces inspected: `src/app/admin/proposals/page.tsx`,
 `InvoiceIndex.tsx`, `InvoicePageDesigner.tsx`, `CollectionsWorkspace.tsx`, and the
