@@ -367,6 +367,11 @@ try {
             }
           }
           await page.evaluate(() => window.scrollTo(0, 0));
+          if (route === "/demo/command-center")
+            assert(
+              (await page.locator('img[src="/images/demo/superdebate-invoicing.png"]').count()) > 0,
+              "Bundled demo screenshots load without runtime resizing",
+            );
           assert.equal(
             await page.locator("html").getAttribute("data-theme"),
             theme,

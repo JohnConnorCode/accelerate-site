@@ -78,6 +78,9 @@ async function main() {
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
+    "ADMIN_EMAIL",
+    "RESEND_API_KEY",
+    "NEXT_PUBLIC_SITE_URL",
   ] as const;
   const savedEnv = names.map((name) => process.env[name]);
   let mode = "denied";
@@ -116,6 +119,39 @@ async function main() {
       }
     }
     assert.equal(rpcCalls, 6);
+
+    // A fresh install has no Resend key. Recovery must use Supabase Auth's
+    // email flow and preserve the PKCE verifier for the browser callback.
+    process.env.ADMIN_EMAIL = "owner@fixture.test";
+    delete process.env.RESEND_API_KEY;
+    process.env.NEXT_PUBLIC_SITE_URL = "https://canonical.test";
+    let recoverCalls = 0;
+    globalThis.fetch = async (input, init) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/rest/v1/rpc/consume_rate_limit")
+        return Response.json({ allowed: true, remaining: 2, retry_after: 0 });
+      if (url.pathname === "/rest/v1/tenant_memberships") return Response.json(null);
+      if (url.pathname === "/auth/v1/recover") {
+        recoverCalls++;
+        const redirect = new URL(url.searchParams.get("redirect_to") || "");
+        assert.equal(redirect.origin, "https://canonical.test");
+        assert.equal(redirect.pathname, "/auth/callback");
+        assert.equal(redirect.searchParams.get("next"), "/admin/update-password");
+        assert.equal(init?.method, "POST");
+        return Response.json({});
+      }
+      throw new Error(`Unexpected recovery request: ${url.pathname}`);
+    };
+    const recovery = await reset(
+      new NextRequest("https://workspace.test/api/admin/password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "owner@fixture.test" }),
+      }),
+    );
+    assert.equal(recovery.status, 200);
+    assert.equal(recoverCalls, 1);
+    assert.match(recovery.headers.get("set-cookie") || "", /code-verifier/);
   } finally {
     globalThis.fetch = savedFetch;
     names.forEach((name, index) => {

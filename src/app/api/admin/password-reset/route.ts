@@ -61,7 +61,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const resetUrl = new URL("/auth/callback", commandCenterOrigin || request.url);
+    const resetUrl = new URL(
+      "/auth/callback",
+      commandCenterOrigin || process.env.NEXT_PUBLIC_SITE_URL || request.url,
+    );
     resetUrl.searchParams.set("next", "/admin/update-password");
 
     if (!process.env.RESEND_API_KEY) {
