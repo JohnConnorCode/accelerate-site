@@ -139,7 +139,7 @@ async function main() {
     const task = race.mem.rows("tasks")[0]!;
     task.status = "pending";
     const expectedState = taskReviewState(task);
-    const base = race.context.supabase;
+    const base = race.context.supabase as Parameters<typeof patchOperatorTask>[0];
     const db = new Proxy(base, {
       get(target, key) {
         if (key !== "from") return Reflect.get(target, key);
