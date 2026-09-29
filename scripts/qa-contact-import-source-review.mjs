@@ -237,7 +237,7 @@ try {
         readsBefore,
         "route revisit should reuse fresh import history",
       );
-      if (scenario === scenarios[0] && width === 1440) {
+      if (scenario === scenarios[0]) {
         await page.evaluate(() => {
           window.importQa.count = 500;
         });

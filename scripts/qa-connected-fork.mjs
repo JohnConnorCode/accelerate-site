@@ -52,6 +52,7 @@ if (mode === "diagnose-native") {
         kid: randomUUID(),
         alg: "ES256",
         use: "sig",
+        key_ops: ["sign", "verify"],
       },
     ]),
     { mode: 0o600 },
