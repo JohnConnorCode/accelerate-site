@@ -2034,7 +2034,11 @@ const registry: AiToolRegistration[] = [
         },
         changeType !== "reopen",
       );
-      if (!Object.entries(patch).some(([key, next]) => (current[key] ?? null) !== next))
+      if (
+        !Object.entries(patch).some(
+          ([key, next]) => expectedState[key as keyof typeof expectedState] !== next,
+        )
+      )
         throw new Error("The task already has these values");
       const payload = { taskId, changeType, ...changes, expectedState };
       const dedupeKey = `ai-task-update:${createHash("sha256").update(JSON.stringify(payload)).digest("hex")}`;
