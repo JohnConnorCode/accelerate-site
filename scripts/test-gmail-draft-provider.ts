@@ -6,7 +6,13 @@ import {
   GOOGLE_GMAIL_DRAFT_SCOPE,
   syncGmail,
 } from "../src/lib/revenue-os/google";
-import { MemorySupabase } from "./lib/memory-supabase";
+import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
+import { randomUUID } from "node:crypto";
+import { createOpportunity, transitionOpportunity } from "../src/lib/revenue-os/pipeline";
+import { createDraftFollowupWork } from "../src/lib/revenue-os/sales-coworker";
+import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
+import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
+import { writeJourneyEvidence } from "./lib/reference-journey-evidence";
 
 const tenantId = "tenant-gmail-draft-fixture";
 const draftInput = {
@@ -21,8 +27,17 @@ const draftInput = {
 };
 
 function fixture(scopes: string[] = [GOOGLE_GMAIL_DRAFT_SCOPE]) {
-  const memory = new MemorySupabase({
+  const memory = new AuthorizedMemorySupabase({
     tenants: [{ id: tenantId, status: "active" }],
+    kanban_columns: [
+      ...["new", "qualified", "won"].map((column_key) => ({
+        tenant_id: tenantId,
+        board_key: "pipeline",
+        column_key,
+        label: column_key,
+        metadata: { role: column_key === "won" ? "won" : "open" },
+      })),
+    ],
     integration_connections: [
       {
         id: "google-connection-1",
@@ -49,10 +64,9 @@ function fixture(scopes: string[] = [GOOGLE_GMAIL_DRAFT_SCOPE]) {
       {
         id: "contact-1",
         tenant_id: tenantId,
-        email: "customer@example.test",
         primary_email: "customer@example.test",
         full_name: "Customer Example",
-        unsubscribed: false,
+        communication_status: "active",
       },
     ],
     conversations: [
@@ -103,6 +117,69 @@ async function main() {
     // unsent provider receipt, and replays without creating a second draft.
     {
       const { memory, database } = fixture();
+      memory.idFactory = () => randomUUID();
+      memory.tables.contacts = [];
+      memory.tables.opportunities = [];
+      const opportunity = await createOpportunity(database, {
+        actorEmail: "operator@example.test",
+        name: "Customer Example",
+        email: "customer@example.test",
+        companyName: "Customer Company",
+        source: "controlled_inquiry",
+      });
+      await transitionOpportunity(database, {
+        id: opportunity.id,
+        to: "qualified",
+        actorEmail: "operator@example.test",
+        reason: "Reviewed controlled inquiry",
+        source: "reference_journey",
+      });
+      const conversation = memory.rows("conversations")[0]!;
+      conversation.contact_id = opportunity.contact_id;
+      conversation.opportunity_id = opportunity.id;
+      const followup = await createDraftFollowupWork(database, {
+        opportunityId: opportunity.id,
+        reason: "Customer requested the revised schedule",
+        source: "reference_journey",
+        actorEmail: "operator@example.test",
+      });
+      // The memory transport has no SQL defaults; mirror the initial database status.
+      followup.workItem.status = "waiting";
+      const toolContext = {
+        supabase: database,
+        actorEmail: "operator@example.test",
+        workItem: followup.workItem,
+      };
+      const proposalInput = {
+        conversationId: conversation.id,
+        body: draftInput.body,
+        reasoning: followup.workItem.reason,
+      };
+      const contact = memory.rows("contacts")[0]!;
+      // Canonical contacts receive this SQL default on intake.
+      contact.communication_status = "active";
+      for (const status of ["unsubscribed", "bounced"]) {
+        contact.communication_status = status;
+        await assert.rejects(
+          () => executeRegisteredRevenueTool(toolContext, "propose_gmail_draft", proposalInput),
+          /suppressed/,
+        );
+      }
+      contact.communication_status = "active";
+      const proposed = (
+        await executeRegisteredRevenueTool(toolContext, "propose_gmail_draft", proposalInput)
+      ).output as { id: string };
+      const replayed = (
+        await executeRegisteredRevenueTool(toolContext, "propose_gmail_draft", proposalInput)
+      ).output as { id: string };
+      assert.equal(replayed.id, proposed.id);
+      const approvedInput = {
+        ...draftInput,
+        actionId: proposed.id,
+        contactId: opportunity.contact_id,
+        opportunityId: opportunity.id,
+        workItem: followup.workItem,
+      };
       const requests: Array<{ url: string; method: string; body: string }> = [];
       globalThis.fetch = async (input, init) => {
         const url = String(input);
@@ -117,7 +194,14 @@ async function main() {
         throw new Error(`Unexpected provider request: ${method} ${url}`);
       };
 
-      const saved = await createGmailDraft(database, draftInput);
+      assert.equal(requests.length, 0, "proposal and replay create no provider effect");
+      const approvalStarted = performance.now();
+      const saved = (await approveAndExecuteAction(
+        database,
+        proposed.id,
+        "operator@example.test",
+      )) as Awaited<ReturnType<typeof createGmailDraft>>;
+      const approvalMs = performance.now() - approvalStarted;
       assert.equal(saved.status, "drafted");
       assert.equal(saved.sent, false);
       assert.equal(saved.draftId, "gmail-draft-1");
@@ -139,37 +223,29 @@ async function main() {
       assert.equal(stored?.external_id, "gmail-message-1");
       assert.equal(stored?.provider_id, "gmail-message-1");
       assert.equal((stored?.metadata as { sent?: boolean }).sent, false);
-      assert.equal(memory.rows("audit_log")[0]?.action, "gmail.draft_saved");
+      assert.equal(
+        memory.rows("audit_log").find((row) => row.action === "gmail.draft_saved")?.action,
+        "gmail.draft_saved",
+      );
 
-      const replay = await createGmailDraft(database, draftInput);
+      const replay = await createGmailDraft(database, approvedInput);
       assert.equal(replay.recovered, true);
       assert.equal(replay.draftId, "gmail-draft-1");
       assert.equal(requests.length, 1, "an executed idempotency key cannot create a duplicate");
       assert.equal(memory.rows("messages").length, 2);
 
-      memory.rows("action_queue").push({
-        id: draftInput.actionId,
-        tenant_id: tenantId,
-        action_type: "create_gmail_draft",
-        status: "executed",
-        payload: {
-          workItemId: "work-followup-1",
-          conversationId: draftInput.conversationId,
-          opportunityId: draftInput.opportunityId,
-          contactId: draftInput.contactId,
-          to: draftInput.to,
+      assert.equal(
+        memory.rows("action_queue").find((row) => row.id === proposed.id)?.approved_by,
+        "operator@example.test",
+      );
+      Object.assign(
+        memory.rows("work_items").find((row) => row.id === followup.workItem.id)!,
+        {
+          status: "waiting",
+          outcome: "Gmail draft saved. Not sent.",
+          lease_owner: null,
         },
-        result: saved,
-      });
-      memory.rows("work_items").push({
-        id: "work-followup-1",
-        tenant_id: tenantId,
-        kind: "draft_followup",
-        entity_id: draftInput.opportunityId,
-        status: "waiting",
-        outcome: "Gmail draft saved. Not sent.",
-        lease_owner: null,
-      });
+      );
       memory.rpc("record_evidence", () => ({
         claim_id: "claim-1",
         evidence_id: "evidence-1",
@@ -197,8 +273,10 @@ async function main() {
           },
         },
       ];
-      let profileReads = 0;
+      let profileReads = 0,
+        syncCalls = 0;
       globalThis.fetch = async (input) => {
+        syncCalls++;
         const url = new URL(String(input));
         if (url.pathname.endsWith("/profile")) {
           profileReads += 1;
@@ -221,7 +299,9 @@ async function main() {
         throw new Error(`Unexpected sync request: ${url}`);
       };
 
+      const sendSyncStarted = performance.now();
       const sentSync = await syncGmail(database);
+      const sendSyncMs = performance.now() - sendSyncStarted;
       assert.equal(sentSync.failed, 0);
       assert.equal(
         memory.rows("work_items")[0]?.outcome,
@@ -255,10 +335,33 @@ async function main() {
           },
         },
       ];
+      const replySyncStarted = performance.now();
       const replySync = await syncGmail(database);
+      const replySyncMs = performance.now() - replySyncStarted;
       assert.equal(replySync.failed, 0);
       assert.equal(memory.rows("work_items")[0]?.status, "completed");
       assert.match(memory.rows("work_items")[0]?.outcome as string, /canonical contact replied/);
+      writeJourneyEvidence("sales", {
+        tenantId,
+        contactId: opportunity.contact_id,
+        companyId: opportunity.company_id,
+        opportunityId: opportunity.id,
+        actionId: proposed.id,
+        workItemId: followup.workItem.id,
+        messageId: sentReceipt?.id,
+        providerReceipt: saved.draftId,
+        stages: [
+          "inquiry",
+          "qualified",
+          "approved_unsent_draft",
+          "manual_send_synced",
+          "reply_completed",
+        ],
+        providerCalls: requests.length + syncCalls,
+        timingsMs: { approvalMs, sendSyncMs, replySyncMs },
+        workItem: memory.rows("work_items").find((row) => row.id === followup.workItem.id),
+        approval: memory.rows("action_queue").find((row) => row.id === proposed.id)?.approved_by,
+      });
     }
 
     // A lost create response is reconciled by exact RFC Message-ID, thread,
@@ -345,6 +448,8 @@ async function main() {
       JSON.stringify({
         result: "passed",
         checks: [
+          "canonical-inquiry-through-qualification-and-approved-executor",
+          "suppressed-canonical-contact-refused",
           "draft-endpoint-only",
           "threaded-unsent-receipt",
           "exact-content-and-domain-derived-message-id",

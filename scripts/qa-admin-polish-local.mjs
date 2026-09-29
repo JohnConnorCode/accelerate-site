@@ -45,6 +45,7 @@ try {
     ["navigation", "./qa-admin-polish-navigation.mjs"],
   ])
     if (!focus || focus.split(",").includes(name)) await import(file);
+  if (focus?.split(",").includes("business")) await import("./qa-demo-business-workflows.mjs");
   if (focus?.split(",").includes("api"))
     await new Promise((resolve, reject) => {
       const check = spawn(

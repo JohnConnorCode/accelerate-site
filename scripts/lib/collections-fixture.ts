@@ -5,13 +5,26 @@ import { bindTenantDatabase } from "../../src/lib/supabase/server";
 import { encryptSecret, encryptTenantSecret } from "../../src/lib/revenue-os/encryption";
 
 /** Controlled Stripe/email transport shared by Collections host and entrypoint tests. */
-export function createCollectionsFixture({ allowSends = false } = {}) {
+type ReferenceInvoice = {
+  tenantId: string;
+  contactId: string;
+  creationActionId: string;
+  creation: { payload: Record<string, unknown>; result: Record<string, unknown> };
+  invoice: Record<string, unknown>;
+};
+export function createCollectionsFixture({
+  allowSends = false,
+  referenceInvoice,
+}: {
+  allowSends?: boolean;
+  referenceInvoice?: ReferenceInvoice;
+} = {}) {
   const oldKey = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY;
   process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = "controlled-collections-reminder-fixture";
-  const tenant = randomUUID(),
-    contact = randomUUID(),
+  const tenant = referenceInvoice?.tenantId ?? randomUUID(),
+    contact = referenceInvoice?.contactId ?? randomUUID(),
     caseId = randomUUID(),
-    invoiceAction = randomUUID(),
+    invoiceAction = referenceInvoice?.creationActionId ?? randomUUID(),
     observation = randomUUID(),
     workItemId = randomUUID();
   const config = { modules: { "receivables-collections": true, "stripe-invoicing": true } };
@@ -123,12 +136,18 @@ export function createCollectionsFixture({ allowSends = false } = {}) {
   }
   const db = bindTenantDatabase(mem.client, tenant, true);
   const original = globalThis.fetch;
-  const state = { balance: 7500, timeout: false, sends: 0, reads: 0, providerFailure: false };
+  const state = {
+    balance: Number(referenceInvoice?.invoice.amount_remaining ?? 7500),
+    timeout: false,
+    sends: 0,
+    reads: 0,
+    providerFailure: false,
+  };
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input));
     if (url.hostname === "api.stripe.com") {
       assert.equal(init?.method ?? "GET", "GET", "Collection reads cannot mutate Stripe");
-      assert.equal(url.pathname, "/v1/invoices/in_fixture");
+      assert.equal(url.pathname, `/v1/invoices/${referenceInvoice?.invoice.id ?? "in_fixture"}`);
       state.reads++;
       if (state.providerFailure)
         return Response.json(
@@ -136,14 +155,15 @@ export function createCollectionsFixture({ allowSends = false } = {}) {
           { status: 503 },
         );
       return Response.json({
-        id: "in_fixture",
+        ...(referenceInvoice?.invoice ?? {}),
+        id: referenceInvoice?.invoice.id ?? "in_fixture",
         status: state.balance ? "open" : "paid",
         currency: "usd",
-        amount_due: 10000,
-        amount_paid: 10000 - state.balance,
+        amount_due: Number(referenceInvoice?.invoice.amount_due ?? 10000),
+        amount_paid: Number(referenceInvoice?.invoice.amount_due ?? 10000) - state.balance,
         amount_remaining: state.balance,
         livemode: false,
-        due_date: 1735689600,
+        due_date: referenceInvoice?.invoice.due_date ?? 1735689600,
         customer: "cus_fixture",
         hosted_invoice_url: "https://invoice.stripe.com/i/fixture",
         metadata: {

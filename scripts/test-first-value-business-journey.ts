@@ -1,3 +1,4 @@
+import { writeJourneyEvidence } from "./lib/reference-journey-evidence";
 import assert from "node:assert/strict";
 import { DEMO_SCENARIOS, type DemoScenarioPack } from "../src/lib/admin/demo/scenarios";
 import {
@@ -564,6 +565,14 @@ async function main() {
     console.log(`- ${name}: n=${samples.length} avg=${avg.toFixed(1)}ms max=${max.toFixed(1)}ms`);
     assert.ok(max < 5000, `${name} completes within the local trial budget`);
   }
+  writeJourneyEvidence("first-use", {
+    scenarios: packs.map((pack) => pack.id),
+    timings,
+    totalMs: total,
+    timingEvidence: "local-fixture-execution",
+    redundantProviderCallsRemoved: 0,
+    note: "No redundant provider call was demonstrated. Exact send approval remains separate from draft approval.",
+  });
   console.log(`- total journey time: ${total.toFixed(1)}ms across ${packs.length} scenarios`);
   console.log(
     "Operator notes: the send approval is intentionally separate from the draft approval; " +

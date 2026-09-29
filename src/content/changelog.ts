@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "canonical-gmail-followup-target",
+    slug: "canonical-gmail-followup-target",
+    title: "Gmail follow-up drafts use the saved contact address",
+    description:
+      "Assistant-prepared Gmail drafts now read the canonical contact address created by normal inquiry intake and refuse contacts marked unsubscribed or bounced. Exact human approval still saves an unsent draft. Sending and a later customer reply are confirmed by synchronization on the same follow-up work item. Collections also accepts database delivery timestamps when enforcing the reminder cooldown. Automated release checks cover sales follow-up, approved onboarding tasks and invoice-to-collections outcomes using controlled provider adapters and local PostgreSQL; they do not establish a hosted release.",
+    category: "fix",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "debate-booking-production-loop",
     slug: "debate-booking-production-loop",
     title: "Debate bookings track the next confirmed commitment",
