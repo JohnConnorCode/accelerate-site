@@ -495,6 +495,16 @@ export function CollectionsWorkspace() {
                             </button>
                           </>
                         )}
+                        {a.actionType === "update_collection_policy" && a.status === "failed" && (
+                          <button
+                            type="button"
+                            className={button}
+                            disabled={busy}
+                            onClick={() => void perform(() => decide(a.id, "retry"))}
+                          >
+                            Review retry
+                          </button>
+                        )}
                         {a.actionType !== "update_collection_policy" &&
                           a.status === "failed" &&
                           a.result?.status !== "skipped" && (

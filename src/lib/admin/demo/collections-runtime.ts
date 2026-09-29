@@ -472,6 +472,17 @@ export async function handleDemoCollections(
         if (!action.result) throw new Error("No dispatch receipt exists");
         return response({ result: action.result, simulated: true });
       }
+      if (
+        action.action_type === "update_collection_policy" &&
+        body.decision === "retry" &&
+        action.status === "failed"
+      ) {
+        enabled();
+        action.status = "pending";
+        action.error = null;
+        record(find(action.payload.caseId), "policy_retry_requested");
+        return response({ result: { id: action.id }, simulated: true });
+      }
       if (action.status !== "pending") throw new Error("Action already handled");
       const c = find(action.payload.caseId);
       if (body.decision === "reject") {
