@@ -148,7 +148,8 @@ async function main() {
         string,
         unknown
       >;
-      assert.equal(approved.owner_email, changes.ownerEmail);
+      assert.equal((approved.case as Record<string, unknown>).owner_email, changes.ownerEmail);
+      assert.equal(approved.status, "applied");
       assert.equal(writes, 1);
       await assert.rejects(
         () => approveAndExecuteAction(f.db, action.id, email),
@@ -159,6 +160,7 @@ async function main() {
       assert.equal(f.state.sends, 0);
       const replay = await executeCollectionPolicy(f.db, action.payload, email);
       assert.equal(replay.revision, approved.revision);
+      assert.equal(replay.replayed, true);
       assert.equal(writes, 1);
       await assert.rejects(
         () => executeCollectionPolicy(f.db, { ...action.payload, digest: "0".repeat(64) }, email),

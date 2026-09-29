@@ -280,7 +280,7 @@ provider account/version, recipient, currency and invoice balances before callin
 `updateCollectionCase`. That existing transactional RPC owns revision checks,
 request replay, follow-up work, activity and audit. No schema migration is required.
 
-Ask “Set the collection owner for Evan Cole to finance@northline.example” in the
+Ask “Set the collection owner for Lena Walsh to finance@northline.example” in the
 fictional roofing workspace. Open the queued policy, inspect its current/proposed
 values, reject it or choose **Approve policy change**, then reload to check the
 saved owner. Pause and resume requests also use the shared demo transport. Demo
