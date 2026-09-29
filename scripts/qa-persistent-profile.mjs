@@ -46,7 +46,6 @@ const routes = [
 // The persistent profile exercises a fictional client workspace. Setup Center,
 // Feature Board, and tenant management are founder-only platform surfaces and
 // must remain absent from this route matrix as well as from the rendered nav.
-const mobilePrimarySlugs = new Set(["today", "pipeline", "conversations", "inbox"]);
 
 if (!Number.isFinite(iterations) || iterations < 4)
   throw new Error("--iterations must be at least 4");
@@ -251,16 +250,20 @@ async function runProfile({ label, userDataDir, cacheDisabled, seedLegacyPositio
     const currentPath = new URL(page.url()).pathname;
     const currentIndex = routes.findIndex((route) => currentPath.endsWith(`/${route.slug}`));
     const expected = routes[(currentIndex + 1 + routes.length) % routes.length];
+    const dockLink = page.locator(`.admin-mobile-dock a[href$="/${expected.slug}"]`).first();
     let link;
-    if (mobilePrimarySlugs.has(expected.slug)) {
-      link = page.locator(`.admin-mobile-dock a[href$="/${expected.slug}"]`).first();
+    if (await dockLink.isVisible()) {
+      link = dockLink;
     } else {
       await page.getByRole("button", { name: "Open More", exact: true }).click();
       await page.locator("#admin-mobile-navigation").waitFor();
       link = page.locator(`#admin-mobile-navigation a[href$="/${expected.slug}"]`).first();
-      const sectionButton = link.locator("xpath=ancestor::section[1]").getByRole("button").first();
-      if ((await sectionButton.getAttribute("aria-expanded")) === "false")
-        await sectionButton.click();
+      const section = link.locator("xpath=ancestor::section[1]");
+      // Records has a second disclosure. Open the actual controls before
+      // clicking; opacity alone does not make a collapsed link actionable.
+      for (const control of await section.locator("button[aria-controls]").all()) {
+        if ((await control.getAttribute("aria-expanded")) === "false") await control.click();
+      }
     }
     await link.waitFor();
     await link.evaluate((node) => {

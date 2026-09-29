@@ -7,10 +7,16 @@ import { patchOperatorTask } from "../src/lib/revenue-os/tasks";
 import { taskReviewState } from "../src/lib/revenue-os/operator-task-patch";
 import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
 import { tenant } from "../src/config/tenant";
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 
 const actorEmail = "founder@example.test";
+const tenantId = "11111111-1111-4111-8111-111111111111";
 function fixture() {
   const mem = new AuthorizedMemorySupabase({
+    tenants: [{ id: tenantId, status: "active", config: {} }],
+    tenant_memberships: [
+      { tenant_id: tenantId, invited_email: actorEmail, role: "admin", status: "active" },
+    ],
     tasks: [
       {
         id: "task-1",
@@ -31,7 +37,13 @@ function fixture() {
   });
   return {
     mem,
-    context: { supabase: mem.client, actorEmail, tenantSlug: "accelerate", tenantConfig: tenant },
+    context: {
+      supabase: bindTenantDatabaseForTest(mem.client, tenantId),
+      actorEmail,
+      tenantSlug: "accelerate",
+      tenantConfig: tenant,
+      principalKind: "workspace_member" as const,
+    },
   };
 }
 async function main() {
@@ -54,7 +66,8 @@ async function main() {
         },
         context,
       );
-      const result = response!.result as { isError: boolean; content: { text: string }[] };
+      assert.ok(response && !response.error, JSON.stringify(response));
+      const result = response.result as { isError: boolean; content: { text: string }[] };
       assert.equal(result.isError, false, result.content[0]!.text);
       return JSON.parse(result.content[0]!.text) as { id: string };
     };

@@ -81,21 +81,21 @@ async function main() {
     params: { name: "propose_task", arguments: { title: "Must not run" } },
   };
   assert.equal(await handleMcpRequest(noId, context), null);
-  assert.equal(memory.tables.action_queue.length, 0);
+  assert.equal(memory.rows("action_queue").length, 0);
   const preview = await handleMcpRequest(contentPreview, context);
   assert.equal(
     (preview?.result as { isError: boolean }).isError,
     false,
     "real read preview with a record ID must not be mistaken for a queued action",
   );
-  assert.equal(memory.tables.content_calendar[0]?.title, "Original draft");
-  assert.equal(memory.tables.action_queue.length, 0);
+  assert.equal(memory.rows("content_calendar")[0]?.title, "Original draft");
+  assert.equal(memory.rows("action_queue").length, 0);
   await executeRegisteredRevenueTool(context, "preview_content_calendar_update", {
     id: itemId,
     changes: { title: "Reviewed title" },
   });
 
-  memory.tables.tenants[0]!.config = { modules: { content: false } };
+  memory.rows("tenants")[0]!.config = { modules: { content: false } };
   const hidden = (await handleMcpRequest(request("tools/list"), context))?.result as {
     tools: { name: string }[];
   };
@@ -107,8 +107,8 @@ async function main() {
     ((await handleMcpRequest(contentPreview, context))?.result as { isError: boolean }).isError,
     true,
   );
-  memory.tables.tenants[0]!.config = {};
-  memory.tables.tenant_memberships[0]!.status = "revoked";
+  memory.rows("tenants")[0]!.config = {};
+  memory.rows("tenant_memberships")[0]!.status = "revoked";
   assert.equal(
     (await handleMcpRequest(contentPreview, context))?.error?.data &&
       (
@@ -118,14 +118,14 @@ async function main() {
       ).denyCode,
     "membership_revoked",
   );
-  memory.tables.tenant_memberships[0]!.status = "active";
-  memory.tables.tenants[0]!.status = "suspended";
+  memory.rows("tenant_memberships")[0]!.status = "active";
+  memory.rows("tenants")[0]!.status = "suspended";
   assert.equal(
     ((await handleMcpRequest(request("tools/list"), context))?.error?.data as { denyCode: string })
       .denyCode,
     "tenant_unknown_or_suspended",
   );
-  memory.tables.tenants[0]!.status = "active";
+  memory.rows("tenants")[0]!.status = "active";
 
   assert.equal(
     mcpHttpRequestError(
@@ -185,7 +185,7 @@ async function main() {
   }
 
   let cancelled = false;
-  const stream = new ReadableStream<Uint8Array>({
+  const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
     start(controller) {
       controller.enqueue(new Uint8Array(9));
       controller.enqueue(new Uint8Array(9));
@@ -309,8 +309,8 @@ async function main() {
     assert.equal(results[5].error.code, -32700);
     assert.equal(received[1]?.session, "fictional-session");
     assert.equal(received[1]?.protocol, "2025-03-26");
-    assert.equal(memory.tables.action_queue.length, 0);
-    assert.equal(memory.tables.content_calendar[0]?.title, "Original draft");
+    assert.equal(memory.rows("action_queue").length, 0);
+    assert.equal(memory.rows("content_calendar")[0]?.title, "Original draft");
   } finally {
     server.close();
     await once(server, "close");

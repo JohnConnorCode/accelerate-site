@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "workspace-mcp-and-import-review",
+    slug: "workspace-mcp-and-import-review",
+    title: "Workspace MCP connections and contact review are more reliable",
+    description:
+      "Stdio clients can now connect through a workspace’s authenticated HTTP endpoint without a database service-role credential. Tool discovery and invocation recheck live workspace and module access. Contact review shows original source values and row numbers, refuses incorrectly encoded uploads, retains cached history and reveals large lists without a growing row delay.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "approved-ai-task-lifecycle",
     slug: "approved-ai-task-lifecycle",
     title: "Ask AI can reopen tasks and revise their instructions",

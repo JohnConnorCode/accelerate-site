@@ -5,7 +5,7 @@ export async function* readMcpLines(input: AsyncIterable<Uint8Array>) {
   let chunks: Uint8Array[] = [];
   let size = 0;
   let oversized = false;
-  const finish = () => {
+  const finish = (): { line: string; error?: never } | { line?: never; error: string } => {
     const result = oversized
       ? { error: "MCP request exceeds 256,000 bytes" }
       : (() => {
