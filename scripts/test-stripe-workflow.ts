@@ -1,3 +1,5 @@
+import { projectCollectionObservation } from "../src/lib/revenue-os/collections";
+import { writeJourneyEvidence } from "./lib/reference-journey-evidence";
 import { formatInvoiceAmount } from "../src/lib/revenue-os/stripe-contract";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import assert from "node:assert/strict";
@@ -150,6 +152,7 @@ async function main() {
         metadata: {
           accelerate_tenant_id: body.get("metadata[accelerate_tenant_id]"),
           accelerate_action_id: body.get("metadata[accelerate_action_id]"),
+          accelerate_contact_id: body.get("metadata[accelerate_contact_id]"),
         },
         lines: { data: [], has_more: false },
       };
@@ -174,6 +177,7 @@ async function main() {
       invoice = {
         ...invoice,
         status: "open",
+        due_date: Math.floor(Date.now() / 1000) - 86400,
         hosted_invoice_url: "https://invoice.stripe.com/i/fixture",
       };
     else if (parsed.pathname.endsWith("/send")) {
@@ -283,6 +287,14 @@ async function main() {
     const current = await readStripeInvoiceForAction(db, proposed.id);
     assert.equal(current.receipt.amountPaid, 0);
     assert.equal(current.receipt.amountRemaining, 50000);
+    writeJourneyEvidence("invoice", {
+      tenantId, contactId, creationActionId: proposed.id, sendActionId: send.id,
+      stages: ["reviewed_invoice", "approved_draft", "partial_retried", "approved_test_mode_send", "verified_overdue_observation"],
+      providerCalls: {creates, lineWrites, sends},
+      creation: mem.rows("action_queue").find(row => row.id === proposed.id),
+      observation: projectCollectionObservation(current, new Date().toISOString()),
+      invoice: current.invoice,
+    });
     mem.rows("integration_connections").push({
       tenant_id: tenantId,
       provider: "openrouter",

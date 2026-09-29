@@ -1,3 +1,6 @@
+import { transitionOpportunity } from "../src/lib/revenue-os/pipeline";
+import { completeOperatorTask } from "../src/lib/revenue-os/tasks";
+import { writeJourneyEvidence } from "./lib/reference-journey-evidence";
 import { retrievePluginKnowledge } from "../src/lib/revenue-os/plugin-knowledge";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import { MODULE_MAP } from "../src/lib/revenue-os/modules";
@@ -76,7 +79,7 @@ async function main() {
     ],
     tenant_memberships: [{ tenant_id: tenantId, user_id: user, status: "active" }],
     opportunities: [
-      { id: opportunityId, tenant_id: tenantId, name: "Implementation", stage: "won" },
+      { id: opportunityId, tenant_id: tenantId, name: "Implementation", stage: "qualified" },
     ],
     calendar_events: [
       {
@@ -91,6 +94,11 @@ async function main() {
   mem.idFactory = (sequence) => `aaaaaaaa-aaaa-4aaa-8aaa-${String(sequence).padStart(12, "0")}`;
   const db = bindTenantDatabase(mem.client, tenantId, true),
     foreign = bindTenantDatabase(mem.client, other, true);
+  await transitionOpportunity(db, {
+    id: opportunityId, to: "won", actorEmail: "qa@example.example",
+    source: "reference_journey", reason: "Customer accepted the reviewed delivery scope",
+  });
+  assert.equal(mem.rows("stage_events").find(row => row.opportunity_id === opportunityId)?.to_stage, "won");
   const brand = await readWorkspaceBrand(db);
   const saved = await saveWorkspaceBrand(
     db,
@@ -280,7 +288,17 @@ async function main() {
     assert.equal(row.assigned_to, user);
     assert.equal(row.related_id, sourceId);
     assert.equal(row.tenant_id, tenantId);
-    row.status = "completed";
+    await completeOperatorTask(db, {id: String(row.id), actorEmail: "qa@example.example"});
+    assert.equal(row.status, "completed");
+    if (pluginId === "client-onboarding") {
+      writeJourneyEvidence("onboarding", {
+        tenantId, opportunityId, actionId: action.id, taskId: row.id,
+        assigneeUserId: user, dueDate: row.due_date,
+        stages: ["qualified", "won", "reviewed_plan", "approved_assigned_task", "completed"],
+        task: row, stageEvent: mem.rows("stage_events").find(row => row.opportunity_id === opportunityId),
+        approval: mem.rows("action_queue").find(row => row.id === action.id)?.approved_by,
+      });
+    }
     const repeated = await proposeWorkflowPlugin(
       db,
       pluginId,

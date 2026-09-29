@@ -60,15 +60,15 @@ export async function assertGmailDraftTarget(
 
   const { data: contact, error: contactError } = await supabase
     .from("contacts")
-    .select("id,email,unsubscribed")
+    .select("id,primary_email,communication_status")
     .eq("tenant_id", tenantId)
     .eq("id", contactId)
     .maybeSingle();
   if (contactError) throw new Error(contactError.message);
-  if (!contact?.email || normalizeEmail(contact.email) !== to)
+  if (!contact?.primary_email || normalizeEmail(contact.primary_email) !== to)
     throw new Error("Gmail draft recipient does not match the canonical contact");
-  if (contact.unsubscribed)
-    throw new Error("Cannot prepare a Gmail draft for an unsubscribed contact");
+  if (contact.communication_status !== "active")
+    throw new Error("Cannot prepare a Gmail draft for a suppressed contact");
 
   const { data: conversation, error: conversationError } = await supabase
     .from("conversations")
@@ -119,15 +119,15 @@ export async function assertWorkDraftTarget(
       throw new Error("Draft opportunity/contact mismatch");
     const { data: contact, error: contactError } = await supabase
       .from("contacts")
-      .select("id,email")
+      .select("id,primary_email,communication_status")
       .eq("tenant_id", item.tenant_id)
       .eq("id", opportunity.contact_id)
       .maybeSingle();
     if (contactError) throw new Error(contactError.message);
     if (
-      !contact?.email ||
+      !contact?.primary_email ||
       typeof payload.to !== "string" ||
-      payload.to.trim().toLowerCase() !== contact.email.trim().toLowerCase()
+      payload.to.trim().toLowerCase() !== contact.primary_email.trim().toLowerCase()
     ) {
       throw new Error("Draft recipient does not match the opportunity contact");
     }
