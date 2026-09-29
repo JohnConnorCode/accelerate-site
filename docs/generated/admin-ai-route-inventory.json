@@ -954,9 +954,10 @@
         "@/lib/rate-limit",
         "@/lib/supabase/configuration.mjs",
         "@/lib/supabase/server",
+        "@supabase/ssr",
         "next/server"
       ],
-      "sourceSha256": "8b2055ce06abdf62aba62137bbfa1aa5421e95df78c2ebff2d7f3b5d3f50421d"
+      "sourceSha256": "dc53ffddab805408244303c6a22e09169f8260f0106d24a0d5aab7af0711b945"
     },
     {
       "source": "src/app/api/admin/plausible/route.ts",

@@ -22,7 +22,7 @@ The public site and fictional Command Center demo can be explored without provid
 For a hosted installation, use a **new empty project** you control. Copy `.env.example` to `.env.local` and configure its Supabase URL, publishable (or legacy anon) key, server-only secret (or legacy service-role) key, database connection, `ADMIN_EMAIL`, and `BOOTSTRAP_BRAND_NAME`. The installer derives the remaining neutral identity from your business name, owner email and site URL. Set `BOOTSTRAP_SCHEDULER_URL` only when you intend to activate an external scheduler; it defaults to disabled.
 
 Enable Supabase email/password authentication and set the application origin as the
-Auth Site URL. Add `https://your-domain/auth/callback**` to Redirect URLs (use
+Auth Site URL in Supabase Auth settings. Add `https://your-domain/auth/callback**` to Redirect URLs (use
 `http://127.0.0.1:3000/auth/callback**` locally). Keep the wildcard on this path:
 the PKCE flow appends a query value to the callback. These are project settings;
 a database key cannot configure them. They remain a documented dashboard step.

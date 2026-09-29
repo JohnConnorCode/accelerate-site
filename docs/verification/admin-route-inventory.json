@@ -111,7 +111,7 @@
     "src/app/api/admin/memory/[id]/route.ts": "0e9a6f69c75162331ccd6aea8e0fcf3e9a9177fa17cee8acdb2dc969f97b74d3",
     "src/app/api/admin/memory/route.ts": "d6b0932f6dbefa9b17da3e670400ee4739a100882a43f4c92de633525a95aec4",
     "src/app/api/admin/partners/route.ts": "ae44503e05ecc4181c565dde831f3b5d29f7347cb49f3d28e2d06667122498a6",
-    "src/app/api/admin/password-reset/route.ts": "8b2055ce06abdf62aba62137bbfa1aa5421e95df78c2ebff2d7f3b5d3f50421d",
+    "src/app/api/admin/password-reset/route.ts": "dc53ffddab805408244303c6a22e09169f8260f0106d24a0d5aab7af0711b945",
     "src/app/api/admin/plugins/run/route.ts": "63116ab1a496af78539b3801fb57da3ec9bebbb47efbf52a6de6fd34bf892084",
     "src/app/api/admin/plugins/tasks/route.ts": "b99c65e9d43524894b64968e3e06d86593324435699e106d2bc4fab81f1013b0",
     "src/app/api/admin/plugins/workflow/route.ts": "9b2c2929f67e0980c347aa00ae475dd79c9dc111d2ffedf617e24e7c7c702dd6",
@@ -1292,7 +1292,7 @@
           "directTables": ["tenant_memberships"]
         }
       ],
-      "boundary": "Authentication boundary for authorized workspace members; no business record reconciliation applies. Missing, placeholder or malformed public database configuration shows setup on direct and redirected visits, with public-site documentation and fictional demo links. Login and password-reset APIs return 503 before provider calls until public configuration is valid. Google OAuth appears only when Supabase reports that provider enabled; its PKCE callback sets the session, while existing workspace membership checks still determine access. Configured email requests retain existing rate limits and membership checks. Public links grant no authentication or workspace access.",
+      "boundary": "Authentication boundary for authorized workspace members; no business record reconciliation applies. Missing, placeholder or malformed public database configuration shows setup on direct and redirected visits, with public-site documentation and fictional demo links. Login and password-reset APIs return 503 before provider calls until public configuration is valid. Google OAuth appears only when Supabase reports that provider enabled; its PKCE callback sets the session, while existing workspace membership checks still determine access. Configured email requests retain existing rate limits and membership checks. Password recovery uses the configured sender when available or Supabase Auth email otherwise; both callback paths use the configured workspace origin, while eligible membership and rate limits still gate issuance. Public links grant no authentication or workspace access.",
       "followUp": null,
       "specialBoundary": null
     },
