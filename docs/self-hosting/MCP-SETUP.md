@@ -21,7 +21,7 @@ Compatible MCP clients, including **Claude Desktop**, **Claude Code**, **Cursor*
 
 ## 1. Claude Desktop Setup
 
-Claude Desktop communicates over local `stdio` with your Revenue OS instance.
+Claude Desktop can run the stdio bridge against the tenant HTTP endpoint. This uses the same workspace key and authorization as other HTTP clients, without a database service-role credential.
 
 ### Configuration File Location
 
@@ -40,16 +40,19 @@ Add the `revenue-os` server to `mcpServers`:
       "args": ["tsx", "/absolute/path/to/your/clone/scripts/revenue-os-mcp.ts"],
       "env": {
         "NODE_OPTIONS": "--conditions=react-server",
-        "ADMIN_EMAIL": "you@yourbusiness.example",
-        "NEXT_PUBLIC_SUPABASE_URL": "https://<your-project-ref>.supabase.co",
-        "SUPABASE_SERVICE_ROLE_KEY": "<your-supabase-service-role-key>"
+        "REVENUE_OS_MCP_URL": "https://yourbusiness.example/api/public/your-workspace/mcp",
+        "MCP_API_KEY": "<existing-workspace-mcp-key>"
       }
     }
   }
 }
 ```
 
-`NODE_OPTIONS` is required: `scripts/revenue-os-mcp.ts` imports `src/lib/revenue-os/mcp-server.ts`, which is marked `server-only`, and that condition only resolves with this flag set.
+The remote bridge forwards the negotiated protocol and session, bounds each input message to 256,000 bytes and each response to 1 MiB, rejects invalid UTF-8, and keeps diagnostic output on stderr. It accepts HTTPS, plus loopback HTTP for local testing. It does not follow redirects with the workspace key.
+
+Omitting `REVENUE_OS_MCP_URL` retains the separate installation-owner database mode. That mode requires `NODE_OPTIONS=--conditions=react-server`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and the correct installation administrator identity. It uses the reference system workspace and cannot switch workspaces from model input. Ordinary workspace clients should use the remote bridge or tenant HTTP.
+
+Browser clients whose Origin differs from the server origin require an exact, comma-separated `MCP_ALLOWED_ORIGINS` allowlist. Server clients without an Origin header do not need it. Unsupported protocol-version headers are refused. Workspace tools refresh live module state and membership authority before discovery or execution; changing a tool profile cannot bypass those checks.
 
 > **Tip**: If running locally from the repo directory, you can also run:
 >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -26,6 +26,7 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
 import { adminListItemVariants, adminListVariants, adminSectionVariants } from "@/lib/admin/motion";
 import { cn } from "@/lib/utils";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
 type Action = "create" | "update" | "skip";
 type Confidence = "high" | "medium" | "low";
@@ -43,6 +44,7 @@ type ContactFields = {
 type ImportRow = {
   id: string;
   row_index: number;
+  raw_data: Record<string, string>;
   status: string;
   action: Action;
   included: boolean;
@@ -116,11 +118,16 @@ async function api(body?: Record<string, unknown>, id?: string) {
 
 export default function ContactImportsPage() {
   const fileInput = useRef<HTMLInputElement>(null);
+  const sourceGeneration = useRef(0);
   const [sourceText, setSourceText] = useState("");
   const [filename, setFilename] = useState<string | null>(null);
   const [instructions, setInstructions] = useState("");
   const [batch, setBatch] = useState<ImportBatch | null>(null);
-  const [history, setHistory] = useState<ImportBatch[]>([]);
+  const historyQuery = useAdminQuery<{ schemaReady: boolean; batches: ImportBatch[] }>(
+    ["contact-imports", "history"],
+    "/api/admin/revenue-os/contact-imports",
+  );
+  const history = historyQuery.data?.batches ?? [];
   const [activeRowId, setActiveRowId] = useState<string | null>(null);
   const [busy, setBusy] = useState<"analyze" | "save" | "execute" | "history" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -128,20 +135,6 @@ export default function ContactImportsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saved, setSaved] = useState(true);
 
-  const loadHistory = useCallback(async () => {
-    try {
-      const data = await api();
-      setSchemaReady(data.schemaReady !== false);
-      setHistory(data.batches || []);
-    } catch (cause) {
-      const value = cause as Error & { schemaReady?: boolean };
-      if (value.schemaReady === false) setSchemaReady(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadHistory();
-  }, [loadHistory]);
   const rows = useMemo(() => batch?.rows ?? [], [batch?.rows]);
   const activeRow = rows.find((row) => row.id === activeRowId) ?? rows[0] ?? null;
   const selectedRows = rows.filter((row) => row.included && row.action !== "skip");
@@ -164,7 +157,7 @@ export default function ContactImportsPage() {
       setActiveRowId(data.batch?.rows?.[0]?.id ?? null);
       setSaved(true);
       setSchemaReady(true);
-      await loadHistory();
+      await historyQuery.refetch();
     } catch (cause) {
       const value = cause as Error & { schemaReady?: boolean };
       setError(value.message);
@@ -176,6 +169,7 @@ export default function ContactImportsPage() {
 
   async function chooseFile(file?: File) {
     if (!file) return;
+    const generation = ++sourceGeneration.current;
     setError(null);
     if (file.size > 250_000) {
       setError("Choose a UTF-8 text file smaller than 250 KB.");
@@ -186,10 +180,15 @@ export default function ContactImportsPage() {
       return;
     }
     try {
-      setSourceText(await file.text());
+      const text = new TextDecoder("utf-8", { fatal: true }).decode(await file.arrayBuffer());
+      if (generation !== sourceGeneration.current) return;
+      setSourceText(text);
       setFilename(file.name);
     } catch {
-      setError("This file could not be read as UTF-8 text.");
+      if (generation !== sourceGeneration.current) return;
+      setError(
+        "This file could not be read as UTF-8 text. Save it with UTF-8 encoding and try again.",
+      );
     }
   }
 
@@ -255,7 +254,7 @@ export default function ContactImportsPage() {
       await api({ action: "approve", batchId: batch.id, expectedDigest: batch.review_digest });
       const data = await api({ action: "execute", batchId: batch.id });
       setBatch(data.batch);
-      await loadHistory();
+      await historyQuery.refetch();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not execute import");
     } finally {
@@ -270,7 +269,7 @@ export default function ContactImportsPage() {
     try {
       const data = await api({ action: "execute", batchId: batch.id });
       setBatch(data.batch);
-      await loadHistory();
+      await historyQuery.refetch();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not retry failed rows");
     } finally {
@@ -304,7 +303,9 @@ export default function ContactImportsPage() {
           batch && !finished ? (
             <button
               type="button"
+              disabled={busy !== null}
               onClick={() => {
+                sourceGeneration.current += 1;
                 setBatch(null);
                 setSourceText("");
                 setFilename(null);
@@ -350,6 +351,7 @@ export default function ContactImportsPage() {
                   <textarea
                     value={sourceText}
                     onChange={(event) => {
+                      sourceGeneration.current += 1;
                       setSourceText(event.target.value);
                       setFilename(null);
                     }}
@@ -374,7 +376,10 @@ export default function ContactImportsPage() {
                     type="file"
                     aria-label="Upload contacts file"
                     accept=".csv,.tsv,.json,.txt,text/csv,text/tab-separated-values,application/json,text/plain"
-                    onChange={(event) => void chooseFile(event.target.files?.[0])}
+                    onChange={(event) => {
+                      void chooseFile(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
                   />
                   <button
                     type="button"
@@ -422,7 +427,10 @@ export default function ContactImportsPage() {
               </AdminSurface>
               <ImportHistory
                 history={history}
-                busy={busy === "history"}
+                busy={busy !== null}
+                loading={historyQuery.isPending}
+                failed={historyQuery.isError}
+                onRetry={() => void historyQuery.refetch()}
                 onOpen={(id) => void openBatch(id)}
               />
             </div>
@@ -502,6 +510,7 @@ export default function ContactImportsPage() {
                         key={row.id}
                         row={row}
                         active={activeRow?.id === row.id}
+                        disabled={busy !== null}
                         onSelect={() => setActiveRowId(row.id)}
                         onToggle={() => patchRow(row.id, { included: !row.included })}
                       />
@@ -512,6 +521,7 @@ export default function ContactImportsPage() {
                   {activeRow ? (
                     <RowEditor
                       row={activeRow}
+                      disabled={busy !== null}
                       onPatch={(patch) => patchRow(activeRow.id, patch)}
                       onField={(field, value) => patchField(activeRow.id, field, value)}
                     />
@@ -565,8 +575,8 @@ export default function ContactImportsPage() {
         )}
       </AnimatePresence>
 
-      {!schemaReady && (
-        <ErrorNotice message="Contact Import is not activated yet. Apply migrations/20260816-contact-importer.sql, then refresh this page." />
+      {(!schemaReady || historyQuery.data?.schemaReady === false) && (
+        <ErrorNotice message="Contact imports are unavailable for this workspace. Open Setup Center to finish setup, then try again." />
       )}
       {error && !batch && <ErrorNotice message={error} />}
 
@@ -658,11 +668,13 @@ function Metric({
 function RowListItem({
   row,
   active,
+  disabled,
   onSelect,
   onToggle,
 }: {
   row: ImportRow;
   active: boolean;
+  disabled: boolean;
   onSelect: () => void;
   onToggle: () => void;
 }) {
@@ -678,7 +690,9 @@ function RowListItem({
     >
       <button
         type="button"
-        aria-label={`${row.included ? "Exclude" : "Include"} ${row.reviewed_data.fullName}`}
+        aria-label={`${row.included ? "Exclude" : "Include"} row ${row.row_index + 1}: ${row.reviewed_data.fullName || "Unnamed contact"}`}
+        aria-pressed={row.included}
+        disabled={disabled}
         onClick={onToggle}
         className="relative grid size-10 shrink-0 place-items-center rounded-xl transition-[background-color,scale] duration-150 hover:bg-black/[0.05] active:scale-[0.96] dark:hover:bg-white/[0.06]"
       >
@@ -696,6 +710,7 @@ function RowListItem({
       <button
         type="button"
         onClick={onSelect}
+        aria-pressed={active}
         className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-xl px-2 text-left transition-[scale] duration-150 active:scale-[0.98]"
       >
         <span
@@ -714,6 +729,9 @@ function RowListItem({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
+            <span className="admin-number mr-2 text-xs font-normal text-[var(--admin-muted)]">
+              {row.row_index + 1}
+            </span>
             {row.reviewed_data.fullName || "Unnamed contact"}
           </span>
           <span className="admin-copy mt-0.5 block truncate text-xs">
@@ -731,10 +749,12 @@ function RowListItem({
 
 function RowEditor({
   row,
+  disabled,
   onPatch,
   onField,
 }: {
   row: ImportRow;
+  disabled: boolean;
   onPatch: (patch: Partial<ImportRow>) => void;
   onField: (field: keyof ContactFields, value: string) => void;
 }) {
@@ -749,7 +769,7 @@ function RowEditor({
     { key: "source", label: "Source", placeholder: "Not provided" },
   ];
   return (
-    <div>
+    <fieldset disabled={disabled} className="min-w-0">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="admin-eyebrow">Row {row.row_index + 1}</p>
@@ -766,6 +786,31 @@ function RowEditor({
           {row.confidence} confidence
         </span>
       </div>
+      <details
+        key={row.id}
+        open={row.status === "needs_review"}
+        className="mt-5 rounded-xl bg-[var(--admin-surface-subtle)] p-3"
+        data-testid="contact-import-original"
+      >
+        <summary className="min-h-10 cursor-pointer content-center text-sm font-semibold text-[var(--admin-ink)]">
+          Original source · row {row.row_index + 1}
+        </summary>
+        <p className="admin-copy mt-2 text-xs">
+          Use these original values to check or correct the proposed contact.
+        </p>
+        <dl className="mt-3 space-y-3 text-xs">
+          {Object.entries(row.raw_data ?? {}).map(([key, value]) => (
+            <div key={key}>
+              <dt className="font-semibold text-[var(--admin-muted)] [overflow-wrap:anywhere]">
+                {key}
+              </dt>
+              <dd className="mt-1 whitespace-pre-wrap text-[var(--admin-ink)] [overflow-wrap:anywhere]">
+                {value || "(empty)"}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </details>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         {fields.map((field) => (
           <label key={field.key} className="admin-field-label">
@@ -835,7 +880,7 @@ function RowEditor({
           ))}
         </div>
       )}
-    </div>
+    </fieldset>
   );
 }
 
@@ -907,10 +952,16 @@ function ResultPanel({
 function ImportHistory({
   history,
   busy,
+  loading,
+  failed,
+  onRetry,
   onOpen,
 }: {
   history: ImportBatch[];
   busy: boolean;
+  loading: boolean;
+  failed: boolean;
+  onRetry: () => void;
   onOpen: (id: string) => void;
 }) {
   return (
@@ -953,7 +1004,26 @@ function ImportHistory({
             </span>
           </button>
         ))}
-        {!history.length && (
+        {failed && (
+          <div className="p-4" role="alert">
+            <p className="admin-copy text-xs">
+              Recent imports could not be loaded. Your current review is still available.
+            </p>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-2 min-h-10 rounded-xl px-3 text-sm font-semibold text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)]"
+            >
+              Retry history
+            </button>
+          </div>
+        )}
+        {loading && (
+          <p className="admin-copy p-4 text-xs" role="status">
+            Loading recent imports…
+          </p>
+        )}
+        {!history.length && !loading && !failed && (
           <p className="admin-copy px-4 py-8 text-center text-xs">
             Completed and reviewable batches will appear here.
           </p>

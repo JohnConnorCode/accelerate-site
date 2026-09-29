@@ -495,8 +495,11 @@ export function assertImpactHonoured(
   }
   const proposalId = (output as { id?: unknown } | null)?.id;
   const staged = typeof proposalId === "string" && proposalId.length > 0;
+  // Read previews can identify their target record. Only the canonical action
+  // shape identifies a queued write; a record ID alone is not a proposal.
+  const actionType = (output as { action_type?: unknown } | null)?.action_type;
 
-  if (tool.impact === "read" && staged) {
+  if (tool.impact === "read" && staged && typeof actionType === "string") {
     throw new Error(
       `${tool.name} is registered as a read tool but produced a queued action. Re-register it with the correct impact before using it.`,
     );
@@ -507,7 +510,6 @@ export function assertImpactHonoured(
     );
   }
   if (staged && (tool.impact === "internal_write" || tool.impact === "external_action")) {
-    const actionType = (output as { action_type?: unknown }).action_type;
     if (typeof actionType !== "string")
       throw new Error(`${tool.name} staged an action without a registered action type`);
     const action = reversibilityOf(actionType);

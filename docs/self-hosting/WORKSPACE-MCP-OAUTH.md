@@ -8,10 +8,7 @@ client cannot approve its own proposal. Tool coverage depends on the
 deployed registry, enabled modules and connected providers. It does not include
 every admin operation or the separate Site Studio website editor.
 
-[OpenAI currently supports custom MCP apps on web only](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt).
-Full write-capable MCP is a Business, Enterprise and Edu beta. Pro supports
-read/fetch. A workspace MCP key cannot make this connection work in ChatGPT,
-and no token enables the ChatGPT phone app to use custom MCP apps.
+Use [OpenAI’s current ChatGPT connection guide](https://developers.openai.com/plugins/deploy/connect-chatgpt) to check account eligibility and supported clients. Configure OAuth using the exact callback URI supplied by the client. A workspace MCP API key is not a substitute for the OAuth connection. Refresh the client's tool metadata after deploying registry changes.
 
 ## Installation setup
 

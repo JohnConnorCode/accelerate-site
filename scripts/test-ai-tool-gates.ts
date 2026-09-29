@@ -560,9 +560,14 @@ async function main() {
   const readTool = registry.find((tool) => tool.impact === "read");
   assert.ok(readTool, "no read tool registered");
   await rejects(
-    async () => assertImpactHonoured(readTool, { id: "queued-action-id" }),
+    async () =>
+      assertImpactHonoured(readTool, { id: "queued-action-id", action_type: "create_task" }),
     "read tool but produced a queued action",
     "a tool tagged read that stages an action must fail closed",
+  );
+
+  assert.doesNotThrow(() =>
+    assertImpactHonoured(readTool, { id: "record-id", requiresHumanApproval: true }),
   );
 
   const writeTool = registry.find((tool) => tool.impact === "internal_write");

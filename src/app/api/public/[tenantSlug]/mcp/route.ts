@@ -1,3 +1,9 @@
+import {
+  MCP_MAX_REQUEST_BYTES,
+  mcpRequestSchema,
+  mcpHttpRequestError,
+} from "@/lib/revenue-os/mcp-request";
+import { readBoundedJson } from "@/lib/http/bounded-json";
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { createServiceRoleClient } from "@/lib/supabase/server";
@@ -39,9 +45,11 @@ export const runtime = "nodejs";
  * MCP key, at which point CORS was never the boundary protecting it.
  */
 const CORS_HEADERS: Record<string, string> = {
+  "Cache-Control": "no-store",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, MCP-Protocol-Version",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, Mcp-Session-Id, MCP-Protocol-Version",
   "Access-Control-Expose-Headers": "Mcp-Session-Id",
   "Access-Control-Max-Age": "86400",
 };
@@ -80,7 +88,10 @@ async function resolveTenantMcpAuth(
   if (!resolved) return null;
 
   const configuredKey =
-    resolved.apiKey || (resolved.allowEnvironment ? process.env.REVENUE_OS_API_KEY || process.env.MCP_API_KEY || null : null);
+    resolved.apiKey ||
+    (resolved.allowEnvironment
+      ? process.env.REVENUE_OS_API_KEY || process.env.MCP_API_KEY || null
+      : null);
   if (!configuredKey || !timingSafeStringEqual(token, configuredKey)) return null;
 
   return {
@@ -140,6 +151,9 @@ export async function POST(
   request: NextRequest,
   context: { params: Promise<{ tenantSlug: string }> },
 ) {
+  const transportError = mcpHttpRequestError(request, MCP_SUPPORTED_PROTOCOL_VERSIONS);
+  if (transportError)
+    return withCors(NextResponse.json({ error: transportError }, { status: 400 }));
   const { tenantSlug } = await context.params;
   const authHeader = request.headers.get("authorization");
   const auth = await resolveTenantMcpAuth(tenantSlug, authHeader);
@@ -158,7 +172,9 @@ export async function POST(
 
   let body: McpJsonRpcRequest;
   try {
-    body = (await request.json()) as McpJsonRpcRequest;
+    body = mcpRequestSchema.parse(
+      await readBoundedJson(request, MCP_MAX_REQUEST_BYTES),
+    ) as McpJsonRpcRequest;
     if (!body || body.jsonrpc !== "2.0" || !body.method) {
       return withCors(
         NextResponse.json(
@@ -203,7 +219,7 @@ export async function POST(
     });
     // handleMcpRequest returns null for a true notification (no id member),
     // which per JSON-RPC 2.0 must not receive a response body at all.
-    if (response === null) return withCors(new NextResponse(null, { status: 204 }));
+    if (response === null) return withCors(new NextResponse(null, { status: 202 }));
     const nextResponse = withCors(NextResponse.json(response));
     // Sessions are optional on this stateless server (auth is a per-request
     // Bearer token, nothing server-side keys off a session), but issuing one

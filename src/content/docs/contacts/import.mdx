@@ -57,3 +57,9 @@ Check the batch result and open a sample of the accepted contacts. Failed rows r
 ## What to check
 
 Compare the source row count with the review row count before approval; they should match. If analysis rejects repeated headers, broken quotes, missing columns, nested JSON, or control characters, correct the export and try again. Split a batch when its complete source exceeds the analysis budget, even if the file fits the upload limit. Inspect the existing batch before resubmitting the same file. Use separate actions when you want to send email, enroll contacts in a campaign, or create an opportunity.
+
+## Correct a row from its original source
+
+Each review row keeps its source row number. Open **Original source** to compare the untouched source fields with the proposed contact. It opens automatically for rows needing review, including rows the AI omitted. Correct the fields, choose whether to include the row, and save the review before approving its exact snapshot.
+
+Uploads must contain valid UTF-8. An incorrectly encoded file is refused with a correction message, rather than replacing unreadable characters. Save it as UTF-8 and upload again. Recent import history is cached across workspace navigation; if a refresh fails, retry history while keeping the current review available.
