@@ -1,8 +1,4 @@
-import {
-  prepareOperatorTaskPatch,
-  taskReviewState,
-  TASK_REVIEW_FIELDS,
-} from "./operator-task-patch";
+import { prepareOperatorTaskPatch, taskReviewState } from "./operator-task-patch";
 import { getFirstUseProgress } from "./first-use";
 import { listLearningSignals, recordCorrectionSignal } from "./learning-signals";
 import { listKnowledgeDocuments, proposeKnowledgeChange } from "./knowledge-documents";
@@ -2018,7 +2014,7 @@ const registry: AiToolRegistration[] = [
       };
       const { data: current, error } = await supabase
         .from("tasks")
-        .select(TASK_REVIEW_FIELDS.join(","))
+        .select("title,description,priority,due_date,status,snoozed_until,completed_at")
         .eq("id", taskId)
         .maybeSingle();
       if (error) throw new Error("Could not read the task for review");
