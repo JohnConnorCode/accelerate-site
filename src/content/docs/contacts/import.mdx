@@ -1,7 +1,7 @@
 ---
 title: "Import contacts"
 description: "Review a CSV or pasted list, resolve contact matches and confirm the records to import."
-updated: "2026-09-27"
+updated: "2026-09-29"
 ---
 
 A spreadsheet becomes useful when your team can find its people in the workspace and trust their details. Import a CSV or pasted list into a review batch, check the proposed matches and save the contacts you intend to keep.
@@ -28,15 +28,19 @@ Jamie Chen,jamie@example.test,,Example Company,https://example.test
 
 A reviewed contact needs a name and at least an email address or phone number. An email must be valid. A supplied website must be a valid domain or HTTP(S) address. Include a business website when you want to identify a company reliably.
 
+Give every CSV or TSV column a distinct header and keep the same number of columns on each row. A batch accepts up to 500 contact rows, 250,000 source characters, and 2,000 characters per source cell. Split a larger export into smaller files before analyzing it.
+
 ## 2. Analyze the source
 
 Open **Contacts**, choose **List import**, and start an import. You can also open `/admin/contact-imports`. Upload the file or paste the list, then choose **Analyze and build review**.
 
-The proposed rows are a review snapshot. Analysis has not imported them yet.
+The review keeps every accepted source row in its original order. When the AI cannot identify a contact in a row, that row remains visible with an explanation and starts excluded, so you can complete it or leave it out. Analysis creates the review batch; it does not import contacts.
 
 ## 3. Review the rows
 
 Check names, email addresses, phone numbers, company information, and each row's import decision. Correct errors and exclude rows you do not want. Inspect possible matches rather than assuming similar names identify the same person.
+
+If a row has no proposed contact, open it and fill in the name and contact method only when the source supports them. Edited fields have length limits; shorten an oversized value when the review tells you which field exceeded its limit.
 
 Company information can remain unlinked when there is not enough evidence to identify the business. Resolve warnings deliberately; do not invent missing fields.
 
@@ -46,6 +50,8 @@ Save your review changes, then choose **Review approval**. Inspect the exact sna
 
 ## 5. Verify the result
 
-Check the batch result and open a sample of the accepted contacts. Failed rows remain available with a reason. Inspect the existing batch before resubmitting the same file.
+Check the batch result and open a sample of the accepted contacts. Failed rows remain available with a reason.
 
-Importing contacts does not send email, subscribe them to a campaign, or create an opportunity. Those are separate actions.
+## What to check
+
+Compare the source row count with the review row count before approval; they should match. If analysis rejects repeated headers, broken quotes, missing columns, nested JSON, or an oversized batch, correct the export or split it and try again. Inspect the existing batch before resubmitting the same file. Use separate actions when you want to send email, enroll contacts in a campaign, or create an opportunity.
