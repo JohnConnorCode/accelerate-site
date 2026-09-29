@@ -1,3 +1,4 @@
+import type { AiCommandStreamEvent } from "@/lib/revenue-os/ai-stream-contract";
 import { getModuleSettings, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 import { z } from "zod";
 import type { DemoScenarioPack } from "./scenarios";
@@ -134,7 +135,13 @@ export async function handleDemoCollections(
   const action = state.actions.find(
     (a) => a.id === body.id && a.pluginId === "receivables-collections",
   );
+  const policyChat =
+    url.pathname === "/api/admin/revenue-os/ai/stream" &&
+    method === "POST" &&
+    /\bcollections?\b/i.test(String(body.text ?? "")) &&
+    /\b(pause|resume|owner)\b/i.test(String(body.text ?? ""));
   if (
+    !policyChat &&
     !url.pathname.startsWith("/api/admin/collections") &&
     !(url.pathname === "/api/admin/revenue-os/actions" && action)
   )
@@ -232,7 +239,142 @@ export async function handleDemoCollections(
     };
     return { ...value, digest: await digest(value) };
   };
+  const applyPolicy = (c: CollectionCaseView, raw: unknown) => {
+    const patch = collectionCasePatchSchema.parse(raw);
+    Object.assign(c, patch);
+    c.revision++;
+    for (const w of c.work) {
+      w.status = c.disputed || c.paused ? "cancelled" : "pending";
+      w.objective = c.nextAction;
+      w.nextCheckAt = c.promiseDate
+        ? new Date(Date.parse(c.promiseDate) + 86400000).toISOString()
+        : now();
+      w.reason = c.promiseDate
+        ? "Recheck after the payment promise"
+        : "Review current collection policy";
+    }
+    record(c, "policy_updated");
+  };
+  const policyPreview = async (c: CollectionCaseView, raw: unknown) => {
+    enabled();
+    if (c.status !== "open") throw new Error("Open collection case unavailable");
+    const patch = collectionCasePatchSchema.parse(raw);
+    const before = {
+      disputed: c.disputed,
+      paused: c.paused,
+      pauseUntil: c.pauseUntil,
+      promiseDate: c.promiseDate,
+      ownerEmail: c.ownerEmail,
+      nextAction: c.nextAction,
+    };
+    const after = { ...before, ...patch };
+    const invoices = c.invoices.map((i) => {
+      const source = state.invoices.find((v) => v.actionId === i.creationActionId)!;
+      return { ...i, remaining: source.receipt.amountRemaining, status: source.receipt.status };
+    });
+    if (!invoices.some((i) => i.status === "open" && i.remaining > 0))
+      throw new Error("No open balance remains");
+    const changes = (Object.keys(patch) as Array<keyof typeof before>)
+      .filter((k) => before[k] !== after[k])
+      .map((k) => `${k}: ${JSON.stringify(before[k])} → ${JSON.stringify(after[k])}`);
+    if (!changes.length) throw new Error("No collection policy values would change");
+    const snapshot = {
+      caseId: c.id,
+      revision: c.revision,
+      patch,
+      before,
+      after,
+      email: c.email,
+      invoices,
+    };
+    return {
+      ...snapshot,
+      digest: await digest(snapshot),
+      text: changes.join("\n") + "\nUpdates case follow-up work. No reminder is sent.",
+    };
+  };
   try {
+    if (policyChat) {
+      enabled();
+      const text = String(body.text).trim();
+      const matches = cases.filter(
+        (c) => text.toLowerCase().includes(c.name.toLowerCase()) || text.includes(c.id),
+      );
+      if (matches.length !== 1)
+        throw new Error("Name exactly one collection case to preview a policy change");
+      const c = matches[0]!;
+      const owner = text.match(
+        /\bowner\b[\s\S]*?\b([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})\b/i,
+      )?.[1];
+      const patch = /\bowner\b/i.test(text)
+        ? { ownerEmail: owner }
+        : { paused: !/\bresume\b/i.test(text) };
+      if (/\bowner\b/i.test(text) && !owner)
+        throw new Error("Include the owner's email in the demo policy request");
+      const current = await policyPreview(c, patch);
+      let queued = state.actions.find(
+        (a) =>
+          a.action_type === "update_collection_policy" &&
+          a.digest === current.digest &&
+          a.status === "pending",
+      );
+      if (!queued) {
+        queued = {
+          id: crypto.randomUUID(),
+          action_type: "update_collection_policy",
+          title: `Update collection policy: ${c.name}`,
+          description: current.text,
+          status: "pending",
+          error: null,
+          payload: { caseId: c.id, patch, preview: { to: "", text: current.text } },
+          result: null,
+          pluginId: "receivables-collections",
+          created_at: now(),
+          digest: current.digest,
+        };
+        state.actions.unshift(queued);
+        record(c, "policy_proposed");
+      }
+      const answer = `Simulated policy proposal for ${c.name}:\n${current.text}\nReview it in Collections and approve or reject it. The policy has not changed.`;
+      const events: AiCommandStreamEvent[] = [
+        {
+          type: "conversation",
+          conversationId: body.conversationId || `ai-${pack.id}`,
+          userMessageId: crypto.randomUUID(),
+        },
+        { type: "tool_started", name: "preview_collection_policy", index: 0 },
+        {
+          type: "tool_completed",
+          name: "preview_collection_policy",
+          index: 0,
+          summary: current.text,
+          failed: false,
+        },
+        {
+          type: "proposal_staged",
+          proposal: {
+            id: queued.id,
+            actionType: queued.action_type,
+            title: queued.title,
+            impact: "internal_write",
+            entityType: "collection_case",
+            entityId: c.id,
+          },
+        },
+        { type: "assistant_delta", delta: answer },
+        {
+          type: "final",
+          conversationId: body.conversationId || `ai-${pack.id}`,
+          messageId: crypto.randomUUID(),
+          runId: crypto.randomUUID(),
+          text: answer,
+          proposedActions: [queued.id],
+        },
+      ];
+      return new Response(events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join(""), {
+        headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" },
+      });
+    }
     if (url.pathname === "/api/admin/collections/workspace" && method === "GET") {
       enabled();
       const contact = url.searchParams.get("contactId");
@@ -243,7 +385,7 @@ export async function handleDemoCollections(
             ...c,
             actions: state.actions
               .filter((a) => a.pluginId === "receivables-collections" && a.payload.caseId === c.id)
-              .map((a) => ({ ...a, preview: a.payload.preview })),
+              .map((a) => ({ ...a, actionType: a.action_type, preview: a.payload.preview })),
           })),
         invoiceOptions: state.actions
           .filter((a) => a.action_type === "create_stripe_invoice_draft" && a.status === "executed")
@@ -257,20 +399,7 @@ export async function handleDemoCollections(
       const c = find(body.caseId);
       if (c.revision !== body.revision || c.status !== "open")
         throw new Error("Case changed; reload before editing");
-      const patch = collectionCasePatchSchema.parse(body.patch);
-      Object.assign(c, patch);
-      c.revision++;
-      for (const w of c.work) {
-        w.status = c.disputed || c.paused ? "cancelled" : "pending";
-        w.objective = c.nextAction;
-        w.nextCheckAt = c.promiseDate
-          ? new Date(Date.parse(c.promiseDate) + 86400000).toISOString()
-          : now();
-        w.reason = c.promiseDate
-          ? "Recheck after the payment promise"
-          : "Review current collection policy";
-      }
-      record(c, "policy_updated");
+      applyPolicy(c, body.patch);
       return response({ case: c, simulated: true });
     }
     if (url.pathname === "/api/admin/collections" && method === "POST") {
@@ -342,11 +471,25 @@ export async function handleDemoCollections(
       const c = find(action.payload.caseId);
       if (body.decision === "reject") {
         action.status = "rejected";
-        record(c, "reminder_rejected");
+        record(
+          c,
+          action.action_type === "update_collection_policy"
+            ? "policy_rejected"
+            : "reminder_rejected",
+        );
         return response({ simulated: true });
       }
       if (body.decision !== "approve") throw new Error("Invalid decision");
       try {
+        if (action.action_type === "update_collection_policy") {
+          const current = await policyPreview(c, action.payload.patch);
+          if (current.digest !== action.digest) throw new Error("Collection policy facts changed");
+          applyPolicy(c, action.payload.patch);
+          action.status = "executed";
+          action.result = { status: "applied", revision: c.revision, simulated: true };
+          save();
+          return response({ result: action.result, simulated: true });
+        }
         const current = await preview(c);
         if (current.digest !== action.digest) throw new Error("Reminder facts changed");
         action.status = "executed";
@@ -364,7 +507,10 @@ export async function handleDemoCollections(
         return response({ result: action.result, simulated: true });
       } catch {
         action.status = "failed";
-        action.error = "Reminder skipped: payment, policy, recipient or plugin state changed.";
+        action.error =
+          action.action_type === "update_collection_policy"
+            ? "Policy change skipped: payment, policy, recipient or plugin state changed. Preview again."
+            : "Reminder skipped: payment, policy, recipient or plugin state changed.";
         action.result = { status: "skipped", simulated: true };
         record(c, "reminder_skipped");
         return response({ error: action.error, simulated: true }, 409);

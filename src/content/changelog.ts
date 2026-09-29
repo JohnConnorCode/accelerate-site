@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "collections-approved-policy",
+    slug: "collections-approved-policy",
+    title: "Review collection policy changes from the assistant",
+    description:
+      "Ask AI or a connected MCP client to propose a collection pause, dispute, payment promise, owner or next action. Review the exact current and proposed values before approval. Changed invoice balances, recipients or case policies require a fresh preview. The saved change uses the same case history as Collections and sends no reminder. All six fictional demos support simulated owner, pause and resume requests.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "debate-booking-production-loop",
     slug: "debate-booking-production-loop",
     title: "Debate bookings track the next confirmed commitment",

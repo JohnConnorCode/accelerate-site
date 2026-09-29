@@ -46,6 +46,7 @@ export type CollectionCaseView = {
   actions: {
     id: string;
     title: string;
+    actionType?: string;
     status: string;
     error: string | null;
     result: Record<string, unknown> | null;

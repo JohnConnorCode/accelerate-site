@@ -55,8 +55,12 @@ export async function readCollectionWorkspace(
   if (options.error) throw new Error("Invoice operations unavailable");
   if (!ids.length) return { cases: [], invoiceOptions: options.data ?? [], truncated: false };
   const actionQuery = optionsInput.includeActionPreviews
-    ? db.from("action_queue").select("id,entity_id,title,status,error,result,payload")
-    : db.from("action_queue").select("id,entity_id,title,status,error,result");
+    ? db
+        .from("action_queue")
+        .select("id,entity_id,title,description,action_type,status,error,result,payload")
+    : db
+        .from("action_queue")
+        .select("id,entity_id,title,description,action_type,status,error,result");
   const [people, work, events, actions, attempts] = await Promise.all([
     db
       .from("contacts")
@@ -80,7 +84,7 @@ export async function readCollectionWorkspace(
       .limit(500),
     actionQuery
       .eq("tenant_id", tenant)
-      .eq("action_type", "send_collection_reminder")
+      .in("action_type", ["send_collection_reminder", "update_collection_policy"])
       .in("entity_id", ids)
       .order("created_at", { ascending: false })
       .limit(500),
@@ -183,11 +187,15 @@ export async function readCollectionWorkspace(
           .map((a) => ({
             id: a.id,
             title: a.title,
+            actionType: a.action_type,
             status: a.status,
             error: a.error,
             result: attempts.data?.find((r) => r.action_id === a.id) ?? a.result,
             preview: optionsInput.includeActionPreviews
-              ? actionPreviewSchema.safeParse("payload" in a ? a.payload : undefined).data?.preview
+              ? a.action_type === "update_collection_policy"
+                ? { to: "", text: a.description ?? "Review this change in the approval queue." }
+                : actionPreviewSchema.safeParse("payload" in a ? a.payload : undefined).data
+                    ?.preview
               : undefined,
           })),
       };
