@@ -327,7 +327,7 @@ try {
           "/industries/nonprofits",
         ]) {
           const response = await page.goto(base + route, {
-            waitUntil: "domcontentloaded",
+            waitUntil: "load",
             timeout: 60000,
           });
           assert(response?.ok(), `${route}: HTTP ${response?.status()}`);
@@ -339,11 +339,6 @@ try {
           assert(
             await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches),
             "Reduced motion enabled",
-          );
-          assert.equal(
-            await page.locator("html").getAttribute("data-theme"),
-            theme,
-            "Requested public theme",
           );
           assert.equal(await page.locator("h1").count(), 1, `${route}: one clear page title`);
           assert(
@@ -372,6 +367,11 @@ try {
             }
           }
           await page.evaluate(() => window.scrollTo(0, 0));
+          assert.equal(
+            await page.locator("html").getAttribute("data-theme"),
+            theme,
+            "Requested public theme",
+          );
           assert.equal(
             await page
               .locator("img")
@@ -409,7 +409,7 @@ try {
           const height = await page.locator("body").evaluate((node) => node.scrollHeight);
           checks.push({ route, width, theme, height, status: "passed" });
         }
-        await page.goto(`${base}/command-center`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${base}/command-center`, { waitUntil: "load" });
         const reference = page.getByText("Browse and search the complete capability reference", {
           exact: true,
         });
