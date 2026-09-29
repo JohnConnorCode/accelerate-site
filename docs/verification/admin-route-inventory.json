@@ -318,7 +318,7 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "87a1920d2f8c49a557cf3c54577909548fdcfcf64a8b30a8c5b8cc4a2aefe54b",
     "src/lib/revenue-os/ai-stream-contract.ts": "bc3125e15c4ddab9e4aeb396af279fd01fa1d21abb8186ea88cc611160532f4f",
-    "src/lib/revenue-os/ai-tools.ts": "984f12bda7067add978f98f5eb3bebd5d3d5631fd20aadcfe84f15dec78b59c6",
+    "src/lib/revenue-os/ai-tools.ts": "5c3de42d96d3a703be25fe045a4b9e9bc4861e918bf33a72054108272bc140c9",
     "src/lib/revenue-os/analytics.ts": "9214e72876cce37f295a123f5e025d385908b2f82038543f22e0eadc893b9b1a",
     "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
@@ -326,7 +326,7 @@
     "src/lib/revenue-os/branding.ts": "2c55ec70e64c17402eb34d0cae439a49023ec56611f1d2dbc08278082b16b616",
     "src/lib/revenue-os/campaign-duplicate-contract.ts": "4ff3ed7c54a1fa5d4fc3da9c5a522531df3928eaa392c2dbbb939a30dd4b94a0",
     "src/lib/revenue-os/campaigns.ts": "47f535f766cc784444a5dc9d24c9f25d69b8da290c90b7e0a4497778572ca25f",
-    "src/lib/revenue-os/collection-reminders.ts": "eacb321b203860ea65605ffede91a22ec5798118333b1eeb6c2531bc0be0382e",
+    "src/lib/revenue-os/collection-reminders.ts": "325c0b9d094d4ebd2ed6c7605f7cdc9b7c9a9f0c7de45a26fd01889b48da2876",
     "src/lib/revenue-os/collection-workspace.ts": "ce6223696686141c21e3d61921d0d6192200485ef36b48ba06a8fdabc105aec9",
     "src/lib/revenue-os/collections.ts": "a05af80ab775b9459d8799350b6cfb5e51799374bdab8e8264dadfe517a25c73",
     "src/lib/revenue-os/communications.ts": "86a48ad957fe47f6c9db0f2d50645068ebcfdacaece907aaa30a722abc80aca9",
@@ -805,7 +805,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route.",
+      "boundary": "Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Confirmed message receipts remain the cooldown authority; database timestamps are normalized to UTC before isolated workflow evaluation.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1924,7 +1924,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity.",
+      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute.",
       "followUp": null,
       "specialBoundary": null
     },
