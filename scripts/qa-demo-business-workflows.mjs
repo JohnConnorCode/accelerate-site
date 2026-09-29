@@ -178,7 +178,14 @@ try {
         await page.getByRole("button", { name: "Review workflow", exact: true }).click();
         await page.getByRole("button", { name: "Request approval", exact: true }).click();
         await page.getByRole("button", { name: "Approve & create tasks", exact: true }).click();
-        await page.getByRole("button", { name: "Mark complete", exact: true }).first().click();
+        const createdWorkflow = page
+          .locator("article")
+          .filter({ hasText: "Confirm the revised customer kickoff and owner" });
+        await createdWorkflow
+          .getByRole("button", { name: "Mark complete", exact: true })
+          .first()
+          .click();
+        await createdWorkflow.getByText("completed", { exact: true }).waitFor();
         await stable(page);
         await page.screenshot({
           path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-${route}.png`,
