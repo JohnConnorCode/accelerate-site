@@ -8,7 +8,25 @@ const mode = process.argv[2];
 const ownerEmail = "founder@local.test";
 const base = "http://localhost:3000";
 
-if (mode === "configure-native") {
+if (mode === "diagnose-native") {
+  const path = process.argv[3];
+  assert.equal(path, `${process.env.RUNNER_TEMP}/supabase-start.log`);
+  const lines = (await readFile(path, "utf8"))
+    .split("\n")
+    .filter((line) => /error|failed|fatal|unhealthy|invalid|not found/i.test(line))
+    .filter(
+      (line) =>
+        !/jwt_keys|jwt_secret|anon_key|service_role_key|password|authorization|apikey/i.test(line),
+    )
+    .slice(-30)
+    .map((line) => line.replace(/[A-Za-z0-9_+/=-]{40,}/g, "[redacted]").slice(0, 600));
+  const output = `${process.env.RUNNER_TEMP}/accelerate-native-mcp-oauth`;
+  await mkdir(output, { recursive: true, mode: 0o700 });
+  const diagnostic =
+    lines.join("\n") || "Native service startup failed without a safe diagnostic line.";
+  await writeFile(`${output}/bootstrap-failure.txt`, diagnostic, { mode: 0o600 });
+  console.error(diagnostic);
+} else if (mode === "configure-native") {
   const root = process.argv[3];
   assert.equal(root, `${process.env.RUNNER_TEMP}/fork-connected-ci`);
   const path = `${root}/supabase/config.toml`;

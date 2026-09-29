@@ -40,9 +40,12 @@ jobs:
           supabase init --yes --workdir "$RUNNER_TEMP/fork-connected-ci"
           sed -i 's/^major_version = .*/major_version = 17/' "$RUNNER_TEMP/fork-connected-ci/supabase/config.toml"
           node scripts/qa-connected-fork.mjs configure-native "$RUNNER_TEMP/fork-connected-ci"
-          supabase start --workdir "$RUNNER_TEMP/fork-connected-ci" \
+          if ! supabase start --workdir "$RUNNER_TEMP/fork-connected-ci" \
             --exclude realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor \
-            > "$RUNNER_TEMP/supabase-start.log" 2>&1
+            > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+            node scripts/qa-connected-fork.mjs diagnose-native "$RUNNER_TEMP/supabase-start.log"
+            exit 1
+          fi
           supabase status -o env --workdir "$RUNNER_TEMP/fork-connected-ci" > "$RUNNER_TEMP/supabase-status.env"
           node scripts/qa-connected-fork.mjs prepare "$RUNNER_TEMP/supabase-status.env"
           echo "$(pg_config --bindir)" >> "$GITHUB_PATH"

@@ -115,6 +115,8 @@ try {
                 window.importQa.entrance = new Promise((resolve, reject) => {
                   const sample = () => {
                     const last = document.querySelector('[data-contact-import-row="49"]');
+                    if (last && window.importQa.firstRowDomMs === undefined)
+                      window.importQa.firstRowDomMs = performance.now() - window.importQa.readyAt;
                     let visible = Boolean(last);
                     for (let parent = last?.parentElement; parent; parent = parent.parentElement)
                       visible &&= Number(getComputedStyle(parent).opacity) >= 0.999;
@@ -243,7 +245,11 @@ try {
         await page.getByTestId("contact-import-analyze").click();
         await page.getByRole("button", { name: /^50\s*Person 50/ }).waitFor();
         const animationMs = await page.evaluate(() => window.importQa.entrance);
-        assert.ok(animationMs <= 460, `500-row review first-page entrance ${animationMs}ms`);
+        const firstRowDomMs = await page.evaluate(() => window.importQa.firstRowDomMs);
+        assert.ok(
+          animationMs <= 460,
+          `500-row review first-page entrance ${animationMs}ms; DOM ready ${firstRowDomMs}ms`,
+        );
         const visited = [];
         for (let pageIndex = 0; pageIndex < 10; pageIndex++) {
           visited.push(
