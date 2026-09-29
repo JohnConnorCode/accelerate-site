@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "contact-import-source-integrity",
+    slug: "contact-import-source-integrity",
+    title: "Contact imports keep every source row visible",
+    description:
+      "Contact import review now keeps each accepted CSV, TSV, JSON or pasted source row in its original order. Rows the AI cannot identify remain visible and excluded for review. Malformed or oversized sources stop with a specific correction instead of silently dropping rows or fields, and duplicate AI row references are refused before a review is saved.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "debate-booking-production-loop",
     slug: "debate-booking-production-loop",
     title: "Debate bookings track the next confirmed commitment",
