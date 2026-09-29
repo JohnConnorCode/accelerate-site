@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import assert from "node:assert/strict";
 import { spawn, execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -10,6 +11,7 @@ const output = mkdtempSync(
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
 const report = {
   schemaVersion: 1,
+  verificationRunId: randomUUID(),
   startedAt: new Date().toISOString(),
   commitSha: git("rev-parse", "HEAD"),
   sourceTreeDirty: Boolean(git("status", "--porcelain", "--untracked-files=normal")),
@@ -27,6 +29,7 @@ const report = {
 const checks = [
   ["test:identity-resolution", ["AC2", "AC3"]],
   ["test:work-completion", ["AC1", "AC2", "AC3"]],
+  ["test:work-completion:postgres", ["AC2", "AC3"]],
   ["test:gmail-draft-provider", ["AC1", "AC2", "AC3", "AC5"]],
   ["test:gmail-followup-workflow", ["AC1", "AC3"]],
   ["test:business-workflows", ["AC1", "AC2", "AC3", "AC5"]],
@@ -45,6 +48,7 @@ function run(command) {
       env: {
         ...process.env,
         REFERENCE_JOURNEY_OUTPUT: output,
+        REFERENCE_JOURNEY_RUN_ID: report.verificationRunId,
         COLLECTIONS_REMINDER_POSTGRES_PROOF: "1",
       },
     });

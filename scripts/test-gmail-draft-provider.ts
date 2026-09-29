@@ -7,6 +7,7 @@ import {
   syncGmail,
 } from "../src/lib/revenue-os/google";
 import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
+import { withWorkItem } from "../src/lib/revenue-os/work-items";
 import { randomUUID } from "node:crypto";
 import { createOpportunity, transitionOpportunity } from "../src/lib/revenue-os/pipeline";
 import { createDraftFollowupWork } from "../src/lib/revenue-os/sales-coworker";
@@ -143,43 +144,26 @@ async function main() {
         source: "reference_journey",
         actorEmail: "operator@example.test",
       });
-      // The memory transport has no SQL defaults; mirror the initial database status.
-      followup.workItem.status = "waiting";
-      const toolContext = {
-        supabase: database,
-        actorEmail: "operator@example.test",
-        workItem: followup.workItem,
-      };
-      const proposalInput = {
-        conversationId: conversation.id,
-        body: draftInput.body,
-        reasoning: followup.workItem.reason,
-      };
-      const contact = memory.rows("contacts")[0]!;
-      // Canonical contacts receive this SQL default on intake.
-      contact.communication_status = "active";
-      for (const status of ["unsubscribed", "bounced"]) {
-        contact.communication_status = status;
-        await assert.rejects(
-          () => executeRegisteredRevenueTool(toolContext, "propose_gmail_draft", proposalInput),
-          /suppressed/,
-        );
-      }
-      contact.communication_status = "active";
-      const proposed = (
-        await executeRegisteredRevenueTool(toolContext, "propose_gmail_draft", proposalInput)
-      ).output as { id: string };
-      const replayed = (
-        await executeRegisteredRevenueTool(toolContext, "propose_gmail_draft", proposalInput)
-      ).output as { id: string };
-      assert.equal(replayed.id, proposed.id);
-      const approvedInput = {
-        ...draftInput,
-        actionId: proposed.id,
-        contactId: opportunity.contact_id,
-        opportunityId: opportunity.id,
-        workItem: followup.workItem,
-      };
+      // Controlled claim RPC transport; the shared wrapper owns all subsequent
+      // lifecycle writes and settlement. Native fencing has its own required proof.
+      Object.assign(followup.workItem, { status: "pending", lease_owner: null, attempt_count: 0 });
+      memory.rpc("claim_work_item", (args) => {
+        assert.equal(args.p_kind, "draft_followup");
+        assert.equal(followup.workItem.status, "pending");
+        Object.assign(followup.workItem, {
+          status: "claimed",
+          lease_owner: args.p_lease_owner,
+          attempt_count: 1,
+          claimed_at: new Date().toISOString(),
+          lease_expires_at: new Date(Date.now() + 60_000).toISOString(),
+        });
+        return {
+          work_item_id: followup.workItem.id,
+          claimed: true,
+          existing_status: "pending",
+          recovered_stale: false,
+        };
+      });
       const requests: Array<{ url: string; method: string; body: string }> = [];
       globalThis.fetch = async (input, init) => {
         const url = String(input);
@@ -194,14 +178,73 @@ async function main() {
         throw new Error(`Unexpected provider request: ${method} ${url}`);
       };
 
+      const proposalRun = await withWorkItem(
+        database,
+        "draft_followup",
+        async (owned) => {
+          const toolContext = {
+            supabase: database,
+            actorEmail: "operator@example.test",
+            workItem: owned,
+          };
+          const proposalInput = {
+            conversationId: conversation.id,
+            body: draftInput.body,
+            reasoning: followup.workItem.reason,
+          };
+          const contact = memory.rows("contacts")[0]!;
+          // Canonical contacts receive this SQL default on intake.
+          contact.communication_status = "active";
+          for (const status of ["unsubscribed", "bounced"]) {
+            contact.communication_status = status;
+            await assert.rejects(
+              () => executeRegisteredRevenueTool(toolContext, "propose_gmail_draft", proposalInput),
+              /suppressed/,
+            );
+          }
+          contact.communication_status = "active";
+          const proposed = (
+            await executeRegisteredRevenueTool(toolContext, "propose_gmail_draft", proposalInput)
+          ).output as { id: string };
+          const replayed = (
+            await executeRegisteredRevenueTool(toolContext, "propose_gmail_draft", proposalInput)
+          ).output as { id: string };
+          assert.equal(replayed.id, proposed.id);
+
+          return {
+            status: "awaiting_approval",
+            outcome: "Review the exact Gmail draft",
+            nextCheckAt: new Date(Date.now() + 300_000).toISOString(),
+            artifacts: [{ type: "action", id: proposed.id }],
+            value: proposed,
+          };
+        },
+        { leaseOwner: "reference-sales-scheduler" },
+      );
+      assert.equal(proposalRun.claimed, true);
+      assert.equal(proposalRun.persisted, true);
+      assert.deepEqual(proposalRun.errors, []);
+      assert.equal(proposalRun.value?.status, "awaiting_approval");
+      const proposed = proposalRun.value?.value as { id: string } | undefined;
+      assert.ok(proposed);
+      assert.equal(followup.workItem.status, "waiting");
+      assert.ok(followup.workItem.next_check_at);
+      const approvedInput = {
+        ...draftInput,
+        actionId: proposed.id,
+        contactId: opportunity.contact_id,
+        opportunityId: opportunity.id,
+        workItem: followup.workItem,
+      };
       assert.equal(requests.length, 0, "proposal and replay create no provider effect");
       const approvalStarted = performance.now();
       const saved = (await approveAndExecuteAction(
         database,
         proposed.id,
         "operator@example.test",
-      )) as Awaited<ReturnType<typeof createGmailDraft>>;
+      )) as Awaited<ReturnType<typeof createGmailDraft>> & { workItemUpdated: boolean };
       const approvalMs = performance.now() - approvalStarted;
+      assert.equal(saved.workItemUpdated, true);
       assert.equal(saved.status, "drafted");
       assert.equal(saved.sent, false);
       assert.equal(saved.draftId, "gmail-draft-1");
@@ -238,14 +281,8 @@ async function main() {
         memory.rows("action_queue").find((row) => row.id === proposed.id)?.approved_by,
         "operator@example.test",
       );
-      Object.assign(
-        memory.rows("work_items").find((row) => row.id === followup.workItem.id)!,
-        {
-          status: "waiting",
-          outcome: "Gmail draft saved. Not sent.",
-          lease_owner: null,
-        },
-      );
+      assert.equal(followup.workItem.outcome, "Gmail draft saved. Not sent.");
+      assert.ok(followup.workItem.next_check_at);
       memory.rpc("record_evidence", () => ({
         claim_id: "claim-1",
         evidence_id: "evidence-1",
@@ -260,7 +297,7 @@ async function main() {
           id: "gmail-message-1",
           threadId: "gmail-thread-1",
           labelIds: ["SENT"],
-          internalDate: String(Date.parse("2026-09-21T12:00:00Z")),
+          internalDate: String(Date.now()),
           payload: {
             mimeType: "text/plain",
             body: { data: Buffer.from(draftInput.body).toString("base64url") },
@@ -320,7 +357,7 @@ async function main() {
           id: "gmail-reply-1",
           threadId: "gmail-thread-1",
           labelIds: ["INBOX", "UNREAD"],
-          internalDate: String(Date.parse("2026-09-22T12:00:00Z")),
+          internalDate: String(Date.now()),
           payload: {
             mimeType: "text/plain",
             body: { data: Buffer.from("Thanks, the schedule looks good.").toString("base64url") },
@@ -360,6 +397,7 @@ async function main() {
         providerCalls: requests.length + syncCalls,
         timingsMs: { approvalMs, sendSyncMs, replySyncMs },
         workItem: memory.rows("work_items").find((row) => row.id === followup.workItem.id),
+        proposalDisposition: proposalRun.value?.status,
         approval: memory.rows("action_queue").find((row) => row.id === proposed.id)?.approved_by,
       });
     }

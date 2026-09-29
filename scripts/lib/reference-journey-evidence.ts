@@ -12,6 +12,7 @@ export function writeJourneyEvidence(journey: string, facts: Record<string, unkn
     JSON.stringify(
       {
         journey,
+        verificationRunId: process.env.REFERENCE_JOURNEY_RUN_ID ?? null,
         recordedAt: new Date().toISOString(),
         environment: "local",
         providerEvidence: "controlled-adapter",
