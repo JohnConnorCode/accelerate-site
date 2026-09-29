@@ -49,6 +49,7 @@ try {
       viewport: { width, height: 1000 },
       reducedMotion: "reduce",
     });
+    context.setDefaultTimeout(30_000);
     const page = await context.newPage(),
       errors = [],
       escaped = [];
@@ -158,6 +159,7 @@ try {
       checks.push(
         `${width} ${scenario}: actual chat → exact review → keyboard rejection/approval → reload → reminder preview → paid-before-approval refusal; no send.`,
       );
+      console.log(checks.at(-1));
     }
     for (const path of ["/docs/outreach/collections", "/docs/plugins/receivables-collections"]) {
       await page.goto(base + path, { waitUntil: "networkidle" });
