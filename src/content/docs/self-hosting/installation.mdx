@@ -1,7 +1,7 @@
 ---
 title: "Connect your installation"
 description: "Create the owner account, apply the ordered schema, and sign in to a workspace you control."
-updated: "2026-09-27"
+updated: "2026-09-29"
 ---
 
 This walkthrough turns a local demo into a connected installation you control: database, authentication, and a real owner account. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email; complete [the local quickstart](/docs/self-hosting) first if you haven't already.
@@ -22,7 +22,8 @@ Edit `.env.local` in your editor. Keep it private and out of commits. Fill in th
 
 | Configuration                                                                      | Purpose                                                           |
 | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`                                                             | The application origin, including the local port                  |
+| `NEXT_PUBLIC_SITE_URL`                                                             | The public site origin; also the workspace origin when shared     |
+| `NEXT_PUBLIC_COMMAND_CENTER_ORIGIN` (if separate)                                  | The workspace origin used for sign-in and recovery                |
 | `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`                     | Public project connection used by the app                         |
 | `SUPABASE_SERVICE_ROLE_KEY`                                                        | Server-only database authority; never put it in a public variable |
 | `SUPABASE_PROJECT_REF`                                                             | The project you intend to migrate                                 |
@@ -36,11 +37,11 @@ Check the project reference and database host against the project you created. D
 
 ## 2. Enable authentication redirects
 
-In your Supabase project's Authentication settings, enable email authentication. Configure the application origin and its `/auth/callback` redirect URL. For a local origin of `http://localhost:3000`, the callback is `http://localhost:3000/auth/callback`. If the server uses a different port, update both the app origin and authentication configuration. These are project settings; a database key cannot configure them.
+In Supabase **Authentication → URL Configuration**, set the Site URL to the origin where people open the workspace. Add that origin followed by `/auth/callback**` to Redirect URLs. For example, if you open `http://localhost:3000/admin/login`, use `http://localhost:3000` as the Site URL and `http://localhost:3000/auth/callback**` as the redirect pattern. Keep the same scheme, hostname, and port in your browser and configuration; `localhost` and `127.0.0.1` store separate sign-in cookies. The narrow `**` pattern allows the callback query used by password recovery. These are project settings; a database key cannot configure them.
 
-If you use a separate Command Center address, point that hostname at the same hosting project and set `NEXT_PUBLIC_COMMAND_CENTER_ORIGIN` to its HTTPS origin when you build and run the app. Keep `NEXT_PUBLIC_SITE_URL` set to the public website. Add the exact app `/auth/callback` URL to your Supabase Auth redirect list. Workspace invitations and password recovery then return to the app address, where the sign-in session is stored. If you enable Google Workspace, add the app `/api/admin/google/callback` URL to its OAuth client's authorized redirect URIs before connecting it. Check sign-in, recovery, invitations and sign-out on the app address before offering installation to your team.
+If you use a separate Command Center address, point that hostname at the same hosting project and set `NEXT_PUBLIC_COMMAND_CENTER_ORIGIN` to its HTTPS origin when you build and run the app. Keep `NEXT_PUBLIC_SITE_URL` set to the public website. Set the Supabase Auth Site URL to the app origin and allow `https://your-app-domain/auth/callback**`. Workspace invitations and password recovery then return to the app address, where the sign-in session is stored. If you enable Google Workspace, add the app `/api/admin/google/callback` URL to its OAuth client's authorized redirect URIs before connecting it. Check sign-in, recovery, invitations and sign-out on the app address before offering installation to your team.
 
-To offer **Sign in with Google**, create a Google Cloud OAuth client of type **Web application** for this installation. Add the Command Center app origin under Authorized JavaScript origins. Under Authorized redirect URIs, add the Supabase Auth callback URL shown on your project's **Authentication → Providers → Google** page, then enter the client's ID and secret there and enable the provider. Keep the app's `/auth/callback` URL in Supabase's redirect list. Limit this sign-in client to identity scopes (`openid`, email and profile); connecting Gmail, Calendar or Drive is a separate setup. After enabling it, sign in with a Google account that already has active workspace membership and confirm it reaches the intended workspace. Accounts without membership cannot open workspace records.
+To offer **Sign in with Google**, create a Google Cloud OAuth client of type **Web application** for this installation. Add the Command Center app origin under Authorized JavaScript origins. Under Authorized redirect URIs, add the Supabase Auth callback URL shown on your project's **Authentication → Providers → Google** page, then enter the client's ID and secret there and enable the provider. Keep the app's `/auth/callback**` pattern in Supabase's redirect list. Limit this sign-in client to identity scopes (`openid`, email and profile); connecting Gmail, Calendar or Drive is a separate setup. After enabling it, sign in with a Google account that already has active workspace membership and confirm it reaches the intended workspace. Accounts without membership cannot open workspace records.
 
 Do not create the owner account in the dashboard first. The setup command below creates or reuses the configured owner, applies the ordered schema, and establishes admin membership.
 
@@ -73,6 +74,8 @@ The lower-level `npm run verify:migrations`, `npm run db:migrate:all`, `npm run 
 ## 4. Sign in and check the workspace
 
 Restart your local development server after editing environment configuration. Sign in at `/admin` with the owner account. Confirm the intended business identity and workspace, then open [Setup](/docs/workspace/setup).
+
+Before inviting anyone else, sign out and request a password reset from `/admin/login`. Open the message in the owner inbox, set a new password, and sign in again on the same hostname. Without `RESEND_API_KEY`, the app sends recovery through Supabase Auth email; check its delivery settings or configure SMTP if the message does not arrive. When Resend is configured, check its verified sender instead. If the link opens the public site or loses your session, check the Auth Site URL, callback pattern, and `NEXT_PUBLIC_COMMAND_CENTER_ORIGIN` above.
 
 If authentication succeeds but workspace access fails, inspect the owner email match, account creation order, membership, and workspace status. Do not weaken authentication or manually grant broad access to hide a setup error.
 
