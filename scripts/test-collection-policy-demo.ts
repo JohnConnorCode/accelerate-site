@@ -99,6 +99,8 @@ async function main() {
         const stale = await chat(`Pause collections for ${c.name}`);
         await json("/api/admin/collections/simulate-payment", "POST", { caseId: c.id });
         assert.equal((await decide(stale.id, "approve")).status, 409);
+        assert.equal((await decide(stale.id, "retry")).status, 200);
+        assert.equal((await decide(stale.id, "approve")).status, 409);
         const actions = (await workspace()).cases[0].actions;
         assert.ok(
           actions.every((a: { result?: { state?: string } }) => a.result?.state !== "sent"),

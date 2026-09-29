@@ -185,5 +185,19 @@ export async function executeCollectionPolicy(
         "Collection policy, recipient or invoice facts changed. Preview and approve again.",
       );
   }
-  return updateCollectionCase(db, input.caseId, input.revision, requestId, input.patch, actorEmail);
+  const updated = await updateCollectionCase(
+    db,
+    input.caseId,
+    input.revision,
+    requestId,
+    input.patch,
+    actorEmail,
+  );
+  return {
+    status: "applied",
+    caseId: input.caseId,
+    revision: updated.revision,
+    case: updated,
+    replayed: Boolean(prior.data),
+  };
 }
