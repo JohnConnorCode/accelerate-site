@@ -2,6 +2,7 @@ import {
   MCP_MAX_REQUEST_BYTES,
   mcpRequestSchema,
   mcpHttpRequestError,
+  mcpRequestBodyError,
 } from "@/lib/revenue-os/mcp-request";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import { NextRequest, NextResponse } from "next/server";
@@ -146,28 +147,13 @@ export async function POST(request: NextRequest) {
     body = mcpRequestSchema.parse(
       await readBoundedJson(request, MCP_MAX_REQUEST_BYTES),
     ) as McpJsonRpcRequest;
-    if (!body || body.jsonrpc !== "2.0" || !body.method) {
-      return withCors(
-        NextResponse.json(
-          {
-            jsonrpc: "2.0",
-            id: body?.id ?? null,
-            error: {
-              code: -32600,
-              message: "Invalid Request: JSON-RPC 2.0 with 'method' is required",
-            },
-          },
-          { status: 400 },
-        ),
-      );
-    }
-  } catch {
+  } catch (error) {
     return withCors(
       NextResponse.json(
         {
           jsonrpc: "2.0",
           id: null,
-          error: { code: -32700, message: "Parse error: Invalid JSON received" },
+          error: mcpRequestBodyError(error),
         },
         { status: 400 },
       ),

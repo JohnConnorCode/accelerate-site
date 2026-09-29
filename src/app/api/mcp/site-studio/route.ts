@@ -1,4 +1,8 @@
-import { mcpRequestSchema, mcpHttpRequestError } from "@/lib/revenue-os/mcp-request";
+import {
+  mcpRequestSchema,
+  mcpHttpRequestError,
+  mcpRequestBodyError,
+} from "@/lib/revenue-os/mcp-request";
 import { NextResponse } from "next/server";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import {
@@ -68,23 +72,13 @@ export async function POST(request: Request) {
   let body: McpJsonRpcRequest;
   try {
     body = mcpRequestSchema.parse(await readBoundedJson(request, 8_010_000)) as McpJsonRpcRequest;
-    if (
-      !body ||
-      body.jsonrpc !== "2.0" ||
-      typeof body.method !== "string" ||
-      (body.id !== undefined &&
-        body.id !== null &&
-        typeof body.id !== "string" &&
-        typeof body.id !== "number")
-    )
-      throw new Error("Invalid request");
-  } catch {
+  } catch (error) {
     console.warn("[site-studio] Scoped MCP request rejected");
     return NextResponse.json(
       {
         jsonrpc: "2.0",
         id: null,
-        error: { code: -32600, message: "Invalid bounded JSON-RPC request" },
+        error: mcpRequestBodyError(error),
       },
       { status: 400, headers },
     );

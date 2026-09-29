@@ -415,7 +415,7 @@ export const capabilities: Capability[] = [
     promise:
       "Ask what you agreed with a client in March and get the answer with the record it came from.",
     detail:
-      "With Content enabled, the assistant can list calendar items by status or category and prepare a grounded editorial brief when an AI provider is configured. It cites records it reads and reports unavailable sources instead of guessing.",
+      "With Content enabled, the assistant can list calendar items by status or category, propose exact item edits for administrator review, and prepare a grounded editorial brief when an AI provider is configured. Connected MCP clients use the same calendar tools. It cites records it reads and reports unavailable sources instead of guessing.",
   },
   {
     id: "mcp",

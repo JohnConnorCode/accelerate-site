@@ -111,6 +111,23 @@ try {
             if (body.action === "analyze") {
               batch = makeBatch();
               window.importQa.readyAt = performance.now();
+              if (window.importQa.count === 500) {
+                window.importQa.entrance = new Promise((resolve, reject) => {
+                  const sample = () => {
+                    const last = [...document.querySelectorAll(".admin-main button")].find(
+                      (button) => /Person 500/.test(button.textContent),
+                    );
+                    let visible = Boolean(last);
+                    for (let parent = last?.parentElement; parent; parent = parent.parentElement)
+                      visible &&= Number(getComputedStyle(parent).opacity) >= 0.999;
+                    if (visible) return resolve(performance.now() - window.importQa.readyAt);
+                    if (performance.now() - window.importQa.readyAt > 2000)
+                      return reject(new Error("Last row stayed hidden"));
+                    requestAnimationFrame(sample);
+                  };
+                  requestAnimationFrame(sample);
+                });
+              }
             }
             if (body.action === "save_review") {
               await new Promise((resolve) => setTimeout(resolve, 200));
@@ -227,18 +244,7 @@ try {
         await source.fill("500 fictional rows");
         await page.getByTestId("contact-import-analyze").click();
         await page.getByRole("button", { name: /^500\s*Person 500/ }).waitFor();
-        const animationMs = await page.evaluate(async () => {
-          const last = [...document.querySelectorAll(".admin-main button")].find((button) =>
-            /Person 500/.test(button.textContent),
-          );
-          const row = last.parentElement;
-          const start = window.importQa.readyAt;
-          while (Number(getComputedStyle(row).opacity) < 0.999) {
-            if (performance.now() - start > 2000) throw new Error("Last row stayed hidden");
-            await new Promise(requestAnimationFrame);
-          }
-          return performance.now() - start;
-        });
+        const animationMs = await page.evaluate(() => window.importQa.entrance);
         assert.ok(animationMs <= 460, `last-row entrance ${animationMs}ms`);
         results.push({ scenario, width, animationMs, rows: 500 });
       }

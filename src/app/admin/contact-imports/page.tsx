@@ -24,7 +24,7 @@ import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
-import { adminListItemVariants, adminListVariants, adminSectionVariants } from "@/lib/admin/motion";
+import { adminListItemVariants, adminSectionVariants } from "@/lib/admin/motion";
 import { cn } from "@/lib/utils";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
@@ -499,12 +499,7 @@ export default function ContactImportsPage() {
                       {labelStatus(batch.status)}
                     </span>
                   </div>
-                  <motion.div
-                    variants={adminListVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="max-h-[690px] divide-y divide-[var(--admin-rule)] overflow-y-auto"
-                  >
+                  <div className="max-h-[690px] divide-y divide-[var(--admin-rule)] overflow-y-auto">
                     {rows.map((row) => (
                       <RowListItem
                         key={row.id}
@@ -515,7 +510,7 @@ export default function ContactImportsPage() {
                         onToggle={() => patchRow(row.id, { included: !row.included })}
                       />
                     ))}
-                  </motion.div>
+                  </div>
                 </AdminSurface>
                 <AdminSurface padding="lg" className="h-fit lg:sticky lg:top-6">
                   {activeRow ? (
@@ -679,8 +674,7 @@ function RowListItem({
   onToggle: () => void;
 }) {
   return (
-    <motion.div
-      variants={adminListItemVariants}
+    <div
       className={cn(
         "flex min-h-[76px] items-center gap-2 px-3 py-2 transition-[background-color] duration-150",
         active
@@ -743,7 +737,7 @@ function RowListItem({
         </span>
         <ChevronRight className="size-4 shrink-0 text-[var(--admin-muted)]" />
       </button>
-    </motion.div>
+    </div>
   );
 }
 

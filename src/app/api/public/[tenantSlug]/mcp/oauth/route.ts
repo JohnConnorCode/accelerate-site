@@ -2,6 +2,7 @@ import {
   MCP_MAX_REQUEST_BYTES,
   mcpRequestSchema,
   mcpHttpRequestError,
+  mcpRequestBodyError,
 } from "@/lib/revenue-os/mcp-request";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
@@ -78,23 +79,13 @@ export async function POST(request: Request, context: { params: Promise<{ tenant
     body = mcpRequestSchema.parse(
       await readBoundedJson(request, MCP_MAX_REQUEST_BYTES),
     ) as McpJsonRpcRequest;
-    if (
-      !body ||
-      body.jsonrpc !== "2.0" ||
-      typeof body.method !== "string" ||
-      (body.id !== undefined &&
-        body.id !== null &&
-        typeof body.id !== "string" &&
-        typeof body.id !== "number")
-    )
-      throw new Error("Invalid request");
-  } catch {
+  } catch (error) {
     console.warn("[workspace-mcp] Invalid MCP request");
     return NextResponse.json(
       {
         jsonrpc: "2.0",
         id: null,
-        error: { code: -32600, message: "Invalid bounded JSON-RPC request" },
+        error: mcpRequestBodyError(error),
       },
       { status: 400, headers },
     );

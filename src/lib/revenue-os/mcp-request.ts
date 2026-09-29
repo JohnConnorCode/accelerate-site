@@ -9,6 +9,13 @@ export const mcpRequestSchema = z.object({
   params: z.record(z.string(), z.unknown()).optional(),
 });
 
+/** Valid JSON with a bad envelope is distinct from an unreadable JSON body. */
+export function mcpRequestBodyError(error: unknown) {
+  return error instanceof z.ZodError
+    ? { code: -32600, message: "Invalid JSON-RPC request" }
+    : { code: -32700, message: "Could not parse bounded UTF-8 JSON request" };
+}
+
 /** Browser origins require an exact allowlist; server clients may omit Origin. */
 export function mcpHttpRequestError(request: Request, supportedVersions: readonly string[]) {
   const protocol = request.headers.get("mcp-protocol-version");

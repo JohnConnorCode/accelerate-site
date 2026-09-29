@@ -10,6 +10,7 @@ import {
   mcpRequestSchema,
   mcpHttpRequestError,
   MCP_MAX_REQUEST_BYTES,
+  mcpRequestBodyError,
 } from "../src/lib/revenue-os/mcp-request";
 import {
   handleMcpRequest,
@@ -17,6 +18,7 @@ import {
 } from "../src/lib/revenue-os/mcp-server";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import { tenant } from "../src/config/tenant";
+import { executeContentCalendarUpdate } from "../src/lib/revenue-os/content-calendar";
 
 const tenantId = "11111111-1111-4111-8111-111111111111";
 const itemId = "22222222-2222-4222-8222-222222222222";
@@ -72,9 +74,12 @@ async function main() {
     { ...request("ping"), id: {} },
     { ...request("ping"), params: [] },
   ]) {
-    assert.equal(mcpRequestSchema.safeParse(invalid).success, false);
+    const parsed = mcpRequestSchema.safeParse(invalid);
+    assert.equal(parsed.success, false);
+    if (!parsed.success) assert.equal(mcpRequestBodyError(parsed.error).code, -32600);
     assert.equal((await handleMcpRequest(invalid, context))?.error?.code, -32600);
   }
+  assert.equal(mcpRequestBodyError(new SyntaxError("Invalid JSON")).code, -32700);
   const noId = {
     jsonrpc: "2.0",
     method: "tools/call",
@@ -95,6 +100,39 @@ async function main() {
     changes: { title: "Reviewed title" },
   });
 
+  // Authenticated bearer clients may stage work; only a current human admin
+  // may execute the canonical content writer.
+  const exact = JSON.parse((preview?.result as { content: { text: string }[] }).content[0]!.text);
+  const proposal = request("tools/call", {
+    name: "propose_content_calendar_update",
+    arguments: {
+      id: itemId,
+      changes: { title: "Reviewed title" },
+      digest: exact.digest,
+    },
+  });
+  const proposed = await handleMcpRequest(proposal, { ...context, principalKind: "integration" });
+  assert.equal((proposed?.result as { isError: boolean }).isError, false);
+  assert.equal(memory.rows("action_queue").length, 1);
+  assert.equal(memory.rows("content_calendar")[0]?.title, "Original draft");
+  await assert.rejects(
+    executeContentCalendarUpdate(database, memory.rows("action_queue")[0]!.payload, actorEmail),
+    /current authenticated workspace administrator/,
+  );
+  const staleProposal = request("tools/call", {
+    name: "propose_content_calendar_update",
+    arguments: {
+      id: itemId,
+      changes: { title: "Changed after preview" },
+      digest: exact.digest,
+    },
+  });
+  assert.equal(
+    ((await handleMcpRequest(staleProposal, context))?.result as { isError: boolean }).isError,
+    true,
+  );
+  assert.equal(memory.rows("action_queue").length, 1);
+
   memory.rows("tenants")[0]!.config = { modules: { content: false } };
   const hidden = (await handleMcpRequest(request("tools/list"), context))?.result as {
     tools: { name: string }[];
@@ -105,6 +143,10 @@ async function main() {
   );
   assert.equal(
     ((await handleMcpRequest(contentPreview, context))?.result as { isError: boolean }).isError,
+    true,
+  );
+  assert.equal(
+    ((await handleMcpRequest(proposal, context))?.result as { isError: boolean }).isError,
     true,
   );
   memory.rows("tenants")[0]!.config = {};
@@ -309,14 +351,14 @@ async function main() {
     assert.equal(results[5].error.code, -32700);
     assert.equal(received[1]?.session, "fictional-session");
     assert.equal(received[1]?.protocol, "2025-03-26");
-    assert.equal(memory.rows("action_queue").length, 0);
+    assert.equal(memory.rows("action_queue").length, 1);
     assert.equal(memory.rows("content_calendar")[0]?.title, "Original draft");
   } finally {
     server.close();
     await once(server, "close");
   }
   console.log(
-    "PASS: bounded UTF-8 HTTP/stdio framing, live module and membership checks, real read preview, notification silence, negotiated session forwarding and failure recovery. No external providers or domain writes.",
+    "PASS: bounded UTF-8 HTTP/stdio framing, live module and membership checks, exact content preview/proposal with human-only execution, notification silence, negotiated session forwarding and failure recovery. No external providers or content writes.",
   );
 }
 main().catch((error) => {
