@@ -5,6 +5,7 @@ import type { DemoScenarioPack } from "./scenarios";
 import type { DemoBusinessState } from "./business-runtime";
 import {
   collectionCasePatchSchema,
+  describeCollectionPolicyChange,
   type CollectionCaseView,
 } from "@/lib/revenue-os/collection-contract";
 import { renderCollectionReminder } from "@/lib/revenue-os/collection-reminder-template";
@@ -276,7 +277,7 @@ export async function handleDemoCollections(
       throw new Error("No open balance remains");
     const changes = (Object.keys(patch) as Array<keyof typeof before>)
       .filter((k) => before[k] !== after[k])
-      .map((k) => `${k}: ${JSON.stringify(before[k])} → ${JSON.stringify(after[k])}`);
+      .map((k) => describeCollectionPolicyChange(k, before[k], after[k]));
     if (!changes.length) throw new Error("No collection policy values would change");
     const snapshot = {
       caseId: c.id,

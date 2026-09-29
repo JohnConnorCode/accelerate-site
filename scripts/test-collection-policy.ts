@@ -120,8 +120,11 @@ async function main() {
       id: string;
       payload: Record<string, unknown>;
       status: string;
+      description: string;
     };
     assert.equal(action.status, "pending");
+    assert.match(action.description, /Owner: Not set → owner@example.test/);
+    assert.doesNotMatch(action.description, /ownerEmail|null|"owner@example.test"/);
     assert.equal(writes, 0);
     const mcp = await handleMcpRequest(
       {

@@ -12,6 +12,7 @@ import {
 import { readCollectionWorkspace } from "./collection-workspace";
 import { readStripeInvoiceForAction } from "./stripe-invoicing";
 import { proposeAction } from "./actions";
+import { describeCollectionPolicyChange } from "./collection-contract";
 import {
   collectionPolicyPreviewSchema,
   collectionPolicyProposalSchema,
@@ -145,9 +146,8 @@ export async function proposeCollectionPolicy(
     actionType: "update_collection_policy",
     title: `Update collection policy: ${preview.facts.name}`,
     description:
-      changes
-        .map((c) => `${c.field}: ${JSON.stringify(c.before)} → ${JSON.stringify(c.after)}`)
-        .join("\n") + `\n${effect}`,
+      changes.map((c) => describeCollectionPolicyChange(c.field, c.before, c.after)).join("\n") +
+      `\n${effect}`,
     payload: { ...snapshot, requestId: randomUUID() },
     sourceContext: "admin_ai",
     entityType: "collection_case",

@@ -105,10 +105,11 @@ try {
         const dialog = page.getByRole("dialog", { name: queued.title, exact: true });
         await dialog.waitFor();
         assert.match(await dialog.innerText(), /owner@example.test/);
+        assert.match(await dialog.innerText(), /Owner: Not set → owner@example.test/);
         assert.match(await dialog.innerText(), /No reminder is sent/);
         assert.doesNotMatch(
           await dialog.innerText(),
-          /credentialVersion|REQUESTID|providerAccount/,
+          /credentialVersion|REQUESTID|providerAccount|ownerEmail|null|"owner@example.test"/,
         );
         assert.equal(await dialog.evaluate((el) => el.scrollWidth > el.clientWidth + 1), false);
         await page.screenshot({ path: `${output}/${width}-approval.png` });
