@@ -126,7 +126,11 @@ export async function previewCollectionReminder(db: SupabaseClient, caseId: stri
         currency: item.currency,
         communicationSuppressed: false,
         promiseDate: item.promise_date,
-        lastReminderAt: history.data?.[0]?.sent_at ?? null,
+        // PostgreSQL returns timestamptz with an offset. The isolated
+        // workflow contract uses canonical UTC timestamps.
+        lastReminderAt: history.data?.[0]?.sent_at
+          ? new Date(z.iso.datetime({ offset: true }).parse(history.data[0].sent_at)).toISOString()
+          : null,
       },
     ],
   });

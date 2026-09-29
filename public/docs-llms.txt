@@ -102,7 +102,7 @@ Drafts, pricing validation, decisions, and follow-up.
 ## Follow-up
 The discipline that decides most inquiries: respond first, follow through, and let nothing wait.
 
-- [Follow up on an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-19): Assign the response, name a real next action, and close the loop once it's answered.
+- [Follow up on an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-29): Assign the response, name a real next action, and close the loop once it's answered.
 
 ## Outreach
 Campaigns, email templates, and reactivation of past demand.
@@ -164,7 +164,7 @@ See what you can build: reports, reviewed workflows and dedicated business works
 - [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-20): See which meetings are approaching so you can plan preparation time.
 - [Opportunity Radar](https://www.acceleratewith.us/docs/plugins/opportunity-radar) (updated 2026-09-19): A business-specific workspace for source-backed growth opportunities and relationship reviews.
 - [Pipeline follow-up](https://www.acceleratewith.us/docs/plugins/pipeline-watch) (updated 2026-09-19): Find open opportunities whose next action or update needs attention.
-- [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-09): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.
+- [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-29): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.
 - [Social Marketing](https://www.acceleratewith.us/docs/plugins/social-marketing) (updated 2026-09-12): Prepare LinkedIn posts, approve their content and time, and follow publication receipts from your workspace.
 - [Stripe invoicing](https://www.acceleratewith.us/docs/plugins/stripe-invoicing) (updated 2026-09-19): Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.
 - [Stripe subscriptions](https://www.acceleratewith.us/docs/plugins/stripe-subscriptions) (updated 2026-09-19): Create recurring plans, send customers through secure checkout, and manage renewals from the account portal.

@@ -259,6 +259,18 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" COLLECTIONS_REMINDER_POSTGRES_PROOF=1 npm run test:collections-lifecycle
           npm run test:collections-reminders
 
+      - name: Verify complete reference business journeys
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: PATH="$(pg_config --bindir):$PATH" npm run test:reference-business-journeys
+
+      - name: Upload reference journey evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-business-journeys
+          path: /tmp/accelerate-reference-journeys-*/
+          if-no-files-found: warn
+
       - name: Verify developer handoff and fresh-clone pickup
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: |

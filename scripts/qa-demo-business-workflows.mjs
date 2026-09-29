@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
 import { chromium } from "playwright";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3023";
 const output = "/tmp/accelerate-demo-business";
@@ -10,7 +11,11 @@ const scenarios = [
   "ledgerstone-advisory",
   "hearthline-realty",
   "common-table-network",
+  "superdebate",
 ];
+const startedAt = new Date().toISOString();
+const results = [];
+let passed = false;
 const browser = await chromium.launch();
 let activePage;
 let activeScenario = "starting";
@@ -58,6 +63,7 @@ try {
         "ledgerstone-advisory": "Ledgerstone Accounting & Advisory",
         "hearthline-realty": "Hearthline Realty Group",
         "common-table-network": "Common Table Community Network",
+        superdebate: "SuperDebate Demo",
       };
       assert.equal(name, names[scenario], "Scenario identity leaked from another workspace");
       await page.getByLabel("Display name", { exact: true }).fill(name + " Studio");
@@ -152,6 +158,25 @@ try {
         await select.selectOption({ index: 1 });
         await page.getByRole("button", { name: "Review workflow", exact: true }).click();
         await page.getByRole("button", { name: "Request approval", exact: true }).click();
+        await page.getByRole("button", { name: "Reject", exact: true }).focus();
+        await page.keyboard.press("Enter");
+        await page
+          .getByRole("button", { name: "Approve & create tasks", exact: true })
+          .waitFor({ state: "detached" });
+        await page
+          .getByLabel("Task 1", { exact: true })
+          .fill("Confirm the revised customer kickoff");
+        await page.getByRole("button", { name: "Review workflow", exact: true }).click();
+        await page
+          .getByLabel("Task 1", { exact: true })
+          .fill("Confirm the revised customer kickoff and owner");
+        assert.equal(
+          await page.getByRole("button", { name: "Request approval", exact: true }).count(),
+          0,
+          "Editing must invalidate the reviewed plan",
+        );
+        await page.getByRole("button", { name: "Review workflow", exact: true }).click();
+        await page.getByRole("button", { name: "Request approval", exact: true }).click();
         await page.getByRole("button", { name: "Approve & create tasks", exact: true }).click();
         await page.getByRole("button", { name: "Mark complete", exact: true }).first().click();
         await stable(page);
@@ -201,12 +226,14 @@ try {
       await page.waitForLoadState("domcontentloaded");
       await page.getByLabel("Display name", { exact: true }).waitFor();
       assert.equal(await page.getByLabel("Display name", { exact: true }).inputValue(), name);
+      results.push({ scenario, viewport: activeViewport, finishedAt: new Date().toISOString() });
       console.log(`${scenario} ${mobile ? "mobile" : "desktop"} passed`);
     }
     assert.deepEqual(escaped, [], "Protected or external request escaped");
     assert.deepEqual(errors, [], "Browser errors");
     await context.close();
   }
+  passed = true;
 } catch (error) {
   if (activePage && !activePage.isClosed()) {
     const prefix = `${output}/failure-${activeScenario}-${activeViewport}`;
@@ -229,4 +256,20 @@ try {
   throw error;
 } finally {
   await browser.close();
+  await writeFile(
+    `${output}/report.json`,
+    JSON.stringify(
+      {
+        commitSha: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
+        startedAt,
+        finishedAt: new Date().toISOString(),
+        results,
+        providerEvidence: "fictional-browser-adapter",
+        realProviderTraffic: false,
+        status: passed ? "passed" : "failed",
+      },
+      null,
+      2,
+    ),
+  );
 }

@@ -104,6 +104,21 @@ if (process.env.COLLECTIONS_POSTGRES_PROOF === "1") await import("./test-collect
 if (process.env.COLLECTIONS_REMINDER_POSTGRES_PROOF === "1")
   await import("./test-collections-reminder-postgres.mjs");
 
+if (process.env.REFERENCE_JOURNEY_OUTPUT) {
+  const { spawnSync } = await import("node:child_process");
+  const result = spawnSync(
+    process.execPath,
+    [
+      "--conditions=react-server",
+      "--import",
+      "tsx",
+      "scripts/test-reference-collections-postgres.ts",
+    ],
+    { stdio: "inherit", env: process.env },
+  );
+  assert.equal(result.status, 0, "Correlated receivables journey failed");
+}
+
 await import("./test-radar-outreach-postgres.mjs");
 
 await import("./test-site-studio-postgres.mjs");
