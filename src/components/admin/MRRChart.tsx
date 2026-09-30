@@ -15,10 +15,13 @@ import {
 
 interface MRRChartProps {
   data: { date: string; mrr: number }[];
+  dates?: { creationDateFallbackCount: number; unknownDateCount: number };
 }
 
-export function MRRChart({ data }: MRRChartProps) {
+export function MRRChart({ data, dates }: MRRChartProps) {
   const reducedMotion = useReducedMotion();
+  const fallbackCount = dates?.creationDateFallbackCount ?? 0;
+  const unknownCount = dates?.unknownDateCount ?? 0;
   if (data.length === 0) return null;
 
   return (
@@ -28,12 +31,20 @@ export function MRRChart({ data }: MRRChartProps) {
       transition={reducedMotion ? { duration: 0 } : { delay: 0.08, duration: 0.24 }}
     >
       <AdminSurface>
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2">
           <TrendingUp className="size-4 text-[var(--admin-accent)]" />
           <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
-            MRR Over Time
+            Active Contracts by Start Month
           </h3>
         </div>
+        <p className="admin-copy mb-4 text-xs">
+          Cumulative monthly value of contracts active now, grouped by start month in UTC. This
+          shows today’s active agreements rather than revenue earned in each month.
+          {fallbackCount > 0 &&
+            ` ${fallbackCount} active ${fallbackCount === 1 ? "contract uses its" : "contracts use their"} creation date because a valid start date is missing.`}
+          {unknownCount > 0 &&
+            ` ${unknownCount} active ${unknownCount === 1 ? "contract is" : "contracts are"} included under Date unavailable.`}
+        </p>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
@@ -56,10 +67,14 @@ export function MRRChart({ data }: MRRChartProps) {
                   color: "var(--admin-ink)",
                   fontSize: 12,
                 }}
-                formatter={(value) => [`$${(Number(value) || 0).toLocaleString()}`, "MRR"]}
+                formatter={(value) => [
+                  `$${(Number(value) || 0).toLocaleString()}`,
+                  "Active monthly value",
+                ]}
               />
               <Line
-                type="monotone"
+                type="stepAfter"
+                isAnimationActive={!reducedMotion}
                 dataKey="mrr"
                 stroke="var(--admin-accent)"
                 strokeWidth={2}

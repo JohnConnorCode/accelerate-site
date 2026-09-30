@@ -1,17 +1,17 @@
 ---
 title: "Understand revenue figures"
 description: "Where each number on the revenue screen comes from, and how to chase a discrepancy."
-updated: "2026-09-19"
+updated: "2026-09-29"
 ---
 
 An opportunity value, a client agreement and a collected payment describe different parts of the business. **Revenue** shows recorded client and proposal values alongside a separate opportunity summary, so you can inspect where a figure comes from before using it to make a decision.
 
 <DocsFigure
-  src="/images/docs/pipeline/revenue.png"
-  alt="The Revenue screen in the fictional Northline Roofing workspace, showing monthly recurring revenue, a trend chart, and revenue by client."
+  src="/images/docs/pipeline/revenue-active-contracts-2026-09-29.png"
+  alt="The Revenue screen in the fictional Northline Roofing workspace, showing current active contract values, separate opportunity values, and active contracts grouped by start month."
   width={1440}
   height={1000}
-  caption="Revenue in the fictional Northline Roofing workspace: recorded client value over time. Fictional demo data."
+  caption="Revenue in the fictional Northline Roofing workspace: current active contracts grouped by start month. Fictional demo data."
 />
 
 ## What the figures mean
@@ -26,10 +26,19 @@ An opportunity value, a client agreement and a collected payment describe differ
 | Average client value      | Active-client monthly total divided by active-client count          |
 | Industry breakdown        | Active-client monthly values grouped by industry                    |
 | Accepted proposal value   | Monthly totals on accepted proposals                                |
+| Churned share             | Churned records as a percentage of current non-onboarding clients   |
 
-The **Canonical opportunity rollup** keeps opportunity figures separate from client and proposal values. A won opportunity describes the recorded sales outcome; verify payment through the relevant provider evidence when you need collected cash.
+The **Opportunity values** summary keeps opportunity figures separate from client and proposal values. A won opportunity describes the recorded sales outcome; verify payment through the relevant provider evidence when you need collected cash.
 
-The monthly recurring revenue timeline uses client status and contract-start dates, falling back to creation dates when a start date is missing. Use it to review the recorded client data and its dates. It is a projection of those records, rather than a payment ledger.
+**Active Contracts by Start Month** groups the contracts active today by their start month in UTC and accumulates their monthly values. Contracts that share a month appear as one point, and the final value agrees with Monthly Recurring. Onboarding, paused and churned contracts are excluded from this active total.
+
+When a valid start date is missing, the chart uses the creation date and tells you how many contracts used that fallback. If both dates are unavailable, their value remains in a final **Date unavailable** point, so missing dates never silently reduce the total.
+
+**Churned Share** describes the current client records across all recorded dates, excluding onboarding records from its denominator. Use it to inspect the mix of client statuses; a period churn calculation needs dated departures and the client base at the beginning of that period.
+
+## Example: check a changed client agreement
+
+In the fictional Northline Roofing workspace, open [Clients](/docs/delivery/clients) and check an active agreement’s monthly value and contract start. Open Revenue and compare that agreement with **Active Monthly Value by Client**, then check the final chart value against **Monthly Recurring**. After a simulated change marks that client churned, its monthly value leaves both active totals because the report reflects the clients active now.
 
 ## Investigate a difference
 
@@ -38,4 +47,10 @@ The monthly recurring revenue timeline uses client status and contract-start dat
 3. Compare with [Pipeline](/docs/pipeline/board) only after checking what that view counts. An opportunity amount, a client agreement and an accepted proposal can represent different stages of the same business.
 4. Correct a demonstrated source-record error through its supported edit flow, then reload Revenue.
 
-Resist the urge to edit a record just to make two reports agree with each other; if the underlying inputs are correct and the calculation still comes out different, that is worth reporting, with the expected formula and a couple of example record IDs, to your technical owner rather than papering over.
+## What to check
+
+If Revenue cannot read every required source, it shows an error with **Retry**. A failed refresh keeps previously loaded figures visible with a warning, so retry successfully before treating those figures as current. A complete empty report shows zero and an empty client breakdown.
+
+If retry keeps failing, check Setup and ask the workspace owner to inspect reporting access or the read limit. The current report reads up to 5,000 records from each client, accepted-proposal and opportunity source; larger or incomplete reads show unavailable instead of partial totals.
+
+Use this chart to understand the start months of today’s active agreements, and check a dated revenue or payment ledger when you need historical results. Confirm collected cash through provider receipts. If source records are correct but a figure differs from its stated calculation, report the expected formula and example record IDs to your technical owner before editing those records.

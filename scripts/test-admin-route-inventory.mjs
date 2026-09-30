@@ -42,9 +42,15 @@ test("parity work must retain its canonical card identifier", () => {
 });
 
 test("table and domain observations cannot silently disappear", () => {
-  const inventory = copy();
-  inventory.routes.find((row) => row.route === "/admin/revenue").adapters[0].directTables = [];
-  assert.ok(
-    verifyInventory(inventory).some((error) => error.startsWith("Stale adapter observations:")),
-  );
+  for (const field of ["directTables", "domainImports"]) {
+    const inventory = copy();
+    const adapter = inventory.routes
+      .flatMap((row) => row.adapters)
+      .find((row) => row[field].length);
+    assert.ok(adapter, `A recorded ${field} observation is required for this regression`);
+    adapter[field] = [];
+    assert.ok(
+      verifyInventory(inventory).some((error) => error.startsWith("Stale adapter observations:")),
+    );
+  }
 });

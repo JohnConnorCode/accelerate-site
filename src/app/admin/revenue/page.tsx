@@ -2,7 +2,7 @@
 
 import { adminPageName } from "@/lib/admin/navigation";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { DollarSign, Users, TrendingDown, BarChart3 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -19,9 +19,10 @@ interface RevenueData {
   churnRate: number;
   avgClientValue: number;
   industryBreakdown: { name: string; value: number }[];
-  byClient: { name: string; monthly: number; oneTime: number }[];
+  byClient: { id?: string; name: string; monthly: number; oneTime: number }[];
   mrrTimeline: { date: string; mrr: number }[];
   proposalRevenue: number;
+  timelineDates?: { creationDateFallbackCount: number; unknownDateCount: number };
   canonical: {
     openOpportunities: number;
     pipelineValue: number;
@@ -33,6 +34,7 @@ interface RevenueData {
 }
 
 export default function RevenuePage() {
+  const reducedMotion = useReducedMotion();
   const revenueQuery = useAdminQuery<RevenueData>(["admin", "revenue"], "/api/admin/revenue");
   const data = revenueQuery.data ?? null;
   const loading = revenueQuery.isPending;
@@ -46,7 +48,7 @@ export default function RevenuePage() {
     >
       <PageHeader
         title={adminPageName("revenue")}
-        subtitle="Review revenue and customer value to understand where your business is growing."
+        subtitle="Review active client contracts and recorded opportunity values."
       />
       <AdminReadBody
         loading={loading}
@@ -77,7 +79,7 @@ export default function RevenuePage() {
                 index={2}
               />
               <StatCard
-                label="Churn Rate"
+                label="Churned Share"
                 value={data.churnRate}
                 change={`${data.churnRate}%`}
                 trend={data.churnRate > 10 ? "down" : "neutral"}
@@ -86,10 +88,15 @@ export default function RevenuePage() {
               />
             </div>
 
+            <p className="admin-copy text-xs">
+              Monthly recurring value includes active clients. Churned share is the percentage of
+              current non-onboarding client records marked churned, across all recorded dates.
+            </p>
+
             <AdminSurface>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
-                  Opportunity revenue (canonical)
+                  Opportunity values
                 </h3>
                 <span className="admin-copy text-xs">
                   {data.canonical.openOpportunities} open of {data.canonical.opportunityCount}{" "}
@@ -117,28 +124,24 @@ export default function RevenuePage() {
                 </div>
               </div>
               <p className="admin-copy mt-4 text-xs">
-                Monthly recurring, one-time and accepted-proposal values remain source-owned (
-                {data.dispositions
-                  .filter((item) => item.owner === "retained")
-                  .map((item) => item.field)
-                  .join(", ")}
-                ) until a canonical replacement exists. They are not cash receipts.
+                Client agreements, accepted proposals and opportunity values are separate records.
+                Check payment receipts when you need collected cash.
               </p>
             </AdminSurface>
 
             {/* MRR Chart */}
             <div>
-              <MRRChart data={data.mrrTimeline} />
+              <MRRChart data={data.mrrTimeline} dates={data.timelineDates} />
             </div>
 
             <div className="admin-grid admin-grid--panels">
-              {/* Revenue by Industry */}
+              {/* Active Monthly Value by Industry */}
               <AdminSurface>
                 <h3 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
-                  Revenue by Industry
+                  Active Monthly Value by Industry
                 </h3>
                 {data.industryBreakdown.length === 0 ? (
-                  <p className="admin-copy text-xs">No data yet</p>
+                  <p className="admin-copy text-xs">No active client contracts yet</p>
                 ) : (
                   <div className="space-y-3">
                     {data.industryBreakdown.map((ind) => {
@@ -156,9 +159,9 @@ export default function RevenuePage() {
                           <div className="h-2 overflow-hidden rounded bg-[var(--admin-surface-subtle)]">
                             <motion.div
                               className="h-full rounded bg-[var(--admin-accent)]"
-                              initial={{ width: 0 }}
+                              initial={reducedMotion ? false : { width: 0 }}
                               animate={{ width: `${pct}%` }}
-                              transition={{ duration: 0.6 }}
+                              transition={{ duration: reducedMotion ? 0 : 0.6 }}
                               style={{ opacity: 0.7 }}
                             />
                           </div>
@@ -169,21 +172,23 @@ export default function RevenuePage() {
                 )}
               </AdminSurface>
 
-              {/* Revenue by Client */}
+              {/* Active Monthly Value by Client */}
               <AdminSurface>
                 <h3 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
-                  Revenue by Client
+                  Active Monthly Value by Client
                 </h3>
                 {data.byClient.length === 0 ? (
-                  <p className="admin-copy text-xs">No clients yet</p>
+                  <p className="admin-copy text-xs">No active client contracts yet</p>
                 ) : (
                   <div className="space-y-2">
                     {data.byClient.map((client) => (
                       <div
-                        key={client.name}
-                        className="flex items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-[var(--admin-surface-subtle)]"
+                        key={client.id ?? client.name}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--admin-surface-subtle)]"
                       >
-                        <span className="text-sm text-[var(--admin-ink)]">{client.name}</span>
+                        <span className="min-w-0 break-words text-sm text-[var(--admin-ink)]">
+                          {client.name}
+                        </span>
                         <div className="text-right">
                           <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
                             ${client.monthly.toLocaleString()}/mo
@@ -201,27 +206,31 @@ export default function RevenuePage() {
               </AdminSurface>
             </div>
 
-            {/* One-Time Revenue */}
-            {data.totalOneTime > 0 && (
-              <div>
-                <AdminSurface>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <p className="admin-copy text-xs">Total One-Time Revenue</p>
-                      <p className="font-display text-2xl font-bold text-[var(--admin-ink)]">
-                        ${data.totalOneTime.toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="admin-copy text-xs">Annual Recurring (est.)</p>
-                      <p className="font-display text-2xl font-bold text-[var(--admin-accent)]">
-                        ${(data.totalMRR * 12).toLocaleString()}
-                      </p>
-                    </div>
+            {/* Agreement and proposal values remain separate. */}
+            <div>
+              <AdminSurface>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div>
+                    <p className="admin-copy text-xs">Recorded One-Time Value</p>
+                    <p className="font-display text-2xl font-bold text-[var(--admin-ink)]">
+                      ${data.totalOneTime.toLocaleString()}
+                    </p>
                   </div>
-                </AdminSurface>
-              </div>
-            )}
+                  <div>
+                    <p className="admin-copy text-xs">Annualized Active Contracts</p>
+                    <p className="font-display text-2xl font-bold text-[var(--admin-accent)]">
+                      ${(data.totalMRR * 12).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="admin-copy text-xs">Accepted Proposal Monthly Value</p>
+                    <p className="font-display text-2xl font-bold tabular-nums text-[var(--admin-ink)]">
+                      ${data.proposalRevenue.toLocaleString()}/mo
+                    </p>
+                  </div>
+                </div>
+              </AdminSurface>
+            </div>
           </>
         )}
       </AdminReadBody>

@@ -4,6 +4,7 @@ import {
   type DemoLearningState,
 } from "./learning-runtime";
 import { revenueDispositions } from "@/lib/revenue-os/revenue-dispositions";
+import { summarizeContractRevenue } from "@/lib/revenue-os/revenue-metrics";
 import { activityDispositions } from "@/lib/revenue-os/activity-dispositions";
 import { SITE_STUDIO_MODELS, SITE_MODELS_OBSERVED_AT } from "@/lib/site-studio/models";
 import {
@@ -4534,22 +4535,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const rows = opportunityRows(pack, state);
       const openRows = rows.filter((item) => !["won", "lost"].includes(item.canonical_stage));
       return jsonResponse({
-        totalMRR: 18400,
-        totalOneTime: rows.reduce((sum, item) => sum + item.won_value, 0),
-        activeCount: 6,
-        churnRate: 4,
-        avgClientValue: 3067,
-        industryBreakdown: [{ name: pack.category, value: 100 }],
-        byClient: pack.people.slice(0, 6).map((item, index) => ({
-          name: `${item.company} · ${item.name}`,
-          monthly: 1800 + index * 425,
-          oneTime: index * 900,
-        })),
-        mrrTimeline: ["Apr", "May", "Jun", "Jul", "Aug"].map((date, index) => ({
-          date,
-          mrr: 11200 + index * 1800,
-        })),
-        proposalRevenue: 24600,
+        ...summarizeContractRevenue(
+          clientRows(pack, state),
+          proposals(pack).filter((proposal) => proposal.status === "accepted"),
+        ),
         canonical: {
           openOpportunities: openRows.length,
           pipelineValue: openRows.reduce((sum, item) => sum + item.estimated_value, 0),

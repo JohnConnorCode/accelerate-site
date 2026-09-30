@@ -384,6 +384,33 @@ jobs:
           path: /tmp/accelerate-leads-write-recovery/
           if-no-files-found: ignore
           retention-days: 7
+      - name: Verify Revenue reporting and recovery
+        if: ${{ !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
+        run: |
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-revenue-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then
+              ready=true
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-revenue-server.log; exit 1; fi
+          npm run qa:revenue
+      - name: Retain Revenue browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: revenue-browser-evidence
+          path: /tmp/accelerate-revenue-qa/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify industry and Chicago release pages
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         run: node scripts/qa-chicago-industries.mjs

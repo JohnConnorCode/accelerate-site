@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "What do the Revenue figures measure?",
+    answer:
+      "Monthly Recurring sums current active client agreements. The start-month chart groups those same contracts in UTC, keeps missing dates visible and ends at that total. Churned Share describes current non-onboarding client records across all recorded dates. Opportunity values, one-time agreement values and accepted proposal monthly values remain separate. If a read is incomplete or fails, use Retry; a failed refresh labels the previous figures. Check provider receipts when you need collected cash, and a dated ledger when you need historical revenue.",
+  },
+  {
     question: "What should I do when an inquiry update needs attention?",
     answer:
       "Read the named result in Leads because part of the change may already be saved. Use Retry incomplete updates to finish the affected records; successful rows remain saved. A new inquiry whose setup is incomplete stays in its original form with Retry setup, while an uncertain save offers Retry save. Retrying the same change reuses its existing follow-up or client engagement. Check the linked Pipeline record after recovery, and review an identity conflict or stale change before trying again.",

@@ -352,7 +352,9 @@
     "qa:contact-import-source-review": "node scripts/resource-run.mjs node scripts/qa-contact-import-source-review.mjs",
     "test:collection-policy": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-collection-policy.ts && NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-collection-policy-demo.ts",
     "verify:lead-write-consistency": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-lead-write-consistency.ts",
-    "qa:lead-write-recovery": "node scripts/qa-lead-write-recovery.mjs"
+    "qa:lead-write-recovery": "node scripts/qa-lead-write-recovery.mjs",
+    "verify:revenue-read-correctness": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/verify-revenue-read-correctness.ts",
+    "qa:revenue": "node scripts/qa-revenue.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
