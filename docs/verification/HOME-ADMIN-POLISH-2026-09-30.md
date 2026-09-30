@@ -30,11 +30,50 @@ The founder requested a direct statement of the money-and-time outcome and more 
 | No hero activity lifecycle.                          | Decorative loops pause offscreen, on hidden tabs and behind the mobile menu. Reduced motion and disabled JavaScript remain static. Coarse pointers run no continuous decorative loops. |
 | Phone spacing inherited the desktop composition.     | Mobile lead type, background framing, top padding, eyebrow spacing and bottom spacing keep the result and booking action visible.                                                      |
 
-Production application candidate `3e025b38c7e7dfdfa864cb7feabd9a974561fdf7` passes CI build and typecheck. Its retained production artifact runs locally at `http://localhost:3045` with deployment ID `3e025b38c7e7`. The follow-up changes after that application candidate affect only QA and this receipt; application/build inputs are unchanged.
+The prior hero candidate `3e025b38c7e7dfdfa864cb7feabd9a974561fdf7` passed CI build and typecheck. Its original eight-case verification is recorded here as historical evidence; the sequential-entrance refinement below changes application source and has separate production-build and browser evidence.
 
 The resource-gated local hero suite passes eight cases: desktop light/dark, phone light/dark, short and narrow phones, reduced motion and JavaScript disabled. It checks complete text, booking above the fold, no overflow, settled words, pointer/touch responses, offscreen pause, keyboard activation, Back and console errors. Desktop light/dark, mobile light/dark, narrow phone, short phone and no-script screenshots were opened. Native Chrome also verifies desktop themes, the short phone view, booking and Back.
 
 The initial CI no-script check read the background before CSS loaded. Delaying CSS reproduces the ordering issue while the final rendered hero stays paused. The fixture now delays CSS by 300ms and polls from the test process for the hero stylesheet before checking computed styles. Its assertions remain intact; no application behavior changed to repair this QA race. Screenshot and JSON receipts are retained under `test-results/editorial-home-admin-polish/hero-final-local/`.
+
+## Sequential homepage entrances
+
+The founder requested perceptible, intentional entrances across the homepage,
+especially the hero. The complete money-and-time message and booking action
+remain readable throughout the hero sequence.
+
+| Before                                                                                                  | After                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hero animations started when the root bootstrap armed motion, before the hero's client owner was ready. | `Hero.tsx` uses the existing shared reveal lifecycle. The entrance starts on committed content and stays static with unavailable JavaScript or reduced motion.                                                |
+| Hero elements overlapped, and the animation shorthand overrode several phase delays.                    | CSS consumes `--hero-entry-delay` in the shorthand itself. Eyebrow, setup words, outcome words, explanation, booking action and three service labels start in distinct phases, finishing within 1.52 seconds. |
+| Section eyebrows, headings and descriptions had independent observers and 60ms offsets.                 | `Reveal sequence` gives each compact group one clock. Semantic children enter 110ms apart with a 640ms translation-and-opacity entrance.                                                                      |
+| Homepage reveals began at 92% of the viewport, often mostly offscreen.                                  | The existing shared lifecycle uses the contract's 78% entry line. Long lists keep independent row owners, including on a slow scroll.                                                                         |
+| The statement's detail and navigation, service note and marquee had no entrance owner.                  | They now enter with the same homepage rhythm. Project links, service rows, industry cards, plan items and FAQ rows have distinct, bounded offsets.                                                            |
+| Process rows entered as a single block, with an additional nested tag animation.                        | Each row sequences its number, title with tag, and explanation. The title owns the tag's entrance; the extra animation is removed.                                                                            |
+| About copy entered as a single block; the closing headline and CTA had separate clocks.                 | About paragraphs and link enter in order. One closing sequence owns the eyebrow, two clipped headline lines, description and booking action. The about link supports its translation with `inline-flex`.      |
+
+Application candidate: `f3d367916bef98372d5e574972364d7f2375ed00`.
+The browser suites measure real `animationstart` events, traverse the homepage's
+entrance owners, and retain intermediate screenshots. They also cover the direct
+load, keyboard navigation, Back, delayed hydration, complete no-script content,
+reduced motion, dark mode, short phones and horizontal overflow.
+
+The resource-gated production build and TypeScript validation pass for that
+application candidate. Full lint, the agent contract, Work ownership contract and
+native website rendering pass. Local browser verification passes eight homepage
+viewport/theme cases plus ten hero cases: six normal viewports, two delayed
+hydration cases, reduced motion and disabled JavaScript. The desktop and phone
+traversals check 47 entrance owners each. Actual hero phase starts are separated
+by approximately 100–183ms; all words, copy and actions settle. The suites report
+no console or runtime errors. Intermediate hero screenshots, desktop services
+and phone process screenshots were opened and inspected.
+
+The production preview at `http://localhost:3045` uses deployment ID
+`f3d367916bef`. Screenshots, JSON and the source-tree receipt are retained under
+`test-results/editorial-home-admin-polish/home-sequence-final/`. An additional
+timing audit was refused by the machine's disk gate; the passing production and
+browser receipts precede that refusal. Only owned disposable compiler-cache and
+old downloaded CI artifact copies were removed. Other worktrees are untouched.
 
 ## Verification
 
