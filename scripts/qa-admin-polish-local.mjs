@@ -46,6 +46,7 @@ try {
   ])
     if (!focus || focus.split(",").includes(name)) await import(file);
   if (focus?.split(",").includes("home")) await import("./qa-home-polish.mjs");
+  if (focus?.split(",").includes("hero")) await import("./qa-home-hero-timing.mjs");
   if (focus?.split(",").includes("today")) await import("./qa-today-workspace.mjs");
   if (focus?.split(",").includes("product"))
     await new Promise((resolve, reject) => {

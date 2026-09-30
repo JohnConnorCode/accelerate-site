@@ -343,6 +343,20 @@ jobs:
       - name: Build and typecheck
         run: npm run build
 
+      # A public-only verification can supply a local production preview when
+      # the development machine cannot safely run another compiler.
+      - name: Retain local production preview
+        if: ${{ inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: local-production-preview
+          path: |
+            .next/
+            !.next/cache/
+            !.next/diagnostics/
+          include-hidden-files: true
+          retention-days: 2
+
       - name: Verify compiled document extraction
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         run: NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-document-extraction.ts --compiled
