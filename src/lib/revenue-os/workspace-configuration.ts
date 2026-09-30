@@ -118,7 +118,14 @@ export async function readWorkspaceConfiguration(db: SupabaseClient, raw: unknow
     },
   };
 }
-async function target(db: SupabaseClient, change: WorkspaceConfigurationChange) {
+async function target(
+  db: SupabaseClient,
+  change: WorkspaceConfigurationChange,
+): Promise<{
+  expected: Record<string, unknown> | null;
+  before: Record<string, unknown>;
+  revision: string;
+}> {
   const tenantId = workspace(db);
   if (change.operation === "set_workspace_setting") {
     const result = await db
