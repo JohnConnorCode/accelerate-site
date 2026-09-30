@@ -42,7 +42,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       if (section.dataset.heroActive === "false") response?.cancel();
     };
     const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
+      visible = entry?.isIntersecting ?? false;
       updateActivity();
     });
     observer.observe(section);
