@@ -890,7 +890,7 @@ export default function AdminShell({
                   className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-0 xl:px-10"
                 >
                   <div
-                    className="admin-workspace-toolbar hidden items-center justify-between gap-4 lg:flex"
+                    className="admin-workspace-toolbar hidden items-center justify-between gap-4 sm:flex"
                     data-admin-workspace-toolbar
                   >
                     {breadcrumbs.length > 1 && (
