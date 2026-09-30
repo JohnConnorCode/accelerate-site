@@ -1,3 +1,4 @@
+import { WORKSPACE_CONFIGURATION_TOOLS } from "@/lib/revenue-os/workspace-configuration-contract";
 import {
   handleDemoLearning,
   initialDemoLearning,
@@ -1796,7 +1797,12 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
           "revenue-os.today-views",
         ] as (typeof rows)[number],
     ),
-    ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS, ...TOOL_DISCOVERY_METADATA].map(
+    ...[
+      ...BRANDING_TOOLS,
+      ...MODULE_CONTROL_TOOLS,
+      ...WORKSPACE_CONFIGURATION_TOOLS,
+      ...TOOL_DISCOVERY_METADATA,
+    ].map(
       (t) =>
         [
           t.name,
@@ -3644,7 +3650,16 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       }
       return jsonResponse({ error: "Invalid module request" }, 400);
     }
-    if (method === "GET" && path === "/api/admin/settings") return jsonResponse(settings(pack));
+    if (method === "GET" && path === "/api/admin/settings") {
+      const data = settings(pack);
+      return jsonResponse({
+        ...data,
+        settings: data.settings.map((row) => ({
+          ...row,
+          value: business.configuration?.preferences[row.key] ?? row.value,
+        })),
+      });
+    }
     if (method === "GET" && path === "/api/admin/tenants")
       return jsonResponse({
         isPlatformAdmin: false,

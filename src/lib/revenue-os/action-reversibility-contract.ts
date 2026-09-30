@@ -11,6 +11,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "workspace_configuration_change",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore public preferences through a newly approved change. Provider disconnect requires secure reconnection; completed sync work and history remain. No automatic inverse is promised.",
+  },
+  {
     actionType: "today_view_change",
     impact: "internal_write",
     reversibility: "compensable",

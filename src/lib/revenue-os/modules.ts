@@ -269,6 +269,9 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: [
       "discover_tool_bundles",
       "activate_tool_bundle",
+      "get_workspace_configuration",
+      "preview_workspace_configuration",
+      "propose_workspace_configuration",
       "get_module_configuration",
       "preview_module_configuration",
       "propose_module_configuration",

@@ -231,6 +231,25 @@ export async function getGoogleAccessToken(
   }
 }
 
+/** A connection check probes Google even when the encrypted access token is cached. */
+export async function verifyGoogleConnection(supabase: SupabaseClient) {
+  const { token, connection } = await getGoogleAccessToken(supabase);
+  const user = await googleFetch<{ email?: string; email_verified?: boolean }>(
+    "https://openidconnect.googleapis.com/v1/userinfo",
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (
+    !user.email ||
+    user.email.length > 254 ||
+    user.email_verified !== true ||
+    normalizeEmail(user.email) !== normalizeEmail(String(connection.account_email ?? ""))
+  )
+    throw new Error(
+      "Google account verification did not match the connected account. Reconnect in Integrations.",
+    );
+  return { accountEmail: user.email, scopes: connection.scopes };
+}
+
 interface GmailHeader {
   name: string;
   value: string;
