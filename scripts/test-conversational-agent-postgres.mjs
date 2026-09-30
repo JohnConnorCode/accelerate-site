@@ -72,7 +72,7 @@ try {
  CREATE TABLE public.action_queue(id uuid PRIMARY KEY,tenant_id uuid,action_type text,status text,expires_at timestamptz,payload jsonb,proposed_by text,approved_by text,work_item_id uuid);
  CREATE TYPE public.autonomy_level AS ENUM ('prohibited','always_ask','ask_until_trusted','standing_permission','autonomous'); CREATE TABLE public.autonomy_policies(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),tenant_id uuid,action_key text,label text,description text,level public.autonomy_level,constraints jsonb,coworker_id text,source text,approved_by text,approved_at timestamptz,is_hard_floor boolean DEFAULT false,created_at timestamptz DEFAULT now(),updated_at timestamptz DEFAULT now());
  CREATE TABLE public.autonomy_hard_floors(id uuid DEFAULT gen_random_uuid(),tenant_id uuid,action_key text,reason text);
- CREATE TABLE public.audit_log(tenant_id uuid,actor_email text,action text,entity_type text,entity_id text,source text,after_state jsonb,metadata jsonb);
+ CREATE TABLE public.audit_log(tenant_id uuid,actor_email text,action text,entity_type text,entity_id text,source text,before_state jsonb,after_state jsonb,metadata jsonb);
  CREATE TABLE public.kanban_columns(tenant_id uuid,board_key text,column_key text,metadata jsonb);
  CREATE TABLE public.tasks(tenant_id uuid,id uuid); CREATE TABLE public.contacts(tenant_id uuid,id uuid); CREATE TABLE public.companies(tenant_id uuid,id uuid); CREATE TABLE public.opportunities(tenant_id uuid,id uuid);
  INSERT INTO public.tenants VALUES('${t}','active'),('${other}','active'); INSERT INTO auth.users VALUES('${user}','admin@example.test'); INSERT INTO public.tenant_memberships VALUES('${t}','${user}','active','admin'); INSERT INTO public.opportunities VALUES('${t}','${target}'),('${other}','${foreign}');`);
@@ -109,6 +109,37 @@ try {
     ).status,
     "granted",
   );
+  assert.equal(
+    result(
+      `SELECT public.execute_internal_permission('${grant}','${user}','${JSON.stringify(constraints)}'::jsonb)`,
+    ).deduplicated,
+    true,
+  );
+  assert.equal(
+    sql(`SELECT count(*) FROM public.audit_log WHERE metadata->>'actionId'='${grant}'`),
+    "1",
+  );
+  const replacement = { ...constraints, allowedFields: ["title"] };
+  const grantAgain = randomUUID();
+  sql(
+    `INSERT INTO public.action_queue VALUES('${grantAgain}','${t}','internal_permission_change','executing',now()+interval '1 hour','${JSON.stringify({ constraints: replacement })}'::jsonb,'admin@example.test','admin@example.test',NULL);`,
+  );
+  const originalPolicyId = sql(
+    `SELECT id FROM public.autonomy_policies WHERE tenant_id='${t}' AND action_key='create_task'`,
+  );
+  const replaced = result(
+    `SELECT public.execute_internal_permission('${grantAgain}','${user}','${JSON.stringify(replacement)}'::jsonb)`,
+  );
+  assert.equal(replaced.policyId, originalPolicyId);
+  const audit = JSON.parse(
+    sql(
+      `SELECT jsonb_build_object('before',before_state,'after',after_state) FROM public.audit_log WHERE metadata->>'actionId'='${grantAgain}'`,
+    ),
+  );
+  assert.deepEqual(audit.before, constraints);
+  assert.deepEqual(audit.after, replacement);
+  // Restore the reviewed scope for the remaining concurrency scenarios.
+  sql(`UPDATE public.autonomy_policies SET constraints='${JSON.stringify(constraints)}'::jsonb`);
   const action = (payload, type = "create_task") => {
     const id = randomUUID();
     sql(

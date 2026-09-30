@@ -133,7 +133,7 @@ CREATE INDEX IF NOT EXISTS internal_action_daily ON public.internal_action_reser
 
 CREATE OR REPLACE FUNCTION public.execute_internal_permission(p_action_id uuid,p_actor_id uuid,p_constraints jsonb)
  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
-DECLARE t uuid:=private.request_tenant_id(); a public.action_queue%ROWTYPE; k text; policy uuid; em text;
+DECLARE t uuid:=private.request_tenant_id(); a public.action_queue%ROWTYPE; k text; policy uuid; em text; prior_constraints jsonb;
 BEGIN
  IF auth.uid() IS NULL OR auth.uid()<>p_actor_id THEN RAISE EXCEPTION 'Human authentication required'; END IF;
  SELECT u.email INTO em FROM auth.users u JOIN public.tenant_memberships m ON m.user_id=u.id
@@ -141,9 +141,15 @@ BEGIN
  WHERE u.id=p_actor_id AND m.tenant_id=t AND m.status='active' AND m.role='admin' AND ten.status='active';
  IF em IS NULL THEN RAISE EXCEPTION 'Current administrator required'; END IF;
  SELECT * INTO a FROM public.action_queue WHERE tenant_id=t AND id=p_action_id FOR UPDATE;
- IF a.id IS NULL OR a.status<>'executing' OR a.action_type<>'internal_permission_change'
+ IF a.id IS NULL OR a.status<>'executing' OR a.expires_at<=now() OR a.action_type<>'internal_permission_change'
  OR a.approved_by IS DISTINCT FROM em OR a.payload->'constraints' IS DISTINCT FROM p_constraints
  OR p_constraints->>'actorId' IS DISTINCT FROM p_actor_id::text THEN RAISE EXCEPTION 'Exact human-approved permission required'; END IF;
+ SELECT entity_id::uuid INTO policy FROM public.audit_log
+ WHERE tenant_id=t AND action='autonomy_policy.internal_permission_granted' AND actor_email=em
+ AND metadata->>'actionId'=p_action_id::text AND after_state=p_constraints LIMIT 1;
+ IF policy IS NOT NULL THEN
+  RETURN jsonb_build_object('status','granted','policyId',policy,'constraints',p_constraints,'deduplicated',true);
+ END IF;
  k:=p_constraints->>'actionKey';
  IF k NOT IN ('create_task','update_task','update_next_action','create_founder_note','bulk_tag_contacts','transition_opportunity')
  OR (p_constraints->>'expiresAt')::timestamptz<=now()
@@ -156,13 +162,13 @@ BEGIN
  IF EXISTS(SELECT 1 FROM public.autonomy_hard_floors WHERE tenant_id=t AND action_key=k)
  OR EXISTS(SELECT 1 FROM public.autonomy_policies WHERE tenant_id=t AND action_key=k AND (is_hard_floor OR level='prohibited'))
  THEN RAISE EXCEPTION 'Permission is prohibited'; END IF;
- SELECT id INTO policy FROM public.autonomy_policies WHERE tenant_id=t AND action_key=k AND coworker_id IS NULL ORDER BY created_at,id LIMIT 1 FOR UPDATE;
+ SELECT id,constraints INTO policy,prior_constraints FROM public.autonomy_policies WHERE tenant_id=t AND action_key=k AND coworker_id IS NULL ORDER BY created_at,id LIMIT 1 FOR UPDATE;
  IF policy IS NULL THEN
  INSERT INTO public.autonomy_policies(tenant_id,action_key,label,level,constraints,source,approved_by,approved_at)
  VALUES(t,k,'Bounded internal work','standing_permission',p_constraints,'human_conversation',em,now()) RETURNING id INTO policy;
  ELSE UPDATE public.autonomy_policies SET level='standing_permission',constraints=p_constraints,approved_by=em,approved_at=now(),updated_at=now() WHERE tenant_id=t AND id=policy; END IF;
- INSERT INTO public.audit_log(tenant_id,actor_email,action,entity_type,entity_id,source,after_state,metadata)
- VALUES(t,em,'autonomy_policy.internal_permission_granted','autonomy_policy',policy::text,'admin',p_constraints,jsonb_build_object('actionId',p_action_id));
+ INSERT INTO public.audit_log(tenant_id,actor_email,action,entity_type,entity_id,source,before_state,after_state,metadata)
+ VALUES(t,em,'autonomy_policy.internal_permission_granted','autonomy_policy',policy::text,'admin',prior_constraints,p_constraints,jsonb_build_object('actionId',p_action_id));
  RETURN jsonb_build_object('status','granted','policyId',policy,'constraints',p_constraints);
 END $$;
 REVOKE ALL ON FUNCTION public.execute_internal_permission(uuid,uuid,jsonb) FROM PUBLIC,anon,service_role;

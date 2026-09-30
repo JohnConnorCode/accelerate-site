@@ -60,7 +60,7 @@ export async function previewInternalPermission(
     constraints,
     digest,
     requiresHumanApproval: true,
-    consequence: `Allow ${permission.actionKey.replaceAll("_", " ")} on ${permission.recordIds.length} named records, at most ${permission.maxDailyActions} times per UTC day, until ${permission.expiresAt}. Only these fields: ${permission.allowedFields.join(", ")}. Messages, publishing, billing, deletion and permission changes still require approval.`,
+    consequence: `Replace the workspace permission for ${permission.actionKey.replaceAll("_", " ")} with permission for you on ${permission.recordIds.length} named records, at most ${permission.maxDailyActions} times per UTC day, until ${permission.expiresAt}. Only these fields: ${permission.allowedFields.join(", ")}. Previous record and member scopes for this operation are replaced. Messages, publishing, billing, deletion and permission changes still require approval.`,
   };
 }
 export async function proposeInternalPermission(

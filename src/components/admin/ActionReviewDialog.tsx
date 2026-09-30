@@ -59,7 +59,7 @@ const ACTION_CONSEQUENCE: Record<string, string> = {
   create_task: "Creates a task on your queue.",
   update_next_action: "Changes the next step recorded on this opportunity.",
   internal_permission_change:
-    "Grants only the internal operation, records, fields, expiry and daily limit shown below. Messages, publishing, billing and permission changes keep human approval.",
+    "Replaces the previous workspace permission for this operation with permission for the requesting member on only the records, fields, expiry and daily limit shown below. Only that member can approve it. Messages, publishing, billing and permission changes keep human approval.",
   admin_layout_change:
     "Reorders or hides an admin layout region immediately. Revert it any time from Settings → Layout.",
   create_founder_note:

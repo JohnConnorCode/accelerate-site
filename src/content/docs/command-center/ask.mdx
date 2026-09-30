@@ -47,6 +47,8 @@ Use **Read progress** in chat to retrieve saved steps and receipts. Pause stops 
 
 You can ask the agent to prepare permission for a specific internal operation on named records. The exact review includes allowed fields, an expiry within 30 days and a daily action limit. You must approve the permission yourself.
 
+A new grant replaces the previous workspace permission for that operation, including its record and member scope. Include every record you want covered. The audit records the previous and new constraints; granting again does not reset actions already counted toward that day's limit.
+
 Eligible operations cover tasks, notes, contact tags, opportunity next actions and open pipeline stages. Current membership, policy, record scope, permitted fields, expiry and remaining daily allowance are checked before execution. Messages, publishing, billing, deletion and permission changes still require human approval. If permission does not cover a proposed change, it stays pending for review.
 
 ## Try the fictional workspace
