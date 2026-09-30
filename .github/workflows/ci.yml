@@ -361,6 +361,32 @@ jobs:
           path: /tmp/accelerate-chicago-qa/
           if-no-files-found: ignore
           retention-days: 7
+      - name: Verify workspace configuration approvals
+        if: ${{ !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
+        run: |
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-configuration-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/demo/command-center" > /dev/null; then ready=true; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then cat /tmp/accelerate-configuration-server.log; exit 1; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-configuration-server.log; exit 1; fi
+          npm run resources:run -- node scripts/qa-workspace-configuration.mjs
+
+      - name: Retain workspace configuration evidence
+        if: ${{ always() && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: workspace-configuration-evidence
+          path: |
+            /tmp/accelerate-workspace-configuration/
+            /tmp/accelerate-configuration-server.log
+
       - name: Verify credential-free first-run journey
         env:
           # NextURL canonicalizes loopback IPs to localhost. Keep the server's
@@ -389,7 +415,6 @@ jobs:
             if [ "$PUBLIC_PAGES_ONLY" = "true" ] || [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
-            node scripts/qa-workspace-configuration.mjs
             node scripts/qa-client-interactions.mjs
             npx tsx scripts/qa-site-studio.ts
             node scripts/qa-campaign-duplicate.mjs
@@ -458,7 +483,6 @@ jobs:
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
             /tmp/accelerate-turnkey-qa/
-            /tmp/accelerate-workspace-configuration/
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/
             /tmp/accelerate-docs-takeover-qa/
