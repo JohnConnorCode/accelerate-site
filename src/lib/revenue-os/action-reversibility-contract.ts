@@ -11,6 +11,11 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "update_collection_policy",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore prior policy through a newly reviewed case change. Invoice facts, reminders, work and audit history remain intact; no automatic inverse is promised.",
   },
   {
     actionType: "workspace_configuration_change",
@@ -18,3 +23,256 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     reversibility: "compensable",
     rationale:
       "Restore public preferences through a newly approved change. Provider disconnect requires secure reconnection; completed sync work and history remain. No automatic inverse is promised.",
+  },
+  {
+    actionType: "today_view_change",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore a previous view with a newly reviewed change against the current revision. Personal layout receipts retain the exact prior request.",
+  },
+  {
+    actionType: "send_radar_outreach",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale:
+      "An external email cannot be recalled. Every exact message and introduction requires human approval; uncertain acceptance must be reconciled, never automatically retried.",
+  },
+  {
+    actionType: "review_radar_relationship",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Revoke or supersede with a new reviewed assertion. Original citation, canonical endpoint snapshot, receipt and audit history remain immutable.",
+  },
+  {
+    actionType: "review_radar_assessment",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Review a new assessment to replace current estimates. Original judgments and audit history remain immutable; no deletion or automatic inverse.",
+  },
+  {
+    actionType: "social_marketing_change",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale:
+      "A scheduled social post can become public. Cancel before dispatch; publishing always requires human approval.",
+  },
+  {
+    actionType: "update_radar_store",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Correct source reviews or draft records through a new approved revision. Source versions, citation snapshots, receipts and reported outcomes remain historical; no automatic deletion or inverse is promised.",
+  },
+  {
+    actionType: "update_module_configuration",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "A new reviewed configuration proposal restores settings or enablement. Bundled read-policy registration and historical effects are retained; no automatic inverse is promised.",
+  },
+  {
+    actionType: "update_workspace_brand",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore prior values with a new reviewed branding proposal against the current revision; no automatic inverse is promised.",
+  },
+  {
+    actionType: "update_content_calendar_item",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore prior editorial values through a new reviewed update against the current item revision; no automatic inverse or publication is implied.",
+  },
+  {
+    actionType: "create_task_batch",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Assigned tasks remain individually editable; no automatic deletion of an approved delivery checklist is implied.",
+  },
+  ...["create_stripe_invoice_draft", "send_stripe_invoice", "publish_invoice_page"].map(
+    (actionType) => ({
+      actionType,
+      impact: "external_action" as const,
+      reversibility: "irreversible" as const,
+      rationale:
+        "Creates or sends an external billing document; no automatic compensator is registered, so explicit human approval is permanent.",
+    }),
+  ),
+  ...[
+    "bootstrap_coworker",
+    "store_agent_memory",
+    "record_learned_policy",
+    "approve_learning",
+    "knowledge_document_change",
+  ].map((actionType) => ({
+    actionType,
+    impact: "internal_write" as const,
+    reversibility: "compensable" as const,
+    rationale:
+      "A reviewed configuration change or superseding memory entry compensates for this action; no automatic inverse is promised.",
+  })),
+  {
+    actionType: "send_collection_reminder",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale: "A customer reminder leaves the system and requires human approval.",
+  },
+  {
+    actionType: "save_form_definition",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "A new reviewed draft replaces the saved content. Drafts are never public; publication history and collected responses remain untouched.",
+  },
+  {
+    actionType: "publish_form",
+    impact: "external_action",
+    reversibility: "compensable",
+    rationale:
+      "Unpublishing retires the public link. Responses collected while published and audit history remain; no automatic deletion is promised.",
+  },
+  {
+    actionType: "accept_form_submission",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale:
+      "Canonical intake may acknowledge the inquiry under the configured responder policy. Review is required and delivered messages cannot be recalled.",
+  },
+  {
+    actionType: "site_website_change",
+    impact: "external_action",
+    reversibility: "compensable",
+    rationale:
+      "Immutable website revisions support a separately authorized rollback or unpublish. Prior public exposure cannot be undone.",
+  },
+  {
+    actionType: "create_gmail_draft",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Saves a private, editable Gmail draft. A person may edit or delete it in Gmail; this workflow never sends and has no automatic inverse.",
+  },
+  {
+    actionType: "send_email",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale: "Delivery leaves the system; no recall exists.",
+  },
+  {
+    actionType: "send_gmail_reply",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale: "Delivery leaves the system; no recall exists.",
+  },
+  {
+    actionType: "create_debate_invitation",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale:
+      "A calendar invitation notifies participants and requires exact human approval and provider verification.",
+  },
+  {
+    actionType: "record_debate_milestone",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "A later sourced booking correction can supersede this claim; the prior evidence and audit remain.",
+  },
+  {
+    actionType: "transition_opportunity",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "A reverse transition restores the stage, but terminal-role rules may demand justification, so it runs as its own action rather than silently.",
+  },
+  {
+    actionType: "create_task",
+    impact: "internal_write",
+    reversibility: "reversible",
+    rationale: "The created row is removed; creation left no other trace.",
+  },
+  {
+    actionType: "update_task",
+    impact: "internal_write",
+    reversibility: "reversible",
+    rationale: "Prior field values are captured at execution and restored.",
+  },
+  {
+    actionType: "update_next_action",
+    impact: "internal_write",
+    reversibility: "reversible",
+    rationale: "Prior next_action values are captured at execution and restored.",
+  },
+  {
+    actionType: "delete_task",
+    impact: "internal_write",
+    reversibility: "reversible",
+    rationale:
+      "The full row is captured at execution and re-inserted with its original id; deletion left no other trace.",
+  },
+  {
+    actionType: "activate_campaign",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale: "Activation starts real sends; traffic already emitted cannot be recalled.",
+  },
+  {
+    actionType: "duplicate_campaign",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "The copy is an unsent draft that can be revised separately; provenance and audit remain. No automatic inverse is promised.",
+  },
+  {
+    actionType: "bulk_tag_contacts",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Tags can be changed by another reviewed operation; removing an already-existing tag is not an automatic inverse.",
+  },
+  {
+    actionType: "bulk_suppress_contacts",
+    impact: "internal_write",
+    reversibility: "irreversible",
+    rationale:
+      "Suppression stops pending memberships immediately and no service restores them automatically.",
+  },
+  {
+    actionType: "bulk_enroll_contacts",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Members remain queued until activation. Later delivery and audit history cannot be automatically undone.",
+  },
+  {
+    actionType: "admin_layout_change",
+    impact: "internal_write",
+    reversibility: "reversible",
+    rationale: "revertLayoutChange restores the prior doc from audit history.",
+  },
+  {
+    actionType: "create_founder_note",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Notes have no delete primitive by design; removal is a deliberate manual act, not an automatic undo.",
+  },
+  {
+    actionType: "identity_review",
+    impact: "internal_write",
+    reversibility: "irreversible",
+    rationale:
+      "The executor always refuses this type and points at the review workbench, so no effect ever exists to undo; autonomous runs refuse like all irreversible effects.",
+  },
+] as const;
+
+export function reversibilityOf(actionType: string): ActionReversibility {
+  const entry = ACTION_REVERSIBILITY.find((candidate) => candidate.actionType === actionType);
+  if (!entry) throw new Error(`Action type ${actionType} declares no reversibility class`);
+  return entry;
+}
