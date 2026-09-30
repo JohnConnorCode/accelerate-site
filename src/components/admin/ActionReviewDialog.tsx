@@ -189,7 +189,12 @@ export function ActionReviewDialog({
       align="right"
       className="sm:max-w-[420px]"
     >
-      <div className="h-dvh w-full overflow-y-auto bg-[var(--admin-surface)] shadow-2xl">
+      <div
+        className={cn(
+          "h-dvh w-full overflow-y-auto bg-[var(--admin-surface)] shadow-2xl",
+          isConfiguration && "flex flex-col [&>*]:shrink-0",
+        )}
+      >
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
           <div>
             <div className="flex items-center gap-2">
@@ -552,7 +557,7 @@ export function ActionReviewDialog({
           )}
         </div>
 
-        <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
+        <div className="sticky bottom-0 mt-auto flex items-center justify-between gap-3 border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
           <button
             type="button"
             data-review-decision="reject"
