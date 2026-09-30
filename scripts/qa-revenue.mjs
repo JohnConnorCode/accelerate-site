@@ -87,6 +87,7 @@ try {
     });
     const page = await context.newPage();
     currentPage = page;
+    const metrics = page.locator(".admin-grid--metrics");
     const alerts = page.locator('.admin-surface[role="alert"]');
     page.setDefaultTimeout(20000);
     page.on("pageerror", (error) => errors.push(error.message));
@@ -150,7 +151,9 @@ try {
         .filter((row) => row.status === "accepted")
         .reduce((sum, row) => sum + row.total_monthly, 0),
     );
-    await expect(page.getByText(`$${expected.toLocaleString()}/mo`, { exact: true })).toBeVisible();
+    await expect(
+      metrics.getByText(`$${expected.toLocaleString()}/mo`, { exact: true }),
+    ).toBeVisible();
     await page.screenshot({ path: `${output}/${width}-recovered.png`, fullPage: true });
     if (width === 1440) {
       await page.emulateMedia({ reducedMotion: "reduce" });
@@ -185,7 +188,7 @@ try {
     assert.equal(edit.totalMRR, expected - values.clients[0].monthly_value);
     assert.equal(edit.mrrTimeline.at(-1).mrr, edit.totalMRR);
     await expect(
-      page.getByText(`$${edit.totalMRR.toLocaleString()}/mo`, { exact: true }),
+      metrics.getByText(`$${edit.totalMRR.toLocaleString()}/mo`, { exact: true }),
     ).toBeVisible();
     await page.evaluate(() => {
       window.__revenueFault = "error";
@@ -194,7 +197,7 @@ try {
     await expect(alerts).toContainText("Showing previously loaded information");
     await expect(chart).toBeVisible();
     await expect(
-      page.getByText(`$${edit.totalMRR.toLocaleString()}/mo`, { exact: true }),
+      metrics.getByText(`$${edit.totalMRR.toLocaleString()}/mo`, { exact: true }),
     ).toBeVisible();
     await page.screenshot({ path: `${output}/${width}-stale-warning.png`, fullPage: true });
     await page.evaluate(() => {
