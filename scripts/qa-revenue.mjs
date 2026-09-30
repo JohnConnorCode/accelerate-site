@@ -154,6 +154,19 @@ try {
     await expect(
       metrics.getByText(`$${expected.toLocaleString()}/mo`, { exact: true }),
     ).toBeVisible();
+    await page.locator(".admin-content-stack").evaluate(async (element) => {
+      await Promise.all(
+        element
+          .getAnimations({ subtree: true })
+          .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+          .map((animation) => animation.finished.catch(() => {})),
+      );
+    });
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll(".admin-grid--metrics > div")].every(
+        (element) => Number(getComputedStyle(element).opacity) >= 0.99,
+      ),
+    );
     await page.screenshot({ path: `${output}/${width}-recovered.png`, fullPage: true });
     if (width === 1440) {
       await page.emulateMedia({ reducedMotion: "reduce" });
