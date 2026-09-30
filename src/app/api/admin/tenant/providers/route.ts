@@ -269,11 +269,12 @@ export async function POST(request: NextRequest) {
   if (!parsed.success)
     return NextResponse.json({ error: "Invalid provider action" }, { status: 400 });
   if (parsed.data.action === "disconnect") {
+    const provider = parsed.data.provider;
     try {
       const result = await runWithTenantRequestContext(authorization, () =>
         applyWorkspaceConfigurationAsAdmin(
           authorization.database,
-          { operation: "disconnect_provider", provider: parsed.data.provider },
+          { operation: "disconnect_provider", provider },
           authorization.user.email!,
         ),
       );

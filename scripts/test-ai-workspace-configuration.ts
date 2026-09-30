@@ -201,7 +201,7 @@ async function main() {
         "autonomous",
       ]) {
         const draft = await stage({ operation: "disconnect_provider", provider: "resend" });
-        const count = saves;
+        const count: number = saves;
         if (kind === "revoked") f.mem.rows("tenant_memberships")[0]!.status = "revoked";
         if (kind === "tampered")
           (

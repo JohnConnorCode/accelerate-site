@@ -287,7 +287,7 @@ export function ActionReviewDialog({
                     {phase === "before" ? "Current configuration" : "Exact new configuration"}
                   </h3>
                   <dl className="grid gap-3">
-                    {values &&
+                    {Boolean(values) &&
                       typeof values === "object" &&
                       Object.entries(values)
                         .filter(([key]) => key in labels)
