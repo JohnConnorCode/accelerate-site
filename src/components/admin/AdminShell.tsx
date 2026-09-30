@@ -893,7 +893,7 @@ export default function AdminShell({
                     className="admin-workspace-toolbar hidden items-center justify-between gap-4 lg:flex"
                     data-admin-workspace-toolbar
                   >
-                    {breadcrumbs.length > 1 ? (
+                    {breadcrumbs.length > 1 && (
                       <nav
                         className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]"
                         aria-label="Breadcrumb"
@@ -917,7 +917,8 @@ export default function AdminShell({
                           </span>
                         ))}
                       </nav>
-                    ) : (
+                    )}
+                    {breadcrumbs.length <= 1 && (
                       <p className="admin-workspace-name">
                         {scenarioId ? DEMO_SCENARIOS[scenarioId].name : workspaceName}
                       </p>

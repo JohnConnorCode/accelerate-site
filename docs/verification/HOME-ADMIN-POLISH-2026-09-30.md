@@ -38,4 +38,4 @@ NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded QA_FOCUS=product npm run qa:admin-polis
 
 ## Release-content review
 
-Updated Today and Appearance guides, the public changelog, Command Center web-workspace description and Today/Work FAQ. Regenerated the docs index. Plugin services and their documentation remain accurate because no plugin workflow, access requirement or provider action changed. Source inventory needs no regeneration because registered route operations are unchanged. The source-statistics check verifies the existing published counts.
+Updated Today and Appearance guides, the public changelog, Command Center web-workspace description and Today/Work FAQ. Regenerated the docs index. Plugin services and their documentation remain accurate because no plugin workflow, access requirement or provider action changed. Reviewed the Today, Feature Board and Site Studio route dispositions and refreshed source hashes in the route inventory; registered operations and human-authored authorization boundaries are unchanged. The source-statistics check verifies the existing published counts.
