@@ -573,8 +573,17 @@ async function main() {
     assertImpactHonoured(readTool, { id: "record-id", requiresHumanApproval: true }),
   );
 
-  const writeTool = registry.find((tool) => tool.impact === "internal_write");
+  const writeTool = registry.find(
+    (tool) => tool.impact === "internal_write" && !tool.executionPolicy,
+  );
   assert.ok(writeTool, "no internal_write tool registered");
+  for (const name of ["start_agent_work", "control_agent_work"]) {
+    const orchestration = registry.find((tool) => tool.name === name)!;
+    assert.throws(
+      () => assertImpactHonoured(orchestration, { workItemId: "fake" }),
+      /scoped durable work receipt/,
+    );
+  }
   await rejects(
     async () => assertImpactHonoured(writeTool, [{ id: "some-row" }]),
     "did not stage an action",

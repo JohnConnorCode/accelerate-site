@@ -13,8 +13,9 @@ export function demoSession(cookie?: string) {
     throw new Error("The live demo agent is unavailable: session protection is not configured");
   let session = "";
   if (cookie) {
-    const [payload, signature] = cookie.split(".");
-    if (payload && signature) {
+    const parts = cookie.split(".");
+    const [payload, signature] = parts;
+    if (parts.length === 2 && payload && signature) {
       const expected = createHmac("sha256", secret).update(payload).digest("hex");
       const age = Date.now() - Number(payload.split(":")[1]);
       if (

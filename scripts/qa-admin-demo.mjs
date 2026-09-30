@@ -107,7 +107,7 @@ async function readStablePageState(page) {
     failures.push("launcher: missing fictional-data disclosure");
   if (
     !(await page
-      .getByRole("heading", { level: 1, name: "Your business. Working together." })
+      .getByRole("heading", { level: 1, name: "Tell your agent what needs doing." })
       .count())
   )
     failures.push("launcher: current workflow-led heading is missing");

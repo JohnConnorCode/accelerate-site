@@ -88,7 +88,7 @@ export const demoAgentSnapshotSchema = z
             id,
             title: z.string().max(500),
             description: z.string().max(10000).nullable(),
-            status: z.enum(["pending", "completed"]),
+            status: z.enum(["pending", "completed", "snoozed"]),
             priority: z.enum(["high", "medium", "low"]),
             due_date: z.string().max(40).nullable(),
             snoozed_until: z.string().max(40).nullable(),

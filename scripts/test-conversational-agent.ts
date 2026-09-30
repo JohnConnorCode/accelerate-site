@@ -68,6 +68,7 @@ async function main() {
     tenant: { id: tenantId, slug: "test", name: "Test", status: "active", config: {} },
   };
   await runWithTenantRequestContext(actor, async () => {
+    mem.rows("budget_limits")[0]!.period = "per_work_item";
     const plan = {
       objective: "Prepare the client handoff",
       steps: [
@@ -79,6 +80,7 @@ async function main() {
     const requestId = randomUUID();
     const started = await startAgentWork(db, { plan, digest: preview.digest, requestId }, email);
     assert.equal(started.status, "pending");
+    mem.rows("budget_limits")[0]!.period = "daily";
     const row = mem.rows("work_items")[0]!;
     row.status = "pending";
     assert.equal(

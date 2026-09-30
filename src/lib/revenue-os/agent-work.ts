@@ -7,7 +7,7 @@ import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { createWorkItem, type WorkItem } from "./work-items";
 import { registerWorkKindHandler } from "./work-executor";
 import { deferWork, reconcileWork, type WorkResult } from "./work-result";
-import { checkBudgets, claimResourceBudget } from "./budgets";
+import { checkBudgets, claimResourceBudget, listBudgetLimits } from "./budgets";
 import { recordAudit } from "./audit";
 import {
   agentWorkPlanSchema,
@@ -83,10 +83,14 @@ export async function startAgentWork(
   const preview = await previewAgentWork(db, parsed.plan, email, conversationId);
   if (preview.digest !== parsed.digest) throw new Error("Work plan changed; preview it again");
   const actor = requestingActor(db, email);
-  const budgets = await checkBudgets(db, { coworkerId: "*", budgetKinds: ["vendor_api_calls"] });
-  if (!budgets.some((budget) => Number.isFinite(budget.limit) && budget.allowed))
+  const budgets = await listBudgetLimits(db, { coworkerId: "*", budgetKind: "vendor_api_calls" });
+  if (
+    !budgets.some(
+      (budget) => Number.isFinite(Number(budget.limit_value)) && Number(budget.limit_value) > 0,
+    )
+  )
     throw new Error(
-      "Set a finite, available AI call budget in the workspace before starting durable agent work",
+      "Set a positive finite AI call budget in the workspace before starting durable agent work",
     );
   const progress: Progress = {
     ...preview.plan,
