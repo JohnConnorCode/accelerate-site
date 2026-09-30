@@ -142,8 +142,17 @@ export async function getAgentWork(db: SupabaseClient, input: unknown, email: st
     .maybeSingle();
   if (result.error || !result.data || result.data.agent_plan?.requesterId !== actor.user.id)
     throw new Error("Agent work not found for this member");
+  const linked = await db
+    .from("action_queue")
+    .select("id,action_type,title,status,result,error")
+    .eq("work_item_id", workItemId)
+    .order("created_at", { ascending: false })
+    .limit(26);
+  if (linked.error) throw new Error("Linked action receipts are unavailable");
   return {
     workItemId,
+    actionReceipts: (linked.data ?? []).slice(0, 25),
+    moreActionReceipts: (linked.data?.length ?? 0) > 25,
     status: result.data.status,
     revision: result.data.agent_plan_revision,
     plan: progressSchema.parse(result.data.agent_plan),
@@ -250,7 +259,9 @@ export function registerAgentWorkHandler() {
     const latest = await db.from("work_items").select("agent_plan").eq("id", claimed.id).single();
     if (latest.data?.agent_plan?.control === "paused")
       return deferWork("Plan is paused", new Date(Date.now() + 86400000).toISOString());
-    let { item, plan, config } = await currentDelegation(db, claimed);
+    const current = await currentDelegation(db, claimed);
+    let item = current.item;
+    const { plan, config } = current;
     const index = plan.steps.findIndex((step) => step.status !== "completed");
     if (index < 0)
       return {
@@ -303,7 +314,10 @@ export function registerAgentWorkHandler() {
         };
       step.status = "completed";
       item = await checkpoint(db, item, plan);
-      return deferWork("Approved step completed; continue the next step", new Date().toISOString());
+      return deferWork(
+        "Approved step completed; continue the next step",
+        new Date(Date.now() + 1000).toISOString(),
+      );
     }
     // A interrupted model run can have staged or executed effects. Preserve it for
     // reconciliation rather than guessing that re-running the instruction is safe.
@@ -368,11 +382,13 @@ export function registerAgentWorkHandler() {
           step.runId = runId;
           item = await checkpoint(db, item, plan);
         },
-        onProposalStaged: (proposal) => {
-          step.actionIds.push(proposal.id);
+        onProposalStaged: async (proposal) => {
+          if (!step.actionIds.includes(proposal.id)) step.actionIds.push(proposal.id);
+          item = await checkpoint(db, item, plan);
         },
-        onActionReceipt: (receipt) => {
-          step.actionIds.push(receipt.actionId);
+        onActionReceipt: async (receipt) => {
+          if (!step.actionIds.includes(receipt.actionId)) step.actionIds.push(receipt.actionId);
+          item = await checkpoint(db, item, plan);
         },
       },
     );
@@ -393,6 +409,9 @@ export function registerAgentWorkHandler() {
         status: "awaiting_approval",
         artifacts: step.actionIds.map((id) => ({ type: "action", id })),
       };
-    return deferWork(`Step ${index + 1} completed; continue the plan`, new Date().toISOString());
+    return deferWork(
+      `Step ${index + 1} completed; continue the plan`,
+      new Date(Date.now() + 1000).toISOString(),
+    );
   });
 }

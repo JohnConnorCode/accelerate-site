@@ -472,8 +472,11 @@ async function main() {
     assert.ok(
       tool.impact === "read"
         ? tool.confirmationRequired === (tool.name === "suggest_site_page")
-        : tool.confirmationRequired === true,
-      `${tool.name} is ${tool.impact} but confirmationRequired is ${tool.confirmationRequired}; mutations and billable website suggestions require confirmation`,
+        : tool.executionPolicy === "agent-work"
+          ? ["start_agent_work", "control_agent_work"].includes(tool.name) &&
+            tool.confirmationRequired === false
+          : tool.confirmationRequired === true,
+      `${tool.name} is ${tool.impact} but confirmationRequired is ${tool.confirmationRequired}; business mutations and billable website suggestions require confirmation; only named member-owned orchestration controls are exempt`,
     );
   }
 

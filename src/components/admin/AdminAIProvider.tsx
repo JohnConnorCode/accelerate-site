@@ -353,33 +353,23 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       const work = await response.json();
       if (!response.ok) throw new Error(work.error || "Could not read current work progress");
       setWorkProgress((current) => [...current.filter((item) => item.workItemId !== id), work]);
-      const actionIds =
-        work.plan?.steps.flatMap((step: { actionIds: string[] }) => step.actionIds) ?? [];
-      for (const actionId of actionIds) {
-        const result = await fetch(
-          `/api/admin/revenue-os/actions?id=${encodeURIComponent(actionId)}`,
-          { cache: "no-store" },
+      for (const action of work.actionReceipts ?? []) {
+        if (action.status !== "pending") continue;
+        setProposals((current) =>
+          current.some((item) => item.id === action.id)
+            ? current
+            : [
+                ...current,
+                {
+                  id: action.id,
+                  actionType: action.action_type,
+                  title: action.title,
+                  impact: "review_required",
+                  entityType: null,
+                  entityId: null,
+                },
+              ],
         );
-        const payload = result.ok ? await result.json() : null;
-        const action = payload?.actions?.find(
-          (row: ActionRow) => row.id === actionId && row.status === "pending",
-        );
-        if (action)
-          setProposals((current) =>
-            current.some((item) => item.id === actionId)
-              ? current
-              : [
-                  ...current,
-                  {
-                    id: action.id,
-                    actionType: action.action_type,
-                    title: action.title,
-                    impact: "review_required",
-                    entityType: null,
-                    entityId: null,
-                  },
-                ],
-          );
       }
     } catch (issue) {
       setError(issue instanceof Error ? issue.message : "Work progress is unavailable");

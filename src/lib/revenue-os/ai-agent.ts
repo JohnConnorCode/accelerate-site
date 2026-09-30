@@ -57,7 +57,7 @@ export function finalizeStagedAnswer(
     ) ||
     !/\bapprov(?:al|e|ed|ing)\b/i.test(answer)
   )
-    return `I staged ${stagedCount === 1 ? "a proposal" : `${stagedCount} proposals`} for your approval. ${executedCount ? `${executedCount} permitted internal action(s) have execution receipts. ` : ""}Review ${stagedCount === 1 ? "it" : "them"} below before anything else runs.`;
+    return `I staged ${stagedCount === 1 ? "a proposal" : `${stagedCount} proposals`} for your approval. ${executedCount ? `${executedCount} permitted internal action(s) have execution receipts. ` : "Nothing has been sent or changed. "}Review ${stagedCount === 1 ? "it" : "them"} below before anything else runs.`;
   return answer;
 }
 
@@ -99,7 +99,11 @@ export interface CommandAgentOptions {
   beforeModel?: () => Promise<void>;
   beforeAttempt?: (attempt: number) => Promise<void>;
   beforeTool?: () => Promise<void>;
-  onActionReceipt?: (receipt: { actionId: string; status: string; result: unknown }) => void;
+  onActionReceipt?: (receipt: {
+    actionId: string;
+    status: string;
+    result: unknown;
+  }) => void | Promise<void>;
   onWorkProgress?: (work: { workItemId: string; status: string; revision: number }) => void;
   conversationId?: string | null;
   activeToolBundleId?: string | null;
@@ -125,7 +129,7 @@ export interface CommandAgentOptions {
     summary: string;
     failed: boolean;
   }) => void;
-  onProposalStaged?: (proposal: AgentProposalSummary) => void;
+  onProposalStaged?: (proposal: AgentProposalSummary) => void | Promise<void>;
 }
 
 function safePageContext(context: CommandPageContext | null | undefined): string {
@@ -156,6 +160,8 @@ function toolSummary(output: unknown): string {
   if (Array.isArray(output)) return `${output.length} result${output.length === 1 ? "" : "s"}`;
   if (!output || typeof output !== "object") return String(output ?? "No result").slice(0, 180);
   const row = output as Record<string, unknown>;
+  if (typeof row.action_type === "string" && row.status === "executed")
+    return `Recorded ${row.action_type.replace(/_/g, " ")} result`;
   if (typeof row.action_type === "string")
     return `Staged ${row.action_type.replace(/_/g, " ")} for approval`;
   if (Array.isArray(row.activities))
@@ -212,6 +218,7 @@ export async function runRevenueCommandAgent(
   }));
   const toolNames: string[] = [];
   const stagedToolNames = new Set<string>();
+  const stagedActionIds = new Set<string>();
   let executedCount = 0;
   let toolFailures = 0;
   let activeBundleId =
@@ -381,7 +388,7 @@ export async function runRevenueCommandAgent(
             activeToolBundleId: activeBundleId,
           };
         }
-        const safeText = finalizeStagedAnswer(text, stagedToolNames.size, executedCount);
+        const safeText = finalizeStagedAnswer(text, stagedActionIds.size, executedCount);
         if (streamedAnswer && safeText !== text) options.onAssistantReset?.();
         if (options.onAssistantDelta && (!streamedAnswer || safeText !== text))
           options.onAssistantDelta(safeText);
@@ -462,8 +469,9 @@ export async function runRevenueCommandAgent(
             revision?: number;
           };
           if (result.execution) {
+            if (result.execution.status !== "executed") toolFailures++;
             executedCount++;
-            options.onActionReceipt?.(result.execution);
+            await options.onActionReceipt?.(result.execution);
           }
           if (result.workItemId)
             options.onWorkProgress?.({
@@ -475,7 +483,10 @@ export async function runRevenueCommandAgent(
             result.status === "executed" ? null : proposalSummary(output, tool.impact);
           if (proposal) {
             stagedToolNames.add(name);
-            options.onProposalStaged?.(proposal);
+            if (!stagedActionIds.has(proposal.id)) {
+              stagedActionIds.add(proposal.id);
+              await options.onProposalStaged?.(proposal);
+            }
           }
           return reply;
         } catch (error) {

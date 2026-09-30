@@ -1,5 +1,15 @@
 # Accelerate Revenue OS setup
 
+## Conversational work and public inference
+
+Apply `migrations/20260930190623_conversational_agent_runtime.sql` through the ordered migration runner before activating this source release. It adds member-bound ordered plans, atomic internal permission limits and private public-demo inference admission. The native regression applies it twice and verifies replay, concurrent limits and revocation against a controlled database.
+
+Ordered work requires an active work-engine scheduler and a finite `vendor_api_calls` budget. Every provider attempt reserves that allowance. Internal permission still requires exact human approval. The agent cannot approve itself or automate messages, publishing, billing, deletion or permissions through this path.
+
+Public AI inference is optional and disabled by default. Provision a dedicated non-bootstrap demo workspace with no customer business records. Configure its encrypted OpenRouter provider connection and register an evaluated model supporting tools. Then set `DEMO_AI_TENANT_ID`, `DEMO_AI_MODEL`, a random `DEMO_AI_SESSION_SECRET` of at least 32 characters, and `DEMO_AI_ENABLED=true` in the hosting environment through the approved release process. Do not use a customer workspace or expose its key. The shared server cap is $5 per UTC day, plus session and IP limits. Fictional business effects stay in the browser; provider inference and bounded usage metadata are the only hosted work.
+
+Verify a factual read, an exact simulated proposal, approval/rejection, reload and an unavailable-budget response in the intended non-production HTTPS workspace before publishing the demo. This source implementation and controlled tests do not prove hosted activation or live OAuth consent.
+
 The admin Setup Center at `/admin/setup` is the live source of truth. It checks the running deployment and never displays or stores secret values.
 
 ## Shared request protection

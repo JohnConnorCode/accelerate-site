@@ -133,11 +133,10 @@ async function main() {
       },
       { supabase: db, actorEmail: email, principalKind: "workspace_member" },
     );
-    assert.equal(mcp?.result?.isError, false);
-    assert.equal(
-      JSON.parse((mcp?.result?.content as Array<{ text: string }>)[0]!.text).workItemId,
-      started.workItemId,
-    );
+    const mcpResult = mcp?.result as
+      { isError: boolean; content: Array<{ text: string }> } | undefined;
+    assert.equal(mcpResult?.isError, false);
+    assert.equal(JSON.parse(mcpResult!.content[0]!.text).workItemId, started.workItemId);
     assert.ok(
       toActivatedOpenRouterTools(null, {}).some(
         (tool) => tool.function.name === "start_agent_work",
@@ -162,7 +161,12 @@ async function main() {
     const handler = getWorkKindHandler("agent_work")!;
     assert.equal((await handler(db, row as unknown as WorkItem)).status, "awaiting_approval");
     mem.tables.action_queue[0]!.status = "executed";
-    assert.equal((await handler(db, row as unknown as WorkItem)).status, "deferred");
+    const advanced = await handler(db, row as unknown as WorkItem);
+    assert.equal(advanced.status, "deferred");
+    assert.ok(
+      "nextCheckAt" in advanced && Date.parse(advanced.nextCheckAt) > Date.now(),
+      "The shared worker must be able to settle the next-step deferral",
+    );
     assert.equal((row.agent_plan as typeof progress).steps[0]!.status, "completed");
     // An interrupted step is retained for reconciliation, never replayed.
     (row.agent_plan as typeof progress).steps[1]!.status = "running";
