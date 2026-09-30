@@ -280,6 +280,7 @@ jobs:
         run: |
           NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-stage-history-analytics.ts
           npm run test:analytics-decision-model
+          npm run verify:revenue-read-correctness
 
   docs-checks:
     needs: scope
@@ -396,6 +397,7 @@ jobs:
             node scripts/qa-website-editor.mjs
             node scripts/qa-website-authoring.mjs
             node scripts/qa-analytics-workspace.mjs --demo
+            npm run qa:revenue
             node scripts/qa-radar-workspace.mjs
             node scripts/qa-command-center-offline-store.mjs
             node scripts/qa-operator-workspace.mjs
@@ -455,6 +457,7 @@ jobs:
             /tmp/accelerate-campaign-duplicate/
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
+            /tmp/accelerate-revenue-qa/
             /tmp/accelerate-turnkey-qa/
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/

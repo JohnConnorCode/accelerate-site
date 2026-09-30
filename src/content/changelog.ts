@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "revenue-contract-read-correctness",
+    slug: "revenue-contract-read-correctness",
+    title: "Revenue figures agree with active client contracts",
+    description:
+      "Revenue now groups current active contracts by start month in UTC, so its final chart value agrees with the active monthly total and client breakdown. Missing dates stay visible, Churned Share explains its current-record basis, and accepted proposal values remain separate. Failed or incomplete reads show Retry; a failed refresh labels the previously loaded figures. The fictional demo uses the same contract calculations.",
+    category: "fix",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "debate-booking-production-loop",
     slug: "debate-booking-production-loop",
     title: "Debate bookings track the next confirmed commitment",

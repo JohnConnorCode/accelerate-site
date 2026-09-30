@@ -89,8 +89,8 @@ Identity resolution, intake, and reviewed list imports.
 ## Pipeline
 Opportunities, stages, value, and closed revenue in one operating view.
 
-- [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-19): Every open deal on one board, ranked by what moves revenue next.
-- [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-19): Where each number on the revenue screen comes from, and how to chase a discrepancy.
+- [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-29): Every open deal on one board, ranked by what moves revenue next.
+- [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-29): Where each number on the revenue screen comes from, and how to chase a discrepancy.
 - [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-23): Drag a card when the evidence changed, and leave the next action clear behind it.
 
 ## Proposals

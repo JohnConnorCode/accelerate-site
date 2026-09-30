@@ -85,14 +85,22 @@ function buildResolver(
 export async function loadPipelineStages(
   supabase: SupabaseClient,
   tenantId: string,
+  options: { requireComplete?: boolean } = {},
 ): Promise<PipelineStageResolver> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("kanban_columns")
-    .select("column_key,label,is_default,metadata")
+    .select(
+      "column_key,label,is_default,metadata",
+      options.requireComplete ? { count: "exact" } : undefined,
+    )
     .eq("board_key", "pipeline")
     .eq("tenant_id", tenantId)
     .order("sort_order", { ascending: true });
+  if (options.requireComplete) query = query.limit(5000);
+  const { data, error, count } = await query;
   if (error) throw new Error(error.message);
+  if (options.requireComplete && (!Array.isArray(data) || count === null || count !== data.length))
+    throw new Error("Complete pipeline stages unavailable");
   return buildResolver(data ?? []);
 }
 

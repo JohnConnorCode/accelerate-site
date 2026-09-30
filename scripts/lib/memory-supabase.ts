@@ -56,6 +56,10 @@ export class MemorySupabase {
   private readonly failures: Record<string, QueryFailure> = {};
   private sequence = 0;
 
+  /** Simulates a server row cap while exact count still covers every matching row. */
+  maxReadRows = Infinity;
+  readonly queryTables: string[] = [];
+
   idFactory = (sequence: number) => `row-${sequence}`;
   constructor(seed: Record<string, Row[]> = {}) {
     this.tables = JSON.parse(JSON.stringify(seed));
@@ -121,6 +125,7 @@ export class MemorySupabase {
   }
 
   private query(table: string) {
+    this.queryTables.push(table);
     this.tables[table] ??= [];
     const filters: Array<(row: Row) => boolean> = [];
     let op: "read" | "insert" | "update" | "upsert" | "delete" = "read";
@@ -131,12 +136,13 @@ export class MemorySupabase {
     let one = false;
     const sorts: Array<{ column: string; ascending: boolean }> = [];
     let cap: number | null = null;
+    let offset = 0;
     let countRequested = false,
       head = false;
 
     const self: Record<string, unknown> = {};
     const chain = () => self;
-    for (const method of ["range", "filter"]) self[method] = chain;
+    for (const method of ["filter"]) self[method] = chain;
 
     self.select = (_columns?: string, options?: { count?: string; head?: boolean }) => {
       countRequested = Boolean(options?.count);
@@ -149,6 +155,11 @@ export class MemorySupabase {
     };
     self.limit = (count: number) => {
       cap = count;
+      return self;
+    };
+    self.range = (from: number, to: number) => {
+      offset = from;
+      cap = to - from + 1;
       return self;
     };
     self.order = (column: string, options?: { ascending?: boolean }) => {
@@ -395,7 +406,8 @@ export class MemorySupabase {
         });
       }
       const count = matched.length;
-      if (cap !== null) matched = matched.slice(0, cap);
+      if (cap !== null) matched = matched.slice(offset, offset + cap);
+      if (op === "read") matched = matched.slice(0, this.maxReadRows);
       return resolve({
         data: head ? null : one ? (matched[0] ?? null) : matched,
         error: null,

@@ -139,6 +139,18 @@ remaining manifest-policy work.
   not create route-local chats, model loops, or transcript stores.
 - All model traffic uses `src/lib/ai/openrouter.ts` with an explicit tenant-bound database so `openrouter-credentials.ts` can resolve that workspace's encrypted key; do not add a route-local provider SDK or unscoped production call.
 - New metric extends `analytics.ts`; screens do not calculate competing funnels.
+- Revenue reads use `loadRevenueReport` in `analytics.ts`: tenant-scoped pages of 500,
+  exact-count completeness and a 5,000-record ceiling per clients, accepted proposals
+  and opportunities source. Source failures, changing counts, duplicate page IDs,
+  truncation or a larger source make the report unavailable, never a zero or partial total.
+  This is a bounded projection over current records, not an atomic financial ledger.
+- `revenue-metrics.ts` owns active agreement totals, client/industry breakdown and
+  cumulative UTC start-month cohorts for live and demo reads. Currency sums use cents.
+  Missing starts use creation dates with an explicit count; undated active value is
+  included in Date unavailable. Churned/onboarding/paused rows never subtract from
+  current active value. `churnRate` remains a compatibility field for current churned
+  share, not a period rate. The strict Revenue stage read uses the same resolver as
+  Analytics and checks its exact count; other callers keep their existing behavior.
 - New compatibility read extends `legacy-adapter.ts` and names its retirement
   reconciliation card.
 

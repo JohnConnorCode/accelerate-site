@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "What do the Revenue figures measure?",
+    answer:
+      "Monthly Recurring sums current active client agreements. The start-month chart groups those same contracts in UTC, keeps missing dates visible and ends at that total. Churned Share describes current non-onboarding client records across all recorded dates. Opportunity values, one-time agreement values and accepted proposal monthly values remain separate. If a read is incomplete or fails, use Retry; a failed refresh labels the previous figures. Check provider receipts when you need collected cash, and a dated ledger when you need historical revenue.",
+  },
+  {
     question: "When is a debate actually booked?",
     answer:
       "Use Debate productions in Bookings to confirm each commitment separately. Topic interest or a proposed counterpart does not establish agreement. An approved invitation is sent to the two saved participants after their inbound acceptances are reviewed. Check the live Google event, its time and attendees, any requested Meet link, and both participants' responses. Today shows the first missing or disputed step, while the scheduled work engine rechecks linked invitations when configured.",

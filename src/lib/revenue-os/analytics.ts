@@ -1,6 +1,12 @@
 import "server-only";
 import { pipelineMetrics } from "./pipeline-metrics";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  summarizeContractRevenue,
+  type RevenueClient,
+  type RevenueProposal,
+} from "./revenue-metrics";
+import { revenueDispositions } from "./revenue-dispositions";
 import { loadPipelineStages, type PipelineStageResolver } from "./pipeline-stage-resolver";
 import { computeStageHistory, resolveFunnelProgress, type StageEventInput } from "./stage-history";
 
@@ -374,37 +380,91 @@ export function summarizePipelineTotals(
 
 export { revenueDispositions, type RevenueFieldDisposition } from "./revenue-dispositions";
 
-/** Canonical opportunity totals for the Revenue screen. Reads opportunities and
- * the tenant's pipeline stages through the same services analytics uses, so the
- * screen and the analytics route cannot disagree on open value or won revenue. */
-export function summarizeRetainedContractValue(
-  clients: Array<{ status?: string; monthly_value?: number; one_time_value?: number }>,
-  proposals: Array<{ total_monthly?: number }>,
+export { summarizeRetainedContractValue } from "./revenue-metrics";
+
+/** A complete, bounded tenant read. Never report a partial set as a total.
+ * ponytail: 5,000 records per source; use a database aggregate if a workspace outgrows this limit. */
+async function readRevenueRows<T extends { id?: string }>(
+  db: SupabaseClient,
+  tenantId: string,
+  table: "clients" | "proposals" | "opportunities",
+  columns: string,
 ) {
-  const active = clients.filter((client) => client.status === "active");
-  return {
-    totalMRR: active.reduce((sum, client) => sum + Number(client.monthly_value || 0), 0),
-    totalOneTime: clients.reduce((sum, client) => sum + Number(client.one_time_value || 0), 0),
-    proposalRevenue: proposals.reduce(
-      (sum, proposal) => sum + Number(proposal.total_monthly || 0),
-      0,
-    ),
-  };
+  const rows: T[] = [];
+  const ids = new Set<string>();
+  let total: number | null = null;
+  do {
+    let query = db.from(table).select(columns, { count: "exact" }).eq("tenant_id", tenantId);
+    if (table === "proposals") query = query.eq("status", "accepted");
+    const result = await query.order("id").range(rows.length, rows.length + 499);
+    const count = result.count;
+    if (
+      result.error ||
+      !Array.isArray(result.data) ||
+      count === null ||
+      !Number.isInteger(count) ||
+      count < 0 ||
+      count > 5000 ||
+      (total !== null && total !== count) ||
+      result.data.length !== Math.min(500, count - rows.length)
+    )
+      throw new Error(`Complete ${table} report unavailable`);
+    total = count;
+    for (const row of result.data as T[]) {
+      if (!row.id || ids.has(row.id)) throw new Error(`Complete ${table} report unavailable`);
+      ids.add(row.id);
+      rows.push(row);
+    }
+  } while (rows.length < total);
+  return rows;
 }
 
+/** Canonical values retain the same configured stage roles as Analytics. */
 export async function loadOpportunityRevenueTotals(supabase: SupabaseClient, tenantId: string) {
-  const [{ data, error }, stages] = await Promise.all([
-    supabase
-      .from("opportunities")
-      .select("id,stage,estimated_value,won_value,probability")
-      .limit(5000),
-    loadPipelineStages(supabase, tenantId),
+  const [opportunities, stages] = await Promise.all([
+    readRevenueRows<{
+      id: string;
+      stage: string;
+      estimated_value: number;
+      won_value: number;
+      probability: number;
+    }>(supabase, tenantId, "opportunities", "id,stage,estimated_value,won_value,probability"),
+    loadPipelineStages(supabase, tenantId, { requireComplete: true }),
   ]);
-  if (error) throw new Error(error.message);
-  const opportunities = data ?? [];
+  for (const item of opportunities)
+    if (
+      [item.estimated_value, item.won_value, item.probability].some(
+        (value) => !Number.isFinite(Number(value ?? 0)) || Number(value ?? 0) < 0,
+      )
+    )
+      throw new Error("Invalid recorded opportunity value");
   return {
     ...summarizePipelineTotals(opportunities, stages),
     opportunityCount: opportunities.length,
+  };
+}
+
+/** Revenue's adapter receives all values together or an unavailable report. */
+export async function loadRevenueReport(supabase: SupabaseClient, tenantId: string) {
+  const [clients, proposals, canonical] = await Promise.all([
+    readRevenueRows<RevenueClient>(
+      supabase,
+      tenantId,
+      "clients",
+      "id,business_name,industry,status,monthly_value,one_time_value,contract_start,created_at",
+    ),
+    readRevenueRows<RevenueProposal & { id: string }>(
+      supabase,
+      tenantId,
+      "proposals",
+      "id,total_monthly",
+    ),
+    loadOpportunityRevenueTotals(supabase, tenantId),
+  ]);
+  return {
+    ...summarizeContractRevenue(clients, proposals),
+    canonical,
+    dispositions: revenueDispositions(),
   };
 }
 
