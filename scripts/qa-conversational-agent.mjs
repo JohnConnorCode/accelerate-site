@@ -103,6 +103,7 @@ try {
       // Refresh restores the actual pending proposal from the saved conversation.
       await page.reload();
       await review.waitFor();
+      assert.equal(await input.inputValue(), "", "Reload must not seed an already sent request");
       await review.focus();
       await page.keyboard.press("Enter");
       await page.locator('[data-review-decision="approve"]').waitFor();
@@ -119,6 +120,16 @@ try {
       assert.ok(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "No horizontal overflow",
+      );
+      assert.ok(
+        await page.locator('[data-review-decision="approve"]').evaluate((button) => {
+          const bounds = button.getBoundingClientRect();
+          const log = button.closest('[role="log"]').getBoundingClientRect();
+          return (
+            bounds.top >= Math.max(0, log.top) && bounds.bottom <= Math.min(innerHeight, log.bottom)
+          );
+        }),
+        "The exact review decision is visible in the chat viewport",
       );
       await page.screenshot({
         path: `${out}/${scenario}-${mobile ? "mobile" : "desktop"}-review.png`,

@@ -575,7 +575,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
                       {ai.proposals.map((proposal) => (
                         <li
                           key={proposal.id}
-                          className="rounded-lg bg-[var(--admin-surface)] px-3 py-2 text-xs shadow-[var(--admin-shadow-border)]"
+                          className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-[var(--admin-surface)] px-3 py-2 text-xs shadow-[var(--admin-shadow-border)]"
                         >
                           <button
                             type="button"

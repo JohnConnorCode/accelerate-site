@@ -801,7 +801,12 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         "Find a won client engagement and prepare onboarding tasks linked to it. Ask me for any missing owner or due dates.",
       invoice: "Find overdue invoices and prepare a reminder for my review. Do not send anything.",
     };
-    if (prompts[request]) openWithPrompt(prompts[request]);
+    if (prompts[request]) {
+      openWithPrompt(prompts[request]);
+      const destination = new URL(window.location.href);
+      destination.searchParams.delete("agent");
+      window.history.replaceState(window.history.state, "", destination);
+    }
   }, [pathname, openWithPrompt]);
 
   const value = useMemo<AdminAIContextValue>(

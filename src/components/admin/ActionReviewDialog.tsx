@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useRef } from "react";
 import { Check, ChevronDown, Loader2, TriangleAlert, X } from "lucide-react";
 import { AdminDialog } from "./AdminDialog";
 import { ADMIN_LAYOUT_SCOPES } from "@/lib/admin/layout-scopes";
@@ -640,10 +641,18 @@ function InlineReviewSurface({
   title: string;
   labelledBy: string;
 }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    sectionRef.current?.focus({ preventScroll: true });
+    sectionRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [open]);
   return open ? (
     <section
+      ref={sectionRef}
+      tabIndex={-1}
       aria-label="Review exact changes"
-      className="mt-3 overflow-hidden rounded-xl bg-[var(--admin-surface)] shadow-[var(--admin-shadow-border)]"
+      className="mt-3 overflow-clip rounded-xl bg-[var(--admin-surface)] shadow-[var(--admin-shadow-border)] outline-none"
     >
       {children}
     </section>
