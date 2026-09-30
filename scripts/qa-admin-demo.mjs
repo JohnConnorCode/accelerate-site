@@ -57,6 +57,25 @@ await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const failures = [];
 
+// Provider inference is optional. UI QA controls that boundary and keeps every
+// business operation inside the fictional browser session.
+async function controlDemoInference(context) {
+  await context.route("**/api/demo/agent", (route) =>
+    route.fulfill({
+      json: {
+        runId: crypto.randomUUID(),
+        text: "Fictional priorities reviewed. Nothing has been sent or changed.",
+        status: "completed",
+        model: "controlled-browser-model",
+        events: [],
+        proposals: [],
+        usage: { inputTokens: 123, outputTokens: 45, durationMs: 42 },
+        toolNames: [],
+      },
+    }),
+  );
+}
+
 async function readStablePageState(page) {
   const handle = await page.waitForFunction(
     () => {
@@ -181,6 +200,7 @@ for (const scenario of scenarios) {
     ["mobile", { width: 390, height: 844 }],
   ]) {
     const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
+    await controlDemoInference(context);
     const page = await context.newPage();
     let activeRoute = "launcher";
     page.on("console", (message) => {
@@ -760,20 +780,25 @@ for (const scenario of scenarios) {
         const ai = await fetch("/api/admin/revenue-os/ai/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: "What matters now?" }),
+          body: JSON.stringify({
+            text: "What matters now?",
+            clientMessageId: crypto.randomUUID(),
+          }),
         }).then((response) => response.text());
         return {
           before: before.summary.total,
           after: after.summary.total,
           stored: Boolean(sessionStorage.getItem("accelerate:admin-demo:northline-roofing:v3")),
           aiFinal: ai.includes('"type":"final"'),
-          aiDisclosure: ai.includes("stage—not send"),
+          aiDisclosure: ai.includes("Nothing has been sent or changed."),
         };
       });
       if (mutation.after >= mutation.before || !mutation.stored)
         failures.push("northline-roofing desktop: simulated queue work did not persist coherently");
       if (!mutation.aiFinal || !mutation.aiDisclosure)
-        failures.push("northline-roofing desktop: simulated AI stream is incomplete or unsafe");
+        failures.push(
+          "northline-roofing desktop: controlled demo AI stream is incomplete or unsafe",
+        );
       await page.goto(`${base}/demo/command-center/alder-ridge-law/today`, {
         waitUntil: "domcontentloaded",
       });
@@ -844,6 +869,7 @@ for (const scenario of scenarios) {
     viewport: { width: 1280, height: 900 },
     reducedMotion: "reduce",
   });
+  await controlDemoInference(context);
   const page = await context.newPage();
   page.on("request", (request) => {
     const path = new URL(request.url()).pathname;
@@ -903,7 +929,10 @@ for (const scenario of scenarios) {
       fetch("/api/admin/revenue-os/ai/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: "What matters now?" }),
+        body: JSON.stringify({
+          text: "What matters now?",
+          clientMessageId: crypto.randomUUID(),
+        }),
       }).then((response) => response.text()),
     ]);
     const [actionsAfter, tasksAfter, pipelineAfter, conversationAfter] = await Promise.all([
@@ -928,7 +957,7 @@ for (const scenario of scenarios) {
       reply:
         reply.simulated === true &&
         JSON.stringify(conversationAfter).includes("This is a safe fictional demo reply."),
-      ai: ai.includes('"type":"final"') && ai.includes("stage—not send"),
+      ai: ai.includes('"type":"final"') && ai.includes("Nothing has been sent or changed."),
       stored: Boolean(sessionStorage.getItem(`accelerate:admin-demo:${activeScenario}:v3`)),
     };
   }, scenario);

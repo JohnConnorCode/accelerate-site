@@ -617,7 +617,7 @@ async function main() {
   );
   assert.ok(
     dispatch.indexOf("assertImpactHonoured(tool, output, context)") <
-      dispatch.indexOf("return { output, tool }"),
+      dispatch.indexOf("return { output: resolved, tool }"),
     "the impact check must run before the result is handed back to the agent",
   );
 

@@ -2513,6 +2513,31 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     saveState(scenarioId, state);
   }
   const business = state.business;
+  // Upgrade only fictional task identities. Preserve saved edits, completion
+  // and linked workflow receipts when an older demo session is reopened.
+  const taskIds = new Map(
+    pack.tasks.map((task, index) => [`task-${scenarioId}-${index}`, task.id]),
+  );
+  for (const task of [
+    ...business.tasks,
+    ...Object.values(state.deliveryHandoffs ?? {}).flatMap((handoff) => handoff.tasks),
+  ]) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(task.id))
+      taskIds.set(task.id, crypto.randomUUID());
+    task.id = taskIds.get(task.id) ?? task.id;
+  }
+  state.completedTasks = state.completedTasks.map((id) => taskIds.get(id) ?? id);
+  state.taskOverrides = Object.fromEntries(
+    Object.entries(state.taskOverrides).map(([id, patch]) => [taskIds.get(id) ?? id, patch]),
+  );
+  for (const action of business.actions) {
+    const tasks = action.result?.tasks;
+    if (Array.isArray(tasks)) for (const task of tasks) task.id = taskIds.get(task.id) ?? task.id;
+  }
+  for (const receipt of business.receipts)
+    if (receipt.sourceType === "task" && receipt.sourceId)
+      receipt.sourceId = taskIds.get(receipt.sourceId) ?? receipt.sourceId;
+  saveState(scenarioId, state);
   const scenarioPack = pack;
   const nativeFetch = window.fetch.bind(window);
   const nativeOpen = window.open.bind(window);
@@ -2579,6 +2604,9 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       if (action) return jsonResponse({ schemaReady: true, actions: [action] });
     }
     if (path === "/api/admin/revenue-os/actions" && method === "PATCH") {
+      const collection = business.actions.find((item) => item.id === body.id);
+      if (collection?.expires_at && Date.parse(collection.expires_at) <= Date.now())
+        return jsonResponse({ error: "This proposal expired; request a fresh review" }, 409);
       const action = state.agentProposals?.find((item) => item.id === body.id);
       if (action) {
         if (!["approve", "reject"].includes(String(body.decision)))
@@ -2625,7 +2653,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
               JSON.stringify(taskReviewState(current)) !== JSON.stringify(payload.expectedState)
             )
               throw new Error("Task changed; ask for a fresh proposal");
-            const changed = await demoFetch("/api/admin/revenue-os/tasks", {
+            const changed = await demoFetch("/api/admin/tasks", {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -2827,6 +2855,40 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const prepared = (result.proposals as unknown[]).map((proposal) =>
         demoAgentProposalSchema.parse(proposal),
       );
+      const resolvedIds = new Map<string, string>();
+      for (const item of prepared) {
+        if (!["send_collection_reminder", "update_collection_policy"].includes(item.action_type))
+          continue;
+        const policy = item.action_type === "update_collection_policy";
+        const staged = await demoFetch(
+          policy ? "/api/admin/collections/policy" : "/api/admin/collections/reminders",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              ...(policy ? { action: "propose", patch: item.payload.patch } : {}),
+              caseId: item.payload.caseId,
+              digest: item.payload.digest,
+            }),
+          },
+        );
+        if (!staged.ok) return staged;
+        const row = (await staged.json()).action;
+        const saved = business.actions.find((action) => action.id === row.id)!;
+        saved.expires_at ??= item.expires_at;
+        resolvedIds.set(item.id, row.id);
+        item.id = row.id;
+      }
+      const events = result.events.map((event: { type: string; proposal?: { id: string } }) =>
+        event.type === "proposal_staged" && event.proposal
+          ? {
+              ...event,
+              proposal: {
+                ...event.proposal,
+                id: resolvedIds.get(event.proposal.id) ?? event.proposal.id,
+              },
+            }
+          : event,
+      );
       state.agentProposals ??= [];
       state.agentProposals.push(
         ...prepared.filter(
@@ -2834,16 +2896,6 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             !["send_collection_reminder", "update_collection_policy"].includes(item.action_type),
         ),
       );
-      for (const item of prepared.filter((item) =>
-        ["send_collection_reminder", "update_collection_policy"].includes(item.action_type),
-      ))
-        business.actions.push({
-          ...item,
-          error: null,
-          result: null,
-          pluginId: "receivables-collections",
-          digest: String(item.payload.digest),
-        });
       const at = new Date().toISOString();
       const userId = String(body.clientMessageId),
         assistantId = crypto.randomUUID();
@@ -2880,7 +2932,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return eventStreamResponse([
         { type: "conversation", conversationId, userMessageId: userId },
         { type: "run_started", runId: result.runId, model: result.model, pack: "sandbox" },
-        ...result.events,
+        ...events,
         { type: "assistant_delta", delta: result.text },
         {
           type: "final",
@@ -4140,7 +4192,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       )) {
         if (saved.tasks.some((t) => t.key === m.key)) continue;
         saved.tasks.push({
-          id: `${saved.id}-${m.key}`,
+          id: crypto.randomUUID(),
           key: m.key,
           title: m.title,
           status: "pending",
@@ -4491,7 +4543,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           state.conversationTasks[id] = [
             ...(state.conversationTasks[id] || []),
             {
-              id: `demo-task-${crypto.randomUUID()}`,
+              id: crypto.randomUUID(),
               title: String(body.taskTitle),
               due_date: body.taskDueDate ? String(body.taskDueDate) : null,
             },

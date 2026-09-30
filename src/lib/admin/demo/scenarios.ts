@@ -86,7 +86,7 @@ export interface DemoScenarioPack extends DemoScenarioSummary {
 }
 
 const UUIDS = Array.from(
-  { length: 80 },
+  { length: 120 },
   (_, index) => `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
 );
 const ago = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString();
@@ -229,7 +229,7 @@ function makePack(input: {
     ],
   }));
   const tasks: DemoTask[] = profile.tasks.map((title, index) => ({
-    id: `task-${input.id}-${index}`,
+    id: UUIDS[80 + index]!,
     title,
     personId: people[index]!.id,
     dueOffset: index - 4,
