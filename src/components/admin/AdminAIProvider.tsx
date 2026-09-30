@@ -779,7 +779,14 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const stop = useCallback(() => abortRef.current?.abort(), []);
   const openWithPrompt = useCallback((prompt?: string) => {
     if (prompt) setDraft(prompt);
-    setOpen(true);
+    const fullWorkspace = window.location.pathname.endsWith("/ai");
+    setOpen(!fullWorkspace);
+    if (fullWorkspace)
+      window.requestAnimationFrame(() =>
+        document
+          .querySelector<HTMLTextAreaElement>('textarea[aria-label="Ask the business"]')
+          ?.focus(),
+      );
   }, []);
 
   useEffect(() => {
@@ -794,11 +801,8 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         "Find a won client engagement and prepare onboarding tasks linked to it. Ask me for any missing owner or due dates.",
       invoice: "Find overdue invoices and prepare a reminder for my review. Do not send anything.",
     };
-    if (prompts[request]) {
-      setDraft(prompts[request]);
-      setOpen(!window.location.pathname.endsWith("/ai"));
-    }
-  }, [pathname]);
+    if (prompts[request]) openWithPrompt(prompts[request]);
+  }, [pathname, openWithPrompt]);
 
   const value = useMemo<AdminAIContextValue>(
     () => ({

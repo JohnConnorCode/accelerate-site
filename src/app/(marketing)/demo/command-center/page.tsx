@@ -109,8 +109,8 @@ export default function AdminDemoLauncher() {
                 before they run.
               </p>
               <p className={styles.note}>
-                Try AI with fictional business data. Actions are simulated. No signup is required;
-                live AI is available when the demo service is configured and within its usage limit.
+                Explore a fictional business. Actions are simulated, and no signup is required. If
+                the demo agent is unavailable, you can still explore the workspace.
               </p>
               <div className={styles.actions}>
                 <Link

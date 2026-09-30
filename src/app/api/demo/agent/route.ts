@@ -49,13 +49,19 @@ export async function POST(request: NextRequest) {
   } catch (issue) {
     const validation =
       issue instanceof SyntaxError || (issue instanceof Error && issue.name === "ZodError");
+    const message = issue instanceof Error ? issue.message : "";
+    const usageMessage =
+      message.startsWith("The shared $5 daily demo budget") ||
+      message.startsWith("This demo session has used its 10") ||
+      message === "One demo request is already running in this session." ||
+      message.startsWith("Demo context is too large");
     const response = NextResponse.json(
       {
         error: validation
           ? "Invalid fictional demo request"
-          : issue instanceof Error
-            ? issue.message
-            : "The demo agent is temporarily unavailable. You can still explore the workspace.",
+          : usageMessage
+            ? message
+            : "The live demo agent is unavailable right now. You can still explore the fictional workspace.",
       },
       { status: validation ? 400 : 503, headers: { "Cache-Control": "no-store" } },
     );

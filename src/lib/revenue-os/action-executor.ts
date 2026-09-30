@@ -28,6 +28,7 @@ import {
 } from "./actions";
 import { executeRuntimeAction } from "./runtime-actions";
 import { reserveInternalAction, executeInternalPermission } from "./internal-permissions";
+import { INTERNAL_ACTION_FIELDS } from "./internal-permission-contract";
 import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
 import { ACTION_REVERSIBILITY, reversibilityOf } from "./action-reversibility";
@@ -137,6 +138,8 @@ export async function approveAndExecuteAction(
       throw denial;
     }
     if (mode === "autonomous") {
+      if (!Object.hasOwn(INTERNAL_ACTION_FIELDS, String(action.action_type)))
+        throw new Error("This action requires exact human approval");
       if (!options?.requesterId)
         throw new Error("A current requesting member is required for internal autonomy");
       const admission = await reserveInternalAction(supabase, id, options.requesterId, true);

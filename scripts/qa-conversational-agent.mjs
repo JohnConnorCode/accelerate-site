@@ -108,6 +108,12 @@ try {
       await page.locator('[data-review-decision="approve"]').waitFor();
       assert.ok(await page.getByText("Creates a task on your queue.", { exact: true }).isVisible());
       assert.ok(
+        await page
+          .getByRole("region", { name: "Review exact changes" })
+          .evaluate((section) => section.getBoundingClientRect().height < innerHeight),
+        "A short inline review fits the viewport without a nested full-screen surface",
+      );
+      assert.ok(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "No horizontal overflow",
       );
