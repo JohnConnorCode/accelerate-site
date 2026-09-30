@@ -154,7 +154,7 @@ try {
       const input = page.getByRole("textbox", { name: "Ask the business", exact: true });
       await input.fill(`Set the collection owner for ${c.name} to owner@example.test`);
       await input.press("Enter");
-      await page.getByText("Review each exact change below.", { exact: true }).waitFor();
+      await page.getByText(/Review each exact change below\./).waitFor();
       const queued = (await cases())[0].actions.find(
         (a) => a.action_type === "update_collection_policy" && a.status === "pending",
       );

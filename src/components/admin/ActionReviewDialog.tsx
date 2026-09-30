@@ -210,6 +210,7 @@ export function ActionReviewDialog({
   const Surface = inline ? InlineReviewSurface : AdminDialog;
   return (
     <Surface
+      key={action.id}
       open={open}
       onClose={onClose}
       title="Review before approving"
@@ -226,13 +227,19 @@ export function ActionReviewDialog({
           isConfiguration && "flex flex-col [&>*]:shrink-0",
         )}
       >
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
+        <div
+          className={cn(
+            "sticky top-0 z-10 flex items-start justify-between border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-xl",
+            inline ? "gap-2 px-3 py-3" : "gap-4 px-5 py-4 sm:px-6",
+          )}
+        >
           <div>
             <div className="flex items-center gap-2">
-              <p className="admin-eyebrow">Approval queue</p>
+              <p className={cn("admin-eyebrow", inline && "sr-only")}>Approval queue</p>
               <span
                 className={cn(
                   "rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
+                  inline && "whitespace-nowrap",
                   external
                     ? "bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]"
                     : "bg-[var(--admin-accent-soft)] text-[var(--admin-accent)]",
@@ -249,7 +256,10 @@ export function ActionReviewDialog({
             </div>
             <h2
               id="action-review-title"
-              className="mt-1 text-balance text-xl font-semibold tracking-[-0.03em] text-[var(--admin-ink)]"
+              className={cn(
+                "mt-1 text-balance font-semibold tracking-[-0.03em] text-[var(--admin-ink)]",
+                inline ? "text-base" : "text-xl",
+              )}
             >
               {action.title}
             </h2>
@@ -261,7 +271,10 @@ export function ActionReviewDialog({
             type="button"
             onClick={onClose}
             aria-label="Close review"
-            className="grid size-10 place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]"
+            className={cn(
+              "grid shrink-0 place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]",
+              inline ? "size-8" : "size-10",
+            )}
           >
             <X className="size-4" />
           </button>
@@ -269,7 +282,8 @@ export function ActionReviewDialog({
 
         <div
           className={cn(
-            "mx-5 mt-5 flex items-start gap-2.5 rounded-xl border px-3.5 py-3 sm:mx-6",
+            "flex items-start gap-2.5 rounded-xl border",
+            inline ? "mx-3 mt-3 px-3 py-2" : "mx-5 mt-5 px-3.5 py-3 sm:mx-6",
             external
               ? "border-[var(--admin-warning)]/25 bg-[var(--admin-warning-soft)]"
               : "border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]",
@@ -297,7 +311,7 @@ export function ActionReviewDialog({
             {error}
           </p>
         )}
-        <div className="grid gap-4 px-5 py-5 sm:px-6">
+        <div className={cn("grid gap-4", inline ? "px-3 py-3" : "px-5 py-5 sm:px-6")}>
           {isConfiguration &&
             (["before", "after"] as const).map((phase) => {
               const values = action.payload?.[phase];
@@ -588,21 +602,34 @@ export function ActionReviewDialog({
           )}
         </div>
 
-        <div className="sticky bottom-0 mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
+        <div
+          className={cn(
+            "sticky bottom-0 mt-auto border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-xl",
+            inline
+              ? "grid grid-cols-3 gap-1 px-2 py-2"
+              : "flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6",
+          )}
+        >
           <button
             type="button"
             data-review-decision="reject"
             disabled={busy}
             onClick={onReject}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-danger)] transition-[background-color,transform] duration-150 hover:bg-[var(--admin-danger-soft)] active:scale-[0.96] disabled:opacity-50"
+            className={cn(
+              "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl text-xs font-semibold text-[var(--admin-danger)] transition-[background-color,transform] duration-150 hover:bg-[var(--admin-danger-soft)] active:scale-[0.96] disabled:opacity-50",
+              inline ? "px-2" : "px-3",
+            )}
           >
             <X className="size-3.5" /> Reject
           </button>
-          <div className="flex gap-2">
+          <div className={inline ? "contents" : "flex gap-2"}>
             <button
               type="button"
               onClick={onClose}
-              className="min-h-11 rounded-xl px-4 text-xs font-semibold text-[var(--admin-muted)] transition-[color,transform] duration-150 hover:text-[var(--admin-ink)] active:scale-[0.96]"
+              className={cn(
+                "min-h-11 rounded-xl text-xs font-semibold text-[var(--admin-muted)] transition-[color,transform] duration-150 hover:text-[var(--admin-ink)] active:scale-[0.96]",
+                inline ? "px-2" : "px-4",
+              )}
             >
               Cancel
             </button>
@@ -611,12 +638,15 @@ export function ActionReviewDialog({
               data-review-decision="approve"
               disabled={busy || Boolean(isToday && !todayPreview.data)}
               onClick={onApprove}
-              className="admin-button admin-button--primary"
+              className={cn(
+                "admin-button admin-button--primary",
+                inline && "!whitespace-normal !px-2 !text-xs",
+              )}
             >
               {busy ? (
                 <Loader2 className="size-3.5 animate-spin" />
               ) : (
-                <Check className="size-3.5" />
+                <Check className={cn("size-3.5", inline && "hidden")} />
               )}
               {action.action_type === "create_gmail_draft"
                 ? "Save draft to Gmail"

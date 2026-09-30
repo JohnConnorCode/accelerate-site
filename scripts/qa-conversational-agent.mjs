@@ -121,15 +121,35 @@ try {
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "No horizontal overflow",
       );
+      for (const decision of ["approve", "reject"])
+        assert.ok(
+          await page.locator(`[data-review-decision="${decision}"]`).evaluate((button) => {
+            const bounds = button.getBoundingClientRect();
+            const log = button.closest('[role="log"]').getBoundingClientRect();
+            return (
+              bounds.top >= Math.max(0, log.top) &&
+              bounds.bottom <= Math.min(innerHeight, log.bottom)
+            );
+          }),
+          `The ${decision} decision is visible in the chat viewport`,
+        );
       assert.ok(
-        await page.locator('[data-review-decision="approve"]').evaluate((button) => {
-          const bounds = button.getBoundingClientRect();
-          const log = button.closest('[role="log"]').getBoundingClientRect();
-          return (
-            bounds.top >= Math.max(0, log.top) && bounds.bottom <= Math.min(innerHeight, log.bottom)
-          );
-        }),
-        "The exact review decision is visible in the chat viewport",
+        await page
+          .getByRole("region", { name: "Review exact changes" })
+          .getByText(/Creates a task on your queue\./)
+          .evaluate((consequence) => {
+            const bounds = consequence.getBoundingClientRect();
+            const log = consequence.closest('[role="log"]').getBoundingClientRect();
+            const decision = consequence
+              .closest('section[aria-label="Review exact changes"]')
+              .querySelector('[data-review-decision="approve"]')
+              .getBoundingClientRect();
+            return (
+              bounds.top >= Math.max(0, log.top) &&
+              bounds.bottom <= Math.min(innerHeight, decision.top)
+            );
+          }),
+        "The consequence is visible alongside both decisions",
       );
       await page.screenshot({
         path: `${out}/${scenario}-${mobile ? "mobile" : "desktop"}-review.png`,
