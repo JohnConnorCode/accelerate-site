@@ -106,7 +106,10 @@ try {
       await review.focus();
       await page.keyboard.press("Enter");
       await page.locator('[data-review-decision="approve"]').waitFor();
-      assert.ok(await page.getByText("Creates a task on your queue.", { exact: true }).isVisible());
+      await page
+        .getByRole("region", { name: "Review exact changes" })
+        .getByText(/Creates a task on your queue\./)
+        .waitFor();
       assert.ok(
         await page
           .getByRole("region", { name: "Review exact changes" })
