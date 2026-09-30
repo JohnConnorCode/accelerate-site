@@ -125,8 +125,8 @@ Clients, bookings, content, and resources after the sale.
 ## Sources
 Inbound leads, chat, subscribers, partners, and website grades.
 
-- [Sources](https://www.acceleratewith.us/docs/sources/overview) (updated 2026-09-19): Where a new name enters the business, before it becomes a canonical contact.
-- [Review leads and chat handoffs](https://www.acceleratewith.us/docs/sources/leads) (updated 2026-09-19): Qualify a new inquiry, check whether it's someone you already know, and record what's next.
+- [Sources](https://www.acceleratewith.us/docs/sources/overview) (updated 2026-09-29): Where a new name enters the business, before it becomes a canonical contact.
+- [Review leads and chat handoffs](https://www.acceleratewith.us/docs/sources/leads) (updated 2026-09-29): Qualify a new inquiry, check whether it's someone you already know, and record what's next.
 
 ## Intelligence
 The assistant, run traces, knowledge, and source-to-revenue analytics.

@@ -30,6 +30,7 @@ const routes = [
   "/docs/pipeline/revenue",
   "/docs/workspace/settings",
   "/docs/sources/leads",
+  "/docs/sources/overview",
   "/docs/intelligence/workspace",
   "/docs/outreach/recovery",
   "/docs/outreach/campaigns",
@@ -106,6 +107,17 @@ async function main() {
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
           });
+          if (route === "/docs/sources/leads") {
+            const recovery = page.getByRole("heading", {
+              name: "Change a status and recover an incomplete update",
+              exact: true,
+            });
+            await recovery.scrollIntoViewIfNeeded();
+            await expect(recovery).toBeVisible();
+            await expect(page.locator("main")).toContainText("Retry incomplete updates");
+            await page.screenshot({ path: `${output}/${viewport.width}-inquiry-recovery.png` });
+            checks.push(`${viewport.width}: inquiry recovery instructions render`);
+          }
           if (exampleHeadings[route]) {
             const example = page.getByRole("heading", {
               name: exampleHeadings[route],

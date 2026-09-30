@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "leads-canonical-write-recovery",
+    slug: "leads-canonical-write-recovery",
+    title: "Inquiry updates keep their follow-up and recovery together",
+    description:
+      "Individual and bulk Leads status changes now follow the same Pipeline rules. Repeated Contacted updates reuse the existing follow-up, and Won recovery preserves the linked client engagement. Manual capture keeps the original inquiry when setup is incomplete. The form offers Retry setup or Retry save, while incomplete updates show named recovery details and retain their bulk selection. These changes are available in this source release; installation and production deployment remain separate.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "debate-booking-production-loop",
     slug: "debate-booking-production-loop",
     title: "Debate bookings track the next confirmed commitment",
