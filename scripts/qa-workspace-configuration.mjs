@@ -142,6 +142,11 @@ try {
         200,
       );
       assert.deepEqual(await folders(), ["fresh_reviewed_folder"]);
+      assert.deepEqual(
+        (await request("/api/admin/setup")).data.google.settings.drive_folder_ids,
+        ["fresh_reviewed_folder"],
+        "Setup uses the saved folder selection",
+      );
       assert.equal(
         (await request("/api/admin/settings", "PUT", { key: "NOTIFY_NEW_LEADS", value: "false" }))
           .status,
@@ -183,6 +188,24 @@ try {
         (await configuration()).providers.find((p) => p.provider === "resend").status,
         "revoked",
       );
+      assert.equal(
+        (await request("/api/admin/integrations")).data.providers.find((p) => p.id === "resend")
+          .status,
+        "action",
+        "Integrations reports the disconnect",
+      );
+      assert.equal(
+        (await request("/api/admin/setup")).data.summary.launchReady,
+        false,
+        "Setup cannot claim readiness after disconnect",
+      );
+      await page.goto(`${base}/demo/command-center/${scenario}/integrations`, {
+        waitUntil: "networkidle",
+      });
+      await page.getByRole("heading", { name: "Integrations", exact: true }).waitFor();
+      await page.screenshot({
+        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-integrations.png`,
+      });
       assert.equal(escaped.length, 0, JSON.stringify(escaped));
       assert.equal(errors.length, 0, JSON.stringify(errors));
       results.push({
