@@ -8,6 +8,8 @@ import { Plus, X, Save } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { AdminSurface } from "@/components/admin/AdminSurface";
+import type { LeadWriteOutcome } from "@/lib/revenue-os/legacy-adapter";
 import { LeadsTable, type BulkContactResult } from "@/components/admin/LeadsTable";
 import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
 import { AddLeadModal } from "@/components/admin/AddLeadModal";
@@ -40,6 +42,9 @@ interface Lead {
   estimated_value?: number;
   revenue_os?: { opportunity_id: string | null; contact_id: string | null; stage: string | null };
 }
+
+type LeadChange = { lead_status?: string; notes?: string; estimated_value?: number };
+type PendingUpdate = { id: string; data: LeadChange; name: string; error: string };
 
 const statusOptions = [
   { value: "all", label: "All Statuses" },
@@ -77,6 +82,8 @@ export default function AdminLeadsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [showAddLead, setShowAddLead] = useState(false);
+  const [pendingUpdates, setPendingUpdates] = useState<PendingUpdate[]>([]);
+  const [retryingUpdates, setRetryingUpdates] = useState(false);
 
   // Deep-link from the command palette ("New lead" command): open the same
   // shared create modal the page button opens, then drop the param so a
@@ -131,6 +138,25 @@ export default function AdminLeadsPage() {
         `/api/admin/leads?${params}`,
       );
       setLeads(data.leads || []);
+      const incomplete: PendingUpdate[] = [];
+      for (const lead of data.leads || []) {
+        const receipt = lead.intake_data?.lead_write_receipt as
+          { status?: string; intent?: LeadChange } | undefined;
+        if (receipt?.status === "pending" && receipt.intent)
+          incomplete.push({
+            id: lead.id,
+            name: lead.contact_name,
+            data: receipt.intent,
+            error:
+              "This update has no completion receipt. Review the lead and retry to finish setup.",
+          });
+      }
+      if (incomplete.length)
+        setPendingUpdates((previous) => {
+          const pending = new Map(previous.map((item) => [item.id, item]));
+          for (const item of incomplete) if (!pending.has(item.id)) pending.set(item.id, item);
+          return [...pending.values()];
+        });
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -162,31 +188,86 @@ export default function AdminLeadsPage() {
     data: { lead_status?: string; notes?: string; estimated_value?: number },
   ) => {
     try {
-      await fetchJson("/api/admin/leads", {
+      const result = await fetchJson<LeadWriteOutcome>("/api/admin/leads", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, ...data }),
       });
-      toast.success("Lead updated");
+      rememberOutcomes([result], [{ id, data }]);
+      if (result.status === "complete") toast.success("Lead updated");
+      else toast.warning(result.error || "Lead update needs attention");
       await fetchLeads();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Couldn't update lead");
+      const error = err instanceof Error ? err.message : "Couldn't update lead";
+      rememberOutcomes([{ id, status: "failed", step: "request", error }], [{ id, data }]);
+      toast.error(error);
     }
   };
 
   const handleBulkStatus = async (ids: string[], status: string) => {
     try {
-      await fetchJson("/api/admin/leads", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids, lead_status: status }),
-      });
-      toast.success(`${ids.length} lead${ids.length === 1 ? "" : "s"} updated`);
+      const result = await fetchJson<{ updated: number; outcomes: LeadWriteOutcome[] }>(
+        "/api/admin/leads",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids, lead_status: status }),
+        },
+      );
+      const changes = ids.map((id) => ({ id, data: { lead_status: status } }));
+      rememberOutcomes(result.outcomes, changes);
+      const incomplete = result.outcomes
+        .filter((outcome) => outcome.status !== "complete")
+        .map((outcome) => outcome.id);
+      if (incomplete.length)
+        toast.warning(`${result.updated} updated; ${incomplete.length} need attention`);
+      else toast.success(`${result.updated} lead${result.updated === 1 ? "" : "s"} updated`);
       await fetchLeads();
-      return true;
+      return incomplete;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't update leads");
-      return false;
+      const error = err instanceof Error ? err.message : "Couldn't update leads";
+      rememberOutcomes(
+        ids.map((id) => ({ id, status: "failed", step: "request", error })),
+        ids.map((id) => ({ id, data: { lead_status: status } })),
+      );
+      return null;
+    }
+  };
+
+  function rememberOutcomes(
+    outcomes: LeadWriteOutcome[],
+    changes: Array<{ id: string; data: LeadChange }>,
+  ) {
+    setPendingUpdates((previous) => {
+      const pending = new Map(previous.map((item) => [item.id, item]));
+      for (const outcome of outcomes) {
+        if (outcome.status === "complete") {
+          pending.delete(outcome.id);
+          continue;
+        }
+        const change = changes.find((item) => item.id === outcome.id);
+        if (change)
+          pending.set(outcome.id, {
+            ...change,
+            name:
+              leads.find((lead) => lead.id === outcome.id)?.contact_name ||
+              previous.find((item) => item.id === outcome.id)?.name ||
+              "Lead",
+            error: outcome.error || "Update is incomplete. Review and retry.",
+          });
+      }
+      return [...pending.values()];
+    });
+  }
+
+  const retryIncompleteUpdates = async () => {
+    if (retryingUpdates) return;
+    setRetryingUpdates(true);
+    try {
+      for (const pending of pendingUpdates) await handleUpdateLead(pending.id, pending.data);
+    } finally {
+      setRetryingUpdates(false);
     }
   };
 
@@ -277,6 +358,43 @@ export default function AdminLeadsPage() {
           </Button>
         }
       />
+      {pendingUpdates.length > 0 && (
+        <AdminSurface
+          tone="attention"
+          padding="md"
+          role="region"
+          aria-label="Lead updates needing attention"
+          className="mb-4"
+        >
+          <p role="status" className="font-medium">
+            {pendingUpdates.length} lead update{pendingUpdates.length === 1 ? "" : "s"} need
+            attention
+          </p>
+          <p className="mt-1 text-sm text-white-secondary">
+            Some changes may already be saved. Review the details, then retry the incomplete
+            updates.
+          </p>
+          <ul className="mt-3 space-y-2 text-sm">
+            {pendingUpdates.slice(0, 5).map((item) => (
+              <li key={item.id}>
+                <strong>{item.name}:</strong> {item.error}
+              </li>
+            ))}
+          </ul>
+          {pendingUpdates.length > 5 && (
+            <p className="mt-2 text-sm">And {pendingUpdates.length - 5} more incomplete updates.</p>
+          )}
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mt-3"
+            disabled={retryingUpdates}
+            onClick={retryIncompleteUpdates}
+          >
+            {retryingUpdates ? "Retrying..." : "Retry incomplete updates"}
+          </Button>
+        </AdminSurface>
+      )}
       <AdminReadBody
         loading={loading}
         hasData={!loading || total > 0}

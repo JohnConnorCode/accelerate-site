@@ -1,5 +1,247 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
+import { randomUUID } from "node:crypto";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
+import { ingestInboundLead } from "./inbound";
+import { loadPipelineStages } from "./pipeline-stage-resolver";
+import { transitionOpportunity, updateOpportunityDetails } from "./pipeline";
+import { createRevenueTask } from "./tasks";
+import { createHandoffFromOpportunity } from "./delivery-handoff";
+import { recordAudit } from "./audit";
+
+export const leadPatchSchema = z
+  .object({
+    id: z.string().uuid(),
+    lead_status: z.string().min(1).max(64).optional(),
+    notes: z.string().max(10000).optional(),
+    estimated_value: z.number().finite().min(0).max(1_000_000_000).optional(),
+  })
+  .strict()
+  .refine(
+    (input) =>
+      input.lead_status !== undefined ||
+      input.notes !== undefined ||
+      input.estimated_value !== undefined,
+    "No lead changes supplied",
+  );
+
+export type LeadWriteOutcome = {
+  id: string;
+  status: "complete" | "partial" | "failed";
+  step: string;
+  error?: string;
+  lead?: Record<string, unknown>;
+  opportunityId?: string;
+  taskId?: string;
+  clientId?: string;
+};
+
+/** Source projection only: Pipeline, Tasks and Delivery retain their write rules.
+ * Individual and bulk callers use this same bounded, retryable operation. */
+export async function updateLegacyLead(
+  supabase: SupabaseClient,
+  raw: unknown,
+  actorEmail: string,
+): Promise<LeadWriteOutcome> {
+  const input = leadPatchSchema.parse(raw);
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Lead updates require a tenant-bound workspace");
+  const outcome: LeadWriteOutcome = { id: input.id, status: "failed", step: "load" };
+  const requestId = randomUUID();
+  let mayHaveWritten = false;
+  try {
+    const beforeRead = await supabase
+      .from("solution_requests")
+      .select("*")
+      .eq("id", input.id)
+      .maybeSingle();
+    if (beforeRead.error) throw new Error("Could not load this lead. Refresh and retry.");
+    const before = beforeRead.data;
+    if (!before) throw new Error("Lead unavailable in this workspace");
+    outcome.lead = before;
+    let contactedAt = before.contacted_at;
+    const stages = await loadPipelineStages(supabase, tenantId);
+    const target =
+      input.lead_status === undefined ? null : stages.canonicalStage(input.lead_status);
+    if (input.lead_status !== undefined && !target) throw new Error("Invalid lead_status");
+    if (target || input.estimated_value !== undefined) {
+      outcome.step = "linkage";
+      const linked = await supabase
+        .from("opportunities")
+        .select("*")
+        .eq("source_record_type", "solution_request")
+        .eq("source_record_id", input.id)
+        .maybeSingle();
+      if (linked.error) throw new Error("Could not confirm the Pipeline link. Refresh and retry.");
+      let opportunity = linked.data;
+      if (!opportunity) {
+        // Ingestion refuses ambiguous identities and reuses source IDs. Repair
+        // cannot send an acknowledgement just because an operator changed stage.
+        mayHaveWritten = true;
+        opportunity = (
+          await ingestInboundLead(supabase, {
+            name: before.contact_name,
+            email: before.contact_email,
+            phone: before.contact_phone,
+            companyName: before.business_name,
+            industry: before.industry,
+            source: "solution_request",
+            sourceRecordId: before.id,
+            summary: before.notes || "Lead compatibility repair",
+            skipAcknowledgement: true,
+          })
+        ).opportunity;
+      }
+      outcome.opportunityId = opportunity.id;
+      outcome.step = "pipeline";
+      if (
+        input.estimated_value !== undefined &&
+        Number(opportunity.estimated_value || 0) !== input.estimated_value
+      ) {
+        mayHaveWritten = true;
+        opportunity = await updateOpportunityDetails(supabase, {
+          id: opportunity.id,
+          estimatedValue: input.estimated_value,
+          expectedUpdatedAt: opportunity.updated_at,
+          actorEmail,
+        });
+      }
+      if (target && stages.canonicalStage(opportunity.stage) !== target) {
+        mayHaveWritten = true;
+        opportunity = await transitionOpportunity(supabase, {
+          id: opportunity.id,
+          to: target,
+          actorEmail,
+          source: "admin_leads",
+          reason: "Updated from Leads compatibility workspace",
+          lossReason:
+            stages.role(target) === "lost"
+              ? "Closed from Leads compatibility workspace"
+              : undefined,
+        });
+      }
+      if (target === "contacted" && (before.lead_status !== "contacted" || !contactedAt))
+        contactedAt = opportunity.last_activity_at || new Date().toISOString();
+    }
+    outcome.step = "lead";
+    const patch: Record<string, unknown> = {};
+    const metadata = {
+      ...before.intake_data,
+      lead_write_receipt: {
+        request_id: requestId,
+        status: "pending",
+        intent: input,
+        opportunity_id: outcome.opportunityId || null,
+      },
+    };
+    patch.intake_data = metadata;
+    if (target) patch.lead_status = target;
+    if (input.notes !== undefined) patch.notes = input.notes;
+    if (input.estimated_value !== undefined) patch.estimated_value = input.estimated_value;
+    if (target === "contacted" && contactedAt !== before.contacted_at)
+      patch.contacted_at = contactedAt;
+    let update = supabase
+      .from("solution_requests")
+      .update(patch)
+      .eq("id", input.id)
+      .eq("lead_status", before.lead_status);
+    if (before.updated_at) update = update.eq("updated_at", before.updated_at);
+    mayHaveWritten = true;
+    const saved = await update.select("*").maybeSingle();
+    if (saved.error)
+      throw new Error(
+        "Pipeline may be updated, but the lead could not be saved. Refresh and retry.",
+      );
+    if (!saved.data)
+      throw new Error("This lead changed while saving. Refresh and review before retrying.");
+    outcome.lead = saved.data;
+    if (target === "contacted") {
+      outcome.step = "follow_up";
+      const due = new Date(saved.data.contacted_at);
+      due.setUTCDate(due.getUTCDate() + 3);
+      const created = await createRevenueTask(supabase, {
+        title: `Follow up with ${saved.data.contact_name}`,
+        description: "Lead was contacted. Follow up in 3 days.",
+        dueDate: due.toISOString().slice(0, 10),
+        priority: "high",
+        relatedType: "lead",
+        relatedId: input.id,
+        relatedName: saved.data.contact_name,
+        opportunityId: outcome.opportunityId,
+        source: "admin_leads",
+        dedupeKey: `lead-contacted:${input.id}:${saved.data.contacted_at}`,
+        actorEmail,
+      });
+      outcome.taskId = created.task.id;
+    }
+    if (target && stages.role(target) === "won") {
+      outcome.step = "handoff";
+      const handoff = await createHandoffFromOpportunity(supabase, {
+        tenantId,
+        opportunityId: outcome.opportunityId!,
+        leadId: input.id,
+        actorEmail,
+      });
+      outcome.clientId = String(handoff.client.id);
+      if (handoff.remainder.length)
+        throw new Error("Onboarding setup is incomplete. Retry this update to finish it.");
+    }
+    outcome.step = "audit";
+    await recordAudit(supabase, {
+      actorEmail,
+      action: "lead.updated",
+      entityType: "lead",
+      entityId: input.id,
+      before,
+      after: outcome.lead,
+      metadata: {
+        opportunity_id: outcome.opportunityId,
+        task_id: outcome.taskId,
+        client_id: outcome.clientId,
+      },
+    });
+    outcome.step = "receipt";
+    const completed = await supabase
+      .from("solution_requests")
+      .update({
+        intake_data: {
+          ...metadata,
+          lead_write_receipt: {
+            ...metadata.lead_write_receipt,
+            status: "complete",
+            task_id: outcome.taskId || null,
+            client_id: outcome.clientId || null,
+          },
+        },
+      })
+      .eq("id", input.id)
+      .eq("intake_data->lead_write_receipt->>request_id", requestId)
+      .select("*")
+      .maybeSingle();
+    if (completed.error || !completed.data)
+      throw new Error(
+        "Changes may be saved, but completion could not be confirmed. Refresh and review before retrying.",
+      );
+    outcome.lead = completed.data;
+    return { ...outcome, status: "complete", step: "complete" };
+  } catch (error) {
+    console.error(`[admin-leads] ${outcome.step} incomplete:`, error);
+    const detail = error instanceof Error ? error.message : "Could not complete the lead update";
+    return {
+      ...outcome,
+      status: mayHaveWritten ? "partial" : "failed",
+      error:
+        outcome.step === "follow_up"
+          ? "Lead stage saved. Follow-up setup is incomplete. Retry this update to finish it."
+          : outcome.step === "handoff"
+            ? "Lead stage saved. Client onboarding is incomplete. Retry this update or review the client in Delivery."
+            : outcome.step === "audit"
+              ? "Lead saved, but its activity receipt is incomplete. Retry to finish recording the update."
+              : detail,
+    };
+  }
+}
 
 export type RevenueLinkage = {
   contact_id: string | null;

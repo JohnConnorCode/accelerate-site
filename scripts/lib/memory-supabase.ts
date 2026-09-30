@@ -158,6 +158,12 @@ export class MemorySupabase {
 
     self.eq = (column: string, value: unknown) => {
       filters.push((row) => {
+        if (column.includes("->")) {
+          const keys = column.split(/->>?/);
+          let actual: unknown = row;
+          for (const key of keys) actual = (actual as Row | null)?.[key];
+          return column.includes("->>") ? String(actual) === value : actual === value;
+        }
         // PostgREST JSONB equality receives a serialized JSON filter value.
         if (row[column] !== null && typeof row[column] === "object" && typeof value === "string") {
           try {

@@ -160,6 +160,8 @@ export interface HandoffInput {
   expectedProposalVersion?: number;
   expectedUpdatedAt?: string;
   expectedTemplateVersion?: number;
+  /** Explicit compatibility source; preserve an existing lead-owned engagement. */
+  leadId?: string;
 }
 
 export interface HandoffResult {
@@ -270,6 +272,56 @@ export async function createHandoffFromOpportunity(
     .maybeSingle();
   if (existingError) throw new Error(`Could not read engagement: ${existingError.message}`);
   let client = (existingClient ?? null) as Row | null;
+  if (input.leadId) {
+    const leadRead = await supabase
+      .from("solution_requests")
+      .select("id,contact_email")
+      .eq("tenant_id", tenantId)
+      .eq("id", input.leadId)
+      .maybeSingle();
+    if (
+      leadRead.error ||
+      !leadRead.data ||
+      String(leadRead.data.contact_email).trim().toLowerCase() !== contactEmail.trim().toLowerCase()
+    )
+      throw new Error("Lead handoff identity unavailable; review the canonical contact");
+    const legacyRead = await supabase
+      .from("clients")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .eq("lead_id", input.leadId)
+      .maybeSingle();
+    if (legacyRead.error) throw new Error("Could not read the lead's existing engagement");
+    const legacy = legacyRead.data;
+    if (
+      legacy &&
+      ((client && client.id !== legacy.id) ||
+        (legacy.opportunity_id && legacy.opportunity_id !== opportunityId))
+    )
+      throw new Error("This lead has a conflicting engagement; review its canonical linkage");
+    if (legacy && !legacy.opportunity_id) {
+      const adopted = await supabase
+        .from("clients")
+        .update({ opportunity_id: opportunityId })
+        .eq("tenant_id", tenantId)
+        .eq("id", legacy.id)
+        .is("opportunity_id", null)
+        .select("*")
+        .maybeSingle();
+      if (adopted.error || !adopted.data)
+        throw new Error("Engagement changed during linkage; retry the handoff");
+      client = adopted.data;
+      await recordAudit(supabase, {
+        actorEmail: input.actorEmail,
+        action: "client.canonical_linked",
+        entityType: "client",
+        entityId: legacy.id,
+        before: { opportunity_id: null },
+        after: { opportunity_id: opportunityId },
+        metadata: { lead_id: input.leadId },
+      });
+    } else if (legacy) client = legacy;
+  }
   let stored = (client?.handoff_receipt ?? {}) as Row;
   let template = stored.template_snapshot as OnboardingTemplate | undefined;
   if (!template) template = await getActiveTemplate(supabase, tenantId, input.templateKey);
@@ -306,6 +358,7 @@ export async function createHandoffFromOpportunity(
         contact_name: (contact?.full_name as string) || contactEmail,
         contact_email: contactEmail,
         opportunity_id: opportunityId,
+        ...(input.leadId ? { lead_id: input.leadId } : {}),
         status: "onboarding",
         monthly_value: 0,
         one_time_value: Number(opportunity.estimated_value) || 0,

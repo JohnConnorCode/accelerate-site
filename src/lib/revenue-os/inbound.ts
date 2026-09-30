@@ -1,5 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { resolvePlaybook, tenant } from "@/config/tenant";
 import { safeAttribution } from "@/lib/opportunities";
 import type { UTMData } from "@/lib/utm";
@@ -20,6 +23,118 @@ import { recordActivity } from "./activities";
 
 type Qualification = { qualified: boolean; reason: string };
 
+export const manualLeadSchema = z
+  .object({
+    requestId: z.string().uuid().optional(),
+    contact_name: z.string().trim().min(1).max(200),
+    contact_email: z.string().trim().toLowerCase().email().max(320),
+    contact_phone: z.string().trim().max(100).nullish(),
+    business_name: z.string().trim().max(200).nullish(),
+    industry: z.string().trim().min(1).max(80).optional(),
+    source: z.string().trim().max(80).optional(),
+    notes: z.string().max(10000).nullish(),
+  })
+  .strict();
+
+/** A stable source ID makes an uncertain save or partial capture safe to retry.
+ * The original normalized input is retained so a reused key cannot change intent. */
+export async function captureManualLead(
+  supabase: SupabaseClient,
+  raw: unknown,
+  actorEmail: string,
+) {
+  const input = manualLeadSchema.parse(raw);
+  if (!tenantIdForDatabase(supabase))
+    throw new Error("Manual capture requires a tenant-bound workspace");
+  const { requestId = randomUUID(), ...intent } = input;
+  const read = () =>
+    supabase.from("solution_requests").select("*").eq("id", requestId).maybeSingle();
+  let result = await read();
+  if (result.error) throw new Error("Could not confirm the lead save; retry with the same request");
+  if (!result.data) {
+    const { nanoid } = await import("nanoid");
+    result = await supabase
+      .from("solution_requests")
+      .insert({
+        id: requestId,
+        share_token: nanoid(12),
+        status: "completed",
+        contact_name: input.contact_name,
+        contact_email: input.contact_email,
+        contact_phone: input.contact_phone || null,
+        business_name: input.business_name || null,
+        industry: input.industry || "other",
+        lead_status: "new",
+        notes: `[Source: ${input.source || "manual"}]${input.notes ? ` ${input.notes}` : ""}`,
+        intake_data: { manual_capture_input: intent },
+      })
+      .select("*")
+      .single();
+    if (result.error?.code === "23505") result = await read();
+    if (result.error || !result.data)
+      throw new Error("Could not confirm the lead save; retry with the same request");
+  }
+  const lead = result.data;
+  const stored = lead.intake_data?.manual_capture_input;
+  if (
+    !stored ||
+    Object.keys({ ...stored, ...intent }).some(
+      (key) => stored[key] !== intent[key as keyof typeof intent],
+    )
+  )
+    throw new Error(
+      "This save request belongs to different lead details. Close the dialog and start a new lead.",
+    );
+  if (lead.intake_data?.manual_capture?.status === "complete")
+    return {
+      lead,
+      status: "complete" as const,
+      canonicalLinked: true,
+      opportunityId: lead.intake_data.manual_capture.opportunity_id,
+    };
+  try {
+    const captured = await ingestInboundLead(supabase, {
+      name: lead.contact_name,
+      email: lead.contact_email,
+      phone: lead.contact_phone,
+      companyName: lead.business_name,
+      industry: lead.industry,
+      source: "solution_request",
+      sourceRecordId: lead.id,
+      summary: input.notes || `Manual lead created by ${actorEmail}`,
+    });
+    const saved = await supabase
+      .from("solution_requests")
+      .update({
+        intake_data: {
+          ...lead.intake_data,
+          manual_capture: {
+            status: "complete",
+            opportunity_id: captured.opportunity.id,
+          },
+        },
+      })
+      .eq("id", lead.id)
+      .select("*")
+      .single();
+    if (saved.error) throw new Error("Could not save the capture receipt");
+    return {
+      lead: saved.data,
+      status: "complete" as const,
+      canonicalLinked: true,
+      opportunityId: captured.opportunity.id,
+    };
+  } catch (error) {
+    console.error("[admin-leads] capture incomplete:", error);
+    return {
+      lead,
+      status: "partial" as const,
+      canonicalLinked: false,
+      error: "Lead saved. Pipeline setup is incomplete. Retry setup to finish saving this lead.",
+    };
+  }
+}
+
 export type CanonicalInboundInput = {
   name: string;
   email: string;
@@ -31,6 +146,8 @@ export type CanonicalInboundInput = {
   sourceRecordId: string;
   summary: string;
   utm?: UTMData | null;
+  /** Compatibility repair is an internal write, never a new customer acknowledgement. */
+  skipAcknowledgement?: boolean;
 };
 
 export type PlaybookInboundInput = {
@@ -229,6 +346,7 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
   // outage or a provider error can never turn into a dropped inquiry. The
   // responder declines by default and records why; see auto-responder.ts for the
   // approved policy version it executes inside.
+  if (input.skipAcknowledgement) return { opportunity, identity, existing, responder: null };
   let responder: ResponderDecision;
   try {
     responder = await respondToInbound(supabase, {

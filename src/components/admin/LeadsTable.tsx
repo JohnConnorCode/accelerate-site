@@ -71,7 +71,7 @@ interface LeadsTableProps {
     id: string,
     data: { lead_status?: string; notes?: string; estimated_value?: number },
   ) => void;
-  onBulkStatus: (ids: string[], status: string) => Promise<boolean>;
+  onBulkStatus: (ids: string[], status: string) => Promise<string[] | null>;
   onBulkDelete: (ids: string[]) => Promise<boolean>;
   onBulkTag: (
     contactIds: string[],
@@ -172,9 +172,10 @@ export function LeadsTable({
   const handleBulkUpdate = async () => {
     if (!bulkStatus || selectedIds.size === 0 || bulkBusy) return;
     setBulkBusy(true);
-    const ok = await onBulkStatus(Array.from(selectedIds), bulkStatus);
+    const incomplete = await onBulkStatus(Array.from(selectedIds), bulkStatus);
     setBulkBusy(false);
-    if (ok) clearSelection();
+    if (incomplete?.length === 0) clearSelection();
+    else if (incomplete) setSelectedIds(new Set(incomplete));
   };
 
   const handleBulkDelete = async () => {
