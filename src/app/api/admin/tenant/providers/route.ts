@@ -1,3 +1,5 @@
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
+import { applyWorkspaceConfigurationAsAdmin } from "@/lib/revenue-os/workspace-configuration";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -267,37 +269,21 @@ export async function POST(request: NextRequest) {
   if (!parsed.success)
     return NextResponse.json({ error: "Invalid provider action" }, { status: 400 });
   if (parsed.data.action === "disconnect") {
-    const { data: existing } = await authorization.database
-      .from("integration_connections")
-      .select("credential_version,status")
-      .eq("provider", parsed.data.provider)
-      .maybeSingle();
-    const { error } = await authorization.database.from("integration_connections").upsert(
-      {
-        provider: parsed.data.provider,
-        status: "revoked",
-        encrypted_credentials: {},
-        credential_version: Number(existing?.credential_version || 1),
-        environment_fallback_allowed: false,
-        last_error: "Disconnected by tenant administrator",
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "tenant_id,provider" },
-    );
-    if (error)
-      return NextResponse.json(
-        { error: "The provider could not be disconnected. Try again." },
-        { status: 500 },
+    try {
+      const result = await runWithTenantRequestContext(authorization, () =>
+        applyWorkspaceConfigurationAsAdmin(
+          authorization.database,
+          { operation: "disconnect_provider", provider: parsed.data.provider },
+          authorization.user.email!,
+        ),
       );
-    await recordAudit(authorization.database, {
-      actorEmail: authorization.user.email,
-      action: "provider.disconnected",
-      entityType: "integration_connection",
-      entityId: parsed.data.provider,
-      before: { status: existing?.status || null },
-      after: { provider: parsed.data.provider, status: "revoked" },
-    });
-    return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, result });
+    } catch {
+      return NextResponse.json(
+        { error: "Provider disconnect could not be saved. Refresh Integrations and review again." },
+        { status: 409 },
+      );
+    }
   }
   const now = new Date().toISOString();
   const provider =

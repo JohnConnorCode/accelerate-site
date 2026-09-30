@@ -1,6 +1,8 @@
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
+import { applyWorkspaceConfigurationAsAdmin } from "@/lib/revenue-os/workspace-configuration";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { GOOGLE_SCOPES, getGoogleAccessToken } from "@/lib/revenue-os/google";
+import { GOOGLE_SCOPES } from "@/lib/revenue-os/google";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { isGoogleTokenEncryptionKeyConfigured } from "@/lib/revenue-os/encryption";
 import { googleOperatorError } from "@/lib/revenue-os/google-oauth";
@@ -53,12 +55,14 @@ export async function POST() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   try {
-    const { connection } = await getGoogleAccessToken(auth.database);
-    return NextResponse.json({
-      success: true,
-      accountEmail: connection.account_email,
-      scopes: connection.scopes,
-    });
+    const receipt = await runWithTenantRequestContext(auth, () =>
+      applyWorkspaceConfigurationAsAdmin(
+        auth.database,
+        { operation: "test_google_connection" },
+        auth.user.email!,
+      ),
+    );
+    return NextResponse.json({ ...receipt, ...(receipt.result?.sources ?? {}) });
   } catch (error) {
     const projected = googleOperatorError(error, "connection-test");
     return NextResponse.json({ error: projected.message, code: projected.code }, { status: 400 });
@@ -68,21 +72,19 @@ export async function POST() {
 export async function DELETE() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const { error } = await auth.database
-    .from("integration_connections")
-    .update({
-      status: "disconnected",
-      encrypted_access_token: null,
-      encrypted_refresh_token: null,
-      token_expires_at: null,
-      scopes: [],
-      last_error: null,
-    })
-    .eq("provider", "google");
-  if (error)
-    return NextResponse.json(
-      { error: "Google could not be disconnected safely." },
-      { status: 500 },
+  try {
+    const result = await runWithTenantRequestContext(auth, () =>
+      applyWorkspaceConfigurationAsAdmin(
+        auth.database,
+        { operation: "disconnect_provider", provider: "google" },
+        auth.user.email!,
+      ),
     );
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, result });
+  } catch {
+    return NextResponse.json(
+      { error: "Google could not be disconnected safely. Refresh and review again." },
+      { status: 409 },
+    );
+  }
 }

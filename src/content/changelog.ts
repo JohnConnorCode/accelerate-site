@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "approved-workspace-configuration",
+    slug: "approved-workspace-configuration",
+    title: "Review workspace configuration with AI",
+    description:
+      "Ask AI and authorized MCP clients can prepare exact provider disconnects, Drive folder selections, named public preferences and bounded Google checks or syncs for human approval. The shared review shows current and proposed values. Stale approvals refuse, partial sync results retain their receipts, and secure human controls handle secrets and OAuth. Installation owner email stays server-only. All five business demos use the shared approval workflow with fictional data.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "debate-booking-production-loop",
     slug: "debate-booking-production-loop",
     title: "Debate bookings track the next confirmed commitment",

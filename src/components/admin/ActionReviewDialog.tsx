@@ -136,6 +136,7 @@ export function ActionReviewDialog({
   onApprove: () => void;
   onReject: () => void;
 }) {
+  const isConfiguration = action?.action_type === "workspace_configuration_change";
   const isToday = action?.action_type === "today_view_change";
   const todayPreview = useAdminQuery<{
     before: TodayDocument;
@@ -158,6 +159,9 @@ export function ActionReviewDialog({
   const layoutSummary =
     action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
   const consequence =
+    (isConfiguration && typeof action.payload?.consequences === "string"
+      ? action.payload.consequences
+      : null) ??
     ACTION_CONSEQUENCE[action.action_type] ??
     "Executes this action through the same service the admin uses.";
   const external =
@@ -256,6 +260,61 @@ export function ActionReviewDialog({
           </p>
         )}
         <div className="grid gap-4 px-5 py-5 sm:px-6">
+          {isConfiguration &&
+            (["before", "after"] as const).map((phase) => {
+              const values = action.payload?.[phase];
+              const labels: Record<string, string> = {
+                provider: "Provider",
+                status: "Connection",
+                accountEmail: "Account",
+                scopes: "Granted permissions",
+                folderIds: "Drive folders",
+                key: "Preference",
+                value: "Value",
+                source: "Sources",
+                maxGmailThreads: "Maximum Gmail threads",
+                operation: "Operation",
+              };
+              return (
+                <section
+                  key={phase}
+                  className="grid gap-3 rounded-xl border border-[var(--admin-border)] p-4 text-xs text-[var(--admin-ink)]"
+                  aria-label={
+                    phase === "before" ? "Current configuration" : "Exact new configuration"
+                  }
+                >
+                  <h3 className="font-semibold">
+                    {phase === "before" ? "Current configuration" : "Exact new configuration"}
+                  </h3>
+                  <dl className="grid gap-3">
+                    {values &&
+                      typeof values === "object" &&
+                      Object.entries(values)
+                        .filter(([key]) => key in labels)
+                        .map(([key, value]) => (
+                          <div key={key} className="grid gap-1">
+                            <dt className="text-[var(--admin-muted)]">{labels[key]}</dt>
+                            <dd className="whitespace-pre-wrap break-words leading-5">
+                              {Array.isArray(value)
+                                ? value.length
+                                  ? value.join("\n")
+                                  : "None selected"
+                                : value === "true"
+                                  ? "On"
+                                  : value === "false"
+                                    ? "Off"
+                                    : value === null
+                                      ? "Not set"
+                                      : String(value)
+                                          .replace(/^NOTIFY_/, "")
+                                          .replaceAll("_", " ")}
+                            </dd>
+                          </div>
+                        ))}
+                  </dl>
+                </section>
+              );
+            })}
           {isToday && (
             <section className="grid gap-3 text-xs text-[var(--admin-ink)]">
               {todayPreview.isPending && <p>Loading the private exact preview…</p>}
@@ -415,18 +474,23 @@ export function ActionReviewDialog({
             </section>
           )}
 
-          {!isToday && !layoutSummary && !invitation && !milestone && fields.length > 0 && (
-            <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
-              {fields.map(([key, value]) => (
-                <div key={key} className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                  <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                    {key.replace(/_/g, " ")}
-                  </dt>
-                  <dd className="break-words text-xs text-[var(--admin-ink)]">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
+          {!isConfiguration &&
+            !isToday &&
+            !layoutSummary &&
+            !invitation &&
+            !milestone &&
+            fields.length > 0 && (
+              <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
+                {fields.map(([key, value]) => (
+                  <div key={key} className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
+                    <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                      {key.replace(/_/g, " ")}
+                    </dt>
+                    <dd className="break-words text-xs text-[var(--admin-ink)]">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
 
           {body && !invitation && !milestone && (
             <div>
@@ -439,7 +503,7 @@ export function ActionReviewDialog({
             </div>
           )}
 
-          {!fields.length && !body && !invitation && !milestone && (
+          {!isConfiguration && !fields.length && !body && !invitation && !milestone && (
             <p className="admin-copy text-xs">
               This proposal recorded no payload. Reject it and ask the copilot to restage the
               action.

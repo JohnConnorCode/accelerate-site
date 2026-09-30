@@ -291,3 +291,11 @@ UI, AI and MCP reuse those services; the additive SQL transaction owns the final
 approval checks and unique publication attempt. See the
 [operator guide](../../../plugins/social-marketing/README.md) and
 [extension map](../../../plugins/social-marketing/EXTENDING.md).
+
+### Approved workspace configuration
+
+`workspace-configuration-contract.ts` owns browser-safe named commands, schemas, tool metadata and semantic before/after consequences. `workspace-configuration.ts` serves admin adapters and registry/MCP preview/proposal tools. The existing executor dispatches approved actions only after fresh admin and digest checks. `save_workspace_configuration` is a tenant/RLS-bound invoker transaction: exact row snapshot/CAS, named settings or provider writes and content-safe audit commit together. No provider call occurs inside the transaction.
+
+Google checks and bounded sync reuse `google.ts` and durable job/source receipts. Partial work stops further sources, preserves completed records and fails the action with a progress receipt. The direct admin API reports incomplete work as an error. Credential entry, OAuth consent, ingest/MCP key creation and installation environment remain secure human handoffs; configuration tools cannot elevate access or return secrets.
+
+The fictional transport shares the same command and semantic preview contract, persists configuration and proposals in its existing session store and uses `ActionReviewDialog`. It simulates effects without calling providers or a model. See [operation matrix](../../../docs/verification/WORKSPACE-CONFIGURATION-2026-09-29.md) for boundaries and checks.

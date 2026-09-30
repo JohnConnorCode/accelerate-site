@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 127,
-  "mutationHandlerCount": 113,
+  "routeCount": 128,
+  "mutationHandlerCount": 114,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -526,9 +526,11 @@
         "@/lib/revenue-os/encryption",
         "@/lib/revenue-os/google",
         "@/lib/revenue-os/google-oauth",
+        "@/lib/revenue-os/workspace-configuration",
+        "@/lib/tenancy/context",
         "next/server"
       ],
-      "sourceSha256": "514e8bcc3dfd23bd585ff2e3c8e72b16baf578ef5e897137609397f69cf253db"
+      "sourceSha256": "9c2c60e82d343db1955a398f244ca87a5b8c2dba50da89aec83e98678dfdefc8"
     },
     {
       "source": "src/app/api/admin/google/sync/route.ts",
@@ -542,13 +544,13 @@
       ],
       "imports": [
         "@/lib/admin/auth",
-        "@/lib/revenue-os/drive-sync-plan",
-        "@/lib/revenue-os/google",
-        "@/lib/revenue-os/google-oauth",
-        "@/lib/revenue-os/runs",
-        "next/server"
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/workspace-configuration",
+        "@/lib/tenancy/context",
+        "next/server",
+        "zod"
       ],
-      "sourceSha256": "2a3dcc7eb967145319ec89f31edfba2875628e5cde6eb8c77da63f5aa986a303"
+      "sourceSha256": "f48402ec4aecb7033af6f4f6e68f49e0623dd0d57dcc56c17bd95b6f525dd7de"
     },
     {
       "source": "src/app/api/admin/inbox/route.ts",
@@ -1621,6 +1623,26 @@
       "sourceSha256": "e852a343f57099979336c39de5bf55b5bda8cbd511def23117375dafad9dd71e"
     },
     {
+      "source": "src/app/api/admin/revenue-os/workspace-configuration/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/workspace-configuration",
+        "@/lib/revenue-os/workspace-configuration-contract",
+        "@/lib/tenancy/context",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "e5ad1315d4bdc03122153d85c36f221b92d02854031a83537c315cd0b36a65d9"
+    },
+    {
       "source": "src/app/api/admin/revenue/route.ts",
       "handlers": [
         "GET"
@@ -1673,10 +1695,13 @@
       "imports": [
         "@/lib/admin/auth",
         "@/lib/admin/settings",
-        "@/lib/revenue-os/audit",
-        "next/server"
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/workspace-configuration",
+        "@/lib/tenancy/context",
+        "next/server",
+        "zod"
       ],
-      "sourceSha256": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e"
+      "sourceSha256": "0414e03a205c97847d4a438940559aacc90ae6d8430d2559974ef5217b15f8d2"
     },
     {
       "source": "src/app/api/admin/settings/test/route.ts",
@@ -2049,11 +2074,13 @@
         "@/lib/revenue-os/audit",
         "@/lib/revenue-os/encryption",
         "@/lib/revenue-os/integration-adapters",
+        "@/lib/revenue-os/workspace-configuration",
+        "@/lib/tenancy/context",
         "next/server",
         "node:crypto",
         "zod"
       ],
-      "sourceSha256": "bdb7821e7409e4c79e742271390e31e021f7aae7d03bae7fff6cac597e97224e"
+      "sourceSha256": "99f3ca449549a84e5628bfdfb44b5bcbdd8f6542664e715db8548aa8e67fff66"
     },
     {
       "source": "src/app/api/admin/tenants/route.ts",

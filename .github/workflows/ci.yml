@@ -233,6 +233,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning
           PATH="$(pg_config --bindir):$PATH" npm run test:ai-readiness
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
@@ -388,6 +389,7 @@ jobs:
             if [ "$PUBLIC_PAGES_ONLY" = "true" ] || [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
+            node scripts/qa-workspace-configuration.mjs
             node scripts/qa-client-interactions.mjs
             npx tsx scripts/qa-site-studio.ts
             node scripts/qa-campaign-duplicate.mjs
@@ -456,6 +458,7 @@ jobs:
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
             /tmp/accelerate-turnkey-qa/
+            /tmp/accelerate-workspace-configuration/
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/
             /tmp/accelerate-docs-takeover-qa/

@@ -1,3 +1,4 @@
+import { executeWorkspaceConfiguration } from "./workspace-configuration";
 import { bulkEnrollContacts, bulkSuppressContacts, bulkTagContacts } from "./contact-bulk";
 import { executeRadarOutreach } from "./radar-outreach";
 import "server-only";
@@ -179,6 +180,11 @@ export async function approveAndExecuteAction(
         if (mode !== "approved")
           throw new Error("Radar source and opportunity changes require human approval");
         result = await executeRadarStoreChange(supabase, payload, actorEmail);
+        break;
+      }
+      case "workspace_configuration_change": {
+        if (mode !== "approved") throw new Error("Workspace configuration requires human approval");
+        result = await executeWorkspaceConfiguration(supabase, payload, actorEmail, id);
         break;
       }
       case "update_module_configuration": {

@@ -1,7 +1,10 @@
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { SERVER_ONLY_SECRET_KEYS } from "@/lib/admin/settings";
-import { recordAudit } from "@/lib/revenue-os/audit";
+import { applyWorkspaceConfigurationAsAdmin } from "@/lib/revenue-os/workspace-configuration";
+import { readBoundedJson } from "@/lib/http/bounded-json";
+import { z } from "zod";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -39,44 +42,31 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-
-  const { key, value } = await request.json();
-
-  if (!key || value === undefined) {
-    return NextResponse.json({ error: "Missing key or value" }, { status: 400 });
-  }
-
-  if (SERVER_ONLY_SECRET_KEYS.has(key)) {
+  const raw = await readBoundedJson(request).catch(() => null);
+  const input = z.object({ key: z.string(), value: z.string() }).strict().safeParse(raw);
+  if (!input.success)
+    return NextResponse.json({ error: "Missing or invalid key/value" }, { status: 400 });
+  if (input.data.key === "ADMIN_EMAIL" || SERVER_ONLY_SECRET_KEYS.has(input.data.key))
     return NextResponse.json(
-      { error: `${key} is server-only. Configure it in Vercel environment variables.` },
+      {
+        error:
+          "This is installation configuration. The owner must update the server environment securely.",
+      },
       { status: 400 },
     );
+  try {
+    const result = await runWithTenantRequestContext(auth, () =>
+      applyWorkspaceConfigurationAsAdmin(
+        auth.database,
+        { operation: "set_workspace_setting", ...input.data },
+        auth.user.email!,
+      ),
+    );
+    return NextResponse.json({ success: true, result });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Preference could not be saved" },
+      { status: 409 },
+    );
   }
-
-  const supabase = auth.database;
-  const { data: existing } = await supabase
-    .from("admin_settings")
-    .select("key,value")
-    .eq("key", key)
-    .maybeSingle();
-
-  const { error } = await supabase
-    .from("admin_settings")
-    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
-
-  if (error) {
-    console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
-  }
-
-  await recordAudit(supabase, {
-    actorEmail: auth.user.email,
-    action: "settings.updated",
-    entityType: "admin_settings",
-    entityId: key,
-    before: { key, configured: Boolean(existing?.value) },
-    after: { key, configured: Boolean(value) },
-  });
-
-  return NextResponse.json({ success: true });
 }

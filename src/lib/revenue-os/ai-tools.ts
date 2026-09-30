@@ -1,3 +1,15 @@
+import {
+  WORKSPACE_CONFIGURATION_TOOLS,
+  WORKSPACE_CONFIGURATION_TOOL_NAMES,
+  workspaceConfigurationReadSchema,
+  workspaceConfigurationPreviewSchema,
+  workspaceConfigurationProposalSchema,
+} from "./workspace-configuration-contract";
+import {
+  readWorkspaceConfiguration,
+  previewWorkspaceConfiguration,
+  proposeWorkspaceConfiguration,
+} from "./workspace-configuration";
 import { getFirstUseProgress } from "./first-use";
 import { listLearningSignals, recordCorrectionSignal } from "./learning-signals";
 import { listKnowledgeDocuments, proposeKnowledgeChange } from "./knowledge-documents";
@@ -966,6 +978,25 @@ const registry: AiToolRegistration[] = [
     outputSchema: { type: "object" },
     execute: async ({ supabase, actorEmail }, input) =>
       proposeTodayViewChange(supabase, input, actorEmail),
+  },
+  {
+    ...WORKSPACE_CONFIGURATION_TOOLS[0],
+    inputSchema: z.toJSONSchema(workspaceConfigurationReadSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => readWorkspaceConfiguration(supabase, input),
+  },
+  {
+    ...WORKSPACE_CONFIGURATION_TOOLS[1],
+    inputSchema: z.toJSONSchema(workspaceConfigurationPreviewSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => previewWorkspaceConfiguration(supabase, input),
+  },
+  {
+    ...WORKSPACE_CONFIGURATION_TOOLS[2],
+    inputSchema: z.toJSONSchema(workspaceConfigurationProposalSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeWorkspaceConfiguration(supabase, input, actorEmail),
   },
   {
     ...MODULE_CONTROL_TOOLS[0],
@@ -3363,6 +3394,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     ...BRANDING_TOOL_NAMES,
     ...TODAY_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
+    ...WORKSPACE_CONFIGURATION_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
     ...FORM_BUILDER_TOOL_NAMES,
     ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
@@ -3420,6 +3452,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     ...BRANDING_TOOL_NAMES,
     ...TODAY_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
+    ...WORKSPACE_CONFIGURATION_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",
@@ -3451,6 +3484,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     ...BRANDING_TOOL_NAMES,
     ...TODAY_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
+    ...WORKSPACE_CONFIGURATION_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",

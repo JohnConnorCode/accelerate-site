@@ -1,6 +1,7 @@
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 
 export const SERVER_ONLY_SECRET_KEYS = new Set([
+  "ADMIN_EMAIL",
   "OPENROUTER_API_KEY",
   "RESEND_API_KEY",
   "RESEND_WEBHOOK_SECRET",

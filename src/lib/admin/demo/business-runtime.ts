@@ -1,4 +1,5 @@
 import { handleDemoSocial, type DemoSocialState } from "./social-runtime";
+import { handleDemoConfiguration, type DemoConfigurationState } from "./configuration-runtime";
 import { getLayoutScope } from "@/lib/admin/layout-scopes";
 import { validateAdminTheme } from "@/lib/admin/theme-definition";
 import {
@@ -59,6 +60,7 @@ type Action = {
   result: Record<string, unknown> | null;
   pluginId: string;
   created_at: string;
+  expires_at?: string;
   requestId?: string;
   digest?: string;
 };
@@ -73,6 +75,7 @@ type Page = {
   design: InvoiceDesign;
 };
 export type DemoBusinessState = {
+  configuration?: DemoConfigurationState;
   social?: DemoSocialState;
   radar?: DemoRadarState;
   collections?: CollectionCaseView[];
@@ -244,6 +247,8 @@ export async function handleDemoBusinessRequest(
   save: () => void,
   moduleSettings: ModuleSettingsConfig = {},
 ): Promise<Response | null> {
+  const configurationResponse = await handleDemoConfiguration(pack, state, url, method, body, save);
+  if (configurationResponse) return configurationResponse;
   const socialResponse = await handleDemoSocial(pack, state, modules, url, method, body, save);
   if (socialResponse) return socialResponse;
   const radarResponse = await handleDemoRadar(
