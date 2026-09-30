@@ -146,6 +146,19 @@ Tests do not yet cover every invariant above. The Feature Board cards
 `revenue-os-tests`, `api-contract-tests`, and the scoped Playwright cards are the
 source of truth for those gaps. Do not describe planned coverage as passing.
 
+## Leads compatibility writes
+
+`inbound.ts` owns manual capture with a stable source ID and a checked completion
+receipt in the source row. `legacy-adapter.ts:updateLegacyLead` is the shared
+single/bulk adapter: it delegates stage changes to Pipeline, commitments to Tasks,
+and won engagements to Delivery. It preserves source IDs, records pending and
+complete source receipts, and returns per-record partial outcomes for recovery.
+Contacted follow-ups use the contact-transition timestamp as their stable key;
+replaying that transition also reuses a completed task. Delivery adopts an exact
+lead-owned engagement only after checking the canonical contact and refusing
+conflicting opportunity bindings. Compatibility repair never acknowledges the
+customer again. These changes do not retire the retained source tables.
+
 ## September 4 runtime consolidation
 
 [Audit evidence and remaining acceptance](../../../docs/internal/RUNTIME-AUDIT-2026-09-04.md) distinguish implemented boundaries from unintegrated primitives. Runtime AI tools have explicit core module owners. Configuration and memory writes stage queue proposals and execute through `runtime-actions.ts` only after human approval. `coworker-agent.ts` owns the shared typed model adapter. Task compatibility routes and AI execution share `patchOperatorTask`; its open-task precondition is checked against the same snapshot used for the conditional write.

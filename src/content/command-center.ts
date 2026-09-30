@@ -148,7 +148,7 @@ export const capabilities: Capability[] = [
     title: "Opportunities and pipeline",
     promise: "See current stages, values and next actions in board, list or calendar form.",
     detail:
-      "Open the opportunity to inspect its customer, activity and next step. Calendar shows dated next actions on the viewer's local day and keeps unscheduled opportunities visible. Use the evidence you have before changing the record, then confirm the saved result.",
+      "Open the opportunity to inspect its customer, activity and next step. Calendar shows dated next actions on the viewer's local day and keeps unscheduled opportunities visible. Individual and bulk status changes from Leads use the same Pipeline rules, with named recovery details for incomplete updates. Retrying the same change preserves its existing follow-up or client engagement. Use the evidence you have before changing the record, then confirm the saved result.",
   },
   {
     id: "projects",

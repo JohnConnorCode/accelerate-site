@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { X } from "lucide-react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { Toast } from "@/components/ui/Toast";
+import { toast } from "@/lib/admin/useToast";
 
 interface AddLeadModalProps {
   isOpen: boolean;
@@ -45,17 +45,42 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
   const [source, setSource] = useState("referral");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const requestId = useRef<string | null>(null);
+  const inFlight = useRef(false);
+  const [saveError, setSaveError] = useState("");
+  const [savedPartial, setSavedPartial] = useState(false);
+
+  const clearForm = () => {
+    setContactName("");
+    setContactEmail("");
+    setContactPhone("");
+    setBusinessName("");
+    setIndustry("other");
+    setSource("referral");
+    setNotes("");
+    requestId.current = null;
+    setSaveError("");
+    setSavedPartial(false);
+  };
+  const close = () => {
+    if (inFlight.current) return;
+    clearForm();
+    onClose();
+  };
 
   const handleSubmit = async () => {
-    if (!contactName || !contactEmail) return;
+    if (!contactName.trim() || !contactEmail.trim() || inFlight.current) return;
+    inFlight.current = true;
+    requestId.current ??= crypto.randomUUID();
     setSaving(true);
+    setSaveError("");
 
     try {
       const res = await fetch("/api/admin/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          requestId: requestId.current,
           contact_name: contactName,
           contact_email: contactEmail,
           contact_phone: contactPhone || null,
@@ -66,28 +91,33 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
         }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to create lead");
+        if (res.status === 400) requestId.current = null;
+        throw new Error(
+          data.error || "Could not confirm the lead save. Retry with the same details.",
+        );
       }
-
-      setToast({ message: "Lead created successfully", type: "success" });
-      // Reset form
-      setContactName("");
-      setContactEmail("");
-      setContactPhone("");
-      setBusinessName("");
-      setIndustry("other");
-      setSource("referral");
-      setNotes("");
-      onLeadCreated();
-      setTimeout(onClose, 500);
+      if (data.lead) onLeadCreated();
+      if (data.status !== "complete" || data.canonicalLinked !== true) {
+        setSavedPartial(Boolean(data.lead));
+        setSaveError(
+          data.error ||
+            "Lead saved. Pipeline setup is incomplete. Retry setup to finish saving this lead.",
+        );
+        return;
+      }
+      toast.success("Lead created and linked to Pipeline");
+      clearForm();
+      onClose();
     } catch (err) {
-      setToast({
-        message: err instanceof Error ? err.message : "Failed to create lead",
-        type: "error",
-      });
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : "Could not confirm the save. Retry with the same details.",
+      );
     } finally {
+      inFlight.current = false;
       setSaving(false);
     }
   };
@@ -96,7 +126,7 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
     <>
       <AdminDialog
         open={isOpen}
-        onClose={onClose}
+        onClose={close}
         title="Add new lead"
         labelledBy="add-lead-title"
         maxWidth="md"
@@ -108,7 +138,7 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
             </h3>
             <button
               type="button"
-              onClick={onClose}
+              onClick={close}
               aria-label="Close dialog"
               className="admin-icon-button"
             >
@@ -116,96 +146,102 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
             </button>
           </div>
 
+          {saveError && (
+            <AdminSurface tone="attention" padding="sm" role="alert" className="mb-4 text-sm">
+              <p className="font-medium">
+                {savedPartial ? "Lead saved; setup needs attention" : "Save needs attention"}
+              </p>
+              <p className="mt-1 text-white-secondary">{saveError}</p>
+            </AdminSurface>
+          )}
           <div className="space-y-3">
-            <Input
-              label="Contact Name *"
-              type="text"
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              placeholder="John Smith"
-            />
-            <Input
-              label="Email *"
-              type="email"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              placeholder="john@company.com"
-            />
-            <Input
-              label="Phone"
-              type="tel"
-              value={contactPhone}
-              onChange={(e) => setContactPhone(e.target.value)}
-              placeholder="(555) 123-4567"
-            />
-            <Input
-              label="Business Name"
-              type="text"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="Smith & Associates"
-            />
+            <fieldset disabled={saving || requestId.current !== null} className="space-y-3">
+              <Input
+                label="Contact Name *"
+                type="text"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                placeholder="John Smith"
+              />
+              <Input
+                label="Email *"
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="john@company.com"
+              />
+              <Input
+                label="Phone"
+                type="tel"
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+                placeholder="(555) 123-4567"
+              />
+              <Input
+                label="Business Name"
+                type="text"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                placeholder="Smith & Associates"
+              />
 
-            <div>
-              <label className="admin-field-label mb-1">Industry</label>
-              <select
-                value={industry}
-                onChange={(e) => setIndustry(e.target.value)}
-                aria-label="Industry"
-                className="admin-field"
-              >
-                {industryOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div>
+                <label className="admin-field-label mb-1">Industry</label>
+                <select
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  aria-label="Industry"
+                  className="admin-field"
+                >
+                  {industryOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="admin-field-label mb-1">Source</label>
-              <select
-                value={source}
-                onChange={(e) => setSource(e.target.value)}
-                aria-label="Source"
-                className="admin-field"
-              >
-                {sourceOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div>
+                <label className="admin-field-label mb-1">Source</label>
+                <select
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                  aria-label="Source"
+                  className="admin-field"
+                >
+                  {sourceOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <Textarea
-              label="Notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="How did you meet? Any context..."
-              className="min-h-[60px]"
-            />
-
+              <Textarea
+                label="Notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="How did you meet? Any context..."
+                className="min-h-[60px]"
+              />
+            </fieldset>
             <Button
               variant="primary"
               onClick={handleSubmit}
               disabled={saving || !contactName || !contactEmail}
               className="w-full"
             >
-              {saving ? "Creating..." : "Create Lead"}
+              {saving
+                ? "Saving..."
+                : savedPartial
+                  ? "Retry setup"
+                  : saveError
+                    ? "Retry save"
+                    : "Create Lead"}
             </Button>
           </div>
         </AdminSurface>
       </AdminDialog>
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible={true}
-          onClose={() => setToast(null)}
-        />
-      )}
     </>
   );
 }
