@@ -1,5 +1,14 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import { runInNewContext } from "node:vm";
+import ts from "typescript";
+import { NextRequest, NextResponse } from "next/server";
+import * as compatibility from "../src/lib/revenue-os/legacy-adapter";
+import * as inbound from "../src/lib/revenue-os/inbound";
+import * as dispositions from "../src/lib/revenue-os/retained-source-dispositions";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { updateLegacyLead } from "../src/lib/revenue-os/legacy-adapter";
@@ -239,6 +248,70 @@ async function main() {
   } finally {
     globalThis.fetch = originalFetch;
   }
+  // Exercise the HTTP adapter itself with a controlled authorization seam.
+  // Domain services above remain real; production guard behavior has its own suite.
+  const api = fixture();
+  const require = createRequire(resolve("package.json"));
+  let authorization: unknown = { database: api.db, tenant: { id: tenant }, user: { email: actor } };
+  let guardCalls = 0;
+  const exported: Record<string, (request: NextRequest) => Promise<NextResponse>> = {};
+  const source = ts.transpileModule(readFileSync("src/app/api/admin/leads/route.ts", "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  runInNewContext(source, {
+    exports: exported,
+    console,
+    require: (name: string) => {
+      if (name === "@/lib/admin/module-guard")
+        return {
+          requireAdminForModule: async (module: string) => {
+            assert.equal(module, "leads-capture");
+            guardCalls++;
+            return authorization;
+          },
+        };
+      if (name === "@/lib/revenue-os/legacy-adapter") return compatibility;
+      if (name === "@/lib/revenue-os/inbound") return inbound;
+      if (name === "@/lib/revenue-os/retained-source-dispositions") return dispositions;
+      return require(name);
+    },
+  });
+  const request = (method: string, body: unknown) =>
+    new NextRequest("https://example.test/api/admin/leads", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  let response = await exported.PATCH!(
+    request("PATCH", { ids: [leadId, leadId, randomUUID()], lead_status: "qualified" }),
+  );
+  const bulk = await response.json();
+  assert.equal(response.status, 207);
+  assert.equal(bulk.updated, 1);
+  assert.equal(bulk.failed, 1);
+  assert.equal(bulk.outcomes.length, 2);
+  assert.equal(api.mem.rows("opportunities")[0]!.stage, "qualified");
+  response = await exported.PATCH!(request("PATCH", { id: leadId, lead_status: "contacted" }));
+  assert.equal((await response.json()).status, "complete");
+  assert.equal(api.mem.rows("tasks").length, 1, "single and bulk must share downstream behavior");
+  const beforeInvalid = JSON.stringify(api.mem.tables);
+  response = await exported.PATCH!(
+    request("PATCH", { ids: [leadId], id: leadId, lead_status: "contacted" }),
+  );
+  assert.equal(response.status, 400);
+  response = await exported.POST!(
+    request("POST", { contact_name: "Bad", contact_email: "invalid" }),
+  );
+  assert.equal(response.status, 400);
+  assert.equal(JSON.stringify(api.mem.tables), beforeInvalid);
+  authorization = NextResponse.json({ error: "Unauthorized fixture" }, { status: 403 });
+  response = await exported.PATCH!(request("PATCH", { id: leadId, lead_status: "won" }));
+  assert.equal(response.status, 403);
+  response = await exported.POST!(request("POST", input));
+  assert.equal(response.status, 403);
+  assert.equal(JSON.stringify(api.mem.tables), beforeInvalid);
+  assert.equal(guardCalls, 6);
+  cases.push("real-api-single-bulk-partial-counts-dedupe-validation-and-authorization");
   console.log(JSON.stringify({ result: "passed", cases }, null, 2));
 }
 main().catch((error) => {

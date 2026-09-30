@@ -6,6 +6,7 @@ import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { ingestInboundLead } from "./inbound";
 import { loadPipelineStages } from "./pipeline-stage-resolver";
 import { transitionOpportunity, updateOpportunityDetails } from "./pipeline";
+import { requireReopenEligibility } from "./pipeline-transition-policy";
 import { createRevenueTask } from "./tasks";
 import { createHandoffFromOpportunity } from "./delivery-handoff";
 import { recordAudit } from "./audit";
@@ -95,6 +96,19 @@ export async function updateLegacyLead(
       }
       outcome.opportunityId = opportunity.id;
       outcome.step = "pipeline";
+      if (target) {
+        const from = stages.canonicalStage(opportunity.stage);
+        if (!from)
+          throw new Error("The lead's Pipeline stage is unavailable. Review its opportunity.");
+        requireReopenEligibility(
+          stages.role(from)!,
+          stages.role(target)!,
+          from,
+          target,
+          "Updated from Leads compatibility workspace",
+          false,
+        );
+      }
       if (
         input.estimated_value !== undefined &&
         Number(opportunity.estimated_value || 0) !== input.estimated_value
