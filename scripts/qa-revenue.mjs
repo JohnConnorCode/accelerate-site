@@ -170,7 +170,7 @@ try {
     await page
       .locator(".admin-surface")
       .filter({ hasText: "Accepted Proposal Monthly Value" })
-      .evaluate((element) => element.scrollIntoView({ block: "end", behavior: "instant" }));
+      .evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
     await page.screenshot({ path: `${output}/${width}-agreement-values.png` });
     await page.getByRole("heading", { name: "Revenue", exact: true }).scrollIntoViewIfNeeded();
     const edit = await page.evaluate(async () => {
@@ -211,6 +211,11 @@ try {
     await expect(page.getByText("No active client contracts yet", { exact: true })).toHaveCount(2);
     await expect(chart).toHaveCount(0);
     await expect(alerts).toHaveCount(0);
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll('.admin-content-stack [style*="opacity"]')].every(
+        (element) => Number(getComputedStyle(element).opacity) >= 0.99,
+      ),
+    );
     await page.screenshot({ path: `${output}/${width}-empty.png`, fullPage: true });
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
@@ -230,6 +235,21 @@ try {
     for (const slug of ["/docs/pipeline/revenue", "/docs/pipeline"]) {
       await page.goto(`${base}${slug}`);
       await page.locator("main h1").waitFor();
+      await page.locator("main figure").first().scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => {
+        const image = document.querySelector("main figure img");
+        return image?.complete && image.naturalWidth > 0;
+      });
+      await page.locator(".docs-entrance").evaluate(async (element) => {
+        await Promise.all(
+          element
+            .getAnimations({ subtree: true })
+            .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+            .map((animation) => animation.finished.catch(() => {})),
+        );
+      });
+      await page.screenshot({ path: `${output}/${width}-${slug.replaceAll("/", "_")}-figure.png` });
+      await page.locator("main h1").scrollIntoViewIfNeeded();
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         true,
@@ -253,6 +273,9 @@ try {
     await expect(page.locator("details[open]")).toContainText(
       "Monthly Recurring sums current active client agreements",
     );
+    await page
+      .locator("details[open]")
+      .evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
     await page.screenshot({ path: `${output}/${width}-product-revenue-faq.png` });
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),

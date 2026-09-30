@@ -39,7 +39,8 @@ mobile widths. The fictional report reads the same client overrides as Clients.
 - `src/content/command-center-faq.ts`: specific Revenue answer covers the figures,
   chart, current churned share and payment/history verification.
 - `public/docs-llms.txt`: regenerated from the guides. Revenue's fictional screenshot
-  will be refreshed from controlled browser evidence before final handoff.
+  is refreshed from the real demo in a fresh reduced-motion browser context. The
+  complete chart and active monthly total agree; the image and alt text were inspected.
 - No plugin workflow, manifest or setup requirement changes. No migration, provider
   activation, external send or production mutation is included.
 
@@ -56,7 +57,8 @@ PR and exact-commit work-board evidence; pending checks are not acceptance proof
 
 `qa:revenue` verifies desktop/mobile initial error, keyboard retry, retained stale
 figures, empty state, client edits, six fictional scenarios, UTC context, console
-errors and protected/provider isolation. It captures changed guides at both widths.
+errors and protected/provider isolation. It waits for settled figures and charts,
+then captures changed guides and their loaded figures at both widths.
 The existing docs journey additionally verifies documentation search and recovery.
 
 ## Boundaries
