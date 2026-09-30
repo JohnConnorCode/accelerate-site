@@ -349,17 +349,6 @@ jobs:
 
       - name: Install browser for first-run verification
         run: npx playwright install --with-deps chromium
-      - name: Verify industry and Chicago release pages
-        if: ${{ needs.scope.outputs.docs_only != 'true' }}
-        run: node scripts/qa-chicago-industries.mjs
-      - name: Retain industry and Chicago browser evidence
-        if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: industry-chicago-browser-evidence
-          path: /tmp/accelerate-chicago-qa/
-          if-no-files-found: ignore
-          retention-days: 7
       - name: Verify Leads partial writes and recovery
         if: ${{ needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         env:
@@ -383,6 +372,17 @@ jobs:
         with:
           name: leads-write-recovery-evidence
           path: /tmp/accelerate-leads-write-recovery/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Verify industry and Chicago release pages
+        if: ${{ needs.scope.outputs.docs_only != 'true' }}
+        run: node scripts/qa-chicago-industries.mjs
+      - name: Retain industry and Chicago browser evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: industry-chicago-browser-evidence
+          path: /tmp/accelerate-chicago-qa/
           if-no-files-found: ignore
           retention-days: 7
       - name: Verify credential-free first-run journey
