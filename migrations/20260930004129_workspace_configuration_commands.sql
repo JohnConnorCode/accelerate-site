@@ -49,7 +49,7 @@ BEGIN
   ELSE
    ids:=p_change->'folderIds';
    IF c.status<>'connected' OR jsonb_typeof(ids) IS DISTINCT FROM 'array' OR jsonb_array_length(ids)>10
-    OR EXISTS(SELECT 1 FROM jsonb_array_elements(ids) x WHERE jsonb_typeof(x)<>'string' OR x#>>'{}' !~ '^[A-Za-z0-9_-]{8,256}$')
+    OR EXISTS(SELECT 1 FROM jsonb_array_elements(ids) x WHERE jsonb_typeof(x)<>'string' OR length(x#>>'{}')>256 OR x#>>'{}' !~ '^[A-Za-z0-9_-]{8,}$')
     OR (SELECT count(*) FROM jsonb_array_elements(ids))<>(SELECT count(DISTINCT x) FROM jsonb_array_elements(ids) x) THEN RAISE EXCEPTION 'Invalid Drive folders'; END IF;
    before_values:=jsonb_build_object('folderIds',coalesce(c.settings->'drive_folder_ids','[]'::jsonb));
    after_values:=jsonb_build_object('folderIds',ids);

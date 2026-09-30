@@ -100,6 +100,16 @@ INSERT INTO integration_connections(tenant_id,provider,status,account_email,scop
     '["original_folder"]',
   );
   assert.throws(() => as(call(change, initial)), /changed/);
+  assert.equal(
+    JSON.parse(
+      as(call({ operation: "set_drive_folders", folderIds: ["a".repeat(256)] }, expected())),
+    ).status,
+    "success",
+  );
+  assert.throws(
+    () => as(call({ operation: "set_drive_folders", folderIds: ["a".repeat(257)] }, expected())),
+    /Invalid/,
+  );
   for (const invalid of [
     { operation: "disconnect_provider", provider: "unknown" },
     { operation: "set_drive_folders", folderIds: ["bad'"] },
