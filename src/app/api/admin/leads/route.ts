@@ -104,7 +104,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
-  const parsed = manualLeadSchema.safeParse(await request.json().catch(() => null));
+  const parsed = manualLeadSchema.safeParse(
+    await request.json().catch((error) => {
+      console.warn(
+        "[admin-leads] invalid capture JSON:",
+        error instanceof Error ? error.message : "Invalid payload",
+      );
+      return null;
+    }),
+  );
   if (!parsed.success)
     return NextResponse.json(
       { error: "Provide a valid name, email and lead details" },
@@ -139,7 +147,13 @@ const bulkPatchSchema = z
 export async function PATCH(request: NextRequest) {
   const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
-  const body = await request.json().catch(() => null);
+  const body = await request.json().catch((error) => {
+    console.warn(
+      "[admin-leads] invalid update JSON:",
+      error instanceof Error ? error.message : "Invalid payload",
+    );
+    return null;
+  });
   const parsed = z.union([bulkPatchSchema, leadPatchSchema]).safeParse(body);
   if (!parsed.success)
     return NextResponse.json({ error: "Provide valid lead IDs and changes" }, { status: 400 });

@@ -103,11 +103,13 @@ export async function captureManualLead(
       sourceRecordId: lead.id,
       summary: input.notes || `Manual lead created by ${actorEmail}`,
     });
-    const saved = await supabase
+    const fresh = await read();
+    if (fresh.error || !fresh.data) throw new Error("Could not refresh the capture receipt");
+    let receiptUpdate = supabase
       .from("solution_requests")
       .update({
         intake_data: {
-          ...lead.intake_data,
+          ...fresh.data.intake_data,
           manual_capture: {
             status: "complete",
             opportunity_id: captured.opportunity.id,
@@ -115,9 +117,11 @@ export async function captureManualLead(
         },
       })
       .eq("id", lead.id)
-      .select("*")
-      .single();
-    if (saved.error) throw new Error("Could not save the capture receipt");
+      .eq("lead_status", fresh.data.lead_status);
+    if (fresh.data.updated_at)
+      receiptUpdate = receiptUpdate.eq("updated_at", fresh.data.updated_at);
+    const saved = await receiptUpdate.select("*").maybeSingle();
+    if (saved.error || !saved.data) throw new Error("Could not save the capture receipt");
     return {
       lead: saved.data,
       status: "complete" as const,
