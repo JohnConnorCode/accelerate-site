@@ -18,6 +18,7 @@ export async function GET() {
   try {
     return NextResponse.json(await readWorkspaceConfiguration(auth.database, {}));
   } catch {
+    console.error("[workspace-configuration] Read refused");
     return NextResponse.json(
       { error: "Workspace configuration could not be loaded" },
       { status: 503 },
@@ -32,7 +33,12 @@ export async function POST(request: NextRequest) {
       workspaceConfigurationPreviewSchema.extend({ action: z.literal("preview") }),
       workspaceConfigurationProposalSchema.extend({ action: z.literal("propose") }),
     ])
-    .safeParse(await readBoundedJson(request).catch(() => null));
+    .safeParse(
+      await readBoundedJson(request).catch(() => {
+        console.error("[workspace-configuration] Invalid request body refused");
+        return null;
+      }),
+    );
   if (!input.success)
     return NextResponse.json({ error: "Invalid configuration proposal" }, { status: 400 });
   try {

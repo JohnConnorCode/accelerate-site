@@ -36,13 +36,11 @@ export const workspaceSettingSchema = z
     if (key.startsWith("NOTIFY_")) valid &&= ["true", "false"].includes(value);
     else if (key === "RESEND_FROM_EMAIL") valid &&= z.email().safeParse(value).success;
     else if (key === "SITE_URL") {
-      try {
+      if (z.url().safeParse(value).success) {
         const url = new URL(value);
         valid &&=
           url.protocol === "https:" && !url.username && !url.password && !url.search && !url.hash;
-      } catch {
-        valid = false;
-      }
+      } else valid = false;
     } else if (key === "NEXT_PUBLIC_PLAUSIBLE_DOMAIN")
       valid &&= /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(value);
     else valid &&= value.length > 0;

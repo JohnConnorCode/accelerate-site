@@ -42,7 +42,10 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const raw = await readBoundedJson(request).catch(() => null);
+  const raw = await readBoundedJson(request).catch(() => {
+    console.error("[workspace-configuration] Invalid request body refused");
+    return null;
+  });
   const input = z.object({ key: z.string(), value: z.string() }).strict().safeParse(raw);
   if (!input.success)
     return NextResponse.json({ error: "Missing or invalid key/value" }, { status: 400 });

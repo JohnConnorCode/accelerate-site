@@ -82,6 +82,7 @@ export async function DELETE() {
     );
     return NextResponse.json({ success: true, result });
   } catch {
+    console.error("[google] Disconnect refused");
     return NextResponse.json(
       { error: "Google could not be disconnected safely. Refresh and review again." },
       { status: 409 },
