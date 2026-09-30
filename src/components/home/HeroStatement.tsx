@@ -27,7 +27,7 @@ export function HeroStatement({
         setRevealed(true);
         observer.disconnect();
       },
-      { rootMargin: "0px 0px -16%", threshold: 0.18 },
+      { rootMargin: "0px 0px -8%", threshold: 0.02 },
     );
     observer.observe(element);
     return () => observer.disconnect();

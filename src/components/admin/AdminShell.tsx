@@ -887,64 +887,70 @@ export default function AdminShell({
                   ref={mainRef}
                   tabIndex={-1}
                   inert={mobileOpen}
-                  className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10"
+                  className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-0 xl:px-10"
                 >
+                  <div
+                    className="admin-workspace-toolbar hidden items-center justify-between gap-4 lg:flex"
+                    data-admin-workspace-toolbar
+                  >
+                    {breadcrumbs.length > 1 ? (
+                      <nav
+                        className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]"
+                        aria-label="Breadcrumb"
+                      >
+                        {breadcrumbs.map((crumb, index) => (
+                          <span
+                            key={`${crumb.href}-${index}`}
+                            className="flex min-w-0 items-center gap-1.5"
+                          >
+                            {index > 0 && <span className="opacity-45">/</span>}
+                            <Link
+                              href={crumb.href}
+                              className={cn(
+                                "truncate transition-colors duration-150 hover:text-[var(--admin-ink)]",
+                                index === breadcrumbs.length - 1 && "text-[var(--admin-ink)]",
+                              )}
+                              aria-current={index === breadcrumbs.length - 1 ? "page" : undefined}
+                            >
+                              {crumb.label}
+                            </Link>
+                          </span>
+                        ))}
+                      </nav>
+                    ) : (
+                      <p className="admin-workspace-name">
+                        {scenarioId ? DEMO_SCENARIOS[scenarioId].name : workspaceName}
+                      </p>
+                    )}
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))}
+                        className="admin-button admin-button--ghost admin-workspace-tool"
+                      >
+                        <Bot className="size-3.5" />
+                        Ask AI
+                        <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--admin-muted)]">
+                          ⌘J
+                        </kbd>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSearchOpen(true)}
+                        className="admin-button admin-button--secondary admin-workspace-tool"
+                      >
+                        <Search className="h-3.5 w-3.5" />
+                        Search
+                        <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">
+                          ⌘K
+                        </kbd>
+                      </button>
+                    </div>
+                  </div>
                   <div
                     className="admin-route-frame"
                     data-navigation-pending={routeIsPending ? "true" : "false"}
                   >
-                    <div className="mb-5 hidden min-h-10 items-center justify-between gap-4 sm:flex">
-                      {breadcrumbs.length > 1 && (
-                        <nav
-                          className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]"
-                          aria-label="Breadcrumb"
-                        >
-                          {breadcrumbs.map((crumb, index) => (
-                            <span
-                              key={`${crumb.href}-${index}`}
-                              className="flex min-w-0 items-center gap-1.5"
-                            >
-                              {index > 0 && <span className="opacity-45">/</span>}
-                              <Link
-                                href={crumb.href}
-                                className={cn(
-                                  "truncate transition-colors duration-150 hover:text-[var(--admin-ink)]",
-                                  index === breadcrumbs.length - 1 && "text-[var(--admin-ink)]",
-                                )}
-                                aria-current={index === breadcrumbs.length - 1 ? "page" : undefined}
-                              >
-                                {crumb.label}
-                              </Link>
-                            </span>
-                          ))}
-                        </nav>
-                      )}
-                      <div className="hidden items-center gap-2 sm:flex">
-                        <button
-                          type="button"
-                          onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))}
-                          className="inline-flex min-h-10 items-center gap-2 rounded-[var(--admin-control-radius)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow)] transition-[box-shadow,transform] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"
-                        >
-                          <Bot className="size-3.5" />
-                          Ask AI
-                          <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--admin-muted)]">
-                            ⌘J
-                          </kbd>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSearchOpen(true)}
-                          className="inline-flex min-h-10 items-center gap-3 rounded-[var(--admin-control-radius)] bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-muted)] shadow-[var(--admin-shadow)] transition-[box-shadow,color,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"
-                        >
-                          <Search className="h-3.5 w-3.5" />
-                          Search
-                          <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">
-                            ⌘K
-                          </kbd>
-                        </button>
-                      </div>
-                    </div>
-
                     <AdminRouteStage routeKey={routeKey}>
                       <AdminErrorBoundary key={routeKey}>{children}</AdminErrorBoundary>
                     </AdminRouteStage>
@@ -1130,7 +1136,7 @@ function SidebarContent({
           >
             <DemoScenarioMark scenarioId={demoScenarioId} className="size-9 shrink-0" />
             <span className="min-w-0">
-              <span className="block truncate text-[13px] font-semibold leading-4">
+              <span className="block text-pretty text-[13px] font-semibold leading-4">
                 {DEMO_SCENARIO_SHELL_NAMES[demoScenarioId]}
               </span>
               <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] text-[var(--admin-nav-muted)]">

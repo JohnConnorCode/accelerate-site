@@ -24,7 +24,7 @@ export function EmptyState({
   const actionClass = "admin-button admin-button--primary";
   return (
     <div
-      className="flex flex-col items-center justify-center px-5 py-14 text-center sm:px-8"
+      className="admin-empty-state flex flex-col items-center justify-center text-center"
       role="status"
     >
       <span

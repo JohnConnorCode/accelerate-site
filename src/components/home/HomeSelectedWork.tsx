@@ -9,16 +9,11 @@ import { homeWorkContent } from "@/content/site-studio/home";
 import type { HomeWorkContent } from "@/lib/site-studio/native-templates";
 
 export function HomeSelectedWork({ content = homeWorkContent }: { content?: HomeWorkContent }) {
-  const layout = [
-    { className: "lg:col-span-7", aspect: "cinematic" as const },
-    { className: "lg:col-span-5 lg:pt-24", aspect: "editorial" as const },
-    { className: "lg:col-span-5", aspect: "editorial" as const },
-    { className: "lg:col-span-7 lg:pt-24", aspect: "cinematic" as const },
-  ];
+  const [featured, ...supporting] = featuredWork;
   return (
     <section
       id="selected-work"
-      className="section-y relative overflow-hidden border-t border-[var(--rule)]"
+      className="home-selected-work section-y relative overflow-hidden border-t border-[var(--rule)]"
     >
       <AmbientField />
       <Container>
@@ -47,12 +42,27 @@ export function HomeSelectedWork({ content = homeWorkContent }: { content?: Home
             </Link>
           </Reveal>
         </div>
-        <div className="mt-12 grid gap-x-8 gap-y-10 lg:grid-cols-12 lg:items-start lg:gap-y-20">
-          {featuredWork.map((project, index) => (
-            <div key={project.slug} className={layout[index]?.className ?? "lg:col-span-6"}>
-              <WorkCard project={project} index={index} aspect={layout[index]?.aspect ?? "wide"} />
-            </div>
-          ))}
+        <div className="home-work-layout">
+          {featured && <WorkCard project={featured} featured index={0} aspect="cinematic" />}
+          <div className="home-work-index" aria-label="More selected projects">
+            {supporting.map((project, index) => (
+              <Reveal key={project.slug} rv>
+                <Link href={`/work/${project.slug}`} className="home-work-link">
+                  <span className="home-work-number" aria-hidden="true">
+                    {String(index + 2).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <p className="eyebrow">{project.category}</p>
+                    <h3>{project.name}</h3>
+                    <p className="home-work-description">{project.cardHeadline}</p>
+                  </div>
+                  <span className="home-work-arrow" aria-hidden="true">
+                    ↗
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </Container>
     </section>

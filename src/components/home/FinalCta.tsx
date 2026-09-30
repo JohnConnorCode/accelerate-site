@@ -11,7 +11,7 @@ import type { HomeFinalCtaContent } from "@/lib/site-studio/native-templates";
 
 export function FinalCta({ content = homeFinalCtaContent }: { content?: HomeFinalCtaContent }) {
   // The closing headline gets the Hero's own per-line clip-reveal
-  // (.line/.line > span) instead of the generic .rv blur-fade — an
+  // (.line/.line > span) instead of the generic .rv entrance — an
   // occasional signature move for the page's one true "arrival" moment,
   // bookending the same treatment the hero opens with. Scroll-triggered
   // via the same IO hook .rv uses, not Hero's mount-time `loaded` state.
@@ -37,6 +37,7 @@ export function FinalCta({ content = homeFinalCtaContent }: { content?: HomeFina
         <Reveal rv delay={0.19}>
           <Link
             href={content.ctaHref}
+            data-booking-cta
             onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "final_cta" })}
             className="btn btn-inv"
           >

@@ -13,9 +13,9 @@ import { useRevealLifecycle } from "@/components/motion/useReveal";
  */
 export function useRv<T extends HTMLElement = HTMLElement>(
   threshold = 0.02,
-  rootMargin = "0px 0px -22% 0px",
+  rootMargin = "0px 0px -8% 0px",
 ) {
-  return useRevealLifecycle<T>({ threshold, rootMargin });
+  return useRevealLifecycle<T>({ threshold, rootMargin, triggerRatio: 0.92 });
 }
 
 /** Sets the `--d` stagger-delay custom property consumed by the reveal CSS. */
@@ -27,7 +27,7 @@ export function delayStyle(delaySeconds: number): CSSProperties {
  * `<Reveal rv as="h2" className="h2">…</Reveal>` fades the element itself in
  * on intersect. `<Reveal as="div" className="ev">…</Reveal>` (rv omitted)
  * toggles `.in` on a container so its own CSS (dividers, per-child stagger)
- * can react, without applying the `.rv` opacity/blur transition to the
+ * can react, without applying the `.rv` opacity/translate entrance to the
  * container itself.
  */
 export function Reveal({

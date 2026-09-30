@@ -29,6 +29,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
           <div className="home-hero-actions">
             <Link
               href={content.ctaHref}
+              data-booking-cta
               onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })}
               className="btn home-hero-cta"
             >

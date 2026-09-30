@@ -45,7 +45,7 @@ function EngagementDrawing({ kind }: { kind: string }) {
 
 export function Systems({ content = homeSystemsContent }: { content?: HomeSystemsContent }) {
   return (
-    <section className="sect" id="systems" aria-labelledby="systems-heading">
+    <section className="sect home-services" id="systems" aria-labelledby="systems-heading">
       <AmbientField />
       <div className="wrap">
         <div className="shead">

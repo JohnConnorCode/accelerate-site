@@ -651,8 +651,8 @@ a.tag:active {
 @keyframes rv-in {
   from {
     opacity: 0;
-    transform: translateY(24px);
-    filter: blur(9px);
+    transform: translateY(14px);
+    filter: none;
   }
   to {
     opacity: 1;
@@ -670,8 +670,8 @@ a.tag:active {
 }
 .motion-ready .rv[data-reveal-state="pending"]:not(.work-reveal):not(.in) {
   opacity: 0;
-  transform: translateY(24px);
-  filter: blur(9px);
+  transform: translateY(14px);
+  filter: none;
 }
 /* Hero eyebrow uses the .loaded gate, not the shared observer. Hide it only
    while the hero is still waiting to start its own sequence. */
@@ -681,54 +681,7 @@ a.tag:active {
   filter: blur(9px);
 }
 .rv:not(.work-reveal).in:not(.reveal-immediate) {
-  animation: rv-in 0.7s var(--ease) var(--d, 0s) both;
-}
-
-/* PlanDeck's card (.deck) has its own backdrop-filter for the frosted
-   look. Animating `filter` on an ANCESTOR while a descendant uses
-   backdrop-filter is a known Chromium trap — the backdrop sampling
-   doesn't interpolate cleanly against a changing ancestor filter, so the
-   child effectively snaps to its end state instead of blurring in. Fix:
-   neuter the wrapper's own reveal and animate opacity/transform on the
-   wrapper, filter on .deck itself instead — same element as its own
-   backdrop-filter, a normal, well-supported combination. */
-@keyframes deck-wrap-in {
-  from {
-    opacity: 0;
-    transform: translateY(36px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.motion-ready .rv:not(.in):has(> .deck) {
-  opacity: 0;
-  transform: translateY(36px) scale(0.97);
-  filter: none;
-}
-.rv.in:not(.reveal-immediate):has(> .deck) {
-  animation: deck-wrap-in 1s ease var(--d, 0s) both;
-}
-@keyframes deck-blur-in {
-  from {
-    filter: blur(16px);
-  }
-  to {
-    filter: none;
-  }
-}
-.motion-ready .rv:not(.in):has(> .deck) > .deck {
-  filter: blur(16px);
-}
-/* .deck also runs `animation: float-gentle` (its idle bob, infinite) —
-   the `animation` shorthand has the exact same "whole list, one winner"
-   rule as `transition`, so this MUST list float-gentle alongside its own
-   blur-in or the idle bob would stop dead the moment this rule applies. */
-.rv.in:not(.reveal-immediate):has(> .deck) > .deck {
-  animation:
-    deck-blur-in 1s ease var(--d, 0s) both,
-    float-gentle 7s ease-in-out infinite;
+  animation: rv-in 0.42s var(--ease) var(--d, 0s) both;
 }
 
 /* Per-item reveal for list rows (FAQ questions, steps, tags, plan items) —
@@ -756,8 +709,8 @@ a.tag:active {
 @keyframes item-in {
   from {
     opacity: 0;
-    transform: translateY(20px);
-    filter: blur(8px);
+    transform: translateY(12px);
+    filter: none;
   }
   to {
     opacity: 1;
@@ -772,11 +725,11 @@ a.tag:active {
 }
 .motion-ready .item-rv:not(.in) {
   opacity: 0;
-  transform: translateY(20px);
-  filter: blur(8px);
+  transform: translateY(12px);
+  filter: none;
 }
 .item-rv.in:not(.reveal-immediate) {
-  animation: item-in 0.55s var(--ease) var(--d, 0s) both;
+  animation: item-in 0.38s var(--ease) var(--d, 0s) both;
 }
 
 /* Work shares the same pre-paint lifecycle and adds only its editorial role
@@ -4555,7 +4508,6 @@ summary:focus-visible {
   max-width: 100%;
   overflow: hidden;
   border-radius: 14px;
-  animation: float-gentle 7s ease-in-out infinite;
 }
 
 /* ========================================
@@ -5408,13 +5360,128 @@ a.team-card-float:focus-visible {
    opening viewport, instead of competing with the headline and booking CTA. */
 .hero-statement {
   position: relative;
-  padding: clamp(72px, 10vw, 140px) 0;
+  padding: clamp(44px, 6vw, 80px) 0;
   border-top: 1px solid var(--rule);
 }
 .hero-statement-layout {
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: clamp(32px, 6vw, 80px);
+}
+
+/* Selected work is a feature and an editorial index, rather than four
+   competing cover stories. Keep the same authored case data and media. */
+.home-selected-work {
+  padding-block: clamp(64px, 8vw, 112px);
+}
+.home-work-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 72px);
+  margin-top: 44px;
+  align-items: start;
+}
+.home-work-index {
+  border-bottom: 1px solid var(--rule);
+}
+.home-work-link {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 20px;
+  gap: 16px;
+  min-height: 44px;
+  padding-block: 28px;
+  border-top: 1px solid var(--rule);
+  color: var(--fg);
+}
+.home-work-number {
+  color: var(--mid);
+  font: 11px/1.6 var(--util);
+  font-variant-numeric: tabular-nums;
+}
+.home-work-link h3 {
+  margin-top: 14px;
+  font: 500 clamp(1.4rem, 2.1vw, 2rem)/1.06 var(--display);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.home-work-description {
+  margin-top: 12px;
+  color: var(--mid);
+  font-size: 15px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.home-work-arrow {
+  transition: transform 180ms var(--ease);
+}
+.home-work-link:hover .home-work-arrow,
+.home-work-link:focus-visible .home-work-arrow {
+  transform: translate(2px, -2px);
+}
+.home-work-link:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 6px;
+}
+.home-process,
+.home-plan {
+  padding-block: clamp(64px, 7vw, 104px);
+}
+.home-process .h2 {
+  max-width: 20ch;
+  font-size: clamp(2rem, 4vw, 3.75rem);
+}
+.home-process .steps {
+  margin-top: 40px;
+}
+.home-plan .h2 {
+  font-size: clamp(2rem, 3.5vw, 3.25rem);
+}
+@media (min-width: 1001px) {
+  .home-services .engagement-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 0;
+    gap: 0 48px;
+  }
+  .home-services .engagement-item {
+    border-top: 1px solid var(--rule);
+    border-bottom: 0;
+  }
+  .home-services .engagement-link {
+    grid-template-columns: 28px minmax(0, 1fr) 24px;
+    gap: 20px;
+    height: 100%;
+    padding: 30px 0;
+  }
+  .home-services .engagement-detail {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .home-services .engagement-drawing {
+    grid-column: 2;
+    grid-row: 3;
+    width: 110px;
+    opacity: 0.7;
+  }
+  .home-services .engagement-arrow {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+@media (max-width: 900px) {
+  .home-work-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-work-arrow {
+    transition: none;
+  }
+  .home-work-link:hover .home-work-arrow,
+  .home-work-link:focus-visible .home-work-arrow {
+    transform: none;
+  }
 }
 .hero-statement-aside {
   display: flex;
@@ -5468,7 +5535,7 @@ a.team-card-float:focus-visible {
   max-width: 23ch;
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(1.85rem, 3.55vw, 4rem);
+  font-size: clamp(1.65rem, 2.75vw, 3.1rem);
   font-weight: 600;
   letter-spacing: -0.055em;
   line-height: 1.03;
@@ -5492,7 +5559,7 @@ a.team-card-float:focus-visible {
   filter: blur(6px);
 }
 .hero-statement.is-revealed .hero-statement-copy {
-  animation: hero-statement-copy-in 0.72s var(--ease) both;
+  animation: hero-statement-copy-in 0.42s var(--ease) both;
 }
 @media (max-width: 700px) {
   .hero-statement {

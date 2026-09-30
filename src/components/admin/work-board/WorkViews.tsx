@@ -46,7 +46,10 @@ export function WorkViews({
   );
   const [name, setName] = useState("");
   const [shared, setShared] = useState(false);
+  const [saving, setSaving] = useState(false);
   const save = async () => {
+    if (saving || !name.trim()) return;
+    setSaving(true);
     try {
       await fetchJson("/api/admin/features/views", {
         method: "POST",
@@ -58,6 +61,8 @@ export function WorkViews({
       toast.success("View saved");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not save view");
+    } finally {
+      setSaving(false);
     }
   };
   return (
@@ -69,7 +74,7 @@ export function WorkViews({
           onChange={(event) =>
             onChange({ ...filters, queue: event.target.value, milestone: "all" })
           }
-          className="admin-field admin-field--inline min-h-11 min-w-0 flex-1 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-sm sm:flex-none"
+          className="admin-field admin-field--inline min-w-0 flex-1 sm:flex-none"
         >
           {WORK_QUEUES.map((view) => (
             <option key={view.key} value={view.key}>
@@ -81,7 +86,7 @@ export function WorkViews({
           type="button"
           onClick={() => setOpen(true)}
           aria-haspopup="dialog"
-          className="inline-flex min-h-11 items-center gap-2 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] px-3 text-sm"
+          className="admin-button admin-button--secondary"
         >
           <SlidersHorizontal size={16} />
           Filters{active.length > 0 && <span className="tabular-nums">{active.length}</span>}
@@ -92,7 +97,7 @@ export function WorkViews({
             key={key}
             aria-label={`Remove ${key} filter`}
             onClick={() => onChange({ ...filters, [key]: "all" })}
-            className="inline-flex min-h-10 max-w-full items-center gap-2 rounded-full bg-[var(--admin-surface-subtle)] px-3 text-xs"
+            className="admin-button admin-button--ghost max-w-full"
           >
             <span className="truncate">
               {value === "active"
@@ -110,16 +115,16 @@ export function WorkViews({
         onClose={() => setOpen(false)}
         title="Filter work"
         maxWidth="lg"
-        className="rounded-2xl bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-2xl"
+        className="admin-surface admin-surface--raised"
       >
         <div className="space-y-5 p-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Filter work</h2>
+            <h2 className="admin-dialog-title">Filter work</h2>
             <button
               type="button"
               aria-label="Close filters"
               onClick={() => setOpen(false)}
-              className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-[var(--admin-surface-subtle)]"
+              className="admin-icon-button"
             >
               <X size={18} />
             </button>
@@ -132,7 +137,7 @@ export function WorkViews({
                 aria-label="North star phase"
                 value={filters.phase ?? "all"}
                 onChange={(e) => onChange({ ...filters, phase: e.target.value })}
-                className="admin-field min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
+                className="admin-field min-w-0 w-full"
               >
                 <option value="all">All phases</option>
                 {Object.entries(NORTHSTAR_PHASES).map(([key, name]) => (
@@ -148,7 +153,7 @@ export function WorkViews({
                 aria-label="Initiative"
                 value={filters.initiative ?? "all"}
                 onChange={(e) => onChange({ ...filters, initiative: e.target.value })}
-                className="admin-field min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
+                className="admin-field min-w-0 w-full"
               >
                 <option value="all">All initiatives</option>
                 {initiatives.map((name) => (
@@ -177,7 +182,7 @@ export function WorkViews({
               {query.data?.views.map((v) => (
                 <div
                   key={v.id}
-                  className="flex items-center rounded-xl border border-[var(--admin-border)]"
+                  className="flex items-center rounded-[var(--admin-control-radius)] shadow-[var(--admin-shadow-border)]"
                 >
                   <button
                     type="button"
@@ -212,7 +217,7 @@ export function WorkViews({
                 placeholder="Name this view"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="admin-field admin-field--inline min-h-11 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-sm"
+                className="admin-field admin-field--inline"
               />
               <label className="flex min-h-11 items-center gap-2 text-xs">
                 <input
@@ -224,15 +229,16 @@ export function WorkViews({
               </label>
               <button
                 type="button"
-                disabled={!name.trim()}
+                disabled={saving || !name.trim()}
+                aria-busy={saving}
                 onClick={() => void save()}
-                className="min-h-11 rounded-xl border border-[var(--admin-border)] px-4 text-xs font-semibold disabled:opacity-40"
+                className="admin-button admin-button--secondary"
               >
-                Save current view
+                {saving ? "Saving view…" : "Save current view"}
               </button>
               <button
                 type="button"
-                className="min-h-11 rounded-xl border border-[var(--admin-border)] px-4 text-xs"
+                className="admin-button admin-button--secondary"
                 onClick={() => {
                   const url = new URL(location.href);
                   url.searchParams.set("filters", JSON.stringify(filters));
@@ -249,7 +255,7 @@ export function WorkViews({
           <div className="flex items-center justify-between gap-3 border-t border-[var(--admin-border)] pt-4">
             <button
               type="button"
-              className="min-h-11 px-3 text-sm"
+              className="admin-button admin-button--ghost"
               onClick={() =>
                 onChange({
                   ...filters,
@@ -267,7 +273,7 @@ export function WorkViews({
             </button>
             <button
               type="button"
-              className="min-h-11 rounded-lg bg-[var(--admin-action)] px-5 text-sm font-semibold text-[var(--admin-action-ink)]"
+              className="admin-button admin-button--primary"
               onClick={() => setOpen(false)}
             >
               Show results

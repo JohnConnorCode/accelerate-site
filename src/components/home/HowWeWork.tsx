@@ -6,7 +6,7 @@ import { AmbientField } from "./AmbientField";
 
 export function HowWeWork({ content = homeProcessContent }: { content?: HomeProcessContent }) {
   return (
-    <section className="sect ink-panel" id="how">
+    <section className="sect ink-panel home-process" id="how">
       <AmbientField />
       <div className="wrap">
         <div className="shead">
@@ -15,10 +15,7 @@ export function HowWeWork({ content = homeProcessContent }: { content?: HomeProc
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              {content.headingStart}
-              <br />
-              {content.headingMiddle}
-              <br />
+              {content.headingStart} {content.headingMiddle}{" "}
               <span className="it">{content.headingEnd}</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>

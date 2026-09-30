@@ -45,6 +45,20 @@ try {
     ["navigation", "./qa-admin-polish-navigation.mjs"],
   ])
     if (!focus || focus.split(",").includes(name)) await import(file);
+  if (focus?.split(",").includes("home")) await import("./qa-home-polish.mjs");
+  if (focus?.split(",").includes("today")) await import("./qa-today-workspace.mjs");
+  if (focus?.split(",").includes("product"))
+    await new Promise((resolve, reject) => {
+      const capture = spawn(
+        process.execPath,
+        ["--import", "tsx", "scripts/capture-product-screenshots.ts"],
+        { stdio: "inherit", env: process.env },
+      );
+      capture.once("error", reject);
+      capture.once("exit", (code) =>
+        code === 0 ? resolve() : reject(new Error(`Product capture exited ${code}`)),
+      );
+    });
   if (focus?.split(",").includes("business")) await import("./qa-demo-business-workflows.mjs");
   if (focus?.split(",").includes("api"))
     await new Promise((resolve, reject) => {

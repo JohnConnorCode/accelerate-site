@@ -2,7 +2,7 @@
   {
     "id": "light",
     "label": "Paper",
-    "description": "Warm paper · crisp cobalt",
+    "description": "Warm paper \u00b7 crisp cobalt",
     "icon": "Sun",
     "mode": "light",
     "tokens": {
@@ -48,9 +48,9 @@
       "--admin-warning": "#92400e",
       "--admin-warning-soft": "rgba(217, 119, 6, 0.1)",
       "--admin-font": "var(--font-inter), system-ui, sans-serif",
-      "--admin-title-font": "var(--admin-font)",
-      "--admin-title-weight": "650",
-      "--admin-title-tracking": "-0.035em",
+      "--admin-title-font": "var(--font-editorial), Georgia, serif",
+      "--admin-title-weight": "400",
+      "--admin-title-tracking": "-0.025em",
       "--admin-label-font": "var(--admin-font)",
       "--admin-surface-fill": "var(--admin-surface)",
       "--admin-surface-filter": "none",
@@ -86,7 +86,7 @@
   {
     "id": "dark",
     "label": "Night",
-    "description": "Graphite · warm brass",
+    "description": "Graphite \u00b7 warm brass",
     "icon": "Moon",
     "mode": "dark",
     "tokens": {
@@ -170,7 +170,7 @@
   {
     "id": "signal",
     "label": "Signal",
-    "description": "Midnight teal · precise edges",
+    "description": "Midnight teal \u00b7 precise edges",
     "icon": "Sparkles",
     "mode": "dark",
     "tokens": {
@@ -254,7 +254,7 @@
   {
     "id": "studio",
     "label": "Studio",
-    "description": "Editorial type · warm clay",
+    "description": "Editorial type \u00b7 warm clay",
     "icon": "Palette",
     "mode": "light",
     "tokens": {
@@ -338,7 +338,7 @@
   {
     "id": "frost",
     "label": "Frost",
-    "description": "Icy layers · cool light",
+    "description": "Icy layers \u00b7 cool light",
     "icon": "Snowflake",
     "mode": "light",
     "tokens": {
@@ -422,7 +422,7 @@
   {
     "id": "material",
     "label": "Material 2026",
-    "description": "Tonal surfaces · soft geometry",
+    "description": "Tonal surfaces \u00b7 soft geometry",
     "icon": "Sparkles",
     "mode": "light",
     "tokens": {
@@ -506,7 +506,7 @@
   {
     "id": "mac",
     "label": "macOS",
-    "description": "Silver chrome · precise controls",
+    "description": "Silver chrome \u00b7 precise controls",
     "icon": "Palette",
     "mode": "light",
     "tokens": {
@@ -590,7 +590,7 @@
   {
     "id": "accelerate",
     "label": "Accelerate",
-    "description": "Monochrome editorial · bold and minimal",
+    "description": "Monochrome editorial \u00b7 bold and minimal",
     "icon": "Sparkles",
     "mode": "light",
     "tokens": {
@@ -674,7 +674,7 @@
   {
     "id": "capy",
     "label": "Capy",
-    "description": "Graphite navigation · seafoam actions · crisp surfaces",
+    "description": "Graphite navigation \u00b7 seafoam actions \u00b7 crisp surfaces",
     "icon": "Sparkles",
     "mode": "light",
     "tokens": {

@@ -782,8 +782,8 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
       urgency: index === 0 ? "high" : "normal",
       dueAt: dateOffset(0),
       sourceTimestamp: ago(index + 1),
-      priorityReason: "A consequential simulated change is staged for operator review.",
-      recommendedNextAction: "Review the exact simulated change",
+      priorityReason: item.description,
+      recommendedNextAction: "Review the proposed change before approving",
       href: `/admin/today?focus=approval&action=${item.id}`,
     }));
   approvals.unshift(
@@ -797,8 +797,8 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
         urgency: "normal",
         dueAt: dateOffset(0),
         sourceTimestamp: item.created_at,
-        priorityReason: "A simulated business workflow needs approval.",
-        recommendedNextAction: "Review the exact simulated change",
+        priorityReason: item.description,
+        recommendedNextAction: "Review the proposed change before approving",
         href: item.pluginId === "stripe-invoicing" ? "/admin/invoicing" : `/admin/${item.pluginId}`,
       })),
   );
@@ -835,7 +835,7 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
     urgency: index === 0 ? "high" : "normal",
     dueAt: dateOffset(index),
     sourceTimestamp: ago(index + 3),
-    priorityReason: "An open commercial decision has a recorded next step.",
+    priorityReason: `${item.company} has an open opportunity to follow up.`,
     recommendedNextAction: "Review the proposal and advance the decision",
     href: "/admin/proposals",
   }));
@@ -858,7 +858,9 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
       priorityReason:
         item.due_date && item.due_date < dateOffset(0)
           ? "The commitment is overdue."
-          : "The next step is due soon.",
+          : item.due_date
+            ? "A follow-up has a recorded due date."
+            : "This follow-up needs an owner’s next step.",
       recommendedNextAction: "Complete or snooze this task",
       href: "/admin/work",
     }));

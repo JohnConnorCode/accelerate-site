@@ -12,7 +12,7 @@ import type { HomePlanContent } from "@/lib/site-studio/native-templates";
 
 export function Plan({ content = homePlanContent }: { content?: HomePlanContent }) {
   return (
-    <section className="sect" id="plan">
+    <section className="sect home-plan" id="plan">
       <AmbientField />
       <div className="wrap">
         <div className="plan-grid">
@@ -50,10 +50,11 @@ export function Plan({ content = homePlanContent }: { content?: HomePlanContent 
                 </Reveal>
               ))}
             </ul>
-            <Reveal rv as="div" delay={0.62}>
+            <Reveal rv as="div" delay={0.18}>
               <Link
                 href={content.ctaHref}
                 onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "plan" })}
+                data-booking-cta
                 className="btn"
               >
                 {content.ctaLabel}{" "}
@@ -64,15 +65,7 @@ export function Plan({ content = homePlanContent }: { content?: HomePlanContent 
             </Reveal>
           </div>
 
-          {/* PlanDeck is ~490px tall — the default rootMargin fires once
-              any sliver crosses in, so a tall card finished its reveal
-              transition long before it was meaningfully on screen and
-              read as "just appears" instead of animating in. A negative
-              bottom rootMargin delays the trigger until the card's top
-              has scrolled well up into the viewport instead of requiring
-              a % of its own (large) area to be visible — scales correctly
-              regardless of the card's height. */}
-          <Reveal rv delay={0.1} threshold={0} rootMargin="0px 0px -22% 0px">
+          <Reveal rv delay={0.1} threshold={0} rootMargin="0px 0px -8% 0px">
             <PlanDeck content={content.deck} />
           </Reveal>
         </div>
