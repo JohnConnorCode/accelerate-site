@@ -171,6 +171,7 @@ export const commandCenterFaqs: FAQ[] = [
 /** The buying questions shown on the product page and in its structured data. */
 export const productFaqs = commandCenterFaqs.filter((faq) =>
   [
+    "What do the Revenue figures measure?",
     "Can I try Command Center before setting it up?",
     "What should I connect first?",
     "Can Ask AI check the content calendar?",

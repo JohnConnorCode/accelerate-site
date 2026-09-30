@@ -15,6 +15,14 @@ const proof = [],
   errors = [],
   escaped = [];
 let currentPage;
+const guardRequest = (route) => {
+  const url = new URL(route.request().url());
+  if (url.origin !== new URL(base).origin || url.pathname.startsWith("/api/")) {
+    escaped.push(url.origin + url.pathname);
+    return route.abort();
+  }
+  return route.continue();
+};
 try {
   for (const width of [1440, 390]) {
     const context = await browser.newContext({
@@ -22,14 +30,7 @@ try {
       reducedMotion: width === 390 ? "reduce" : "no-preference",
       timezoneId: "America/Chicago",
     });
-    await context.route("**/*", (route) => {
-      const url = new URL(route.request().url());
-      if (url.origin !== new URL(base).origin || url.pathname.startsWith("/api/")) {
-        escaped.push(url.origin + url.pathname);
-        return route.abort();
-      }
-      return route.continue();
-    });
+    await context.route("**/*", guardRequest);
     // Wrap each assigned fetch without replacing the fictional runtime or its source rules.
     // Faults are controlled transport outcomes; no backend/provider request is allowed.
     await context.addInitScript(() => {
@@ -86,6 +87,7 @@ try {
     });
     const page = await context.newPage();
     currentPage = page;
+    const alerts = page.locator('.admin-surface[role="alert"]');
     page.setDefaultTimeout(20000);
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => {
@@ -93,7 +95,7 @@ try {
     });
     await page.goto(`${base}/demo/command-center/northline-roofing/revenue`, { timeout: 60000 });
     await expect(page.getByRole("heading", { name: "Revenue", exact: true })).toBeVisible();
-    await expect(page.getByRole("alert")).toContainText("We couldn’t load this information");
+    await expect(alerts).toContainText("We couldn’t load this information");
     await expect(page.getByText("Monthly Recurring", { exact: true })).toHaveCount(0);
     await page.screenshot({ path: `${output}/${width}-initial-error.png`, fullPage: true });
     await page.evaluate(() => {
@@ -106,7 +108,26 @@ try {
       exact: true,
     });
     await chart.waitFor();
-    await expect(page.getByRole("alert")).toHaveCount(0);
+    await expect(alerts).toHaveCount(0);
+    if (width === 390) {
+      const motionState = await page
+        .locator(".admin-grid--panels .h-2 > div")
+        .evaluateAll((bars) => ({
+          reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+          widths: bars.map((bar) => ({
+            fill: bar.getBoundingClientRect().width,
+            track: bar.parentElement.getBoundingClientRect().width,
+          })),
+        }));
+      assert.equal(motionState.reduced, true);
+      assert.ok(motionState.widths.length > 0);
+      for (const bar of motionState.widths)
+        assert.ok(
+          Math.abs(bar.fill - bar.track) <= 1,
+          "Reduced-motion industry bars render their complete value",
+        );
+      proof.push({ width, reducedMotionComputed: motionState });
+    }
     await expect(page.getByText("Churned Share", { exact: true })).toBeVisible();
     await expect(page.getByText("Accepted Proposal Monthly Value", { exact: true })).toBeVisible();
     const values = await page.evaluate(async () => {
@@ -142,6 +163,15 @@ try {
       await page.screenshot({ path: `${output}/revenue-guide.png` });
       await page.emulateMedia({ reducedMotion: "no-preference" });
     }
+    await page
+      .getByRole("heading", { name: "Active Monthly Value by Client", exact: true })
+      .scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/${width}-contract-breakdown.png` });
+    await page
+      .getByText("Accepted Proposal Monthly Value", { exact: true })
+      .scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/${width}-agreement-values.png` });
+    await page.getByRole("heading", { name: "Revenue", exact: true }).scrollIntoViewIfNeeded();
     const edit = await page.evaluate(async () => {
       const response = await fetch("/api/admin/clients", {
         method: "PATCH",
@@ -161,7 +191,7 @@ try {
       window.__revenueFault = "error";
       window.dispatchEvent(new Event("admin:priority-refresh"));
     });
-    await expect(page.getByRole("alert")).toContainText("Showing previously loaded information");
+    await expect(alerts).toContainText("Showing previously loaded information");
     await expect(chart).toBeVisible();
     await expect(
       page.getByText(`$${edit.totalMRR.toLocaleString()}/mo`, { exact: true }),
@@ -172,14 +202,14 @@ try {
     });
     await page.getByRole("button", { name: "Retry", exact: true }).focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByRole("alert")).toHaveCount(0);
+    await expect(alerts).toHaveCount(0);
     await page.evaluate(() => {
       window.__revenueFault = "empty";
       window.dispatchEvent(new Event("admin:priority-refresh"));
     });
     await expect(page.getByText("No active client contracts yet", { exact: true })).toHaveCount(2);
     await expect(chart).toHaveCount(0);
-    await expect(page.getByRole("alert")).toHaveCount(0);
+    await expect(alerts).toHaveCount(0);
     await page.screenshot({ path: `${output}/${width}-empty.png`, fullPage: true });
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
@@ -212,6 +242,21 @@ try {
         await page.screenshot({ path: `${output}/${width}-docs-recovery.png` });
       }
     }
+    await page.goto(`${base}/command-center`);
+    const reportingAnswer = page
+      .locator("summary")
+      .filter({ hasText: "What do the Revenue figures measure?" });
+    await reportingAnswer.scrollIntoViewIfNeeded();
+    await reportingAnswer.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("details[open]")).toContainText(
+      "Monthly Recurring sums current active client agreements",
+    );
+    await page.screenshot({ path: `${output}/${width}-product-revenue-faq.png` });
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      true,
+    );
     await context.close();
   }
   // Every fictional business derives Revenue from its own saved client records.
@@ -227,6 +272,7 @@ try {
       viewport: { width: 1440, height: 1000 },
       reducedMotion: "reduce",
     });
+    await context.route("**/*", guardRequest);
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(`${base}/demo/command-center/${scenario}/revenue`, { timeout: 60000 });
