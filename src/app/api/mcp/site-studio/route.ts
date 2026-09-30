@@ -1,6 +1,15 @@
+import {
+  mcpRequestSchema,
+  mcpHttpRequestError,
+  mcpRequestBodyError,
+} from "@/lib/revenue-os/mcp-request";
 import { NextResponse } from "next/server";
 import { readBoundedJson } from "@/lib/http/bounded-json";
-import { handleMcpRequest, type McpJsonRpcRequest } from "@/lib/revenue-os/mcp-server";
+import {
+  handleMcpRequest,
+  MCP_SUPPORTED_PROTOCOL_VERSIONS,
+  type McpJsonRpcRequest,
+} from "@/lib/revenue-os/mcp-server";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { tenant } from "@/config/tenant";
 import { authenticateSiteEditor, siteEditorOAuthConfig } from "@/lib/site-studio/delegation";
@@ -27,6 +36,8 @@ export function GET() {
   );
 }
 export async function POST(request: Request) {
+  const transportError = mcpHttpRequestError(request, MCP_SUPPORTED_PROTOCOL_VERSIONS);
+  if (transportError) return NextResponse.json({ error: transportError }, { status: 400, headers });
   let config;
   try {
     config = siteEditorOAuthConfig();
@@ -60,24 +71,14 @@ export async function POST(request: Request) {
     return rateLimitResponse(rateLimitResult, { error: "Rate limit exceeded" }, headers);
   let body: McpJsonRpcRequest;
   try {
-    body = (await readBoundedJson(request, 8_010_000)) as McpJsonRpcRequest;
-    if (
-      !body ||
-      body.jsonrpc !== "2.0" ||
-      typeof body.method !== "string" ||
-      (body.id !== undefined &&
-        body.id !== null &&
-        typeof body.id !== "string" &&
-        typeof body.id !== "number")
-    )
-      throw new Error("Invalid request");
-  } catch {
+    body = mcpRequestSchema.parse(await readBoundedJson(request, 8_010_000)) as McpJsonRpcRequest;
+  } catch (error) {
     console.warn("[site-studio] Scoped MCP request rejected");
     return NextResponse.json(
       {
         jsonrpc: "2.0",
         id: null,
-        error: { code: -32600, message: "Invalid bounded JSON-RPC request" },
+        error: mcpRequestBodyError(error),
       },
       { status: 400, headers },
     );
@@ -97,6 +98,6 @@ export async function POST(request: Request) {
     }),
   );
   return result === null
-    ? new NextResponse(null, { status: 204, headers })
+    ? new NextResponse(null, { status: 202, headers })
     : NextResponse.json(result, { headers });
 }

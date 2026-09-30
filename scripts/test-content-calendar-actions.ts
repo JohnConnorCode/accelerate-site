@@ -29,7 +29,7 @@ const row = {
 
 const fakeDatabase = {
   from(table: string) {
-    assert.equal(table, "content_calendar");
+    assert.ok(["content_calendar", "tenants"].includes(table));
     const query = {
       select() {
         return query;
@@ -38,7 +38,10 @@ const fakeDatabase = {
         return query;
       },
       async maybeSingle() {
-        return { data: row, error: null };
+        return {
+          data: table === "tenants" ? { status: "active", config: {} } : row,
+          error: null,
+        };
       },
     };
     return query;

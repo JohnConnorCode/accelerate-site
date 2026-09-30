@@ -1,5 +1,10 @@
 import "server-only";
-import { prepareOperatorTaskPatch, validateOperatorTaskPatch } from "./operator-task-patch";
+import {
+  prepareOperatorTaskPatch,
+  validateOperatorTaskPatch,
+  TASK_REVIEW_FIELDS,
+  type TaskReviewState,
+} from "./operator-task-patch";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
@@ -64,7 +69,7 @@ export async function createRevenueTask(
   const findExisting = async () => {
     if (!input.dedupeKey) return null;
     let query = supabase.from("tasks").select("*").eq("dedupe_key", input.dedupeKey);
-    query = ["delivery_handoff", "proposal_response"].includes(input.source)
+    query = ["delivery_handoff", "proposal_response", "admin_leads"].includes(input.source)
       ? query.eq("source", input.source).order("created_at", { ascending: true }).limit(1)
       : query.in("status", ["pending", "snoozed"]);
     const { data, error } = await query.maybeSingle();
@@ -130,18 +135,23 @@ export async function createRevenueTask(
 
 export async function completeOperatorTask(
   supabase: SupabaseClient,
-  input: { id: string; actorEmail: string },
+  input: { id: string; actorEmail: string; expectedState?: TaskReviewState },
 ) {
   return patchOperatorTask(supabase, { ...input, status: "completed" }, true);
 }
 
 export async function snoozeOperatorTask(
   supabase: SupabaseClient,
-  input: { id: string; until: string; actorEmail: string },
+  input: { id: string; until: string; actorEmail: string; expectedState?: TaskReviewState },
 ) {
   return patchOperatorTask(
     supabase,
-    { id: input.id, snoozed_until: input.until, actorEmail: input.actorEmail },
+    {
+      id: input.id,
+      snoozed_until: input.until,
+      actorEmail: input.actorEmail,
+      expectedState: input.expectedState,
+    },
     true,
   );
 }
@@ -157,6 +167,7 @@ export async function updateOperatorTask(
     priority?: "high" | "medium" | "low";
     dueDate?: string | null;
     actorEmail: string;
+    expectedState?: TaskReviewState;
   },
 ) {
   if (
@@ -175,6 +186,7 @@ export async function updateOperatorTask(
       priority: input.priority,
       due_date: input.dueDate,
       actorEmail: input.actorEmail,
+      expectedState: input.expectedState,
     },
     true,
   );
@@ -193,6 +205,7 @@ export async function patchOperatorTask(
     due_date?: string | null;
     priority?: string;
     actorEmail: string;
+    expectedState?: TaskReviewState;
   },
   requireOpen = false,
 ): Promise<OperatorTask> {
@@ -203,16 +216,27 @@ export async function patchOperatorTask(
     .eq("id", input.id)
     .maybeSingle();
   if (readError) throw new Error(readError.message);
+  if (
+    input.expectedState &&
+    (!before ||
+      TASK_REVIEW_FIELDS.some((field) => (before[field] ?? null) !== input.expectedState![field]))
+  )
+    throw new Error(
+      "This task changed since the proposal. Review a fresh proposal before applying it.",
+    );
   const patch = prepareOperatorTaskPatch(before, input, requireOpen);
   const changed = Object.keys(patch).filter((key) => patch[key] !== before[key]);
   if (!changed.length) return before;
-  const { data: task, error } = await supabase
-    .from("tasks")
-    .update(patch)
-    .eq("id", input.id)
-    .eq("status", before.status)
-    .select("*")
-    .maybeSingle();
+  let write = supabase.from("tasks").update(patch).eq("id", input.id).eq("status", before.status);
+  // Check the reviewed values in the write itself, including same-status edits.
+  // A read-time check alone leaves a window for another operator's update.
+  if (input.expectedState) {
+    for (const field of TASK_REVIEW_FIELDS) {
+      const value = input.expectedState[field];
+      write = value === null ? write.is(field, null) : write.eq(field, value);
+    }
+  }
+  const { data: task, error } = await write.select("*").maybeSingle();
   if (error) throw new Error(error.message);
   if (!task) throw new Error("This task changed while you were working. Refresh and try again.");
   const action =

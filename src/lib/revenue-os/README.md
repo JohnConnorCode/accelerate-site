@@ -139,12 +139,37 @@ remaining manifest-policy work.
   not create route-local chats, model loops, or transcript stores.
 - All model traffic uses `src/lib/ai/openrouter.ts` with an explicit tenant-bound database so `openrouter-credentials.ts` can resolve that workspace's encrypted key; do not add a route-local provider SDK or unscoped production call.
 - New metric extends `analytics.ts`; screens do not calculate competing funnels.
+- Revenue reads use `loadRevenueReport` in `analytics.ts`: tenant-scoped pages of 500,
+  exact-count completeness and a 5,000-record ceiling per clients, accepted proposals
+  and opportunities source. Source failures, changing counts, duplicate page IDs,
+  truncation or a larger source make the report unavailable, never a zero or partial total.
+  This is a bounded projection over current records, not an atomic financial ledger.
+- `revenue-metrics.ts` owns active agreement totals, client/industry breakdown and
+  cumulative UTC start-month cohorts for live and demo reads. Currency sums use cents.
+  Missing starts use creation dates with an explicit count; undated active value is
+  included in Date unavailable. Churned/onboarding/paused rows never subtract from
+  current active value. `churnRate` remains a compatibility field for current churned
+  share, not a period rate. The strict Revenue stage read uses the same resolver as
+  Analytics and checks its exact count; other callers keep their existing behavior.
 - New compatibility read extends `legacy-adapter.ts` and names its retirement
   reconciliation card.
 
 Tests do not yet cover every invariant above. The Feature Board cards
 `revenue-os-tests`, `api-contract-tests`, and the scoped Playwright cards are the
 source of truth for those gaps. Do not describe planned coverage as passing.
+
+## Leads compatibility writes
+
+`inbound.ts` owns manual capture with a stable source ID and a checked completion
+receipt in the source row. `legacy-adapter.ts:updateLegacyLead` is the shared
+single/bulk adapter: it delegates stage changes to Pipeline, commitments to Tasks,
+and won engagements to Delivery. It preserves source IDs, records pending and
+complete source receipts, and returns per-record partial outcomes for recovery.
+Contacted follow-ups use the contact-transition timestamp as their stable key;
+replaying that transition also reuses a completed task. Delivery adopts an exact
+lead-owned engagement only after checking the canonical contact and refusing
+conflicting opportunity bindings. Compatibility repair never acknowledges the
+customer again. These changes do not retire the retained source tables.
 
 ## September 4 runtime consolidation
 
@@ -291,3 +316,19 @@ UI, AI and MCP reuse those services; the additive SQL transaction owns the final
 approval checks and unique publication attempt. See the
 [operator guide](../../../plugins/social-marketing/README.md) and
 [extension map](../../../plugins/social-marketing/EXTENDING.md).
+
+### Collection policy approvals
+
+`collection-policy.ts` adapts case policy previews and proposals to the existing
+`collections.ts` writer. Admin policy saves and approved AI/MCP changes share
+`updateCollectionCase`; immutable request receipts and work/audit updates remain
+in its SQL owner. See `plugins/receivables-collections/README.md` for bounds and
+recovery, and `scripts/test-collection-policy.ts` for authority/freshness proof.
+
+### Approved workspace configuration
+
+`workspace-configuration-contract.ts` owns browser-safe named commands, schemas, tool metadata and semantic before/after consequences. `workspace-configuration.ts` serves admin adapters and registry/MCP preview/proposal tools. The existing executor dispatches approved actions only after fresh admin and digest checks. `save_workspace_configuration` is a tenant/RLS-bound invoker transaction: exact row snapshot/CAS, named settings or provider writes and content-safe audit commit together. No provider call occurs inside the transaction.
+
+Google checks and bounded sync reuse `google.ts` and durable job/source receipts. Partial work stops further sources, preserves completed records and fails the action with a progress receipt. The direct admin API reports incomplete work as an error. Credential entry, OAuth consent, ingest/MCP key creation and installation environment remain secure human handoffs; configuration tools cannot elevate access or return secrets.
+
+The fictional transport shares the same command and semantic preview contract, persists configuration and proposals in its existing session store and uses `ActionReviewDialog`. It simulates effects without calling providers or a model. See [operation matrix](../../../docs/verification/WORKSPACE-CONFIGURATION-2026-09-29.md) for boundaries and checks.

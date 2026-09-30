@@ -1,7 +1,7 @@
 ---
 title: "AI tool reference"
 description: "Every registered tool, generated straight from the registry: what it needs and what it does."
-updated: "2026-09-27"
+updated: "2026-09-29"
 ---
 
 When an assistant needs to answer a question or prepare a change, its registered tools define the operations it can request. This catalog is generated from the current registry and includes each tool’s description and input schema, so a builder can inspect the contract behind a request.
@@ -14,5 +14,13 @@ Availability depends on workspace access, enabled modules, connected providers a
   Use documentation search for a tool name, then expand its input schema below. An entry describes a
   supported operation; its action result records what happened in a particular run.
 </Callout>
+
+For task changes, `propose_task_update` prepares completion, reopening, snoozing, or edits to the title, description, priority and due date. An empty description or due date clears that value. The proposal records the current task details so execution can refuse intervening edits. Follow [the task review steps](/docs/command-center/work#updating-a-task-with-ask-ai) to inspect and approve the change.
+
+## Workspace configuration
+
+`get_workspace_configuration` returns redacted provider status, Drive folder selections and named public preferences. `preview_workspace_configuration` prepares exact before and after values without changing configuration. `propose_workspace_configuration` stages that unchanged preview for human approval in Work.
+
+Supported changes cover provider disconnect, selected Drive folders, named public preferences, bounded Google sync and Google connection verification. Branding and optional module controls use their existing dedicated tools. Secrets, OAuth consent, one-time keys and installation authority require secure human setup. The tool catalog describes supported operations; universal conversational coverage remains in progress.
 
 <DocsAiToolCatalog />

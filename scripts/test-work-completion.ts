@@ -72,7 +72,14 @@ function seed(wi = item()) {
         required_capabilities: [],
       },
     ],
-    contacts: [{ id: "contact-1", tenant_id: "tenant-a", email: "customer@example.test" }],
+    contacts: [
+      {
+        id: "contact-1",
+        tenant_id: "tenant-a",
+        primary_email: "customer@example.test",
+        communication_status: "active",
+      },
+    ],
     opportunities: [
       {
         id: "10000000-0000-4000-8000-000000000001",

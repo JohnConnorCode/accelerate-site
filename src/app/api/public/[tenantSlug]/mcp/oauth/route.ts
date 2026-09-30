@@ -1,8 +1,15 @@
+import {
+  MCP_MAX_REQUEST_BYTES,
+  mcpRequestSchema,
+  mcpHttpRequestError,
+  mcpRequestBodyError,
+} from "@/lib/revenue-os/mcp-request";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import {
   handleMcpRequest,
+  MCP_SUPPORTED_PROTOCOL_VERSIONS,
   type McpJsonRpcRequest,
 } from "@/lib/revenue-os/mcp-server";
 import {
@@ -18,7 +25,8 @@ export const runtime = "nodejs";
 const headers = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, MCP-Protocol-Version, Mcp-Session-Id",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, MCP-Protocol-Version, Mcp-Session-Id",
   "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
   "Cache-Control": "no-store",
 };
@@ -32,10 +40,9 @@ export function GET() {
     { status: 405, headers: { ...headers, Allow: "POST, OPTIONS" } },
   );
 }
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ tenantSlug: string }> },
-) {
+export async function POST(request: Request, context: { params: Promise<{ tenantSlug: string }> }) {
+  const transportError = mcpHttpRequestError(request, MCP_SUPPORTED_PROTOCOL_VERSIONS);
+  if (transportError) return NextResponse.json({ error: transportError }, { status: 400, headers });
   const { tenantSlug } = await context.params;
   let config;
   try {
@@ -69,21 +76,17 @@ export async function POST(
   if (!limit.success) return rateLimitResponse(limit, { error: "Rate limit exceeded" }, headers);
   let body: McpJsonRpcRequest;
   try {
-    body = (await readBoundedJson(request, 256_000)) as McpJsonRpcRequest;
-    if (
-      !body ||
-      body.jsonrpc !== "2.0" ||
-      typeof body.method !== "string" ||
-      (body.id !== undefined &&
-        body.id !== null &&
-        typeof body.id !== "string" &&
-        typeof body.id !== "number")
-    )
-      throw new Error("Invalid request");
-  } catch {
+    body = mcpRequestSchema.parse(
+      await readBoundedJson(request, MCP_MAX_REQUEST_BYTES),
+    ) as McpJsonRpcRequest;
+  } catch (error) {
     console.warn("[workspace-mcp] Invalid MCP request");
     return NextResponse.json(
-      { jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid bounded JSON-RPC request" } },
+      {
+        jsonrpc: "2.0",
+        id: null,
+        error: mcpRequestBodyError(error),
+      },
       { status: 400, headers },
     );
   }
@@ -101,7 +104,7 @@ export async function POST(
       oauthAuthenticated: true,
     }),
   );
-  if (result === null) return new NextResponse(null, { status: 204, headers });
+  if (result === null) return new NextResponse(null, { status: 202, headers });
   const response = NextResponse.json(result, { headers });
   if (body.method === "initialize") response.headers.set("Mcp-Session-Id", randomUUID());
   return response;

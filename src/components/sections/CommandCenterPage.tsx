@@ -149,10 +149,10 @@ export function CommandCenterPageContent() {
             <p className="label">05 · Build around your business</p>
             <h3>Combine what exists. Extend what your process needs.</h3>
             <p>
-              Use settings for supported configuration, plugins for business capabilities and
-              connectors for external systems. Build a custom App when you need your own records,
-              process or interface. The shared platform supplies identity, permissions, customer
-              context and action history.
+              Use settings or reviewed AI proposals for supported configuration, plugins for
+              business capabilities and connectors for external systems. Build a custom App when you
+              need your own records, process or interface. The shared platform supplies identity,
+              permissions, customer context and action history.
             </p>
             <div className={styles.actions}>
               <Link href="/docs/plugins" className={styles.secondary}>

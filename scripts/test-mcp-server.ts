@@ -80,7 +80,7 @@ async function main() {
         title: "Follow up with Northline",
         due_at: new Date().toISOString(),
         priority: "high",
-        status: "open",
+        status: "pending",
       },
     ],
     action_queue: [],

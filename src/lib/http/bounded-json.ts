@@ -1,5 +1,8 @@
 /** Read at most the allowed bytes even if Content-Length is absent or false. */
-export async function readBoundedJson(request: Request, maxBytes = 32768): Promise<unknown> {
+export async function readBoundedJson(
+  request: Pick<Request, "headers" | "body">,
+  maxBytes = 32768,
+): Promise<unknown> {
   const declared = Number(request.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > maxBytes)
     throw new Error("Request body exceeds its size limit");

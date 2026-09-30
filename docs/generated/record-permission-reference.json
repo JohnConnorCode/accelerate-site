@@ -405,6 +405,18 @@
       "module": "core-system"
     },
     {
+      "tool": "get_workspace_configuration",
+      "module": "core-system"
+    },
+    {
+      "tool": "preview_workspace_configuration",
+      "module": "core-system"
+    },
+    {
+      "tool": "propose_workspace_configuration",
+      "module": "core-system"
+    },
+    {
       "tool": "get_module_configuration",
       "module": "core-system"
     },
@@ -642,6 +654,14 @@
     },
     {
       "tool": "propose_collection_reminder",
+      "module": "receivables-collections"
+    },
+    {
+      "tool": "preview_collection_policy",
+      "module": "receivables-collections"
+    },
+    {
+      "tool": "propose_collection_policy",
       "module": "receivables-collections"
     },
     {

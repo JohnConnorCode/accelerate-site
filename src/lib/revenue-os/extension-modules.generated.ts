@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "e8b03d0aaeeaaab6d6aca610e09f3c474bda8622c4b7d81f2b88a22de8c0b96a",
+      contractHash: "2d582ec794d28834a2640c4ed998afe05fa2cf00a67c024441a999f31fa20715",
       tools: [
         {
           operation: "prepare-workflow",
@@ -464,7 +464,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "4367159fc4c6e8a3e6e3f826fefa4f5a86834ea55772e210e4324187e632d0ae",
+      contractHash: "2dc4b111d487ae18d8bf2937b3e841faf7d364f98c412abe80a885c9e3cdfe6c",
       tools: [
         {
           operation: "prepare-workflow",
@@ -932,6 +932,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "get_collection_cases",
       "preview_collection_reminder",
       "propose_collection_reminder",
+      "preview_collection_policy",
+      "propose_collection_policy",
     ],
     routes: ["/admin/collections"],
     setupChecks: [],
@@ -1159,7 +1161,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "9dc57970128610436b1861549faac607ce4b049e64d6ede83118c345ca36315c",
+      contractHash: "3e95821d78dc06e0384b197d125d262dc57fa342130fc49eb41c03c03ba685f3",
       tools: [
         {
           operation: "prepare-workflow",

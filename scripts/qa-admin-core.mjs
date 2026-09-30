@@ -160,9 +160,24 @@ try {
       }
       assert(response?.ok(), `${route}: ${response?.status()}`);
       await page.locator(".admin-shell").waitFor({ timeout: 30000 });
-      await page.waitForFunction((id) => window.__accelerateAdminDemoRuntime === id, scenario, {
-        timeout: 30000,
-      });
+      try {
+        await page.waitForFunction((id) => window.__accelerateAdminDemoRuntime === id, scenario, {
+          timeout: 30000,
+        });
+      } catch (error) {
+        await page.screenshot({
+          path: `${out}/${route.replaceAll("/", "-")}-${width}-failure.png`,
+        });
+        writeFileSync(
+          `${out}/failure.json`,
+          JSON.stringify(
+            { route, width, errors, body: await page.locator("body").innerText() },
+            null,
+            2,
+          ),
+        );
+        throw error;
+      }
       await page.locator("h1").first().waitFor();
       const geometry = await page.evaluate(() => {
         const main = document.querySelector(".admin-main");

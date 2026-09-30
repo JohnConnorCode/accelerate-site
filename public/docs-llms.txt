@@ -84,13 +84,13 @@ The reply-ready inbox for Gmail, forms, chat, and transcripts.
 Identity resolution, intake, and reviewed list imports.
 
 - [Contacts](https://www.acceleratewith.us/docs/contacts/overview) (updated 2026-09-27): Find customer records, review unfamiliar senders and follow the work linked to each person.
-- [Import contacts](https://www.acceleratewith.us/docs/contacts/import) (updated 2026-09-27): Review a CSV or pasted list, resolve contact matches and confirm the records to import.
+- [Import contacts](https://www.acceleratewith.us/docs/contacts/import) (updated 2026-09-29): Review a CSV or pasted list, resolve contact matches and confirm the records to import.
 
 ## Pipeline
 Opportunities, stages, value, and closed revenue in one operating view.
 
-- [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-19): Every open deal on one board, ranked by what moves revenue next.
-- [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-19): Where each number on the revenue screen comes from, and how to chase a discrepancy.
+- [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-29): Every open deal on one board, ranked by what moves revenue next.
+- [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-29): Where each number on the revenue screen comes from, and how to chase a discrepancy.
 - [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-23): Drag a card when the evidence changed, and leave the next action clear behind it.
 
 ## Proposals
@@ -102,13 +102,13 @@ Drafts, pricing validation, decisions, and follow-up.
 ## Follow-up
 The discipline that decides most inquiries: respond first, follow through, and let nothing wait.
 
-- [Follow up on an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-19): Assign the response, name a real next action, and close the loop once it's answered.
+- [Follow up on an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-29): Assign the response, name a real next action, and close the loop once it's answered.
 
 ## Outreach
 Campaigns, email templates, and reactivation of past demand.
 
 - [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-09-19): Review audiences and messages, run approved campaigns, and inspect delivery results.
-- [Review collection reminders](https://www.acceleratewith.us/docs/outreach/collections) (updated 2026-09-19): Chase what invoicing confirms is owed, with every reminder requiring your approval.
+- [Review collection reminders](https://www.acceleratewith.us/docs/outreach/collections) (updated 2026-09-29): Chase what invoicing confirms is owed, with every reminder requiring your approval.
 - [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-09): Approve one version, then automation runs entirely inside the rules you set for it.
 - [Email Studio](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-09-19): Edit the actual live copy, check what really sent, and write a direct one-off follow-up.
 - [Review recovery outreach](https://www.acceleratewith.us/docs/outreach/recovery) (updated 2026-09-19): Check who qualifies and the proposed playbook before reopening a past lead.
@@ -125,15 +125,15 @@ Clients, bookings, content, and resources after the sale.
 ## Sources
 Inbound leads, chat, subscribers, partners, and website grades.
 
-- [Sources](https://www.acceleratewith.us/docs/sources/overview) (updated 2026-09-19): Where a new name enters the business, before it becomes a canonical contact.
-- [Review leads and chat handoffs](https://www.acceleratewith.us/docs/sources/leads) (updated 2026-09-19): Qualify a new inquiry, check whether it's someone you already know, and record what's next.
+- [Sources](https://www.acceleratewith.us/docs/sources/overview) (updated 2026-09-29): Where a new name enters the business, before it becomes a canonical contact.
+- [Review leads and chat handoffs](https://www.acceleratewith.us/docs/sources/leads) (updated 2026-09-29): Qualify a new inquiry, check whether it's someone you already know, and record what's next.
 
 ## Intelligence
 The assistant, run traces, knowledge, and source-to-revenue analytics.
 
 - [Put AI to work with your business context](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-19): Ask a real question, see the evidence behind the answer, and review whatever it prepares.
 - [Review opportunities with Radar](https://www.acceleratewith.us/docs/intelligence/opportunity-radar) (updated 2026-09-19): Review sourced opportunities and relationships, with model spend off by default and every send reviewed.
-- [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-27): Every registered tool, generated straight from the registry: what it needs and what it does.
+- [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-29): Every registered tool, generated straight from the registry: what it needs and what it does.
 - [Teach the business with the Learning Inbox](https://www.acceleratewith.us/docs/intelligence/learning-inbox) (updated 2026-09-23): Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work.
 - [Use the AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-27): Ask a specific question, check the sources behind the answer, then inspect what ran.
 
@@ -141,10 +141,10 @@ The assistant, run traces, knowledge, and source-to-revenue analytics.
 Tenants, setup, settings, integrations, and the Feature Board.
 
 - [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-27): How your business gets provisioned, connected, verified, and kept running.
-- [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-19): Turn a message, calendar event, or invoice sitting in another app into usable context here.
+- [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-29): Turn a message, calendar event, or invoice sitting in another app into usable context here.
 - [Manage your subscription](https://www.acceleratewith.us/docs/workspace/customer-billing) (updated 2026-09-19): Subscribe, update payment details, and understand renewals from your customer account.
 - [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-27): Verify the connections one real workflow needs, before layering on more.
-- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-27): Change a notification or your workspace's look, then confirm the change saved.
+- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-29): Change a notification or your workspace's look, then confirm the change saved.
 
 ## Customize
 Configure your workspace or build around a different business process.
@@ -164,7 +164,7 @@ See what you can build: reports, reviewed workflows and dedicated business works
 - [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-20): See which meetings are approaching so you can plan preparation time.
 - [Opportunity Radar](https://www.acceleratewith.us/docs/plugins/opportunity-radar) (updated 2026-09-19): A business-specific workspace for source-backed growth opportunities and relationship reviews.
 - [Pipeline follow-up](https://www.acceleratewith.us/docs/plugins/pipeline-watch) (updated 2026-09-19): Find open opportunities whose next action or update needs attention.
-- [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-09): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.
+- [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-29): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.
 - [Social Marketing](https://www.acceleratewith.us/docs/plugins/social-marketing) (updated 2026-09-12): Prepare LinkedIn posts, approve their content and time, and follow publication receipts from your workspace.
 - [Stripe invoicing](https://www.acceleratewith.us/docs/plugins/stripe-invoicing) (updated 2026-09-19): Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.
 - [Stripe subscriptions](https://www.acceleratewith.us/docs/plugins/stripe-subscriptions) (updated 2026-09-19): Create recurring plans, send customers through secure checkout, and manage renewals from the account portal.
@@ -184,7 +184,7 @@ For coding agents and humans: add a module, an integration adapter, a plugin, or
 - [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-19): Register a plugin manifest with tools and triggers that still route through real governance.
 - [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-19): Register a schema, an impact tier, and a service boundary; a mutating tool always proposes.
 - [MCP concepts](https://www.acceleratewith.us/docs/extend/mcp) (updated 2026-09-19): Bounded reads, staged writes, and tenant isolation, using the exact same registry the UI uses.
-- [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-28): Point an external assistant at the right workspace, and verify a read before trusting it.
+- [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-29): Point an external assistant at the right workspace, and verify a read before trusting it.
 - [Inbound webhooks](https://www.acceleratewith.us/docs/extend/webhooks) (updated 2026-09-19): A tenant-scoped public route that checks the signature before anything touches real data.
 
 ## Self-hosting

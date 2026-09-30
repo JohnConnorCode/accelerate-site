@@ -103,8 +103,9 @@ async function readContentCalendarItem(database: SupabaseClient, id: string) {
   return data as Record<string, unknown>;
 }
 
-async function requireContentWriteAuthority(database: SupabaseClient, actorEmail: string) {
-  const tenantId = await assertCurrentTenantAdmin(database, actorEmail);
+async function requireContentWorkspace(database: SupabaseClient) {
+  const tenantId = tenantIdForDatabase(database);
+  if (!tenantId) throw new Error("Content calendar requires a tenant-bound database");
   const { data: tenant, error } = await database
     .from("tenants")
     .select("status,config")
@@ -115,10 +116,14 @@ async function requireContentWriteAuthority(database: SupabaseClient, actorEmail
   return tenantId;
 }
 
+async function requireContentWriteAuthority(database: SupabaseClient, actorEmail: string) {
+  await assertCurrentTenantAdmin(database, actorEmail);
+  return requireContentWorkspace(database);
+}
+
 export async function previewContentCalendarUpdate(database: SupabaseClient, raw: unknown) {
   const input = contentCalendarPreviewSchema.parse(raw);
-  const tenantId = tenantIdForDatabase(database);
-  if (!tenantId) throw new Error("Content calendar requires a tenant-bound database");
+  const tenantId = await requireContentWorkspace(database);
   const before = await readContentCalendarItem(database, input.id);
   const { updated_at: revision, ...beforeValues } = before;
   const mutableBefore = Object.fromEntries(
@@ -155,7 +160,6 @@ export async function proposeContentCalendarUpdate(
   actorEmail: string,
 ) {
   const input = contentCalendarProposalSchema.parse(raw);
-  await requireContentWriteAuthority(database, actorEmail);
   const preview = await previewContentCalendarUpdate(database, {
     id: input.id,
     changes: input.changes,

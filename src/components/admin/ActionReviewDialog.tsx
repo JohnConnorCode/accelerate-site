@@ -35,6 +35,8 @@ function triageReason(triage: Record<string, unknown> | null | undefined): strin
  * before the button, not after.
  */
 const ACTION_CONSEQUENCE: Record<string, string> = {
+  update_collection_policy:
+    "Updates this collection case and its follow-up work after rechecking current invoice and recipient facts. No reminder is sent and no invoice is changed.",
   today_view_change:
     "Saves the exact Today arrangement and preferences shown below. Business records are unchanged. Only the proposing member can approve it.",
   send_email: "Sends this email immediately. It cannot be recalled.",
@@ -97,7 +99,7 @@ const PAYLOAD_FIELD_ORDER = [
 ];
 const BODY_FIELDS = new Set(["body", "text", "message", "description"]);
 
-function payloadEntries(payload: Record<string, unknown> | null) {
+function payloadEntries(payload: Record<string, unknown> | null, actionType: string) {
   if (!payload) return { fields: [] as Array<[string, string]>, body: null as string | null };
   const fields: Array<[string, string]> = [];
   let body: string | null = null;
@@ -107,6 +109,9 @@ function payloadEntries(payload: Record<string, unknown> | null) {
     return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi) || a.localeCompare(b);
   });
   for (const key of keys) {
+    // The task snapshot fences execution; proposed fields and the explicit
+    // clearing summary are the human-facing change, not this internal JSON.
+    if (actionType === "update_task" && key === "expectedState") continue;
     const value = payload[key];
     if (value === null || value === undefined || value === "") continue;
     const text = typeof value === "string" ? value : JSON.stringify(value);
@@ -136,6 +141,7 @@ export function ActionReviewDialog({
   onApprove: () => void;
   onReject: () => void;
 }) {
+  const isConfiguration = action?.action_type === "workspace_configuration_change";
   const isToday = action?.action_type === "today_view_change";
   const todayPreview = useAdminQuery<{
     before: TodayDocument;
@@ -154,10 +160,26 @@ export function ActionReviewDialog({
       </AdminDialog>
     );
   }
-  const { fields, body } = payloadEntries(action.payload);
+  const policy = action.action_type === "update_collection_policy" ? action.payload : null;
+  const policyFacts = policy?.facts as
+    { name?: string; email?: string; currency?: string } | undefined;
+  const { fields, body } = payloadEntries(
+    policy
+      ? {
+          customer: policyFacts?.name,
+          email: policyFacts?.email,
+          currency: policyFacts?.currency?.toUpperCase(),
+          description: action.description,
+        }
+      : action.payload,
+    action.action_type,
+  );
   const layoutSummary =
     action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
   const consequence =
+    (isConfiguration && typeof action.payload?.consequences === "string"
+      ? action.payload.consequences
+      : null) ??
     ACTION_CONSEQUENCE[action.action_type] ??
     "Executes this action through the same service the admin uses.";
   const external =
@@ -185,7 +207,12 @@ export function ActionReviewDialog({
       align="right"
       className="sm:max-w-[420px]"
     >
-      <div className="h-dvh w-full overflow-y-auto bg-[var(--admin-surface)] shadow-2xl">
+      <div
+        className={cn(
+          "h-dvh w-full overflow-y-auto bg-[var(--admin-surface)] shadow-2xl",
+          isConfiguration && "flex flex-col [&>*]:shrink-0",
+        )}
+      >
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
           <div>
             <div className="flex items-center gap-2">
@@ -202,7 +229,9 @@ export function ActionReviewDialog({
                   ? "Gmail Draft"
                   : external
                     ? "External Action"
-                    : "Internal Mutation"}
+                    : isConfiguration
+                      ? "Configuration"
+                      : "Internal Mutation"}
               </span>
             </div>
             <h2
@@ -256,6 +285,67 @@ export function ActionReviewDialog({
           </p>
         )}
         <div className="grid gap-4 px-5 py-5 sm:px-6">
+          {isConfiguration &&
+            (["before", "after"] as const).map((phase) => {
+              const values = action.payload?.[phase];
+              const labels: Record<string, string> = {
+                provider: "Provider",
+                status: "Connection",
+                accountEmail: "Account",
+                scopes: "Granted permissions",
+                folderIds: "Drive folders",
+                key: "Preference",
+                value: "Value",
+                source: "Sources",
+                maxGmailThreads: "Maximum Gmail threads",
+                operation: "Operation",
+              };
+              return (
+                <section
+                  key={phase}
+                  className="grid gap-3 rounded-xl border border-[var(--admin-border)] p-4 text-xs text-[var(--admin-ink)]"
+                  aria-label={
+                    phase === "before" ? "Current configuration" : "Exact new configuration"
+                  }
+                >
+                  <h3 className="font-semibold">
+                    {phase === "before" ? "Current configuration" : "Exact new configuration"}
+                  </h3>
+                  <dl className="grid gap-3">
+                    {values !== null &&
+                      typeof values === "object" &&
+                      Object.entries(values)
+                        .filter(
+                          ([key]) =>
+                            key in labels &&
+                            (key !== "scopes" ||
+                              (action.payload?.change as { operation?: string } | undefined)
+                                ?.operation === "disconnect_provider"),
+                        )
+                        .map(([key, value]) => (
+                          <div key={key} className="grid gap-1">
+                            <dt className="text-[var(--admin-muted)]">{labels[key]}</dt>
+                            <dd className="whitespace-pre-wrap break-words leading-5">
+                              {Array.isArray(value)
+                                ? value.length
+                                  ? value.join("\n")
+                                  : "None selected"
+                                : value === "true"
+                                  ? "On"
+                                  : value === "false"
+                                    ? "Off"
+                                    : value === null
+                                      ? "Not set"
+                                      : String(value)
+                                          .replace(/^NOTIFY_/, "")
+                                          .replaceAll("_", " ")}
+                            </dd>
+                          </div>
+                        ))}
+                  </dl>
+                </section>
+              );
+            })}
           {isToday && (
             <section className="grid gap-3 text-xs text-[var(--admin-ink)]">
               {todayPreview.isPending && <p>Loading the private exact preview…</p>}
@@ -415,18 +505,23 @@ export function ActionReviewDialog({
             </section>
           )}
 
-          {!isToday && !layoutSummary && !invitation && !milestone && fields.length > 0 && (
-            <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
-              {fields.map(([key, value]) => (
-                <div key={key} className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                  <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                    {key.replace(/_/g, " ")}
-                  </dt>
-                  <dd className="break-words text-xs text-[var(--admin-ink)]">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
+          {!isConfiguration &&
+            !isToday &&
+            !layoutSummary &&
+            !invitation &&
+            !milestone &&
+            fields.length > 0 && (
+              <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
+                {fields.map(([key, value]) => (
+                  <div key={key} className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
+                    <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                      {key.replace(/_/g, " ")}
+                    </dt>
+                    <dd className="break-words text-xs text-[var(--admin-ink)]">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
 
           {body && !invitation && !milestone && (
             <div>
@@ -439,23 +534,24 @@ export function ActionReviewDialog({
             </div>
           )}
 
-          {!fields.length && !body && !invitation && !milestone && (
+          {!isConfiguration && !fields.length && !body && !invitation && !milestone && (
             <p className="admin-copy text-xs">
               This proposal recorded no payload. Reject it and ask the copilot to restage the
               action.
             </p>
           )}
 
-          {(action.reasoning || action.description) && (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                Why the copilot proposed this
-              </p>
-              <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">
-                {action.reasoning || action.description}
-              </p>
-            </div>
-          )}
+          {(action.reasoning || action.description) &&
+            (!isConfiguration || action.reasoning || action.description !== consequence) && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                  Why the copilot proposed this
+                </p>
+                <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">
+                  {action.reasoning || action.description}
+                </p>
+              </div>
+            )}
 
           {triageReason(action.triage) && (
             <div>
@@ -479,7 +575,7 @@ export function ActionReviewDialog({
           )}
         </div>
 
-        <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
+        <div className="sticky bottom-0 mt-auto flex items-center justify-between gap-3 border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
           <button
             type="button"
             data-review-decision="reject"

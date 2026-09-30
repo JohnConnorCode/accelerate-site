@@ -148,7 +148,7 @@ export const capabilities: Capability[] = [
     title: "Opportunities and pipeline",
     promise: "See current stages, values and next actions in board, list or calendar form.",
     detail:
-      "Open the opportunity to inspect its customer, activity and next step. Calendar shows dated next actions on the viewer's local day and keeps unscheduled opportunities visible. Use the evidence you have before changing the record, then confirm the saved result.",
+      "Open the opportunity to inspect its customer, activity and next step. Calendar shows dated next actions on the viewer's local day and keeps unscheduled opportunities visible. Individual and bulk status changes from Leads use the same Pipeline rules, with named recovery details for incomplete updates. Retrying the same change preserves its existing follow-up or client engagement. Use the evidence you have before changing the record, then confirm the saved result.",
   },
   {
     id: "projects",
@@ -156,7 +156,7 @@ export const capabilities: Capability[] = [
     title: "Tasks and commitments",
     promise: "Give work a title, date and source context so the team can follow it through.",
     detail:
-      "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
+      "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. Ask AI can prepare task reopening and description edits for review, with stale-change checks before execution. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
   },
   {
     id: "notes",
@@ -237,7 +237,7 @@ export const capabilities: Capability[] = [
     promise:
       "Group verified invoices by account and currency, record promises and disputes, and approve an exact reminder when you are ready to send.",
     detail:
-      "Fresh payment and contact checks stop a stale reminder going out. The receipt tells you whether the send was confirmed or still needs reconciliation, so you never retry blind.",
+      "Ask AI to propose a pause, promise, dispute, owner or next action, then review the exact change. Fresh invoice and contact checks guard approvals; reminders require a separate review and send receipt.",
     gated: true,
   },
   {
@@ -415,7 +415,7 @@ export const capabilities: Capability[] = [
     promise:
       "Ask what you agreed with a client in March and get the answer with the record it came from.",
     detail:
-      "With Content enabled, the assistant can list calendar items by status or category and prepare a grounded editorial brief when an AI provider is configured. It cites records it reads and reports unavailable sources instead of guessing.",
+      "With Content enabled, the assistant can list calendar items by status or category, propose exact item edits for administrator review, and prepare a grounded editorial brief when an AI provider is configured. Connected MCP clients use the same calendar tools. It cites records it reads and reports unavailable sources instead of guessing.",
   },
   {
     id: "mcp",
@@ -653,7 +653,7 @@ export const CURRENT_SURFACES: CurrentSurface[] = [
     n: "04",
     group: "day",
     title: "Numbers you can check",
-    body: "Source, owner, campaign, stage, forecast, and data-quality signals sit together, and a forecast is labelled as a forecast rather than read as a recorded result.",
+    body: "Source, owner, campaign, stage, forecast, and data-quality signals sit together. Revenue keeps active client agreements, accepted proposals and opportunity values separate, groups current active contracts by start month, and shows Retry when a complete read is unavailable.",
   },
   {
     n: "05",

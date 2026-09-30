@@ -1,4 +1,20 @@
 import { z } from "zod";
+
+/** The approval queue and demo show the same readable policy changes. */
+export function describeCollectionPolicyChange(field: string, before: unknown, after: unknown) {
+  const labels: Record<string, string> = {
+    disputed: "Disputed",
+    paused: "Reminders paused",
+    pauseUntil: "Paused until",
+    promiseDate: "Payment promise date",
+    ownerEmail: "Owner",
+    nextAction: "Next action",
+  };
+  const value = (input: unknown) =>
+    input == null ? "Not set" : typeof input === "boolean" ? (input ? "Yes" : "No") : String(input);
+  return `${labels[field] ?? field}: ${value(before)} → ${value(after)}`;
+}
+
 export const collectionCasePatchSchema = z
   .object({
     disputed: z.boolean().optional(),
@@ -46,6 +62,7 @@ export type CollectionCaseView = {
   actions: {
     id: string;
     title: string;
+    actionType?: string;
     status: string;
     error: string | null;
     result: Record<string, unknown> | null;

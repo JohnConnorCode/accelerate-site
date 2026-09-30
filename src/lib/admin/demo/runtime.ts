@@ -1,9 +1,11 @@
+import { WORKSPACE_CONFIGURATION_TOOLS } from "@/lib/revenue-os/workspace-configuration-contract";
 import {
   handleDemoLearning,
   initialDemoLearning,
   type DemoLearningState,
 } from "./learning-runtime";
 import { revenueDispositions } from "@/lib/revenue-os/revenue-dispositions";
+import { summarizeContractRevenue } from "@/lib/revenue-os/revenue-metrics";
 import { activityDispositions } from "@/lib/revenue-os/activity-dispositions";
 import { SITE_STUDIO_MODELS, SITE_MODELS_OBSERVED_AT } from "@/lib/site-studio/models";
 import {
@@ -1796,7 +1798,12 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
           "revenue-os.today-views",
         ] as (typeof rows)[number],
     ),
-    ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS, ...TOOL_DISCOVERY_METADATA].map(
+    ...[
+      ...BRANDING_TOOLS,
+      ...MODULE_CONTROL_TOOLS,
+      ...WORKSPACE_CONFIGURATION_TOOLS,
+      ...TOOL_DISCOVERY_METADATA,
+    ].map(
       (t) =>
         [
           t.name,
@@ -2336,7 +2343,14 @@ function settings(pack: DemoScenarioPack) {
 export function importBatch(pack: DemoScenarioPack) {
   const rows = pack.people.slice(0, 5).map((contact, index) => ({
     id: `import-row-${index}`,
-    row_index: index + 1,
+    row_index: index,
+    raw_data: {
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+      company: contact.company,
+      role: contact.role,
+    },
     status: "proposed",
     action: index === 3 ? "update" : "create",
     included: true,
@@ -3090,9 +3104,62 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           },
         ],
       });
-    if (method === "GET" && path === "/api/admin/integrations")
-      return jsonResponse(integrationCatalog(pack));
-    if (method === "GET" && path === "/api/admin/setup") return jsonResponse(setup(pack));
+    if (method === "GET" && path === "/api/admin/integrations") {
+      const catalog = integrationCatalog(pack);
+      for (const provider of catalog.providers) {
+        if (
+          business.configuration?.providers.find(
+            (connection) => connection.provider === provider.id,
+          )?.status === "revoked"
+        ) {
+          provider.status = "action";
+          provider.statusReason =
+            "Disconnected in this fictional workspace. Reconnect through secure setup.";
+          for (const capability of provider.capabilities) {
+            capability.status = "action";
+            capability.statusReason = "Provider disconnected; historical records remain.";
+          }
+        }
+      }
+      for (const status of ["ready", "degraded", "action", "available", "planned"] as const)
+        catalog.summary[status] = catalog.providers.filter(
+          (provider) => provider.status === status,
+        ).length;
+      catalog.summary.live = catalog.summary.ready + catalog.summary.degraded;
+      catalog.summary.attention = catalog.summary.degraded + catalog.summary.action;
+      return jsonResponse(catalog);
+    }
+    if (method === "GET" && path === "/api/admin/setup") {
+      const snapshot = setup(pack);
+      const google = business.configuration?.providers.find(
+        (connection) => connection.provider === "google",
+      );
+      if (google) {
+        snapshot.google.connected = google.status === "connected";
+        snapshot.google.settings.drive_folder_ids = google.folderIds;
+      }
+      for (const check of snapshot.checks) {
+        const provider = check.id === "email" ? "resend" : String(check.id);
+        if (
+          business.configuration?.providers.find((connection) => connection.provider === provider)
+            ?.status === "revoked"
+        ) {
+          check.status = "action";
+          check.description =
+            "Provider disconnected in this fictional workspace. Reconnect through Integrations; historical records remain.";
+          check.action.label = "Reconnect provider";
+        }
+      }
+      snapshot.summary.requiredReady = snapshot.checks.filter(
+        (check) => check.required && check.status === "ready",
+      ).length;
+      snapshot.summary.launchReady =
+        snapshot.summary.requiredReady === snapshot.summary.requiredTotal;
+      snapshot.summary.percent = Math.round(
+        (100 * snapshot.summary.requiredReady) / snapshot.summary.requiredTotal,
+      );
+      return jsonResponse(snapshot);
+    }
     if (method === "GET" && path === "/api/admin/proposals") {
       const rows = proposals(pack);
       const requested = url.searchParams.get("id");
@@ -3644,7 +3711,16 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       }
       return jsonResponse({ error: "Invalid module request" }, 400);
     }
-    if (method === "GET" && path === "/api/admin/settings") return jsonResponse(settings(pack));
+    if (method === "GET" && path === "/api/admin/settings") {
+      const data = settings(pack);
+      return jsonResponse({
+        ...data,
+        settings: data.settings.map((row) => ({
+          ...row,
+          value: business.configuration?.preferences[row.key] ?? row.value,
+        })),
+      });
+    }
     if (method === "GET" && path === "/api/admin/tenants")
       return jsonResponse({
         isPlatformAdmin: false,
@@ -4527,22 +4603,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const rows = opportunityRows(pack, state);
       const openRows = rows.filter((item) => !["won", "lost"].includes(item.canonical_stage));
       return jsonResponse({
-        totalMRR: 18400,
-        totalOneTime: rows.reduce((sum, item) => sum + item.won_value, 0),
-        activeCount: 6,
-        churnRate: 4,
-        avgClientValue: 3067,
-        industryBreakdown: [{ name: pack.category, value: 100 }],
-        byClient: pack.people.slice(0, 6).map((item, index) => ({
-          name: `${item.company} · ${item.name}`,
-          monthly: 1800 + index * 425,
-          oneTime: index * 900,
-        })),
-        mrrTimeline: ["Apr", "May", "Jun", "Jul", "Aug"].map((date, index) => ({
-          date,
-          mrr: 11200 + index * 1800,
-        })),
-        proposalRevenue: 24600,
+        ...summarizeContractRevenue(
+          clientRows(pack, state),
+          proposals(pack).filter((proposal) => proposal.status === "accepted"),
+        ),
         canonical: {
           openOpportunities: openRows.length,
           pipelineValue: openRows.reduce((sum, item) => sum + item.estimated_value, 0),

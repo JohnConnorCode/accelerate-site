@@ -269,3 +269,20 @@ successfully returned proposals are reported as staged; refused attempts remain
 error receipts. The 50-plugin fixture proves bounded schemas, complete reachability
 and exact-domain deterministic selection; it does not measure real-model
 natural-language selection accuracy.
+
+## Task lifecycle adapter coverage
+
+`propose_task_update` supports completion, reopening, snoozing and edits to title,
+description, priority and due date. The server reads the exact task and binds its
+editable state into the existing pending action. Task ID aliases and normalized
+payload/state share a deterministic proposal key. Repeated pending requests reuse
+the proposal; revised content creates a separate review. Execution compares the
+reviewed fields again in the conditional task write, so same-status edits made
+after the read cannot be overwritten. Existing pre-change actions and direct UI
+commands retain their existing behavior.
+
+The tool uses the existing human approval, task writer, audit and compensation
+paths. Missing tasks, invalid field combinations and stale state refuse. Empty
+descriptions and due dates explicitly clear those values. Deletion, assignment,
+customer ownership, retained CRM source mutations and import controls are outside
+this task adapter slice; the broader CRM parity card remains incomplete.

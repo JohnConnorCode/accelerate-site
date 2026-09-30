@@ -1,3 +1,6 @@
+import { taskReviewStateSchema } from "./operator-task-patch";
+import { executeCollectionPolicy } from "./collection-policy";
+import { executeWorkspaceConfiguration } from "./workspace-configuration";
 import { bulkEnrollContacts, bulkSuppressContacts, bulkTagContacts } from "./contact-bulk";
 import { executeRadarOutreach } from "./radar-outreach";
 import "server-only";
@@ -181,6 +184,11 @@ export async function approveAndExecuteAction(
         result = await executeRadarStoreChange(supabase, payload, actorEmail);
         break;
       }
+      case "workspace_configuration_change": {
+        if (mode !== "approved") throw new Error("Workspace configuration requires human approval");
+        result = await executeWorkspaceConfiguration(supabase, payload, actorEmail, id);
+        break;
+      }
       case "update_module_configuration": {
         if (mode !== "approved")
           throw new Error("Module configuration changes require human approval");
@@ -237,6 +245,12 @@ export async function approveAndExecuteAction(
           break;
         }
         result = await executeRuntimeAction(supabase, action.action_type, payload, actorEmail);
+        break;
+      }
+      case "update_collection_policy": {
+        if (mode !== "approved")
+          throw new Error("Collection policy changes require human approval");
+        result = await executeCollectionPolicy(supabase, payload, actorEmail);
         break;
       }
       case "send_collection_reminder": {
@@ -450,6 +464,10 @@ export async function approveAndExecuteAction(
       }
       case "update_task": {
         const taskId = stringValue(payload, "taskId")!;
+        const expectedState =
+          payload.expectedState === undefined
+            ? undefined
+            : taskReviewStateSchema.parse(payload.expectedState);
         const { data: taskBefore } = await supabase
           .from("tasks")
           .select("id,title,description,priority,due_date,status,snoozed_until,completed_at")
@@ -471,17 +489,18 @@ export async function approveAndExecuteAction(
           : null;
         const changeType = stringValue(payload, "changeType")!;
         if (changeType === "complete") {
-          result = await completeOperatorTask(supabase, { id: taskId, actorEmail });
+          result = await completeOperatorTask(supabase, { id: taskId, actorEmail, expectedState });
         } else if (changeType === "snooze") {
           result = await snoozeOperatorTask(supabase, {
             id: taskId,
             until: stringValue(payload, "until")!,
             actorEmail,
+            expectedState,
           });
         } else if (changeType === "reopen") {
           result = await patchOperatorTask(
             supabase,
-            { id: taskId, status: "pending", actorEmail },
+            { id: taskId, status: "pending", actorEmail, expectedState },
             false,
           );
         } else if (changeType === "edit") {
@@ -504,6 +523,7 @@ export async function approveAndExecuteAction(
                 ? null
                 : (stringValue(payload, "dueDate", false) ?? undefined),
             actorEmail,
+            expectedState,
           });
         } else {
           throw new Error(`Unknown task update changeType "${changeType}"`);

@@ -21,7 +21,7 @@
     "src/app/admin/clients/[id]/page.tsx": "8f5fbeae59219848af049bb9cc10d914124cf33b800e71da577e0f1916113ab7",
     "src/app/admin/clients/page.tsx": "3aee0d1f0797d216b6baf11676984cc4a3acdd01086a85eccc860d9fd4479c8e",
     "src/app/admin/collections/page.tsx": "0564cde5a5e31bd65faeb64668a47ce9fbef778d7d6d0b0570fc93e9471e8482",
-    "src/app/admin/contact-imports/page.tsx": "e6391ae36168d9554a45d83790d5fa56a866029e55710dea679a2ce207d97d18",
+    "src/app/admin/contact-imports/page.tsx": "43c5b88d4be32405b784c2e538d8277ff41834c00b248b57da471ecb1c2b43e7",
     "src/app/admin/contacts/[email]/page.tsx": "0d68167d52feafc6f1d9426d3b7159e005a72b70d896569c8ed2ed28eac903bf",
     "src/app/admin/contacts/page.tsx": "466e503e618bacebc3e6fbdebc5dfecce2ecb7b8041258b8e26c13dfd57037a7",
     "src/app/admin/content/page.tsx": "a0030f8d7358b117a1ee97ddc8321aefdeb07f665c9d72238929f441035fef60",
@@ -36,9 +36,9 @@
     "src/app/admin/get-started/page.tsx": "9f4510837f1626a2262d2bec3258aaf1a1d8aa4992da7098acfc2811676f5ffd",
     "src/app/admin/identity-review/page.tsx": "93d875e879ea45822a3a66a45c017fee081c2ff13a89dc2f745fcf27549e7631",
     "src/app/admin/inbox/page.tsx": "e68393d6ed5462661be12b125eadf3543d2ca935f61454fa34e8914e0dc5e472",
-    "src/app/admin/integrations/page.tsx": "1da741d3693b02f78ed9157c48e4d719d5687797eceef2b05fc7b24993319619",
+    "src/app/admin/integrations/page.tsx": "e07d87800cc9abe3bd0b8dd5765c82a0e70c192ee5c4dda50ec2d5317b671ecb",
     "src/app/admin/invoicing/page.tsx": "733f5be568dec15c9698d2f194b4807815116e651d1db6cc5900d99c398a0dde",
-    "src/app/admin/leads/page.tsx": "6bc4b71a8835b96c5a98508fbcd50d6d27489447de9ec648378a91354935549d",
+    "src/app/admin/leads/page.tsx": "af3e64b93a106e759563e7834dc6ea9f194095f141fba58d04edc8e324012212",
     "src/app/admin/learning/page.tsx": "a6722bfef692402e5da9ebe3eaff5ae776ca70ad07b89c8d863a93d4f7ed0f61",
     "src/app/admin/login/page.tsx": "b9fcdeb4f4e89aec6ec75859670e762d276fc52e0ef4c4bed85eec1965e5e4f2",
     "src/app/admin/mcp/connect/page.tsx": "c86f62d9fe7a1b590db2c78c1b911213863950f2038cd93461e52e3a60bbf03c",
@@ -56,8 +56,8 @@
     "src/app/admin/radar/today/page.tsx": "9c2bf2c18ffc537d0cdac03e7a831185d5cce208d625d9c69726547ec23bb7ec",
     "src/app/admin/recovery/page.tsx": "6abcbf134638b81888c82881950d8fea073f6ad05a786b0c30bfc92cf41b3e25",
     "src/app/admin/resources/page.tsx": "4f9c6539ebcdd69d96e0e81d5f60b746fc8d37b643ef33a94c1535902da0a3a3",
-    "src/app/admin/revenue/page.tsx": "15339ff31bf48d4beb225fc4fa31260ffcdb16a2fb3fffb6e236e2a4be11b4a0",
-    "src/app/admin/settings/page.tsx": "aa786e9c57c5dc78eca0aed6f1d8f3479ecdb1260d6b2a92d507a50c701f0e5c",
+    "src/app/admin/revenue/page.tsx": "067e05606e15de6d3e1cb29feff33b925373d98c8d9017148cd8e6072013daab",
+    "src/app/admin/settings/page.tsx": "ddc02dcafabc97ec8f408f9cafaa3c56342fe9364495fe09167be42ee55188c8",
     "src/app/admin/setup/page.tsx": "5f314b54610fe02f5c0179bca6cb99a50426b017cc6ff5f78cd8a5dea52b67ce",
     "src/app/admin/site/[id]/page.tsx": "967b7d53e5e731e05e9c88fa943853ee977b8bd8afd8ee2bb88a8d7ce016fee9",
     "src/app/admin/site/connect/page.tsx": "46746b81f2b127b7c002509cc1d3b04e673e8bb44e7ca389fcad43eca7c7dd74",
@@ -96,13 +96,13 @@
     "src/app/api/admin/features/views/route.ts": "0f61e13ec15b8df5d1b543366b102ba62bb87d93f1076d9b394b08fddc02a395",
     "src/app/api/admin/forms/route.ts": "8168bca4de53ee289fc11bc8fabd2e15944efc6bec13991a6e12b0feab1bea03",
     "src/app/api/admin/get-started/route.ts": "fe02a68b546dcb6e8101056ca5ef54b568ec15c9d1a98aca836e55ea64f2c287",
-    "src/app/api/admin/google/sync/route.ts": "2a3dcc7eb967145319ec89f31edfba2875628e5cde6eb8c77da63f5aa986a303",
+    "src/app/api/admin/google/sync/route.ts": "f48402ec4aecb7033af6f4f6e68f49e0623dd0d57dcc56c17bd95b6f525dd7de",
     "src/app/api/admin/inbox/route.ts": "cccb2726c649b723803094a08b45459d2f95c01299c7170a92ffa52e7a2667cf",
     "src/app/api/admin/integrations/route.ts": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb",
     "src/app/api/admin/invoicing/pages/route.ts": "f94e4ac92458b7e68c88a6b610fc82c81ba5fc52605d7251f9bc16a9c4fb8233",
     "src/app/api/admin/invoicing/route.ts": "5f4c2479a6239162bd1591fad503818c7276e09e2dc3ffa167910391a8ebe54c",
     "src/app/api/admin/knowledge/documents/route.ts": "2bd5551ffa70098c449cbcfac12e60bc9684c10af0a895ef84df9a72a2c18f35",
-    "src/app/api/admin/leads/route.ts": "b7f1d99d549d1241decef4e98a223bd587f2691491c748342f15c960df9ac3d7",
+    "src/app/api/admin/leads/route.ts": "46aac5c5656abc5382e714e9d7f0976a4dd649959b8d8709240688f680d6f057",
     "src/app/api/admin/learning/[id]/route.ts": "03e5ad746d03ce0c1c7208a4195b62f98d950989f4ddffda48f8229d6e8b63e9",
     "src/app/api/admin/learning/route.ts": "b4e52515cf9b941fbbdf48fab13dba201a36fa7d23209d2e50f171f354823e0e",
     "src/app/api/admin/learning/signals/route.ts": "290e50ce5c6e89be4df197ef8b12d9faa4fbedd0f62d953b15942f8af7e0b2a5",
@@ -135,7 +135,7 @@
     "src/app/api/admin/revenue-os/campaigns/members/route.ts": "853132cc41d0863663b276645c419ef73acd8e9ca8b9ab861664b5fcda73d96c",
     "src/app/api/admin/revenue-os/campaigns/preview/route.ts": "63eab34f9292f3f161061a89e7a528725d2dbf896236825716e6acdb3c5af3f9",
     "src/app/api/admin/revenue-os/campaigns/route.ts": "2859455f923dc00dec63ebe331f4847fa021858fc802eb2179b022c5fba27ac0",
-    "src/app/api/admin/revenue-os/contact-imports/route.ts": "3ae63b7ec4397ba8442fb90da92880e8f18d2c780a871a56306df60be6a67737",
+    "src/app/api/admin/revenue-os/contact-imports/route.ts": "d68738089b6a5dd5b03ba5aff4303b19d7af2d55a87f23d6e02921dfd88ec5e1",
     "src/app/api/admin/revenue-os/conversations/action/route.ts": "337ebd5f168a4c83d8eb6a0d227e8892bad03bce4136d5227f73611388dde351",
     "src/app/api/admin/revenue-os/conversations/reply/route.ts": "6185a515cf0b4e5c5d1eb5f27f8f67a349af0c60b31104a9dd10fc02b5caebe4",
     "src/app/api/admin/revenue-os/conversations/route.ts": "1b637573f2ddd5024d10ffcf0ff3626aa2c70139003630e5742f05f3bb7f3abb",
@@ -147,8 +147,8 @@
     "src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts": "bef9ce8396d295bb1ec3aa98cb5be52aead4e845559262b74d4fd0e670ca0384",
     "src/app/api/admin/revenue-os/recovery/route.ts": "618f42369e72b357efd35a846c19cfa21b1e32f06d405a20ccf7cf650fc8f288",
     "src/app/api/admin/revenue-os/tasks/route.ts": "0ac406649d939e53d45100d122044654aa52eb228f7b07243227f66387abcb95",
-    "src/app/api/admin/revenue/route.ts": "62cea43d4598d5996c29cc57ee8f7eb33eaec82ade8a8a9bfbcfc1f53e6c2e3d",
-    "src/app/api/admin/settings/route.ts": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e",
+    "src/app/api/admin/revenue/route.ts": "5b7d9b8952d14103f65a3ef6d2bf147bc3f031d2f4e9cc3b451d0ebde0c9c7b2",
+    "src/app/api/admin/settings/route.ts": "92c64adfe77dbd84014316df4be1f149f2c23c3cd44215262f526c4cd91e4776",
     "src/app/api/admin/settings/test/route.ts": "f8418e1833464d34dbcb16316986faa252b85d331627d1417f4e66ec64d352f4",
     "src/app/api/admin/setup/route.ts": "dd275356738ca89aab4c50ca5166915d0532ca74d2ca95023567be9f9201946d",
     "src/app/api/admin/site/delegations/route.ts": "3333c0a130adf584099b498e191d0d8fef5bbbc700305d5cefd4ca4770ad91fc",
@@ -165,7 +165,7 @@
     "src/app/api/admin/tasks/route.ts": "a8dcf117107438acfd5642593039fa9b95d320ef557faa81359f9e549357b5ce",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
     "src/app/api/admin/tenant/modules/route.ts": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1",
-    "src/app/api/admin/tenant/providers/route.ts": "bdb7821e7409e4c79e742271390e31e021f7aae7d03bae7fff6cac597e97224e",
+    "src/app/api/admin/tenant/providers/route.ts": "a744234fa9e797b76b10dc20f26451f9ee7b1b894b614e0836e175464e211b17",
     "src/app/api/admin/tenants/route.ts": "803a84e5a2aba7ce93591c13bfc27e2e746bbfd0e615b315fea7328e0f4bea6a",
     "src/app/api/admin/website-grades/export/route.ts": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772",
     "src/app/api/admin/website-grades/route.ts": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98",
@@ -173,8 +173,8 @@
     "src/components/admin/AICapabilities.tsx": "a002a0ed29cca7fbbb4be4599b317dafbf5be1fad7b8ad17aef54864945c3b2b",
     "src/components/admin/AIReadinessPanel.tsx": "4a2f79fb03c96f6c8763118392a4bdb5d7c5ce5ccc9351f8bbed2a31828cc18f",
     "src/components/admin/AIRunHistory.tsx": "b3aa372fb87a449cb0a895c9d0e15ea0060e2d27c522043952cb2eb0837accdc",
-    "src/components/admin/ActionReviewDialog.tsx": "3ec1c2637ac2784abc3556e5436d693b12755a8ca4c203ff345b61823f09bfa1",
-    "src/components/admin/AddLeadModal.tsx": "11b0ff48f8565c956a81384c6b7e8f7ecc2258e1fe4fa2af5c18837dc53173de",
+    "src/components/admin/ActionReviewDialog.tsx": "34bcec897dc05360975e4c96429a06eda12c4d25c23609a7caadd31a37ba1c73",
+    "src/components/admin/AddLeadModal.tsx": "57e3653a3cd765a8788b50135ac98140c417c8b9369bccc43b0f1b6159c5a30b",
     "src/components/admin/AdminAIChat.tsx": "f88a855f5f100411b2b5ee9afb4b744147c44010164468098220fe9118e5822f",
     "src/components/admin/AdminAIPanel.tsx": "b7153809b5422c884a719a0ae3210eace4223838e4be334fc0b8340884ac647a",
     "src/components/admin/AdminAIProvider.tsx": "8bb4e6e15bc141343898f9f03cb2cf337f789df0f5869a707bd4c71db2e9f3d8",
@@ -216,7 +216,7 @@
     "src/components/admin/CanonicalSourceLink.tsx": "edc89be4aaafce6a7777ac6212687311ca14c15d0e784c9087bd46643875c04a",
     "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
     "src/components/admin/ClientDetail.tsx": "b512ddc529c183bc04bb516402d70af93cb8929d7ecf24c18f303cf1623444c1",
-    "src/components/admin/CollectionsWorkspace.tsx": "426e78669876ead7f8f26506795f8c7de9221c87a0433166663e0ba83afff712",
+    "src/components/admin/CollectionsWorkspace.tsx": "c70e37cc11f2bd095a8670132f439616236a18ed758bba7cd96991db674ac9b9",
     "src/components/admin/CommandCenterPwa.tsx": "c39c6ab18d111988e1b818c7210054c948ec009409cb776420ba12bac07353e5",
     "src/components/admin/ContactIntakeNav.tsx": "0b442890abee019e85fecb756f7c92cdf16951b0e6eeac3abf00f254f45bcec1",
     "src/components/admin/ContactSubmissionsPage.tsx": "f2d02abf3174cd164b982f15a59fa8b5f5bca8ca30afb98ce634edd1c3f0e648",
@@ -242,16 +242,16 @@
     "src/components/admin/LeadDetail.tsx": "21ff8b7ccb91efe541cfb09e1c7e02e9e045ff0e40067d38388837a790765dd5",
     "src/components/admin/LeadPipeline.tsx": "d6f4f95172aa2f19bc4165b314bde0e91f5fc98e30de66fe15c4b80a25d770c3",
     "src/components/admin/LeadsChart.tsx": "d5a817bb2f2ffb4d92c895cdd465e09f6b6ae6ffb24ca9493217f34cf691871d",
-    "src/components/admin/LeadsTable.tsx": "71b984f541d7726f016b8e1a0a52f9dca8a71e51283d83e6aeeeeea953b90e4a",
+    "src/components/admin/LeadsTable.tsx": "edfb9931506c1c75d4ab73c5e0516beacb665b4b39a0ed08329cf624789d438e",
     "src/components/admin/LearningEvidence.tsx": "09c775fc4961dc88ff96613c6dfaaa1e91c487d673dcebe0a19a3e5a13723fbc",
     "src/components/admin/LegacyToday.tsx": "7e62270ac49799dd5e1e00395f186cc5b17a7e2526972532d4e0efbd486224a4",
     "src/components/admin/LoadingSkeleton.tsx": "bd08a210a066cc92a0fc51e09fcdb892a152ed9973c800cc422a89a5314e4aa9",
-    "src/components/admin/MRRChart.tsx": "c053302eec2b71ba8eb02ab2a7f84d7fb89c3b106543faf9acaf6d56a0c86447",
+    "src/components/admin/MRRChart.tsx": "3024a09c9dfc49db70361472189b2d4098494779efcafaf1295904f79a31d104",
     "src/components/admin/ModuleDisabledNotice.tsx": "9cd77e59810b8188dde67b15e1b1644bd5f1f106148af17d268d5fe0db149c50",
     "src/components/admin/ModuleSettingsForm.tsx": "07ba6bb965cf8bacb40be797e3b4d967c6db19bd7f4b03a134c9f3b8d02b2077",
     "src/components/admin/NotificationBell.tsx": "05cac06d0c88f2b359968e40822d9d2a1d9602d876ae656b3ca5981b47b9ccd9",
     "src/components/admin/PageHeader.tsx": "5bf46188e8678543501dc4f248900a2cc2d5746088a348b3f6f1f0444d589a3f",
-    "src/components/admin/Pagination.tsx": "b3d4081852df3883f4e1ff0dfa7cb3e3a57e7920bcc5d69bebc0fcfd25bb18f3",
+    "src/components/admin/Pagination.tsx": "016836958a375d173f0a43a8b4ca24522c66e3eec2efdfaa02858f2d682f56b6",
     "src/components/admin/PlausibleWidget.tsx": "250f81a9de33b8432d902c626757002def6ea084e88c26dfa0c933f6e54ebeed",
     "src/components/admin/ProposalEditor.tsx": "7cf12792d78b7fceefaca96a06c928a438d1dfe1f30e74eda95f15e043f36a6d",
     "src/components/admin/QuickActions.tsx": "56f5b4b70153e6b787b4f1ab9547b580de0ab0e6af9cda76a06a9440117719ff",
@@ -307,9 +307,9 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "eb3e7c9684ec29a2175bbf0d59ce976dc47bf60b3e2c3272fb9456a7e746a035",
-    "src/lib/revenue-os/action-executor.ts": "53847a7dc2f71d69647565d31b8d948147207de1d0a921d41f5e6093650fb6d8",
-    "src/lib/revenue-os/actions.ts": "bb948c0948f76748e2ab6066d3a4bf3f4e9b8b4d53312d586a522185440eea78",
+    "src/lib/revenue-os/README.md": "16ab060272509bd090ca9d4625ff76e254249a366ab1f6ff5871ce820987820d",
+    "src/lib/revenue-os/action-executor.ts": "d18cae3d4fe33b24b7418c908459582ee8232b9d2088108a3870c4d721a3b787",
+    "src/lib/revenue-os/actions.ts": "95635bbe32710683f6c74b609daac3cdd98595821d41b92e984d0f9adf96372f",
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
@@ -318,39 +318,37 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "87a1920d2f8c49a557cf3c54577909548fdcfcf64a8b30a8c5b8cc4a2aefe54b",
     "src/lib/revenue-os/ai-stream-contract.ts": "bc3125e15c4ddab9e4aeb396af279fd01fa1d21abb8186ea88cc611160532f4f",
-    "src/lib/revenue-os/ai-tools.ts": "984f12bda7067add978f98f5eb3bebd5d3d5631fd20aadcfe84f15dec78b59c6",
-    "src/lib/revenue-os/analytics.ts": "9214e72876cce37f295a123f5e025d385908b2f82038543f22e0eadc893b9b1a",
+    "src/lib/revenue-os/ai-tools.ts": "7189bef27cfdc057fdc5240c6d949eb63c8df89f65935ba1bbbe23aaeb5358df",
+    "src/lib/revenue-os/analytics.ts": "4e57afb24352b6c09cd2f4dc062792d84986376739866e7b76ab53c34978624d",
     "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "928a37ea33689f746e8df5cbbbaa0505e193ba0a1e40bc711508ffaa2caae5f2",
     "src/lib/revenue-os/branding.ts": "2c55ec70e64c17402eb34d0cae439a49023ec56611f1d2dbc08278082b16b616",
     "src/lib/revenue-os/campaign-duplicate-contract.ts": "4ff3ed7c54a1fa5d4fc3da9c5a522531df3928eaa392c2dbbb939a30dd4b94a0",
     "src/lib/revenue-os/campaigns.ts": "47f535f766cc784444a5dc9d24c9f25d69b8da290c90b7e0a4497778572ca25f",
-    "src/lib/revenue-os/collection-reminders.ts": "eacb321b203860ea65605ffede91a22ec5798118333b1eeb6c2531bc0be0382e",
-    "src/lib/revenue-os/collection-workspace.ts": "ce6223696686141c21e3d61921d0d6192200485ef36b48ba06a8fdabc105aec9",
+    "src/lib/revenue-os/collection-reminders.ts": "325c0b9d094d4ebd2ed6c7605f7cdc9b7c9a9f0c7de45a26fd01889b48da2876",
+    "src/lib/revenue-os/collection-workspace.ts": "1bcb5f357131fc730441646f1da78e672b1f0f2dbc1bb1e6381c0ebcfdbb743b",
     "src/lib/revenue-os/collections.ts": "a05af80ab775b9459d8799350b6cfb5e51799374bdab8e8264dadfe517a25c73",
     "src/lib/revenue-os/communications.ts": "86a48ad957fe47f6c9db0f2d50645068ebcfdacaece907aaa30a722abc80aca9",
-    "src/lib/revenue-os/contact-imports.ts": "f59146dec4f9045903e33c377a977ffa4cb1358ee2acad27a57b305bf0716017",
-    "src/lib/revenue-os/content-calendar.ts": "66de3d41fd939a93a66748855ac4e8aa0bc8f3cd22081469ac7768d93ba32746",
+    "src/lib/revenue-os/contact-imports.ts": "d23584a3126b2d75d5dd39cc96f29e997fc7f9b1217af0ab4007e37e533d276e",
+    "src/lib/revenue-os/content-calendar.ts": "4f0f412607819ceb3ad348bebd8605622089d058c2cd6a67b4c8f59a62d45caf",
     "src/lib/revenue-os/conversations.ts": "6be8f7e1052a99c7dd938b4770308a74ba9d6057baaaf728709bcfa46d4dd25a",
     "src/lib/revenue-os/correction-capture.ts": "4fe7e40961eed06f2e02f6d2aa926efaa41f630ae5b67b07980ac7749dbd9832",
     "src/lib/revenue-os/db.ts": "167cc018fe0d8387547c174be0fc105edb9efbee6608bf93e2d0e9ca05d038cb",
     "src/lib/revenue-os/debate-bookings.ts": "53e38ce61a8a08319eca0bc3661c179c2df91fe226b889c5579e8046cf56a73b",
     "src/lib/revenue-os/debate-invitations.ts": "597cf9949a68e13bf296403e5464baf6d432d23b828ecf79ccd6f5f0cfc710ee",
     "src/lib/revenue-os/delivery-handoff-contract.ts": "fdaddaa73123e99c372bb279626a3ab3072a2cc13418c10bb8244f791d1cbace",
-    "src/lib/revenue-os/delivery-handoff.ts": "eb6284e7b352259df2f18d8c1f23231d12082a74ae1d8cf8b8d6cc5ce8c5788d",
+    "src/lib/revenue-os/delivery-handoff.ts": "dba3dab7ae5f4de087ef792a4fb7f08bf1c1597b1af6404ef62eef65c9bbf19e",
     "src/lib/revenue-os/document-extraction.ts": "8612e2e4c43bd0f5ea84e0238ed6a76a01d84599e50baa70edf24214592fa007",
-    "src/lib/revenue-os/drive-sync-plan.ts": "21ee095a4de699ddb85b3056ded69a6e929ddfcb051b15d6c2862101d7f6834a",
     "src/lib/revenue-os/encryption.ts": "68748b621a25f182ba20a5b5f362220b4ac59b93103b6a81c202f0e34e09c405",
     "src/lib/revenue-os/first-use.ts": "11163b96f7b92f510ac70dced96d1159e975c11fcc3d2f7d51a00d0e17fc6ded",
     "src/lib/revenue-os/form-builder-contract.ts": "a2a3403c5b9aff4d70c55a64cb3b672bb84484f81fcba33d5ab2deee015d280a",
     "src/lib/revenue-os/form-builder.ts": "3f2c181efe1dca678ccd9457e8f76d309657770badb16429cc70a27fc835f862",
-    "src/lib/revenue-os/google-oauth.ts": "2d9c5c5464096402cfdd3ceac244835ddbd4da4677bfeda58508051efcfa68bc",
-    "src/lib/revenue-os/google.ts": "db102ec40ae34bb0a34b191fcc2f00525b7ea89b40451a69f0ab25a2a12cd542",
+    "src/lib/revenue-os/google.ts": "748bf626071a1c8a500dc2d2ddbe3079393f87a796e0774232be7753a8fab65a",
     "src/lib/revenue-os/health.ts": "d2aec6b40a32001b1a6f89d07fb29d00f5fca19d051ca301cdecd3fac3220d92",
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
     "src/lib/revenue-os/identity.ts": "cb0b7bbff0e3efd674652a9e84000e6f8db56fe2033763541e6068ae4be0a6ed",
-    "src/lib/revenue-os/inbound.ts": "32e579b58271f5870400442b92e8e16a2f54b2d22d7125faa385e3d3926bbece",
+    "src/lib/revenue-os/inbound.ts": "e7befa23ba586f0c4a3b2fd5b2e1c6ea95710eb4dce4ec75601ef46e476a5f19",
     "src/lib/revenue-os/integration-adapters.ts": "7f427bb456d210228a21a62dc8afe84514a5c1c3f864815157d93742cf871baf",
     "src/lib/revenue-os/integrations.ts": "8d4d468661f4325468c53e9dfd613fa5ecc7c84b85ece0cb36f8f5b00c7aa304",
     "src/lib/revenue-os/invoice-page-contract.ts": "350da047e7317f8e8e6d73cbce19749be9dd40bda82f180f8f0b8bd037da8baa",
@@ -358,13 +356,13 @@
     "src/lib/revenue-os/knowledge-documents.ts": "47a34d44a1dd97fc57b136f4d1f746b18572f627a0d8b18b8c24f9d1c8b99481",
     "src/lib/revenue-os/learning-inbox.ts": "3e41488df45146b0cccd60306eab937d1429c9aa86e5feedddbd040640021cd4",
     "src/lib/revenue-os/learning-signals.ts": "952ade0d696341fd1c1c48471cdc695cd591d4b38863bad9eaaa4cf98c6123e9",
-    "src/lib/revenue-os/legacy-adapter.ts": "3f370c91fa4557508c6af3b98cc063c5d9ac6e47da41a169f9f2f7e2b4642e89",
-    "src/lib/revenue-os/mcp-server.ts": "5aa2415813018a1304260394c55a27878e77ce5f00c21132edc4141d5aa96e9b",
+    "src/lib/revenue-os/legacy-adapter.ts": "dc9173ac9b25658a9e0f1512cf7ba877fd7b8b88920f9f8c575966ee57b33f4e",
+    "src/lib/revenue-os/mcp-server.ts": "31f79e9768c699e06975a505e9ffff9b458819347f4950bd8f16f075481bcea2",
     "src/lib/revenue-os/memory.ts": "6b30e30b9cd7cfefbe83b78d9912aa24c898a436d8f095a34f60f011d0996db3",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
-    "src/lib/revenue-os/modules.ts": "e293b79875c8165f927a916c8e1dd70ab612e16c023a9da0962eba323c68a629",
-    "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
+    "src/lib/revenue-os/modules.ts": "361b11028fc1fed4e17665049ab72459aea5a2fdea52d7233da56d9ea1c2dd4f",
+    "src/lib/revenue-os/pipeline-stage-resolver.ts": "5832f25f4a0a93a0913fc080e9cd984b57e1b42bf7840e291449c8fac0ff8134",
     "src/lib/revenue-os/pipeline.ts": "c01c688af0c25fffd4f926e55ad4c134ccf12f2cbcfd553d27525a91f6ecb886",
     "src/lib/revenue-os/proposals.ts": "1cfb2a6d157df923f7f910c13fc41410af1617a5d11e765cb9cb5e4daa4d7fb3",
     "src/lib/revenue-os/queue.ts": "f3d8bd575e55c5528dec92a8355cc557061527cc0d19ffd60e79d8574d57d1ef",
@@ -373,8 +371,7 @@
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/retained-source-dispositions.ts": "3dadabae5e8fc129bd51d1c3027093634c30a1836bd8d37f206cfc788243ac23",
-    "src/lib/revenue-os/runs.ts": "94ea4fe446cc959aaf90cb4ab968f9b0baf0c165f3c393081b9fd6e4d8015fdd",
-    "src/lib/revenue-os/schema-contract.ts": "beeed7b95bd223601c1c8222b2e430c0efb99283181b5c897068006b5eb44e0c",
+    "src/lib/revenue-os/schema-contract.ts": "dfe6af87c3d89adde288e3da82a8d46a592af6eceb9110884a1e57da8e35d563",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/shared-context.ts": "2886f194671f3b671cfafb7bd289c8b2d54414608df083165bc509b5d3f76e8d",
     "src/lib/revenue-os/social-marketing.ts": "a5421a504fd070c4826a0fb62037abe6f83786781c0dd7c21f4d27c94b901ea8",
@@ -389,6 +386,7 @@
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
     "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
+    "src/lib/revenue-os/workspace-configuration.ts": "f293e0d1481a964a5e6e761e3d4e114b06c5ddaba1b266cdfb287c54ff9081d4",
     "src/lib/revenue-os/workspace-mcp-oauth.ts": "005d34254c4ff681d443bd2e79446f3ccbb440d0152b0cae209f0ab72620f0c0",
     "src/lib/site-studio/database-store.ts": "58a4234f1af081f015727ba72c527e6b7ac78e110a868d0dc5b18c895e674842",
     "src/lib/site-studio/delegation.ts": "a0e55a813bb33b3a791c6b84be69e3f3a6c8f6a38ed52372c5dc3e85416fe4e9",
@@ -805,7 +803,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route.",
+      "boundary": "Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Existing policy fields share exact AI/MCP preview and proposal, current recipient/invoice facts, authenticated human approval, transactional case receipts and revision checks. Policy approval never sends a reminder. Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Confirmed message receipts remain the cooldown authority; database timestamps are normalized to UTC before isolated workflow evaluation.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -820,7 +818,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Import and identity services own validation and identity decisions.",
+      "boundary": "Import and identity services own source completeness, validation and matching. The shared review UI retains original values and source indices, refuses invalid UTF-8 uploads, caches history and requires saved edits plus exact human approval before canonical writes.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -939,13 +937,8 @@
       "adapters": [
         {
           "path": "src/app/api/admin/google/sync/route.ts",
-          "domainImports": [
-            "@/lib/revenue-os/drive-sync-plan",
-            "@/lib/revenue-os/google",
-            "@/lib/revenue-os/google-oauth",
-            "@/lib/revenue-os/runs"
-          ],
-          "directTables": ["integration_connections"]
+          "domainImports": ["@/lib/revenue-os/workspace-configuration", "@/lib/tenancy/context"],
+          "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/conversations/action/route.ts",
@@ -1165,13 +1158,8 @@
       "adapters": [
         {
           "path": "src/app/api/admin/google/sync/route.ts",
-          "domainImports": [
-            "@/lib/revenue-os/drive-sync-plan",
-            "@/lib/revenue-os/google",
-            "@/lib/revenue-os/google-oauth",
-            "@/lib/revenue-os/runs"
-          ],
-          "directTables": ["integration_connections"]
+          "domainImports": ["@/lib/revenue-os/workspace-configuration", "@/lib/tenancy/context"],
+          "directTables": []
         },
         {
           "path": "src/app/api/admin/integrations/route.ts",
@@ -1194,7 +1182,9 @@
             "@/lib/ai/openrouter-credentials",
             "@/lib/revenue-os/audit",
             "@/lib/revenue-os/encryption",
-            "@/lib/revenue-os/integration-adapters"
+            "@/lib/revenue-os/integration-adapters",
+            "@/lib/revenue-os/workspace-configuration",
+            "@/lib/tenancy/context"
           ],
           "directTables": ["integration_connections"]
         }
@@ -1243,7 +1233,9 @@
             "@/lib/ai/openrouter-credentials",
             "@/lib/revenue-os/audit",
             "@/lib/revenue-os/encryption",
-            "@/lib/revenue-os/integration-adapters"
+            "@/lib/revenue-os/integration-adapters",
+            "@/lib/revenue-os/workspace-configuration",
+            "@/lib/tenancy/context"
           ],
           "directTables": ["integration_connections"]
         }
@@ -1262,14 +1254,12 @@
           "domainImports": [
             "@/lib/revenue-os/inbound",
             "@/lib/revenue-os/legacy-adapter",
-            "@/lib/revenue-os/pipeline",
-            "@/lib/revenue-os/pipeline-stage-resolver",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["clients", "opportunities", "solution_requests", "tasks"]
+          "directTables": ["solution_requests"]
         }
       ],
-      "boundary": "Canonical intake and transitions coexist with solution_requests compatibility reads and direct updates.",
+      "boundary": "Manual capture uses inbound.captureManualLead with stable source IDs. Individual and bulk changes share legacy-adapter.updateLegacyLead, delegating stages, commitments and won engagements to Pipeline, Tasks and Delivery with checked partial outcomes and source completion receipts. Reads, export and deletion retain solution_requests compatibility ownership; retained read parity remains separate.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
@@ -1508,10 +1498,10 @@
         {
           "path": "src/app/api/admin/revenue/route.ts",
           "domainImports": ["@/lib/revenue-os/analytics"],
-          "directTables": ["clients", "proposals"]
+          "directTables": []
         }
       ],
-      "boundary": "Reads clients and accepted proposals directly; not opportunity revenue or cash receipts.",
+      "boundary": "Tenant/module-guarded analytics report combines complete current active contract projections, accepted proposal values and canonical opportunity totals. Failed or incomplete sources return unavailable with safe retry; agreement projections do not establish historical revenue or cash receipts.",
       "followUp": {
         "key": "canonical-revenue-activity-parity",
         "id": "38a08974-f92b-4106-821b-b328d40090d7"
@@ -1525,7 +1515,7 @@
       "adapters": [
         {
           "path": "src/app/api/admin/settings/route.ts",
-          "domainImports": ["@/lib/revenue-os/audit"],
+          "domainImports": ["@/lib/revenue-os/workspace-configuration", "@/lib/tenancy/context"],
           "directTables": ["admin_settings"]
         },
         {
@@ -1588,13 +1578,8 @@
       "adapters": [
         {
           "path": "src/app/api/admin/google/sync/route.ts",
-          "domainImports": [
-            "@/lib/revenue-os/drive-sync-plan",
-            "@/lib/revenue-os/google",
-            "@/lib/revenue-os/google-oauth",
-            "@/lib/revenue-os/runs"
-          ],
-          "directTables": ["integration_connections"]
+          "domainImports": ["@/lib/revenue-os/workspace-configuration", "@/lib/tenancy/context"],
+          "directTables": []
         },
         {
           "path": "src/app/api/admin/setup/route.ts",
@@ -1924,7 +1909,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity.",
+      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute.",
       "followUp": null,
       "specialBoundary": null
     },

@@ -233,6 +233,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning
           PATH="$(pg_config --bindir):$PATH" npm run test:ai-readiness
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
@@ -256,8 +257,18 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:migration-ledger
           PATH="$(pg_config --bindir):$PATH" npm run test:cold-start:postgres
           npm run test:public-roadmap
-          PATH="$(pg_config --bindir):$PATH" COLLECTIONS_REMINDER_POSTGRES_PROOF=1 npm run test:collections-lifecycle
-          npm run test:collections-reminders
+
+      - name: Verify complete reference business journeys
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: PATH="$(pg_config --bindir):$PATH" npm run test:reference-business-journeys
+
+      - name: Upload reference journey evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-business-journeys
+          path: /tmp/accelerate-reference-journeys-*/
+          if-no-files-found: warn
 
       - name: Verify developer handoff and fresh-clone pickup
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -349,6 +360,58 @@ jobs:
 
       - name: Install browser for first-run verification
         run: npx playwright install --with-deps chromium
+      - name: Verify Leads partial writes and recovery
+        if: ${{ needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
+          LEAD_QA_OUTPUT: /tmp/accelerate-leads-write-recovery
+        run: |
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-leads-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then ready=true; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-leads-server.log; exit 1; fi
+          npm run qa:lead-write-recovery
+      - name: Retain Leads recovery evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: leads-write-recovery-evidence
+          path: /tmp/accelerate-leads-write-recovery/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Verify Revenue reporting and recovery
+        if: ${{ !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
+        run: |
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-revenue-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then
+              ready=true
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-revenue-server.log; exit 1; fi
+          npm run qa:revenue
+      - name: Retain Revenue browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: revenue-browser-evidence
+          path: /tmp/accelerate-revenue-qa/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify industry and Chicago release pages
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         run: node scripts/qa-chicago-industries.mjs
@@ -360,6 +423,32 @@ jobs:
           path: /tmp/accelerate-chicago-qa/
           if-no-files-found: ignore
           retention-days: 7
+      - name: Verify workspace configuration approvals
+        if: ${{ !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
+        run: |
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-configuration-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/demo/command-center" > /dev/null; then ready=true; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then cat /tmp/accelerate-configuration-server.log; exit 1; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-configuration-server.log; exit 1; fi
+          npm run resources:run -- node scripts/qa-workspace-configuration.mjs
+
+      - name: Retain workspace configuration evidence
+        if: ${{ always() && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: workspace-configuration-evidence
+          path: |
+            /tmp/accelerate-workspace-configuration/
+            /tmp/accelerate-configuration-server.log
+
       - name: Verify credential-free first-run journey
         env:
           # NextURL canonicalizes loopback IPs to localhost. Keep the server's
@@ -440,6 +529,10 @@ jobs:
             if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
             if ! node scripts/qa-home-hero-timing.mjs; then browser_status=1; fi
           fi
+          if [ "$PUBLIC_PAGES_ONLY" != "true" ] && [ "$DOCS_ONLY" != "true" ]; then
+            if ! node scripts/qa-contact-import-source-review.mjs; then browser_status=1; fi
+            if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
+          fi
           exit "$browser_status"
       - name: Retain first-run browser evidence
         if: ${{ always() }}
@@ -475,6 +568,8 @@ jobs:
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/
             /tmp/accelerate-theme-persistence/
+            /tmp/accelerate-import-source-review/
+            /tmp/accelerate-policy-browser/
           if-no-files-found: ignore
           retention-days: 7
 

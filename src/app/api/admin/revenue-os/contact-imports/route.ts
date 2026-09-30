@@ -87,8 +87,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ schemaReady: true, batch }, { status: 201 });
     }
     if (action === "save_review") {
-      if (typeof body.batchId !== "string" || !Array.isArray(body.rows))
-        return NextResponse.json({ error: "batchId and rows are required" }, { status: 400 });
+      if (
+        typeof body.batchId !== "string" ||
+        typeof body.expectedRevision !== "string" ||
+        !Array.isArray(body.rows)
+      )
+        return NextResponse.json(
+          {
+            error:
+              "Reload the review before saving; batchId, expectedRevision and rows are required",
+          },
+          { status: 400 },
+        );
       const rows = body.rows.map((row) => {
         const value = row && typeof row === "object" ? (row as Record<string, unknown>) : {};
         return {
@@ -102,7 +112,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Every review row needs an id" }, { status: 400 });
       return NextResponse.json({
         schemaReady: true,
-        batch: await saveContactImportReview(supabase, { batchId: body.batchId, rows, actorEmail }),
+        batch: await saveContactImportReview(supabase, {
+          batchId: body.batchId,
+          expectedRevision: body.expectedRevision,
+          rows,
+          actorEmail,
+        }),
       });
     }
     if (action === "approve") {

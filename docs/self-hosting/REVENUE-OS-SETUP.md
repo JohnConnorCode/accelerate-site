@@ -10,6 +10,8 @@ Apply `20260923-schema-migration-ledger-rls.sql` through the catalog before depl
 
 ## Required migration order
 
+Apply `migrations/20260929211535_contact_import_review_atomic.sql` through the catalog before releasing the revised importer. It adds the tenant-scoped transaction for review rows, approval invalidation and history. Existing ready batches may require saving and reviewing again after the digest normalization change. A missing function leaves review saving unavailable; application requests do not create schema.
+
 Use `npm run db:migrate:all`. The ordered catalog and explicit historical exclusions live in [`scripts/lib/migration-manifest.mjs`](../../scripts/lib/migration-manifest.mjs). Run `npm run verify:migrations` to reject missing or unclassified SQL files. There is no separate manually maintained list.
 
 The migration ledger records each file and checksum atomically with its schema changes. Repeat runs verify completed files and resume pending files; they never replay seed updates. Changed recorded files and unknown database history fail closed. Existing installations without a ledger require reviewed baseline adoption before upgrading. See [Self-hosting](SELF-HOSTING.md) for first-owner ordering and hosted Supabase setup.

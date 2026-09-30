@@ -56,6 +56,10 @@ export class MemorySupabase {
   private readonly failures: Record<string, QueryFailure> = {};
   private sequence = 0;
 
+  /** Simulates a server row cap while exact count still covers every matching row. */
+  maxReadRows = Infinity;
+  readonly queryTables: string[] = [];
+
   idFactory = (sequence: number) => `row-${sequence}`;
   constructor(seed: Record<string, Row[]> = {}) {
     this.tables = JSON.parse(JSON.stringify(seed));
@@ -121,6 +125,7 @@ export class MemorySupabase {
   }
 
   private query(table: string) {
+    this.queryTables.push(table);
     this.tables[table] ??= [];
     const filters: Array<(row: Row) => boolean> = [];
     let op: "read" | "insert" | "update" | "upsert" | "delete" = "read";
@@ -131,12 +136,13 @@ export class MemorySupabase {
     let one = false;
     const sorts: Array<{ column: string; ascending: boolean }> = [];
     let cap: number | null = null;
+    let offset = 0;
     let countRequested = false,
       head = false;
 
     const self: Record<string, unknown> = {};
     const chain = () => self;
-    for (const method of ["range", "filter"]) self[method] = chain;
+    for (const method of ["filter", "overrideTypes"]) self[method] = chain;
 
     self.select = (_columns?: string, options?: { count?: string; head?: boolean }) => {
       countRequested = Boolean(options?.count);
@@ -151,6 +157,11 @@ export class MemorySupabase {
       cap = count;
       return self;
     };
+    self.range = (from: number, to: number) => {
+      offset = from;
+      cap = to - from + 1;
+      return self;
+    };
     self.order = (column: string, options?: { ascending?: boolean }) => {
       sorts.push({ column, ascending: options?.ascending !== false });
       return self;
@@ -158,6 +169,12 @@ export class MemorySupabase {
 
     self.eq = (column: string, value: unknown) => {
       filters.push((row) => {
+        if (column.includes("->")) {
+          const keys = column.split(/->>?/);
+          let actual: unknown = row;
+          for (const key of keys) actual = (actual as Row | null)?.[key];
+          return column.includes("->>") ? String(actual) === value : actual === value;
+        }
         // PostgREST JSONB equality receives a serialized JSON filter value.
         if (row[column] !== null && typeof row[column] === "object" && typeof value === "string") {
           try {
@@ -240,9 +257,10 @@ export class MemorySupabase {
       return self;
     };
 
-    self.insert = (next: Row) => {
+    self.insert = (next: Row | Row[]) => {
       op = "insert";
-      payload = next;
+      batchPayload = Array.isArray(next) ? next : null;
+      payload = Array.isArray(next) ? {} : next;
       return self;
     };
     self.update = (next: Row) => {
@@ -305,70 +323,76 @@ export class MemorySupabase {
       }
 
       if (op === "insert") {
-        if (
-          table === "clients" &&
-          payload.opportunity_id &&
-          this.tables[table]!.some(
-            (row) =>
-              row.tenant_id === payload.tenant_id && row.opportunity_id === payload.opportunity_id,
+        const incoming = batchPayload ?? [payload];
+        for (const [index, next] of incoming.entries()) {
+          const existing = [...this.tables[table]!, ...incoming.slice(0, index)];
+          if (
+            table === "clients" &&
+            next.opportunity_id &&
+            existing.some(
+              (row) =>
+                row.tenant_id === next.tenant_id && row.opportunity_id === next.opportunity_id,
+            )
           )
-        )
-          return resolve({ data: null, error: { code: "23505", message: "Duplicate engagement" } });
-
-        if (
-          table === "ai_messages" &&
-          payload.client_message_id &&
-          this.tables[table]!.some(
-            (row) =>
-              row.conversation_id === payload.conversation_id &&
-              row.client_message_id === payload.client_message_id,
+            return resolve({
+              data: null,
+              error: { code: "23505", message: "Duplicate engagement" },
+            });
+          if (
+            table === "ai_messages" &&
+            next.client_message_id &&
+            existing.some(
+              (row) =>
+                row.conversation_id === next.conversation_id &&
+                row.client_message_id === next.client_message_id,
+            )
           )
-        ) {
-          return resolve({
-            data: null,
-            error: { code: "23505", message: "duplicate AI client message" },
-          });
+            return resolve({
+              data: null,
+              error: { code: "23505", message: "duplicate AI client message" },
+            });
+          if (
+            table === "ai_conversation_sources" &&
+            next.client_source_id &&
+            existing.some(
+              (row) =>
+                row.conversation_id === next.conversation_id &&
+                row.client_source_id === next.client_source_id,
+            )
+          )
+            return resolve({
+              data: null,
+              error: { code: "23505", message: "duplicate AI source" },
+            });
+          // Honour the partial unique index the real action_queue carries.
+          const key = next.dedupe_key;
+          if (
+            key &&
+            existing.some(
+              (row) =>
+                row.dedupe_key === key &&
+                row.tenant_id === next.tenant_id &&
+                (row.status === "pending" ||
+                  (table === "action_queue" &&
+                    next.source_context === "plugin" &&
+                    row.source_context === "plugin") ||
+                  (table === "tasks" &&
+                    ["plugin", "delivery_handoff"].includes(String(next.source)) &&
+                    row.source === next.source)),
+            )
+          )
+            return resolve({
+              data: null,
+              error: { code: "23505", message: "duplicate key value violates unique constraint" },
+            });
         }
-        if (
-          table === "ai_conversation_sources" &&
-          payload.client_source_id &&
-          this.tables[table]!.some(
-            (row) =>
-              row.conversation_id === payload.conversation_id &&
-              row.client_source_id === payload.client_source_id,
-          )
-        ) {
-          return resolve({
-            data: null,
-            error: { code: "23505", message: "duplicate AI source" },
-          });
-        }
-        // Honour the partial unique index the real action_queue carries: one
-        // pending row per dedupe key. Several tests hinge on that constraint.
-        const key = payload.dedupe_key;
-        if (
-          key &&
-          this.tables[table]!.some(
-            (row) =>
-              row.dedupe_key === key &&
-              row.tenant_id === payload.tenant_id &&
-              (row.status === "pending" ||
-                (table === "action_queue" &&
-                  payload.source_context === "plugin" &&
-                  row.source_context === "plugin") ||
-                (table === "tasks" &&
-                  ["plugin", "delivery_handoff"].includes(String(payload.source)) &&
-                  row.source === payload.source)),
-          )
-        ) {
-          return resolve({
-            data: null,
-            error: { code: "23505", message: "duplicate key value violates unique constraint" },
-          });
-        }
-        const row: Row = { id: this.idFactory(++this.sequence), status: "pending", ...payload };
-        this.tables[table]!.push(row);
-        return resolve({ data: one ? row : [row], error: null });
+        const created = incoming.map((next) => ({
+          id: this.idFactory(++this.sequence),
+          status: "pending",
+          ...next,
+        }));
+        this.tables[table]!.push(...created);
+        return resolve({ data: one ? (created[0] ?? null) : created, error: null });
       }
 
       let matched = this.tables[table]!.filter((row) => filters.every((keep) => keep(row)));
@@ -395,7 +419,8 @@ export class MemorySupabase {
         });
       }
       const count = matched.length;
-      if (cap !== null) matched = matched.slice(0, cap);
+      if (cap !== null) matched = matched.slice(offset, offset + cap);
+      if (op === "read") matched = matched.slice(0, this.maxReadRows);
       return resolve({
         data: head ? null : one ? (matched[0] ?? null) : matched,
         error: null,

@@ -2,6 +2,78 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "approved-workspace-configuration",
+    slug: "approved-workspace-configuration",
+    title: "Review workspace configuration with AI",
+    description:
+      "Ask AI and authorized MCP clients can prepare exact provider disconnects, Drive folder selections, named public preferences and bounded Google checks or syncs for human approval. The shared review shows current and proposed values. Stale approvals refuse, partial sync results retain their receipts, and secure human controls handle secrets and OAuth. Installation owner email stays server-only. All five business demos use the shared approval workflow with fictional data.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "revenue-contract-read-correctness",
+    slug: "revenue-contract-read-correctness",
+    title: "Revenue figures agree with active client contracts",
+    description:
+      "Revenue now groups current active contracts by start month in UTC, so its final chart value agrees with the active monthly total and client breakdown. Missing dates stay visible, Churned Share explains its current-record basis, and accepted proposal values remain separate. Failed or incomplete reads show Retry; a failed refresh labels the previously loaded figures. The fictional demo uses the same contract calculations.",
+    category: "fix",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "leads-canonical-write-recovery",
+    slug: "leads-canonical-write-recovery",
+    title: "Inquiry updates keep their follow-up and recovery together",
+    description:
+      "Individual and bulk Leads status changes now follow the same Pipeline rules. Repeated Contacted updates reuse the existing follow-up, and Won recovery preserves the linked client engagement. Manual capture keeps the original inquiry when setup is incomplete. The form offers Retry setup or Retry save, while incomplete updates show named recovery details and retain their bulk selection. These changes are available in this source release; installation and production deployment remain separate.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "canonical-gmail-followup-target",
+    slug: "canonical-gmail-followup-target",
+    title: "Gmail follow-up drafts use the saved contact address",
+    description:
+      "Assistant-prepared Gmail drafts now read the canonical contact address created by normal inquiry intake and refuse contacts marked unsubscribed or bounced. Exact human approval still saves an unsent draft. Sending and a later customer reply are confirmed by synchronization on the same follow-up work item. Collections also accepts database delivery timestamps when enforcing the reminder cooldown. Automated release checks cover sales follow-up, approved onboarding tasks and invoice-to-collections outcomes using controlled provider adapters and local PostgreSQL; they do not establish a hosted release.",
+    category: "fix",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "collections-approved-policy",
+    slug: "collections-approved-policy",
+    title: "Review collection policy changes from the assistant",
+    description:
+      "Ask AI or a connected MCP client to propose a collection pause, dispute, payment promise, owner or next action. Review the exact current and proposed values before approval. Changed invoice balances, recipients or case policies require a fresh preview. The saved change uses the same case history as Collections and sends no reminder. All six fictional demos support simulated owner, pause and resume requests.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "workspace-mcp-and-import-review",
+    slug: "workspace-mcp-and-import-review",
+    title: "Workspace MCP connections and contact review are more reliable",
+    description:
+      "Stdio clients can now connect through a workspace’s authenticated HTTP endpoint without a database service-role credential. Tool discovery and invocation recheck live workspace and module access. Bearer clients can stage exact Content Calendar edits for administrator approval. Contact review shows original source values and row numbers, refuses incorrectly encoded uploads, retains cached history and pages large lists in groups of 50 without dropping source rows. Review saves commit every row, approval invalidation and history together; stale saves and edits to imported rows are refused.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "approved-ai-task-lifecycle",
+    slug: "approved-ai-task-lifecycle",
+    title: "Ask AI can reopen tasks and revise their instructions",
+    description:
+      "Ask AI and connected MCP assistants can now prepare task reopening and description edits, including clearing instructions. Review the change in Approvals, then check its result in Tasks. Repeating an unchanged pending request reuses its proposal, and intervening task edits require a fresh review before execution.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "contact-import-source-integrity",
+    slug: "contact-import-source-integrity",
+    title: "Contact imports keep every source row visible",
+    description:
+      "Contact import review now keeps each accepted CSV, TSV, JSON or pasted source row in its original order. Rows the AI cannot identify remain visible and excluded for review. Malformed or oversized sources stop with a specific correction instead of silently dropping rows or fields, and duplicate AI row references are refused before a review is saved.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "debate-booking-production-loop",
     slug: "debate-booking-production-loop",
     title: "Debate bookings track the next confirmed commitment",

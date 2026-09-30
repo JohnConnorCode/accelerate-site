@@ -1,10 +1,10 @@
 ---
 title: "Connect an MCP client"
 description: "Point an external assistant at the right workspace, and verify a read before trusting it."
-updated: "2026-09-28"
+updated: "2026-09-29"
 ---
 
-The recommended way to connect a workspace is the tenant HTTP endpoint, authenticated with the MCP key issued specifically for that workspace. The local stdio runner is a separate self-hosting path, with different credentials and a different scope, covered further down.
+The recommended way to connect a workspace is the tenant HTTP endpoint, authenticated with the MCP key issued specifically for that workspace. The stdio bridge can use that same HTTP endpoint and workspace key. Its separate local database mode is reserved for installation administrators.
 
 ## Connect over HTTP
 
@@ -21,7 +21,7 @@ Client configuration screens differ. Use your client's current MCP instructions 
 
 ## ChatGPT compatibility
 
-The ChatGPT phone app currently does not support custom MCP apps. ChatGPT also cannot present a custom workspace API key to an authenticated MCP server. The Bearer-key steps above are for compatible MCP clients, not ChatGPT; do not generate or rotate a workspace key for that purpose. See [OpenAI's MCP availability](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt) and [authentication requirements](https://developers.openai.com/plugins/build/auth).
+Use ChatGPT’s current plugin connection controls and a separately configured OAuth connection. A workspace MCP API key is not the credential for that OAuth flow. Account eligibility and supported clients can change; check [OpenAI’s connection guide](https://developers.openai.com/plugins/deploy/connect-chatgpt) and [authentication requirements](https://developers.openai.com/plugins/build/auth).
 
 ChatGPT web requires a separately configured OAuth connection. To use the registered workspace tools, an installer follows the [workspace MCP OAuth guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/WORKSPACE-MCP-OAUTH.md). The separate Site Studio connection below is scoped to the installation website and does not expose ordinary workspace tools.
 
@@ -44,11 +44,13 @@ Available tools depend on module and connection requirements. Read tools return 
 
 A confirmation shown by the external assistant does not replace the Command Center's approval decision.
 
-## Local stdio: installation administrators
+## Connect a stdio client to the workspace
 
-The repository also includes `scripts/revenue-os-mcp.ts`. This launches a local process using a Supabase service-role credential and the application's system workspace context. It does **not** consume the tenant MCP Bearer key above and should not be treated as a general workspace-switching connection.
+Set `REVENUE_OS_MCP_URL` to the tenant HTTP endpoint and `MCP_API_KEY` to its existing workspace key when launching `scripts/revenue-os-mcp.ts`. This bridge uses the same workspace authentication, tool discovery and approval rules as HTTP. It does not need a Supabase service-role credential. Follow the [MCP setup guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/MCP-SETUP.md) for the complete client configuration.
 
-Use it only when you administer the installation and have verified which database and system workspace the runner resolves. Follow the version-matched [MCP setup guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/MCP-SETUP.md). Prefer the tenant HTTP path for ordinary workspace access.
+Without the URL, the runner retains its separate installation-owner database mode. That mode uses the application's system workspace context. Use it only when you administer the installation and have verified its database and workspace scope.
+
+Workspace requests reject malformed or oversized JSON and invalid UTF-8. Tools and their availability are refreshed against live workspace and module state before discovery or invocation. Revoked membership stops session-bound tool access. Browser integrations with a different origin require an installer-configured exact origin allowlist.
 
 ## Troubleshoot the connection
 
