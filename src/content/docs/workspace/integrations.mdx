@@ -1,7 +1,7 @@
 ---
 title: "Connect your tools and data"
 description: "Turn a message, calendar event, or invoice sitting in another app into usable context here."
-updated: "2026-09-19"
+updated: "2026-09-29"
 ---
 
 A calendar event or customer email helps the team when it is available alongside the related business record. **Integrations** manages supported connections and module settings, so you can choose which sources and capabilities your workspace uses.
@@ -39,3 +39,11 @@ Optional modules control which areas of the application a workspace uses. Plugin
 Generate a workspace MCP key from the integration controls and follow the [client guide](/docs/extend/mcp-clients). The key is shown once. Store it as a secret in the client's configuration; do not put it in a chat message, screenshot or public repository.
 
 The client uses the workspace's registered tools and approval rules. It can help with supported questions and actions while your records remain in the database you control. Providers may process data sent through their services, and connected AI or email usage can incur their normal charges.
+
+## Review configuration through the assistant
+
+Ask AI and authorized MCP clients can read redacted connection status and prepare a provider disconnect, a Drive folder selection, a Google connection check or a bounded sync. Review the exact values and consequences in Work before approving. If the connection or configuration changes first, prepare a new preview and approve that version.
+
+Drive selection accepts up to ten unique folder IDs. Saving the selection changes future reads and retains previously stored documents. A sync reads only the selected connected sources and records its results. Sources run in order; an incomplete source stops the remaining work. Completed work stays saved, so inspect the source receipts before retrying only the incomplete source.
+
+Disconnect removes the workspace's stored credentials and disables its environment fallback. Historical records remain, and an upstream request already in flight cannot be recalled. Reconnecting, entering or rotating secrets, granting Google consent and creating one-time integration keys require the secure human controls in Integrations. Never paste those values into an assistant conversation.

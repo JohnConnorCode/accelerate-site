@@ -128,10 +128,4 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260930-triage-gate.sql",
   "migrations/20260927-debate-bookings.sql",
   "migrations/20261001-workspace-mcp-oauth.sql",
-  "migrations/20260929211535_contact_import_review_atomic.sql",
-];
-
-export const EXCLUDED_MIGRATIONS = {
-  "migrations/20260830-tenant-uniqueness-compatibility.sql":
-    "Historical production-rollout compatibility shim; superseded by tenant uniqueness cutover on clean installs.",
-};
+  "migrations/20260930004129_workspace_configuration_commands.sql",

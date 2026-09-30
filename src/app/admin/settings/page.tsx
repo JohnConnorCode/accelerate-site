@@ -36,6 +36,15 @@ interface Setting {
 
 const serverOnlyKeys = [
   {
+    key: "ADMIN_EMAIL",
+    label: "Installation owner email",
+    description:
+      "Defines platform ownership. The installation owner changes ADMIN_EMAIL in the server environment; a workspace preference cannot grant platform access.",
+    testable: false,
+    manageHref: null,
+    manageLabel: null,
+  },
+  {
     key: "OPENROUTER_API_KEY",
     label: "OpenRouter API key",
     description:
@@ -68,7 +77,7 @@ const settingSections = [
   {
     title: "Email Configuration",
     icon: Mail,
-    keys: ["RESEND_FROM_EMAIL", "ADMIN_EMAIL"],
+    keys: ["RESEND_FROM_EMAIL"],
   },
   {
     title: "Analytics",

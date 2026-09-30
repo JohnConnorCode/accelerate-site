@@ -615,7 +615,7 @@ export default function IntegrationsPage() {
           body: JSON.stringify({ source }),
         });
         if (result.skipped) toast.info("A Google sync for this scope is already running.");
-        else toast.success("Google Workspace sync started.");
+        else toast.success("Google Workspace sync completed.");
         await load();
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Google Workspace sync failed.");

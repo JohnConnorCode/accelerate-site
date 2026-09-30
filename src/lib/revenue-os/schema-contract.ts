@@ -959,6 +959,7 @@ export const REVENUE_SCHEMA_FUNCTIONS = [
   "public.search_document_knowledge(text,integer)",
   "public.collect_learning_signals()",
   "public.save_today_views(text,bigint,jsonb,uuid)",
+  "public.save_workspace_configuration(jsonb,jsonb,text)",
   ...REVENUE_SCHEMA_SERVICE_FUNCTIONS.map(({ name }) => name),
   "private.advance_client_handoff_revision()",
   "private.check_delivery_source_binding()",
