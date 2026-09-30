@@ -142,7 +142,7 @@ export class MemorySupabase {
 
     const self: Record<string, unknown> = {};
     const chain = () => self;
-    for (const method of ["filter"]) self[method] = chain;
+    for (const method of ["filter", "overrideTypes"]) self[method] = chain;
 
     self.select = (_columns?: string, options?: { count?: string; head?: boolean }) => {
       countRequested = Boolean(options?.count);

@@ -396,7 +396,10 @@ async function readRevenueRows<T extends { id?: string }>(
   do {
     let query = db.from(table).select(columns, { count: "exact" }).eq("tenant_id", tenantId);
     if (table === "proposals") query = query.eq("status", "accepted");
-    const result = await query.order("id").range(rows.length, rows.length + 499);
+    const result = await query
+      .order("id")
+      .range(rows.length, rows.length + 499)
+      .overrideTypes<T[], { merge: false }>();
     const count = result.count;
     if (
       result.error ||
@@ -410,7 +413,7 @@ async function readRevenueRows<T extends { id?: string }>(
     )
       throw new Error(`Complete ${table} report unavailable`);
     total = count;
-    for (const row of result.data as T[]) {
+    for (const row of result.data) {
       if (!row.id || ids.has(row.id)) throw new Error(`Complete ${table} report unavailable`);
       ids.add(row.id);
       rows.push(row);

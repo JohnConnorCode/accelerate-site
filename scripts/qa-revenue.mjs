@@ -132,10 +132,15 @@ try {
     await expect(page.getByText(`$${expected.toLocaleString()}/mo`, { exact: true })).toBeVisible();
     await page.screenshot({ path: `${output}/${width}-recovered.png`, fullPage: true });
     if (width === 1440) {
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
       await page.addStyleTag({
         content: "[data-dev-tools-overlay], nextjs-portal { display: none !important; }",
       });
       await page.screenshot({ path: `${output}/revenue-guide.png` });
+      await page.emulateMedia({ reducedMotion: "no-preference" });
     }
     const edit = await page.evaluate(async () => {
       const response = await fetch("/api/admin/clients", {
