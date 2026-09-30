@@ -367,7 +367,7 @@ export default function AdminLeadsPage() {
           className="mb-4"
         >
           <p role="status" className="font-medium">
-            {pendingUpdates.length} lead update{pendingUpdates.length === 1 ? "" : "s"} need
+            {pendingUpdates.length} lead update{pendingUpdates.length === 1 ? " needs" : "s need"}
             attention
           </p>
           <p className="mt-1 text-sm text-white-secondary">
