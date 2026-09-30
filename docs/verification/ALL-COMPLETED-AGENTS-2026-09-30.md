@@ -33,7 +33,11 @@ statistics are regenerated from the combined tree. Native PostgreSQL and browser
 checks for each included feature remain in CI. The production dependency audit
 found one moderate transitive `fast-uri` normalization advisory; the existing
 lockfile entry was updated from 3.1.7 to 3.1.8. The final production audit reports
-zero advisories. No new dependency or abstraction was introduced.
+zero advisories. The full tooling audit also identified high-severity
+`brace-expansion` denial-of-service advisories. Its existing development lock
+entries are patched from 1.1.18 to 1.1.21 and 5.0.9 to 5.0.12. The full dependency
+audit now also reports zero advisories. No new dependency or abstraction was
+introduced.
 
 ## Retained work and exclusions
 
