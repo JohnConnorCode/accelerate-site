@@ -1205,10 +1205,12 @@ export async function verifyDebateCalendarEvent(
   };
 }
 
-export async function syncDrive(supabase: SupabaseClient) {
+export async function syncDrive(supabase: SupabaseClient, approvedFolders?: readonly string[]) {
   const { token, connection } = await getGoogleAccessToken(supabase);
   const settings = (connection.settings || {}) as { drive_folder_ids?: string[] };
   const { ids: folders, rejected } = normalizeDriveFolderIds(settings.drive_folder_ids ?? []);
+  if (approvedFolders && JSON.stringify(folders) !== JSON.stringify(approvedFolders))
+    throw new Error("Drive folder selection changed. Preview and approve again.");
   if (!folders.length) {
     await recordSourceRun(supabase, {
       sourceKey: "google_drive",

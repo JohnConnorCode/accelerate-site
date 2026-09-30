@@ -236,12 +236,29 @@ export async function applyWorkspaceConfigurationAsAdmin(
               change.source === "all" ? ["gmail", "calendar", "drive"] : [change.source];
             for (const source of sources) {
               try {
+                // Sync receipts may advance cursors/timestamps, but a later source
+                // must retain the reviewed account, permissions and folder set.
+                await assertCurrentTenantAdmin(db, actorEmail);
+                const fresh = await target(db, change);
+                for (const field of [
+                  "provider",
+                  "status",
+                  "accountEmail",
+                  "scopes",
+                  "credentialVersion",
+                  "folderIds",
+                ]) {
+                  if (JSON.stringify(fresh.before[field]) !== JSON.stringify(preview.before[field]))
+                    throw new Error(
+                      "Provider configuration changed during sync. Preview and approve again.",
+                    );
+                }
                 const result =
                   source === "gmail"
                     ? await syncGmail(db)
                     : source === "calendar"
                       ? await syncCalendar(db)
-                      : await syncDrive(db);
+                      : await syncDrive(db, preview.before.folderIds as string[]);
                 const row = result as Record<string, unknown>;
                 const indexing = row.indexing as Record<string, unknown> | undefined;
                 const incomplete = Boolean(
