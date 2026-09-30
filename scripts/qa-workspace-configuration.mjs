@@ -89,6 +89,18 @@ try {
         await dialog.getByRole("region", { name: "Exact new configuration" }).innerText(),
         /reviewed_folder[\s\S]*edited_folder/,
       );
+      const proposedBounds = await dialog
+        .getByRole("region", { name: "Exact new configuration" })
+        .boundingBox();
+      const approveBounds = await dialog
+        .getByRole("button", { name: "Approve", exact: true })
+        .boundingBox();
+      assert.ok(
+        proposedBounds &&
+          approveBounds &&
+          proposedBounds.y + proposedBounds.height <= approveBounds.y,
+        "Every proposed value is visible above the approval footer",
+      );
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
         false,

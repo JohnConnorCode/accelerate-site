@@ -206,7 +206,9 @@ export function ActionReviewDialog({
                   ? "Gmail Draft"
                   : external
                     ? "External Action"
-                    : "Internal Mutation"}
+                    : isConfiguration
+                      ? "Configuration"
+                      : "Internal Mutation"}
               </span>
             </div>
             <h2
@@ -290,7 +292,13 @@ export function ActionReviewDialog({
                     {values !== null &&
                       typeof values === "object" &&
                       Object.entries(values)
-                        .filter(([key]) => key in labels)
+                        .filter(
+                          ([key]) =>
+                            key in labels &&
+                            (key !== "scopes" ||
+                              (action.payload?.change as { operation?: string } | undefined)
+                                ?.operation === "disconnect_provider"),
+                        )
                         .map(([key, value]) => (
                           <div key={key} className="grid gap-1">
                             <dt className="text-[var(--admin-muted)]">{labels[key]}</dt>
@@ -510,16 +518,17 @@ export function ActionReviewDialog({
             </p>
           )}
 
-          {(action.reasoning || action.description) && (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                Why the copilot proposed this
-              </p>
-              <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">
-                {action.reasoning || action.description}
-              </p>
-            </div>
-          )}
+          {(action.reasoning || action.description) &&
+            (!isConfiguration || action.reasoning || action.description !== consequence) && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                  Why the copilot proposed this
+                </p>
+                <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">
+                  {action.reasoning || action.description}
+                </p>
+              </div>
+            )}
 
           {triageReason(action.triage) && (
             <div>
