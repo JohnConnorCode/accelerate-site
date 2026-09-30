@@ -2336,7 +2336,14 @@ function settings(pack: DemoScenarioPack) {
 export function importBatch(pack: DemoScenarioPack) {
   const rows = pack.people.slice(0, 5).map((contact, index) => ({
     id: `import-row-${index}`,
-    row_index: index + 1,
+    row_index: index,
+    raw_data: {
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+      company: contact.company,
+      role: contact.role,
+    },
     status: "proposed",
     action: index === 3 ? "update" : "create",
     included: true,

@@ -13,7 +13,9 @@ export const adminSectionVariants: Variants = {
 
 export const adminListVariants: Variants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.018 } },
+  // Lists can contain hundreds of rows. Reveal them together so list size
+  // cannot delay the last row or block interaction for several seconds.
+  visible: { transition: { staggerChildren: 0 } },
 };
 
 export const adminListItemVariants: Variants = {

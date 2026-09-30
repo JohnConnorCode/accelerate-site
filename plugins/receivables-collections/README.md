@@ -267,3 +267,39 @@ before retrying and use explicit case controls for business changes. Disabling
 does not reverse a Stripe or email effect. Follow the
 [plugin documentation contract](../../docs/contracts/PLUGIN-DOCUMENTATION.md)
 when changing this guide or its shared admin/demo workflow.
+
+## Approved conversational case policy
+
+`preview_collection_policy` and `propose_collection_policy` expose the existing
+six policy fields through the core/outreach AI and authorized MCP registry.
+`collection-policy.ts` constructs exact before/after values from the canonical
+workspace reader and fresh `readStripeInvoiceForAction` results. The pending
+`update_collection_policy` action never changes a case by itself. The approver
+must be a current active workspace administrator; dispatch rechecks the case,
+provider account/version, recipient, currency and invoice balances before calling
+`updateCollectionCase`. That existing transactional RPC owns revision checks,
+request replay, follow-up work, activity and audit. No schema migration is required.
+
+Ask “Set the collection owner for Lena Walsh to finance@northline.example” in the
+fictional roofing workspace. Open the queued policy, inspect its current/proposed
+values, reject it or choose **Approve policy change**, then reload to check the
+saved owner. Pause and resume requests also use the shared demo transport. Demo
+simulation supports these three request types; the connected tools support all
+six fields. Neither policy path sends a reminder or changes an invoice.
+
+Proposals expire after one hour. Changed facts require a new preview and proposal.
+The same normalized preview deduplicates pending proposals. A retry after a saved
+command loses its final action receipt calls the canonical request again, which
+returns the original committed result. A failed uncommitted command is rechecked
+before retry. Restoring previous values requires a separate reviewed change.
+Provider failures, disabled modules and revoked membership refuse execution.
+Policy previews make bounded Stripe reads for 1–25 tracked invoices; ordinary chat
+uses the configured model, and provider/hosting charges still apply.
+
+Verification entrypoints: `scripts/test-collection-policy.ts`,
+`scripts/test-collection-policy-demo.ts`, and `scripts/qa-collection-policy.mjs`.
+The service tests run registry/MCP → proposal → approval → canonical host RPC
+against controlled transports; the shared demo tests cover all six businesses.
+These are local proofs, not a production credential or deployment receipt.
+Invoice tracking/refresh tools, invoice-page generation/revocation tools and
+legacy proposal authoring parity remain on `admin-ai-parity-commerce`.

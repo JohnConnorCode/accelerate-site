@@ -1,3 +1,10 @@
+import {
+  MCP_MAX_REQUEST_BYTES,
+  mcpRequestSchema,
+  mcpHttpRequestError,
+  mcpRequestBodyError,
+} from "@/lib/revenue-os/mcp-request";
+import { readBoundedJson } from "@/lib/http/bounded-json";
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { requireAdmin } from "@/lib/admin/auth";
@@ -23,6 +30,7 @@ export const runtime = "nodejs";
  * endpoint through the Bearer-token path, never the session-cookie path.
  */
 const CORS_HEADERS: Record<string, string> = {
+  "Cache-Control": "no-store",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers":
@@ -114,6 +122,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const transportError = mcpHttpRequestError(request, MCP_SUPPORTED_PROTOCOL_VERSIONS);
+  if (transportError)
+    return withCors(NextResponse.json({ error: transportError }, { status: 400 }));
   const auth = await resolveMcpAuth(request);
   if (!auth) {
     return withCors(
@@ -133,29 +144,16 @@ export async function POST(request: NextRequest) {
 
   let body: McpJsonRpcRequest;
   try {
-    body = (await request.json()) as McpJsonRpcRequest;
-    if (!body || body.jsonrpc !== "2.0" || !body.method) {
-      return withCors(
-        NextResponse.json(
-          {
-            jsonrpc: "2.0",
-            id: body?.id ?? null,
-            error: {
-              code: -32600,
-              message: "Invalid Request: JSON-RPC 2.0 with 'method' is required",
-            },
-          },
-          { status: 400 },
-        ),
-      );
-    }
-  } catch {
+    body = mcpRequestSchema.parse(
+      await readBoundedJson(request, MCP_MAX_REQUEST_BYTES),
+    ) as McpJsonRpcRequest;
+  } catch (error) {
     return withCors(
       NextResponse.json(
         {
           jsonrpc: "2.0",
           id: null,
-          error: { code: -32700, message: "Parse error: Invalid JSON received" },
+          error: mcpRequestBodyError(error),
         },
         { status: 400 },
       ),
@@ -171,7 +169,7 @@ export async function POST(request: NextRequest) {
     principalKind: auth.principalKind,
   });
 
-  if (response === null) return withCors(new NextResponse(null, { status: 204 }));
+  if (response === null) return withCors(new NextResponse(null, { status: 202 }));
   const nextResponse = withCors(NextResponse.json(response));
   if (body.method === "initialize") nextResponse.headers.set("Mcp-Session-Id", randomUUID());
   return nextResponse;

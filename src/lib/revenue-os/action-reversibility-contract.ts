@@ -11,6 +11,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "update_collection_policy",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore prior policy through a newly reviewed case change. Invoice facts, reminders, work and audit history remain intact; no automatic inverse is promised.",
+  },
+  {
     actionType: "today_view_change",
     impact: "internal_write",
     reversibility: "compensable",

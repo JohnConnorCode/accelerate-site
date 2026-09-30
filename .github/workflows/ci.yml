@@ -440,6 +440,10 @@ jobs:
             if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
             if ! node scripts/qa-home-hero-timing.mjs; then browser_status=1; fi
           fi
+          if [ "$PUBLIC_PAGES_ONLY" != "true" ] && [ "$DOCS_ONLY" != "true" ]; then
+            if ! node scripts/qa-contact-import-source-review.mjs; then browser_status=1; fi
+            if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
+          fi
           exit "$browser_status"
       - name: Retain first-run browser evidence
         if: ${{ always() }}
@@ -475,6 +479,8 @@ jobs:
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/
             /tmp/accelerate-theme-persistence/
+            /tmp/accelerate-import-source-review/
+            /tmp/accelerate-policy-browser/
           if-no-files-found: ignore
           retention-days: 7
 

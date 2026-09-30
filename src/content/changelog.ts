@@ -2,6 +2,42 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "collections-approved-policy",
+    slug: "collections-approved-policy",
+    title: "Review collection policy changes from the assistant",
+    description:
+      "Ask AI or a connected MCP client to propose a collection pause, dispute, payment promise, owner or next action. Review the exact current and proposed values before approval. Changed invoice balances, recipients or case policies require a fresh preview. The saved change uses the same case history as Collections and sends no reminder. All six fictional demos support simulated owner, pause and resume requests.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "workspace-mcp-and-import-review",
+    slug: "workspace-mcp-and-import-review",
+    title: "Workspace MCP connections and contact review are more reliable",
+    description:
+      "Stdio clients can now connect through a workspace’s authenticated HTTP endpoint without a database service-role credential. Tool discovery and invocation recheck live workspace and module access. Bearer clients can stage exact Content Calendar edits for administrator approval. Contact review shows original source values and row numbers, refuses incorrectly encoded uploads, retains cached history and pages large lists in groups of 50 without dropping source rows. Review saves commit every row, approval invalidation and history together; stale saves and edits to imported rows are refused.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "approved-ai-task-lifecycle",
+    slug: "approved-ai-task-lifecycle",
+    title: "Ask AI can reopen tasks and revise their instructions",
+    description:
+      "Ask AI and connected MCP assistants can now prepare task reopening and description edits, including clearing instructions. Review the change in Approvals, then check its result in Tasks. Repeating an unchanged pending request reuses its proposal, and intervening task edits require a fresh review before execution.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
+    id: "contact-import-source-integrity",
+    slug: "contact-import-source-integrity",
+    title: "Contact imports keep every source row visible",
+    description:
+      "Contact import review now keeps each accepted CSV, TSV, JSON or pasted source row in its original order. Rows the AI cannot identify remain visible and excluded for review. Malformed or oversized sources stop with a specific correction instead of silently dropping rows or fields, and duplicate AI row references are refused before a review is saved.",
+    category: "improvement",
+    publishedAt: "2026-09-29",
+  },
+  {
     id: "debate-booking-production-loop",
     slug: "debate-booking-production-loop",
     title: "Debate bookings track the next confirmed commitment",

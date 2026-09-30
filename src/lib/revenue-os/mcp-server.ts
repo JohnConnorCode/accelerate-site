@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SiteEditorDelegation } from "@/lib/site-studio/delegation";
 import {
   getRevenueAiToolsForProfile,
+  refreshRevenueToolContext,
   listRevenueAiCapabilities,
   projectTaskToolProfile,
   executeRegisteredRevenueTool,
@@ -11,6 +12,7 @@ import {
   type TaskToolProfile,
 } from "./ai-tools";
 import { loadOperatorQueue } from "./queue";
+import { mcpRequestSchema } from "./mcp-request";
 import { getActiveModules } from "./modules";
 import {
   authorizeMcpResource,
@@ -208,12 +210,36 @@ export const MCP_REVENUE_OS_PROMPTS = [
  * Dispatches an incoming MCP JSON-RPC 2.0 request to the appropriate Revenue OS handler.
  */
 export async function handleMcpRequest(
-  request: McpJsonRpcRequest,
+  raw: unknown,
   context: McpServerContext,
 ): Promise<McpJsonRpcResponse | null> {
-  const { id, method, params = {} } = request;
+  const parsed = mcpRequestSchema.safeParse(raw);
+  if (!parsed.success)
+    return {
+      jsonrpc: "2.0",
+      id: null,
+      error: { code: MCP_ERROR_CODES.INVALID_REQUEST, message: "Invalid MCP request envelope" },
+    };
+  const { id = null, method, params = {} } = parsed.data;
+  // Notifications never receive a response or execute a business tool.
+  if (parsed.data.id === undefined) return null;
 
   try {
+    if (["tools/list", "tools/call"].includes(method)) {
+      // Reuse the shared permission evaluator for live workspace/membership
+      // authority, then refresh modules from the database before discovery or
+      // dispatch. A transport's cached config cannot re-enable a disabled tool.
+      const denial = await gateMcpResource(context, "revenue-os://system/modules");
+      if (denial) return { jsonrpc: "2.0", id, error: denial };
+      const fresh = await refreshRevenueToolContext(context);
+      context = {
+        ...context,
+        tenantConfig: {
+          ...(context.tenantConfig ?? defaultTenant),
+          modules: fresh.tenantConfig?.modules,
+        },
+      };
+    }
     if (context.allowedToolNames) {
       if (method === "resources/list") return { jsonrpc: "2.0", id, result: { resources: [] } };
       if (method === "prompts/list") return { jsonrpc: "2.0", id, result: { prompts: [] } };

@@ -34,7 +34,7 @@ async function main() {
   const mcpContext = { ...context, tenantConfig: { ...defaultTenant, ...context.tenantConfig } };
   const call = async <T>(name: string, input: Record<string, unknown>) =>
     (await executeRegisteredRevenueTool(context, name, input)).output as T;
-  const mcp = async (name: string, input: Record<string, unknown>) => {
+  const mcp = async (name: string, input: Record<string, unknown>, expectedDenialCode?: string) => {
     const response = await handleMcpRequest(
       {
         jsonrpc: "2.0",
@@ -44,7 +44,13 @@ async function main() {
       },
       mcpContext,
     );
-    assert.ok(response?.result && !response.error);
+    if (expectedDenialCode) {
+      assert.equal(response?.error?.code, -32602);
+      assert.equal((response?.error?.data as { denyCode?: string })?.denyCode, expectedDenialCode);
+      assert.equal(response?.result, undefined);
+      return null;
+    }
+    assert.ok(response?.result && !response.error, JSON.stringify(response));
     return response.result as { content: { type: string; text: string }[]; isError: boolean };
   };
   const config = () => f.table("tenants")[0]!.config as { modules: Record<string, boolean> };
@@ -184,6 +190,7 @@ async function main() {
     await assert.rejects(() => call("get_collection_cases", { caseId: f.caseId }), /48 KB/);
     savedObservations[0]!.invoice_id = originalInvoiceId;
     const readViaMcp = await mcp("get_collection_cases", { caseId: f.caseId });
+    assert.ok(readViaMcp);
     assert.equal(readViaMcp.isError, false);
     assert.equal(JSON.parse(readViaMcp.content[0]!.text).cases[0].caseId, f.caseId);
     assert.equal(f.state.reads, 0);
@@ -237,6 +244,7 @@ async function main() {
       caseId: f.caseId,
       digest: preview.digest,
     });
+    assert.ok(repeated);
     assert.equal(repeated.isError, false);
     assert.equal(JSON.parse(repeated.content[0]!.text).id, action.id);
     assert.equal(pending().length, 1);
@@ -246,17 +254,21 @@ async function main() {
     ]);
     assert.equal(JSON.stringify(contextAfter).includes("<html"), false);
 
-    async function refuses(change: () => void, restore: () => void) {
+    async function refuses(change: () => void, restore: () => void, expectedDenialCode?: string) {
       change();
       try {
         await assert.rejects(() =>
           call("propose_collection_reminder", { caseId: f.caseId, digest: preview.digest }),
         );
-        const result = await mcp("propose_collection_reminder", {
-          caseId: f.caseId,
-          digest: preview.digest,
-        });
-        assert.equal(result.isError, true);
+        const result = await mcp(
+          "propose_collection_reminder",
+          { caseId: f.caseId, digest: preview.digest },
+          expectedDenialCode,
+        );
+        if (!expectedDenialCode) {
+          assert.ok(result);
+          assert.equal(result.isError, true);
+        }
         assert.equal(pending().length, 1);
         assert.equal(f.state.sends, 0);
       } finally {
@@ -332,6 +344,7 @@ async function main() {
       () => {
         f.table("tenants")[0]!.status = "active";
       },
+      "tenant_unknown_or_suspended",
     );
     assert.equal(f.state.reads, before);
     await assert.rejects(

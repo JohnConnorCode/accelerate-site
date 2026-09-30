@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I change collection follow-up from Ask AI?",
+    answer:
+      "Yes. With Collections and Stripe invoicing enabled, ask for a case pause, dispute, payment promise, owner or next action. The assistant checks the selected case and its current invoices, then proposes the exact change for your approval. Review it in Collections or the approval queue. A changed balance, recipient or policy requires another preview. The policy change does not send a reminder; prepare and approve that separately. Invoice tracking and refresh still use the Collections workspace.",
+  },
+  {
     question: "When is a debate actually booked?",
     answer:
       "Use Debate productions in Bookings to confirm each commitment separately. Topic interest or a proposed counterpart does not establish agreement. An approved invitation is sent to the two saved participants after their inbound acceptances are reviewed. Check the live Google event, its time and attendees, any requested Meet link, and both participants' responses. Today shows the first missing or disputed step, while the scheduled work engine rechecks linked invitations when configured.",
@@ -24,12 +29,12 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can Ask AI check the content calendar?",
     answer:
-      "Yes. With the Content module enabled, Ask AI can list the five most recently added calendar items by exact status or category and reports when more match. It can also prepare a grounded editorial brief from a title and optional keywords or category when an AI provider is configured. The brief is working copy; review it and add it to the calendar from Content.",
+      "Yes. With the Content module enabled, Ask AI can list the five most recently added calendar items by exact status or category and reports when more match. Ask AI and connected MCP clients can also propose an exact edit for administrator review in Approvals. It can prepare a grounded editorial brief from a title and optional keywords or category when an AI provider is configured. The brief is working copy; review it and add it to the calendar from Content.",
   },
   {
     question: "Can I edit my website from ChatGPT?",
     answer:
-      "In a supported ChatGPT web workspace, yes, after your installer configures and verifies the owner-only Site Studio OAuth connection. It can read and edit website content, prepare an exact preview, save drafts, publish and restore revisions through the same editor services. Access lasts 30 days and can be revoked in Site Studio. A separate workspace OAuth connection exposes registered workspace tools, with business changes staged for approval. Neither connection is currently available through custom MCP apps in the ChatGPT phone app. Workspace MCP keys cannot be pasted into ChatGPT.",
+      "Yes, after your installer configures and verifies the owner-only Site Studio OAuth connection. Check OpenAI’s current connection instructions for account eligibility and client support. It can read and edit website content, prepare an exact preview, save drafts, publish and restore revisions through the same editor services. Access lasts 30 days and can be revoked in Site Studio. A separate workspace OAuth connection exposes registered workspace tools, with business changes staged for approval. Workspace MCP keys cannot be pasted into ChatGPT.",
   },
   {
     question: "Can I run the workspace for my own business?",
@@ -94,7 +99,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do Today and Work fit together?",
     answer:
-      "Today puts sourced decisions and follow-up first, then business changes and operational alerts. Pipeline facts, upcoming commitments and automation are supporting context. Automation details and completed results expand on demand. Customize preserves personal or shared arrangements; More contains view creation, duplication, deletion and the classic-view recovery option. Work opens on your open tasks, with team work one filter away; saved views sit behind Save view. It provides task editing, dated snooze and the same approvals, with list, board and calendar layouts over the same saved tasks. The list supports j/k movement and keyboard review. Layout, fields and filters stay in this browser and are separated by workspace and signed-in member. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
+      "Today puts sourced decisions and follow-up first, then business changes and operational alerts. Pipeline facts, upcoming commitments and automation are supporting context. Automation details and completed results expand on demand. Customize preserves personal or shared arrangements; More contains view creation, duplication, deletion and the classic-view recovery option. Work opens on your open tasks, with team work one filter away; saved views sit behind Save view. It provides task editing, dated snooze and the same approvals, with list, board and calendar layouts over the same saved tasks. The list supports j/k movement and keyboard review. Ask AI can also prepare task reopening and description edits; review the proposal in Approvals, then check its recorded result. Layout, fields and filters stay in this browser and are separated by workspace and signed-in member. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
   },
   {
     question: "Can we build a completely different App or interface?",

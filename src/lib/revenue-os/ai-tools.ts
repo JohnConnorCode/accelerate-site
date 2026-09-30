@@ -1,3 +1,5 @@
+import { prepareOperatorTaskPatch, taskReviewState } from "./operator-task-patch";
+import { previewCollectionPolicy, proposeCollectionPolicy } from "./collection-policy";
 import { getFirstUseProgress } from "./first-use";
 import { listLearningSignals, recordCorrectionSignal } from "./learning-signals";
 import { listKnowledgeDocuments, proposeKnowledgeChange } from "./knowledge-documents";
@@ -142,6 +144,8 @@ import { previewInvoicePage, proposeInvoicePage } from "./invoice-pages";
 import {
   COLLECTION_AGENT_TOOLS,
   COLLECTION_AGENT_TOOL_NAMES,
+  collectionPolicyPreviewSchema,
+  collectionPolicyProposalSchema,
   collectionContextInputSchema,
   collectionPreviewInputSchema,
   collectionProposalInputSchema,
@@ -495,8 +499,11 @@ export function assertImpactHonoured(
   }
   const proposalId = (output as { id?: unknown } | null)?.id;
   const staged = typeof proposalId === "string" && proposalId.length > 0;
+  // Read previews can identify their target record. Only the canonical action
+  // shape identifies a queued write; a record ID alone is not a proposal.
+  const actionType = (output as { action_type?: unknown } | null)?.action_type;
 
-  if (tool.impact === "read" && staged) {
+  if (tool.impact === "read" && staged && typeof actionType === "string") {
     throw new Error(
       `${tool.name} is registered as a read tool but produced a queued action. Re-register it with the correct impact before using it.`,
     );
@@ -507,7 +514,6 @@ export function assertImpactHonoured(
     );
   }
   if (staged && (tool.impact === "internal_write" || tool.impact === "external_action")) {
-    const actionType = (output as { action_type?: unknown }).action_type;
     if (typeof actionType !== "string")
       throw new Error(`${tool.name} staged an action without a registered action type`);
     const action = reversibilityOf(actionType);
@@ -1007,6 +1013,19 @@ const registry: AiToolRegistration[] = [
     outputSchema: ACTION_OUTPUT_SCHEMA,
     execute: ({ supabase, actorEmail }, input) =>
       proposeWorkspaceBrandUpdate(supabase, input, actorEmail),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.policyPreview,
+    inputSchema: z.toJSONSchema(collectionPolicyPreviewSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => previewCollectionPolicy(supabase, input),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.policyPropose,
+    inputSchema: z.toJSONSchema(collectionPolicyProposalSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeCollectionPolicy(supabase, input, actorEmail),
   },
   {
     ...COLLECTION_AGENT_TOOLS.list,
@@ -1947,7 +1966,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "propose_task_update",
     description:
-      "Stage a change to an existing task for approval: mark it complete, snooze it to a later date, or edit its title, priority, or due date. Never changes the task directly; the founder approves it from the review queue like every other proposal.",
+      "Stage a change to an existing task for approval: mark it complete, reopen it, snooze it to a later date, or edit its title, description, priority, or due date. Never changes the task directly; the founder approves it from the review queue like every other proposal.",
     inputSchema: {
       type: "object",
       properties: {
@@ -1956,12 +1975,17 @@ const registry: AiToolRegistration[] = [
           description:
             'The task id, either bare or in the "task:<id>" form get_today_snapshot returns in its queue.',
         },
-        changeType: { type: "string", enum: ["complete", "snooze", "edit"] },
+        changeType: { type: "string", enum: ["complete", "reopen", "snooze", "edit"] },
         until: {
           type: "string",
           description: "Snooze target date (YYYY-MM-DD), required when changeType is snooze.",
         },
         title: { type: "string", description: "New title, only used when changeType is edit." },
+        description: {
+          type: "string",
+          maxLength: 10000,
+          description: "New description for an edit. An empty string clears it.",
+        },
         priority: { type: "string", enum: ["high", "medium", "low"] },
         dueDate: {
           type: "string",
@@ -1980,37 +2004,80 @@ const registry: AiToolRegistration[] = [
       const taskId = (value(input, "taskId") || "").replace(/^task:/, "");
       if (!taskId) throw new Error("taskId is required");
       const changeType = value(input, "changeType");
-      if (!changeType || !["complete", "snooze", "edit"].includes(changeType))
-        throw new Error('changeType must be "complete", "snooze", or "edit"');
+      if (!changeType || !["complete", "reopen", "snooze", "edit"].includes(changeType))
+        throw new Error('changeType must be "complete", "reopen", "snooze", or "edit"');
       if (changeType === "snooze" && !value(input, "until"))
         throw new Error('changeType "snooze" requires "until"');
+      if (typeof input.description === "string" && input.description.length > 10000)
+        throw new Error("Task description is limited to 10000 characters");
+      const editFields = ["title", "description", "priority", "dueDate"];
+      if (changeType !== "edit" && editFields.some((field) => input[field] !== undefined))
+        throw new Error("Task edit fields require changeType edit");
+      if (changeType !== "snooze" && input.until !== undefined)
+        throw new Error("A snooze date requires changeType snooze");
+      if (changeType === "edit" && !editFields.some((field) => input[field] !== undefined))
+        throw new Error("Task edit requires title, description, priority, or dueDate");
+      const changes = {
+        ...(input.title !== undefined ? { title: String(input.title).trim() } : {}),
+        ...(input.description !== undefined
+          ? { description: String(input.description).trim() || null }
+          : {}),
+        ...(input.priority !== undefined ? { priority: String(input.priority) } : {}),
+        ...(input.dueDate !== undefined
+          ? { dueDate: input.dueDate === "" ? null : String(input.dueDate) }
+          : {}),
+        ...(changeType === "snooze" ? { until: String(input.until) } : {}),
+      };
+      const { data: current, error } = await supabase
+        .from("tasks")
+        .select("title,description,priority,due_date,status,snoozed_until,completed_at")
+        .eq("id", taskId)
+        .maybeSingle();
+      if (error) throw new Error("Could not read the task for review");
+      if (!current) throw new Error("Task not found in this workspace");
+      const expectedState = taskReviewState(current);
+      const patch = prepareOperatorTaskPatch(
+        current,
+        {
+          id: taskId,
+          title: changes.title,
+          description: changes.description,
+          priority: changes.priority,
+          due_date: changes.dueDate,
+          ...(changeType === "complete" ? { status: "completed" } : {}),
+          ...(changeType === "reopen" ? { status: "pending" } : {}),
+          ...(changeType === "snooze" ? { snoozed_until: changes.until } : {}),
+        },
+        changeType !== "reopen",
+      );
       if (
-        changeType === "edit" &&
-        !value(input, "title") &&
-        !value(input, "priority") &&
-        input.dueDate === undefined
+        !Object.entries(patch).some(
+          ([key, next]) => expectedState[key as keyof typeof expectedState] !== next,
+        )
       )
-        throw new Error('changeType "edit" requires at least one of title, priority, or dueDate');
-      const dedupeKey = `ai-task-update:${taskId}:${changeType}:${Date.now()}`;
+        throw new Error("The task already has these values");
+      const payload = { taskId, changeType, ...changes, expectedState };
+      const dedupeKey = `ai-task-update:${createHash("sha256").update(JSON.stringify(payload)).digest("hex")}`;
       const title =
         changeType === "complete"
           ? "Mark task complete"
-          : changeType === "snooze"
-            ? `Snooze task to ${value(input, "until")}`
-            : "Edit task";
+          : changeType === "reopen"
+            ? "Reopen task"
+            : changeType === "snooze"
+              ? `Snooze task to ${changes.until}`
+              : "Edit task";
       return proposeAction(supabase, {
         actionType: "update_task",
         title,
-        description: value(input, "title") ? `New title: ${value(input, "title")}` : undefined,
+        description: [
+          `Task: ${expectedState.title}`,
+          changes.description === null ? "Clear the description." : null,
+          changes.dueDate === null ? "Clear the due date." : null,
+        ]
+          .filter(Boolean)
+          .join(" "),
         urgency: "normal",
-        payload: {
-          taskId,
-          changeType,
-          until: value(input, "until"),
-          title: value(input, "title"),
-          priority: value(input, "priority"),
-          dueDate: input.dueDate === "" ? null : value(input, "dueDate"),
-        },
+        payload,
         sourceContext: "admin_ai",
         entityType: "task",
         entityId: taskId,

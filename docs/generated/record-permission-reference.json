@@ -645,6 +645,14 @@
       "module": "receivables-collections"
     },
     {
+      "tool": "preview_collection_policy",
+      "module": "receivables-collections"
+    },
+    {
+      "tool": "propose_collection_policy",
+      "module": "receivables-collections"
+    },
+    {
       "tool": "read_site_editor",
       "module": "site-studio"
     },

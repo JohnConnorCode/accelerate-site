@@ -1,3 +1,28 @@
+import { z } from "zod";
+
+/** Exact editable state reviewed with a task proposal; values come from the server. */
+export const taskReviewStateSchema = z
+  .object({
+    title: z.string(),
+    description: z.string().nullable(),
+    priority: z.string(),
+    due_date: z.string().nullable(),
+    status: z.string(),
+    snoozed_until: z.string().nullable(),
+    completed_at: z.string().nullable(),
+  })
+  .strict();
+export type TaskReviewState = z.infer<typeof taskReviewStateSchema>;
+export const TASK_REVIEW_FIELDS = Object.keys(
+  taskReviewStateSchema.shape,
+) as (keyof TaskReviewState)[];
+
+export function taskReviewState(row: Record<string, unknown>): TaskReviewState {
+  return taskReviewStateSchema.parse(
+    Object.fromEntries(TASK_REVIEW_FIELDS.map((field) => [field, row[field] ?? null])),
+  );
+}
+
 export interface OperatorTaskPatchInput {
   id: string;
   status?: string;

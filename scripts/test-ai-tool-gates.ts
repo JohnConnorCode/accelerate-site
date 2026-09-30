@@ -560,9 +560,14 @@ async function main() {
   const readTool = registry.find((tool) => tool.impact === "read");
   assert.ok(readTool, "no read tool registered");
   await rejects(
-    async () => assertImpactHonoured(readTool, { id: "queued-action-id" }),
+    async () =>
+      assertImpactHonoured(readTool, { id: "queued-action-id", action_type: "create_task" }),
     "read tool but produced a queued action",
     "a tool tagged read that stages an action must fail closed",
+  );
+
+  assert.doesNotThrow(() =>
+    assertImpactHonoured(readTool, { id: "record-id", requiresHumanApproval: true }),
   );
 
   const writeTool = registry.find((tool) => tool.impact === "internal_write");
@@ -720,7 +725,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v25");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v27");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.

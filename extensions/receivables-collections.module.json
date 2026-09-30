@@ -1,7 +1,10 @@
 {
   "$schema": "./module-manifest.schema.json",
   "id": "receivables-collections",
-  "today": { "source": "collection_case", "href": "/admin/collections" },
+  "today": {
+    "source": "collection_case",
+    "href": "/admin/collections"
+  },
   "name": "Collections Action Desk",
   "description": "Track verified overdue invoices, disputes, payment promises and collection follow-up for CRM billing contacts.",
   "category": "revenue",
@@ -31,7 +34,9 @@
   "aiToolNames": [
     "get_collection_cases",
     "preview_collection_reminder",
-    "propose_collection_reminder"
+    "propose_collection_reminder",
+    "preview_collection_policy",
+    "propose_collection_policy"
   ],
   "docsUrl": "/docs/plugins/receivables-collections"
 }

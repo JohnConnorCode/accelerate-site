@@ -156,7 +156,7 @@ export const capabilities: Capability[] = [
     title: "Tasks and commitments",
     promise: "Give work a title, date and source context so the team can follow it through.",
     detail:
-      "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
+      "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. Ask AI can prepare task reopening and description edits for review, with stale-change checks before execution. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
   },
   {
     id: "notes",
@@ -237,7 +237,7 @@ export const capabilities: Capability[] = [
     promise:
       "Group verified invoices by account and currency, record promises and disputes, and approve an exact reminder when you are ready to send.",
     detail:
-      "Fresh payment and contact checks stop a stale reminder going out. The receipt tells you whether the send was confirmed or still needs reconciliation, so you never retry blind.",
+      "Ask AI to propose a pause, promise, dispute, owner or next action, then review the exact change. Fresh invoice and contact checks guard approvals; reminders require a separate review and send receipt.",
     gated: true,
   },
   {
@@ -415,7 +415,7 @@ export const capabilities: Capability[] = [
     promise:
       "Ask what you agreed with a client in March and get the answer with the record it came from.",
     detail:
-      "With Content enabled, the assistant can list calendar items by status or category and prepare a grounded editorial brief when an AI provider is configured. It cites records it reads and reports unavailable sources instead of guessing.",
+      "With Content enabled, the assistant can list calendar items by status or category, propose exact item edits for administrator review, and prepare a grounded editorial brief when an AI provider is configured. Connected MCP clients use the same calendar tools. It cites records it reads and reports unavailable sources instead of guessing.",
   },
   {
     id: "mcp",

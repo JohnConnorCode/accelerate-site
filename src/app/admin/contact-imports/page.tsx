@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -24,8 +23,9 @@ import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
-import { adminListItemVariants, adminListVariants, adminSectionVariants } from "@/lib/admin/motion";
+import { Pagination } from "@/components/admin/Pagination";
 import { cn } from "@/lib/utils";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
 type Action = "create" | "update" | "skip";
 type Confidence = "high" | "medium" | "low";
@@ -43,6 +43,7 @@ type ContactFields = {
 type ImportRow = {
   id: string;
   row_index: number;
+  raw_data: Record<string, string>;
   status: string;
   action: Action;
   included: boolean;
@@ -116,33 +117,27 @@ async function api(body?: Record<string, unknown>, id?: string) {
 
 export default function ContactImportsPage() {
   const fileInput = useRef<HTMLInputElement>(null);
+  const sourceGeneration = useRef(0);
   const [sourceText, setSourceText] = useState("");
   const [filename, setFilename] = useState<string | null>(null);
   const [instructions, setInstructions] = useState("");
   const [batch, setBatch] = useState<ImportBatch | null>(null);
-  const [history, setHistory] = useState<ImportBatch[]>([]);
+  const historyQuery = useAdminQuery<{ schemaReady: boolean; batches: ImportBatch[] }>(
+    ["contact-imports", "history"],
+    "/api/admin/revenue-os/contact-imports",
+  );
+  const history = historyQuery.data?.batches ?? [];
   const [activeRowId, setActiveRowId] = useState<string | null>(null);
+  const [reviewPage, setReviewPage] = useState(1);
   const [busy, setBusy] = useState<"analyze" | "save" | "execute" | "history" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [schemaReady, setSchemaReady] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saved, setSaved] = useState(true);
 
-  const loadHistory = useCallback(async () => {
-    try {
-      const data = await api();
-      setSchemaReady(data.schemaReady !== false);
-      setHistory(data.batches || []);
-    } catch (cause) {
-      const value = cause as Error & { schemaReady?: boolean };
-      if (value.schemaReady === false) setSchemaReady(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadHistory();
-  }, [loadHistory]);
   const rows = useMemo(() => batch?.rows ?? [], [batch?.rows]);
+  const pageSize = 50;
+  const pageRows = rows.slice((reviewPage - 1) * pageSize, reviewPage * pageSize);
   const activeRow = rows.find((row) => row.id === activeRowId) ?? rows[0] ?? null;
   const selectedRows = rows.filter((row) => row.included && row.action !== "skip");
   const summary = useMemo(
@@ -161,10 +156,11 @@ export default function ContactImportsPage() {
     try {
       const data = await api({ action: "analyze", sourceText, filename, instructions });
       setBatch(data.batch);
+      setReviewPage(1);
       setActiveRowId(data.batch?.rows?.[0]?.id ?? null);
       setSaved(true);
       setSchemaReady(true);
-      await loadHistory();
+      await historyQuery.refetch();
     } catch (cause) {
       const value = cause as Error & { schemaReady?: boolean };
       setError(value.message);
@@ -176,6 +172,7 @@ export default function ContactImportsPage() {
 
   async function chooseFile(file?: File) {
     if (!file) return;
+    const generation = ++sourceGeneration.current;
     setError(null);
     if (file.size > 250_000) {
       setError("Choose a UTF-8 text file smaller than 250 KB.");
@@ -186,10 +183,15 @@ export default function ContactImportsPage() {
       return;
     }
     try {
-      setSourceText(await file.text());
+      const text = new TextDecoder("utf-8", { fatal: true }).decode(await file.arrayBuffer());
+      if (generation !== sourceGeneration.current) return;
+      setSourceText(text);
       setFilename(file.name);
     } catch {
-      setError("This file could not be read as UTF-8 text.");
+      if (generation !== sourceGeneration.current) return;
+      setError(
+        "This file could not be read as UTF-8 text. Save it with UTF-8 encoding and try again.",
+      );
     }
   }
 
@@ -229,6 +231,7 @@ export default function ContactImportsPage() {
       const data = await api({
         action: "save_review",
         batchId: batch.id,
+        expectedRevision: batch.updated_at,
         rows: rows.map((row) => ({
           id: row.id,
           included: row.included,
@@ -238,6 +241,7 @@ export default function ContactImportsPage() {
       });
       setBatch(data.batch);
       setSaved(true);
+      void historyQuery.refetch();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not save review");
     } finally {
@@ -255,7 +259,7 @@ export default function ContactImportsPage() {
       await api({ action: "approve", batchId: batch.id, expectedDigest: batch.review_digest });
       const data = await api({ action: "execute", batchId: batch.id });
       setBatch(data.batch);
-      await loadHistory();
+      await historyQuery.refetch();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not execute import");
     } finally {
@@ -270,7 +274,7 @@ export default function ContactImportsPage() {
     try {
       const data = await api({ action: "execute", batchId: batch.id });
       setBatch(data.batch);
-      await loadHistory();
+      await historyQuery.refetch();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not retry failed rows");
     } finally {
@@ -284,6 +288,7 @@ export default function ContactImportsPage() {
     try {
       const data = await api(undefined, id);
       setBatch(data.batch);
+      setReviewPage(1);
       setActiveRowId(data.batch?.rows?.[0]?.id ?? null);
       setSaved(true);
     } catch (cause) {
@@ -304,7 +309,9 @@ export default function ContactImportsPage() {
           batch && !finished ? (
             <button
               type="button"
+              disabled={busy !== null}
               onClick={() => {
+                sourceGeneration.current += 1;
                 setBatch(null);
                 setSourceText("");
                 setFilename(null);
@@ -319,254 +326,256 @@ export default function ContactImportsPage() {
       />
       <ContactIntakeNav active="import" />
 
-      <AnimatePresence initial={false} mode="wait">
-        {!batch ? (
-          <motion.div
-            key="source"
-            variants={adminSectionVariants}
-            initial="hidden"
-            animate="visible"
-            exit={{ opacity: 0, y: -8 }}
-            className="admin-split"
-          >
-            <AdminSurface padding="lg" className="overflow-hidden">
-              <div className="flex flex-col gap-5">
-                <div className="flex items-start gap-3">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300">
-                    <Sparkles className="size-4" />
-                  </span>
-                  <div>
-                    <h2 className="text-balance font-display text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
-                      Give it whatever contact data you have
-                    </h2>
-                    <p className="admin-copy mt-1 text-sm">
-                      OpenRouter identifies fields and cleans formatting. The importer then
-                      validates and checks existing identities before showing a preview.
-                    </p>
-                  </div>
+      {!batch ? (
+        <section key="source" aria-label="Contact import source" className="admin-split">
+          <AdminSurface padding="lg" className="overflow-hidden">
+            <div className="flex flex-col gap-5">
+              <div className="flex items-start gap-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                  <Sparkles className="size-4" />
+                </span>
+                <div>
+                  <h2 className="text-balance font-display text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
+                    Give it whatever contact data you have
+                  </h2>
+                  <p className="admin-copy mt-1 text-sm">
+                    OpenRouter identifies fields and cleans formatting. The importer then validates
+                    and checks existing identities before showing a preview.
+                  </p>
                 </div>
+              </div>
+              <label className="admin-field-label">
+                <span>Paste names, notes, rows, or exported data</span>
+                <textarea
+                  value={sourceText}
+                  onChange={(event) => {
+                    sourceGeneration.current += 1;
+                    setSourceText(event.target.value);
+                    setFilename(null);
+                  }}
+                  placeholder={EMPTY_SAMPLE}
+                  className="admin-field !min-h-40 resize-y py-3 font-mono text-[12px] leading-6"
+                  data-testid="contact-import-source"
+                />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                 <label className="admin-field-label">
-                  <span>Paste names, notes, rows, or exported data</span>
-                  <textarea
-                    value={sourceText}
-                    onChange={(event) => {
-                      setSourceText(event.target.value);
-                      setFilename(null);
-                    }}
-                    placeholder={EMPTY_SAMPLE}
-                    className="admin-field !min-h-40 resize-y py-3 font-mono text-[12px] leading-6"
-                    data-testid="contact-import-source"
+                  <span>Optional context for the cleanup</span>
+                  <input
+                    value={instructions}
+                    onChange={(event) => setInstructions(event.target.value)}
+                    placeholder="Example: these came from the Austin builders meetup"
+                    className="admin-field"
                   />
                 </label>
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                  <label className="admin-field-label">
-                    <span>Optional context for the cleanup</span>
-                    <input
-                      value={instructions}
-                      onChange={(event) => setInstructions(event.target.value)}
-                      placeholder="Example: these came from the Austin builders meetup"
-                      className="admin-field"
-                    />
-                  </label>
-                  <input
-                    ref={fileInput}
-                    className="sr-only"
-                    type="file"
-                    aria-label="Upload contacts file"
-                    accept=".csv,.tsv,.json,.txt,text/csv,text/tab-separated-values,application/json,text/plain"
-                    onChange={(event) => void chooseFile(event.target.files?.[0])}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInput.current?.click()}
-                    className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-[var(--admin-surface-subtle)] px-4 text-sm font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,scale] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
-                  >
-                    <FileUp className="size-4" /> Choose file
-                  </button>
-                </div>
-                {filename && (
-                  <p className="flex items-center gap-2 text-xs font-medium text-[var(--admin-muted)]">
-                    <FileSpreadsheet className="size-3.5" /> {filename}
-                  </p>
-                )}
+                <input
+                  ref={fileInput}
+                  className="sr-only"
+                  type="file"
+                  aria-label="Upload contacts file"
+                  accept=".csv,.tsv,.json,.txt,text/csv,text/tab-separated-values,application/json,text/plain"
+                  onChange={(event) => {
+                    void chooseFile(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
                 <button
                   type="button"
-                  disabled={!sourceText.trim() || busy === "analyze" || !schemaReady}
-                  onClick={() => void analyze()}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#0b0b0b] pl-5 pr-[18px] text-sm font-semibold text-white shadow-[var(--admin-shadow)] transition-[box-shadow,scale,opacity] duration-150 hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45 dark:bg-white dark:text-black"
-                  data-testid="contact-import-analyze"
+                  onClick={() => fileInput.current?.click()}
+                  className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-[var(--admin-surface-subtle)] px-4 text-sm font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,scale] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
                 >
-                  {busy === "analyze" ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="size-4" />
-                  )}{" "}
-                  Analyze and build review <ArrowRight className="size-4" />
+                  <FileUp className="size-4" /> Choose file
                 </button>
               </div>
-            </AdminSurface>
-            <div className="space-y-5">
-              <AdminSurface tone="subtle" padding="lg">
-                <span className="grid size-10 place-items-center rounded-full bg-[var(--admin-surface)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
-                  <ShieldCheck className="size-4" />
-                </span>
-                <h2 className="mt-4 text-balance font-display text-lg font-semibold text-[var(--admin-ink)]">
-                  Nothing imports on analysis
-                </h2>
-                <ul className="admin-copy mt-3 space-y-2 text-pretty text-sm">
-                  <li>AI can propose fields; it cannot approve or write contacts.</li>
-                  <li>Low-confidence and ambiguous rows start excluded.</li>
-                  <li>You approve the exact edited snapshot.</li>
-                  <li>No opportunities, campaigns, or messages are created.</li>
-                </ul>
-              </AdminSurface>
-              <ImportHistory
-                history={history}
-                busy={busy === "history"}
-                onOpen={(id) => void openBatch(id)}
-              />
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key={batch.id}
-            variants={adminSectionVariants}
-            initial="hidden"
-            animate="visible"
-            exit={{ opacity: 0, y: -8 }}
-          >
-            <div className="mb-5 admin-grid admin-grid--metrics">
-              <Metric
-                label="Selected"
-                value={selectedRows.length}
-                detail={`${rows.length} proposed`}
-                icon={UsersRound}
-              />
-              <Metric
-                label="New contacts"
-                value={summary.create}
-                detail="Will create"
-                icon={UserRoundCheck}
-              />
-              <Metric
-                label="Existing"
-                value={summary.update}
-                detail="Fill blank fields"
-                icon={RefreshCw}
-              />
-              <Metric
-                label="Needs attention"
-                value={summary.needsReview}
-                detail={`${summary.excluded} excluded`}
-                icon={AlertTriangle}
-                attention={summary.needsReview > 0}
-              />
-            </div>
-
-            {error && <ErrorNotice message={error} />}
-            {finished ? (
-              <ResultPanel
-                batch={batch}
-                onRetry={batch.status === "partial" ? () => void retryPartial() : undefined}
-                busy={busy === "execute"}
-              />
-            ) : (
-              <div className="admin-split admin-split--master">
-                <AdminSurface padding="none" className="overflow-hidden">
-                  <div className="flex items-center justify-between gap-3 px-4 py-4 shadow-[0_1px_0_var(--admin-rule)] sm:px-5">
-                    <div>
-                      <h2 className="font-display text-lg font-semibold text-[var(--admin-ink)]">
-                        Review rows
-                      </h2>
-                      <p className="admin-copy text-xs">
-                        Select a row to edit its approved values.
-                      </p>
-                    </div>
-                    <span
-                      className={cn(
-                        "rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em]",
-                        statusTone(batch.status),
-                      )}
-                    >
-                      {labelStatus(batch.status)}
-                    </span>
-                  </div>
-                  <motion.div
-                    variants={adminListVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="max-h-[690px] divide-y divide-[var(--admin-rule)] overflow-y-auto"
-                  >
-                    {rows.map((row) => (
-                      <RowListItem
-                        key={row.id}
-                        row={row}
-                        active={activeRow?.id === row.id}
-                        onSelect={() => setActiveRowId(row.id)}
-                        onToggle={() => patchRow(row.id, { included: !row.included })}
-                      />
-                    ))}
-                  </motion.div>
-                </AdminSurface>
-                <AdminSurface padding="lg" className="h-fit lg:sticky lg:top-6">
-                  {activeRow ? (
-                    <RowEditor
-                      row={activeRow}
-                      onPatch={(patch) => patchRow(activeRow.id, patch)}
-                      onField={(field, value) => patchField(activeRow.id, field, value)}
-                    />
-                  ) : (
-                    <p className="admin-copy py-20 text-center text-sm">No rows were extracted.</p>
-                  )}
-                </AdminSurface>
-              </div>
-            )}
-
-            {!finished && (
-              <div
-                data-contact-import-actions
-                className="sticky bottom-3 z-20 mt-5 flex items-center justify-between gap-2 rounded-2xl bg-[#0b0b0b] p-3 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,.65)] sm:bottom-4 sm:gap-3 sm:p-4"
+              {filename && (
+                <p className="flex items-center gap-2 text-xs font-medium text-[var(--admin-muted)]">
+                  <FileSpreadsheet className="size-3.5" /> {filename}
+                </p>
+              )}
+              <button
+                type="button"
+                disabled={!sourceText.trim() || busy === "analyze" || !schemaReady}
+                onClick={() => void analyze()}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#0b0b0b] pl-5 pr-[18px] text-sm font-semibold text-white shadow-[var(--admin-shadow)] transition-[box-shadow,scale,opacity] duration-150 hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45 dark:bg-white dark:text-black"
+                data-testid="contact-import-analyze"
               >
-                <div className="min-w-0 px-1">
-                  <p className="truncate text-xs font-semibold sm:text-sm">
-                    {saved ? "Review saved" : "Unsaved changes"}
-                  </p>
-                  <p className="mt-0.5 hidden text-pretty text-xs text-white/55 sm:block">
-                    {selectedRows.length} selected · {summary.create} create · {summary.update}{" "}
-                    enrich · no email will be sent
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <button
-                    type="button"
-                    disabled={busy !== null || saved}
-                    onClick={() => void saveReview()}
-                    className="min-h-10 rounded-xl px-3 text-xs font-semibold text-white shadow-[0_0_0_1px_rgba(255,255,255,.18)] transition-[background-color,scale,opacity] duration-150 hover:bg-white/8 active:scale-[0.96] disabled:opacity-40 sm:px-4 sm:text-sm"
-                  >
-                    {busy === "save" ? "Saving…" : "Save"}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={
-                      busy !== null || !saved || !selectedRows.length || batch.status !== "ready"
-                    }
-                    onClick={() => setConfirmOpen(true)}
-                    className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-white pl-3 pr-2.5 text-xs font-bold text-black transition-[scale,opacity] duration-150 active:scale-[0.96] disabled:opacity-40 sm:gap-2 sm:pl-4 sm:pr-3.5 sm:text-sm"
-                    data-testid="contact-import-approve"
-                  >
-                    <span className="sm:hidden">Approve</span>
-                    <span className="hidden sm:inline">Review approval</span>
-                    <ChevronRight className="size-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                {busy === "analyze" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Sparkles className="size-4" />
+                )}{" "}
+                Analyze and build review <ArrowRight className="size-4" />
+              </button>
+            </div>
+          </AdminSurface>
+          <div className="space-y-5">
+            <AdminSurface tone="subtle" padding="lg">
+              <span className="grid size-10 place-items-center rounded-full bg-[var(--admin-surface)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
+                <ShieldCheck className="size-4" />
+              </span>
+              <h2 className="mt-4 text-balance font-display text-lg font-semibold text-[var(--admin-ink)]">
+                Nothing imports on analysis
+              </h2>
+              <ul className="admin-copy mt-3 space-y-2 text-pretty text-sm">
+                <li>AI can propose fields; it cannot approve or write contacts.</li>
+                <li>Low-confidence and ambiguous rows start excluded.</li>
+                <li>You approve the exact edited snapshot.</li>
+                <li>No opportunities, campaigns, or messages are created.</li>
+              </ul>
+            </AdminSurface>
+            <ImportHistory
+              history={history}
+              busy={busy !== null}
+              loading={historyQuery.isPending}
+              failed={historyQuery.isError}
+              onRetry={() => void historyQuery.refetch()}
+              onOpen={(id) => void openBatch(id)}
+            />
+          </div>
+        </section>
+      ) : (
+        <section key={batch.id} aria-label="Contact import review">
+          <div className="mb-5 admin-grid admin-grid--metrics">
+            <Metric
+              label="Selected"
+              value={selectedRows.length}
+              detail={`${rows.length} proposed`}
+              icon={UsersRound}
+            />
+            <Metric
+              label="New contacts"
+              value={summary.create}
+              detail="Will create"
+              icon={UserRoundCheck}
+            />
+            <Metric
+              label="Existing"
+              value={summary.update}
+              detail="Fill blank fields"
+              icon={RefreshCw}
+            />
+            <Metric
+              label="Needs attention"
+              value={summary.needsReview}
+              detail={`${summary.excluded} excluded`}
+              icon={AlertTriangle}
+              attention={summary.needsReview > 0}
+            />
+          </div>
 
-      {!schemaReady && (
-        <ErrorNotice message="Contact Import is not activated yet. Apply migrations/20260816-contact-importer.sql, then refresh this page." />
+          {error && <ErrorNotice message={error} />}
+          {finished ? (
+            <ResultPanel
+              batch={batch}
+              onRetry={batch.status === "partial" ? () => void retryPartial() : undefined}
+              busy={busy === "execute"}
+            />
+          ) : (
+            <div className="admin-split admin-split--master">
+              <AdminSurface padding="none" className="overflow-hidden">
+                <div className="flex items-center justify-between gap-3 px-4 py-4 shadow-[0_1px_0_var(--admin-rule)] sm:px-5">
+                  <div>
+                    <h2 className="font-display text-lg font-semibold text-[var(--admin-ink)]">
+                      Review rows
+                    </h2>
+                    <p className="admin-copy text-xs">Select a row to edit its approved values.</p>
+                  </div>
+                  <span
+                    className={cn(
+                      "rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em]",
+                      statusTone(batch.status),
+                    )}
+                  >
+                    {labelStatus(batch.status)}
+                  </span>
+                </div>
+                <div
+                  key={reviewPage}
+                  className="max-h-[690px] divide-y divide-[var(--admin-rule)] overflow-y-auto"
+                >
+                  {pageRows.map((row) => (
+                    <RowListItem
+                      key={row.id}
+                      row={row}
+                      active={activeRow?.id === row.id}
+                      disabled={busy !== null}
+                      onSelect={() => setActiveRowId(row.id)}
+                      onToggle={() => patchRow(row.id, { included: !row.included })}
+                    />
+                  ))}
+                </div>
+                <div className="px-4 pb-4">
+                  <Pagination
+                    page={reviewPage}
+                    pageSize={pageSize}
+                    total={rows.length}
+                    totalPages={Math.ceil(rows.length / pageSize)}
+                    onPageChange={(page) => {
+                      setReviewPage(page);
+                      setActiveRowId(rows[(page - 1) * pageSize]?.id ?? null);
+                    }}
+                  />
+                </div>
+              </AdminSurface>
+              <AdminSurface padding="lg" className="h-fit lg:sticky lg:top-6">
+                {activeRow ? (
+                  <RowEditor
+                    row={activeRow}
+                    disabled={busy !== null}
+                    onPatch={(patch) => patchRow(activeRow.id, patch)}
+                    onField={(field, value) => patchField(activeRow.id, field, value)}
+                  />
+                ) : (
+                  <p className="admin-copy py-20 text-center text-sm">No rows were extracted.</p>
+                )}
+              </AdminSurface>
+            </div>
+          )}
+
+          {!finished && (
+            <div
+              data-contact-import-actions
+              className="sticky bottom-3 z-20 mt-5 flex items-center justify-between gap-2 rounded-2xl bg-[#0b0b0b] p-3 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,.65)] sm:bottom-4 sm:gap-3 sm:p-4"
+            >
+              <div className="min-w-0 px-1">
+                <p className="truncate text-xs font-semibold sm:text-sm">
+                  {saved ? "Review saved" : "Unsaved changes"}
+                </p>
+                <p className="mt-0.5 hidden text-pretty text-xs text-white/55 sm:block">
+                  {selectedRows.length} selected · {summary.create} create · {summary.update} enrich
+                  · no email will be sent
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  disabled={busy !== null || saved}
+                  onClick={() => void saveReview()}
+                  className="min-h-10 rounded-xl px-3 text-xs font-semibold text-white shadow-[0_0_0_1px_rgba(255,255,255,.18)] transition-[background-color,scale,opacity] duration-150 hover:bg-white/8 active:scale-[0.96] disabled:opacity-40 sm:px-4 sm:text-sm"
+                >
+                  {busy === "save" ? "Saving…" : "Save"}
+                </button>
+                <button
+                  type="button"
+                  disabled={
+                    busy !== null || !saved || !selectedRows.length || batch.status !== "ready"
+                  }
+                  onClick={() => setConfirmOpen(true)}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-white pl-3 pr-2.5 text-xs font-bold text-black transition-[scale,opacity] duration-150 active:scale-[0.96] disabled:opacity-40 sm:gap-2 sm:pl-4 sm:pr-3.5 sm:text-sm"
+                  data-testid="contact-import-approve"
+                >
+                  <span className="sm:hidden">Approve</span>
+                  <span className="hidden sm:inline">Review approval</span>
+                  <ChevronRight className="size-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {(!schemaReady || historyQuery.data?.schemaReady === false) && (
+        <ErrorNotice message="Contact imports are unavailable for this workspace. Open Setup Center to finish setup, then try again." />
       )}
       {error && !batch && <ErrorNotice message={error} />}
 
@@ -636,7 +645,7 @@ function Metric({
   attention?: boolean;
 }) {
   return (
-    <motion.div variants={adminListItemVariants}>
+    <div>
       <AdminSurface padding="md" tone={attention ? "attention" : "default"}>
         <div className="flex items-start justify-between">
           <div>
@@ -651,24 +660,26 @@ function Metric({
           </span>
         </div>
       </AdminSurface>
-    </motion.div>
+    </div>
   );
 }
 
 function RowListItem({
   row,
   active,
+  disabled,
   onSelect,
   onToggle,
 }: {
   row: ImportRow;
   active: boolean;
+  disabled: boolean;
   onSelect: () => void;
   onToggle: () => void;
 }) {
   return (
-    <motion.div
-      variants={adminListItemVariants}
+    <div
+      data-contact-import-row={row.row_index}
       className={cn(
         "flex min-h-[76px] items-center gap-2 px-3 py-2 transition-[background-color] duration-150",
         active
@@ -678,7 +689,9 @@ function RowListItem({
     >
       <button
         type="button"
-        aria-label={`${row.included ? "Exclude" : "Include"} ${row.reviewed_data.fullName}`}
+        aria-label={`${row.included ? "Exclude" : "Include"} row ${row.row_index + 1}: ${row.reviewed_data.fullName || "Unnamed contact"}`}
+        aria-pressed={row.included}
+        disabled={disabled}
         onClick={onToggle}
         className="relative grid size-10 shrink-0 place-items-center rounded-xl transition-[background-color,scale] duration-150 hover:bg-black/[0.05] active:scale-[0.96] dark:hover:bg-white/[0.06]"
       >
@@ -696,6 +709,7 @@ function RowListItem({
       <button
         type="button"
         onClick={onSelect}
+        aria-pressed={active}
         className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-xl px-2 text-left transition-[scale] duration-150 active:scale-[0.98]"
       >
         <span
@@ -714,6 +728,9 @@ function RowListItem({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
+            <span className="admin-number mr-2 text-xs font-normal text-[var(--admin-muted)]">
+              {row.row_index + 1}
+            </span>
             {row.reviewed_data.fullName || "Unnamed contact"}
           </span>
           <span className="admin-copy mt-0.5 block truncate text-xs">
@@ -725,16 +742,18 @@ function RowListItem({
         </span>
         <ChevronRight className="size-4 shrink-0 text-[var(--admin-muted)]" />
       </button>
-    </motion.div>
+    </div>
   );
 }
 
 function RowEditor({
   row,
+  disabled,
   onPatch,
   onField,
 }: {
   row: ImportRow;
+  disabled: boolean;
   onPatch: (patch: Partial<ImportRow>) => void;
   onField: (field: keyof ContactFields, value: string) => void;
 }) {
@@ -749,7 +768,7 @@ function RowEditor({
     { key: "source", label: "Source", placeholder: "Not provided" },
   ];
   return (
-    <div>
+    <fieldset disabled={disabled} className="min-w-0">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="admin-eyebrow">Row {row.row_index + 1}</p>
@@ -766,6 +785,31 @@ function RowEditor({
           {row.confidence} confidence
         </span>
       </div>
+      <details
+        key={row.id}
+        open={row.status === "needs_review"}
+        className="mt-5 rounded-xl bg-[var(--admin-surface-subtle)] p-3"
+        data-testid="contact-import-original"
+      >
+        <summary className="min-h-10 cursor-pointer content-center text-sm font-semibold text-[var(--admin-ink)]">
+          Original source · row {row.row_index + 1}
+        </summary>
+        <p className="admin-copy mt-2 text-xs">
+          Use these original values to check or correct the proposed contact.
+        </p>
+        <dl className="mt-3 space-y-3 text-xs">
+          {Object.entries(row.raw_data ?? {}).map(([key, value]) => (
+            <div key={key}>
+              <dt className="font-semibold text-[var(--admin-muted)] [overflow-wrap:anywhere]">
+                {key}
+              </dt>
+              <dd className="mt-1 whitespace-pre-wrap text-[var(--admin-ink)] [overflow-wrap:anywhere]">
+                {value || "(empty)"}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </details>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         {fields.map((field) => (
           <label key={field.key} className="admin-field-label">
@@ -835,7 +879,7 @@ function RowEditor({
           ))}
         </div>
       )}
-    </div>
+    </fieldset>
   );
 }
 
@@ -907,10 +951,16 @@ function ResultPanel({
 function ImportHistory({
   history,
   busy,
+  loading,
+  failed,
+  onRetry,
   onOpen,
 }: {
   history: ImportBatch[];
   busy: boolean;
+  loading: boolean;
+  failed: boolean;
+  onRetry: () => void;
   onOpen: (id: string) => void;
 }) {
   return (
@@ -953,7 +1003,26 @@ function ImportHistory({
             </span>
           </button>
         ))}
-        {!history.length && (
+        {failed && (
+          <div className="p-4" role="alert">
+            <p className="admin-copy text-xs">
+              Recent imports could not be loaded. Your current review is still available.
+            </p>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-2 min-h-10 rounded-xl px-3 text-sm font-semibold text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)]"
+            >
+              Retry history
+            </button>
+          </div>
+        )}
+        {loading && (
+          <p className="admin-copy p-4 text-xs" role="status">
+            Loading recent imports…
+          </p>
+        )}
+        {!history.length && !loading && !failed && (
           <p className="admin-copy px-4 py-8 text-center text-xs">
             Completed and reviewable batches will appear here.
           </p>

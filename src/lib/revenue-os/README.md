@@ -291,3 +291,11 @@ UI, AI and MCP reuse those services; the additive SQL transaction owns the final
 approval checks and unique publication attempt. See the
 [operator guide](../../../plugins/social-marketing/README.md) and
 [extension map](../../../plugins/social-marketing/EXTENDING.md).
+
+### Collection policy approvals
+
+`collection-policy.ts` adapts case policy previews and proposals to the existing
+`collections.ts` writer. Admin policy saves and approved AI/MCP changes share
+`updateCollectionCase`; immutable request receipts and work/audit updates remain
+in its SQL owner. See `plugins/receivables-collections/README.md` for bounds and
+recovery, and `scripts/test-collection-policy.ts` for authority/freshness proof.

@@ -969,6 +969,7 @@ export const REVENUE_SCHEMA_FUNCTIONS = [
   "public.revenue_os_touch_updated_at()",
   "public.publish_email_template(text,text)",
   "public.claim_contact_import_batch(uuid,text)",
+  "public.save_contact_import_review(uuid,timestamptz,jsonb,text,jsonb,text)",
   "public.claim_revenue_job_run(text,text,interval)",
   "public.claim_campaign_member_send(uuid,text)",
   "public.stop_campaign_memberships(uuid,uuid,text)",
