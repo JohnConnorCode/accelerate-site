@@ -178,6 +178,7 @@ try {
         await page.screenshot({ path: `${output}/${width}-approval.png` });
         await page.keyboard.press("Escape");
         await dialog.waitFor({ state: "hidden" });
+        await page.waitForURL((url) => !url.searchParams.has("action"));
       }
       await page.goto(root + "/collections", { waitUntil: "networkidle" });
       await page.getByRole("button", { name: "Reject", exact: true }).press("Enter");

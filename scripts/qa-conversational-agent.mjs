@@ -206,23 +206,34 @@ try {
       await context.close();
     }
   }
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-  const page = await context.newPage();
-  activePage = page;
-  await context.route("**/api/analytics/events", (route) => route.fulfill({ status: 204 }));
-  await page.goto(`${base}/demo/command-center`);
-  await page.getByRole("heading", { name: "Tell your agent what needs doing." }).waitFor();
-  await page.screenshot({ path: `${out}/chooser-desktop.png`, fullPage: true });
-  await page.getByRole("link", { name: "Try the AI agent", exact: true }).click();
-  await page.getByRole("textbox", { name: "Ask the business" }).waitFor();
-  // With no funded inference setup the actual endpoint must refuse, not invent a run.
-  await page.getByRole("button", { name: "Send AI command" }).first().click();
-  await page
-    .getByText(/unavailable|not configured/i)
-    .first()
-    .waitFor();
-  await page.screenshot({ path: `${out}/unavailable-desktop.png`, fullPage: true });
-  await context.close();
+  for (const mobile of [false, true]) {
+    const viewport = mobile ? "mobile" : "desktop";
+    const context = await browser.newContext({
+      reducedMotion: "reduce",
+      viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 },
+    });
+    const page = await context.newPage();
+    activePage = page;
+    await context.route("**/api/analytics/events", (route) => route.fulfill({ status: 204 }));
+    await page.goto(`${base}/demo/command-center`);
+    await page.getByRole("heading", { name: "Tell your agent what needs doing." }).waitFor();
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      "Chooser has no horizontal overflow",
+    );
+    await page.screenshot({ path: `${out}/chooser-${viewport}.png`, fullPage: true });
+    await page.screenshot({ path: `${out}/chooser-${viewport}-top.png` });
+    await page.getByRole("link", { name: "Try the AI agent", exact: true }).click();
+    await page.getByRole("textbox", { name: "Ask the business" }).waitFor();
+    // With no funded inference setup the actual endpoint must refuse, not invent a run.
+    await page.getByRole("button", { name: "Send AI command" }).first().click();
+    await page
+      .getByText(/demo agent is.*unavailable.*explore the fictional workspace/i)
+      .first()
+      .waitFor();
+    await page.screenshot({ path: `${out}/unavailable-${viewport}.png`, fullPage: true });
+    await context.close();
+  }
   await writeFile(
     `${out}/receipt.json`,
     JSON.stringify(

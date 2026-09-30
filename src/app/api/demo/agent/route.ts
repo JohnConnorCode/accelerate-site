@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { rateLimit } from "@/lib/rate-limit";
 import { readBoundedJson } from "@/lib/ai/bounded-json";
 import { runDemoAgent } from "@/lib/admin/demo/agent";
 import { demoAgentRequestSchema } from "@/lib/admin/demo/agent-contract";
@@ -18,12 +18,18 @@ export async function POST(request: NextRequest) {
       : "local";
   const gate = await rateLimit(`demo-agent:${ip}`, 5, 60000);
   if (!gate.success)
-    return rateLimitResponse(gate, {
-      error:
-        gate.status === 503
-          ? "The demo agent is temporarily unavailable. You can still explore the fictional workspace."
-          : "The demo request limit has been reached. Please try again shortly.",
-    });
+    return NextResponse.json(
+      {
+        error:
+          gate.status === 503
+            ? "The demo agent is temporarily unavailable. You can still explore the fictional workspace."
+            : "The demo request limit has been reached. Please try again shortly.",
+      },
+      {
+        status: gate.status,
+        headers: { "Cache-Control": "no-store", "Retry-After": String(gate.retryAfter) },
+      },
+    );
   let session;
   try {
     const input = demoAgentRequestSchema.parse(
