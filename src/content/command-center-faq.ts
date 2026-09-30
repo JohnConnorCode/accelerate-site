@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "What should I do when an inquiry update needs attention?",
+    answer:
+      "Read the named result in Leads because part of the change may already be saved. Use Retry incomplete updates to finish the affected records; successful rows remain saved. A new inquiry whose setup is incomplete stays in its original form with Retry setup, while an uncertain save offers Retry save. Retrying the same change reuses its existing follow-up or client engagement. Check the linked Pipeline record after recovery, and review an identity conflict or stale change before trying again.",
+  },
+  {
     question: "When is a debate actually booked?",
     answer:
       "Use Debate productions in Bookings to confirm each commitment separately. Topic interest or a proposed counterpart does not establish agreement. An approved invitation is sent to the two saved participants after their inbound acceptances are reviewed. Check the live Google event, its time and attendees, any requested Meet link, and both participants' responses. Today shows the first missing or disputed step, while the scheduled work engine rechecks linked invitations when configured.",
