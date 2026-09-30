@@ -155,7 +155,21 @@ const noJS = await browser.newContext({
   javaScriptEnabled: false,
 });
 const staticPage = await noJS.newPage();
+await staticPage.route("**/_next/static/css/**", async (route) => {
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  await route.continue();
+});
 await staticPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+// Disabled scripts let DOMContentLoaded precede CSS and stop in-page polling.
+// Poll from the test process so computed-style checks cover the rendered hero.
+let stylesReady = false;
+for (let attempt = 0; attempt < 100 && !stylesReady; attempt++) {
+  stylesReady = await staticPage.evaluate(
+    () => getComputedStyle(document.querySelector(".home-hero-contours")).position === "absolute",
+  );
+  if (!stylesReady) await staticPage.waitForTimeout(100);
+}
+if (!stylesReady) failures.push("No-JavaScript hero stylesheet did not load");
 const staticHero = await staticPage.evaluate(() => ({
   heading: document.querySelector(".home-hero-heading")?.textContent?.replace(/\s+/g, " "),
   cta: getComputedStyle(document.querySelector(".home-hero-cta")).opacity,
