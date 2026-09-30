@@ -240,6 +240,11 @@ try {
         const image = document.querySelector("main figure img");
         return image?.complete && image.naturalWidth > 0;
       });
+      if (slug.endsWith("revenue"))
+        await expect(page.locator("main figure img").first()).toHaveAttribute(
+          "src",
+          /revenue-active-contracts-2026-09-29/,
+        );
       await page.locator(".docs-entrance").evaluate(async (element) => {
         await Promise.all(
           element

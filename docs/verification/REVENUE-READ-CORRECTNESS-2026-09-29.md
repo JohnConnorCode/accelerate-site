@@ -41,6 +41,8 @@ mobile widths. The fictional report reads the same client overrides as Clients.
 - `public/docs-llms.txt`: regenerated from the guides. Revenue's fictional screenshot
   is refreshed from the real demo in a fresh reduced-motion browser context. The
   complete chart and active monthly total agree; the image and alt text were inspected.
+  The guide uses a dated image URL so a restored optimizer cache cannot serve the
+  older screenshot. The old URL remains available for existing links.
 - No plugin workflow, manifest or setup requirement changes. No migration, provider
   activation, external send or production mutation is included.
 
