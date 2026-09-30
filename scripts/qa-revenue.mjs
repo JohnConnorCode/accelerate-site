@@ -154,25 +154,23 @@ try {
     await expect(
       metrics.getByText(`$${expected.toLocaleString()}/mo`, { exact: true }),
     ).toBeVisible();
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll(".admin-grid--metrics > div")].every(
+        (element) => Number(getComputedStyle(element).opacity) >= 0.99,
+      ),
+    );
+    const curve = page.locator(".recharts-line-curve");
+    await expect(curve).toBeVisible();
+    await expect(curve).not.toHaveAttribute("stroke-dasharray", /.+/);
     await page.screenshot({ path: `${output}/${width}-recovered.png`, fullPage: true });
-    if (width === 1440) {
-      await page.emulateMedia({ reducedMotion: "reduce" });
-      await page.evaluate(
-        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-      );
-      await page.addStyleTag({
-        content: "[data-dev-tools-overlay], nextjs-portal { display: none !important; }",
-      });
-      await page.screenshot({ path: `${output}/revenue-guide.png` });
-      await page.emulateMedia({ reducedMotion: "no-preference" });
-    }
     await page
       .getByRole("heading", { name: "Active Monthly Value by Client", exact: true })
       .scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${output}/${width}-contract-breakdown.png` });
     await page
-      .getByText("Accepted Proposal Monthly Value", { exact: true })
-      .scrollIntoViewIfNeeded();
+      .locator(".admin-surface")
+      .filter({ hasText: "Accepted Proposal Monthly Value" })
+      .evaluate((element) => element.scrollIntoView({ block: "end", behavior: "instant" }));
     await page.screenshot({ path: `${output}/${width}-agreement-values.png` });
     await page.getByRole("heading", { name: "Revenue", exact: true }).scrollIntoViewIfNeeded();
     const edit = await page.evaluate(async () => {
@@ -293,6 +291,21 @@ try {
         .reduce((sum, row) => sum + row.monthly_value, 0),
     );
     assert.equal(data.report.mrrTimeline.at(-1).mrr, data.report.totalMRR);
+    if (scenario === "northline-roofing") {
+      await expect(page.locator(".recharts-line-curve")).toBeVisible();
+      await expect(page.locator(".recharts-line-curve")).not.toHaveAttribute(
+        "stroke-dasharray",
+        /.+/,
+      );
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      });
+      await page.addStyleTag({
+        content: "[data-dev-tools-overlay], nextjs-portal { display: none !important; }",
+      });
+      await page.screenshot({ path: `${output}/revenue-guide.png` });
+    }
     proof.push({ scenario, clientTotalsAgree: true });
     await context.close();
   }
