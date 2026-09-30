@@ -48,24 +48,24 @@ export function Systems({ content = homeSystemsContent }: { content?: HomeSystem
     <section className="sect home-services" id="systems" aria-labelledby="systems-heading">
       <AmbientField />
       <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
+        <Reveal sequence className="shead">
+          <p data-home-step="0" className="label eyebrow-anim">
             {content.eyebrow}
-          </Reveal>
+          </p>
           <div>
-            <Reveal rv as="h2" id="systems-heading" className="h2" delay={0.06}>
+            <h2 data-home-step="1" id="systems-heading" className="h2">
               {content.headingStart}
               <br />
               {content.headingMiddle} <span className="it">{content.headingEnd}</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
+            </h2>
+            <p data-home-step="2" className="lede" style={{ marginTop: 20 }}>
               {content.body}
-            </Reveal>
+            </p>
           </div>
-        </div>
+        </Reveal>
         <ol className="engagement-list" aria-label={content.listLabel}>
           {content.modes.map((mode, i) => (
-            <Reveal key={mode.key} rv as="li" className="engagement-item">
+            <Reveal key={mode.key} rv as="li" className="engagement-item" delay={i * 0.11}>
               <a href={mode.href} className="engagement-link">
                 <span className="engagement-index" aria-hidden="true">
                   {String(i + 1).padStart(2, "0")}
@@ -86,7 +86,9 @@ export function Systems({ content = homeSystemsContent }: { content?: HomeSystem
             </Reveal>
           ))}
         </ol>
-        <p className="engagement-note">{content.note}</p>
+        <Reveal rv as="p" className="engagement-note">
+          {content.note}
+        </Reveal>
       </div>
     </section>
   );

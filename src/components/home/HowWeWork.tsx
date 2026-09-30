@@ -9,40 +9,40 @@ export function HowWeWork({ content = homeProcessContent }: { content?: HomeProc
     <section className="sect ink-panel home-process" id="how">
       <AmbientField />
       <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
+        <Reveal sequence className="shead">
+          <p data-home-step="0" className="label eyebrow-anim">
             {content.eyebrow}
-          </Reveal>
+          </p>
           <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
+            <h2 data-home-step="1" className="h2">
               {content.headingStart} {content.headingMiddle}{" "}
               <span className="it">{content.headingEnd}</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
+            </h2>
+            <p data-home-step="2" className="lede" style={{ marginTop: 20 }}>
               {content.body}
-            </Reveal>
+            </p>
           </div>
-        </div>
+        </Reveal>
 
         <div className="steps">
-          {/* Each step gets its own <Reveal> — its own scroll trigger — so
-              it fades in exactly when THAT step scrolls into view, not on
-              a fixed delay measured from when the list's top appeared.
-              --d is only a small tie-breaker for a fast scroll that brings
-              two steps into view in the same tick. */}
+          {/* Each row starts its number, title and explanation sequence when
+              that row enters view, including during a slow scroll. */}
           {content.steps.map((step, i) => (
             <Reveal
               key={step.n}
               as="div"
-              className="step item-rv"
-              style={{ "--d": `${0.06 * i}s` } as CSSProperties}
+              sequence
+              className="step"
+              style={{ "--d": `${0.08 * i}s` } as CSSProperties}
             >
-              <p className="step-n">{step.n}</p>
-              <div className="step-t">
+              <p data-home-step="0" className="step-n">
+                {step.n}
+              </p>
+              <div data-home-step="1" className="step-t">
                 <h3 className="h3">{step.title}</h3>
                 <span className="tag">{step.tag}</span>
               </div>
-              <p>{step.body}</p>
+              <p data-home-step="2">{step.body}</p>
             </Reveal>
           ))}
         </div>

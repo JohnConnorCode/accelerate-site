@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 import { trackConversion } from "@/lib/analytics";
 import { homeHeroContent } from "@/content/site-studio/home";
 import type { HomeHeroContent } from "@/lib/site-studio/native-templates";
+import { useRevealLifecycle } from "@/components/motion/useReveal";
 
 const contours = Array.from(
   { length: 18 },
@@ -12,12 +13,12 @@ const contours = Array.from(
     `M-180 ${180 + index * 24} C150 ${-160 + index * 38} 330 ${790 - index * 22} 650 ${410 + index * 8} S1030 ${80 + index * 20} 1370 ${240 + index * 28}`,
 );
 
-function HeroWords({ text, offset = 0 }: { text: string; offset?: number }) {
+function HeroWords({ text, offset = 140 }: { text: string; offset?: number }) {
   return text.split(/\s+/).map((word, index) => (
     <span key={`${word}-${index}`}>
       <span
         className="home-hero-word"
-        style={{ "--hero-word-delay": `${offset + index * 24}ms` } as CSSProperties}
+        style={{ "--hero-word-delay": `${offset + Math.min(index, 12) * 28}ms` } as CSSProperties}
       >
         {word}
       </span>{" "}
@@ -26,7 +27,7 @@ function HeroWords({ text, offset = 0 }: { text: string; offset?: number }) {
 }
 
 export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent }) {
-  const sectionRef = useRef<HTMLElement>(null);
+  const sectionRef = useRevealLifecycle<HTMLElement>();
   useEffect(() => {
     const section = sectionRef.current;
     const field = section?.querySelector<HTMLElement>(".home-hero-field");
@@ -101,7 +102,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       reduced.removeEventListener("change", preference);
       fine.removeEventListener("change", preference);
     };
-  }, []);
+  }, [sectionRef]);
   const legacy = "prefix" in content;
   const heading = legacy
     ? `${content.prefix} ${content.highlighted} ${content.suffix} ${content.replacedWord} and ${content.finalWord.toLowerCase()}.`
@@ -114,6 +115,8 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       id="hero"
       aria-labelledby="home-hero-heading"
       data-hero-active="false"
+      data-motion-role="home-hero"
+      data-reveal-state="pending"
     >
       <div className="home-hero-atmosphere" aria-hidden="true" />
       <div className="home-hero-field" aria-hidden="true">
@@ -144,7 +147,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                 <HeroWords text={heading} />
               </span>{" "}
               <em>
-                <HeroWords text={content.emphasis} offset={120} />
+                <HeroWords text={content.emphasis} offset={320} />
               </em>
             </>
           )}

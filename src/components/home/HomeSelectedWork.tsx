@@ -17,36 +17,38 @@ export function HomeSelectedWork({ content = homeWorkContent }: { content?: Home
     >
       <AmbientField />
       <Container>
-        <div className="flex flex-wrap items-end justify-between gap-6">
+        <Reveal sequence className="flex flex-wrap items-end justify-between gap-6">
           <div>
-            <Reveal rv>
+            <div data-home-step="0">
               <Eyebrow className="mb-5">{content.eyebrow}</Eyebrow>
-            </Reveal>
-            <Reveal rv delay={0.06}>
-              <h2 className="max-w-[16ch] text-balance font-display text-[clamp(2.2rem,5vw,5rem)] font-medium leading-[0.92] tracking-[-0.055em] text-[var(--fg)]">
-                {content.heading}
-              </h2>
-            </Reveal>
-            <Reveal rv delay={0.12}>
-              <p className="mt-6 max-w-[62ch] text-pretty leading-7 text-[var(--mid)]">
-                {content.body}
-              </p>
-            </Reveal>
+            </div>
+            <h2
+              data-home-step="1"
+              className="max-w-[16ch] text-balance font-display text-[clamp(2.2rem,5vw,5rem)] font-medium leading-[0.92] tracking-[-0.055em] text-[var(--fg)]"
+            >
+              {content.heading}
+            </h2>
+            <p
+              data-home-step="2"
+              className="mt-6 max-w-[62ch] text-pretty leading-7 text-[var(--mid)]"
+            >
+              {content.body}
+            </p>
           </div>
-          <Reveal rv delay={0.16}>
+          <div data-home-step="3">
             <Link href={content.ctaHref} className="btn btn-sm">
               {content.ctaLabel}{" "}
               <span aria-hidden="true" className="arw">
                 →
               </span>
             </Link>
-          </Reveal>
-        </div>
+          </div>
+        </Reveal>
         <div className="home-work-layout">
           {featured && <WorkCard project={featured} featured index={0} aspect="cinematic" />}
           <div className="home-work-index" aria-label="More selected projects">
             {supporting.map((project, index) => (
-              <Reveal key={project.slug} rv>
+              <Reveal key={project.slug} rv delay={index * 0.11}>
                 <Link href={`/work/${project.slug}`} className="home-work-link">
                   <span className="home-work-number" aria-hidden="true">
                     {String(index + 2).padStart(2, "0")}

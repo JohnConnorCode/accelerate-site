@@ -17,20 +17,16 @@ export function Plan({ content = homePlanContent }: { content?: HomePlanContent 
       <div className="wrap">
         <div className="plan-grid">
           <div>
-            <Reveal rv as="p" className="label eyebrow-anim">
-              {content.eyebrow}
-            </Reveal>
-            <Reveal
-              rv
-              as="h2"
-              className="h2"
-              delay={0.06}
-              style={{ marginTop: 18, lineHeight: 1.15 }}
-            >
-              {content.heading}
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 18 }}>
-              {content.body}
+            <Reveal sequence>
+              <p data-home-step="0" className="label eyebrow-anim">
+                {content.eyebrow}
+              </p>
+              <h2 data-home-step="1" className="h2" style={{ marginTop: 18, lineHeight: 1.15 }}>
+                {content.heading}
+              </h2>
+              <p data-home-step="2" className="lede" style={{ marginTop: 18 }}>
+                {content.body}
+              </p>
             </Reveal>
             <ul className="plan-list">
               {/* Each item gets its own <Reveal> — its own scroll trigger —
@@ -43,7 +39,7 @@ export function Plan({ content = homePlanContent }: { content?: HomePlanContent 
                   key={item}
                   as="li"
                   className="item-rv"
-                  style={{ "--d": `${0.06 * i}s` } as CSSProperties}
+                  style={{ "--d": `${0.11 * i}s` } as CSSProperties}
                 >
                   <i>{String(i + 1).padStart(2, "0")}</i>
                   <span>{item}</span>
@@ -65,7 +61,7 @@ export function Plan({ content = homePlanContent }: { content?: HomePlanContent 
             </Reveal>
           </div>
 
-          <Reveal rv delay={0.1} threshold={0} rootMargin="0px 0px -8% 0px">
+          <Reveal rv delay={0.11}>
             <PlanDeck content={content.deck} />
           </Reveal>
         </div>

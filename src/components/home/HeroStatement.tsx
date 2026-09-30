@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { homeStatementContent } from "@/content/site-studio/home";
 import type { HomeStatementContent } from "@/lib/site-studio/native-templates";
+import { Reveal } from "./reveal";
 
 /** The original hero explanation, held for the next scroll beat. */
 export function HeroStatement({
@@ -11,34 +11,14 @@ export function HeroStatement({
 }: {
   content?: HomeStatementContent;
 }) {
-  const ref = useRef<HTMLElement>(null);
-  const [revealed, setRevealed] = useState(false);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reduced.matches) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        setRevealed(true);
-        observer.disconnect();
-      },
-      { rootMargin: "0px 0px -8%", threshold: 0.02 },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <section ref={ref} className={`hero-statement${revealed ? " is-revealed" : ""}`}>
+    <Reveal sequence as="section" className="hero-statement">
       <div className="wrap hero-statement-layout">
         <div className="hero-statement-aside">
-          <p className="label">{content.eyebrow}</p>
-          <nav aria-label="Explore the homepage" className="home-section-links">
+          <p className="label" data-home-step="0">
+            {content.eyebrow}
+          </p>
+          <nav aria-label="Explore the homepage" className="home-section-links" data-home-step="3">
             <Link href={content.systemsHref}>
               {content.systemsLabel} <span aria-hidden="true">↓</span>
             </Link>
@@ -51,10 +31,14 @@ export function HeroStatement({
           </nav>
         </div>
         <div>
-          <p className="hero-statement-copy">{content.heading}</p>
-          <p className="hero-statement-detail">{content.body}</p>
+          <p className="hero-statement-copy" data-home-step="1">
+            {content.heading}
+          </p>
+          <p className="hero-statement-detail" data-home-step="2">
+            {content.body}
+          </p>
         </div>
       </div>
-    </section>
+    </Reveal>
   );
 }

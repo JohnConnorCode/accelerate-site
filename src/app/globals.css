@@ -4350,9 +4350,8 @@ summary:focus-visible {
   border-bottom: 1px solid var(--rule);
   margin-top: clamp(54px, 7vw, 92px);
 }
-/* Each .step carries `.item-rv` directly (see HowWeWork.tsx) and has its
-   own independent scroll trigger — only the hover tint needs its own
-   `transition` here, entrance is `animation` on the same class. */
+/* Each step owns a sequence of number, title and explanation. Hover remains
+   independent of the child entrances. */
 .step {
   position: relative;
   display: grid;
@@ -5541,26 +5540,6 @@ a.team-card-float:focus-visible {
   line-height: 1.03;
   text-wrap: pretty;
 }
-@keyframes hero-statement-copy-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-.motion-ready .hero-statement:not(.is-revealed) .hero-statement-copy {
-  opacity: 0;
-  transform: translateY(16px);
-  filter: blur(6px);
-}
-.hero-statement.is-revealed .hero-statement-copy {
-  animation: hero-statement-copy-in 0.42s var(--ease) both;
-}
 @media (max-width: 700px) {
   .hero-statement {
     padding: 72px 0 80px;
@@ -5972,35 +5951,10 @@ a.team-card-float:focus-visible {
   backdrop-filter: none;
 }
 
-/* With the snap gone, give the step's tag its own beat so it lands just after
-   the row it belongs to rather than dissolving into one flat fade with it. */
-@keyframes tag-in {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.step .tag {
-  opacity: 1;
-  transform: none;
-}
-.motion-ready .step:not(.in) .tag {
-  opacity: 0;
-  transform: translateY(5px);
-}
-.step.in .tag {
-  animation: tag-in 0.45s var(--ease) calc(var(--d, 0s) + 0.2s) both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .step .tag {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-  }
+/* The title owns its tag; a nested tag entrance would animate it twice. */
+.home-sequence .tag {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 /* --- Command Center demo scroll surfaces ---------------------------------- */
@@ -6528,19 +6482,41 @@ body.modal-open [data-dock] {
   border-top-color: var(--rule);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .motion-ready .home-hero-eyebrow,
-  .motion-ready .home-hero-bottom,
-  .motion-ready .home-hero-index {
-    animation: home-hero-enter 560ms var(--ease) both;
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-eyebrow,
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-support,
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-actions,
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-index > span {
+    transform: translateY(24px);
   }
-  .motion-ready .home-hero-word {
-    animation: home-hero-word-enter 480ms var(--ease) var(--hero-word-delay, 0ms) both;
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-word {
+    transform: translateY(0.43em) rotate(1deg);
   }
-  .home-hero-bottom {
-    animation-delay: 160ms;
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-eyebrow,
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-support,
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-actions,
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-index > span {
+    animation: home-hero-enter 620ms var(--ease) var(--hero-entry-delay, 0ms) both;
   }
-  .home-hero-index {
-    animation-delay: 230ms;
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-word {
+    animation: home-hero-word-enter 620ms var(--ease) var(--hero-word-delay, 0ms) both;
+  }
+  .motion-ready .home-hero.in .home-hero-eyebrow {
+    --hero-entry-delay: 40ms;
+  }
+  .motion-ready .home-hero.in .home-hero-support {
+    --hero-entry-delay: 460ms;
+  }
+  .motion-ready .home-hero.in .home-hero-actions {
+    --hero-entry-delay: 580ms;
+  }
+  .motion-ready .home-hero.in .home-hero-index > span {
+    --hero-entry-delay: 680ms;
+  }
+  .motion-ready .home-hero.in .home-hero-index > span:nth-child(2) {
+    --hero-entry-delay: 790ms;
+  }
+  .motion-ready .home-hero.in .home-hero-index > span:nth-child(3) {
+    --hero-entry-delay: 900ms;
   }
 }
 @media (prefers-reduced-motion: no-preference) and (pointer: fine) {
@@ -6572,7 +6548,7 @@ body.modal-open [data-dock] {
 }
 @keyframes home-hero-word-enter {
   from {
-    transform: translateY(0.3em) rotate(1deg);
+    transform: translateY(0.43em) rotate(1deg);
   }
   to {
     transform: translateY(0) rotate(0);
@@ -6593,10 +6569,55 @@ body.modal-open [data-dock] {
 }
 @keyframes home-hero-enter {
   from {
-    transform: translateY(14px);
+    transform: translateY(24px);
   }
   to {
     transform: translateY(0);
+  }
+}
+
+/* Homepage chapters share one entrance clock per compact editorial group.
+   Long lists retain one owner per row so slow scrolling never skips a beat. */
+.home-sequence [data-home-step="0"] {
+  --home-step: 0;
+}
+.home-sequence [data-home-step="1"] {
+  --home-step: 1;
+}
+.home-sequence [data-home-step="2"] {
+  --home-step: 2;
+}
+.home-sequence [data-home-step="3"] {
+  --home-step: 3;
+}
+.home-sequence [data-home-step="4"] {
+  --home-step: 4;
+}
+@keyframes home-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .motion-ready .home-sequence[data-reveal-state="pending"] [data-home-step] {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .motion-ready .home-sequence.in:not(.reveal-immediate) [data-home-step] {
+    animation: home-content-enter 640ms var(--ease) both;
+    animation-delay: calc(var(--d, 0s) + var(--home-step, 0) * 110ms);
+  }
+  .motion-ready .home-sequence[data-reveal-state="pending"] .home-close-line {
+    transform: translateY(112%);
+  }
+  .motion-ready .home-sequence.in:not(.reveal-immediate) .home-close-line {
+    animation-name: line-in;
+    opacity: 1;
   }
 }
 @media (max-width: 1000px) {

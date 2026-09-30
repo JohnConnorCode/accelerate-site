@@ -1,40 +1,38 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import { trackConversion } from "@/lib/analytics";
-import { Reveal, useRv } from "./reveal";
+import { Reveal } from "./reveal";
 import { AmbientField } from "./AmbientField";
 
 import { homeFinalCtaContent } from "@/content/site-studio/home";
 import type { HomeFinalCtaContent } from "@/lib/site-studio/native-templates";
 
 export function FinalCta({ content = homeFinalCtaContent }: { content?: HomeFinalCtaContent }) {
-  // The closing headline gets the Hero's own per-line clip-reveal
-  // (.line/.line > span) instead of the generic .rv entrance — an
-  // occasional signature move for the page's one true "arrival" moment,
-  // bookending the same treatment the hero opens with. Scroll-triggered
-  // via the same IO hook .rv uses, not Hero's mount-time `loaded` state.
-  const headingRef = useRv<HTMLHeadingElement>();
+  // One closing sequence owns the eyebrow, clipped headline lines, copy and action.
   return (
     <section className="ink-panel relative" id="call">
       <AmbientField />
-      <div className="wrap fcta">
-        <Reveal rv as="p" className="label eyebrow-anim">
+      <Reveal sequence className="wrap fcta">
+        <p data-home-step="0" className="label eyebrow-anim">
           {content.eyebrow}
-        </Reveal>
-        <h2 ref={headingRef} className="h2 line-h">
+        </p>
+        <h2 className="h2">
           <span className="line">
-            <span style={{ "--d": ".05s" } as CSSProperties}>{content.headingStart}</span>
+            <span data-home-step="1" className="home-close-line">
+              {content.headingStart}
+            </span>
           </span>
           <span className="line">
-            <span style={{ "--d": ".16s" } as CSSProperties}>{content.headingEnd}</span>
+            <span data-home-step="2" className="home-close-line">
+              {content.headingEnd}
+            </span>
           </span>
         </h2>
-        <Reveal rv as="p" className="lede" delay={0.13}>
+        <p data-home-step="3" className="lede">
           {content.body}
-        </Reveal>
-        <Reveal rv delay={0.19}>
+        </p>
+        <div data-home-step="4">
           <Link
             href={content.ctaHref}
             data-booking-cta
@@ -46,8 +44,8 @@ export function FinalCta({ content = homeFinalCtaContent }: { content?: HomeFina
               →
             </span>
           </Link>
-        </Reveal>
-      </div>
+        </div>
+      </Reveal>
     </section>
   );
 }
