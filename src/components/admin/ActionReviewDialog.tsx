@@ -58,6 +58,8 @@ const ACTION_CONSEQUENCE: Record<string, string> = {
     "Moves this opportunity to a new stage and records an immutable stage event.",
   create_task: "Creates a task on your queue.",
   update_next_action: "Changes the next step recorded on this opportunity.",
+  internal_permission_change:
+    "Grants only the internal operation, records, fields, expiry and daily limit shown below. Messages, publishing, billing and permission changes keep human approval.",
   admin_layout_change:
     "Reorders or hides an admin layout region immediately. Revert it any time from Settings → Layout.",
   create_founder_note:
@@ -132,7 +134,9 @@ export function ActionReviewDialog({
   onApprove,
   onReject,
   error,
+  inline = false,
 }: {
+  inline?: boolean;
   error?: string;
   open: boolean;
   action: ActionRow | null;
@@ -171,7 +175,12 @@ export function ActionReviewDialog({
           currency: policyFacts?.currency?.toUpperCase(),
           description: action.description,
         }
-      : action.payload,
+      : action.action_type === "internal_permission_change"
+        ? {
+            ...(action.payload?.permission as Record<string, unknown>),
+            description: action.description,
+          }
+        : action.payload,
     action.action_type,
   );
   const layoutSummary =
@@ -197,8 +206,9 @@ export function ActionReviewDialog({
         conversationId?: string;
       }>)
     : [];
+  const Surface = inline ? InlineReviewSurface : AdminDialog;
   return (
-    <AdminDialog
+    <Surface
       open={open}
       onClose={onClose}
       title="Review before approving"
@@ -614,6 +624,26 @@ export function ActionReviewDialog({
           </div>
         </div>
       </div>
-    </AdminDialog>
+    </Surface>
   );
+}
+
+function InlineReviewSurface({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: React.ReactNode;
+  onClose: () => void;
+  title: string;
+  labelledBy: string;
+}) {
+  return open ? (
+    <section
+      aria-label="Review exact changes"
+      className="mt-3 overflow-hidden rounded-xl bg-[var(--admin-surface)] shadow-[var(--admin-shadow-border)]"
+    >
+      {children}
+    </section>
+  ) : null;
 }

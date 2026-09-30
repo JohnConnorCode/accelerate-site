@@ -41,6 +41,8 @@ export interface WorkItem {
   error: string | null;
   agent_run_id: string | null;
   action_ids?: string[];
+  agent_plan?: Record<string, unknown> | null;
+  agent_plan_revision?: number;
   created_at: string;
   claimed_at: string | null;
   started_at: string | null;
@@ -96,6 +98,7 @@ export async function createWorkItem(
     maxAttempts?: number;
     actorEmail?: string | null;
     surfaceInInbox?: boolean;
+    agentPlan?: Record<string, unknown>;
   },
 ): Promise<{ workItem: WorkItem; deduplicated: boolean }> {
   const kind = input.kind.trim();
@@ -126,6 +129,7 @@ export async function createWorkItem(
     .from("work_items")
     .insert({
       kind,
+      ...(input.agentPlan ? { agent_plan: input.agentPlan, agent_plan_revision: 1 } : {}),
       objective,
       reason,
       source,

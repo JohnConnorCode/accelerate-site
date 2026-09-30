@@ -286,3 +286,21 @@ paths. Missing tasks, invalid field combinations and stale state refuse. Empty
 descriptions and due dates explicitly clear those values. Deletion, assignment,
 customer ownership, retained CRM source mutations and import controls are outside
 this task adapter slice; the broader CRM parity card remains incomplete.
+
+## Conversational work runtime
+
+`agent-work.ts` owns ordered, member-bound plans on the existing WorkItem engine.
+The `agent-work` execution policy permits orchestration controls only, never
+business mutation. Start deduplicates a stable request ID; controls and checkpoints
+compare revisions. Each provider attempt reserves a finite AI call allowance and
+rechecks the requester. Each tool step rechecks active membership and tenant state.
+A step advances from actual action receipts, including automatic internal effects.
+An interrupted step requires reconciliation and cannot replay automatically.
+
+`internal-permissions.ts` previews and stages the human grant. The shared executor
+uses `reserve_internal_action` to recheck named records, allowed fields, current
+policy, actor, expiry and atomic daily limits. External effects and permission
+changes cannot enter this internal execution path. In-chat review reuses the exact
+ActionReviewDialog and human decision endpoint. No approval tool is registered.
+Member OAuth uses these services; static integration keys cannot impersonate a
+requesting member. Pending proposals expose a tenant-scoped exact review link.

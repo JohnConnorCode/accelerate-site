@@ -9,6 +9,10 @@ export const ALWAYS_LOADED_AI_TOOLS = [
   "get_pending_actions",
   "get_workspace_capabilities",
   "propose_task",
+  "preview_agent_work",
+  "start_agent_work",
+  "get_agent_work",
+  "control_agent_work",
 ] as const;
 export const TOOL_DISCOVERY_METADATA = [
   {

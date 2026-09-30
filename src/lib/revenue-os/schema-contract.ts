@@ -5,9 +5,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-01.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-01.2";
 
 export const TENANT_SCOPED_TABLES = [
+  "internal_action_reservations",
   "ai_readiness_assessments",
   "ai_readiness_reports",
   "knowledge_documents",
@@ -274,6 +275,8 @@ const BASE_REVENUE_SCHEMA_TABLES = [
       "attempt_count",
       "action_ids",
       "agent_run_id",
+      "agent_plan",
+      "agent_plan_revision",
     ],
   },
   {
@@ -963,6 +966,12 @@ export const REVENUE_SCHEMA_FUNCTIONS = [
   ...REVENUE_SCHEMA_SERVICE_FUNCTIONS.map(({ name }) => name),
   "private.advance_client_handoff_revision()",
   "private.check_delivery_source_binding()",
+  "public.execute_internal_permission(uuid,uuid,jsonb)",
+  "public.reserve_internal_action(uuid,uuid,boolean,jsonb)",
+  "public.admit_demo_agent(text,uuid)",
+  "public.reserve_demo_inference(text,uuid,uuid,numeric)",
+  "public.settle_demo_inference(uuid,numeric)",
+  "public.finish_demo_agent(text,uuid)",
   "public.reserve_collection_reminder(uuid)",
   "public.reconcile_collection_reminder(uuid)",
   "public.sync_collection_observations(uuid,jsonb,text)",

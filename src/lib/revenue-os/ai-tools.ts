@@ -1,3 +1,18 @@
+import { previewAgentWork, startAgentWork, getAgentWork, controlAgentWork } from "./agent-work";
+import {
+  previewInternalPermission,
+  proposeInternalPermission,
+  tryExecuteInternalProposal,
+} from "./internal-permissions";
+import {
+  agentWorkPlanSchema,
+  agentWorkStartSchema,
+  agentWorkReadSchema,
+  agentWorkControlSchema,
+  internalPermissionSchema,
+  internalPermissionProposalSchema,
+} from "./internal-permission-contract";
+import { getTenantRequestContext } from "@/lib/tenancy/context";
 import { prepareOperatorTaskPatch, taskReviewState } from "./operator-task-patch";
 import { previewCollectionPolicy, proposeCollectionPolicy } from "./collection-policy";
 import {
@@ -237,6 +252,7 @@ type AiToolContext = {
   actorEmail: string;
   conversationId?: string | null;
   workItemId?: string;
+  requesterId?: string;
   toolPack?: RevenueToolPackId;
   /** Server-owned context; never accepted from model arguments. */
   workItem?: WorkItem;
@@ -257,7 +273,7 @@ type AiToolRegistration = {
   connectionRequirement: AiToolConnectionRequirement;
   impact: AiToolImpact;
   confirmationRequired: boolean;
-  executionPolicy?: "site-studio-delegation";
+  executionPolicy?: "site-studio-delegation" | "agent-work";
   execute: (context: AiToolContext, input: Record<string, unknown>) => Promise<unknown>;
 };
 
@@ -498,6 +514,20 @@ export function assertImpactHonoured(
   output: unknown,
   context?: AiToolContext,
 ): void {
+  if (tool.executionPolicy === "agent-work") {
+    const receipt = output as {
+      workItemId?: string;
+      authorization?: { mode?: string; scope?: string };
+    };
+    if (
+      !["start_agent_work", "control_agent_work"].includes(tool.name) ||
+      !receipt.workItemId ||
+      receipt.authorization?.mode !== "delegated_work" ||
+      receipt.authorization.scope !== "work_orchestration"
+    )
+      throw new Error("A scoped durable work receipt is required");
+    return;
+  }
   if (tool.executionPolicy === "site-studio-delegation") {
     if (
       tool.name !== "execute_site_change" ||
@@ -593,6 +623,139 @@ const PLUGIN_TOOL_EXECUTORS = {
 >;
 
 const registry: AiToolRegistration[] = [
+  {
+    name: "preview_agent_work",
+    description:
+      "Preview an ordered plan for a multi-step request. Use short concrete steps, name missing capabilities, and obtain the bound digest before starting. Does not change business records.",
+    inputSchema: z.toJSONSchema(agentWorkPlanSchema),
+    parseInput: (i) => agentWorkPlanSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.agent-work",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: (c, i) => previewAgentWork(c.supabase, i, c.actorEmail, c.conversationId),
+  },
+  {
+    name: "start_agent_work",
+    description:
+      "Start the exact previewed ordered plan for the member's request. Requires the returned digest and a stable UUID requestId. Queues durable work; business effects still require current scoped permission or human approval. Never claim queued work is complete.",
+    inputSchema: z.toJSONSchema(agentWorkStartSchema),
+    parseInput: (i) => agentWorkStartSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.agent-work",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: false,
+    executionPolicy: "agent-work",
+    execute: (c, i) => startAgentWork(c.supabase, i, c.actorEmail, c.conversationId),
+  },
+  {
+    name: "get_agent_work",
+    description:
+      "Read your durable plan, ordered step progress, approval IDs and actual receipts. Supply its canonical workItemId. No authority to approve effects.",
+    inputSchema: z.toJSONSchema(agentWorkReadSchema),
+    parseInput: (i) => agentWorkReadSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.agent-work",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: (c, i) => getAgentWork(c.supabase, i, c.actorEmail),
+  },
+  {
+    name: "control_agent_work",
+    description:
+      "Pause, resume or cancel your plan at its current revision. Cancel stops future steps; it does not undo completed effects or approve proposals. Read its revision first.",
+    inputSchema: z.toJSONSchema(agentWorkControlSchema),
+    parseInput: (i) => agentWorkControlSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.agent-work",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: false,
+    executionPolicy: "agent-work",
+    execute: (c, i) => controlAgentWork(c.supabase, i, c.actorEmail),
+  },
+  {
+    name: "preview_internal_permission",
+    description:
+      "Prepare bounded standing permission for routine internal tasks, notes, CRM next actions, tags or open-stage changes. Name exact records and fields, an expiry within 30 days and a daily cap. External, terminal, destructive, financial and permission changes remain human-approved.",
+    inputSchema: z.toJSONSchema(internalPermissionSchema),
+    parseInput: (i) => internalPermissionSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.internal-permissions",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: (c, i) => previewInternalPermission(c.supabase, i, c.actorEmail),
+  },
+  {
+    name: "propose_internal_permission",
+    description:
+      "Stage the exact bounded permission preview for explicit human approval in the conversation. Never grants authority itself. Supply the same permission and digest.",
+    inputSchema: z.toJSONSchema(internalPermissionProposalSchema),
+    parseInput: (i) => internalPermissionProposalSchema.parse(i),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.internal-permissions",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: (c, i) => proposeInternalPermission(c.supabase, i, c.actorEmail),
+  },
+  {
+    name: "propose_next_action",
+    description:
+      "Prepare an exact next action and optional due time for a canonical opportunity. Rechecks the prior next action when executed. Runs automatically only inside a current bounded internal permission.",
+    inputSchema: z.toJSONSchema(
+      z
+        .object({
+          opportunityId: z.uuid(),
+          nextAction: z.string().trim().min(1).max(1000),
+          nextActionAt: z.iso.datetime({ offset: true }).nullable().optional(),
+        })
+        .strict(),
+    ),
+    parseInput: (i) =>
+      z
+        .object({
+          opportunityId: z.uuid(),
+          nextAction: z.string().trim().min(1).max(1000),
+          nextActionAt: z.iso.datetime({ offset: true }).nullable().optional(),
+        })
+        .strict()
+        .parse(i),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async (c, i) => {
+      const before = await c.supabase
+        .from("opportunities")
+        .select("id,next_action,next_action_at")
+        .eq("id", i.opportunityId)
+        .maybeSingle();
+      if (before.error || !before.data) throw new Error("Opportunity not found in this workspace");
+      const payload = {
+        ...i,
+        expectedNextAction: before.data.next_action,
+        expectedNextActionAt: before.data.next_action_at,
+      };
+      return proposeAction(c.supabase, {
+        actionType: "update_next_action",
+        title: String(i.nextAction),
+        payload,
+        entityType: "opportunity",
+        entityId: String(i.opportunityId),
+        proposedBy: c.actorEmail,
+        sourceContext: "admin_ai",
+        dedupeKey: `next-action:${createHash("sha256").update(JSON.stringify(payload)).digest("hex")}`,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
+
   {
     name: "read_complete_gmail_thread",
     description:
@@ -3428,6 +3591,13 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "preview_agent_work",
+    "start_agent_work",
+    "get_agent_work",
+    "control_agent_work",
+    "preview_internal_permission",
+    "propose_internal_permission",
+    "propose_next_action",
     "read_complete_gmail_thread",
     "get_debate_production",
     "propose_debate_milestone",
@@ -3653,7 +3823,21 @@ export async function executeRegisteredRevenueTool(
   );
   validateToolOutput(tool.name, tool.outputSchema, output);
   assertImpactHonoured(tool, output, context);
-  return { output, tool };
+  const actor = getTenantRequestContext();
+  const requesterId =
+    context.requesterId ??
+    (actor?.kind === "actor" && actor.database === context.supabase ? actor.user.id : undefined);
+  let resolved = await tryExecuteInternalProposal(context.supabase, output, requesterId);
+  const proposal = resolved as { id?: string; status?: string } | null;
+  if (proposal?.id && proposal.status === "pending") {
+    const tenant = getTenantRequestContext();
+    const slug = tenant?.kind === "actor" ? tenant.tenant.slug : tenant?.tenantSlug;
+    resolved = {
+      ...proposal,
+      approvalUrl: `${slug ? `/t/${encodeURIComponent(slug)}` : ""}/admin/work?tab=approvals&action=${encodeURIComponent(proposal.id)}`,
+    };
+  }
+  return { output: resolved, tool };
 }
 
 /** True only when a complete model tool-call batch can run without ordered state changes. */

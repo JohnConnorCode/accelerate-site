@@ -148,6 +148,12 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     navLinkIds: ["today", "work", "inbox", "activity"],
     routes: ["/admin/today", "/admin/work", "/admin/inbox", "/admin/activity"],
     aiToolNames: [
+      "preview_agent_work",
+      "start_agent_work",
+      "get_agent_work",
+      "control_agent_work",
+      "preview_internal_permission",
+      "propose_internal_permission",
       "get_today_snapshot",
       "get_today_workspace",
       "get_today_views",
@@ -171,7 +177,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["pipeline"],
     routes: ["/admin/pipeline"],
-    aiToolNames: ["search_pipeline", "propose_stage_change"],
+    aiToolNames: ["search_pipeline", "propose_stage_change", "propose_next_action"],
   },
   {
     id: "core-conversations",

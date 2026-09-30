@@ -27,6 +27,7 @@ import {
   proposeAction,
 } from "./actions";
 import { executeRuntimeAction } from "./runtime-actions";
+import { reserveInternalAction, executeInternalPermission } from "./internal-permissions";
 import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
 import { ACTION_REVERSIBILITY, reversibilityOf } from "./action-reversibility";
@@ -64,7 +65,7 @@ export async function approveAndExecuteAction(
   supabase: SupabaseClient,
   id: string,
   actorEmail: string,
-  options?: { mode?: "approved" | "autonomous" },
+  options?: { mode?: "approved" | "autonomous"; requesterId?: string },
 ) {
   const mode = options?.mode ?? "approved";
   const action = await claimApprovedAction(supabase, id, actorEmail, mode);
@@ -135,6 +136,12 @@ export async function approveAndExecuteAction(
       (denial as Error & { actionDenied?: boolean }).actionDenied = true;
       throw denial;
     }
+    if (mode === "autonomous") {
+      if (!options?.requesterId)
+        throw new Error("A current requesting member is required for internal autonomy");
+      const admission = await reserveInternalAction(supabase, id, options.requesterId, true);
+      if (!admission.allowed) throw new Error(`Internal permission denied: ${admission.reason}`);
+    }
     await recordAudit(supabase, {
       actorEmail,
       action: "action.authorized",
@@ -151,6 +158,11 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "internal_permission_change": {
+        if (mode !== "approved") throw new Error("Permission changes require exact human approval");
+        result = await executeInternalPermission(supabase, id, payload, actorEmail);
+        break;
+      }
       case "knowledge_document_change": {
         if (mode !== "approved") throw new Error("Knowledge changes require human approval");
         const { executeKnowledgeChange } = await import("./knowledge-documents");
@@ -566,15 +578,30 @@ export async function approveAndExecuteAction(
               next_action_at: priorRow.next_action_at ?? null,
             }
           : null;
-        const { data, error } = await supabase
+        if (
+          Object.hasOwn(payload, "expectedNextAction") &&
+          (priorRow?.next_action !== payload.expectedNextAction ||
+            priorRow?.next_action_at !== payload.expectedNextActionAt)
+        )
+          throw new Error("Opportunity next action changed; prepare a fresh proposal");
+        let update = supabase
           .from("opportunities")
           .update({
             next_action: stringValue(payload, "nextAction")!,
             next_action_at: stringValue(payload, "nextActionAt", false) ?? null,
           })
-          .eq("id", opportunityId)
-          .select("id,next_action,next_action_at")
-          .single();
+          .eq("id", opportunityId);
+        if (Object.hasOwn(payload, "expectedNextAction")) {
+          update =
+            payload.expectedNextAction === null
+              ? update.is("next_action", null)
+              : update.eq("next_action", payload.expectedNextAction);
+          update =
+            payload.expectedNextActionAt === null
+              ? update.is("next_action_at", null)
+              : update.eq("next_action_at", payload.expectedNextActionAt);
+        }
+        const { data, error } = await update.select("id,next_action,next_action_at").single();
         if (error) throw new Error(error.message);
         result = data;
         break;

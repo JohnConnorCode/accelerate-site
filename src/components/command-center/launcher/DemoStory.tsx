@@ -17,19 +17,19 @@ import styles from "./launcher.module.css";
 
 const steps = [
   {
-    title: "See what matters",
-    label: "A new inquiry",
-    caption: "The conversation, customer and next step come together in one workspace.",
+    title: "Give it a job",
+    label: "Find the inquiry and prepare a reply",
+    caption: "“Find unanswered inquiries and prepare a reply using each customer’s history.”",
     status: "Needs a reply",
   },
   {
-    title: "Let AI prepare",
+    title: "Review its work",
     label: "A reply, ready to review",
     caption: "AI uses the conversation to prepare a useful response. You review the details.",
     status: "Ready for review",
   },
   {
-    title: "Move work forward",
+    title: "Check the result",
     label: "A clear record of the result",
     caption: "Approved work stays connected to the customer, with a result you can check.",
     status: "Demo action complete",
@@ -63,7 +63,7 @@ export function DemoStory() {
           <div className={styles.productHeading}>
             <div>
               <span className={styles.eyebrow}>NORTHLINE ROOFING</span>
-              <h2>Your next opportunity.</h2>
+              <h2>A request becomes useful work.</h2>
             </div>
             <span className={styles.demoPill}>DEMO</span>
           </div>
@@ -110,10 +110,10 @@ export function DemoStory() {
               </div>
               <p>
                 {step === 0
-                  ? "Jordan is asking about an inspection this week. Review the conversation and prepare a response."
+                  ? "The agent finds Jordan’s unanswered request, checks the linked opportunity and prepares the next step."
                   : step === 1
                     ? "Hi Jordan, thanks for reaching out. Could you share the property address and a convenient time for us to discuss the inspection?"
-                    : "The example reply is marked complete. The conversation and activity history show what happened next."}
+                    : "After your approval, the simulated reply appears in the thread. The follow-up and receipt stay linked to the customer."}
               </p>
               <button
                 type="button"
@@ -130,7 +130,7 @@ export function DemoStory() {
             </div>
           </div>
           <div className={styles.productFooter}>
-            <Check size={13} /> Fictional example · Explore the full workflow below
+            <Check size={13} /> Fictional example · Try your own request in the workspace
           </div>
         </div>
       </div>

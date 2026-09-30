@@ -57,7 +57,70 @@ try {
     page.on("console", (m) => {
       if (m.type() === "error") errors.push(m.text());
     });
-    await page.route("**/*", (route) => {
+    await page.route("**/*", async (route) => {
+      if (new URL(route.request().url()).pathname === "/api/demo/agent") {
+        const input = route.request().postDataJSON();
+        const matches = input.snapshot.collections.filter((c) => input.text.includes(c.name));
+        assert.equal(matches.length, 1);
+        const c = matches[0];
+        const patch = /owner/i.test(input.text)
+          ? { ownerEmail: input.text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)[0] }
+          : { paused: !/resume/i.test(input.text) };
+        const preview = await page.evaluate(
+          async ({ caseId, patch }) =>
+            (
+              await (
+                await fetch("/api/admin/collections/policy", {
+                  method: "POST",
+                  body: JSON.stringify({ action: "preview", caseId, patch }),
+                })
+              ).json()
+            ).preview,
+          { caseId: c.id, patch },
+        );
+        const id = crypto.randomUUID();
+        const proposal = {
+          id,
+          tool: "propose_collection_policy",
+          action_type: "update_collection_policy",
+          title: `Update collection policy: ${c.name}`,
+          description: preview.text,
+          status: "pending",
+          payload: {
+            caseId: c.id,
+            patch,
+            facts: { name: c.name, email: c.email, currency: c.currency },
+            preview: { to: "", text: preview.text },
+            digest: preview.digest,
+          },
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 3600000).toISOString(),
+        };
+        return route.fulfill({
+          json: {
+            runId: crypto.randomUUID(),
+            text: "The policy proposal is ready for review. Nothing has executed.",
+            status: "completed",
+            model: "controlled-policy-QA",
+            events: [
+              {
+                type: "proposal_staged",
+                proposal: {
+                  id,
+                  actionType: proposal.action_type,
+                  title: proposal.title,
+                  impact: "internal_write",
+                  entityType: "collection_case",
+                  entityId: c.id,
+                },
+              },
+            ],
+            proposals: [proposal],
+            usage: { inputTokens: 100, outputTokens: 20, durationMs: 20 },
+            toolNames: ["preview_collection_policy", "propose_collection_policy"],
+          },
+        });
+      }
       const url = new URL(route.request().url());
       if (url.origin !== base || url.pathname.startsWith("/api/")) {
         escaped.push(url.origin + url.pathname);
@@ -73,7 +136,7 @@ try {
       page.evaluate(async (text) => {
         const r = await fetch("/api/admin/revenue-os/ai/stream", {
           method: "POST",
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, clientMessageId: crypto.randomUUID() }),
         });
         if (!r.ok) throw new Error(await r.text());
         return (await r.text())
@@ -91,7 +154,7 @@ try {
       const input = page.getByRole("textbox", { name: "Ask the business", exact: true });
       await input.fill(`Set the collection owner for ${c.name} to owner@example.test`);
       await input.press("Enter");
-      await page.getByText("1 change staged. Nothing has executed.", { exact: true }).waitFor();
+      await page.getByText("Review each exact change below.", { exact: true }).waitFor();
       const queued = (await cases())[0].actions.find(
         (a) => a.action_type === "update_collection_policy" && a.status === "pending",
       );

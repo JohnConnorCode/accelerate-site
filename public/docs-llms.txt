@@ -72,7 +72,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 - [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-27): Review tasks, approvals and AI work, and save task views for your workspace.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-30): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-27): Trace a change back to who made it, what happened, and when.
-- [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-26): Ask a specific question, see the records it used to answer, and review anything it proposes.
+- [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-30): Ask a specific question, see the records it used to answer, and review anything it proposes.
 
 ## Conversations
 The reply-ready inbox for Gmail, forms, chat, and transcripts.
@@ -133,7 +133,7 @@ The assistant, run traces, knowledge, and source-to-revenue analytics.
 
 - [Put AI to work with your business context](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-19): Ask a real question, see the evidence behind the answer, and review whatever it prepares.
 - [Review opportunities with Radar](https://www.acceleratewith.us/docs/intelligence/opportunity-radar) (updated 2026-09-19): Review sourced opportunities and relationships, with model spend off by default and every send reviewed.
-- [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-29): Every registered tool, generated straight from the registry: what it needs and what it does.
+- [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-30): Every registered tool, generated straight from the registry: what it needs and what it does.
 - [Teach the business with the Learning Inbox](https://www.acceleratewith.us/docs/intelligence/learning-inbox) (updated 2026-09-23): Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work.
 - [Use the AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-27): Ask a specific question, check the sources behind the answer, then inspect what ran.
 
@@ -184,7 +184,7 @@ For coding agents and humans: add a module, an integration adapter, a plugin, or
 - [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-19): Register a plugin manifest with tools and triggers that still route through real governance.
 - [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-19): Register a schema, an impact tier, and a service boundary; a mutating tool always proposes.
 - [MCP concepts](https://www.acceleratewith.us/docs/extend/mcp) (updated 2026-09-19): Bounded reads, staged writes, and tenant isolation, using the exact same registry the UI uses.
-- [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-29): Point an external assistant at the right workspace, and verify a read before trusting it.
+- [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-30): Point an external assistant at the right workspace, and verify a read before trusting it.
 - [Inbound webhooks](https://www.acceleratewith.us/docs/extend/webhooks) (updated 2026-09-19): A tenant-scoped public route that checks the signature before anything touches real data.
 
 ## Self-hosting

@@ -294,7 +294,53 @@ export async function handleDemoCollections(
       text: changes.join("\n") + "\nUpdates case follow-up work. No reminder is sent.",
     };
   };
+  const stagePolicy = async (c: CollectionCaseView, raw: unknown, expectedDigest?: string) => {
+    const patch = collectionCasePatchSchema.parse(raw);
+    const current = await policyPreview(c, patch);
+    if (expectedDigest && expectedDigest !== current.digest)
+      throw new Error("Collection policy changed; preview again");
+    let queued = state.actions.find(
+      (a) =>
+        a.action_type === "update_collection_policy" &&
+        a.digest === current.digest &&
+        a.status === "pending",
+    );
+    if (!queued) {
+      queued = {
+        id: crypto.randomUUID(),
+        action_type: "update_collection_policy",
+        title: `Update collection policy: ${c.name}`,
+        description: current.text,
+        status: "pending",
+        error: null,
+        payload: {
+          caseId: c.id,
+          patch,
+          facts: { name: c.name, email: c.email, currency: c.currency },
+          preview: { to: "", text: current.text },
+        },
+        result: null,
+        pluginId: "receivables-collections",
+        created_at: now(),
+        digest: current.digest,
+      };
+      state.actions.unshift(queued);
+      record(c, "policy_proposed");
+    }
+    return { queued, current };
+  };
   try {
+    if (url.pathname === "/api/admin/collections/policy" && method === "POST") {
+      const c = find(body.caseId);
+      if (body.action === "preview")
+        return response({ preview: await policyPreview(c, body.patch) });
+      if (body.action === "propose" && typeof body.digest === "string")
+        return response({
+          action: (await stagePolicy(c, body.patch, body.digest)).queued,
+          simulated: true,
+        });
+      throw new Error("An exact policy preview or proposal is required");
+    }
     if (policyChat) {
       enabled();
       const text = String(body.text).trim();
@@ -313,34 +359,7 @@ export async function handleDemoCollections(
       if (/\bowner\b/i.test(text) && !owner)
         throw new Error("Include the owner's email in the demo policy request");
       const current = await policyPreview(c, patch);
-      let queued = state.actions.find(
-        (a) =>
-          a.action_type === "update_collection_policy" &&
-          a.digest === current.digest &&
-          a.status === "pending",
-      );
-      if (!queued) {
-        queued = {
-          id: crypto.randomUUID(),
-          action_type: "update_collection_policy",
-          title: `Update collection policy: ${c.name}`,
-          description: current.text,
-          status: "pending",
-          error: null,
-          payload: {
-            caseId: c.id,
-            patch,
-            facts: { name: c.name, email: c.email, currency: c.currency },
-            preview: { to: "", text: current.text },
-          },
-          result: null,
-          pluginId: "receivables-collections",
-          created_at: now(),
-          digest: current.digest,
-        };
-        state.actions.unshift(queued);
-        record(c, "policy_proposed");
-      }
+      const { queued } = await stagePolicy(c, patch);
       const answer = `Simulated policy proposal for ${c.name}:\n${current.text}\nReview it in Collections and approve or reject it. The policy has not changed.`;
       const events: AiCommandStreamEvent[] = [
         {

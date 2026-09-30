@@ -21,6 +21,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { useAdminAI, type AdminAIMessage } from "./AdminAIProvider";
+import { ActionReviewDialog } from "./ActionReviewDialog";
 import { ArchitectEvidencePanel } from "./ArchitectEvidencePanel";
 import { ArchitectUnderstandingPanel } from "./ArchitectUnderstandingPanel";
 import { cn } from "@/lib/utils";
@@ -495,11 +496,80 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
                     </ol>
                   </div>
                 )}
+                {isLatestAssistant &&
+                  ai.workProgress.map((work) => (
+                    <section
+                      key={work.workItemId}
+                      className="mt-3 rounded-xl bg-[var(--admin-surface)] p-3 shadow-[var(--admin-shadow-border)]"
+                      aria-label="Delegated work progress"
+                    >
+                      <h3 className="text-sm font-semibold">
+                        {work.plan?.objective ?? "Your delegated work"}
+                      </h3>
+                      <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                        {work.status.replaceAll("_", " ")}
+                        {work.plan?.control === "paused" ? " · paused" : ""}
+                      </p>
+                      {work.plan && (
+                        <ol className="mt-2 space-y-2 text-xs">
+                          {work.plan.steps.map((step, index) => (
+                            <li key={index}>
+                              <strong>
+                                {index + 1}. {step.title}
+                              </strong>{" "}
+                              · {step.status.replaceAll("_", " ")}
+                              {step.receipt && (
+                                <p className="mt-1 whitespace-pre-wrap text-[var(--admin-muted)]">
+                                  {step.receipt}
+                                </p>
+                              )}
+                            </li>
+                          ))}
+                        </ol>
+                      )}
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="admin-button"
+                          onClick={() => void ai.readWorkProgress(work.workItemId)}
+                        >
+                          Read current progress
+                        </button>
+                        {work.plan &&
+                          !["completed", "failed", "cancelled"].includes(work.status) && (
+                            <>
+                              <button
+                                type="button"
+                                className="admin-button"
+                                onClick={() =>
+                                  void ai.controlWork(
+                                    work.workItemId,
+                                    work.plan!.control === "paused" ? "resume" : "pause",
+                                    work.revision,
+                                  )
+                                }
+                              >
+                                {work.plan.control === "paused" ? "Resume" : "Pause"}
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-button"
+                                onClick={() =>
+                                  void ai.controlWork(work.workItemId, "cancel", work.revision)
+                                }
+                              >
+                                Cancel future steps
+                              </button>
+                            </>
+                          )}
+                      </div>
+                    </section>
+                  ))}
                 {isLatestAssistant && ai.proposals.length > 0 && (
                   <div className="mt-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-3">
                     <p className="text-xs font-semibold text-[var(--admin-ink)]">
                       {ai.proposals.length} change{ai.proposals.length === 1 ? "" : "s"} staged.
-                      Nothing has executed.
+                      Review each exact change below.
                     </p>
                     <ul className="mt-2 space-y-1">
                       {ai.proposals.map((proposal) => (
@@ -507,19 +577,34 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
                           key={proposal.id}
                           className="rounded-lg bg-[var(--admin-surface)] px-3 py-2 text-xs shadow-[var(--admin-shadow-border)]"
                         >
-                          <span className="block truncate font-semibold">{proposal.title}</span>
+                          <button
+                            type="button"
+                            className="min-h-10 text-left font-semibold underline underline-offset-4"
+                            onClick={() => void ai.reviewProposal(proposal.id)}
+                          >
+                            Review: {proposal.title}
+                          </button>
                           <span className="text-[10px] uppercase tracking-[0.07em] text-[var(--admin-muted)]">
                             {proposal.impact.replace(/_/g, " ")}
                           </span>
                         </li>
                       ))}
                     </ul>
-                    <Link
-                      href="/admin/today?focus=approvals"
-                      className="admin-button admin-button--primary mt-3"
-                    >
-                      Review exact changes
-                    </Link>
+                    <ActionReviewDialog
+                      inline
+                      open={Boolean(ai.reviewedAction)}
+                      action={ai.reviewedAction}
+                      busy={ai.reviewing}
+                      error={ai.error}
+                      onClose={() => void ai.reviewProposal(null)}
+                      onApprove={() => void ai.decideProposal("approve")}
+                      onReject={() => void ai.decideProposal("reject")}
+                    />
+                    {ai.reviewedAction && (
+                      <p className="mt-2 text-xs text-[var(--admin-muted)]">
+                        You can also type “approve” or “reject” for this exact proposal.
+                      </p>
+                    )}
                   </div>
                 )}
                 {message.role === "assistant" && message.content && (

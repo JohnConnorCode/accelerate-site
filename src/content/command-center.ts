@@ -411,20 +411,18 @@ export const capabilities: Capability[] = [
   {
     id: "chat",
     category: "connect",
-    title: "Chat with your own data",
-    promise:
-      "Ask what you agreed with a client in March and get the answer with the record it came from.",
+    title: "Run work through conversation",
+    promise: "Ask for the result you need, review exact changes in chat and follow the saved work.",
     detail:
-      "With Content enabled, the assistant can list calendar items by status or category, propose exact item edits for administrator review, and prepare a grounded editorial brief when an AI provider is configured. Connected MCP clients use the same calendar tools. It cites records it reads and reports unavailable sources instead of guessing.",
+      "Ask AI reads records, prepares replies and tasks, and previews ordered jobs. Configured background work retains progress after the browser closes. You can approve exact proposals inside chat and grant bounded permission for named internal operations. Messages, publishing, billing and permission changes keep human review. Available tools depend on modules, providers and current access.",
   },
   {
     id: "mcp",
     category: "connect",
     title: "Your own assistant, connected",
-    promise:
-      "Connect a compatible MCP assistant to bounded workspace reads and proposals for review.",
+    promise: "Use a connected agent to read records, prepare changes and manage saved work.",
     detail:
-      "Compatible clients can use tenant keys; supported ChatGPT web workspaces can use a separately configured OAuth connection. Both reach registered workspace tools with module and approval rules. A distinct owner-only Site Studio OAuth connection can edit the installation website under revocable delegation, with recorded results.",
+      "Compatible clients use the same registered tools, record services and approval rules. An authenticated member connection can delegate ordered work and read or control its progress. Tenant bearer keys retain integration scope. Pending proposals link to the exact human review, and unsupported operations are reported plainly. A separate owner-only Site Studio connection handles website editing.",
   },
   {
     id: "sms",

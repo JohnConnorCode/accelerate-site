@@ -230,6 +230,7 @@ jobs:
         run: |
           echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
           PATH="$(pg_config --bindir):$PATH" npm run test:tenant-lifecycle:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:conversational-agent:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
@@ -501,6 +502,7 @@ jobs:
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
             node scripts/qa-demo-business-workflows.mjs
+            node scripts/qa-conversational-agent.mjs
           ) &
           public_qa_pid=$!
           (
@@ -561,6 +563,7 @@ jobs:
             /tmp/accelerate-operator-workspace/
             /tmp/accelerate-work-board-qa/
             /tmp/accelerate-booking-mode/
+            /tmp/accelerate-conversational-agent/
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
             /tmp/accelerate-client-interactions/

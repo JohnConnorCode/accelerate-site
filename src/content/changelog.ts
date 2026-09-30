@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "conversational-command-center",
+    slug: "conversational-command-center",
+    title: "Review and delegate work in conversation",
+    description:
+      "Ask AI can show exact proposals and accept your decision inside chat. Authenticated members can preview ordered jobs, retrieve saved progress and pause, resume or cancel future steps through the shared AI and MCP tools. Bounded internal permission names records, fields, expiry and a daily limit; consequential actions keep human review. The public demo has clearer task examples and a separately configured real inference service with a shared $5 daily cap. All demo business effects remain simulated. This source change requires its migration and configuration before hosted activation; merge and deployment are separate.",
+    category: "improvement",
+    publishedAt: "2026-09-30",
+  },
+  {
     id: "approved-workspace-configuration",
     slug: "approved-workspace-configuration",
     title: "Review workspace configuration with AI",
