@@ -1,3 +1,6 @@
+import { createOpportunity, transitionOpportunity } from "../src/lib/revenue-os/pipeline";
+import { completeOperatorTask } from "../src/lib/revenue-os/tasks";
+import { writeJourneyEvidence } from "./lib/reference-journey-evidence";
 import { retrievePluginKnowledge } from "../src/lib/revenue-os/plugin-knowledge";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import { MODULE_MAP } from "../src/lib/revenue-os/modules";
@@ -62,7 +65,6 @@ async function main() {
   const tenantId = "11111111-1111-4111-8111-111111111111",
     other = "22222222-2222-4222-8222-222222222222",
     user = "33333333-3333-4333-8333-333333333333",
-    opportunityId = "44444444-4444-4444-8444-444444444444",
     meetingId = "55555555-5555-4555-8555-555555555555";
   const mem = new AuthorizedMemorySupabase({
     tenants: [
@@ -75,9 +77,16 @@ async function main() {
       { id: other, name: "Other company", status: "active", config: {} },
     ],
     tenant_memberships: [{ tenant_id: tenantId, user_id: user, status: "active" }],
-    opportunities: [
-      { id: opportunityId, tenant_id: tenantId, name: "Implementation", stage: "won" },
+    kanban_columns: [
+      ...["new", "qualified", "won"].map((column_key) => ({
+        tenant_id: tenantId,
+        board_key: "pipeline",
+        column_key,
+        label: column_key,
+        metadata: { role: column_key === "won" ? "won" : "open" },
+      })),
     ],
+    opportunities: [],
     calendar_events: [
       {
         id: meetingId,
@@ -91,6 +100,35 @@ async function main() {
   mem.idFactory = (sequence) => `aaaaaaaa-aaaa-4aaa-8aaa-${String(sequence).padStart(12, "0")}`;
   const db = bindTenantDatabase(mem.client, tenantId, true),
     foreign = bindTenantDatabase(mem.client, other, true);
+  const inquiry = await createOpportunity(db, {
+    actorEmail: "qa@example.example",
+    name: "Delivery Customer",
+    email: "delivery@example.test",
+    companyName: "Customer Company",
+    opportunityName: "Implementation",
+    source: "controlled_inquiry",
+  });
+  const opportunityId = inquiry.id;
+  await transitionOpportunity(db, {
+    id: opportunityId,
+    to: "qualified",
+    actorEmail: "qa@example.example",
+    source: "reference_journey",
+    reason: "Reviewed delivery inquiry",
+  });
+  await transitionOpportunity(db, {
+    id: opportunityId,
+    to: "won",
+    actorEmail: "qa@example.example",
+    source: "reference_journey",
+    reason: "Customer accepted the reviewed delivery scope",
+  });
+  assert.equal(
+    mem
+      .rows("stage_events")
+      .find((row) => row.opportunity_id === opportunityId && row.to_stage === "won")?.to_stage,
+    "won",
+  );
   const brand = await readWorkspaceBrand(db);
   const saved = await saveWorkspaceBrand(
     db,
@@ -270,17 +308,47 @@ async function main() {
       /fresh review/,
     );
     assert.equal(mem.rows("tasks").length, pluginId === "client-onboarding" ? 0 : 1);
+    const approvalStarted = performance.now();
     const result = (await approveAndExecuteAction(db, action.id, "qa@example.example")) as {
       complete: boolean;
       tasks: { id: string }[];
     };
+    const approvalMs = performance.now() - approvalStarted;
     assert.equal(result.complete, true);
     assert.equal(result.tasks.length, 1);
     const row = mem.rows("tasks").find((row) => row.id === result.tasks[0]!.id)!;
     assert.equal(row.assigned_to, user);
     assert.equal(row.related_id, sourceId);
     assert.equal(row.tenant_id, tenantId);
-    row.status = "completed";
+    const completionStarted = performance.now();
+    await completeOperatorTask(db, { id: String(row.id), actorEmail: "qa@example.example" });
+    assert.equal(row.status, "completed");
+    if (pluginId === "client-onboarding") {
+      writeJourneyEvidence("onboarding", {
+        tenantId,
+        timingsMs: { approvalMs, completionMs: performance.now() - completionStarted },
+        opportunityId,
+        contactId: inquiry.contact_id,
+        companyId: inquiry.company_id,
+        actionId: action.id,
+        taskId: row.id,
+        assigneeUserId: user,
+        dueDate: row.due_date,
+        stages: [
+          "inquiry",
+          "qualified",
+          "won",
+          "reviewed_plan",
+          "approved_assigned_task",
+          "completed",
+        ],
+        task: row,
+        stageEvent: mem
+          .rows("stage_events")
+          .find((row) => row.opportunity_id === opportunityId && row.to_stage === "won"),
+        approval: mem.rows("action_queue").find((row) => row.id === action.id)?.approved_by,
+      });
+    }
     const repeated = await proposeWorkflowPlugin(
       db,
       pluginId,

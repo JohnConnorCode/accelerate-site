@@ -37,6 +37,8 @@ A plugin can be more than a small report. Collections adds its own case lifecycl
 
 Study the [plugin source and architecture](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/receivables-collections/README.md) to see the bounded decision program, case records and host integration. AI tools can read cases, preview and propose reminders, and prepare exact case policy changes through the same services. A policy proposal covers holds, disputes, payment promises, ownership and next actions; approval checks current case, recipient and invoice facts. Policy changes send no email. The assistant cannot approve its own work. See the [case policy workflow](/docs/outreach/collections#change-a-case-through-ask-ai) for a worked example and recovery.
 
+The default reminder cooldown is 72 hours from the confirmed message receipt. New reminder reviews use that saved delivery time, including timestamps returned by the database, to keep the next action consistent with the case history.
+
 ## Costs, disabling and recovery
 
 The decision program and reminder wording are deterministic. Provider and hosting usage can incur costs; surrounding AI chat uses the workspace model. Keep credentials in connection storage and business policies on the case.

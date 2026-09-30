@@ -102,7 +102,7 @@ Drafts, pricing validation, decisions, and follow-up.
 ## Follow-up
 The discipline that decides most inquiries: respond first, follow through, and let nothing wait.
 
-- [Follow up on an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-19): Assign the response, name a real next action, and close the loop once it's answered.
+- [Follow up on an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-29): Assign the response, name a real next action, and close the loop once it's answered.
 
 ## Outreach
 Campaigns, email templates, and reactivation of past demand.

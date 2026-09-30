@@ -3273,7 +3273,7 @@ const registry: AiToolRegistration[] = [
       if (!latest?.external_id) throw new Error("This Gmail thread has no message to reply to");
       const { data: contact, error: contactError } = await supabase
         .from("contacts")
-        .select("email")
+        .select("primary_email")
         .eq("tenant_id", tenantId)
         .eq("id", conversation.contact_id)
         .maybeSingle();
@@ -3282,7 +3282,7 @@ const registry: AiToolRegistration[] = [
         conversationId,
         opportunityId: conversation.opportunity_id,
         contactId: conversation.contact_id,
-        to: contact?.email ?? "",
+        to: contact?.primary_email ?? "",
         subject: buildGmailReplySubject(conversation.subject, latest.subject),
         body,
         reasoning,

@@ -104,7 +104,7 @@ async function main() {
     // A late verified provider/webhook receipt resolves uncertainty with no resend.
     Object.assign(table("messages")[0]!, {
       provider_id: "email_late",
-      sent_at: new Date().toISOString(),
+      sent_at: new Date().toISOString().replace("Z", "+00:00"),
       status: "sent",
     });
     await retryPluginAction(db, id, "owner@example.test");

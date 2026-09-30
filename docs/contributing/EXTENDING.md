@@ -719,3 +719,33 @@ Marketing/Postiz provides a concrete implementation and
 [extension map](../../plugins/social-marketing/EXTENDING.md). Its upstream
 manifest metadata is optional and does not turn arbitrary repositories into
 trusted executable plugins.
+
+## Verify the reference business journeys
+
+Run `npm run resources:run -- npm run test:reference-business-journeys` with
+PostgreSQL 15 or newer's `initdb`, `pg_ctl` and `psql` on PATH. The command runs
+sequentially and creates a disposable local database. It never uses hosted
+credentials or sends to real recipients.
+
+The sales proof creates canonical identity and an opportunity, qualifies it,
+proposes a Gmail draft through the registered tool and approves it through the
+shared executor. Controlled Gmail synchronization confirms a manual send and
+then closes the same WorkItem on the customer's reply. The onboarding proof
+moves a qualified opportunity to won, reviews the isolated workflow, approves
+an assigned task and completes it through the task service. The receivables
+proof carries the invoice creation service's exact action and provider facts
+into real PostgreSQL case ingestion, reminder reservation, verified-message
+reconciliation and paid settlement. Service reads and provider responses use
+explicit controlled transports; PostgreSQL lifecycle functions are real.
+
+The printed `report.json` records the source SHA, whether the tree was dirty,
+acceptance coverage, per-check timing and the correlated tenant/entity/action/
+WorkItem/receipt IDs. Adjacent journey files contain selected fictional facts.
+The six-scenario first-use timings measure fixture execution, not human setup
+or production latency. No redundant provider call was demonstrated, so no call
+was removed. Auth delivery, hosted PostgREST and real provider outcomes require
+separate controlled-installation evidence before release. CI requires this
+suite and uploads its evidence. `npm run qa:demo-business-workflows` additionally
+checks all six fictional workspaces on desktop and mobile against an already
+running local server, rejects escaped API/provider traffic and saves screenshots
+and a source-pinned browser report in `/tmp/accelerate-demo-business/`.

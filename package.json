@@ -235,6 +235,7 @@
     "test:report-plugins": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-report-plugins.ts",
     "test:report-plugins-browser": "node --env-file=.env.local scripts/qa-report-plugins.mjs",
     "test:stripe-workflow": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-stripe-workflow.ts",
+    "test:reference-business-journeys": "node scripts/test-reference-business-journeys.mjs",
     "test:business-workflows": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-workflow-business-outcomes.ts",
     "test:plugin-workflow-postgres": "node scripts/test-plugin-workflow-postgres.mjs",
     "test:stripe-sandbox": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-stripe-sandbox.ts",
