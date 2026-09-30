@@ -499,10 +499,10 @@ jobs:
             set -e
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
             if [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
+            node scripts/qa-conversational-agent.mjs
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
             node scripts/qa-demo-business-workflows.mjs
-            node scripts/qa-conversational-agent.mjs
           ) &
           public_qa_pid=$!
           (

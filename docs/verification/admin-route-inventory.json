@@ -177,7 +177,7 @@
     "src/components/admin/AddLeadModal.tsx": "57e3653a3cd765a8788b50135ac98140c417c8b9369bccc43b0f1b6159c5a30b",
     "src/components/admin/AdminAIChat.tsx": "7775f4984dde1f65c8a3726e356ce851d4fea0395ab4bfb0f35cf0c21b51c718",
     "src/components/admin/AdminAIPanel.tsx": "b7153809b5422c884a719a0ae3210eace4223838e4be334fc0b8340884ac647a",
-    "src/components/admin/AdminAIProvider.tsx": "4b8545d2d32845ca9711b6471aef4adfe7e32c5cec6f4229b01c19bb9d479526",
+    "src/components/admin/AdminAIProvider.tsx": "34b52010c4e24ab8ecb7dddefc284c5bb0a1b43d82d8640e64fb9f462e8f818c",
     "src/components/admin/AdminAIWorkspace.tsx": "cb613eda4a0de12c4247dd2389123be574fdb7f162da6cdd336ee4c38d5e2f06",
     "src/components/admin/AdminAppearancePicker.tsx": "2f999424ec4d1262c3a7fc555f12be18664fdebdfe47eae51a21fddcb90a09c6",
     "src/components/admin/AdminAsyncRegion.tsx": "99be3bc487e69c11e5159e61b525e3500e81399a8344eb3f6cc1cea812fd0e4b",

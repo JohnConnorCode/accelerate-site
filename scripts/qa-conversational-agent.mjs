@@ -91,6 +91,7 @@ try {
       await page.goto(`${base}/demo/command-center/${scenario}/ai?agent=inquiry`);
       const input = page.getByRole("textbox", { name: "Ask the business" }).first();
       await input.waitFor();
+      assert.equal(await page.getByRole("textbox", { name: "Ask the business" }).count(), 1);
       await page.waitForFunction(() =>
         document
           .querySelector('textarea[aria-label="Ask the business"]')
