@@ -49,6 +49,16 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   application runtime fails to start.
 - Each below-fold group remains pending until it reaches the explicit 76–78%
   viewport entry line.
+- The shared lifecycle re-arms retained DOM before paint on fresh cached visits.
+  History restoration completes owners already in view without replaying them;
+  below-fold owners still enter when reached. Persisted `pageshow` completes
+  visible entrances. Animation recipes honor `reveal-immediate`, including
+  generic UI and legacy stagger groups. A document history hint must not control
+  an already committed owner's animation, or later navigation can restart it.
+- Pending owners share one frame-coalesced fallback scroll listener. Geometry
+  reads precede state writes. Coarse-pointer scrolling avoids large entrance
+  blur and continuous media spring subscriptions. The homepage's full-height
+  touch composition keeps its bounded ribbon entrance and touch response.
 - Group children use a restrained semantic stagger. Cards stagger five semantic
   children from one owning wrapper; proof, CTA, and standalone media use one
   entrance on their owning wrapper.
@@ -58,6 +68,8 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 - Reduced motion and unavailable JavaScript show all content immediately.
   Delayed hydration preserves a stable pending frame instead of painting
   content visible and then pulling it backward into an entrance.
+- Homepage count animations retain the complete figure on history restoration.
+  Unmounting or enabling reduced motion cancels their pending animation frame.
 
 ## Required verification
 
@@ -65,6 +77,15 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 `npm run qa:home-hero-timing` additionally checks concealed pending words and
 actions, rendered entrance frames, semantic timing, complete fallback states,
 keyboard activation, history restoration and desktop/mobile interaction.
+`npm run qa:mobile-motion` checks full-height mobile composition, repeated warm
+client visits, reloads, Back/Forward, document history restoration, complete
+chapter traversal, layout stability and reduced motion. Pass `-- --webkit` for
+the same Safari engine journey alongside Chromium. Chromium uses 4× CPU
+throttling; these checks establish browser emulation, not physical-device speed.
+The 50ms p95 frame budget applies to throttled Chromium and native Mac WebKit.
+Linux headless WebKit retains its pacing measurements and the shared 200ms
+stall ceiling. Expected same-origin RSC prefetch discards are diagnostics only
+while an explicit document navigation is in progress; other errors fail.
 `npm run test:work-portfolio-qa` must prove at desktop and mobile widths that:
 
 - every Work route has an armed below-fold entrance;

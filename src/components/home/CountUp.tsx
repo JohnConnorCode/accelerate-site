@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 /** Parses "95" -> {value:95, prefix:"", suffix:"%"}, "2×" -> {value:2, suffix:"×"} */
 function parseTarget(raw: string) {
@@ -15,17 +15,22 @@ function parseTarget(raw: string) {
 /** Counts up from 0 to the numeric part of `target` once scrolled into view. */
 export function CountUp({ target, className }: { target: string; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  // Server-render the REAL figure, not "0". This used to emit `0×` and `0`
-  // into the HTML, so the page's headline claims read as zero to crawlers,
-  // to anyone with JS off, and for the whole pre-hydration paint. The effect
-  // drops it back to zero itself, but only on the client and only when it is
-  // actually about to animate.
-  const [display, setDisplay] = useState<string>(target);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Keep the real server-rendered figure through history restoration. The
+    // finite text animation owns this span without rerendering React per frame.
+    el.textContent = target;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (
+      reduced.matches ||
+      document.documentElement.dataset.navigationKind === "restore" ||
+      !("IntersectionObserver" in window)
+    ) {
+      return;
+    }
     const { prefix, value, suffix } = parseTarget(target);
+    let frame = 0;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -33,35 +38,45 @@ export function CountUp({ target, className }: { target: string; className?: str
         if (!entry?.isIntersecting) return;
         observer.disconnect();
 
-        const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-        if (reduced) {
-          setDisplay(target);
+        if (reduced.matches) {
+          el.textContent = target;
           return;
         }
 
-        setDisplay(`${prefix}0${suffix}`);
+        el.textContent = `${prefix}0${suffix}`;
         const duration = 1400;
         const start = performance.now();
         const isInt = Number.isInteger(value);
 
-        function tick(now: number) {
+        const tick = (now: number) => {
           const t = Math.min(1, (now - start) / duration);
           const eased = 1 - Math.pow(1 - t, 3);
           const current = value * eased;
-          setDisplay(`${prefix}${isInt ? Math.round(current) : current.toFixed(1)}${suffix}`);
-          if (t < 1) requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
+          el.textContent = `${prefix}${isInt ? Math.round(current) : current.toFixed(1)}${suffix}`;
+          if (t < 1) frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
       },
       { rootMargin: "0px 0px -10% 0px", threshold: 0.3 },
     );
+    const onPreference = () => {
+      if (!reduced.matches) return;
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      el.textContent = target;
+    };
+    reduced.addEventListener("change", onPreference);
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      reduced.removeEventListener("change", onPreference);
+    };
   }, [target]);
 
   return (
     <span ref={ref} className={className}>
-      {display}
+      {target}
     </span>
   );
 }

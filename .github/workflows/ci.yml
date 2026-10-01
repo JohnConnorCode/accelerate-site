@@ -374,7 +374,38 @@ jobs:
         run: node scripts/check-plugin-host-package.mjs
 
       - name: Install browser for first-run verification
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
+      - name: Verify native homepage and cached mobile motion
+        if: ${{ needs.scope.outputs.docs_only != 'true' }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
+        run: |
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-mobile-motion-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then ready=true; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-mobile-motion-server.log; exit 1; fi
+          hero_status=0
+          mobile_status=0
+          node scripts/qa-home-hero-timing.mjs || hero_status=$?
+          node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
+          test "$hero_status" -eq 0 && test "$mobile_status" -eq 0
+      - name: Retain native mobile motion evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: mobile-motion-browser-evidence
+          path: |
+            /tmp/accelerate-home-hero-timing/
+            /tmp/accelerate-mobile-motion/
+            /tmp/accelerate-mobile-motion-server.log
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify Leads partial writes and recovery
         if: ${{ needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         env:
@@ -544,7 +575,6 @@ jobs:
           # this runner. Keep the same 200ms limit and retain failure evidence.
           if [ "$DOCS_ONLY" != "true" ]; then
             if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
-            if ! node scripts/qa-home-hero-timing.mjs; then browser_status=1; fi
           fi
           if [ "$PUBLIC_PAGES_ONLY" != "true" ] && [ "$DOCS_ONLY" != "true" ]; then
             if ! node scripts/qa-contact-import-source-review.mjs; then browser_status=1; fi
@@ -572,6 +602,7 @@ jobs:
             /tmp/accelerate-work-portfolio-qa/
             /tmp/accelerate-public-navigation-profile/
             /tmp/accelerate-home-hero-timing/
+            /tmp/accelerate-mobile-motion/
             /tmp/accelerate-home-polish/
             /tmp/accelerate-collections-workspace/
             /tmp/accelerate-analytics-workspace/
