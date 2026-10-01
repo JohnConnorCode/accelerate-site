@@ -10,6 +10,7 @@ export interface RevealLifecycleOptions {
   rootMargin?: string;
   initialViewport?: "immediate" | "animate";
   triggerRatio?: number;
+  restoreHistory?: boolean;
 }
 
 export function useRevealLifecycle<T extends HTMLElement>({
@@ -17,6 +18,7 @@ export function useRevealLifecycle<T extends HTMLElement>({
   rootMargin = "0px 0px -22% 0px",
   initialViewport = "animate",
   triggerRatio = 0.78,
+  restoreHistory = false,
 }: RevealLifecycleOptions = {}) {
   const ref = useRef<T>(null);
   const pathname = usePathname();
@@ -24,7 +26,10 @@ export function useRevealLifecycle<T extends HTMLElement>({
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      (restoreHistory && document.documentElement.dataset.navigationKind === "restore")
+    ) {
       element.classList.add("in", "reveal-immediate");
       element.dataset.revealState = "visible";
       return;
@@ -79,7 +84,7 @@ export function useRevealLifecycle<T extends HTMLElement>({
       window.removeEventListener("resize", revealIfEntered);
       window.removeEventListener("pageshow", onPageShow);
     };
-  }, [initialViewport, rootMargin, threshold, triggerRatio, pathname]);
+  }, [initialViewport, rootMargin, threshold, triggerRatio, restoreHistory, pathname]);
 
   return ref;
 }

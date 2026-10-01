@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-hero-entrance",
+    slug: "homepage-hero-entrance",
+    title: "A complete homepage entrance",
+    description:
+      "The homepage headline now reveals from concealed word masks in a deliberate sequence. Contours trace into place and emphasis lines draw before the explanation and booking action appear. Keyboard focus exposes the booking action immediately. Reduced motion, unavailable JavaScript and failed hydration show the complete static page.",
+    category: "fix",
+    publishedAt: "2026-10-01",
+  },
+  {
     id: "conversational-command-center",
     slug: "conversational-command-center",
     title: "Review and delegate work in conversation",

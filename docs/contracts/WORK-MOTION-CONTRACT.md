@@ -34,10 +34,15 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 - Generic public reveals hide only while `data-reveal-state="pending"` after
   the motion-ready gate. Work reveals keep a delayed-hydration pending frame
   via `.motion-ready .work-reveal:not(.in)`.
-- The homepage hero is not a Work reveal. Its heading, explanation, and booking
-  action are server-rendered and visible before hydration. A short transform-only
-  entrance runs once when motion is allowed; reduced-motion visitors see the
-  static composition. Back navigation must keep the full message and action visible.
+- The homepage hero uses the shared lifecycle with its own visual sequence.
+  The pre-paint gate conceals complete words behind baseline-preserving masks,
+  rather than moving already visible text. The eyebrow wipes in, the lead and
+  outcome reveal in separate word cascades, emphasis lines draw, then the
+  explanation, booking action and service index enter. Contour lines trace once
+  beneath that sequence. Pending content must not flash before hydration.
+  Reduced motion, unavailable JavaScript and the hydration watchdog show the
+  complete static composition. Keyboard focus immediately exposes the booking
+  action; restoring an already visited history entry keeps the hero readable.
 - One inline root bootstrap arms every public reveal before first paint when
   JavaScript is available. A hydration watchdog removes that gate if the
   application runtime fails to start.
@@ -56,6 +61,9 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 ## Required verification
 
 `npm run test:work-portfolio` enforces the ownership boundary statically.
+`npm run qa:home-hero-timing` additionally checks concealed pending words and
+actions, rendered entrance frames, semantic timing, complete fallback states,
+keyboard activation, history restoration and desktop/mobile interaction.
 `npm run test:work-portfolio-qa` must prove at desktop and mobile widths that:
 
 - every Work route has an armed below-fold entrance;

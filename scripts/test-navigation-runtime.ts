@@ -266,7 +266,7 @@ assert.doesNotMatch(
   /ScrambleText|hero-system-node|animateSpotlight|useScroll|useMotionValue/,
   "Hero must not use the retired scramble, diagram, or animation loop",
 );
-assert.match(styles, /@keyframes home-hero-enter/, "Hero keeps a short entrance");
+assert.match(styles, /@keyframes home-hero-word-enter/, "Hero keeps a complete masked entrance");
 assert.match(
   styles,
   /@media \(prefers-reduced-motion: no-preference\)/,

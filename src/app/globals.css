@@ -6374,8 +6374,27 @@ body.modal-open [data-dock] {
   letter-spacing: -0.055em;
   text-wrap: balance;
 }
-.home-hero-word {
+.home-hero-word-mask {
   display: inline-block;
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+  /* Preserve the baseline and italic overhang while hiding the whole word below it. */
+  clip-path: inset(-10% -12% 0 -12%);
+}
+.home-hero-word {
+  position: relative;
+  display: inline-block;
+}
+.home-hero-mark::after {
+  content: "";
+  position: absolute;
+  right: 0.02em;
+  bottom: -0.06em;
+  left: 0.04em;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+  transform-origin: left center;
 }
 .home-hero-atmosphere,
 .home-hero-field {
@@ -6516,41 +6535,105 @@ body.modal-open [data-dock] {
   border-top-color: var(--rule);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-eyebrow,
-  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-support,
-  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-actions,
-  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-index > span {
-    transform: translateY(24px);
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
+    .home-hero-eyebrow,
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
+    .home-hero-support,
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
+    .home-hero-actions,
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
+    .home-hero-index
+    > span {
+    opacity: 0;
   }
-  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-word {
-    transform: translateY(0.43em) rotate(1deg);
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
+    .home-hero-word {
+    opacity: 0;
+    transform: translateY(120%) rotate(4deg);
   }
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-eyebrow,
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-support,
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-actions,
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-index > span {
-    animation: home-hero-enter 620ms var(--ease) var(--hero-entry-delay, 0ms) both;
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
+    .home-hero-mark::after {
+    transform: scaleX(0);
   }
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-word {
-    animation: home-hero-word-enter 620ms var(--ease) var(--hero-word-delay, 0ms) both;
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
+    .home-hero-contour-lines
+    path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
   }
-  .motion-ready .home-hero.in .home-hero-eyebrow {
-    --hero-entry-delay: 40ms;
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in:not(.reveal-immediate)
+    .home-hero-eyebrow {
+    animation: home-hero-label-enter 620ms var(--ease) both;
   }
-  .motion-ready .home-hero.in .home-hero-support {
-    --hero-entry-delay: 460ms;
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in:not(.reveal-immediate)
+    .home-hero-support,
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in:not(.reveal-immediate)
+    .home-hero-index
+    > span {
+    animation: home-hero-detail-enter 640ms var(--ease) var(--hero-entry-delay, 0ms) both;
   }
-  .motion-ready .home-hero.in .home-hero-actions {
-    --hero-entry-delay: 580ms;
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in:not(.reveal-immediate)
+    .home-hero-actions {
+    animation: home-hero-action-enter 620ms var(--ease) 1640ms both;
   }
-  .motion-ready .home-hero.in .home-hero-index > span {
-    --hero-entry-delay: 680ms;
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in:not(.reveal-immediate)
+    .home-hero-word {
+    animation: home-hero-word-enter 820ms cubic-bezier(0.16, 1, 0.3, 1) var(--hero-word-delay, 0ms)
+      both;
   }
-  .motion-ready .home-hero.in .home-hero-index > span:nth-child(2) {
-    --hero-entry-delay: 790ms;
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in:not(.reveal-immediate)
+    .home-hero-mark::after {
+    animation: home-hero-mark-enter 680ms var(--ease) calc(var(--hero-word-delay) + 600ms) both;
   }
-  .motion-ready .home-hero.in .home-hero-index > span:nth-child(3) {
-    --hero-entry-delay: 900ms;
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in:not(.reveal-immediate)
+    .home-hero-contour-lines
+    path {
+    stroke-dasharray: 1000;
+    animation: home-hero-contour-enter 2400ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+  }
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in:not(.reveal-immediate)
+    .home-hero-contour-near
+    path {
+    animation-delay: 260ms;
+  }
+  .motion-ready:not([data-navigation-kind="restore"]) .home-hero.in .home-hero-support {
+    --hero-entry-delay: 1480ms;
+  }
+  .motion-ready:not([data-navigation-kind="restore"]) .home-hero.in .home-hero-index > span {
+    --hero-entry-delay: 1920ms;
+  }
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in
+    .home-hero-index
+    > span:nth-child(2) {
+    --hero-entry-delay: 2040ms;
+  }
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero.in
+    .home-hero-index
+    > span:nth-child(3) {
+    --hero-entry-delay: 2160ms;
+  }
+  /* Keyboard users can reach the booking action before its visual cue. */
+  .motion-ready:not([data-navigation-kind="restore"]) .home-hero .home-hero-actions:focus-within {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 @media (prefers-reduced-motion: no-preference) and (pointer: fine) {
@@ -6589,10 +6672,38 @@ body.modal-open [data-dock] {
 }
 @keyframes home-hero-word-enter {
   from {
-    transform: translateY(0.43em) rotate(1deg);
+    opacity: 0;
+    transform: translateY(120%) rotate(4deg);
   }
   to {
+    opacity: 1;
     transform: translateY(0) rotate(0);
+  }
+}
+@keyframes home-hero-label-enter {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+}
+@keyframes home-hero-mark-enter {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes home-hero-contour-enter {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
   }
 }
 @keyframes home-hero-contour-drift {
@@ -6608,12 +6719,24 @@ body.modal-open [data-dock] {
     stroke-dashoffset: -1000;
   }
 }
-@keyframes home-hero-enter {
+@keyframes home-hero-detail-enter {
   from {
-    transform: translateY(24px);
+    opacity: 0;
+    filter: blur(5px);
   }
   to {
-    transform: translateY(0);
+    opacity: 1;
+    filter: none;
+  }
+}
+@keyframes home-hero-action-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 

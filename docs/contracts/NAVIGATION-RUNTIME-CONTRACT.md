@@ -60,11 +60,12 @@ routing or creating surface-specific history systems.
   in the region whose geometry it preserves. Cached data remains visible during
   refetch.
 
-- Public hydration is not a route transition. Initial public server content
-  remains visible and must not animate out before animating in. The homepage
-  hero owns a short, replayable `.loaded` decorative sequence, but its full
-  headline and booking button remain visible before hydration. The admin is
-  an application workspace: its first
+- Public hydration is not a route transition. An intentional public entrance
+  is armed before the first paint, never by hiding previously visible content
+  after hydration. The homepage hero uses that gate for a masked headline,
+  drawn emphasis and staged booking action. Static HTML, reduced motion and
+  failed hydration remain readable; restoring a visited history entry exposes
+  the completed hero. The admin is an application workspace: its first
   committed destination and every later route commit run the same single
   semantic entrance sequence.
 - Public and admin routes each have one entrance owner. Admin route motion is a

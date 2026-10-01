@@ -516,19 +516,19 @@ for (const config of [
     for (let reload = 1; reload <= 3; reload += 1) {
       await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
       const opening = await page.evaluate(() => ({
-        cta: Number(getComputedStyle(document.querySelector(".home-hero-cta")).opacity),
+        cta: document.querySelector(".home-hero-cta")?.textContent?.trim(),
         heading: document.querySelector(".home-hero-heading")?.textContent?.trim(),
         aboveFold:
           document.querySelector(".home-hero-cta").getBoundingClientRect().bottom <= innerHeight,
       }));
-      if (opening.cta < 0.99 || !opening.aboveFold || !opening.heading)
+      if (!opening.cta || !opening.aboveFold || !opening.heading)
         failures.push(
-          `mobile reload ${reload}: hero action or headline is not visible immediately`,
+          `mobile reload ${reload}: hero action or headline is missing from the opening layout`,
         );
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(3000);
       const settled = await page.evaluate(() => ({
         heading: Number(getComputedStyle(document.querySelector(".home-hero-heading")).opacity),
-        cta: Number(getComputedStyle(document.querySelector(".home-hero-cta")).opacity),
+        cta: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
       }));
       if (settled.heading < 0.99 || settled.cta < 0.99)
         failures.push(`mobile reload ${reload}: hero entrance did not settle`);
@@ -538,7 +538,7 @@ for (const config of [
     await page.waitForURL(baseUrl + "/");
     await page.locator(".home-hero-heading").waitFor({ timeout: 4_000 });
     const restoredCta = await page
-      .locator(".home-hero-cta")
+      .locator(".home-hero-actions")
       .evaluate((node) => Number(getComputedStyle(node).opacity));
     if (restoredCta < 0.99) failures.push("mobile back navigation: hero CTA became hidden");
     await page.waitForTimeout(1_600);

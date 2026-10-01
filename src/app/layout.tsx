@@ -208,7 +208,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: adminDensityScript }} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `document.documentElement.classList.add("motion-ready");setTimeout(function(){if(!document.documentElement.hasAttribute("data-motion-hydrated")){document.documentElement.classList.remove("motion-ready")}},4000);`,
+            __html: `document.documentElement.classList.add("motion-ready");if(performance.getEntriesByType("navigation")[0]?.type==="back_forward"){document.documentElement.dataset.navigationKind="restore"}setTimeout(function(){if(!document.documentElement.hasAttribute("data-motion-hydrated")){document.documentElement.classList.remove("motion-ready")}},4000);`,
           }}
         />
         <Script id="org-jsonld" type="application/ld+json" strategy="beforeInteractive">

@@ -158,6 +158,8 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     (nextIntent: NavigationIntent) => {
       saveCurrentPosition();
       intent.current = nextIntent;
+      document.documentElement.dataset.navigationKind =
+        nextIntent.kind === "pop" ? "restore" : "fresh";
       setHasNavigated(true);
       setPendingHref(nextIntent.href);
       setPending(true);
@@ -209,6 +211,8 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
         event.state && typeof event.state === "object" ? (event.state as NavigationState) : {};
       popTargetId.current = state[ENTRY_KEY] || null;
       intent.current = { href: location.href, kind: "pop", scroll: "restore" };
+      // Public entrances use the same history intent before the incoming tree paints.
+      document.documentElement.dataset.navigationKind = "restore";
       setHasNavigated(true);
       setPending(true);
     };
@@ -280,6 +284,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     const positions = readPositions();
     const recordedPosition = positions.get(popTargetId.current || nextId);
     const restoresHistory = nextIntent.kind === "pop" || (!recordedIntent && positions.has(nextId));
+    document.documentElement.dataset.navigationKind = restoresHistory ? "restore" : "fresh";
     const target = restoresHistory
       ? recordedPosition || 0
       : nextIntent.scroll === "preserve"
