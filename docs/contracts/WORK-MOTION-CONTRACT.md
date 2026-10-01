@@ -41,7 +41,8 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   explanation, booking action and service index enter. Contour lines trace once
   beneath that sequence. Pending content must not flash before hydration.
   Reduced motion, unavailable JavaScript and the hydration watchdog show the
-  complete static composition. Keyboard focus immediately exposes the booking
+  complete static composition. Concealed booking actions do not accept pointer
+  clicks. Keyboard focus immediately exposes the booking
   action; restoring an already visited history entry keeps the hero readable.
 - One inline root bootstrap arms every public reveal before first paint when
   JavaScript is available. A hydration watchdog removes that gate if the

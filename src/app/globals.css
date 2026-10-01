@@ -6552,6 +6552,11 @@ body.modal-open [data-dock] {
   }
   .motion-ready:not([data-navigation-kind="restore"])
     .home-hero[data-reveal-state="pending"]
+    .home-hero-actions {
+    pointer-events: none;
+  }
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
     .home-hero-word {
     opacity: 0;
     transform: translateY(120%) rotate(4deg);
@@ -6634,6 +6639,7 @@ body.modal-open [data-dock] {
     animation: none;
     opacity: 1;
     transform: none;
+    pointer-events: auto;
   }
 }
 @media (prefers-reduced-motion: no-preference) and (pointer: fine) {
@@ -6733,10 +6739,12 @@ body.modal-open [data-dock] {
   from {
     opacity: 0;
     transform: scale(0.96);
+    pointer-events: none;
   }
   to {
     opacity: 1;
     transform: scale(1);
+    pointer-events: auto;
   }
 }
 

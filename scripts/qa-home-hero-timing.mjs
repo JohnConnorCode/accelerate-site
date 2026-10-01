@@ -34,6 +34,11 @@ for (const [label, viewport] of [
       });
     }, time);
     const frame = await page.evaluate(() => {
+      const booking = document.querySelector(".home-hero-cta").getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        booking.x + booking.width / 2,
+        booking.y + booking.height / 2,
+      );
       const visibleWords = (selector) =>
         [...document.querySelectorAll(selector)].filter((word) => {
           const style = getComputedStyle(word);
@@ -46,6 +51,7 @@ for (const [label, viewport] of [
         lead: visibleWords(".home-hero-lead .home-hero-word"),
         outcome: visibleWords(".home-hero-heading em .home-hero-word"),
         action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
+        actionReceivesPointer: Boolean(hit?.closest(".home-hero-cta")),
         support: Number(getComputedStyle(document.querySelector(".home-hero-support")).opacity),
         masks: [...document.querySelectorAll(".home-hero-word-mask")].every(
           (mask) => getComputedStyle(mask).clipPath !== "none",
@@ -60,6 +66,10 @@ for (const [label, viewport] of [
       failures.push(`${label}: outcome did not reveal before supporting content`);
     if (time === 1250 && (frame.action || frame.support))
       failures.push(`${label}: supporting content skipped its reveal delay`);
+    if (frame.action === 0 && frame.actionReceivesPointer)
+      failures.push(`${label}: concealed booking action still accepts pointer clicks`);
+    if (time === 3000 && !frame.actionReceivesPointer)
+      failures.push(`${label}: completed booking action cannot receive pointer clicks`);
     if (time === 3000 && (frame.action !== 1 || frame.support !== 1 || !frame.masks))
       failures.push(`${label}: completed entrance is incomplete or has no word masks`);
     entranceFrames.push({ label, time, ...frame });
@@ -410,9 +420,10 @@ for (const [label, viewport] of [
   });
   await delayedPage.locator(".home-hero-cta").focus();
   if (
-    (await delayedPage
-      .locator(".home-hero-actions")
-      .evaluate((element) => getComputedStyle(element).opacity)) !== "1"
+    (await delayedPage.locator(".home-hero-actions").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return style.opacity === "1" && style.pointerEvents === "auto";
+    })) !== true
   )
     failures.push(`${label}: keyboard focus did not expose the pending booking action`);
   await delayedPage.locator(".home-hero-cta").evaluate((element) => element.blur());
