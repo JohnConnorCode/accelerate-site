@@ -16,13 +16,11 @@ const contours = Array.from(
 function HeroWords({
   text,
   offset = 180,
-  stagger = 45,
-  emphasis = false,
+  stagger = 40,
 }: {
   text: string;
   offset?: number;
   stagger?: number;
-  emphasis?: boolean;
 }) {
   return text.split(/\s+/).map((word, index) => (
     <span key={`${word}-${index}`}>
@@ -32,11 +30,7 @@ function HeroWords({
           { "--hero-word-delay": `${offset + Math.min(index, 16) * stagger}ms` } as CSSProperties
         }
       >
-        <span
-          className={`home-hero-word${emphasis && /^(money|time)[.!?]?$/.test(word) ? " home-hero-mark" : ""}`}
-        >
-          {word}
-        </span>
+        <span className="home-hero-word">{word}</span>
       </span>{" "}
     </span>
   ));
@@ -179,7 +173,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
   const heading = legacy
     ? `${content.prefix} ${content.highlighted} ${content.suffix} ${content.replacedWord} and ${content.finalWord.toLowerCase()}.`
     : content.heading;
-  const phrases = !legacy ? content.emphasis.match(/^(.*?)\s+(while you)\s+(.*)$/) : null;
+  const outcomeOffset = 180 + Math.min(heading.split(/\s+/).length, 16) * 40;
 
   return (
     <section
@@ -279,21 +273,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                 <HeroWords text={heading} />
               </span>{" "}
               <em>
-                {phrases ? (
-                  <>
-                    <span className="home-hero-phrase">
-                      <HeroWords text={phrases[1] ?? ""} offset={420} stagger={60} emphasis />
-                    </span>{" "}
-                    <span className="home-hero-bridge">
-                      <HeroWords text={phrases[2] ?? ""} offset={600} />
-                    </span>{" "}
-                    <span className="home-hero-phrase">
-                      <HeroWords text={phrases[3] ?? ""} offset={720} stagger={60} emphasis />
-                    </span>
-                  </>
-                ) : (
-                  <HeroWords text={content.emphasis} offset={420} stagger={60} emphasis />
-                )}
+                <HeroWords text={content.emphasis} offset={outcomeOffset} />
               </em>
             </>
           )}

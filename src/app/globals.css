@@ -6354,62 +6354,30 @@ body.modal-open [data-dock] {
   margin-bottom: clamp(28px, 3.8vw, 46px);
 }
 .home-hero-heading {
-  max-width: 26ch;
+  max-width: 23ch;
   margin: 0;
   color: var(--fg);
-  font: 500 clamp(62px, 8vw, 116px)/0.98 var(--display);
-  letter-spacing: -0.05em;
+  font: 500 clamp(48px, 6.2vw, 88px)/1.08 var(--display);
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
-.home-hero-lead {
-  display: block;
-  margin-bottom: 18px;
-  font: 500 clamp(24px, 2.5vw, 36px)/1.25 var(--display);
-  letter-spacing: -0.025em;
-}
+.home-hero-lead,
 .home-hero-heading em {
-  display: block;
+  display: inline;
+  font: inherit;
   font-style: normal;
-  font-weight: 500;
-  letter-spacing: -0.05em;
-}
-.home-hero-phrase {
-  display: block;
-  text-wrap: balance;
-}
-.home-hero-bridge {
-  display: block;
-  margin: 10px 0;
-  font: 400 clamp(18px, 2vw, 24px)/1.3 var(--serif);
-  font-style: italic;
-  letter-spacing: -0.01em;
-}
-.home-hero-mark {
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 400;
+  letter-spacing: inherit;
 }
 .home-hero-word-mask {
   display: inline-block;
   padding-bottom: 0.18em;
   margin-bottom: -0.18em;
-  /* Preserve the baseline and italic overhang while hiding the whole word below it. */
+  /* Preserve the baseline while hiding the whole word below it. */
   clip-path: inset(-10% -12% 0 -12%);
 }
 .home-hero-word {
   position: relative;
   display: inline-block;
-}
-.home-hero-mark::after {
-  content: "";
-  position: absolute;
-  right: 0.02em;
-  bottom: -0.06em;
-  left: 0.04em;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.6;
-  transform-origin: left center;
 }
 .home-hero-atmosphere,
 .home-hero-field {
@@ -6610,11 +6578,6 @@ body.modal-open [data-dock] {
   }
   .motion-ready:not([data-navigation-kind="restore"])
     .home-hero[data-reveal-state="pending"]
-    .home-hero-mark::after {
-    transform: scaleX(0);
-  }
-  .motion-ready:not([data-navigation-kind="restore"])
-    .home-hero[data-reveal-state="pending"]
     .home-hero-contour-lines
     path {
     stroke-dasharray: 1000;
@@ -6633,9 +6596,6 @@ body.modal-open [data-dock] {
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-word {
     animation: home-hero-word-enter 680ms cubic-bezier(0.16, 1, 0.3, 1) var(--hero-word-delay, 0ms)
       both;
-  }
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-mark::after {
-    animation: home-hero-mark-enter 680ms var(--ease) calc(var(--hero-word-delay) + 600ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-contour-lines path {
     stroke-dasharray: 1000;
@@ -6726,14 +6686,6 @@ body.modal-open [data-dock] {
   to {
     opacity: 1;
     clip-path: inset(0);
-  }
-}
-@keyframes home-hero-mark-enter {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
   }
 }
 @keyframes home-hero-contour-enter {
@@ -6832,8 +6784,8 @@ body.modal-open [data-dock] {
     min-height: calc(100svh - clamp(116px, 10vw, 156px) - 34px);
   }
   .home-hero-heading {
-    max-width: 22ch;
-    font-size: clamp(55px, 8vw, 82px);
+    max-width: 23ch;
+    font-size: clamp(48px, 6.2vw, 68px);
   }
   .home-hero-bottom {
     grid-template-columns: 1fr;
@@ -6852,22 +6804,9 @@ body.modal-open [data-dock] {
   }
   .home-hero-heading {
     max-width: none;
-    font-size: clamp(48px, min(16vw, 7.8svh), 76px);
-    line-height: 0.99;
-    letter-spacing: -0.055em;
-  }
-  .home-hero-lead {
-    margin-bottom: 22px;
-    max-width: 23ch;
-    font-size: 20px;
-    line-height: 1.25;
-  }
-  .home-hero-bridge {
-    margin: 10px 0;
-    font-size: 19px;
-  }
-  .home-hero-phrase > span:has(.home-hero-mark) {
-    display: block;
+    font-size: clamp(36px, 10.5vw, 48px);
+    line-height: 1.12;
+    letter-spacing: -0.03em;
   }
   .home-hero-acceleration {
     top: 8%;

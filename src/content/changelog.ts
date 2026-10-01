@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-hero-readable-typography",
+    slug: "homepage-hero-readable-typography",
+    title: "A balanced, readable homepage headline",
+    description:
+      "The branded homepage presents its complete headline in one consistent typeface, size and weight. Balanced wrapping and more comfortable line spacing replace the oversized outcome words, small connectors, italic nouns and decorative underlines. The full-height section, masked word entrance, background interaction and accessible static fallbacks remain. This correction is included in this source release; production publication is separate.",
+    category: "fix",
+    publishedAt: "2026-10-01",
+  },
+  {
     id: "mobile-hero-and-cached-motion",
     slug: "mobile-hero-and-cached-motion",
     title: "A full-height mobile homepage and reliable cached entrances",

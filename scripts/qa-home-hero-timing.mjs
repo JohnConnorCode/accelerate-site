@@ -23,7 +23,7 @@ for (const [label, viewport] of [
       .querySelector(".home-hero")
       .getAnimations({ subtree: true })
       .filter((animation) =>
-        /^home-hero-(word|label|detail|action|mark|contour)-enter$/.test(animation.animationName),
+        /^home-hero-(word|label|detail|action|contour)-enter$/.test(animation.animationName),
       );
     window.__heroFrameAnimations.forEach((animation) => animation.pause());
   });
@@ -126,12 +126,18 @@ for (const [label, viewport, colorScheme] of [
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
   const opening = await page.evaluate(() => {
     const heading = document.querySelector(".home-hero-heading");
+    const style = getComputedStyle(heading);
     const cta = document.querySelector(".home-hero-cta");
     return {
       heading: heading?.textContent?.trim(),
       cta: cta?.textContent?.trim(),
       aboveFold: cta?.getBoundingClientRect().bottom <= innerHeight,
       overflow: document.documentElement.scrollWidth > innerWidth + 1,
+      headingFontSize: parseFloat(style.fontSize),
+      headingLines: heading.getBoundingClientRect().height / parseFloat(style.lineHeight),
+      headingUniform: [...heading.querySelectorAll(".home-hero-word")].every(
+        (word) => getComputedStyle(word).font === style.font,
+      ),
       fullMessage: /make more money.*save more time/.test(
         heading?.textContent?.replace(/\s+/g, " ") ?? "",
       ),
@@ -145,6 +151,8 @@ for (const [label, viewport, colorScheme] of [
     !opening.fullMessage
   )
     failures.push(`${label}: headline or CTA is missing, below the fold, or page overflows`);
+  if (!opening.headingUniform || opening.headingFontSize < 34 || opening.headingLines > 6.1)
+    failures.push(`${label}: headline mixes typography or wraps into an unreadable composition`);
   await page.screenshot({ caret: "initial", path: `${output}/${label}-first.png` });
   await page.waitForFunction(
     () => document.querySelector(".home-hero").dataset.revealState === "visible",
