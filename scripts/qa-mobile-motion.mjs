@@ -154,6 +154,14 @@ for (const [engine, launcher] of Object.entries(engines)) {
     for (let visit = 0; visit < 3; visit++) {
       stage = `warm-visit-${visit}`;
       await page.getByRole("button", { name: "Open navigation menu" }).click();
+      if (
+        !(await page
+          .locator(".home-hero-ribbon")
+          .evaluateAll((elements) =>
+            elements.every((element) => getComputedStyle(element).animationPlayState === "paused"),
+          ))
+      )
+        failures.push(`${engine}: hero artwork kept moving behind the open menu`);
       await page.locator('#mobile-site-navigation a[href="/services"]').first().click();
       await page.waitForURL(`${base}/services`);
       await page.locator('header .logo-link[href="/"]').click();

@@ -6398,25 +6398,28 @@ body.modal-open [data-dock] {
   height: 135%;
   pointer-events: none;
   color: var(--fg);
-  opacity: 0.13;
+  opacity: 0.22;
   overflow: visible;
   transform: translate3d(calc(var(--hero-x, 0px) * -0.45), calc(var(--hero-y, 0px) * -0.45), 0);
   transition: transform 900ms var(--ease);
 }
-.home-hero-acceleration svg {
+.home-hero-ribbon {
+  position: absolute;
+  inset: 0;
+  transform-origin: 65% 50%;
+}
+.home-hero-ribbon svg {
   width: 100%;
   height: 100%;
   overflow: visible;
-}
-.home-hero-acceleration g {
-  transform: translateX(calc(var(--ribbon-index) * 52px));
+  transform: translateX(calc(var(--ribbon-index) * 9%));
 }
 .home-hero-acceleration path {
   stroke: currentColor;
   stroke-width: 3;
 }
 .home-hero-acceleration path + path {
-  stroke-width: 20;
+  stroke-width: 44;
   opacity: 0.24;
 }
 .home-hero-field {
@@ -6547,6 +6550,19 @@ body.modal-open [data-dock] {
   border-top-color: var(--rule);
 }
 @media (prefers-reduced-motion: no-preference) {
+  /* Three independently composited ribbons keep the artwork alive on phones
+     without continuously repainting SVG strokes or moving the headline. */
+  .motion-ready .home-hero-ribbon {
+    animation: home-hero-ribbon-flow calc(14s + var(--ribbon-index) * 3s) ease-in-out
+      calc(var(--ribbon-index) * -4s) infinite alternate;
+    animation-play-state: paused;
+  }
+  .motion-ready .home-hero.in[data-hero-active="true"] .home-hero-ribbon {
+    animation-play-state: running;
+  }
+  body[data-mobile-navigation="open"] .home-hero .home-hero-ribbon {
+    animation-play-state: paused;
+  }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-acceleration {
     animation: home-hero-ribbon-enter 1800ms var(--ease) 160ms backwards;
   }
@@ -6674,8 +6690,16 @@ body.modal-open [data-dock] {
     transform: translate3d(35%, 20%, 0) rotate(-12deg);
   }
   to {
-    opacity: 0.13;
+    opacity: 0.22;
     transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes home-hero-ribbon-flow {
+  from {
+    transform: translate3d(-2%, 2%, 0) rotate(-4deg);
+  }
+  to {
+    transform: translate3d(3%, -3%, 0) rotate(5deg);
   }
 }
 @keyframes home-hero-label-enter {
@@ -6818,7 +6842,7 @@ body.modal-open [data-dock] {
     stroke-width: 2;
   }
   .home-hero-acceleration path + path {
-    stroke-width: 14;
+    stroke-width: 32;
   }
   .home-hero-field {
     mask-image: linear-gradient(160deg, transparent 25%, #000 100%);

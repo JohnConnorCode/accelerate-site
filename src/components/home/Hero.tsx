@@ -187,14 +187,18 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     >
       <div className="home-hero-atmosphere" aria-hidden="true" />
       <div className="home-hero-acceleration" aria-hidden="true">
-        <svg viewBox="0 0 600 800" fill="none">
-          {[0, 1, 2].map((index) => (
-            <g key={index} style={{ "--ribbon-index": index } as CSSProperties}>
+        {[0, 1, 2].map((index) => (
+          <div
+            className="home-hero-ribbon"
+            key={index}
+            style={{ "--ribbon-index": index } as CSSProperties}
+          >
+            <svg viewBox="0 0 600 800" fill="none">
               <path d="M-140 870 C-20 580 230 700 430 400 C560 205 395 75 710-160" />
               <path d="M-110 875 C25 595 265 720 465 425 C605 220 430 85 750-145" />
-            </g>
-          ))}
-        </svg>
+            </svg>
+          </div>
+        ))}
       </div>
       <div className="home-hero-field" aria-hidden="true">
         <svg viewBox="0 0 1200 760" fill="none" className="home-hero-contours">
