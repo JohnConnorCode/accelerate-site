@@ -9,6 +9,27 @@ const failures = [];
 const diagnostics = [];
 const engines = process.argv.includes("--webkit") ? { chromium, webkit } : { chromium };
 
+const sampleFrames = (duration) =>
+  new Promise((resolve) => {
+    const started = performance.now();
+    let previous = started;
+    const gaps = [];
+    const sample = (now) => {
+      gaps.push(now - previous);
+      previous = now;
+      if (now - started < duration) requestAnimationFrame(sample);
+      else {
+        gaps.sort((a, b) => a - b);
+        resolve({
+          p95: gaps[Math.floor(gaps.length * 0.95)],
+          longest: gaps.at(-1),
+          count: gaps.length,
+        });
+      }
+    };
+    requestAnimationFrame(sample);
+  });
+
 for (const [engine, launcher] of Object.entries(engines)) {
   const browser = await launcher.launch({
     ...(engine === "chromium" ? { ignoreDefaultArgs: ["--disable-back-forward-cache"] } : {}),
@@ -39,6 +60,16 @@ for (const [engine, launcher] of Object.entries(engines)) {
     }
   });
   const page = await context.newPage();
+  let stage = "initial";
+  page.on("requestfailed", (request) => {
+    if (request.url().startsWith(base) && request.url().includes("_rsc="))
+      diagnostics.push({
+        engine,
+        stage,
+        url: request.url(),
+        networkError: request.failure()?.errorText,
+      });
+  });
   page.on("pageerror", (error) => failures.push(`${engine}: ${error.message}`));
   page.on("console", (message) => {
     if (message.type() !== "error") return;
@@ -50,7 +81,7 @@ for (const [engine, launcher] of Object.entries(engines)) {
         .includes("was delivered in report-only mode, but does not specify a 'report-to'")
     )
       diagnostics.push({ engine, warning: "Report-Only CSP has no reporting endpoint" });
-    else failures.push(`${engine}: ${message.text()}`);
+    else failures.push(`${engine} (${stage}): ${message.text()}`);
   });
   try {
     if (engine === "chromium") {
@@ -81,10 +112,12 @@ for (const [engine, launcher] of Object.entries(engines)) {
     )
       failures.push(`${engine}: mobile hero is cramped, incomplete or overflows`);
     await page.screenshot({ caret: "initial", path: `${output}/${engine}-mobile.png` });
+    const idleFrames = await page.evaluate(sampleFrames, 750);
 
     // Real menu activation, repeated prefetched visits and history traversal
     // share one document. A reload-only check misses stale entrance state.
     for (let visit = 0; visit < 3; visit++) {
+      stage = `warm-visit-${visit}`;
       await page.getByRole("button", { name: "Open navigation menu" }).click();
       await page.locator('#mobile-site-navigation a[href="/services"]').first().click();
       await page.waitForURL(`${base}/services`);
@@ -107,28 +140,7 @@ for (const [engine, launcher] of Object.entries(engines)) {
       }));
       if (fresh.documentId !== composition.documentId || !fresh.runningWords || fresh.action > 0.1)
         failures.push(`${engine}: warm visit ${visit} skipped or exposed its entrance`);
-      const frames = await page.evaluate(
-        () =>
-          new Promise((resolve) => {
-            const started = performance.now();
-            let previous = started;
-            const gaps = [];
-            const sample = (now) => {
-              gaps.push(now - previous);
-              previous = now;
-              if (now - started < 2200) requestAnimationFrame(sample);
-              else {
-                gaps.sort((a, b) => a - b);
-                resolve({
-                  p95: gaps[Math.floor(gaps.length * 0.95)],
-                  longest: gaps.at(-1),
-                  count: gaps.length,
-                });
-              }
-            };
-            requestAnimationFrame(sample);
-          }),
-      );
+      const frames = await page.evaluate(sampleFrames, 2200);
       if (frames.p95 > 50 || frames.longest > 200)
         failures.push(
           `${engine}: warm entrance stalled (${frames.p95}ms p95, ${frames.longest}ms longest frame)`,
@@ -163,6 +175,7 @@ for (const [engine, launcher] of Object.entries(engines)) {
 
     // Check every chapter after a restored cached visit, including the end of
     // a long page where the normal viewport entry margin cannot be crossed.
+    stage = "chapter-history";
     const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
     for (let y = 0; y < pageHeight; y += 600) {
       await page.evaluate((y) => scrollTo({ top: y, behavior: "instant" }), y);
@@ -222,6 +235,7 @@ for (const [engine, launcher] of Object.entries(engines)) {
     results.push({ engine, experience, restoredExperience });
     await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
     await page.waitForTimeout(300);
+    stage = "document-history";
     await page.goto(`${base}/robots.txt`, { waitUntil: "domcontentloaded" });
     await page.goBack();
     await page.waitForSelector(".home-hero");
@@ -232,6 +246,7 @@ for (const [engine, launcher] of Object.entries(engines)) {
     }));
     if (cacheRestore.action !== 1)
       failures.push(`${engine}: document history restore concealed the hero`);
+    stage = "warm-reload";
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForFunction(() =>
       document.querySelector(".home-hero")?.classList.contains("in"),
@@ -259,11 +274,13 @@ for (const [engine, launcher] of Object.entries(engines)) {
         .some((animation) => animation.playState === "running"),
     );
     if (reduced) failures.push(`${engine}: reduced motion left hero movement running`);
+    stage = "booking";
     await page.locator(".home-hero-cta").focus();
     await page.keyboard.press("Enter");
     await page.waitForURL(`${base}/contact`);
     results.push({
       engine,
+      idleFrames,
       composition,
       traversal,
       cacheRestore,

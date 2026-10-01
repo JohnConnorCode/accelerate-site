@@ -6432,8 +6432,13 @@ body.modal-open [data-dock] {
   color: var(--fg);
   opacity: 0.13;
   overflow: visible;
-  transform: translate(calc(var(--hero-x, 0px) * -0.45), calc(var(--hero-y, 0px) * -0.45));
+  transform: translate3d(calc(var(--hero-x, 0px) * -0.45), calc(var(--hero-y, 0px) * -0.45), 0);
   transition: transform 900ms var(--ease);
+}
+.home-hero-acceleration svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 .home-hero-acceleration g {
   transform: translateX(calc(var(--ribbon-index) * 52px));
@@ -6706,11 +6711,11 @@ body.modal-open [data-dock] {
 @keyframes home-hero-ribbon-enter {
   from {
     opacity: 0;
-    transform: translate(35%, 20%) rotate(-12deg);
+    transform: translate3d(35%, 20%, 0) rotate(-12deg);
   }
   to {
     opacity: 0.13;
-    transform: none;
+    transform: translate3d(0, 0, 0);
   }
 }
 @keyframes home-hero-label-enter {
@@ -6860,6 +6865,9 @@ body.modal-open [data-dock] {
   .home-hero-bridge {
     margin: 10px 0;
     font-size: 19px;
+  }
+  .home-hero-phrase > span:has(.home-hero-mark) {
+    display: block;
   }
   .home-hero-acceleration {
     top: 8%;
