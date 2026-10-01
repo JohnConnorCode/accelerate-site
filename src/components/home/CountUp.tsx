@@ -26,6 +26,7 @@ export function CountUp({ target, className }: { target: string; className?: str
     const el = ref.current;
     if (!el) return;
     const { prefix, value, suffix } = parseTarget(target);
+    let frame = 0;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -49,14 +50,17 @@ export function CountUp({ target, className }: { target: string; className?: str
           const eased = 1 - Math.pow(1 - t, 3);
           const current = value * eased;
           setDisplay(`${prefix}${isInt ? Math.round(current) : current.toFixed(1)}${suffix}`);
-          if (t < 1) requestAnimationFrame(tick);
+          if (t < 1) frame = requestAnimationFrame(tick);
         }
-        requestAnimationFrame(tick);
+        frame = requestAnimationFrame(tick);
       },
       { rootMargin: "0px 0px -10% 0px", threshold: 0.3 },
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, [target]);
 
   return (

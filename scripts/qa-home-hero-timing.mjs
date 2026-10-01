@@ -64,8 +64,8 @@ for (const [label, viewport] of [
       failures.push(`${label}: lead did not enter independently from outcome and booking`);
     if (time === 850 && (!frame.outcome || frame.action || frame.support))
       failures.push(`${label}: outcome did not reveal before supporting content`);
-    if (time === 1250 && (frame.action || frame.support))
-      failures.push(`${label}: supporting content skipped its reveal delay`);
+    if (time === 1250 && (!frame.action || !frame.support))
+      failures.push(`${label}: explanation and booking did not enter after the outcome`);
     if (frame.action === 0 && frame.actionReceivesPointer)
       failures.push(`${label}: concealed booking action still accepts pointer clicks`);
     if (time === 3000 && !frame.actionReceivesPointer)
@@ -237,7 +237,7 @@ for (const [label, viewport, colorScheme] of [
     await page.waitForTimeout(200);
     const response = await page
       .locator(".home-hero-field")
-      .evaluate((element) => parseFloat(element.style.getPropertyValue("--hero-x")));
+      .evaluate((element) => parseFloat(getComputedStyle(element).getPropertyValue("--hero-x")));
     if (!response) failures.push(`${label}: pointer response is missing`);
     await page.waitForTimeout(700);
     const depth = await page.evaluate(() => ({

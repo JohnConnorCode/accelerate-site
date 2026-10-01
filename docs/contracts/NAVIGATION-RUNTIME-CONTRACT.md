@@ -82,6 +82,11 @@ routing or creating surface-specific history systems.
 - Decorative ambient drift, logo loops, and the homepage spotlight must not run
   continuously on a coarse-pointer phone. A touch may animate the spotlight for
   a bounded response, then releases its animation frame loop.
+- The mobile homepage may run a finite ribbon entrance and a bounded touch
+  response. Touch media does not mount continuous parallax springs. Fresh cached
+  routes re-arm their own reveal state before paint; restored owners in view
+  complete immediately while below-fold owners retain normal entry behavior.
+  Document navigation intent must not restart a committed hero's animations.
 - `AdminRouteStage` owns semantic entrance registration. Its layout effect marks
   initial groups before paint; its child-list observer marks newly committed
   async groups during mutation delivery, before their next paint. CSS owns the

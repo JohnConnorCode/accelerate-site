@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "mobile-hero-and-cached-motion",
+    slug: "mobile-hero-and-cached-motion",
+    title: "A full-height mobile homepage and reliable cached entrances",
+    description:
+      "The branded homepage fills the mobile viewport with a larger headline, layered acceleration ribbons and a faster staged entrance. Touches briefly move and illuminate the field. Public entrances share one scroll clock, re-arm on fresh cached visits and keep restored history readable. Touch scrolling avoids large blur effects and background media parallax. Reduced motion and unavailable JavaScript retain complete static content. These changes are included in this source release; production publication is separate.",
+    category: "fix",
+    publishedAt: "2026-10-01",
+  },
+  {
     id: "homepage-hero-entrance",
     slug: "homepage-hero-entrance",
     title: "A complete homepage entrance",

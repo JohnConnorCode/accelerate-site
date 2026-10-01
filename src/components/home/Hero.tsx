@@ -16,7 +16,7 @@ const contours = Array.from(
 function HeroWords({
   text,
   offset = 180,
-  stagger = 65,
+  stagger = 45,
   emphasis = false,
 }: {
   text: string;
@@ -59,6 +59,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     let frame = 0;
     let response: Animation | undefined;
     let illumination: Animation | undefined;
+    let release = 0;
     const locateLight = (x: number, y: number) => {
       const matrix = svg.getScreenCTM();
       if (!matrix) return;
@@ -68,10 +69,11 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     };
     const reset = () => {
       window.cancelAnimationFrame(frame);
+      window.clearTimeout(release);
       illumination?.cancel();
       section.dataset.heroFocus = "false";
-      field.style.setProperty("--hero-x", "0px");
-      field.style.setProperty("--hero-y", "0px");
+      section.style.setProperty("--hero-x", "0px");
+      section.style.setProperty("--hero-y", "0px");
     };
     const updateActivity = () => {
       section.dataset.heroActive = String(visible && !document.hidden && !reduced.matches);
@@ -94,11 +96,11 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
         illumination?.cancel();
         locateLight(event.clientX, event.clientY);
         section.dataset.heroFocus = "true";
-        field.style.setProperty(
+        section.style.setProperty(
           "--hero-x",
           `${((event.clientX - bounds.left) / bounds.width - 0.5) * 44}px`,
         );
-        field.style.setProperty(
+        section.style.setProperty(
           "--hero-y",
           `${((event.clientY - bounds.top) / bounds.height - 0.5) * 32}px`,
         );
@@ -108,6 +110,16 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       if (section.dataset.heroActive !== "true" || event.button !== 0) return;
       if (event.target instanceof Element && event.target.closest("a, button, input")) return;
       const bounds = section.getBoundingClientRect();
+      window.clearTimeout(release);
+      section.style.setProperty(
+        "--hero-x",
+        `${((event.clientX - bounds.left) / bounds.width - 0.5) * 60}px`,
+      );
+      section.style.setProperty(
+        "--hero-y",
+        `${((event.clientY - bounds.top) / bounds.height - 0.5) * 44}px`,
+      );
+      release = window.setTimeout(reset, 900);
       locateLight(event.clientX, event.clientY);
       illumination?.cancel();
       illumination = focus.animate([{ opacity: 0.85 }, { opacity: 0 }], {
@@ -150,6 +162,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     return () => {
       observer.disconnect();
       window.cancelAnimationFrame(frame);
+      window.clearTimeout(release);
       response?.cancel();
       illumination?.cancel();
       section.removeEventListener("pointermove", move);
@@ -166,6 +179,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
   const heading = legacy
     ? `${content.prefix} ${content.highlighted} ${content.suffix} ${content.replacedWord} and ${content.finalWord.toLowerCase()}.`
     : content.heading;
+  const phrases = !legacy ? content.emphasis.match(/^(.*?)\s+(while you)\s+(.*)$/) : null;
 
   return (
     <section
@@ -178,6 +192,14 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       data-reveal-state="pending"
     >
       <div className="home-hero-atmosphere" aria-hidden="true" />
+      <svg className="home-hero-acceleration" viewBox="0 0 600 800" fill="none" aria-hidden="true">
+        {[0, 1, 2].map((index) => (
+          <g key={index} style={{ "--ribbon-index": index } as CSSProperties}>
+            <path d="M-140 870 C-20 580 230 700 430 400 C560 205 395 75 710-160" />
+            <path d="M-110 875 C25 595 265 720 465 425 C605 220 430 85 750-145" />
+          </g>
+        ))}
+      </svg>
       <div className="home-hero-field" aria-hidden="true">
         <svg viewBox="0 0 1200 760" fill="none" className="home-hero-contours">
           <defs>
@@ -255,7 +277,21 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                 <HeroWords text={heading} />
               </span>{" "}
               <em>
-                <HeroWords text={content.emphasis} offset={650} stagger={90} emphasis />
+                {phrases ? (
+                  <>
+                    <span className="home-hero-phrase">
+                      <HeroWords text={phrases[1] ?? ""} offset={420} stagger={60} emphasis />
+                    </span>{" "}
+                    <span className="home-hero-bridge">
+                      <HeroWords text={phrases[2] ?? ""} offset={600} />
+                    </span>{" "}
+                    <span className="home-hero-phrase">
+                      <HeroWords text={phrases[3] ?? ""} offset={720} stagger={60} emphasis />
+                    </span>
+                  </>
+                ) : (
+                  <HeroWords text={content.emphasis} offset={420} stagger={60} emphasis />
+                )}
               </em>
             </>
           )}
