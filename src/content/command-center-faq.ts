@@ -2,6 +2,21 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I run work by talking to an agent?",
+    answer:
+      "Yes. Ask AI and authenticated member MCP connections can read records, prepare exact changes and start an ordered job with saved progress. Review proposals inside chat, or open the focused review link from an external agent. Background work needs an active scheduler and a finite AI call budget. You can pause, resume or cancel future steps. Interrupted work keeps its receipts for reconciliation instead of replaying effects.",
+  },
+  {
+    question: "What can the agent do without asking every time?",
+    answer:
+      "You can approve bounded permission for tasks, notes, contact tags, opportunity next actions and open pipeline stages. Permission names the records, allowed fields, expiry and daily limit. Current membership and policy are checked before execution. A change outside those limits stays pending for review. Messages, publishing, billing, deletion and permission changes still require a human decision.",
+  },
+  {
+    question: "Is the demo agent real AI?",
+    answer:
+      "When the dedicated demo inference service is configured and its shared $5 daily budget is available, a real model responds to your request using fictional records. Business effects remain simulated in your browser session. There is no real email, billing or publishing. Usage and model information come from the actual run. An unavailable service displays an error instead of a fabricated answer.",
+  },
+  {
     question: "What do the Revenue figures measure?",
     answer:
       "Monthly Recurring sums current active client agreements. The start-month chart groups those same contracts in UTC, keeps missing dates visible and ends at that total. Churned Share describes current non-onboarding client records across all recorded dates. Opportunity values, one-time agreement values and accepted proposal monthly values remain separate. If a read is incomplete or fails, use Retry; a failed refresh labels the previous figures. Check provider receipts when you need collected cash, and a dated ledger when you need historical revenue.",
@@ -109,7 +124,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do Today and Work fit together?",
     answer:
-      "Today puts sourced decisions and follow-up first, then business changes and operational alerts. Pipeline facts, upcoming commitments and automation are supporting context. Automation details and completed results expand on demand. Customize preserves personal or shared arrangements; More contains view creation, duplication, deletion and the classic-view recovery option. Work opens on your open tasks, with team work one filter away; saved views sit behind Save view. It provides task editing, dated snooze and the same approvals, with list, board and calendar layouts over the same saved tasks. The list supports j/k movement and keyboard review. Ask AI can also prepare task reopening and description edits; review the proposal in Approvals, then check its recorded result. Layout, fields and filters stay in this browser and are separated by workspace and signed-in member. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
+      "Today puts sourced decisions and follow-up first, then business changes and operational alerts. Pipeline facts, upcoming commitments and automation are supporting context. Automation details and completed results expand on demand. More contains view customization, creation, duplication, deletion and the classic-view recovery option. Search and Ask AI stay available in the desktop workspace toolbar. Work opens on your open tasks, with team work one filter away; saved views sit behind Save view. It provides task editing, dated snooze and the same approvals, with list, board and calendar layouts over the same saved tasks. The list supports j/k movement and keyboard review. Ask AI can also prepare task reopening and description edits; review the proposal in Approvals, then check its recorded result. Layout, fields and filters stay in this browser and are separated by workspace and signed-in member. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
   },
   {
     question: "Can we build a completely different App or interface?",

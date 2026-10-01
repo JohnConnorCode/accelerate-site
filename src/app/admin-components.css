@@ -42,6 +42,39 @@ body.admin-app-open {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Desktop tools remain available while the route scrolls. Route entrances
+   never move this chrome, and page actions keep their own clear hierarchy. */
+.admin-workspace-toolbar {
+  position: relative;
+  z-index: 30;
+  min-height: 40px;
+  margin-inline: calc(-1 * var(--admin-page-gutter));
+  margin-bottom: var(--admin-section-gap);
+  padding: var(--admin-space-3) var(--admin-page-gutter);
+  background: var(--admin-canvas);
+  box-shadow: 0 1px 0 var(--admin-border);
+}
+@media (min-width: 1024px) {
+  .admin-workspace-toolbar {
+    position: sticky;
+    top: 0;
+    min-height: 76px;
+  }
+}
+.admin-workspace-name {
+  min-width: 0;
+  color: var(--admin-muted);
+  font-size: var(--admin-text-label);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.admin-workspace-tool {
+  font-size: var(--admin-text-label);
+}
+.admin-empty-state {
+  padding: var(--admin-space-8) var(--admin-panel-padding);
+}
+
 .admin-sidebar {
   background: var(--admin-sidebar);
   color: var(--admin-nav-ink);

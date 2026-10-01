@@ -15,7 +15,7 @@ export function useRv<T extends HTMLElement = HTMLElement>(
   threshold = 0.02,
   rootMargin = "0px 0px -22% 0px",
 ) {
-  return useRevealLifecycle<T>({ threshold, rootMargin });
+  return useRevealLifecycle<T>({ threshold, rootMargin, triggerRatio: 0.78 });
 }
 
 /** Sets the `--d` stagger-delay custom property consumed by the reveal CSS. */
@@ -27,13 +27,16 @@ export function delayStyle(delaySeconds: number): CSSProperties {
  * `<Reveal rv as="h2" className="h2">…</Reveal>` fades the element itself in
  * on intersect. `<Reveal as="div" className="ev">…</Reveal>` (rv omitted)
  * toggles `.in` on a container so its own CSS (dividers, per-child stagger)
- * can react, without applying the `.rv` opacity/blur transition to the
+ * can react, without applying the `.rv` opacity/translate entrance to the
  * container itself.
+ * `sequence` gives the group's `data-home-step` children one shared clock.
+ * Use separate owners for rows that can enter the viewport independently.
  */
 export function Reveal({
   as,
   className = "",
   rv = false,
+  sequence = false,
   delay,
   threshold,
   rootMargin,
@@ -44,6 +47,7 @@ export function Reveal({
   as?: ElementType;
   className?: string;
   rv?: boolean;
+  sequence?: boolean;
   delay?: number;
   threshold?: number;
   rootMargin?: string;
@@ -53,7 +57,7 @@ export function Reveal({
   const pathname = usePathname();
   const Tag = (as ?? "div") as ElementType;
   const ref = useRv<HTMLElement>(threshold, rootMargin);
-  const cls = [rv ? "rv" : "", className].filter(Boolean).join(" ");
+  const cls = [sequence ? "home-sequence" : rv ? "rv" : "", className].filter(Boolean).join(" ");
   const mergedStyle = { ...(delay != null ? delayStyle(delay) : null), ...style };
   return (
     <Tag
@@ -61,7 +65,7 @@ export function Reveal({
       ref={ref}
       className={cls}
       style={mergedStyle}
-      data-motion-role={rv ? "group" : undefined}
+      data-motion-role={sequence ? "home-sequence" : rv ? "group" : undefined}
       data-reveal-state="pending"
       {...rest}
     >

@@ -18,14 +18,14 @@ export function Faq({ content = homeFaqContent }: { content?: HomeFaqContent }) 
     <section className="sect" id="faq" style={{ paddingTop: 0 }}>
       <AmbientField />
       <div className="wrap">
-        <div className="shead" style={{ marginBottom: "clamp(28px,3.6vw,46px)" }}>
-          <Reveal rv as="p" className="label eyebrow-anim">
+        <Reveal sequence className="shead" style={{ marginBottom: "clamp(28px,3.6vw,46px)" }}>
+          <p data-home-step="0" className="label eyebrow-anim">
             {content.eyebrow}
-          </Reveal>
-          <Reveal rv as="h2" className="h2" delay={0.06}>
+          </p>
+          <h2 data-home-step="1" className="h2">
             {content.title}
-          </Reveal>
-        </div>
+          </h2>
+        </Reveal>
 
         <div className="efaq">
           {/* Each row gets its own <Reveal> — its own scroll trigger — so
@@ -40,7 +40,7 @@ export function Faq({ content = homeFaqContent }: { content?: HomeFaqContent }) 
               key={faq.question}
               as="details"
               className="item-rv"
-              style={{ "--d": `${0.06 * i}s` } as CSSProperties}
+              style={{ "--d": `${Math.min(i, 4) * 0.11}s` } as CSSProperties}
               open={open === i}
               onClick={(e: MouseEvent) => {
                 e.preventDefault();

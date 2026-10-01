@@ -2,8 +2,9 @@
 
 This optional OAuth connection gives a supported ChatGPT web workspace access
 to one Command Center workspace's registered MCP tools. Reads stay bounded.
-Business changes are staged as proposals for a separate human decision in
-Command Center; some tools also record supporting internal evidence. The OAuth
+Business changes use the same action service as Ask AI. Covered internal work can
+run under current bounded permission; other changes wait for an exact human
+decision. Some tools also record supporting internal evidence. The OAuth
 client cannot approve its own proposal. Tool coverage depends on the
 deployed registry, enabled modules and connected providers. It does not include
 every admin operation or the separate Site Studio website editor.

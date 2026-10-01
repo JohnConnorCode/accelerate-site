@@ -16,31 +16,31 @@ export function CommandCenter({
     <section className="sect" id="command-center">
       <AmbientField />
       <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
+        <Reveal sequence className="shead">
+          <p data-home-step="0" className="label eyebrow-anim">
             {content.eyebrow}
-          </Reveal>
+          </p>
           <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
+            <h2 data-home-step="1" className="h2">
               {content.headingStart}
               <br />
               <span className="it">{content.headingEnd}</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
+            </h2>
+            <p data-home-step="2" className="lede" style={{ marginTop: 20 }}>
               {content.body}
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
+            </p>
+            <p data-home-step="3" className="lede" style={{ marginTop: 16 }}>
               {content.introduction}
-            </Reveal>
+            </p>
           </div>
-        </div>
+        </Reveal>
 
         <Reveal rv as="div" delay={0.1} style={{ marginTop: "clamp(32px,4vw,54px)" }}>
           <ProductSlider slides={content.slides} groupLabel={content.groupLabel} priority={false} />
         </Reveal>
 
         <Reveal
-          rv
+          sequence
           as="div"
           delay={0.16}
           className="flex flex-wrap gap-x-6 gap-y-3"
@@ -49,6 +49,7 @@ export function CommandCenter({
           {content.links.map((link, index) => (
             <Link
               key={index}
+              data-home-step={Math.min(index, 4)}
               href={link.href}
               className="ink-sweep inline-flex min-h-11 items-center gap-1 text-[15.5px] text-[var(--fg)]"
             >

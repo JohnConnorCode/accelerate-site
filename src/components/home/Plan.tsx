@@ -12,25 +12,21 @@ import type { HomePlanContent } from "@/lib/site-studio/native-templates";
 
 export function Plan({ content = homePlanContent }: { content?: HomePlanContent }) {
   return (
-    <section className="sect" id="plan">
+    <section className="sect home-plan" id="plan">
       <AmbientField />
       <div className="wrap">
         <div className="plan-grid">
           <div>
-            <Reveal rv as="p" className="label eyebrow-anim">
-              {content.eyebrow}
-            </Reveal>
-            <Reveal
-              rv
-              as="h2"
-              className="h2"
-              delay={0.06}
-              style={{ marginTop: 18, lineHeight: 1.15 }}
-            >
-              {content.heading}
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 18 }}>
-              {content.body}
+            <Reveal sequence>
+              <p data-home-step="0" className="label eyebrow-anim">
+                {content.eyebrow}
+              </p>
+              <h2 data-home-step="1" className="h2" style={{ marginTop: 18, lineHeight: 1.15 }}>
+                {content.heading}
+              </h2>
+              <p data-home-step="2" className="lede" style={{ marginTop: 18 }}>
+                {content.body}
+              </p>
             </Reveal>
             <ul className="plan-list">
               {/* Each item gets its own <Reveal> — its own scroll trigger —
@@ -43,17 +39,18 @@ export function Plan({ content = homePlanContent }: { content?: HomePlanContent 
                   key={item}
                   as="li"
                   className="item-rv"
-                  style={{ "--d": `${0.06 * i}s` } as CSSProperties}
+                  style={{ "--d": `${0.11 * i}s` } as CSSProperties}
                 >
                   <i>{String(i + 1).padStart(2, "0")}</i>
                   <span>{item}</span>
                 </Reveal>
               ))}
             </ul>
-            <Reveal rv as="div" delay={0.62}>
+            <Reveal rv as="div" delay={0.18}>
               <Link
                 href={content.ctaHref}
                 onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "plan" })}
+                data-booking-cta
                 className="btn"
               >
                 {content.ctaLabel}{" "}
@@ -64,15 +61,7 @@ export function Plan({ content = homePlanContent }: { content?: HomePlanContent 
             </Reveal>
           </div>
 
-          {/* PlanDeck is ~490px tall — the default rootMargin fires once
-              any sliver crosses in, so a tall card finished its reveal
-              transition long before it was meaningfully on screen and
-              read as "just appears" instead of animating in. A negative
-              bottom rootMargin delays the trigger until the card's top
-              has scrolled well up into the viewport instead of requiring
-              a % of its own (large) area to be visible — scales correctly
-              regardless of the card's height. */}
-          <Reveal rv delay={0.1} threshold={0} rootMargin="0px 0px -22% 0px">
+          <Reveal rv delay={0.11}>
             <PlanDeck content={content.deck} />
           </Reveal>
         </div>

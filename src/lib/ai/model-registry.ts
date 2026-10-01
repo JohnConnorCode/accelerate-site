@@ -89,6 +89,15 @@ const BUILT_IN_REGISTRATION: Omit<
 
 export const AI_JOBS: readonly JobRegistration[] = [
   {
+    key: "public-demo-agent",
+    label: "Fictional workspace agent",
+    consequential: false,
+    requiresTools: true,
+    requiresJson: false,
+    minContextWindow: 32000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
     key: "invoice-design",
     label: "Invoice presentation",
     consequential: false,

@@ -450,11 +450,11 @@ try {
         );
         await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded" });
         for (const [label, scenario, route, recipe] of [
-          ["Answer an inquiry", "northline-roofing", "conversations", "roofing-inquiry"],
+          ["Answer an inquiry", "northline-roofing", "today?agent=inquiry", "roofing-inquiry"],
           [
             "Start client work",
             "ledgerstone-advisory",
-            "client-onboarding",
+            "today?agent=onboarding",
             "engagement-onboarding",
           ],
           ["Prepare an invoice", "superdebate", "invoicing", "invoice-follow-up"],
@@ -535,10 +535,15 @@ try {
     for (const scenario of scenarios) {
       await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded" });
       await page
-        .locator(`#business-demos a[href='/demo/command-center/${scenario}/today']`)
+        .locator(
+          `#business-demos a[href='/demo/command-center/${scenario}/today?agent=priorities']`,
+        )
         .click();
       await page.locator(".admin-shell").waitFor();
-      assert(page.url().endsWith(`/${scenario}/today`), `Demo launch ${scenario}`);
+      assert(
+        new URL(page.url()).pathname.endsWith(`/${scenario}/today`),
+        `Demo launch ${scenario}`,
+      );
       await page.getByRole("heading", { name: "Today", exact: true }).first().waitFor();
       assert.equal(
         await page.evaluate(() => localStorage.getItem("theme")),

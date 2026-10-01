@@ -816,7 +816,7 @@ export function TodayWorkspace() {
         actions={
           <>
             <select
-              className={styles.viewSelect}
+              className={`admin-field admin-field--inline ${styles.viewSelect}`}
               aria-label="Today view"
               value={current.key}
               onChange={(e) => {
@@ -835,20 +835,13 @@ export function TodayWorkspace() {
                 <option value={current.key}>Business overview</option>
               )}
             </select>
-            <button
-              type="button"
-              className={"admin-button admin-button--secondary"}
-              disabled={!viewsQuery.data}
-              onClick={() => customize()}
-            >
-              Customize
-            </button>
             <select
-              className={styles.viewActions}
+              className={`admin-field admin-field--inline ${styles.viewActions}`}
               aria-label="View actions"
               value=""
               disabled={!viewsQuery.data}
               onChange={(event) => {
+                if (event.target.value === "customize") customize();
                 if (event.target.value === "new")
                   customize(
                     { ...defaultTodayView(), id: crypto.randomUUID(), name: "My day" },
@@ -880,6 +873,7 @@ export function TodayWorkspace() {
               <option value="" disabled>
                 More
               </option>
+              <option value="customize">Customize view</option>
               <option value="new">New view</option>
               <option value="duplicate">Duplicate view</option>
               <option

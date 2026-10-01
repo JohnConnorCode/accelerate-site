@@ -1,3 +1,9 @@
+import {
+  demoAgentSnapshotSchema,
+  demoAgentProposalSchema,
+  type DemoAgentProposal,
+} from "./agent-contract";
+import { taskReviewState } from "@/lib/revenue-os/operator-task-patch";
 import { WORKSPACE_CONFIGURATION_TOOLS } from "@/lib/revenue-os/workspace-configuration-contract";
 import {
   handleDemoLearning,
@@ -62,6 +68,7 @@ import {
   REVENUE_OS_MODULES,
   isAiToolModuleEnabled,
   getActiveModules,
+  getModuleSettings,
   validateModuleSettingsInput,
 } from "@/lib/revenue-os/modules";
 
@@ -82,8 +89,8 @@ type DemoGeneratedAiRun = {
   conversationId: string;
   status: string;
   toolNames: string[];
-  inputTokens: number;
-  outputTokens: number;
+  inputTokens: number | null;
+  outputTokens: number | null;
   durationMs: number;
   promptPreview: string;
   resultPreview: string;
@@ -209,6 +216,21 @@ export type DemoState = {
   >;
   clientOverrides: Record<string, Record<string, unknown>>;
   generatedAiRuns: DemoGeneratedAiRun[];
+  agentMessages?: Array<{
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+    runId: string | null;
+    createdAt: string;
+    metadata?: { proposal_ids: string[] };
+  }>;
+  agentProposals?: Array<Omit<DemoAgentProposal, "status"> & { status: string; result?: unknown }>;
+  agentNotes?: Array<{ id: string; body: string; contactId?: string; opportunityId?: string }>;
+  agentDecisionReceipts?: Record<
+    string,
+    { title: string; decision: string; result: unknown; simulated: true }
+  >;
+
   sentReplies: Record<string, string[]>;
   conversationOverrides: Record<
     string,
@@ -782,8 +804,8 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
       urgency: index === 0 ? "high" : "normal",
       dueAt: dateOffset(0),
       sourceTimestamp: ago(index + 1),
-      priorityReason: "A consequential simulated change is staged for operator review.",
-      recommendedNextAction: "Review the exact simulated change",
+      priorityReason: item.description,
+      recommendedNextAction: "Review the proposed change before approving",
       href: `/admin/today?focus=approval&action=${item.id}`,
     }));
   approvals.unshift(
@@ -797,8 +819,8 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
         urgency: "normal",
         dueAt: dateOffset(0),
         sourceTimestamp: item.created_at,
-        priorityReason: "A simulated business workflow needs approval.",
-        recommendedNextAction: "Review the exact simulated change",
+        priorityReason: item.description,
+        recommendedNextAction: "Review the proposed change before approving",
         href: item.pluginId === "stripe-invoicing" ? "/admin/invoicing" : `/admin/${item.pluginId}`,
       })),
   );
@@ -835,7 +857,7 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
     urgency: index === 0 ? "high" : "normal",
     dueAt: dateOffset(index),
     sourceTimestamp: ago(index + 3),
-    priorityReason: "An open commercial decision has a recorded next step.",
+    priorityReason: `${item.company} has an open opportunity to follow up.`,
     recommendedNextAction: "Review the proposal and advance the decision",
     href: "/admin/proposals",
   }));
@@ -858,7 +880,9 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
       priorityReason:
         item.due_date && item.due_date < dateOffset(0)
           ? "The commitment is overdue."
-          : "The next step is due soon.",
+          : item.due_date
+            ? "A follow-up has a recorded due date."
+            : "This follow-up needs an owner’s next step.",
       recommendedNextAction: "Complete or snooze this task",
       href: "/admin/work",
     }));
@@ -1517,28 +1541,7 @@ function bookings(pack: DemoScenarioPack) {
 }
 
 function aiRuns(pack: DemoScenarioPack, state: DemoState = initialState()) {
-  const runs = [
-    ...state.generatedAiRuns,
-    ...Array.from({ length: 8 }, (_, index) => ({
-      id: `ai-run-${index}`,
-      surface: ["command_center", "conversation_brief", "pipeline_review"][index % 3]!,
-      provider: "openrouter",
-      model: "bounded-demo-model",
-      toolPack: index % 2 ? "pipeline" : "core",
-      conversationId: `ai-${pack.id}`,
-      status: index === 6 ? "failed" : "completed",
-      toolNames: index % 2 ? ["search_pipeline", "get_record_timeline"] : ["get_today_snapshot"],
-      inputTokens: 680 + index * 91,
-      outputTokens: 210 + index * 37,
-      durationMs: 1200 + index * 180,
-      promptPreview: `Review the next best action for ${pack.people[index]!.company}.`,
-      resultPreview: `Reviewed the relevant fictional records and prepared a grounded next step for ${pack.people[index]!.name}.`,
-      error: index === 6 ? "Simulated provider timeout; no external action occurred." : null,
-      startedAt: ago(index * 8 + 1),
-      finishedAt: ago(index * 8 + 0.9),
-      feedback: index % 4 === 0 ? "helpful" : null,
-    })),
-  ];
+  const runs = state.generatedAiRuns;
   const completed = runs.filter((run) => run.status === "completed").length;
   return {
     schemaReady: true,
@@ -1548,17 +1551,24 @@ function aiRuns(pack: DemoScenarioPack, state: DemoState = initialState()) {
     metrics: {
       runs: runs.length,
       completed,
-      partial: 0,
-      failed: runs.length - completed,
-      cancelled: 0,
-      successRate: Math.round((completed / runs.length) * 100),
-      totalTokens: runs.reduce((sum, run) => sum + run.inputTokens + run.outputTokens, 0),
-      medianDurationMs: 1830,
-      feedbackCoverage: 25,
+      partial: runs.filter((run) => run.status === "partial").length,
+      failed: runs.filter((run) => run.status === "failed").length,
+      cancelled: runs.filter((run) => run.status === "cancelled").length,
+      successRate: runs.length ? Math.round((completed / runs.length) * 100) : 0,
+      totalTokens: runs.some((run) => run.inputTokens === null || run.outputTokens === null)
+        ? null
+        : runs.reduce((sum, run) => sum + (run.inputTokens ?? 0) + (run.outputTokens ?? 0), 0),
+      medianDurationMs: runs.length
+        ? [...runs].sort((a, b) => a.durationMs - b.durationMs)[Math.floor(runs.length / 2)]!
+            .durationMs
+        : null,
+      feedbackCoverage: runs.length
+        ? Math.round((runs.filter((run) => run.feedback).length / runs.length) * 100)
+        : 0,
     },
     facets: {
       surfaces: [...new Set(runs.map((run) => run.surface))],
-      models: ["bounded-demo-model"],
+      models: [...new Set(runs.map((run) => run.model))],
       packs: ["core", "pipeline"],
       tools: [...new Set(runs.flatMap((run) => run.toolNames))],
     },
@@ -2505,6 +2515,31 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     saveState(scenarioId, state);
   }
   const business = state.business;
+  // Upgrade only fictional task identities. Preserve saved edits, completion
+  // and linked workflow receipts when an older demo session is reopened.
+  const taskIds = new Map(
+    pack.tasks.map((task, index) => [`task-${scenarioId}-${index}`, task.id]),
+  );
+  for (const task of [
+    ...business.tasks,
+    ...Object.values(state.deliveryHandoffs ?? {}).flatMap((handoff) => handoff.tasks),
+  ]) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(task.id))
+      taskIds.set(task.id, crypto.randomUUID());
+    task.id = taskIds.get(task.id) ?? task.id;
+  }
+  state.completedTasks = state.completedTasks.map((id) => taskIds.get(id) ?? id);
+  state.taskOverrides = Object.fromEntries(
+    Object.entries(state.taskOverrides).map(([id, patch]) => [taskIds.get(id) ?? id, patch]),
+  );
+  for (const action of business.actions) {
+    const tasks = action.result?.tasks;
+    if (Array.isArray(tasks)) for (const task of tasks) task.id = taskIds.get(task.id) ?? task.id;
+  }
+  for (const receipt of business.receipts)
+    if (receipt.sourceType === "task" && receipt.sourceId)
+      receipt.sourceId = taskIds.get(receipt.sourceId) ?? receipt.sourceId;
+  saveState(scenarioId, state);
   const scenarioPack = pack;
   const nativeFetch = window.fetch.bind(window);
   const nativeOpen = window.open.bind(window);
@@ -2519,6 +2554,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       opportunities: scenarioPack.opportunities.map((item) => ({
         ...item,
         stage: state.stageOverrides[item.id] || item.stage,
+        nextAction: state.opportunityOverrides[item.id]?.nextAction ?? item.nextAction,
       })),
       tasks: [...demoTasksForGraph(business), ...scenarioPack.tasks].map((item) => {
         const patch = state.taskOverrides[item.id];
@@ -2558,6 +2594,358 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    if (
+      path === "/api/admin/revenue-os/actions" &&
+      method === "GET" &&
+      url.searchParams.has("id")
+    ) {
+      const id = url.searchParams.get("id");
+      const action =
+        state.agentProposals?.find((item) => item.id === id) ??
+        business.actions.find((item) => item.id === id);
+      if (action) return jsonResponse({ schemaReady: true, actions: [action] });
+    }
+    if (path === "/api/admin/revenue-os/actions" && method === "PATCH") {
+      const collection = business.actions.find((item) => item.id === body.id);
+      if (collection?.expires_at && Date.parse(collection.expires_at) <= Date.now())
+        return jsonResponse({ error: "This proposal expired; request a fresh review" }, 409);
+      const action = state.agentProposals?.find((item) => item.id === body.id);
+      if (action) {
+        if (!["approve", "reject"].includes(String(body.decision)))
+          return jsonResponse({ error: "Invalid exact decision" }, 400);
+        if (action.status !== "pending" || Date.parse(action.expires_at) <= Date.now())
+          return jsonResponse({ error: "This proposal is already handled or expired" }, 409);
+        if (body.decision === "reject") {
+          action.status = "rejected";
+          saveState(scenarioId, state);
+          return jsonResponse({ simulated: true });
+        }
+        action.status = "executing";
+        saveState(scenarioId, state);
+        try {
+          const payload = action.payload;
+          let result: unknown;
+          if (action.action_type === "create_task") {
+            const opportunity = pack.opportunities.find(
+              (item) => item.id === payload.opportunityId,
+            );
+            const changed = await demoFetch("/api/admin/tasks", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: payload.title,
+                priority: payload.priority,
+                due_date: payload.dueDate,
+                ...(opportunity
+                  ? { related_type: "contact", related_id: opportunity.personId }
+                  : {}),
+              }),
+            });
+            result = await changed.json();
+            if (!changed.ok) throw new Error((result as { error: string }).error);
+            const taskId = (result as { task: { id: string } }).task.id;
+            const task = state.manualTasks?.find((item) => item.id === taskId);
+            if (task)
+              task.description =
+                typeof payload.description === "string" ? payload.description : null;
+          } else if (action.action_type === "update_task") {
+            const current = demoTaskRows(pack, state).find((item) => item.id === payload.taskId);
+            if (
+              !current ||
+              JSON.stringify(taskReviewState(current)) !== JSON.stringify(payload.expectedState)
+            )
+              throw new Error("Task changed; ask for a fresh proposal");
+            const changed = await demoFetch("/api/admin/tasks", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: payload.taskId,
+                title: payload.title,
+                description: payload.description,
+                priority: payload.priority,
+                due_date: payload.dueDate,
+                ...(payload.changeType === "complete" ? { status: "completed" } : {}),
+                ...(payload.changeType === "reopen" ? { status: "pending" } : {}),
+                ...(payload.changeType === "snooze" ? { snoozed_until: payload.until } : {}),
+              }),
+            });
+            result = await changed.json();
+            if (!changed.ok) throw new Error((result as { error: string }).error);
+          } else if (action.action_type === "send_gmail_reply") {
+            const thread = pack.conversations.find((item) => item.id === payload.conversationId);
+            const contact = pack.people.find((item) => item.id === thread?.personId);
+            if (!thread || contact?.email !== payload.to)
+              throw new Error("Conversation or recipient changed");
+            const changed = await demoFetch("/api/admin/revenue-os/conversations/reply", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ conversationId: thread.id, body: payload.body }),
+            });
+            if (!changed.ok) throw new Error("Simulated reply failed");
+            result = {
+              status: "simulated",
+              conversationId: thread.id,
+              to: payload.to,
+              body: payload.body,
+              delivered: false,
+            };
+          } else if (action.action_type === "update_next_action") {
+            const opportunity = pack.opportunities.find(
+              (item) => item.id === payload.opportunityId,
+            );
+            if (!opportunity || opportunity.nextAction !== payload.expectedNextAction)
+              throw new Error("Opportunity changed; ask for a fresh proposal");
+            state.opportunityOverrides[opportunity.id] = {
+              ...state.opportunityOverrides[opportunity.id],
+              nextAction: String(payload.nextAction),
+              nextActionAt: typeof payload.nextActionAt === "string" ? payload.nextActionAt : null,
+              updatedAt: new Date().toISOString(),
+            };
+            result = {
+              status: "simulated",
+              opportunityId: opportunity.id,
+              nextAction: payload.nextAction,
+              nextActionAt: payload.nextActionAt,
+            };
+          } else if (action.action_type === "create_founder_note") {
+            state.agentNotes ??= [];
+            state.agentNotes.push({
+              id: action.id,
+              body: String(payload.body),
+              contactId: typeof payload.contactId === "string" ? payload.contactId : undefined,
+              opportunityId:
+                typeof payload.opportunityId === "string" ? payload.opportunityId : undefined,
+            });
+            result = { status: "simulated", noteId: action.id, body: payload.body };
+          } else throw new Error("This simulated action is unavailable");
+          action.status = "executed";
+          action.result = result;
+          business.receipts.unshift({
+            id: crypto.randomUUID(),
+            operation: `Simulated: ${action.title}`,
+            at: new Date().toISOString(),
+            simulated: true,
+            sourceType: "approval",
+            sourceId: action.id,
+          });
+          state.agentDecisionReceipts ??= {};
+          state.agentDecisionReceipts[action.id] = {
+            title: action.title,
+            decision: "approve",
+            result,
+            simulated: true,
+          };
+          saveState(scenarioId, state);
+          window.dispatchEvent(new Event("admin:demo-state"));
+          return jsonResponse({ simulated: true, result });
+        } catch (issue) {
+          action.status = "failed";
+          saveState(scenarioId, state);
+          return jsonResponse(
+            { error: issue instanceof Error ? issue.message : "Simulation failed" },
+            400,
+          );
+        }
+      }
+    }
+    if (method === "POST" && path === "/api/admin/revenue-os/ai/stream") {
+      const conversationId = `ai-${scenarioId}`;
+      const snapshot = demoAgentSnapshotSchema.parse({
+        brand: business.brand,
+        brandRevision: business.brandRevision,
+        cooldownHours: Number(
+          getModuleSettings("receivables-collections", state.moduleSettings).cooldownHours,
+        ),
+        collections:
+          state.moduleOverrides["receivables-collections"] === false ||
+          state.moduleOverrides["stripe-invoicing"] === false
+            ? []
+            : seedDemoCollections(pack, business).map(
+                ({
+                  id,
+                  contactId,
+                  name,
+                  email,
+                  ownerEmail,
+                  currency,
+                  status,
+                  revision,
+                  disputed,
+                  paused,
+                  pauseUntil,
+                  promiseDate,
+                  nextAction,
+                  invoices,
+                }) => ({
+                  id,
+                  contactId,
+                  name,
+                  email,
+                  ownerEmail,
+                  currency,
+                  status,
+                  revision,
+                  disputed,
+                  paused,
+                  pauseUntil,
+                  promiseDate,
+                  nextAction,
+                  invoices,
+                }),
+              ),
+        contacts: [...pack.people, ...(state.manualContacts ?? [])].map(
+          ({ id, name, email, company }) => ({ id, name, email, company }),
+        ),
+        opportunities: pack.opportunities.map(
+          ({ id, name, personId, stage, nextAction, value }) => ({
+            id,
+            name,
+            personId,
+            stage,
+            nextAction,
+            value,
+          }),
+        ),
+        tasks: demoTaskRows(pack, state).map((task) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description ?? null,
+          status: task.status,
+          priority: task.priority,
+          due_date: task.due_date ?? null,
+          snoozed_until: task.snoozed_until ?? null,
+          completed_at: task.completed_at ?? null,
+        })),
+        conversations: pack.conversations
+          .map((thread) => ({
+            ...thread,
+            intent: undefined,
+            messages: [
+              ...thread.messages,
+              ...(state.sentReplies[thread.id] ?? []).map((body, index) => ({
+                id: `simulated-reply-${index}`,
+                direction: "outbound",
+                body,
+                at: new Date().toISOString(),
+              })),
+            ],
+          }))
+          .map(({ id, personId, subject, unread, messages }) => ({
+            id,
+            personId,
+            subject,
+            unread,
+            messages,
+          })),
+      });
+      const response = await nativeFetch("/api/demo/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenarioId,
+          clientMessageId: body.clientMessageId,
+          text: body.text,
+          snapshot,
+          history: (state.agentMessages ?? [])
+            .slice(-8)
+            .map(({ role, content }) => ({ role, content })),
+        }),
+        signal: init?.signal,
+      });
+      if (!response.ok) return response;
+      const result = await response.json();
+      const prepared = (result.proposals as unknown[]).map((proposal) =>
+        demoAgentProposalSchema.parse(proposal),
+      );
+      const resolvedIds = new Map<string, string>();
+      for (const item of prepared) {
+        if (!["send_collection_reminder", "update_collection_policy"].includes(item.action_type))
+          continue;
+        const policy = item.action_type === "update_collection_policy";
+        const staged = await demoFetch(
+          policy ? "/api/admin/collections/policy" : "/api/admin/collections/reminders",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              ...(policy ? { action: "propose", patch: item.payload.patch } : {}),
+              caseId: item.payload.caseId,
+              digest: item.payload.digest,
+            }),
+          },
+        );
+        if (!staged.ok) return staged;
+        const row = (await staged.json()).action;
+        const saved = business.actions.find((action) => action.id === row.id)!;
+        saved.expires_at ??= item.expires_at;
+        resolvedIds.set(item.id, row.id);
+        item.id = row.id;
+      }
+      const events = result.events.map((event: { type: string; proposal?: { id: string } }) =>
+        event.type === "proposal_staged" && event.proposal
+          ? {
+              ...event,
+              proposal: {
+                ...event.proposal,
+                id: resolvedIds.get(event.proposal.id) ?? event.proposal.id,
+              },
+            }
+          : event,
+      );
+      state.agentProposals ??= [];
+      state.agentProposals.push(
+        ...prepared.filter(
+          (item) =>
+            !["send_collection_reminder", "update_collection_policy"].includes(item.action_type),
+        ),
+      );
+      const at = new Date().toISOString();
+      const userId = String(body.clientMessageId),
+        assistantId = crypto.randomUUID();
+      state.agentMessages ??= [];
+      state.agentMessages.push(
+        { id: userId, role: "user", content: String(body.text), runId: null, createdAt: at },
+        {
+          id: assistantId,
+          role: "assistant",
+          content: result.text,
+          runId: result.runId,
+          createdAt: at,
+          metadata: { proposal_ids: prepared.map((item) => item.id) },
+        },
+      );
+      state.generatedAiRuns.unshift({
+        id: result.runId,
+        surface: "command_center",
+        provider: "openrouter",
+        model: result.model,
+        toolPack: "sandbox",
+        conversationId,
+        status: result.status,
+        toolNames: result.toolNames,
+        ...result.usage,
+        promptPreview: String(body.text),
+        resultPreview: result.text,
+        error: null,
+        startedAt: at,
+        finishedAt: at,
+        feedback: null,
+      });
+      saveState(scenarioId, state);
+      return eventStreamResponse([
+        { type: "conversation", conversationId, userMessageId: userId },
+        { type: "run_started", runId: result.runId, model: result.model, pack: "sandbox" },
+        ...events,
+        { type: "assistant_delta", delta: result.text },
+        {
+          type: "final",
+          conversationId,
+          messageId: assistantId,
+          runId: result.runId,
+          text: result.text,
+          proposedActions: prepared.map((item) => item.id),
+        },
+      ]);
+    }
     state.learning ??= initialDemoLearning();
     const learningResponse = handleDemoLearning(
       state.learning,
@@ -3737,53 +4125,6 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           : { schemaReady: true, batches: [{ ...batch, rows: undefined }] },
       );
     }
-    if (method === "POST" && path === "/api/admin/revenue-os/ai/stream") {
-      const conversationId = String(body.conversationId || `ai-${scenarioId}`);
-      const runId = `demo-run-${crypto.randomUUID()}`;
-      const answer = `For ${pack.name}, the highest-priority move is to handle ${pack.actions[0]!.title.toLowerCase()} first. It is grounded in the latest linked conversation, and this demo will stage—not send—any external action.`;
-      const startedAt = new Date().toISOString();
-      state.generatedAiRuns.unshift({
-        id: runId,
-        surface: "command_center",
-        provider: "openrouter",
-        model: "bounded-demo-model",
-        toolPack: "operator_brief",
-        conversationId,
-        status: "completed",
-        toolNames: ["build_priority_brief"],
-        inputTokens: 640,
-        outputTokens: 190,
-        durationMs: 920,
-        promptPreview: String(body.text || "Review the current priorities"),
-        resultPreview: answer,
-        error: null,
-        startedAt,
-        finishedAt: startedAt,
-        feedback: null,
-      });
-      saveState(scenarioId, state);
-      return eventStreamResponse([
-        { type: "conversation", conversationId, userMessageId: `demo-user-${crypto.randomUUID()}` },
-        { type: "run_started", runId, model: "bounded-demo-model", pack: "operator_brief" },
-        { type: "tool_started", name: "build_priority_brief", index: 0 },
-        {
-          type: "tool_completed",
-          name: "build_priority_brief",
-          index: 0,
-          summary: "Reviewed fictional priorities, conversations, and pipeline context.",
-          failed: false,
-        },
-        { type: "assistant_delta", delta: answer },
-        {
-          type: "final",
-          conversationId,
-          messageId: `demo-assistant-${crypto.randomUUID()}`,
-          runId,
-          text: answer,
-          proposedActions: [],
-        },
-      ]);
-    }
     if (method === "POST" && path === "/api/admin/revenue-os/contact-imports")
       return jsonResponse({ schemaReady: true, batch: importBatch(pack) });
     if (method === "POST" && path === "/api/admin/settings/test")
@@ -3853,7 +4194,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       )) {
         if (saved.tasks.some((t) => t.key === m.key)) continue;
         saved.tasks.push({
-          id: `${saved.id}-${m.key}`,
+          id: crypto.randomUUID(),
           key: m.key,
           title: m.title,
           status: "pending",
@@ -4204,7 +4545,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           state.conversationTasks[id] = [
             ...(state.conversationTasks[id] || []),
             {
-              id: `demo-task-${crypto.randomUUID()}`,
+              id: crypto.randomUUID(),
               title: String(body.taskTitle),
               due_date: body.taskDueDate ? String(body.taskDueDate) : null,
             },
@@ -4387,6 +4728,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/revenue-os/actions")
       return jsonResponse({
         actions: [
+          ...(state.agentProposals ?? []).filter((item) => item.status === "pending"),
           ...business.actions.filter((item) => item.status === "pending"),
           ...pack.actions
             .filter((item) => !state.completedActions.includes(item.id))
@@ -4657,15 +4999,17 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       if (requestedId !== `ai-${scenarioId}`)
         return jsonResponse({ error: "AI conversation not found" }, 404);
       return jsonResponse({
-        messages: [
-          {
-            id: "ai-welcome",
-            role: "assistant",
-            content: `I am grounded in this fictional ${pack.name} workspace. ${pack.story[0]}.`,
-            runId: null,
-            createdAt: ago(1),
-          },
-        ],
+        messages: state.agentMessages?.length
+          ? state.agentMessages
+          : [
+              {
+                id: "ai-welcome",
+                role: "assistant",
+                content: `Ask me about the fictional ${pack.name} records or give me a task. AI availability depends on the dedicated demo provider. Business actions are simulated and reviewed in this conversation.`,
+                runId: null,
+                createdAt: ago(1),
+              },
+            ],
       });
     }
     const legacyPayload = legacy(pack, path, state);

@@ -156,6 +156,12 @@ export async function authenticateWorkspaceMcp(token: string, tenantSlug: string
     user: { id: user.id, email: user.email },
     role: "admin",
     isPlatformAdmin: isConfiguredAdmin(user.email),
+    workspaceMcpProof: {
+      grantId: grant.id,
+      clientId: config.clientId,
+      sessionId: String(claims.session_id),
+      resource: config.resource,
+    },
     database,
   };
   return { auth, grant };

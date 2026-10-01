@@ -6,8 +6,8 @@ export type ProductScreenshot = WorkImage & {
   demoHref: string;
 };
 
-/** Real screenshots of the real demo, not mockups: seven screens, seven
-    fictional businesses, all five of the product's built-in appearances.
+/** Real screenshots of the real demo, not mockups: seven screens across five
+    fictional businesses and five of the product's built-in appearances.
     Shared between the Open Source page and the Command Center page so
     both draw on one source of truth instead of maintaining separate
     screenshot sets. Recapture and replace in place if the UI changes
@@ -46,7 +46,7 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   {
     kind: "image",
     src: "/images/open-source/slide-revenue-night.png",
-    alt: "Revenue, monthly recurring revenue and client value over time, in the Night appearance for a fictional law firm.",
+    alt: "Revenue, active client contracts and agreement value, in the Night appearance for a fictional law firm.",
     caption: "Revenue · Night theme",
     width: 1400,
     height: 875,

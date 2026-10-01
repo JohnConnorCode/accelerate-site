@@ -201,7 +201,7 @@ export function createDemoBusinessState(pack: DemoScenarioPack): DemoBusinessSta
     const source = index === 0 ? won : pack.opportunities[1]!;
     const titles = index === 0 ? pack.business.onboarding : pack.business.commitments;
     const tasks = titles.slice(0, 2).map((title, i) => ({
-      id: `demo-task-${pluginId}-${i}`,
+      id: crypto.randomUUID(),
       title,
       description: "Reviewed fictional delivery commitment",
       dueDate: due(i + 1),

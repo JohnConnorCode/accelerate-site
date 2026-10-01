@@ -241,6 +241,30 @@
   ],
   "toolGrants": [
     {
+      "tool": "preview_agent_work",
+      "module": "core-command"
+    },
+    {
+      "tool": "start_agent_work",
+      "module": "core-command"
+    },
+    {
+      "tool": "get_agent_work",
+      "module": "core-command"
+    },
+    {
+      "tool": "control_agent_work",
+      "module": "core-command"
+    },
+    {
+      "tool": "preview_internal_permission",
+      "module": "core-command"
+    },
+    {
+      "tool": "propose_internal_permission",
+      "module": "core-command"
+    },
+    {
       "tool": "get_today_snapshot",
       "module": "core-command"
     },
@@ -290,6 +314,10 @@
     },
     {
       "tool": "propose_stage_change",
+      "module": "core-pipeline"
+    },
+    {
+      "tool": "propose_next_action",
       "module": "core-pipeline"
     },
     {

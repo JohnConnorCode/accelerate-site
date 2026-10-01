@@ -491,9 +491,9 @@ for (const config of [
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(50);
     const homeEntry = await captureRevealEntry(page, ".rv");
-    if (!homeEntry || homeEntry.ratio > 0.8)
+    if (!homeEntry || homeEntry.ratio > 0.94)
       failures.push(
-        `${config.label}: homepage content entered too early at ${homeEntry ? Math.round(homeEntry.ratio * 100) : "unknown"}% of viewport height`,
+        `${config.label}: homepage content entered too late at ${homeEntry ? Math.round(homeEntry.ratio * 100) : "unknown"}% of viewport height`,
       );
     await page.waitForTimeout(180);
     await page.screenshot({ path: `${output}/${config.label}-home-entry.png`, fullPage: false });

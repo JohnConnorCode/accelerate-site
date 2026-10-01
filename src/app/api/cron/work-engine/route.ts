@@ -1,3 +1,4 @@
+import { registerAgentWorkHandler } from "@/lib/revenue-os/agent-work";
 import {
   registerLearningSignalHandlers,
   scheduleLearningSignals,
@@ -22,6 +23,7 @@ import { registerProactiveIntelHandlers } from "@/lib/revenue-os/proactive-intel
 import { withJobRun } from "@/lib/revenue-os/runs";
 
 // Register all coworker handlers on module load.
+registerAgentWorkHandler();
 registerKnowledgeHandlers();
 registerLearningSignalHandlers();
 registerSocialWorkHandlers();

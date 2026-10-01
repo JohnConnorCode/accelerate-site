@@ -2,6 +2,24 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "conversational-command-center",
+    slug: "conversational-command-center",
+    title: "Review and delegate work in conversation",
+    description:
+      "Ask AI can show exact proposals and accept your decision inside chat. Authenticated members can preview ordered jobs, retrieve saved progress and pause, resume or cancel future steps through the shared AI and MCP tools. Bounded internal permission names records, fields, expiry and a daily limit; consequential actions keep human review. The public demo has clearer task examples and a separately configured real inference service with a shared $5 daily cap. All demo business effects remain simulated. This source change requires its migration and configuration before hosted activation; merge and deployment are separate.",
+    category: "improvement",
+    publishedAt: "2026-09-30",
+  },
+  {
+    id: "editorial-home-workspace-polish",
+    slug: "editorial-home-workspace-polish",
+    title: "A clearer homepage and calmer daily workspace",
+    description:
+      "Selected work now leads the bundled homepage, with one featured case and three supporting projects. Services, process and the sample plan have distinct layouts, and the floating booking bar steps aside when a booking action is visible. The workspace keeps Search and Ask AI in persistent desktop chrome, groups Today view tools under More, and applies shared theme controls to Feature Board filters. The hero combines layered contour depth, differently paced currents, pointer and keyboard illumination, and short touch ripples. Motion pauses offscreen and in hidden tabs; reduced-motion visitors see the complete static composition. Paper gains editorial headings, compact empty states reduce unused space, and saved views, custom appearances and published website arrangements keep their existing behavior.",
+    category: "improvement",
+    publishedAt: "2026-09-30",
+  },
+  {
     id: "approved-workspace-configuration",
     slug: "approved-workspace-configuration",
     title: "Review workspace configuration with AI",

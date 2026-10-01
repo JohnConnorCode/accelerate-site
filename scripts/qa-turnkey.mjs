@@ -169,7 +169,7 @@ try {
         await page.keyboard.press("Enter");
         await page.waitForURL(base + "/demo/command-center");
         await page
-          .getByRole("heading", { level: 1, name: "Your business. Working together." })
+          .getByRole("heading", { level: 1, name: "Tell your agent what needs doing." })
           .waitFor();
         assert.equal(new URL(page.url()).pathname, "/demo/command-center");
         assert.equal(

@@ -216,6 +216,82 @@ try {
           path: `${out}/${route.replaceAll("/", "-")}-${width}.png`,
           fullPage: true,
         });
+      if (route === "features") {
+        const filters = page.getByRole("button", { name: /^Filters/ }).first();
+        await filters.click();
+        const dialog = page.getByRole("dialog", { name: "Filter work", exact: true });
+        await dialog.waitFor();
+        assert(await dialog.getByLabel("North star phase", { exact: true }).isVisible());
+        const themed = await dialog.evaluate((node) => {
+          const field = node.querySelector("select");
+          const css = getComputedStyle(node);
+          return {
+            dialogRadius: css.borderRadius,
+            surfaceRadius: css.getPropertyValue("--admin-surface-radius").trim(),
+            fieldRadius: getComputedStyle(field).borderRadius,
+            controlRadius: css.getPropertyValue("--admin-control-radius").trim(),
+          };
+        });
+        assert.equal(
+          themed.dialogRadius,
+          themed.surfaceRadius,
+          "Filter dialog follows appearance geometry",
+        );
+        assert.equal(
+          themed.fieldRadius,
+          themed.controlRadius,
+          "Filter fields follow appearance geometry",
+        );
+        if (width === 1440) {
+          await dialog.getByText("Saved views and sharing", { exact: true }).click();
+          await page.evaluate(() => {
+            const original = window.fetch;
+            window.__qaViewsFetch = original;
+            window.__qaViewsWrites = 0;
+            window.fetch = async (input, init) => {
+              const url = new URL(typeof input === "string" ? input : input.url, location.origin);
+              if (url.pathname === "/api/admin/features/views" && init?.method === "POST") {
+                window.__qaViewsWrites += 1;
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                if (window.__qaViewsFail)
+                  return Response.json({ error: "View save interrupted" }, { status: 500 });
+              }
+              return original(input, init);
+            };
+          });
+          const name = dialog.getByLabel("View name", { exact: true });
+          await name.fill("QA focused board");
+          await dialog.getByRole("button", { name: "Save current view", exact: true }).click();
+          const saving = dialog.getByRole("button", { name: "Saving view…", exact: true });
+          await saving.waitFor();
+          assert.equal(await saving.isDisabled(), true);
+          await dialog
+            .getByRole("button", { name: "QA focused board · private", exact: true })
+            .waitFor();
+          assert.equal(await page.evaluate(() => window.__qaViewsWrites), 1);
+          assert.equal(await name.inputValue(), "");
+          await page.evaluate(() => {
+            window.__qaViewsFail = true;
+          });
+          await name.fill("Keep this draft");
+          await dialog.getByRole("button", { name: "Save current view", exact: true }).click();
+          await page.getByText("View save interrupted", { exact: true }).waitFor();
+          assert.equal(await name.inputValue(), "Keep this draft");
+          assert.equal(
+            await dialog
+              .getByRole("button", { name: "Save current view", exact: true })
+              .isEnabled(),
+            true,
+          );
+          await page.evaluate(() => {
+            window.fetch = window.__qaViewsFetch;
+          });
+        }
+        await page.screenshot({ path: `${out}/feature-filters-${width}.png` });
+        await page.keyboard.press("Escape");
+        await dialog.waitFor({ state: "hidden" });
+        assert.equal(await filters.evaluate((node) => node === document.activeElement), true);
+      }
       if (route === "site/website") {
         const save = page.getByRole("button", { name: "Save draft", exact: true });
         const tools = page.getByRole("button", { name: "Website tools", exact: true });
