@@ -82,6 +82,10 @@ client visits, reloads, Back/Forward, document history restoration, complete
 chapter traversal, layout stability and reduced motion. Pass `-- --webkit` for
 the same Safari engine journey alongside Chromium. Chromium uses 4× CPU
 throttling; these checks establish browser emulation, not physical-device speed.
+The 50ms p95 frame budget applies to throttled Chromium and native Mac WebKit.
+Linux headless WebKit retains its pacing measurements and the shared 200ms
+stall ceiling. Expected same-origin RSC prefetch discards are diagnostics only
+while an explicit document navigation is in progress; other errors fail.
 `npm run test:work-portfolio-qa` must prove at desktop and mobile widths that:
 
 - every Work route has an armed below-fold entrance;
