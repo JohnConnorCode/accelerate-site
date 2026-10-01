@@ -6590,7 +6590,7 @@ body.modal-open [data-dock] {
     .home-hero[data-reveal-state="pending"]
     .home-hero-word {
     opacity: 0;
-    transform: translateY(120%) rotate(4deg);
+    transform: translateY(120%);
   }
   .motion-ready:not([data-navigation-kind="restore"])
     .home-hero[data-reveal-state="pending"]
@@ -6677,11 +6677,11 @@ body.modal-open [data-dock] {
 @keyframes home-hero-word-enter {
   from {
     opacity: 0;
-    transform: translateY(120%) rotate(4deg);
+    transform: translateY(120%);
   }
   to {
     opacity: 1;
-    transform: translateY(0) rotate(0);
+    transform: translateY(0);
   }
 }
 @keyframes home-hero-ribbon-enter {
