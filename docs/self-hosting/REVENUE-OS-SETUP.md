@@ -1,5 +1,15 @@
 # Accelerate Revenue OS setup
 
+## Conversational work and public inference
+
+Apply `migrations/20260930190623_conversational_agent_runtime.sql` through the ordered migration runner before activating this source release. It adds member-bound ordered plans, atomic internal permission limits and private public-demo inference admission. The native regression applies it twice and verifies replay, concurrent limits and revocation against a controlled database.
+
+Ordered work requires an active work-engine scheduler and a finite `vendor_api_calls` budget. Every provider attempt reserves that allowance. Internal permission still requires exact human approval. The agent cannot approve itself or automate messages, publishing, billing, deletion or permissions through this path.
+
+Public AI inference is optional and disabled by default. Provision a dedicated non-bootstrap demo workspace with no customer business records. Configure its encrypted OpenRouter provider connection and register an evaluated model supporting tools. Then set `DEMO_AI_TENANT_ID`, `DEMO_AI_MODEL`, a random `DEMO_AI_SESSION_SECRET` of at least 32 characters, and `DEMO_AI_ENABLED=true` in the hosting environment through the approved release process. Do not use a customer workspace or expose its key. The shared server cap is $5 per UTC day, plus session and IP limits. Fictional business effects stay in the browser; provider inference and bounded usage metadata are the only hosted work.
+
+Verify a factual read, an exact simulated proposal, approval/rejection, reload and an unavailable-budget response in the intended non-production HTTPS workspace before publishing the demo. This source implementation and controlled tests do not prove hosted activation or live OAuth consent.
+
 The admin Setup Center at `/admin/setup` is the live source of truth. It checks the running deployment and never displays or stores secret values.
 
 ## Shared request protection
@@ -162,7 +172,7 @@ deployment are separate facts; local acceptance does not mean deployed.
 
 The Revenue Copilot is a bounded tool-using system, not an autonomous database or browser agent. `src/lib/revenue-os/ai-tools.ts` is the single registry for every exposed tool, its JSON input schema, impact tier, confirmation requirement, and the validated service that executes it. Unknown tools fail closed. Each tool receipt records the registry version and impact metadata in the agent event ledger.
 
-Read tools can run directly against bounded live records. Internal writes and external actions only create an expiring `action_queue` proposal, then use the same validation and execution services as the normal UI after explicit founder approval. The agent never receives service credentials or raw database access.
+Read tools can run directly against bounded live records. Business changes use expiring `action_queue` proposals and the same validation and execution services as the normal UI. Routine internal changes may execute within a member's human-approved record scope, allowed fields, expiry and daily limit. Messages, publishing, billing, deletion and permission changes require exact human approval. The agent never receives service credentials or raw database access.
 
 Learning is governed quality telemetry: a founder may rate a completed response once; the event and audit record are immutable. Future runs receive a 90-day aggregate per-tool helpful/not-helpful summary only. Raw prompts, model outputs, free-form feedback, customer documents, secrets, and external messages are never promoted into agent instructions. Outcome linkage, review/correction/disable controls, and retention policy remain tracked on the Feature Board before broader automation is enabled.
 

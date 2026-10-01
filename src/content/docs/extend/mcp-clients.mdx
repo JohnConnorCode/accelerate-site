@@ -1,7 +1,7 @@
 ---
 title: "Connect an MCP client"
 description: "Point an external assistant at the right workspace, and verify a read before trusting it."
-updated: "2026-09-29"
+updated: "2026-09-30"
 ---
 
 The recommended way to connect a workspace is the tenant HTTP endpoint, authenticated with the MCP key issued specifically for that workspace. The stdio bridge can use that same HTTP endpoint and workspace key. Its separate local database mode is reserved for installation administrators.
@@ -73,3 +73,9 @@ Maya wants an external assistant to inspect Northline's current priorities witho
 4. For a later supported change, request a proposal and review it inside Command Center's **Approvals**. Inspect the execution result after your approval.
 
 For example, an assistant saying “I prepared the update” means you should look for its pending proposal. It does not mean the record changed. If the smaller tool list omits a needed operation, ask the assistant to discover it; your permissions and module settings still decide whether it is available.
+
+## Delegate work from a connected agent
+
+An authenticated member connection, including workspace OAuth, can preview and start ordered work, read its progress and control future steps through the same tools as Ask AI. A workspace bearer key represents an integration, not a requesting member, so it cannot start member-owned delegation or grant internal permission.
+
+A pending proposal returns a focused, authenticated review link for its tenant and exact action. Open it to make the human decision. An external agent cannot approve its own proposal. After approval, read the actual receipt; permission, membership and freshness checks still apply at execution.

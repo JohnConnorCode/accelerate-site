@@ -11,6 +11,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "internal_permission_change",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "A human can revoke or replace this bounded permission. Completed work and receipts remain.",
+  },
+  {
     actionType: "update_collection_policy",
     impact: "internal_write",
     reversibility: "compensable",

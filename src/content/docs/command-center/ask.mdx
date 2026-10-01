@@ -1,10 +1,10 @@
 ---
 title: "Ask AI"
 description: "Ask a specific question, see the records it used to answer, and review anything it proposes."
-updated: "2026-09-26"
+updated: "2026-09-30"
 ---
 
-When a customer question spans several records, Ask AI can help assemble the available context and prepare a next step. Open it from Today or the **AI Workspace**, name the customer or record, and inspect the sources behind the answer.
+When a customer needs a reply or a client handoff needs work, tell Ask AI the result you want. It can read the relevant records, prepare changes and show their results in the same conversation. Open it from Today or the **AI Workspace**, then name the customer or record.
 
 <DocsFigure
   src="/images/docs/intelligence/workspace.png"
@@ -33,7 +33,27 @@ Read the tool results or record links behind an answer before you act on it. If 
 
 ## Reviewing anything it proposes
 
-A request to draft or change something can produce a proposal, which you can inspect in [Approvals](/docs/command-center/approvals). For a specific outreach request, such as emailing a customer about a proposal, Ask AI can prepare the email proposal during the same conversation. Open **Work → Approvals** to inspect the recipient and exact message. Once the assistant stages a proposal, it reports that status; after you approve it, check the execution receipt to learn whether the message was sent. If no proposal appears, inspect the run before repeating the request, because a partial run may have staged other work.
+A request can produce exact proposals. Choose **Review** beneath the answer to inspect the recipient, wording or record changes inside the conversation. Approve or reject each change there. After opening one exact review, you can also type “approve” or “reject”; those words are handled as your decision, never as an agent tool.
+
+Approval records your decision. The result records what happened, including a failed or partial action. Returning to the conversation restores pending proposals and their recorded statuses. [Work → Approvals](/docs/command-center/approvals) remains available for the full action receipt. If a run stops early, inspect its proposals before repeating it.
+
+## Delegate an ordered job
+
+Ask for a plan such as “Read this client's records, prepare the handoff tasks, then draft a follow-up.” The agent previews up to eight ordered steps before starting saved work. It can continue after you close the browser when the workspace scheduler and a finite AI call budget are configured.
+
+Use **Read progress** in chat to retrieve saved steps and receipts. Pause stops future work, Resume continues eligible steps, and Cancel stops future steps while retaining completed changes. A step awaiting an action decision cannot advance until the required actions have finished. Interrupted steps need reconciliation rather than being repeated automatically.
+
+## Allow bounded internal work
+
+Workspace administrators can ask the agent to prepare permission for a specific internal operation on named records. The exact review includes allowed fields, an expiry within 30 days and a daily action limit. The requesting administrator must approve the permission themselves.
+
+A new grant replaces the previous workspace permission for that operation, including its record and member scope. Include every record you want covered. The audit records the previous and new constraints; granting again does not reset actions already counted toward that day's limit.
+
+Eligible operations cover tasks, notes, contact tags, opportunity next actions and open pipeline stages. Current membership, policy, record scope, permitted fields, expiry and remaining daily allowance are checked before execution. Messages, publishing, billing, deletion and permission changes still require human approval. If permission does not cover a proposed change, it stays pending for review.
+
+## Try the fictional workspace
+
+The [public demo](/demo/command-center) offers a real model when its dedicated inference service is configured and within its shared $5 daily budget. It works with fictional records. Every task, reply and reminder effect is simulated in your browser session. If inference is unavailable, the workspace remains explorable and shows the failure plainly.
 
 ## What to check
 

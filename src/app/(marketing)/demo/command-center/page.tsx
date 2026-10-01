@@ -16,9 +16,9 @@ import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScro
 import styles from "@/components/command-center/product.module.css";
 
 export const metadata: Metadata = {
-  title: "Explore a Command Center demo",
+  title: "Try the Command Center AI agent",
   description:
-    "Explore a real Command Center workflow with fictional business data. See customer context, AI review and the next action in one workspace.",
+    "Ask an AI agent to handle customer follow-ups, organize work and prepare decisions. Try Command Center with fictional business data.",
   robots: { index: false, follow: false },
 };
 
@@ -27,63 +27,63 @@ const previews: Record<
   { task: string; image: string; screen: string; explore: string[] }
 > = {
   "northline-roofing": {
-    task: "Keep a customer inquiry connected to the next job.",
+    task: "“Find unanswered homeowner inquiries and prepare the next reply.”",
     image: "northline-conversations.png",
     screen: "Conversations",
     explore: [
-      "Read a homeowner’s request",
-      "Open a customer conversation",
-      "Inspect an opportunity and its next action",
+      "Ask what needs attention today",
+      "Prepare a reply using the customer’s thread",
+      "Create a follow-up task",
     ],
   },
   "alder-ridge-law": {
-    task: "Follow an inquiry with the client’s context in view.",
+    task: "“Show me the inquiries waiting on us and prepare a follow-up.”",
     image: "alder-pipeline.png",
     screen: "Pipeline",
     explore: [
-      "Explore the firm’s pipeline",
-      "Read the history behind an opportunity",
-      "Review assigned follow-up",
+      "Ask which inquiries need a response",
+      "Get the history behind a client’s next step",
+      "Prepare a follow-up for review",
     ],
   },
   "ledgerstone-advisory": {
-    task: "Coordinate client work and the commitments behind it.",
+    task: "“Turn our client commitments into an assigned checklist.”",
     image: "ledgerstone-onboarding.png",
     screen: "Client onboarding",
     explore: [
-      "Review client records",
-      "Inspect tasks and upcoming commitments",
-      "Create a reviewed onboarding checklist",
+      "Ask about a client’s commitments",
+      "Identify overdue work and its owner",
+      "Prepare an onboarding checklist",
     ],
   },
   "hearthline-realty": {
-    task: "Keep buyer conversations and business activity connected.",
+    task: "“Find buyers who need a follow-up and explain the next step.”",
     image: "hearthline-pipeline.png",
     screen: "Pipeline",
     explore: [
-      "Explore the buyer pipeline",
-      "Review the next customer action",
-      "Check the context behind a buyer’s next step",
+      "Ask which buyers need a follow-up",
+      "Prepare the next customer action",
+      "Explain the evidence behind a recommendation",
     ],
   },
   "common-table-network": {
-    task: "Bring community relationships and shared work together.",
+    task: "“Turn the meeting commitments into follow-up tasks.”",
     image: "common-table-commitments.png",
     screen: "Meeting commitments",
     explore: [
-      "Explore supporter records",
-      "Turn meeting commitments into tasks",
-      "Review community follow-up tasks",
+      "Ask about a supporter’s recent activity",
+      "Create tasks from meeting commitments",
+      "Check who owns each follow-up",
     ],
   },
   superdebate: {
-    task: "Review customer billing alongside the work it supports.",
+    task: "“Find invoices that need attention and prepare a reminder.”",
     image: "superdebate-invoicing.png",
     screen: "Invoicing",
     explore: [
-      "Explore community relationships",
-      "Review the day’s work",
-      "Prepare and review a fictional invoice",
+      "Ask which relationships need attention",
+      "Get a brief with the records behind it",
+      "Prepare a fictional billing follow-up",
     ],
   },
 };
@@ -98,23 +98,29 @@ export default function AdminDemoLauncher() {
             <div className={styles.heroCopy}>
               <p className="label">Explore Command Center</p>
               <h1 className={styles.title}>
-                Your business.
+                Tell your agent
                 <br />
-                <em>Working together.</em>
+                <em>what needs doing.</em>
               </h1>
               <p className={styles.lede}>
-                See the work that needs attention, give AI the context it needs, and keep every
-                decision connected to the customer and the result.
+                Command Center connects your customers, conversations and work. Ask your agent to
+                find answers, prepare replies, organize follow-ups and handle the routine work
+                you’ve allowed. You review messages, publishing and other consequential actions
+                before they run.
               </p>
               <p className={styles.note}>
-                Fictional data. No signup. Explore the real workspace in this browser session.
+                Explore a fictional business. Actions are simulated, and no signup is required. If
+                the demo agent is unavailable, you can still explore the workspace.
               </p>
               <div className={styles.actions}>
-                <a href="#workflows" className={styles.primary}>
-                  Try a complete workflow <ArrowRight size={16} aria-hidden="true" />
-                </a>
+                <Link
+                  href="/demo/command-center/northline-roofing/today?agent=priorities"
+                  className={styles.primary}
+                >
+                  Try the AI agent <ArrowRight size={16} aria-hidden="true" />
+                </Link>
                 <Link href="#business-demos" className={styles.secondary}>
-                  Find your business <span aria-hidden="true">↓</span>
+                  Explore the workspace <span aria-hidden="true">↓</span>
                 </Link>
               </div>
             </div>
@@ -131,12 +137,12 @@ export default function AdminDemoLauncher() {
             <div>
               <p className="label">Three ways to try it</p>
               <h2 className={styles.heading} id="demo-workflows-title">
-                Follow the work through to its result.
+                Start with a request. Review the result.
               </h2>
             </div>
             <p className={styles.lede}>
-              Pick a real operating moment. See the records, decisions and next action that make the
-              workflow useful.
+              Tell the agent what you need in your own words. It gathers the context, prepares the
+              work and brings decisions back to the conversation.
             </p>
           </AnimateOnScroll>
           <AnimateOnScroll className={styles.workflowShell} delay={0.08}>
@@ -159,8 +165,8 @@ export default function AdminDemoLauncher() {
               </h2>
             </div>
             <p className={styles.lede}>
-              Each business uses the same platform with its own records and appearance. Open any
-              workspace and explore freely.
+              Choose a business and try its suggested request, or ask your own question. Each
+              workspace has fictional customers, conversations and work to explore.
             </p>
           </AnimateOnScroll>
           <StaggerContainer className={styles.demoGrid} staggerDelay={0.06}>
@@ -196,11 +202,11 @@ export default function AdminDemoLauncher() {
                   </ul>
                   <div className={styles.actions}>
                     <Link
-                      href={`/demo/command-center/${scenario.id}/today`}
+                      href={`/demo/command-center/${scenario.id}/today?agent=priorities`}
                       className={styles.primary}
                       aria-label={`Explore ${scenario.name} demo workspace`}
                     >
-                      Open this workspace <ArrowRight size={16} aria-hidden="true" />
+                      Ask this business’s agent <ArrowRight size={16} aria-hidden="true" />
                     </Link>
                   </div>
                 </article>
@@ -215,20 +221,21 @@ export default function AdminDemoLauncher() {
           <AnimateOnScroll className={styles.sectionIntro}>
             <div>
               <p className="label">Keep going</p>
-              <h2 className={styles.heading}>Build a system that gets better with use.</h2>
+              <h2 className={styles.heading}>Put your agent to work with your own context.</h2>
             </div>
             <p className={styles.lede}>
-              The demo is a starting point. Learn how the platform fits together, then run it for
-              the work your business actually does.
+              Connect your tools, define what your agent can handle and keep a record of every
+              result. Accelerate can help you decide where AI belongs, build the right solution and
+              run and improve it with your team. Command Center is one option.
             </p>
           </AnimateOnScroll>
           <StaggerContainer className={styles.grid} staggerDelay={0.1}>
             <article className={styles.card}>
               <p className="label">Make it useful</p>
-              <h3>Follow a complete workflow.</h3>
+              <h3>Choose the work you want to delegate.</h3>
               <p>
-                See which features and plugins to combine, what to set up and how to check the
-                result for your business.
+                Start with customer replies, client handoffs or invoice follow-ups. The recipes
+                explain the setup, permissions and results to check.
               </p>
               <Link href="/docs/recipes" className={styles.textLink}>
                 Explore workflow recipes <ArrowRight size={16} aria-hidden="true" />
@@ -238,8 +245,8 @@ export default function AdminDemoLauncher() {
               <p className="label">Make it yours</p>
               <h3>Build on the open-source platform.</h3>
               <p>
-                Run the workspace yourself or extend it with a custom App, connector or plugin using
-                the shared business services.
+                Run the workspace yourself, connect an agent through MCP or add a custom App. Agents
+                and screens use the same business services and permission checks.
               </p>
               <Link href="/docs/extend" className={styles.textLink}>
                 Read the builder guides <ArrowRight size={16} aria-hidden="true" />

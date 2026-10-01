@@ -66,10 +66,19 @@ current fictional workspace without mixing its history or session state.
 
 - Demo records are invented and use `.example` addresses. Never copy production
   records, provider payloads, credentials, prompts, or customer content.
-- Demo state remains in versioned browser session storage. It never writes to
-  Supabase or another backend.
-- Admin APIs, analytics ingestion, chat, cron, webhooks, email, calendar, AI
-  providers, and other external actions are blocked from the demo runtime.
+- Fictional business state remains in versioned browser session storage. It never
+  writes business records to Supabase or another backend.
+- Live admin APIs, analytics ingestion, cron, webhooks, email, calendar and business
+  provider effects are blocked. The sole inference exception is same-origin
+  `/api/demo/agent`: validated bounded fictional context, canonical tool schemas,
+  a sandbox adapter with no live business database handle, and the shared AI gateway.
+  A separately funded non-bootstrap tenant and evaluated tool model are required.
+- Public inference enforces signed sessions, one active run per session, 10 turns,
+  five requests per minute per trusted IP and an atomic shared $5 UTC daily cap.
+  Missing or uncertain cost retains its reservation; no provider retry or fallback
+  escapes that reservation. Only private admission/budget metadata and tenant-scoped
+  model usage receipts are persisted. No credential or production record enters
+  the prompt. Unavailable inference returns an error, never a canned answer.
 - Every simulated mutation says it is simulated and records a local receipt.
 - Live `/admin` authorization remains founder-only and fail-closed. Demo routing
   is not an authentication exception for live data.

@@ -18,6 +18,8 @@ export interface TenantActorContext {
   user: { id: string; email?: string };
   role: "admin";
   isPlatformAdmin: boolean;
+  /** Server-verified workspace OAuth proof; never supplied by model arguments. */
+  workspaceMcpProof?: { grantId: string; clientId: string; sessionId: string; resource: string };
   database: SupabaseClient;
 }
 

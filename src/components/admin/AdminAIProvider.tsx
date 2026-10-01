@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { usePathname } from "next/navigation";
+import type { ActionRow } from "./ActionReviewDialog";
 import type { AiCommandStreamEvent } from "@/lib/revenue-os/ai-stream-contract";
 
 export interface AdminAIMessage {
@@ -18,6 +19,7 @@ export interface AdminAIMessage {
   content: string;
   runId: string | null;
   createdAt: string;
+  metadata?: { proposal_ids?: string[]; work_item_ids?: string[] };
 }
 
 export interface AdminAIConversation {
@@ -58,6 +60,16 @@ export interface AdminAIProposal {
   entityId: string | null;
 }
 
+export interface AdminAIWorkProgress {
+  workItemId: string;
+  status: string;
+  revision: number;
+  plan?: {
+    objective: string;
+    control: string;
+    steps: Array<{ title: string; status: string; receipt: string; actionIds: string[] }>;
+  };
+}
 interface AdminAIContextValue {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -78,6 +90,17 @@ interface AdminAIContextValue {
   assumptions: string[];
   tools: AdminAIToolStep[];
   proposals: AdminAIProposal[];
+  workProgress: AdminAIWorkProgress[];
+  readWorkProgress: (id: string) => Promise<void>;
+  controlWork: (
+    id: string,
+    control: "pause" | "resume" | "cancel",
+    revision: number,
+  ) => Promise<void>;
+  reviewedAction: ActionRow | null;
+  reviewing: boolean;
+  reviewProposal: (id: string | null) => Promise<void>;
+  decideProposal: (decision: "approve" | "reject") => Promise<void>;
   running: boolean;
   loadingHistory: boolean;
   schemaReady: boolean | null;
@@ -150,6 +173,10 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const [assumptions, setAssumptions] = useState<string[]>([]);
   const [tools, setTools] = useState<AdminAIToolStep[]>([]);
   const [proposals, setProposals] = useState<AdminAIProposal[]>([]);
+  const [workProgress, setWorkProgress] = useState<AdminAIWorkProgress[]>([]);
+  const [reviewedAction, setReviewedAction] = useState<ActionRow | null>(null);
+  const [reviewing, setReviewing] = useState(false);
+  const decisionLock = useRef(false);
   const [running, setRunning] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [schemaReady, setSchemaReady] = useState<boolean | null>(null);
@@ -186,6 +213,8 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
     setActiveConversationId(id);
     setTools([]);
     setProposals([]);
+    setReviewedAction(null);
+    setWorkProgress([]);
     setError("");
     if (!id) {
       setMessages([]);
@@ -216,6 +245,57 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       };
       if (!response.ok) throw new Error(payload.error || "Could not load AI conversation");
       setMessages(payload.messages ?? []);
+      const ids = [
+        ...new Set(
+          (payload.messages ?? []).flatMap((message) => message.metadata?.proposal_ids ?? []),
+        ),
+      ].slice(-16);
+      const restored = await Promise.all(
+        ids.map(async (id) => {
+          const response = await fetch(
+            `/api/admin/revenue-os/actions?id=${encodeURIComponent(id)}`,
+            { cache: "no-store" },
+          );
+          const payload = response.ok ? await response.json() : null;
+          return payload?.actions?.find((action: ActionRow) => action.id === id) as
+            ActionRow | undefined;
+        }),
+      );
+      setProposals(
+        restored
+          .filter((row): row is ActionRow => Boolean(row) && row?.status === "pending")
+          .map((row) => ({
+            id: row.id,
+            title: row.title,
+            actionType: row.action_type,
+            impact: "review_required",
+            entityType: null,
+            entityId: null,
+          })),
+      );
+      const receipts = restored.filter(
+        (row): row is ActionRow => Boolean(row) && row?.status !== "pending",
+      );
+      if (receipts.length)
+        setMessages((current) => [
+          ...current,
+          ...receipts.map((row) => ({
+            id: `receipt-${row.id}`,
+            role: "assistant" as const,
+            content: `Recorded result: ${row.title}. Status: ${row.status}. ${row.status === "executed" ? "Check the saved action receipt in Work for delivery or partial results." : "This proposal will not run automatically."}`,
+            runId: null,
+            createdAt: new Date().toISOString(),
+          })),
+        ]);
+      setWorkProgress(
+        [
+          ...new Set(
+            (payload.messages ?? []).flatMap((message) => message.metadata?.work_item_ids ?? []),
+          ),
+        ]
+          .slice(-8)
+          .map((workItemId) => ({ workItemId, revision: 0, status: "Read current progress" })),
+      );
       setSources(payload.sources ?? []);
       setConnectedContext(payload.connectedContext ?? []);
       setAssumptions(payload.assumptions ?? []);
@@ -263,10 +343,141 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       );
   }, [refreshConversations, selectConversation]);
 
+  const readWorkProgress = useCallback(async (id: string) => {
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/admin/revenue-os/agent-work?id=${encodeURIComponent(id)}`,
+        { cache: "no-store" },
+      );
+      const work = await response.json();
+      if (!response.ok) throw new Error(work.error || "Could not read current work progress");
+      setWorkProgress((current) => [...current.filter((item) => item.workItemId !== id), work]);
+      for (const action of work.actionReceipts ?? []) {
+        if (action.status !== "pending") continue;
+        setProposals((current) =>
+          current.some((item) => item.id === action.id)
+            ? current
+            : [
+                ...current,
+                {
+                  id: action.id,
+                  actionType: action.action_type,
+                  title: action.title,
+                  impact: "review_required",
+                  entityType: null,
+                  entityId: null,
+                },
+              ],
+        );
+      }
+    } catch (issue) {
+      setError(issue instanceof Error ? issue.message : "Work progress is unavailable");
+    }
+  }, []);
+  const controlWork = useCallback(
+    async (id: string, control: "pause" | "resume" | "cancel", revision: number) => {
+      setError("");
+      try {
+        const response = await fetch("/api/admin/revenue-os/agent-work", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workItemId: id, control, revision }),
+        });
+        const receipt = await response.json();
+        if (!response.ok) throw new Error(receipt.error || "Work control failed");
+        await readWorkProgress(id);
+      } catch (issue) {
+        setError(issue instanceof Error ? issue.message : "Work control failed");
+      }
+    },
+    [readWorkProgress],
+  );
+
+  const reviewProposal = useCallback(async (id: string | null) => {
+    setReviewedAction(null);
+    if (!id) return;
+    setError("");
+    setReviewing(true);
+    try {
+      const response = await fetch(`/api/admin/revenue-os/actions?id=${encodeURIComponent(id)}`, {
+        cache: "no-store",
+      });
+      const payload = await response.json();
+      const action = payload.actions?.find((item: ActionRow) => item.id === id);
+      if (!response.ok || !action || action.status !== "pending")
+        throw new Error(
+          payload.error ||
+            "This proposal is no longer awaiting approval. Refresh the conversation.",
+        );
+      setReviewedAction(action);
+    } catch (issue) {
+      setError(issue instanceof Error ? issue.message : "Could not load the exact proposal");
+    } finally {
+      setReviewing(false);
+    }
+  }, []);
+  const decideProposal = useCallback(
+    async (decision: "approve" | "reject") => {
+      if (!reviewedAction || decisionLock.current) return;
+      decisionLock.current = true;
+      setReviewing(true);
+      setError("");
+      try {
+        const response = await fetch("/api/admin/revenue-os/actions", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: reviewedAction.id, decision }),
+        });
+        const receipt = await response.json();
+        if (!response.ok) throw new Error(receipt.error || "The decision could not be completed");
+        const result = receipt.result;
+        const incomplete =
+          result?.complete === false ||
+          ["partial", "failed", "denied", "pending"].includes(result?.status);
+        const content =
+          decision === "reject"
+            ? `Rejected: ${reviewedAction.title}. It will not run.`
+            : `${receipt.simulated ? "Simulated result" : incomplete ? "Action needs attention" : "Action receipt"}: ${reviewedAction.title}. ${receipt.simulated ? "Saved in this fictional workspace; no real message or payment was sent." : "Open the action receipt in Work to inspect delivery and any partial result."}`;
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content,
+            runId: null,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+        setProposals((current) => current.filter((item) => item.id !== reviewedAction.id));
+        setReviewedAction(null);
+        window.dispatchEvent(new Event("admin:refresh"));
+      } catch (issue) {
+        setError(issue instanceof Error ? issue.message : "Could not apply your decision");
+      } finally {
+        decisionLock.current = false;
+        setReviewing(false);
+      }
+    },
+    [reviewedAction],
+  );
+
   const send = useCallback(
     async (override?: string) => {
       const text = (override ?? draft).trim();
-      if (!text || running) return;
+      if (!text || running || reviewing) return;
+      const decision = text.match(/^(approve|reject)(?:\s+([0-9a-f-]{36}))?[.!]?$/i);
+      if (decision) {
+        setDraft("");
+        if (reviewedAction && (!decision[2] || decision[2] === reviewedAction.id)) {
+          await decideProposal(decision[1]!.toLowerCase() as "approve" | "reject");
+        } else {
+          setError(
+            "Open the exact proposal in this conversation first, then approve or reject it. Name one proposal when several are pending.",
+          );
+        }
+        return;
+      }
       const clientMessageId = crypto.randomUUID();
       const optimisticUser: AdminAIMessage = {
         id: clientMessageId,
@@ -357,6 +568,21 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
                   : tool,
               ),
             );
+          if (event.type === "work_progress")
+            setWorkProgress((current) => [
+              ...current.filter((item) => item.workItemId !== event.workItemId),
+              event,
+            ]);
+          if (event.type === "action_receipt")
+            setTools((current) => [
+              ...current,
+              {
+                name: "internal_action_receipt",
+                index: current.length,
+                status: event.status === "executed" ? "completed" : "failed",
+                summary: `Action ${event.actionId}: ${event.status}`,
+              },
+            ]);
           if (event.type === "proposal_staged")
             setProposals((current) =>
               current.some((proposal) => proposal.id === event.proposal.id)
@@ -400,7 +626,16 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         setRunning(false);
       }
     },
-    [activeConversationId, draft, pathname, refreshConversations, running],
+    [
+      activeConversationId,
+      draft,
+      pathname,
+      refreshConversations,
+      running,
+      reviewing,
+      reviewedAction,
+      decideProposal,
+    ],
   );
 
   const startNew = useCallback(() => {
@@ -544,8 +779,35 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const stop = useCallback(() => abortRef.current?.abort(), []);
   const openWithPrompt = useCallback((prompt?: string) => {
     if (prompt) setDraft(prompt);
-    setOpen(true);
+    const fullWorkspace = window.location.pathname.endsWith("/ai");
+    setOpen(!fullWorkspace);
+    if (fullWorkspace)
+      window.requestAnimationFrame(() =>
+        document
+          .querySelector<HTMLTextAreaElement>('textarea[aria-label="Ask the business"]')
+          ?.focus(),
+      );
   }, []);
+
+  useEffect(() => {
+    const request = new URLSearchParams(window.location.search).get("agent");
+    if (!request || !window.location.pathname.includes("demo/command-center")) return;
+    const prompts: Record<string, string> = {
+      priorities:
+        "What needs attention today? Explain why and link the records. Prepare the next useful follow-up.",
+      inquiry:
+        "Find unanswered customer inquiries, prepare a reply using the thread and create a follow-up task.",
+      onboarding:
+        "Find a won client engagement and prepare onboarding tasks linked to it. Ask me for any missing owner or due dates.",
+      invoice: "Find overdue invoices and prepare a reminder for my review. Do not send anything.",
+    };
+    if (prompts[request]) {
+      openWithPrompt(prompts[request]);
+      const destination = new URL(window.location.href);
+      destination.searchParams.delete("agent");
+      window.history.replaceState(window.history.state, "", destination);
+    }
+  }, [pathname, openWithPrompt]);
 
   const value = useMemo<AdminAIContextValue>(
     () => ({
@@ -563,6 +825,13 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       assumptions,
       tools,
       proposals,
+      workProgress,
+      readWorkProgress,
+      controlWork,
+      reviewedAction,
+      reviewing,
+      reviewProposal,
+      decideProposal,
       running,
       loadingHistory,
       schemaReady,
@@ -611,6 +880,13 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       send,
       stop,
       openWithPrompt,
+      reviewedAction,
+      reviewing,
+      reviewProposal,
+      decideProposal,
+      workProgress,
+      readWorkProgress,
+      controlWork,
     ],
   );
 

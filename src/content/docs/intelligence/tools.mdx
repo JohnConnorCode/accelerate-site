@@ -1,7 +1,7 @@
 ---
 title: "AI tool reference"
 description: "Every registered tool, generated straight from the registry: what it needs and what it does."
-updated: "2026-09-29"
+updated: "2026-09-30"
 ---
 
 When an assistant needs to answer a question or prepare a change, its registered tools define the operations it can request. This catalog is generated from the current registry and includes each tool’s description and input schema, so a builder can inspect the contract behind a request.
@@ -22,5 +22,13 @@ For task changes, `propose_task_update` prepares completion, reopening, snoozing
 `get_workspace_configuration` returns redacted provider status, Drive folder selections and named public preferences. `preview_workspace_configuration` prepares exact before and after values without changing configuration. `propose_workspace_configuration` stages that unchanged preview for human approval in Work.
 
 Supported changes cover provider disconnect, selected Drive folders, named public preferences, bounded Google sync and Google connection verification. Branding and optional module controls use their existing dedicated tools. Secrets, OAuth consent, one-time keys and installation authority require secure human setup. The tool catalog describes supported operations; universal conversational coverage remains in progress.
+
+## Ordered work and internal permission
+
+`preview_agent_work` validates an ordered plan. `start_agent_work` saves that exact preview with a stable request ID; `get_agent_work` returns its saved progress, and `control_agent_work` pauses, resumes or cancels future steps against the current revision. These tools require an authenticated member, an active scheduler and a finite AI call budget for background execution. Starting a plan grants no business permission.
+
+`preview_internal_permission` and `propose_internal_permission` prepare a human decision for internal operations on named records, allowed fields, a daily limit and an expiry. The model has no approval tool. A current approved permission can let a covered proposal execute through the shared action service; otherwise it remains pending.
+
+`propose_next_action` prepares an opportunity's next action with a check against the values the agent read. Another person's edit requires a fresh proposal.
 
 <DocsAiToolCatalog />

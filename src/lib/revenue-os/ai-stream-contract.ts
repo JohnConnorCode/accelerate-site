@@ -26,4 +26,6 @@ export type AiCommandStreamEvent =
       proposedActions: string[];
     }
   | { type: "error"; error: string }
+  | { type: "action_receipt"; actionId: string; status: string; result: unknown }
+  | { type: "work_progress"; workItemId: string; status: string; revision: number }
   | { type: "cancelled" };

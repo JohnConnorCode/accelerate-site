@@ -2,6 +2,21 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I run work by talking to an agent?",
+    answer:
+      "Yes. Ask AI and authenticated member MCP connections can read records, prepare exact changes and start an ordered job with saved progress. Review proposals inside chat, or open the focused review link from an external agent. Background work needs an active scheduler and a finite AI call budget. You can pause, resume or cancel future steps. Interrupted work keeps its receipts for reconciliation instead of replaying effects.",
+  },
+  {
+    question: "What can the agent do without asking every time?",
+    answer:
+      "You can approve bounded permission for tasks, notes, contact tags, opportunity next actions and open pipeline stages. Permission names the records, allowed fields, expiry and daily limit. Current membership and policy are checked before execution. A change outside those limits stays pending for review. Messages, publishing, billing, deletion and permission changes still require a human decision.",
+  },
+  {
+    question: "Is the demo agent real AI?",
+    answer:
+      "When the dedicated demo inference service is configured and its shared $5 daily budget is available, a real model responds to your request using fictional records. Business effects remain simulated in your browser session. There is no real email, billing or publishing. Usage and model information come from the actual run. An unavailable service displays an error instead of a fabricated answer.",
+  },
+  {
     question: "What do the Revenue figures measure?",
     answer:
       "Monthly Recurring sums current active client agreements. The start-month chart groups those same contracts in UTC, keeps missing dates visible and ends at that total. Churned Share describes current non-onboarding client records across all recorded dates. Opportunity values, one-time agreement values and accepted proposal monthly values remain separate. If a read is incomplete or fails, use Retry; a failed refresh labels the previous figures. Check provider receipts when you need collected cash, and a dated ledger when you need historical revenue.",

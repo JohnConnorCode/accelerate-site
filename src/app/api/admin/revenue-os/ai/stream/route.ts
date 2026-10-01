@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       let closed = false;
       const proposalIds: string[] = [];
+      const workIds: string[] = [];
       const send = (event: AiCommandStreamEvent) => {
         if (closed || request.signal.aborted) return;
         controller.enqueue(encode(event));
@@ -120,6 +121,11 @@ export async function POST(request: NextRequest) {
             onAssistantReset: () => send({ type: "assistant_reset" }),
             onToolStarted: (event) => send({ type: "tool_started", ...event }),
             onToolCompleted: (event) => send({ type: "tool_completed", ...event }),
+            onActionReceipt: (receipt) => send({ type: "action_receipt", ...receipt }),
+            onWorkProgress: (work) => {
+              workIds.push(work.workItemId);
+              send({ type: "work_progress", ...work });
+            },
             onProposalStaged: (proposal) => {
               proposalIds.push(proposal.id);
               send({ type: "proposal_staged", proposal });
@@ -138,6 +144,7 @@ export async function POST(request: NextRequest) {
           runId: result.runId,
           metadata: {
             proposal_ids: proposalIds,
+            work_item_ids: [...new Set(workIds)],
             active_tool_bundle_id: result.activeToolBundleId,
           },
         });

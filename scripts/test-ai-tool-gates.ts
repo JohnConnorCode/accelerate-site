@@ -472,8 +472,11 @@ async function main() {
     assert.ok(
       tool.impact === "read"
         ? tool.confirmationRequired === (tool.name === "suggest_site_page")
-        : tool.confirmationRequired === true,
-      `${tool.name} is ${tool.impact} but confirmationRequired is ${tool.confirmationRequired}; mutations and billable website suggestions require confirmation`,
+        : tool.executionPolicy === "agent-work"
+          ? ["start_agent_work", "control_agent_work"].includes(tool.name) &&
+            tool.confirmationRequired === false
+          : tool.confirmationRequired === true,
+      `${tool.name} is ${tool.impact} but confirmationRequired is ${tool.confirmationRequired}; business mutations and billable website suggestions require confirmation; only named member-owned orchestration controls are exempt`,
     );
   }
 
@@ -570,8 +573,17 @@ async function main() {
     assertImpactHonoured(readTool, { id: "record-id", requiresHumanApproval: true }),
   );
 
-  const writeTool = registry.find((tool) => tool.impact === "internal_write");
+  const writeTool = registry.find(
+    (tool) => tool.impact === "internal_write" && !tool.executionPolicy,
+  );
   assert.ok(writeTool, "no internal_write tool registered");
+  for (const name of ["start_agent_work", "control_agent_work"]) {
+    const orchestration = registry.find((tool) => tool.name === name)!;
+    assert.throws(
+      () => assertImpactHonoured(orchestration, { workItemId: "fake" }),
+      /scoped durable work receipt/,
+    );
+  }
   await rejects(
     async () => assertImpactHonoured(writeTool, [{ id: "some-row" }]),
     "did not stage an action",
@@ -605,7 +617,7 @@ async function main() {
   );
   assert.ok(
     dispatch.indexOf("assertImpactHonoured(tool, output, context)") <
-      dispatch.indexOf("return { output, tool }"),
+      dispatch.indexOf("return { output: resolved, tool }"),
     "the impact check must run before the result is handed back to the agent",
   );
 
@@ -725,7 +737,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v28");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v29");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.

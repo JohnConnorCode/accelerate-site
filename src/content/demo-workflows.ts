@@ -10,6 +10,7 @@ export interface DemoWorkflow {
   result: string;
   image: string;
   recipe: string;
+  agent?: string;
   steps: Array<{ title: string; instruction: string; route: string }>;
 }
 
@@ -27,23 +28,24 @@ export const demoWorkflows: DemoWorkflow[] = [
       "A simulated reply saved in the customer’s thread, ready for the next teammate to pick up.",
     image: "/images/demo/northline-conversations.png",
     recipe: "roofing-inquiry",
+    agent: "inquiry",
     steps: [
       {
         title: "Read the request",
         instruction:
-          "Open a customer thread in Conversations. Read the latest message and linked opportunity before replying.",
+          "Ask the agent to find an unanswered inquiry, read the thread and prepare a reply plus a follow-up task.",
         route: "conversations",
       },
       {
         title: "Reply with the context",
         instruction:
-          "Write a short reply in the composer. Review the recipient and wording, choose Review & Send, then Confirm send. Sending is simulated.",
+          "Open Review in the conversation. Check the exact customer, message and task. Approve or reject each proposal without leaving chat.",
         route: "conversations",
       },
       {
         title: "Check the saved thread",
         instruction:
-          "Find your reply in that conversation. Reload and check it remains in this demo session.",
+          "Read the simulated result in chat. Open the linked thread or task if you want to inspect it, then reload to check it remains saved.",
         route: "conversations",
       },
     ],
@@ -57,26 +59,27 @@ export const demoWorkflows: DemoWorkflow[] = [
     problem:
       "The engagement is agreed. Delivery still needs an owner, client access and a kickoff checklist.",
     result:
-      "An onboarding checklist linked to the won opportunity, with a saved status for each task.",
+      "Reviewed onboarding tasks linked to the engagement. If dates or ownership are missing, the agent asks for them.",
     image: "/images/demo/ledgerstone-onboarding.png",
     recipe: "engagement-onboarding",
+    agent: "onboarding",
     steps: [
       {
         title: "Choose the engagement",
         instruction:
-          "Open Client onboarding and select a won opportunity. Inspect the suggested checklist and its dates.",
+          "Ask the agent to find a won engagement and prepare onboarding tasks. Give it the owner and dates, or ask it to clarify what is missing.",
         route: "client-onboarding",
       },
       {
         title: "Review and create the work",
         instruction:
-          "Choose Review workflow, then Request approval. Inspect the plan before selecting Approve & create tasks.",
+          "Review each exact task in chat. Approve the tasks you want to create; no work is saved merely because the agent drafted it.",
         route: "client-onboarding",
       },
       {
         title: "Track the handoff",
         instruction:
-          "Open the created checklist in Workflow history. Mark one task complete, then reload to verify its saved status.",
+          "Check the simulated task receipts. Ask the agent to update a task, or open Work to inspect the saved checklist.",
         route: "client-onboarding",
       },
     ],

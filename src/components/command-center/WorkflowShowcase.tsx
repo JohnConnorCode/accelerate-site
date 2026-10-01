@@ -11,7 +11,9 @@ import styles from "./product.module.css";
 export function WorkflowShowcase() {
   const [selected, setSelected] = useState(demoWorkflows[0]!.id);
   const workflow = demoWorkflows.find((item) => item.id === selected)!;
-  const href = `/demo/command-center/${workflow.scenario}/${workflow.steps[0]!.route}`;
+  const href = workflow.agent
+    ? `/demo/command-center/${workflow.scenario}/today?agent=${workflow.agent}`
+    : `/demo/command-center/${workflow.scenario}/${workflow.steps[0]!.route}`;
   return (
     <div className={styles.showcase}>
       <div className={styles.filters} role="group" aria-label="Choose a workflow">

@@ -38,14 +38,18 @@ import {
 /** Tool steps allowed before the run reports what it has and stops. */
 export const MAX_TOOL_TURNS = 5;
 export const COPILOT_SYSTEM_CONTRACT_TEMPLATE =
-  "You are <business>'s founder-only Revenue OS copilot. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every write or outbound action must use a propose_* tool and clearly tell the founder it is awaiting approval. When the founder asks for a write or outbound action, gather what it needs and stage it in this run; approval is the confirmation step, so do not stop to ask permission first. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. Stripe remains the payment authority. Subscription checkout and account management are customer-facing workflows; do not claim a charge, renewal, invoice, or subscription change without current registered evidence, and do not attempt those actions unless a registered tool explicitly exposes them. <voice>";
+  "You are <business>'s workspace business agent. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every business write uses a propose_* tool. The server may execute permitted routine internal work and returns an execution receipt; otherwise it is awaiting human approval. Messages, publishing, billing, deletion, terminal stages and permission changes always require explicit human approval. Never approve actions yourself. For a longer multi-step request, preview_agent_work then start_agent_work with the same plan and digest. Queued work is not completed work. Use get_agent_work for progress and control_agent_work only when the member asks to pause, resume or cancel. A policy request needs preview_internal_permission and propose_internal_permission; humans establish permissions. Report missing capabilities plainly. When the founder asks for a write or outbound action, gather what it needs and stage it in this run; approval is the confirmation step, so do not stop to ask permission first. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. Stripe remains the payment authority. Subscription checkout and account management are customer-facing workflows; do not claim a charge, renewal, invoice, or subscription change without current registered evidence, and do not attempt those actions unless a registered tool explicitly exposes them. <voice>";
 export const SYSTEM_CONTRACT = COPILOT_SYSTEM_CONTRACT_TEMPLATE.replace(
   "<business>",
   tenant.brand.name,
 ).replace("<voice>", tenant.ai.voice);
 
 /** A proposal is only queued work. Never let model wording turn it into a completed effect. */
-export function finalizeStagedAnswer(answer: string, stagedCount: number): string {
+export function finalizeStagedAnswer(
+  answer: string,
+  stagedCount: number,
+  executedCount = 0,
+): string {
   if (!stagedCount) return answer;
   if (
     /\b(?:sent|emailed|delivered|published|charged|paid|executed|applied|scheduled|updated|created|deleted|completed)\b/i.test(
@@ -53,7 +57,7 @@ export function finalizeStagedAnswer(answer: string, stagedCount: number): strin
     ) ||
     !/\bapprov(?:al|e|ed|ing)\b/i.test(answer)
   )
-    return `I staged ${stagedCount === 1 ? "a proposal" : `${stagedCount} proposals`} for your approval. Nothing has been sent or changed. Review ${stagedCount === 1 ? "it" : "them"} in Work.`;
+    return `I staged ${stagedCount === 1 ? "a proposal" : `${stagedCount} proposals`} for your approval. ${executedCount ? `${executedCount} permitted internal action(s) have execution receipts. ` : "Nothing has been sent or changed. "}Review ${stagedCount === 1 ? "it" : "them"} below before anything else runs.`;
   return answer;
 }
 
@@ -89,6 +93,18 @@ export interface AgentProposalSummary {
 }
 export interface CommandAgentOptions {
   surface?: string;
+  workItemId?: string;
+  requesterId?: string;
+  excludeTools?: string[];
+  beforeModel?: () => Promise<void>;
+  beforeAttempt?: (attempt: number) => Promise<void>;
+  beforeTool?: () => Promise<void>;
+  onActionReceipt?: (receipt: {
+    actionId: string;
+    status: string;
+    result: unknown;
+  }) => void | Promise<void>;
+  onWorkProgress?: (work: { workItemId: string; status: string; revision: number }) => void;
   conversationId?: string | null;
   activeToolBundleId?: string | null;
   architectEvidence?: string | null;
@@ -98,7 +114,11 @@ export interface CommandAgentOptions {
    * to MCP. Falls back to every optional module enabled when omitted. */
   tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
   signal?: AbortSignal;
-  onRunStarted?: (event: { runId: string | null; model: string; pack: RevenueToolPackId }) => void;
+  onRunStarted?: (event: {
+    runId: string | null;
+    model: string;
+    pack: RevenueToolPackId;
+  }) => void | Promise<void>;
   onAssistantDelta?: (delta: string) => void;
   /** Streamed text so far is superseded: a tool turn, or a replaced answer. */
   onAssistantReset?: () => void;
@@ -109,7 +129,7 @@ export interface CommandAgentOptions {
     summary: string;
     failed: boolean;
   }) => void;
-  onProposalStaged?: (proposal: AgentProposalSummary) => void;
+  onProposalStaged?: (proposal: AgentProposalSummary) => void | Promise<void>;
 }
 
 function safePageContext(context: CommandPageContext | null | undefined): string {
@@ -140,6 +160,8 @@ function toolSummary(output: unknown): string {
   if (Array.isArray(output)) return `${output.length} result${output.length === 1 ? "" : "s"}`;
   if (!output || typeof output !== "object") return String(output ?? "No result").slice(0, 180);
   const row = output as Record<string, unknown>;
+  if (typeof row.action_type === "string" && row.status === "executed")
+    return `Recorded ${row.action_type.replace(/_/g, " ")} result`;
   if (typeof row.action_type === "string")
     return `Staged ${row.action_type.replace(/_/g, " ")} for approval`;
   if (Array.isArray(row.activities))
@@ -188,7 +210,7 @@ export async function runRevenueCommandAgent(
     provider: "openrouter",
     toolPack: selectedPack,
   });
-  options.onRunStarted?.({ runId: run.id, model, pack: selectedPack });
+  await options.onRunStarted?.({ runId: run.id, model, pack: selectedPack });
 
   const transcript: OpenRouterMessage[] = safeMessages.map((message) => ({
     role: message.role,
@@ -196,6 +218,9 @@ export async function runRevenueCommandAgent(
   }));
   const toolNames: string[] = [];
   const stagedToolNames = new Set<string>();
+  const stagedActionIds = new Set<string>();
+  let executedCount = 0;
+  let toolFailures = 0;
   let activeBundleId =
     typeof options.activeToolBundleId === "string" && options.activeToolBundleId.length <= 160
       ? options.activeToolBundleId || null
@@ -279,9 +304,9 @@ export async function runRevenueCommandAgent(
       const budget = stepBudgetState(turn, MAX_TOOL_TURNS);
       // On the final step no tool is advertised, so the model cannot open work
       // it has no budget to finish and has to answer from what it already has.
-      const activeTools = budget.toolsAllowed
-        ? toActivatedOpenRouterTools(activeBundleId, liveContext)
-        : [];
+      const activeTools = (
+        budget.toolsAllowed ? toActivatedOpenRouterTools(activeBundleId, liveContext) : []
+      ).filter((tool) => !options.excludeTools?.includes(tool.function.name));
       const advertisedNames = new Set(activeTools.map((tool) => tool.function.name));
       const activationScope = options.conversationId
         ? "Activation remains selected in this conversation across reloads, subject to current permission and availability checks."
@@ -292,6 +317,7 @@ export async function runRevenueCommandAgent(
         model,
         maxTokens: 1200,
         signal: options.signal,
+        beforeAttempt: options.beforeAttempt,
         messages: [
           {
             role: "system" as const,
@@ -301,6 +327,7 @@ export async function runRevenueCommandAgent(
         ],
         tools: activeTools,
       };
+      await options.beforeModel?.();
       let streamedAnswer = false;
       const response = options.onAssistantDelta
         ? await openRouterChatStream(request, (delta) => {
@@ -354,23 +381,25 @@ export async function runRevenueCommandAgent(
             error: grounding.reason || "Grounding contract rejected the answer",
           });
           return {
+            status: "partial" as const,
             text: safeAnswer,
             runId: run.id,
             proposedActions: [...stagedToolNames],
             activeToolBundleId: activeBundleId,
           };
         }
-        const safeText = finalizeStagedAnswer(text, stagedToolNames.size);
+        const safeText = finalizeStagedAnswer(text, stagedActionIds.size, executedCount);
         if (streamedAnswer && safeText !== text) options.onAssistantReset?.();
         if (options.onAssistantDelta && (!streamedAnswer || safeText !== text))
           options.onAssistantDelta(safeText);
-        await finishAgentRun(supabase, run, "completed", {
+        await finishAgentRun(supabase, run, toolFailures ? "partial" : "completed", {
           toolNames,
           inputTokens,
           outputTokens,
           resultPreview: safeText,
         });
         return {
+          status: toolFailures ? ("partial" as const) : ("completed" as const),
           text: safeText,
           runId: run.id,
           proposedActions: [...stagedToolNames],
@@ -392,9 +421,12 @@ export async function runRevenueCommandAgent(
             throw new Error(
               `Tool ${name} is not loaded on this turn. Discover and activate its bundle first.`,
             );
+          await options.beforeTool?.();
           const dispatchContext = await refreshRevenueToolContext({
             supabase,
             actorEmail,
+            workItemId: options.workItemId,
+            requesterId: options.requesterId,
             conversationId: options.conversationId,
             tenantConfig: options.tenantConfig,
           });
@@ -430,13 +462,35 @@ export async function runRevenueCommandAgent(
             summary: toolSummary(output),
             failed: false,
           });
-          const proposal = proposalSummary(output, tool.impact);
+          const result = output as {
+            status?: string;
+            execution?: { actionId: string; status: string; result: unknown };
+            workItemId?: string;
+            revision?: number;
+          };
+          if (result.execution) {
+            if (result.execution.status !== "executed") toolFailures++;
+            executedCount++;
+            await options.onActionReceipt?.(result.execution);
+          }
+          if (result.workItemId)
+            options.onWorkProgress?.({
+              workItemId: result.workItemId,
+              revision: result.revision ?? 1,
+              status: result.status ?? "updated",
+            });
+          const proposal =
+            result.status === "executed" ? null : proposalSummary(output, tool.impact);
           if (proposal) {
             stagedToolNames.add(name);
-            options.onProposalStaged?.(proposal);
+            if (!stagedActionIds.has(proposal.id)) {
+              stagedActionIds.add(proposal.id);
+              await options.onProposalStaged?.(proposal);
+            }
           }
           return reply;
         } catch (error) {
+          toolFailures++;
           const message = error instanceof Error ? error.message : "Tool failed";
           await recordAgentRunEvent(supabase, run, {
             eventType: "tool_error",
@@ -514,6 +568,7 @@ export async function runRevenueCommandAgent(
     });
     options.onAssistantDelta?.(partial);
     return {
+      status: "partial" as const,
       text: partial,
       runId: run.id,
       proposedActions: staged,
