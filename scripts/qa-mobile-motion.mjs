@@ -207,6 +207,19 @@ for (const [engine, launcher] of Object.entries(engines)) {
     if (Math.abs(scrollRestored.y - originScroll) > 2 || scrollRestored.hidden)
       failures.push(`${engine}: cached history lost scroll or concealed restored chapters`);
     results.push({ engine, originScroll, scrollRestored });
+    await page.locator(".who-stat").evaluate((element) => element.scrollIntoView());
+    await page.waitForTimeout(1500);
+    const experience = await page.locator(".who-n").textContent();
+    await page.getByRole("button", { name: "Open navigation menu" }).click();
+    await page.locator('#mobile-site-navigation a[href="/work"]').first().click();
+    await page.waitForURL(`${base}/work`);
+    await page.goBack();
+    await page.waitForURL(`${base}/`);
+    await page.waitForTimeout(150);
+    const restoredExperience = await page.locator(".who-n").textContent();
+    if (experience !== restoredExperience)
+      failures.push(`${engine}: cached history reset the visible experience figure`);
+    results.push({ engine, experience, restoredExperience });
     await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
     await page.waitForTimeout(300);
     await page.goto(`${base}/robots.txt`, { waitUntil: "domcontentloaded" });

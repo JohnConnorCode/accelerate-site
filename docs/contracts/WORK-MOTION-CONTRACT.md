@@ -68,6 +68,8 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 - Reduced motion and unavailable JavaScript show all content immediately.
   Delayed hydration preserves a stable pending frame instead of painting
   content visible and then pulling it backward into an entrance.
+- Homepage count animations retain the complete figure on history restoration.
+  Unmounting or enabling reduced motion cancels their pending animation frame.
 
 ## Required verification
 

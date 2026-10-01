@@ -6652,7 +6652,7 @@ body.modal-open [data-dock] {
     --hero-entry-delay: 1380ms;
   }
   /* Keyboard users can reach the booking action before its visual cue. */
-  .motion-ready .home-hero .home-hero-actions:focus-within {
+  .motion-ready .home-hero[data-reveal-state] .home-hero-actions:focus-within {
     animation: none;
     opacity: 1;
     transform: none;

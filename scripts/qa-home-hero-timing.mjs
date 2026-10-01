@@ -260,7 +260,10 @@ for (const [label, viewport, colorScheme] of [
         `${label}: layered depth, local illumination or varied current timing is missing`,
       );
     await page.screenshot({ caret: "initial", path: `${output}/${label}-pointer.png` });
-    await page.mouse.move(10, 880);
+    // The full-height hero fills the viewport. Move onto the fixed header,
+    // outside the section, rather than assuming its former 740px height.
+    const header = await page.locator("header.site-header").boundingBox();
+    await page.mouse.move(header.x + 10, header.y + header.height / 2);
     await page.waitForTimeout(950);
     if (
       await page

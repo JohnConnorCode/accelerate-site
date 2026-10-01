@@ -390,8 +390,11 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-mobile-motion-server.log; exit 1; fi
-          node scripts/qa-home-hero-timing.mjs
-          node scripts/qa-mobile-motion.mjs --webkit
+          hero_status=0
+          mobile_status=0
+          node scripts/qa-home-hero-timing.mjs || hero_status=$?
+          node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
+          test "$hero_status" -eq 0 && test "$mobile_status" -eq 0
       - name: Retain native mobile motion evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
         uses: actions/upload-artifact@v7
