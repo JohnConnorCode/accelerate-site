@@ -13,21 +13,37 @@ const contours = Array.from(
     `M-180 ${180 + index * 24} C150 ${-160 + index * 38} 330 ${790 - index * 22} 650 ${410 + index * 8} S1030 ${80 + index * 20} 1370 ${240 + index * 28}`,
 );
 
-function HeroWords({ text, offset = 140 }: { text: string; offset?: number }) {
+function HeroWords({
+  text,
+  offset = 180,
+  stagger = 65,
+  emphasis = false,
+}: {
+  text: string;
+  offset?: number;
+  stagger?: number;
+  emphasis?: boolean;
+}) {
   return text.split(/\s+/).map((word, index) => (
     <span key={`${word}-${index}`}>
       <span
-        className="home-hero-word"
-        style={{ "--hero-word-delay": `${offset + Math.min(index, 12) * 28}ms` } as CSSProperties}
+        className="home-hero-word-mask"
+        style={
+          { "--hero-word-delay": `${offset + Math.min(index, 16) * stagger}ms` } as CSSProperties
+        }
       >
-        {word}
+        <span
+          className={`home-hero-word${emphasis && /^(money|time)[.!?]?$/.test(word) ? " home-hero-mark" : ""}`}
+        >
+          {word}
+        </span>
       </span>{" "}
     </span>
   ));
 }
 
 export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent }) {
-  const sectionRef = useRevealLifecycle<HTMLElement>();
+  const sectionRef = useRevealLifecycle<HTMLElement>({ restoreHistory: true });
   const lightId = useId();
   useEffect(() => {
     const section = sectionRef.current;
@@ -192,14 +208,14 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
             {contours
               .filter((_, index) => index % 2 === 0)
               .map((path) => (
-                <path key={path} d={path} />
+                <path key={path} d={path} pathLength="1000" />
               ))}
           </g>
           <g className="home-hero-contour-lines home-hero-contour-near">
             {contours
               .filter((_, index) => index % 2 !== 0)
               .map((path) => (
-                <path key={path} d={path} />
+                <path key={path} d={path} pathLength="1000" />
               ))}
           </g>
           <g className="home-hero-currents">
@@ -239,7 +255,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                 <HeroWords text={heading} />
               </span>{" "}
               <em>
-                <HeroWords text={content.emphasis} offset={320} />
+                <HeroWords text={content.emphasis} offset={650} stagger={90} emphasis />
               </em>
             </>
           )}

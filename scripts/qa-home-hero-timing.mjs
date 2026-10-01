@@ -7,6 +7,76 @@ await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const failures = [];
 const results = [];
+const entranceFrames = [];
+
+// Inspect actual rendered frames, not just animation names or a changed transform.
+for (const [label, viewport] of [
+  ["desktop", { width: 1440, height: 900 }],
+  ["mobile", { width: 390, height: 844 }],
+]) {
+  const context = await browser.newContext({ viewport, hasTouch: viewport.width < 1000 });
+  const page = await context.newPage();
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.waitForFunction(() => document.querySelector(".home-hero")?.classList.contains("in"));
+  await page.evaluate(() => {
+    window.__heroFrameAnimations = document
+      .querySelector(".home-hero")
+      .getAnimations({ subtree: true })
+      .filter((animation) =>
+        /^home-hero-(word|label|detail|action|mark|contour)-enter$/.test(animation.animationName),
+      );
+    window.__heroFrameAnimations.forEach((animation) => animation.pause());
+  });
+  for (const time of [0, 350, 850, 1250, 1800, 3000]) {
+    await page.evaluate((time) => {
+      window.__heroFrameAnimations.forEach((animation) => {
+        animation.currentTime = time;
+      });
+    }, time);
+    const frame = await page.evaluate(() => {
+      const booking = document.querySelector(".home-hero-cta").getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        booking.x + booking.width / 2,
+        booking.y + booking.height / 2,
+      );
+      const visibleWords = (selector) =>
+        [...document.querySelectorAll(selector)].filter((word) => {
+          const style = getComputedStyle(word);
+          return (
+            Number(style.opacity) > 0.1 &&
+            new DOMMatrix(style.transform).m42 < word.getBoundingClientRect().height * 0.95
+          );
+        }).length;
+      return {
+        lead: visibleWords(".home-hero-lead .home-hero-word"),
+        outcome: visibleWords(".home-hero-heading em .home-hero-word"),
+        action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
+        actionReceivesPointer: Boolean(hit?.closest(".home-hero-cta")),
+        support: Number(getComputedStyle(document.querySelector(".home-hero-support")).opacity),
+        masks: [...document.querySelectorAll(".home-hero-word-mask")].every(
+          (mask) => getComputedStyle(mask).clipPath !== "none",
+        ),
+      };
+    });
+    if (time === 0 && (frame.lead || frame.outcome || frame.action || frame.support))
+      failures.push(`${label}: opening frame exposes content before its entrance`);
+    if (time === 350 && (!frame.lead || frame.outcome || frame.action))
+      failures.push(`${label}: lead did not enter independently from outcome and booking`);
+    if (time === 850 && (!frame.outcome || frame.action || frame.support))
+      failures.push(`${label}: outcome did not reveal before supporting content`);
+    if (time === 1250 && (frame.action || frame.support))
+      failures.push(`${label}: supporting content skipped its reveal delay`);
+    if (frame.action === 0 && frame.actionReceivesPointer)
+      failures.push(`${label}: concealed booking action still accepts pointer clicks`);
+    if (time === 3000 && !frame.actionReceivesPointer)
+      failures.push(`${label}: completed booking action cannot receive pointer clicks`);
+    if (time === 3000 && (frame.action !== 1 || frame.support !== 1 || !frame.masks))
+      failures.push(`${label}: completed entrance is incomplete or has no word masks`);
+    entranceFrames.push({ label, time, ...frame });
+    await page.screenshot({ caret: "initial", path: `${output}/${label}-frame-${time}.png` });
+  }
+  await context.close();
+}
 
 for (const [label, viewport, colorScheme] of [
   ["desktop", { width: 1440, height: 900 }, "light"],
@@ -22,6 +92,9 @@ for (const [label, viewport, colorScheme] of [
     colorScheme,
     hasTouch: touch,
     reducedMotion: "no-preference",
+    ...(label === "desktop" || label === "mobile"
+      ? { recordVideo: { dir: `${output}/video`, size: viewport } }
+      : {}),
   });
   await context.addInitScript((theme) => localStorage.setItem("theme", theme), colorScheme);
   await context.addInitScript(() => {
@@ -81,7 +154,7 @@ for (const [label, viewport, colorScheme] of [
     await page.waitForTimeout(300);
     await page.screenshot({ caret: "initial", path: `${output}/${label}-sequence.png` });
   }
-  await page.waitForTimeout(1600);
+  await page.waitForTimeout(3000);
   const settled = await page.evaluate(() => ({
     heading: getComputedStyle(document.querySelector(".home-hero-heading")).transform,
     cta: getComputedStyle(document.querySelector(".home-hero-cta")).opacity,
@@ -223,11 +296,36 @@ for (const [label, viewport, colorScheme] of [
     await page.keyboard.press("Enter");
     await page.waitForURL(`${baseUrl}/contact`);
     await page.goBack({ waitUntil: "domcontentloaded" });
-    if (!(await page.locator(".home-hero-cta").isVisible()))
-      failures.push(`${label}: booking action missing after Back`);
+    const restored = await page
+      .locator(".home-hero-actions")
+      .evaluate((element) => Number(getComputedStyle(element).opacity));
+    if (restored !== 1) failures.push(`${label}: booking action concealed after Back`);
+    // A forward client navigation is a fresh entrance, even after a history restore.
+    await page.goto(`${baseUrl}/services`, { waitUntil: "domcontentloaded" });
+    const homeLink = page.locator('header .logo-link[href="/"]');
+    await homeLink.hover();
+    await page.waitForTimeout(350);
+    await homeLink.click();
+    await page.waitForURL(`${baseUrl}/`);
+    await page.waitForFunction(() =>
+      document.querySelector(".home-hero")?.classList.contains("in"),
+    );
+    const forward = await page.evaluate(() => ({
+      kind: document.documentElement.dataset.navigationKind,
+      animated: getComputedStyle(document.querySelector(".home-hero-word")).animationName,
+      action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
+    }));
+    if (
+      forward.kind !== "fresh" ||
+      forward.animated !== "home-hero-word-enter" ||
+      forward.action !== 0
+    )
+      failures.push(`${label}: prefetched forward navigation skipped the fresh entrance`);
+    await page.waitForTimeout(3000);
   }
   results.push({ label, viewport, colorScheme, opening, settled });
   await context.close();
+  if (page.video()) await page.video().saveAs(`${output}/${label}-entrance.webm`);
 }
 
 const context = await browser.newContext({
@@ -291,9 +389,16 @@ for (const [label, viewport] of [
   );
   const pending = await delayedPage.evaluate(() => ({
     state: document.querySelector(".home-hero").dataset.revealState,
-    readable: [
+    concealed: [
       ...document.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions"),
-    ].every((element) => getComputedStyle(element).opacity === "1"),
+    ].every((element) => getComputedStyle(element).opacity === "0"),
+    masked: [...document.querySelectorAll(".home-hero-word")].every((word) => {
+      const mask = word.parentElement;
+      return (
+        getComputedStyle(mask).clipPath !== "none" &&
+        new DOMMatrix(getComputedStyle(word).transform).m42 >= word.getBoundingClientRect().height
+      );
+    }),
     notStarted: [...document.querySelectorAll(".home-hero-word")].every(
       (word) => word.getAnimations().length === 0,
     ),
@@ -303,19 +408,29 @@ for (const [label, viewport] of [
   }));
   if (
     pending.state !== "pending" ||
-    !pending.readable ||
+    !pending.concealed ||
+    !pending.masked ||
     !pending.notStarted ||
     !pending.chaptersPending
   )
-    failures.push(`${label}: entrance ran before delayed hydration or message was hidden`);
+    failures.push(`${label}: pending hero was visible before hydration or has no full word mask`);
   await delayedPage.screenshot({
     caret: "initial",
     path: `${output}/${label}-delayed-hydration.png`,
   });
+  await delayedPage.locator(".home-hero-cta").focus();
+  if (
+    (await delayedPage.locator(".home-hero-actions").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return style.opacity === "1" && style.pointerEvents === "auto";
+    })) !== true
+  )
+    failures.push(`${label}: keyboard focus did not expose the pending booking action`);
+  await delayedPage.locator(".home-hero-cta").evaluate((element) => element.blur());
   await delayedPage.waitForFunction(
     () => document.querySelector(".home-hero").dataset.revealState === "visible",
   );
-  await delayedPage.waitForTimeout(1600);
+  await delayedPage.waitForTimeout(3000);
   const complete = await delayedPage
     .locator(".home-hero-word")
     .evaluateAll((words) =>
@@ -327,6 +442,30 @@ for (const [label, viewport] of [
   delayedResults.push({ label, pending, complete });
   await delayed.close();
 }
+const failedRuntime = await browser.newContext({ viewport: { width: 390, height: 844 } });
+await failedRuntime.route("**/_next/static/**/*.js*", (route) => route.abort());
+const failedRuntimePage = await failedRuntime.newPage();
+await failedRuntimePage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+await failedRuntimePage.waitForFunction(
+  () => !document.documentElement.classList.contains("motion-ready"),
+);
+const watchdog = await failedRuntimePage.evaluate(() => ({
+  readable: [
+    ...document.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions"),
+  ].every(
+    (element) =>
+      getComputedStyle(element).opacity === "1" &&
+      getComputedStyle(element).animationName === "none",
+  ),
+  hydrated: document.documentElement.hasAttribute("data-motion-hydrated"),
+}));
+if (!watchdog.readable || watchdog.hydrated)
+  failures.push("Failed runtime did not expose the static hero through the watchdog");
+await failedRuntimePage.screenshot({
+  caret: "initial",
+  path: `${output}/mobile-failed-runtime.png`,
+});
+await failedRuntime.close();
 const noJS = await browser.newContext({
   viewport: { width: 1440, height: 900 },
   javaScriptEnabled: false,
@@ -380,8 +519,10 @@ await writeFile(
     {
       result: failures.length ? "failed" : "passed",
       results,
+      entranceFrames,
       reduced,
       delayedResults,
+      watchdog,
       staticHero,
       failures,
     },
