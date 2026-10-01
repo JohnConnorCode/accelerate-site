@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "homepage-hero-entrance",
     title: "A complete homepage entrance",
     description:
-      "The homepage headline now reveals from concealed word masks in a deliberate sequence. Contours trace into place and emphasis lines draw before the explanation and booking action appear. Keyboard focus exposes the booking action immediately. Reduced motion, unavailable JavaScript and failed hydration show the complete static page.",
+      "The homepage headline now reveals from concealed word masks in a deliberate sequence, with traced contours, drawn emphasis lines and a staged explanation and booking action. Keyboard focus exposes the booking action immediately. Reduced motion, unavailable JavaScript and failed hydration show the complete static page.",
     category: "fix",
     publishedAt: "2026-10-01",
   },
