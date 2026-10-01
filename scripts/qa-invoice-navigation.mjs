@@ -14,7 +14,9 @@ let activePage;
 let passed = false;
 
 async function search(page, query) {
-  await page.getByRole("button", { name: "Open command palette", exact: true }).click();
+  const mobileSearch = page.getByRole("button", { name: "Open command palette", exact: true });
+  if (await mobileSearch.isVisible()) await mobileSearch.click();
+  else await page.locator("[data-admin-workspace-toolbar]").getByRole("button", { name: /^Search/ }).click();
   const dialog = page.getByRole("dialog", { name: "Admin command palette" });
   await dialog.getByPlaceholder("Search people, pages, or run a command…").fill(query);
   return dialog;
@@ -35,6 +37,15 @@ async function observeDemo(page) {
   });
 }
 
+async function settle(page) {
+  await page.waitForFunction(() => {
+    const main = document.querySelector("main");
+    return main && main.getAnimations({ subtree: true }).every((animation) =>
+      animation.playState !== "running" || animation.effect?.getTiming().iterations === Infinity,
+    );
+  });
+}
+
 async function openInvoices(page, mobile) {
   if (mobile) await page.getByRole("button", { name: "Open More", exact: true }).click();
   const navigation = page.locator('nav[aria-label="Admin navigation"]:visible');
@@ -43,7 +54,8 @@ async function openInvoices(page, mobile) {
   await invoices.focus();
   await page.keyboard.press("Enter");
   await page.getByRole("heading", { level: 1, name: "Invoices", exact: true }).waitFor();
-  if (mobile) assert.equal(await page.getByRole("button", { name: "Close navigation" }).count(), 0);
+  if (mobile) await page.getByRole("button", { name: "Close navigation" }).waitFor({ state: "detached" });
+  await settle(page);
 }
 
 try {
@@ -67,14 +79,18 @@ try {
       }
       await openInvoices(page, mobile);
       await page.getByRole("heading", { name: "All invoices", exact: true }).waitFor();
+      await settle(page);
       await page.screenshot({ path: `${output}/${label}-invoices.png` });
       const create = page.locator("main .admin-button--primary").filter({ hasText: "Create invoice" });
       await create.focus();
       await page.keyboard.press("Enter");
       await page.getByRole("heading", { level: 1, name: "Create invoice", exact: true }).waitFor();
       await page.getByRole("button", { name: "Use sample invoice", exact: true }).waitFor();
+      await settle(page);
       assert.equal(new URL(page.url()).searchParams.get("view"), "create");
       assert.equal(await page.getByRole("heading", { name: "All invoices", exact: true }).count(), 0);
+      const titleRect = await page.getByRole("heading", { level: 1, name: "Create invoice", exact: true }).boundingBox();
+      assert.ok(titleRect && titleRect.y >= 76, "Creation must keep its title below the persistent toolbar");
       const formRect = await page.getByRole("heading", { name: "New customer invoice", exact: true }).boundingBox();
       assert.ok(formRect && formRect.y < (mobile ? 844 : 1000), "The customer form must appear in the first screen");
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
@@ -102,9 +118,15 @@ try {
       await disabledSearch.getByPlaceholder("Search people, pages, or run a command…").press("Enter");
       await page.getByText("Stripe invoicing is turned off", { exact: true }).waitFor();
       await page.getByRole("link", { name: "Go to Integrations & Modules", exact: true }).click();
-      await page.getByRole("button", { name: "Enable Stripe invoicing", exact: true }).waitFor();
+      const enable = page.getByRole("switch", { name: "Enable Stripe invoicing", exact: true });
+      await enable.waitFor();
       assert.equal(await page.getByPlaceholder("Search modules or routes").inputValue(), "Stripe invoicing");
+      await settle(page);
       await page.screenshot({ path: `${output}/${label}-setup.png` });
+      await enable.focus();
+      await page.keyboard.press("Enter");
+      await page.getByRole("switch", { name: "Disable Stripe invoicing", exact: true }).waitFor();
+      await openInvoices(page, mobile);
       results.push({ scenario, viewport: mobile ? "mobile" : "desktop", passed: true });
       await context.close();
     }
@@ -136,12 +158,14 @@ try {
     assert.equal(await page.getByRole("button", { name: "Prepare invoice", exact: true }).count(), 0);
     await page.getByLabel("Stripe API key", { exact: true }).focus();
     assert.ok(await page.getByLabel("Stripe API key", { exact: true }).evaluate((node) => node === document.activeElement));
+    await settle(page);
     await page.screenshot({ path: `${output}/disconnected-${mobile ? "mobile" : "desktop"}.png` });
     results.push({ viewport: mobile ? "mobile" : "desktop", fixture: "disconnected Stripe", passed: true });
     await page.goto(base + "/docs/plugins/stripe-invoicing");
     await page.getByRole("heading", { level: 1, name: "Stripe invoicing", exact: true }).waitFor();
     const guide = await page.locator("main").innerText();
     assert.ok(guide.includes("Create invoice") && guide.includes("/admin/invoicing?view=create"));
+    await settle(page);
     await page.screenshot({ path: `${output}/guide-${mobile ? "mobile" : "desktop"}.png` });
     results.push({ viewport: mobile ? "mobile" : "desktop", fixture: "public invoice guide", passed: true });
     await context.close();

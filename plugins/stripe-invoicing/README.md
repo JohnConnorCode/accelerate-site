@@ -7,9 +7,10 @@ receiving payment.
 
 ## Complete an invoice
 
-1. Enable **Stripe invoicing** in **Plugins**. Configure the workspace's Stripe
-   connection through **Integrations**, using the platform's server-only secret
-   storage. Verify test/live mode before any provider action.
+1. Open **Apps**, select **Pluggable Modules**, and enable **Stripe invoicing**.
+   The invoice creation page provides the workspace's Stripe connection controls,
+   using the platform's server-only secret storage. Verify test/live mode before
+   any provider action.
 2. Open **Invoices** directly from the sidebar (or the mobile **Menu**), then
    select **Create invoice**. You can also search for **Create invoice** with
    Command/Ctrl+K. The direct creation link is `/admin/invoicing?view=create`.
@@ -53,7 +54,7 @@ Credentials belong in the existing encrypted connection path, not module setting
 
 ## Disable and recover
 
-Disable in **Plugins** to prevent later plugin execution. Existing provider
+Disable in **Apps → Pluggable Modules** to prevent later plugin execution. Existing provider
 invoices, payments, local receipts and published pages are not automatically
 undone. Revoke public pages using their explicit controls; do not assume a toggle
 removes something already published.

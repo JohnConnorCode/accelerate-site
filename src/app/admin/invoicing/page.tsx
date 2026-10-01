@@ -59,7 +59,7 @@ export default function InvoicingPage() {
   useEffect(() => {
     // Query-only navigation stays on this page. Bring the creation view back
     // into sight even when it was opened from tools farther down the invoice list.
-    if (creating) pageRef.current?.scrollIntoView({ block: "start" });
+    if (creating) pageRef.current?.closest("main")?.scrollTo({ top: 0 });
   }, [creating]);
   const demoToken = demo ? params.get("demoInvoice") : null;
   const demoDocument = useAdminQuery<{
