@@ -93,6 +93,9 @@ try {
       assert.ok(titleRect && titleRect.y >= 76, "Creation must keep its title below the persistent toolbar");
       const formRect = await page.getByRole("heading", { name: "New customer invoice", exact: true }).boundingBox();
       assert.ok(formRect && formRect.y < (mobile ? 844 : 1000), "The customer form must appear in the first screen");
+      const customerRect = await page.getByLabel("Find CRM customer", { exact: true }).boundingBox();
+      assert.ok(customerRect && customerRect.y + customerRect.height < (mobile ? 780 : 1000),
+        "The customer field must be visible above the mobile dock without scrolling");
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
       await page.screenshot({ path: `${output}/${label}-create.png` });
       await page.getByRole("button", { name: "Use sample invoice", exact: true }).click();
@@ -122,6 +125,9 @@ try {
       await enable.waitFor();
       assert.equal(await page.getByPlaceholder("Search modules or routes").inputValue(), "Stripe invoicing");
       await settle(page);
+      const enableRect = await enable.boundingBox();
+      assert.ok(enableRect && enableRect.y + enableRect.height < (mobile ? 780 : 1000),
+        "Targeted setup must show the enable switch above the mobile dock without scrolling");
       await page.screenshot({ path: `${output}/${label}-setup.png` });
       await enable.focus();
       await page.keyboard.press("Enter");

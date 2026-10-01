@@ -261,7 +261,7 @@ export default function InvoicingPage() {
         }
       />
       <DemoBusinessNotice />
-      <nav aria-label="Invoice sections" className="flex flex-wrap gap-2">
+      {!creating && <nav aria-label="Invoice sections" className="flex flex-wrap gap-2">
         <AdminLink
           className={button}
           href="/admin/invoicing"
@@ -282,7 +282,7 @@ export default function InvoicingPage() {
         <AdminLink className={button} href="/admin/subscriptions">
           Subscriptions
         </AdminLink>
-      </nav>
+      </nav>}
       {!creating && (
         <div id="invoice-list">
           <InvoiceIndex enabled={connected || Boolean(demo)} />

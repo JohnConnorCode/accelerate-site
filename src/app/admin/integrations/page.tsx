@@ -549,6 +549,8 @@ function ModuleCard({
 
 export default function IntegrationsPage() {
   const searchParams = useSearchParams();
+  const focusedModuleSetup =
+    searchParams.get("tab") === "modules" && Boolean(searchParams.get("search")?.trim());
   const queryClient = useQueryClient();
   const integrationsQuery = useAdminQuery<IntegrationCatalog>(
     ["admin", "integrations"],
@@ -944,7 +946,7 @@ export default function IntegrationsPage() {
 
         {activeTab === "modules" && (
           <>
-            <section className="admin-grid admin-grid--metrics">
+            {!focusedModuleSetup && <section className="admin-grid admin-grid--metrics">
               <AdminSurface padding="md">
                 <p className="admin-eyebrow">Total Modules</p>
                 <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)]">
@@ -966,7 +968,7 @@ export default function IntegrationsPage() {
                 </p>
                 <p className="admin-copy mt-1 text-xs">Tenant-configurable plugins</p>
               </AdminSurface>
-            </section>
+            </section>}
 
             <AdminSurface
               padding="sm"
