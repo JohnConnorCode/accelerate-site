@@ -344,6 +344,20 @@ jobs:
       - name: Build and typecheck
         run: npm run build
 
+      # A public-only verification can supply a local production preview when
+      # the development machine cannot safely run another compiler.
+      - name: Retain local production preview
+        if: ${{ inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: local-production-preview
+          path: |
+            .next/
+            !.next/cache/
+            !.next/diagnostics/
+          include-hidden-files: true
+          retention-days: 2
+
       - name: Verify compiled document extraction
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         run: NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-document-extraction.ts --compiled
@@ -502,6 +516,7 @@ jobs:
             node scripts/qa-conversational-agent.mjs
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
+            node scripts/qa-home-polish.mjs
             node scripts/qa-demo-business-workflows.mjs
           ) &
           public_qa_pid=$!
@@ -557,6 +572,7 @@ jobs:
             /tmp/accelerate-work-portfolio-qa/
             /tmp/accelerate-public-navigation-profile/
             /tmp/accelerate-home-hero-timing/
+            /tmp/accelerate-home-polish/
             /tmp/accelerate-collections-workspace/
             /tmp/accelerate-analytics-workspace/
             /tmp/accelerate-radar-workspace/
@@ -721,11 +737,11 @@ jobs:
           node --check scripts/qa-admin-core.mjs
       - name: Verify representative core routes
         env:
-          QA_ROUTES: today,contacts,conversations,settings,site/website
+          QA_ROUTES: today,features,contacts,settings,integrations
           QA_SKIP_PREVIEW: "1"
           QA_OUTPUT: /tmp/admin-core-qa/routes
         run: npm run qa:admin-core
-      - name: Capture seven theme identities and keyboard interaction
+      - name: Capture nine theme identities and keyboard interaction
         env:
           QA_ROUTES: today
           QA_OUTPUT: /tmp/admin-core-qa/identities

@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-30",
   },
   {
+    id: "editorial-home-workspace-polish",
+    slug: "editorial-home-workspace-polish",
+    title: "A clearer homepage and calmer daily workspace",
+    description:
+      "Selected work now leads the bundled homepage, with one featured case and three supporting projects. Services, process and the sample plan have distinct layouts, and the floating booking bar steps aside when a booking action is visible. The workspace keeps Search and Ask AI in persistent desktop chrome, groups Today view tools under More, and applies shared theme controls to Feature Board filters. Paper gains editorial headings, compact empty states reduce unused space, and saved views, custom appearances and published website arrangements keep their existing behavior.",
+    category: "improvement",
+    publishedAt: "2026-09-30",
+  },
+  {
     id: "approved-workspace-configuration",
     slug: "approved-workspace-configuration",
     title: "Review workspace configuration with AI",

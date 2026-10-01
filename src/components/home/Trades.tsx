@@ -15,23 +15,23 @@ export function Trades({ content = homeTradesContent }: { content?: HomeTradesCo
     <section className="sect" id="trades">
       <AmbientField />
       <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
+        <Reveal sequence className="shead">
+          <p data-home-step="0" className="label eyebrow-anim">
             {content.eyebrow}
-          </Reveal>
-          <Reveal rv as="h2" className="h2" delay={0.06}>
+          </p>
+          <h2 data-home-step="1" className="h2">
             {content.headingStart}
             <br />
             {content.headingMiddle} <span className="it">{content.headingEnd}</span>
-          </Reveal>
-        </div>
+          </h2>
+        </Reveal>
 
         <div className="trades">
           {content.trades.map((trade, i) => (
             <Reveal
               key={trade.href}
               rv
-              delay={0.04 * i}
+              delay={0.11 * i}
               className={i === 0 ? "trades-lead h-full" : "h-full"}
             >
               <Link href={trade.href} className="trade">

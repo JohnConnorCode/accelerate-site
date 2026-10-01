@@ -43,6 +43,8 @@ Tables and boards can scroll inside their own regions. The app viewport must
 never scroll horizontally. Native row or form structure may retain its local
 grid when columns express actual fields rather than page composition.
 
+Desktop Search and Ask AI belong to the sticky workspace toolbar outside the route entrance. Page headers contain route identity, help and task actions. Today keeps view management in More beside its view selector. Feature Board filters use the same native field, button and dialog recipes as the other core routes.
+
 ## Density and motion
 
 The Appearance panel exposes Comfortable and Compact. Density is stored under
@@ -69,7 +71,7 @@ mobile widths, overlays and saved preference restoration.
 
 ## Theme expression
 
-All seven presets use the same recipes. `themes.json` also owns title and label
+All nine presets use the same recipes. `themes.json` also owns title and label
 families, title weight/tracking, surface fill/filter, navigation material and
 shape, control elevation, field fill and interaction timing. Keep opaque
 `--admin-surface` as the portable palette value; `--admin-surface-fill` may add a
@@ -77,9 +79,9 @@ translucent or tonal treatment. The custom-theme compiler resets every expressio
 token, so a saved version-1 definition cannot inherit the previous preset's glass
 or title styling. Its stored schema is unchanged.
 
-Paper is warm/cobalt, Night graphite/brass, Signal teal/precise, Studio
+Paper is editorial/warm/cobalt, Night graphite/brass, Signal teal/precise, Studio
 editorial/clay, Frost icy/translucent, Material tonal/rounded and macOS
-silver/system. Material and macOS differ in type, corner geometry, elevation and
+silver/system, with Accelerate monochrome/square and Capy graphite/seafoam. Material and macOS differ in type, corner geometry, elevation and
 navigation treatment. Add expression through these tokens, not `[data-theme]`
 component selectors. Today modules consume the same surface/title tokens.
 

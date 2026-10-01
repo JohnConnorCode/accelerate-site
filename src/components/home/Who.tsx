@@ -10,18 +10,18 @@ export function Who({ content = homeWhoContent }: { content?: HomeWhoContent }) 
     <section className="sect" id="who" style={{ paddingTop: 0 }}>
       <AmbientField />
       <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
+        <Reveal sequence className="shead">
+          <p data-home-step="0" className="label eyebrow-anim">
             {content.eyebrow}
-          </Reveal>
-          <Reveal rv as="h2" className="h2" delay={0.06}>
+          </p>
+          <h2 data-home-step="1" className="h2">
             {content.headingStart}
             <br />
             {content.headingMiddle}
             <br />
             {content.headingEnd}
-          </Reveal>
-        </div>
+          </h2>
+        </Reveal>
         <div className="who">
           {/* Asymmetric split instead of the symmetric two-column pattern
               the index/steps sections use — pulls the "fifteen years"
@@ -33,13 +33,17 @@ export function Who({ content = homeWhoContent }: { content?: HomeWhoContent }) 
             <CountUp target={content.years} className="who-n" />
             <span className="who-n-label">{content.yearsLabel}</span>
           </Reveal>
-          <Reveal rv className="who-copy" delay={0.08}>
-            <p className="lead-p">{content.body}</p>
-            <p>{content.detail}</p>
+          <Reveal sequence className="who-copy" delay={0.11}>
+            <p data-home-step="0" className="lead-p">
+              {content.body}
+            </p>
+            <p data-home-step="1">{content.detail}</p>
             <Link
+              data-home-step="2"
               href={content.linkHref}
               className="body-c"
               style={{
+                display: "inline-flex",
                 fontSize: "14.5px",
                 textDecoration: "underline",
                 textUnderlineOffset: "3px",

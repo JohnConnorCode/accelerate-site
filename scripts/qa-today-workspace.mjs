@@ -87,14 +87,30 @@ try {
     assert.equal(await page.locator('[data-today-module="brief"] a').count(), 2);
     assert.equal(await page.locator('[data-today-module="ai"]').count(), 0);
     assert.equal(await page.locator('[data-today-module="attention"] header svg').count(), 1);
+    assert.equal(await heading.getByRole("button", { name: "Customize", exact: true }).count(), 0);
     await page.getByLabel("Today view", { exact: true }).focus();
     await page.keyboard.press("Tab");
     assert.equal(
       await page
-        .getByRole("button", { name: "Customize", exact: true })
+        .getByLabel("View actions", { exact: true })
         .evaluate((node) => node === document.activeElement),
       true,
     );
+    if (width >= 1024) {
+      const toolbar = page.locator("[data-admin-workspace-toolbar]");
+      assert.equal(await toolbar.isVisible(), true);
+      assert.equal(await heading.getByRole("button", { name: /Search|Ask AI/ }).count(), 0);
+      await page.locator(".admin-main").evaluate((main) => {
+        main.scrollTop = 300;
+      });
+      assert.equal(
+        Math.round(await toolbar.evaluate((node) => node.getBoundingClientRect().top)),
+        0,
+      );
+      await page.locator(".admin-main").evaluate((main) => {
+        main.scrollTop = 0;
+      });
+    }
     await page.mouse.move(0, 0);
     const original = await page.evaluate(async () =>
       (await window.__todayTestFetch("/api/admin/revenue-os/today")).json(),
@@ -275,7 +291,7 @@ try {
       results.push({ width, content, overflow });
     }
     // Compose, save, reload and independently duplicate a personal view.
-    await page.getByRole("button", { name: "Customize", exact: true }).click();
+    await page.getByLabel("View actions", { exact: true }).selectOption("customize");
     await page.getByLabel("View name", { exact: true }).fill("Focused day");
     await page.getByLabel("Save for", { exact: true }).selectOption("personal");
     await page.getByLabel("Open this view by default").check();

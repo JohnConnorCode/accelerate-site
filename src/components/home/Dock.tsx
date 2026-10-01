@@ -36,16 +36,26 @@ export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }
 
   useEffect(() => {
     if (hiddenRoute) return;
+    const visibleCalls = new Set<Element>();
     const onScroll = () => {
       const y = window.scrollY;
       const doc = document.documentElement;
       const nearBottom = y + window.innerHeight >= doc.scrollHeight - 220;
-      setVisible(y > window.innerHeight * 0.55 && !nearBottom);
+      setVisible(y > window.innerHeight * 0.55 && !nearBottom && visibleCalls.size === 0);
     };
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) visibleCalls.add(entry.target);
+        else visibleCalls.delete(entry.target);
+      }
+      onScroll();
+    });
+    document.querySelectorAll("[data-booking-cta]").forEach((cta) => observer.observe(cta));
     const raf = requestAnimationFrame(onScroll);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     return () => {
+      observer.disconnect();
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
@@ -61,7 +71,7 @@ export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }
   if (hiddenRoute) return null;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {visible && (
         <motion.aside
           initial={reducedMotion ? false : { y: "150%", opacity: 0 }}

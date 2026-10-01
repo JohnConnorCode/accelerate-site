@@ -11,13 +11,9 @@ import { Who } from "@/components/home/Who";
 import { Faq } from "@/components/home/Faq";
 import { FinalCta } from "@/components/home/FinalCta";
 
-/**
- * Accelerate homepage. The arc below the hero: what we build (Systems, an
- * editorial index of named machines), the product artifact (CommandCenter),
- * the photography beat showing where it runs (Trades), then process, plan,
- * firm, questions, close. No statistics lead a section; the numbers live in
- * the sample plan deck where they are framed as a plan, not a pitch.
- */
+/** The homepage moves from the agency's work to its offer, then the product,
+ * delivery process, sample plan and booking. Published Site Studio documents
+ * retain their saved order; this is the bundled site's default composition. */
 export function Studio() {
   return (
     <>
@@ -28,12 +24,12 @@ export function Studio() {
         <HeroStatement />
         <Marquee />
       </div>
+      <HomeSelectedWork />
       <Systems />
       <Trades />
       <CommandCenter />
       <HowWeWork />
       <Plan />
-      <HomeSelectedWork />
       <Who />
       <Faq />
       <FinalCta />

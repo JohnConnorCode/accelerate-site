@@ -1,5 +1,4 @@
 .workspace {
-  --admin-section-gap: 20px;
   --today-accent: var(--admin-accent, #b76b32);
   color: var(--admin-ink);
   padding-bottom: 3rem;
@@ -12,19 +11,13 @@
 .columns {
   display: flex;
   align-items: flex-start;
-  gap: 24px;
+  gap: var(--admin-section-gap);
 }
 .columns > [data-width="primary"] {
   flex: 2;
 }
 .columns > [data-width="support"] {
   flex: 1;
-}
-.workspace :global(.admin-page-introduction h1) {
-  font-family: inherit;
-  font-style: normal;
-  font-size: 28px;
-  font-weight: 650;
 }
 .toolbar {
   display: flex;
@@ -49,27 +42,12 @@
   outline-offset: 3px;
 }
 .viewSelect {
-  background: var(--admin-surface);
-  color: var(--admin-ink);
-  border: 0;
-  border-radius: var(--admin-control-radius);
-  padding: 10px 36px 10px 14px;
-  min-height: var(--admin-control-height);
-  font-size: var(--admin-text-body);
-  font-weight: 600;
   max-width: 260px;
-  box-shadow: var(--admin-shadow-border);
+  font-weight: 600;
 }
 .viewActions {
-  min-height: var(--admin-control-height);
-  max-width: 96px;
-  padding: 0 12px;
-  background: var(--admin-surface);
-  color: var(--admin-ink);
-  font-size: var(--admin-text-body);
+  width: 96px;
   font-weight: 600;
-  border-radius: var(--admin-control-radius);
-  box-shadow: var(--admin-shadow-border);
 }
 .attentionPill {
   display: inline-flex;
@@ -697,12 +675,14 @@
   }
   .viewSelect {
     max-width: none;
-    flex: 1 1 100%;
+    flex: 1 1 0;
+    min-width: 0;
     padding-inline: 10px 8px;
     font-size: 12px;
   }
   .viewActions {
-    max-width: 82px;
+    width: 82px;
+    flex: 0 0 82px;
     padding-inline: 12px 8px;
   }
   .brief {

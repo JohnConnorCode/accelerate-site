@@ -651,8 +651,8 @@ a.tag:active {
 @keyframes rv-in {
   from {
     opacity: 0;
-    transform: translateY(24px);
-    filter: blur(9px);
+    transform: translateY(14px);
+    filter: none;
   }
   to {
     opacity: 1;
@@ -670,8 +670,8 @@ a.tag:active {
 }
 .motion-ready .rv[data-reveal-state="pending"]:not(.work-reveal):not(.in) {
   opacity: 0;
-  transform: translateY(24px);
-  filter: blur(9px);
+  transform: translateY(14px);
+  filter: none;
 }
 /* Hero eyebrow uses the .loaded gate, not the shared observer. Hide it only
    while the hero is still waiting to start its own sequence. */
@@ -681,54 +681,7 @@ a.tag:active {
   filter: blur(9px);
 }
 .rv:not(.work-reveal).in:not(.reveal-immediate) {
-  animation: rv-in 0.7s var(--ease) var(--d, 0s) both;
-}
-
-/* PlanDeck's card (.deck) has its own backdrop-filter for the frosted
-   look. Animating `filter` on an ANCESTOR while a descendant uses
-   backdrop-filter is a known Chromium trap — the backdrop sampling
-   doesn't interpolate cleanly against a changing ancestor filter, so the
-   child effectively snaps to its end state instead of blurring in. Fix:
-   neuter the wrapper's own reveal and animate opacity/transform on the
-   wrapper, filter on .deck itself instead — same element as its own
-   backdrop-filter, a normal, well-supported combination. */
-@keyframes deck-wrap-in {
-  from {
-    opacity: 0;
-    transform: translateY(36px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.motion-ready .rv:not(.in):has(> .deck) {
-  opacity: 0;
-  transform: translateY(36px) scale(0.97);
-  filter: none;
-}
-.rv.in:not(.reveal-immediate):has(> .deck) {
-  animation: deck-wrap-in 1s ease var(--d, 0s) both;
-}
-@keyframes deck-blur-in {
-  from {
-    filter: blur(16px);
-  }
-  to {
-    filter: none;
-  }
-}
-.motion-ready .rv:not(.in):has(> .deck) > .deck {
-  filter: blur(16px);
-}
-/* .deck also runs `animation: float-gentle` (its idle bob, infinite) —
-   the `animation` shorthand has the exact same "whole list, one winner"
-   rule as `transition`, so this MUST list float-gentle alongside its own
-   blur-in or the idle bob would stop dead the moment this rule applies. */
-.rv.in:not(.reveal-immediate):has(> .deck) > .deck {
-  animation:
-    deck-blur-in 1s ease var(--d, 0s) both,
-    float-gentle 7s ease-in-out infinite;
+  animation: rv-in 0.42s var(--ease) var(--d, 0s) both;
 }
 
 /* Per-item reveal for list rows (FAQ questions, steps, tags, plan items) —
@@ -756,8 +709,8 @@ a.tag:active {
 @keyframes item-in {
   from {
     opacity: 0;
-    transform: translateY(20px);
-    filter: blur(8px);
+    transform: translateY(12px);
+    filter: none;
   }
   to {
     opacity: 1;
@@ -772,11 +725,11 @@ a.tag:active {
 }
 .motion-ready .item-rv:not(.in) {
   opacity: 0;
-  transform: translateY(20px);
-  filter: blur(8px);
+  transform: translateY(12px);
+  filter: none;
 }
 .item-rv.in:not(.reveal-immediate) {
-  animation: item-in 0.55s var(--ease) var(--d, 0s) both;
+  animation: item-in 0.38s var(--ease) var(--d, 0s) both;
 }
 
 /* Work shares the same pre-paint lifecycle and adds only its editorial role
@@ -4397,9 +4350,8 @@ summary:focus-visible {
   border-bottom: 1px solid var(--rule);
   margin-top: clamp(54px, 7vw, 92px);
 }
-/* Each .step carries `.item-rv` directly (see HowWeWork.tsx) and has its
-   own independent scroll trigger — only the hover tint needs its own
-   `transition` here, entrance is `animation` on the same class. */
+/* Each step owns a sequence of number, title and explanation. Hover remains
+   independent of the child entrances. */
 .step {
   position: relative;
   display: grid;
@@ -4555,7 +4507,6 @@ summary:focus-visible {
   max-width: 100%;
   overflow: hidden;
   border-radius: 14px;
-  animation: float-gentle 7s ease-in-out infinite;
 }
 
 /* ========================================
@@ -5408,13 +5359,128 @@ a.team-card-float:focus-visible {
    opening viewport, instead of competing with the headline and booking CTA. */
 .hero-statement {
   position: relative;
-  padding: clamp(72px, 10vw, 140px) 0;
+  padding: clamp(44px, 6vw, 80px) 0;
   border-top: 1px solid var(--rule);
 }
 .hero-statement-layout {
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: clamp(32px, 6vw, 80px);
+}
+
+/* Selected work is a feature and an editorial index, rather than four
+   competing cover stories. Keep the same authored case data and media. */
+.home-selected-work {
+  padding-block: clamp(64px, 8vw, 112px);
+}
+.home-work-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 72px);
+  margin-top: 44px;
+  align-items: start;
+}
+.home-work-index {
+  border-bottom: 1px solid var(--rule);
+}
+.home-work-link {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 20px;
+  gap: 16px;
+  min-height: 44px;
+  padding-block: 28px;
+  border-top: 1px solid var(--rule);
+  color: var(--fg);
+}
+.home-work-number {
+  color: var(--mid);
+  font: 11px/1.6 var(--util);
+  font-variant-numeric: tabular-nums;
+}
+.home-work-link h3 {
+  margin-top: 14px;
+  font: 500 clamp(1.4rem, 2.1vw, 2rem)/1.06 var(--display);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.home-work-description {
+  margin-top: 12px;
+  color: var(--mid);
+  font-size: 15px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.home-work-arrow {
+  transition: transform 180ms var(--ease);
+}
+.home-work-link:hover .home-work-arrow,
+.home-work-link:focus-visible .home-work-arrow {
+  transform: translate(2px, -2px);
+}
+.home-work-link:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 6px;
+}
+.home-process,
+.home-plan {
+  padding-block: clamp(64px, 7vw, 104px);
+}
+.home-process .h2 {
+  max-width: 20ch;
+  font-size: clamp(2rem, 4vw, 3.75rem);
+}
+.home-process .steps {
+  margin-top: 40px;
+}
+.home-plan .h2 {
+  font-size: clamp(2rem, 3.5vw, 3.25rem);
+}
+@media (min-width: 1001px) {
+  .home-services .engagement-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 0;
+    gap: 0 48px;
+  }
+  .home-services .engagement-item {
+    border-top: 1px solid var(--rule);
+    border-bottom: 0;
+  }
+  .home-services .engagement-link {
+    grid-template-columns: 28px minmax(0, 1fr) 24px;
+    gap: 20px;
+    height: 100%;
+    padding: 30px 0;
+  }
+  .home-services .engagement-detail {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .home-services .engagement-drawing {
+    grid-column: 2;
+    grid-row: 3;
+    width: 110px;
+    opacity: 0.7;
+  }
+  .home-services .engagement-arrow {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+@media (max-width: 900px) {
+  .home-work-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-work-arrow {
+    transition: none;
+  }
+  .home-work-link:hover .home-work-arrow,
+  .home-work-link:focus-visible .home-work-arrow {
+    transform: none;
+  }
 }
 .hero-statement-aside {
   display: flex;
@@ -5468,31 +5534,11 @@ a.team-card-float:focus-visible {
   max-width: 23ch;
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(1.85rem, 3.55vw, 4rem);
+  font-size: clamp(1.65rem, 2.75vw, 3.1rem);
   font-weight: 600;
   letter-spacing: -0.055em;
   line-height: 1.03;
   text-wrap: pretty;
-}
-@keyframes hero-statement-copy-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-.motion-ready .hero-statement:not(.is-revealed) .hero-statement-copy {
-  opacity: 0;
-  transform: translateY(16px);
-  filter: blur(6px);
-}
-.hero-statement.is-revealed .hero-statement-copy {
-  animation: hero-statement-copy-in 0.72s var(--ease) both;
 }
 @media (max-width: 700px) {
   .hero-statement {
@@ -5905,35 +5951,10 @@ a.team-card-float:focus-visible {
   backdrop-filter: none;
 }
 
-/* With the snap gone, give the step's tag its own beat so it lands just after
-   the row it belongs to rather than dissolving into one flat fade with it. */
-@keyframes tag-in {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.step .tag {
-  opacity: 1;
-  transform: none;
-}
-.motion-ready .step:not(.in) .tag {
-  opacity: 0;
-  transform: translateY(5px);
-}
-.step.in .tag {
-  animation: tag-in 0.45s var(--ease) calc(var(--d, 0s) + 0.2s) both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .step .tag {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-  }
+/* The title owns its tag; a nested tag entrance would animate it twice. */
+.home-sequence .tag {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 /* --- Command Center demo scroll surfaces ---------------------------------- */
@@ -6312,14 +6333,19 @@ body.modal-open [data-dock] {
   }
 }
 
-/* Home hero: one editorial statement in the site's paper and ink palette. */
+/* The hero's flowing contours extend the paper-and-ink identity. Text stays
+   readable throughout the entrance; only desktop decoration loops. */
 .home-hero {
   position: relative;
+  isolation: isolate;
+  overflow: clip;
   min-height: min(840px, 100svh);
   padding: clamp(130px, 12vw, 184px) 0 54px;
   background: var(--bg);
 }
 .home-hero-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   min-height: max(610px, calc(min(840px, 100svh) - clamp(130px, 12vw, 184px) - 54px));
@@ -6328,17 +6354,74 @@ body.modal-open [data-dock] {
   margin-bottom: clamp(28px, 3.8vw, 58px);
 }
 .home-hero-heading {
-  max-width: 15ch;
+  max-width: 22ch;
   margin: 0;
   color: var(--fg);
-  font: 600 clamp(58px, 7.8vw, 118px)/0.99 var(--display);
+  font: 600 clamp(58px, 7.4vw, 108px)/1.03 var(--display);
   letter-spacing: -0.05em;
   text-wrap: balance;
 }
+.home-hero-lead {
+  display: block;
+  margin-bottom: 18px;
+  font: 500 clamp(24px, 2.5vw, 36px)/1.25 var(--display);
+  letter-spacing: -0.025em;
+}
 .home-hero-heading em {
+  display: block;
   font-family: var(--serif);
   font-weight: 400;
   letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+.home-hero-word {
+  display: inline-block;
+}
+.home-hero-atmosphere,
+.home-hero-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.home-hero-atmosphere {
+  background:
+    radial-gradient(ellipse at 84% 34%, var(--ambient-1), transparent 53%),
+    radial-gradient(ellipse at 66% 94%, var(--ambient-2), transparent 52%);
+}
+.home-hero-field {
+  color: var(--fg);
+  mask-image: linear-gradient(110deg, transparent 25%, #000 75%);
+  transform: translate(var(--hero-x, 0px), var(--hero-y, 0px));
+  transition: transform 700ms cubic-bezier(0.2, 0, 0, 1);
+}
+.home-hero-contours {
+  position: absolute;
+  top: -12%;
+  right: -24%;
+  width: 125%;
+  height: 125%;
+  overflow: visible;
+}
+.home-hero-contour-lines path {
+  stroke: currentColor;
+  stroke-width: 0.7;
+  opacity: 0.16;
+}
+.home-hero-currents path {
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-dasharray: 80 1800;
+  opacity: 0.32;
+}
+.home-hero-pulse {
+  position: absolute;
+  width: 220px;
+  aspect-ratio: 1;
+  border: 1px solid var(--fg);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
 }
 .home-hero-bottom {
   display: grid;
@@ -6399,28 +6482,142 @@ body.modal-open [data-dock] {
   border-top-color: var(--rule);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .home-hero-eyebrow,
-  .home-hero-heading,
-  .home-hero-bottom,
-  .home-hero-index {
-    animation: home-hero-enter 560ms var(--ease) both;
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-eyebrow,
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-support,
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-actions,
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-index > span {
+    transform: translateY(24px);
   }
-  .home-hero-heading {
-    animation-delay: 70ms;
+  .motion-ready .home-hero[data-reveal-state="pending"] .home-hero-word {
+    transform: translateY(0.43em) rotate(1deg);
   }
-  .home-hero-bottom {
-    animation-delay: 160ms;
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-eyebrow,
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-support,
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-actions,
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-index > span {
+    animation: home-hero-enter 620ms var(--ease) var(--hero-entry-delay, 0ms) both;
   }
-  .home-hero-index {
-    animation-delay: 230ms;
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-word {
+    animation: home-hero-word-enter 620ms var(--ease) var(--hero-word-delay, 0ms) both;
+  }
+  .motion-ready .home-hero.in .home-hero-eyebrow {
+    --hero-entry-delay: 40ms;
+  }
+  .motion-ready .home-hero.in .home-hero-support {
+    --hero-entry-delay: 460ms;
+  }
+  .motion-ready .home-hero.in .home-hero-actions {
+    --hero-entry-delay: 580ms;
+  }
+  .motion-ready .home-hero.in .home-hero-index > span {
+    --hero-entry-delay: 680ms;
+  }
+  .motion-ready .home-hero.in .home-hero-index > span:nth-child(2) {
+    --hero-entry-delay: 790ms;
+  }
+  .motion-ready .home-hero.in .home-hero-index > span:nth-child(3) {
+    --hero-entry-delay: 900ms;
+  }
+}
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+  .home-hero-contours {
+    animation: home-hero-contour-drift 24s ease-in-out infinite alternate;
+    animation-play-state: paused;
+  }
+  .home-hero-currents path {
+    animation-name: home-hero-current;
+    animation-duration: 28s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-play-state: paused;
+  }
+  .home-hero[data-hero-active="true"] .home-hero-contours,
+  .home-hero[data-hero-active="true"] .home-hero-currents path {
+    animation-play-state: running;
+  }
+  body[data-mobile-navigation="open"] .home-hero .home-hero-contours,
+  body[data-mobile-navigation="open"] .home-hero .home-hero-currents path {
+    animation-play-state: paused;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-field {
+    transition: none;
+    transform: none;
+  }
+}
+@keyframes home-hero-word-enter {
+  from {
+    transform: translateY(0.43em) rotate(1deg);
+  }
+  to {
+    transform: translateY(0) rotate(0);
+  }
+}
+@keyframes home-hero-contour-drift {
+  from {
+    transform: translateY(-12px) rotate(-2deg) scale(1.01);
+  }
+  to {
+    transform: translateY(16px) rotate(2deg) scale(1.04);
+  }
+}
+@keyframes home-hero-current {
+  to {
+    stroke-dashoffset: -1880;
   }
 }
 @keyframes home-hero-enter {
   from {
-    transform: translateY(14px);
+    transform: translateY(24px);
   }
   to {
     transform: translateY(0);
+  }
+}
+
+/* Homepage chapters share one entrance clock per compact editorial group.
+   Long lists retain one owner per row so slow scrolling never skips a beat. */
+.home-sequence [data-home-step="0"] {
+  --home-step: 0;
+}
+.home-sequence [data-home-step="1"] {
+  --home-step: 1;
+}
+.home-sequence [data-home-step="2"] {
+  --home-step: 2;
+}
+.home-sequence [data-home-step="3"] {
+  --home-step: 3;
+}
+.home-sequence [data-home-step="4"] {
+  --home-step: 4;
+}
+@keyframes home-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .motion-ready .home-sequence[data-reveal-state="pending"] [data-home-step] {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .motion-ready .home-sequence.in:not(.reveal-immediate) [data-home-step] {
+    animation: home-content-enter 640ms var(--ease) both;
+    animation-delay: calc(var(--d, 0s) + var(--home-step, 0) * 110ms);
+  }
+  .motion-ready .home-sequence[data-reveal-state="pending"] .home-close-line {
+    transform: translateY(112%);
+  }
+  .motion-ready .home-sequence.in:not(.reveal-immediate) .home-close-line {
+    animation-name: line-in;
+    opacity: 1;
   }
 }
 @media (max-width: 1000px) {
@@ -6431,7 +6628,7 @@ body.modal-open [data-dock] {
     min-height: 0;
   }
   .home-hero-heading {
-    max-width: 14ch;
+    max-width: 22ch;
     font-size: clamp(55px, 8vw, 82px);
   }
   .home-hero-bottom {
@@ -6443,27 +6640,39 @@ body.modal-open [data-dock] {
 @media (max-width: 640px) {
   .home-hero {
     min-height: min(100svh, 740px);
-    padding-top: calc(var(--site-header-h) + var(--safe-top) + 56px);
+    padding-top: calc(var(--site-header-h) + var(--safe-top) + 32px);
     padding-bottom: 36px;
   }
   .home-hero-inner {
     min-height: calc(min(100svh, 740px) - var(--site-header-h) - var(--safe-top) - 92px);
   }
   .home-hero-heading {
-    max-width: 13ch;
+    max-width: none;
     font-size: clamp(44px, 11vw, 64px);
     line-height: 1.02;
     letter-spacing: -0.045em;
   }
+  .home-hero-lead {
+    margin-bottom: 14px;
+    font-size: 21px;
+    line-height: 1.3;
+  }
+  .home-hero-field {
+    mask-image: linear-gradient(100deg, transparent 20%, #000 100%);
+  }
+  .home-hero-contours {
+    width: 230%;
+    right: -115%;
+  }
   .home-hero-eyebrow {
-    margin-bottom: 28px;
+    margin-bottom: 20px;
     max-width: 32ch;
     line-height: 1.5;
   }
   .home-hero-bottom {
     gap: 24px;
-    margin-top: 32px;
-    padding-bottom: 52px;
+    margin-top: 24px;
+    padding-bottom: 32px;
   }
   .home-hero-support {
     font-size: 16px;

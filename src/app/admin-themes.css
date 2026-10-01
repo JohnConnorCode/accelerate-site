@@ -42,9 +42,9 @@
   --admin-warning: #92400e;
   --admin-warning-soft: rgba(217, 119, 6, 0.1);
   --admin-font: var(--font-inter), system-ui, sans-serif;
-  --admin-title-font: var(--admin-font);
-  --admin-title-weight: 650;
-  --admin-title-tracking: -0.035em;
+  --admin-title-font: var(--font-editorial), Georgia, serif;
+  --admin-title-weight: 400;
+  --admin-title-tracking: -0.025em;
   --admin-label-font: var(--admin-font);
   --admin-surface-fill: var(--admin-surface);
   --admin-surface-filter: none;
