@@ -6405,14 +6405,40 @@ body.modal-open [data-dock] {
 .home-hero-contour-lines path {
   stroke: currentColor;
   stroke-width: 0.7;
-  opacity: 0.16;
+  opacity: 0.13;
+}
+.home-hero-contour-far,
+.home-hero-contour-near {
+  transition: transform 850ms cubic-bezier(0.2, 0, 0, 1);
+}
+.home-hero-contour-far {
+  transform: translate(calc(var(--hero-x, 0px) * -0.28), calc(var(--hero-y, 0px) * -0.28));
+}
+.home-hero-contour-near {
+  transform: translate(calc(var(--hero-x, 0px) * 0.45), calc(var(--hero-y, 0px) * 0.45));
+}
+.home-hero-contour-near path {
+  stroke-width: 0.85;
+  opacity: 0.22;
 }
 .home-hero-currents path {
   stroke: currentColor;
-  stroke-width: 1.3;
+  stroke-width: 1.5;
   stroke-linecap: round;
-  stroke-dasharray: 80 1800;
-  opacity: 0.32;
+  stroke-dasharray: 34 10 3 953;
+  opacity: var(--current-opacity, 0.4);
+}
+.home-hero-focus {
+  opacity: 0;
+  transition: opacity 450ms var(--ease);
+}
+.home-hero-focus path {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.65;
+}
+.home-hero[data-hero-focus="true"] .home-hero-focus {
+  opacity: 1;
 }
 .home-hero-pulse {
   position: absolute;
@@ -6422,6 +6448,14 @@ body.modal-open [data-dock] {
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
+}
+.home-hero-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border: 1px solid var(--fg);
+  border-radius: 50%;
+  opacity: 0.45;
 }
 .home-hero-bottom {
   display: grid;
@@ -6526,7 +6560,8 @@ body.modal-open [data-dock] {
   }
   .home-hero-currents path {
     animation-name: home-hero-current;
-    animation-duration: 28s;
+    animation-duration: var(--current-duration, 14s);
+    animation-delay: var(--current-delay, 0s);
     animation-timing-function: linear;
     animation-iteration-count: infinite;
     animation-play-state: paused;
@@ -6541,9 +6576,15 @@ body.modal-open [data-dock] {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-hero-field {
+  .home-hero-field,
+  .home-hero-contour-far,
+  .home-hero-contour-near {
     transition: none;
     transform: none;
+  }
+  .home-hero-focus {
+    transition: none;
+    opacity: 0;
   }
 }
 @keyframes home-hero-word-enter {
@@ -6564,7 +6605,7 @@ body.modal-open [data-dock] {
 }
 @keyframes home-hero-current {
   to {
-    stroke-dashoffset: -1880;
+    stroke-dashoffset: -1000;
   }
 }
 @keyframes home-hero-enter {

@@ -15,7 +15,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "editorial-home-workspace-polish",
     title: "A clearer homepage and calmer daily workspace",
     description:
-      "Selected work now leads the bundled homepage, with one featured case and three supporting projects. Services, process and the sample plan have distinct layouts, and the floating booking bar steps aside when a booking action is visible. The workspace keeps Search and Ask AI in persistent desktop chrome, groups Today view tools under More, and applies shared theme controls to Feature Board filters. Paper gains editorial headings, compact empty states reduce unused space, and saved views, custom appearances and published website arrangements keep their existing behavior.",
+      "Selected work now leads the bundled homepage, with one featured case and three supporting projects. Services, process and the sample plan have distinct layouts, and the floating booking bar steps aside when a booking action is visible. The workspace keeps Search and Ask AI in persistent desktop chrome, groups Today view tools under More, and applies shared theme controls to Feature Board filters. The hero combines layered contour depth, differently paced currents, pointer and keyboard illumination, and short touch ripples. Motion pauses offscreen and in hidden tabs; reduced-motion visitors see the complete static composition. Paper gains editorial headings, compact empty states reduce unused space, and saved views, custom appearances and published website arrangements keep their existing behavior.",
     category: "improvement",
     publishedAt: "2026-09-30",
   },

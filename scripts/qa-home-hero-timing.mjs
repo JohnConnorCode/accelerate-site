@@ -72,14 +72,14 @@ for (const [label, viewport, colorScheme] of [
     !opening.fullMessage
   )
     failures.push(`${label}: headline or CTA is missing, below the fold, or page overflows`);
-  await page.screenshot({ path: `${output}/${label}-first.png` });
+  await page.screenshot({ caret: "initial", path: `${output}/${label}-first.png` });
   await page.waitForFunction(
     () => document.querySelector(".home-hero").dataset.revealState === "visible",
   );
   if (label === "desktop" || label === "mobile") {
-    await page.screenshot({ path: `${output}/${label}-entry.png` });
+    await page.screenshot({ caret: "initial", path: `${output}/${label}-entry.png` });
     await page.waitForTimeout(300);
-    await page.screenshot({ path: `${output}/${label}-sequence.png` });
+    await page.screenshot({ caret: "initial", path: `${output}/${label}-sequence.png` });
   }
   await page.waitForTimeout(1600);
   const settled = await page.evaluate(() => ({
@@ -134,6 +134,13 @@ for (const [label, viewport, colorScheme] of [
         element.getAnimations().some((animation) => animation.playState === "running"),
       );
     if (!pulseStarted) failures.push(`${label}: touch response did not start`);
+    const touchLight = await page
+      .locator(".home-hero-focus")
+      .evaluate((element) =>
+        element.getAnimations().some((animation) => animation.playState === "running"),
+      );
+    if (!touchLight) failures.push(`${label}: tap did not illuminate the nearby contours`);
+    await page.screenshot({ caret: "initial", path: `${output}/${label}-touch.png` });
     await page.waitForTimeout(950);
     const pulseFinished = await page
       .locator(".home-hero-pulse")
@@ -141,6 +148,12 @@ for (const [label, viewport, colorScheme] of [
         element.getAnimations().every((animation) => animation.playState === "finished"),
       );
     if (!pulseFinished) failures.push(`${label}: touch response kept running`);
+    if (
+      await page
+        .locator(".home-hero-focus")
+        .evaluate((element) => Number(getComputedStyle(element).opacity) > 0.01)
+    )
+      failures.push(`${label}: touch illumination did not return to rest`);
   } else {
     const current = page.locator(".home-hero-currents path").first();
     const first = await current.evaluate((element) => getComputedStyle(element).strokeDashoffset);
@@ -153,6 +166,35 @@ for (const [label, viewport, colorScheme] of [
       .locator(".home-hero-field")
       .evaluate((element) => parseFloat(element.style.getPropertyValue("--hero-x")));
     if (!response) failures.push(`${label}: pointer response is missing`);
+    await page.waitForTimeout(700);
+    const depth = await page.evaluate(() => ({
+      near: new DOMMatrix(
+        getComputedStyle(document.querySelector(".home-hero-contour-near")).transform,
+      ).m41,
+      far: new DOMMatrix(
+        getComputedStyle(document.querySelector(".home-hero-contour-far")).transform,
+      ).m41,
+      light: Number(getComputedStyle(document.querySelector(".home-hero-focus")).opacity),
+      x: Number(document.querySelector(".home-hero-light").getAttribute("cx")),
+      durations: new Set(
+        [...document.querySelectorAll(".home-hero-currents path")].map(
+          (path) => getComputedStyle(path).animationDuration,
+        ),
+      ).size,
+    }));
+    if (depth.near * depth.far >= 0 || depth.light < 0.9 || depth.x === 900 || depth.durations < 3)
+      failures.push(
+        `${label}: layered depth, local illumination or varied current timing is missing`,
+      );
+    await page.screenshot({ caret: "initial", path: `${output}/${label}-pointer.png` });
+    await page.mouse.move(10, 880);
+    await page.waitForTimeout(950);
+    if (
+      await page
+        .locator(".home-hero-focus")
+        .evaluate((element) => Number(getComputedStyle(element).opacity) > 0.01)
+    )
+      failures.push(`${label}: pointer illumination did not fade on leave`);
     await page.locator("#selected-work").evaluate((element) => element.scrollIntoView());
     await page.waitForFunction(
       () => document.querySelector(".home-hero").dataset.heroActive === "false",
@@ -161,14 +203,23 @@ for (const [label, viewport, colorScheme] of [
       (element) => getComputedStyle(element).animationPlayState,
     );
     if (paused !== "paused") failures.push(`${label}: decoration kept running offscreen`);
+    if ((await page.locator(".home-hero").getAttribute("data-hero-focus")) === "true")
+      failures.push(`${label}: interactive illumination stayed active offscreen`);
     await page.evaluate(() => window.scrollTo(0, 0));
   }
-  await page.screenshot({ path: `${output}/${label}-settled.png` });
+  await page.screenshot({ caret: "initial", path: `${output}/${label}-settled.png` });
   if (label === "desktop" || label === "mobile") {
     const booking = page.locator(".home-hero-cta");
     await booking.focus();
     if (!(await booking.evaluate((element) => element === document.activeElement)))
       failures.push(`${label}: booking focus is missing`);
+    await page.waitForFunction(
+      () => document.querySelector(".home-hero").dataset.heroActive === "true",
+    );
+    await booking.evaluate((element) => element.blur());
+    await booking.focus();
+    if ((await page.locator(".home-hero").getAttribute("data-hero-focus")) !== "true")
+      failures.push(`${label}: keyboard focus did not receive the contour response`);
     await page.keyboard.press("Enter");
     await page.waitForURL(`${baseUrl}/contact`);
     await page.goBack({ waitUntil: "domcontentloaded" });
@@ -182,6 +233,7 @@ for (const [label, viewport, colorScheme] of [
 const context = await browser.newContext({
   viewport: { width: 390, height: 844 },
   reducedMotion: "reduce",
+  hasTouch: true,
 });
 const page = await context.newPage();
 await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
@@ -202,6 +254,13 @@ const reduced = await page.evaluate(() => ({
       getComputedStyle(element).animationName === "none",
   ),
 }));
+await page.touchscreen.tap(370, 140);
+const reducedInteraction = await page.evaluate(() => ({
+  pulse: document.querySelector(".home-hero-pulse").getAnimations().length,
+  focus: getComputedStyle(document.querySelector(".home-hero-focus")).opacity,
+}));
+if (reducedInteraction.pulse !== 0 || reducedInteraction.focus !== "0")
+  failures.push("reduced-motion touch started a decorative response");
 if (
   !reduced.heading ||
   reduced.animation !== "none" ||
@@ -211,7 +270,7 @@ if (
   !reduced.allContentStatic
 )
   failures.push("reduced motion did not render the complete static hero");
-await page.screenshot({ path: `${output}/mobile-reduced.png` });
+await page.screenshot({ caret: "initial", path: `${output}/mobile-reduced.png` });
 await context.close();
 const delayedResults = [];
 for (const [label, viewport] of [
@@ -249,7 +308,10 @@ for (const [label, viewport] of [
     !pending.chaptersPending
   )
     failures.push(`${label}: entrance ran before delayed hydration or message was hidden`);
-  await delayedPage.screenshot({ path: `${output}/${label}-delayed-hydration.png` });
+  await delayedPage.screenshot({
+    caret: "initial",
+    path: `${output}/${label}-delayed-hydration.png`,
+  });
   await delayedPage.waitForFunction(
     () => document.querySelector(".home-hero").dataset.revealState === "visible",
   );
@@ -309,7 +371,7 @@ if (
   !staticHero.allContentReadable
 )
   failures.push("No-JavaScript hero did not remain complete and static");
-await staticPage.screenshot({ path: `${output}/desktop-no-js.png` });
+await staticPage.screenshot({ caret: "initial", path: `${output}/desktop-no-js.png` });
 await noJS.close();
 await browser.close();
 await writeFile(
