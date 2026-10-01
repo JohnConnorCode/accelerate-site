@@ -31,7 +31,10 @@ export function ModuleDisabledNotice({ module: mod }: { module: RevenueOSModule 
           This workspace has disabled the {mod.name} module. Turn it back on from Integrations &amp;
           Modules to use this page again.
         </p>
-        <Link href="/admin/integrations" className="admin-button admin-button--primary mt-5">
+        <Link
+          href={`/admin/integrations?tab=modules&search=${encodeURIComponent(mod.name)}`}
+          className="admin-button admin-button--primary mt-5"
+        >
           Go to Integrations &amp; Modules
         </Link>
         {mod.historyRoute && (

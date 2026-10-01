@@ -36,6 +36,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
+  ReceiptText,
   Search,
   Settings,
   User,
@@ -51,6 +52,7 @@ import { createClient } from "@/lib/supabase/client";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { Toaster } from "@/components/admin/Toaster";
 import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
+import { ModuleDisabledNotice } from "@/components/admin/ModuleDisabledNotice";
 import { AdminShortcuts } from "@/components/admin/AdminShortcuts";
 import { AdminCreateTaskModal } from "@/components/admin/AdminCreateTaskModal";
 import { AdminFounderNoteModal } from "@/components/admin/AdminFounderNoteModal";
@@ -79,6 +81,8 @@ import { getAdminBreadcrumbs } from "@/lib/admin/breadcrumbs";
 import { AdminDemoControls } from "@/components/admin/AdminDemoBoundary";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { clearOfflineWorkspace } from "@/lib/admin/offline-store";
+import { isModuleEnabled, SELF_LOCKOUT_EXEMPT_MODULES } from "@/lib/revenue-os/modules";
+import { isModuleHistoryPath, resolveModuleForAdminPath } from "@/lib/revenue-os/module-routes";
 import { CommandCenterPwa } from "@/components/admin/CommandCenterPwa";
 import {
   DEMO_SCENARIOS,
@@ -119,7 +123,7 @@ interface WorkspaceOption {
 const mobilePrimaryLinks = adminMobileLinks.filter((link) =>
   ["today", "work", "contacts"].includes(link.id),
 );
-const primaryRecordLinks = new Set(["pipeline", "clients", "stripe-invoicing", "proposals"]);
+const primaryRecordLinks = new Set(["pipeline", "clients", "proposals"]);
 
 const sidebarGroups: Array<{
   id: string;
@@ -160,10 +164,16 @@ const sidebarGroups: Array<{
       "partners",
       "website-grades",
       "identity-review",
-      "stripe-invoicing",
       "stripe-subscriptions",
       "receivables-collections",
     ],
+  },
+  {
+    id: "invoices",
+    label: "Invoices",
+    primaryId: "stripe-invoicing",
+    icon: ReceiptText,
+    members: ["stripe-invoicing"],
   },
   {
     id: "conversations",
@@ -238,9 +248,8 @@ export default function AdminShell({
   isPlatformAdmin: boolean;
   workspaceTheme?: AdminThemeDefinition | null;
   navLayoutOverride?: LayoutDoc | null;
-  /** The request-scoped tenant's real module configuration. Falls back to the
-   * static compile-time default (every optional module enabled) only when
-   * unavailable, e.g. a demo scenario, which never reads real tenant config. */
+  /** Request-scoped module configuration. Demo configuration comes from its
+   * browser-local runtime; otherwise unavailable configuration uses bundled defaults. */
   moduleConfig?: { modules?: Partial<Record<string, boolean>> } | null;
 }) {
   const pathname = usePathname();
@@ -254,6 +263,14 @@ export default function AdminShell({
   const identityHref = `${effectivePathname}?${searchParams.toString()}`;
   const demo = useAdminDemo();
   const effectiveModuleConfig = demo?.moduleConfig ?? moduleConfig;
+  const owningModule = resolveModuleForAdminPath(effectivePathname);
+  const moduleDisabled =
+    effectiveModuleConfig &&
+    owningModule &&
+    !isModuleHistoryPath(owningModule, effectivePathname) &&
+    !SELF_LOCKOUT_EXEMPT_MODULES.has(owningModule.id) &&
+    !isModuleEnabled(owningModule.id, effectiveModuleConfig);
+  const invoicingEnabled = isModuleEnabled("stripe-invoicing", effectiveModuleConfig ?? tenant);
   const visibleNavSections = useMemo(() => {
     const roleFiltered = adminNavSections
       .map((section) => ({
@@ -607,6 +624,15 @@ export default function AdminShell({
 
   const commandActions: CommandAction[] = [
     {
+      label: invoicingEnabled ? "Create invoice" : "Set up invoicing",
+      description: invoicingEnabled
+        ? "Prepare a customer invoice for review"
+        : "Invoices are turned off. Open instructions to enable invoicing.",
+      keywords: "new invoice create invoice add invoice billing bills payments",
+      icon: ReceiptText,
+      run: () => router.push("/admin/invoicing?view=create"),
+    },
+    {
       label: "New lead",
       description: "Add an opportunity to the pipeline",
       keywords: "create add lead opportunity",
@@ -953,7 +979,9 @@ export default function AdminShell({
                     data-navigation-pending={routeIsPending ? "true" : "false"}
                   >
                     <AdminRouteStage routeKey={routeKey}>
-                      <AdminErrorBoundary key={routeKey}>{children}</AdminErrorBoundary>
+                      <AdminErrorBoundary key={routeKey}>
+                        {moduleDisabled ? <ModuleDisabledNotice module={owningModule} /> : children}
+                      </AdminErrorBoundary>
                     </AdminRouteStage>
                   </div>
                 </main>

@@ -2,7 +2,7 @@
 
 import { adminPageName } from "@/lib/admin/navigation";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
@@ -568,6 +568,13 @@ export default function IntegrationsPage() {
   const [query, setQuery] = useState("");
   const [googleSyncSource, setGoogleSyncSource] = useState<GoogleSyncSource | null>(null);
   const [pendingModuleId, setPendingModuleId] = useState<string | null>(null);
+  useEffect(() => {
+    if (searchParams.get("tab") === "modules") {
+      setActiveTab("modules");
+      setModuleFilter("all");
+      setQuery(searchParams.get("search") ?? "");
+    }
+  }, [searchParams]);
 
   const enabledModuleIds = useMemo(
     () => new Set(modulesQuery.data?.modules ?? REVENUE_OS_MODULES.map((mod) => mod.id)),

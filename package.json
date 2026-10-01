@@ -126,6 +126,7 @@
     "qa:email-studio": "node scripts/qa-email-studio.mjs",
     "qa:ux-integrity": "node scripts/qa-ux-integrity.mjs",
     "qa:admin-mobile-navigation": "node scripts/qa-admin-mobile-navigation.mjs",
+    "qa:invoice-navigation": "node scripts/resource-run.mjs node scripts/qa-invoice-navigation.mjs",
     "test:admin-demo-contract": "npx tsx scripts/test-admin-demo-contract.ts",
     "test:admin-breadcrumbs": "npx tsx scripts/test-admin-breadcrumbs.ts",
     "test:command-center-demo-contract": "npx tsx scripts/test-command-center-demo-contract.ts",
