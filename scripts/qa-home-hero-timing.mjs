@@ -48,6 +48,9 @@ for (const [label, viewport] of [
           );
         }).length;
       return {
+        artwork: Number(
+          getComputedStyle(document.querySelector(".home-hero-acceleration")).opacity,
+        ),
         lead: visibleWords(".home-hero-lead .home-hero-word"),
         outcome: visibleWords(".home-hero-heading em .home-hero-word"),
         action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
@@ -58,7 +61,10 @@ for (const [label, viewport] of [
         ),
       };
     });
-    if (time === 0 && (frame.lead || frame.outcome || frame.action || frame.support))
+    if (
+      time === 0 &&
+      (frame.lead || frame.outcome || frame.action || frame.support || frame.artwork)
+    )
       failures.push(`${label}: opening frame exposes content before its entrance`);
     if (time === 350 && (!frame.lead || frame.outcome || frame.action))
       failures.push(`${label}: lead did not enter independently from outcome and booking`);
@@ -72,6 +78,8 @@ for (const [label, viewport] of [
       failures.push(`${label}: completed booking action cannot receive pointer clicks`);
     if (time === 3000 && (frame.action !== 1 || frame.support !== 1 || !frame.masks))
       failures.push(`${label}: completed entrance is incomplete or has no word masks`);
+    if (time === 3000 && frame.artwork < 0.2)
+      failures.push(`${label}: artwork did not complete its entrance`);
     entranceFrames.push({ label, time, ...frame });
     await page.screenshot({ caret: "initial", path: `${output}/${label}-frame-${time}.png` });
   }

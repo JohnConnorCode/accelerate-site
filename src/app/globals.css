@@ -6557,7 +6557,7 @@ body.modal-open [data-dock] {
       calc(var(--ribbon-index) * -4s) infinite alternate;
     animation-play-state: paused;
   }
-  .motion-ready .home-hero.in[data-hero-active="true"] .home-hero-ribbon {
+  .home-hero[data-hero-active="true"] .home-hero-ribbon {
     animation-play-state: running;
   }
   body[data-mobile-navigation="open"] .home-hero .home-hero-ribbon {
@@ -6566,6 +6566,9 @@ body.modal-open [data-dock] {
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-acceleration {
     animation: home-hero-ribbon-enter 1800ms var(--ease) 160ms backwards;
   }
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
+    .home-hero-acceleration,
   .motion-ready:not([data-navigation-kind="restore"])
     .home-hero[data-reveal-state="pending"]
     .home-hero-eyebrow,
