@@ -48,13 +48,13 @@ export function CountUp({ target, className }: { target: string; className?: str
         const start = performance.now();
         const isInt = Number.isInteger(value);
 
-        function tick(now: number) {
+        const tick = (now: number) => {
           const t = Math.min(1, (now - start) / duration);
           const eased = 1 - Math.pow(1 - t, 3);
           const current = value * eased;
           el.textContent = `${prefix}${isInt ? Math.round(current) : current.toFixed(1)}${suffix}`;
           if (t < 1) frame = requestAnimationFrame(tick);
-        }
+        };
         frame = requestAnimationFrame(tick);
       },
       { rootMargin: "0px 0px -10% 0px", threshold: 0.3 },
