@@ -6334,7 +6334,7 @@ body.modal-open [data-dock] {
 }
 
 /* The hero's flowing contours extend the paper-and-ink identity. Text stays
-   readable throughout the entrance; only desktop decoration loops. */
+   readable throughout the entrance; decoration only animates composited layers. */
 .home-hero {
   --hero-ease: cubic-bezier(0.25, 0.5, 0.25, 1);
   position: relative;
@@ -6382,52 +6382,15 @@ body.modal-open [data-dock] {
 }
 .home-hero-atmosphere,
 .home-hero-field {
+  inset: -12px;
+  color: var(--fg);
+  contain: layout paint;
+  transform: translate3d(0, 0, 0);
+  transition: transform 450ms var(--hero-ease);
+}
+.home-hero-flow {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-}
-.home-hero-atmosphere {
-  background:
-    radial-gradient(ellipse at 84% 34%, var(--ambient-1), transparent 53%),
-    radial-gradient(ellipse at 66% 94%, var(--ambient-2), transparent 52%);
-}
-.home-hero-acceleration {
-  position: absolute;
-  top: -18%;
-  right: -8%;
-  width: min(52vw, 740px);
-  height: 135%;
-  pointer-events: none;
-  color: var(--fg);
-  opacity: 0.22;
-  overflow: visible;
-  transform: translate3d(calc(var(--hero-x, 0px) * -0.45), calc(var(--hero-y, 0px) * -0.45), 0);
-  transition: transform 900ms var(--hero-ease);
-}
-.home-hero-ribbon {
-  position: absolute;
-  inset: 0;
-  transform-origin: 65% 50%;
-}
-.home-hero-ribbon svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  transform: translateX(calc(var(--ribbon-index) * 9%));
-}
-.home-hero-acceleration path {
-  stroke: currentColor;
-  stroke-width: 3;
-}
-.home-hero-acceleration path + path {
-  stroke-width: 44;
-  opacity: 0.24;
-}
-.home-hero-field {
-  color: var(--fg);
-  mask-image: linear-gradient(110deg, transparent 25%, #000 75%);
-  transform: translate(var(--hero-x, 0px), var(--hero-y, 0px));
-  transition: transform 900ms var(--hero-ease);
 }
 .home-hero-contours {
   position: absolute;
@@ -6438,55 +6401,33 @@ body.modal-open [data-dock] {
   overflow: visible;
 }
 .home-hero-contour-lines path {
-  stroke: currentColor;
-  stroke-width: 0.7;
-  opacity: 0.13;
-}
-.home-hero-contour-far,
-.home-hero-contour-near {
-  transition: transform 900ms var(--hero-ease);
-}
-.home-hero-contour-far {
-  transform: translate(calc(var(--hero-x, 0px) * -0.28), calc(var(--hero-y, 0px) * -0.28));
-}
-.home-hero-contour-near {
-  transform: translate(calc(var(--hero-x, 0px) * 0.45), calc(var(--hero-y, 0px) * 0.45));
-}
-.home-hero-contour-near path {
-  stroke-width: 0.85;
-  opacity: 0.22;
-}
-.home-hero-currents path {
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-dasharray: 34 10 3 953;
-  opacity: var(--current-opacity, 0.4);
+  stroke-width: 1;
 }
 .home-hero-focus {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(260px, 30vw, 420px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--fg) 7%, transparent),
+    transparent 68%
+  );
   opacity: 0;
-  transition: opacity 750ms var(--hero-ease);
-}
-.home-hero-focus path {
-  stroke: currentColor;
-  stroke-width: 1.5;
-  opacity: 0.65;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 600ms var(--hero-ease),
+    transform 450ms var(--hero-ease);
 }
 .home-hero[data-hero-focus="true"] .home-hero-focus {
   opacity: 1;
 }
-.home-hero-pulse {
-  position: absolute;
-  width: clamp(260px, 30vw, 420px);
-  aspect-ratio: 1;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--fg) 12%, transparent),
-    transparent 68%
-  );
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
+.home-hero[data-hero-active="true"] .home-hero-field,
+.home-hero[data-hero-active="true"] .home-hero-focus {
+  will-change: transform;
 }
 .home-hero-bottom {
   display: grid;
@@ -6594,10 +6535,8 @@ body.modal-open [data-dock] {
   }
   .motion-ready:not([data-navigation-kind="restore"])
     .home-hero[data-reveal-state="pending"]
-    .home-hero-contour-lines
-    path {
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
+    .home-hero-field {
+    opacity: 0;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-eyebrow {
     animation: home-hero-label-enter 900ms var(--hero-ease) both;
@@ -6612,12 +6551,8 @@ body.modal-open [data-dock] {
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-word {
     animation: home-hero-word-enter 1500ms var(--hero-ease) var(--hero-word-delay, 0ms) both;
   }
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-contour-lines path {
-    stroke-dasharray: 1000;
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-field {
     animation: home-hero-contour-enter 2600ms var(--hero-ease) 100ms both;
-  }
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-contour-near path {
-    animation-delay: 260ms;
   }
   .motion-ready .home-hero.in .home-hero-support {
     --hero-entry-delay: var(--hero-support-delay, 1120ms);
@@ -6639,37 +6574,26 @@ body.modal-open [data-dock] {
     pointer-events: auto;
   }
 }
-@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
-  .home-hero-contours {
+@media (prefers-reduced-motion: no-preference) {
+  .motion-ready .home-hero-flow {
     animation: home-hero-contour-drift 44s ease-in-out infinite alternate;
     animation-play-state: paused;
   }
-  .home-hero-currents path {
-    animation-name: home-hero-current;
-    animation-duration: var(--current-duration, 14s);
-    animation-delay: var(--current-delay, 0s);
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    animation-play-state: paused;
-  }
-  .home-hero[data-hero-active="true"] .home-hero-contours,
-  .home-hero[data-hero-active="true"] .home-hero-currents path {
+  .home-hero[data-hero-active="true"] .home-hero-flow {
     animation-play-state: running;
   }
-  body[data-mobile-navigation="open"] .home-hero .home-hero-contours,
-  body[data-mobile-navigation="open"] .home-hero .home-hero-currents path {
+  body[data-mobile-navigation="open"] .home-hero .home-hero-flow {
     animation-play-state: paused;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .home-hero-field,
-  .home-hero-contour-far,
-  .home-hero-contour-near {
-    transition: none;
-    transform: none;
-  }
   .home-hero-focus {
     transition: none;
+    transform: none;
+    will-change: auto;
+  }
+  .home-hero-focus {
     opacity: 0;
   }
 }
@@ -6713,23 +6637,18 @@ body.modal-open [data-dock] {
 }
 @keyframes home-hero-contour-enter {
   from {
-    stroke-dashoffset: 1000;
+    opacity: 0;
   }
   to {
-    stroke-dashoffset: 0;
+    opacity: 1;
   }
 }
 @keyframes home-hero-contour-drift {
   from {
-    transform: translateY(-8px) rotate(-1deg) scale(1.01);
+    transform: translate3d(-6px, 5px, 0);
   }
   to {
-    transform: translateY(10px) rotate(1deg) scale(1.025);
-  }
-}
-@keyframes home-hero-current {
-  to {
-    stroke-dashoffset: -1000;
+    transform: translate3d(6px, -5px, 0);
   }
 }
 @keyframes home-hero-detail-enter {
@@ -6842,9 +6761,6 @@ body.modal-open [data-dock] {
   }
   .home-hero-acceleration path + path {
     stroke-width: 32;
-  }
-  .home-hero-field {
-    mask-image: linear-gradient(160deg, transparent 25%, #000 100%);
   }
   .home-hero-contours {
     width: 230%;

@@ -8,9 +8,9 @@ import type { HomeHeroContent } from "@/lib/site-studio/native-templates";
 import { useRevealLifecycle } from "@/components/motion/useReveal";
 
 const contours = Array.from(
-  { length: 18 },
+  { length: 12 },
   (_, index) =>
-    `M-180 ${180 + index * 24} C150 ${-160 + index * 38} 330 ${790 - index * 22} 650 ${410 + index * 8} S1030 ${80 + index * 20} 1370 ${240 + index * 28}`,
+    `M-180 ${180 + index * 36} C150 ${-160 + index * 57} 330 ${790 - index * 33} 650 ${410 + index * 12} S1030 ${80 + index * 30} 1370 ${240 + index * 42}`,
 );
 
 function HeroWords({
@@ -67,39 +67,42 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
   useEffect(() => {
     const section = sectionRef.current;
     const field = section?.querySelector<HTMLElement>(".home-hero-field");
-    const pulse = section?.querySelector<HTMLElement>(".home-hero-pulse");
-    const svg = section?.querySelector<SVGSVGElement>(".home-hero-contours");
-    const light = section?.querySelector<SVGRadialGradientElement>(".home-hero-light");
-    const focus = section?.querySelector<SVGGElement>(".home-hero-focus");
-    if (!section || !field || !pulse || !svg || !light || !focus) return;
+    const focus = section?.querySelector<HTMLElement>(".home-hero-focus");
+    if (!section || !field || !focus) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const fine = window.matchMedia("(pointer: fine)");
     let visible = false;
     let frame = 0;
-    let response: Animation | undefined;
     let illumination: Animation | undefined;
     let release = 0;
-    const locateLight = (x: number, y: number) => {
-      const matrix = svg.getScreenCTM();
-      if (!matrix) return;
-      const point = new DOMPoint(x, y).matrixTransform(matrix.inverse());
-      light.setAttribute("cx", String(point.x));
-      light.setAttribute("cy", String(point.y));
+    let bounds = section.getBoundingClientRect();
+    let lightSize = focus.offsetWidth;
+    let x = 0;
+    let y = 0;
+    const measure = () => {
+      bounds = section.getBoundingClientRect();
+      lightSize = focus.offsetWidth;
+    };
+    // Cache geometry at entry/resize. Pointer frames only change compositor
+    // transforms, rather than measuring layout or repainting SVG masks.
+    const position = () => {
+      frame = 0;
+      const localX = x - bounds.left;
+      const localY = y - bounds.top;
+      field.style.transform = `translate3d(${(localX / bounds.width - 0.5) * 12}px, ${(localY / bounds.height - 0.5) * 8}px, 0)`;
+      focus.style.transform = `translate3d(${localX - lightSize / 2}px, ${localY - lightSize / 2}px, 0)`;
     };
     const reset = () => {
       window.cancelAnimationFrame(frame);
+      frame = 0;
       window.clearTimeout(release);
       illumination?.cancel();
       section.dataset.heroFocus = "false";
-      section.style.setProperty("--hero-x", "0px");
-      section.style.setProperty("--hero-y", "0px");
+      field.style.transform = "translate3d(0, 0, 0)";
     };
     const updateActivity = () => {
       section.dataset.heroActive = String(visible && !document.hidden && !reduced.matches);
-      if (section.dataset.heroActive === "false") {
-        response?.cancel();
-        reset();
-      }
+      if (section.dataset.heroActive === "false") reset();
     };
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry?.isIntersecting ?? false;
@@ -109,65 +112,32 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     const move = (event: PointerEvent) => {
       if (section.dataset.heroActive !== "true" || !fine.matches || event.pointerType !== "mouse")
         return;
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        const bounds = section.getBoundingClientRect();
-        illumination?.cancel();
-        locateLight(event.clientX, event.clientY);
-        section.dataset.heroFocus = "true";
-        section.style.setProperty(
-          "--hero-x",
-          `${((event.clientX - bounds.left) / bounds.width - 0.5) * 20}px`,
-        );
-        section.style.setProperty(
-          "--hero-y",
-          `${((event.clientY - bounds.top) / bounds.height - 0.5) * 14}px`,
-        );
-      });
+      x = event.clientX;
+      y = event.clientY;
+      illumination?.cancel();
+      if (section.dataset.heroFocus !== "true") section.dataset.heroFocus = "true";
+      if (!frame) frame = window.requestAnimationFrame(position);
     };
     const tap = (event: PointerEvent) => {
       if (
         section.dataset.heroActive !== "true" ||
         event.button !== 0 ||
-        (fine.matches && event.pointerType === "mouse")
+        (fine.matches && event.pointerType === "mouse") ||
+        (event.target instanceof Element && event.target.closest("a, button, input"))
       )
         return;
-      if (event.target instanceof Element && event.target.closest("a, button, input")) return;
-      const lightOpacity = Number(getComputedStyle(focus).opacity);
-      const pulseStyle = getComputedStyle(pulse);
-      const pulseOpacity = Number(pulseStyle.opacity);
-      const pulseTransform =
-        response?.playState === "running"
-          ? pulseStyle.transform
-          : "translate(-50%, -50%) scale(0.7)";
-      const bounds = section.getBoundingClientRect();
+      const opacity = Number(getComputedStyle(focus).opacity);
+      measure();
+      x = event.clientX;
+      y = event.clientY;
+      position();
       window.clearTimeout(release);
-      section.style.setProperty(
-        "--hero-x",
-        `${((event.clientX - bounds.left) / bounds.width - 0.5) * 28}px`,
-      );
-      section.style.setProperty(
-        "--hero-y",
-        `${((event.clientY - bounds.top) / bounds.height - 0.5) * 20}px`,
-      );
-      release = window.setTimeout(reset, 1900);
-      locateLight(event.clientX, event.clientY);
       illumination?.cancel();
-      illumination = focus.animate(
-        [{ opacity: lightOpacity }, { opacity: 0.6, offset: 0.2 }, { opacity: 0 }],
-        { duration: 1800, easing: "cubic-bezier(0.25, 0.5, 0.25, 1)" },
-      );
-      pulse.style.left = `${event.clientX - bounds.left}px`;
-      pulse.style.top = `${event.clientY - bounds.top}px`;
-      response?.cancel();
-      response = pulse.animate(
-        [
-          { opacity: pulseOpacity, transform: pulseTransform },
-          { opacity: 0.24, transform: "translate(-50%, -50%) scale(0.85)", offset: 0.2 },
-          { opacity: 0, transform: "translate(-50%, -50%) scale(1.1)" },
-        ],
-        { duration: 1800, easing: "cubic-bezier(0.25, 0.5, 0.25, 1)" },
-      );
+      illumination = focus.animate([{ opacity }, { opacity: 0.8, offset: 0.25 }, { opacity: 0 }], {
+        duration: 1800,
+        easing: "cubic-bezier(0.25, 0.5, 0.25, 1)",
+      });
+      release = window.setTimeout(reset, 1850);
     };
     const preference = () => {
       reset();
@@ -175,34 +145,40 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     };
     const focusIn = (event: FocusEvent) => {
       if (section.dataset.heroActive !== "true" || !(event.target instanceof HTMLElement)) return;
-      const bounds = event.target.getBoundingClientRect();
+      measure();
+      const target = event.target.getBoundingClientRect();
+      x = target.left + target.width / 2;
+      y = target.top + target.height / 2;
+      position();
       illumination?.cancel();
-      locateLight(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
       section.dataset.heroFocus = "true";
     };
     const leave = (event: PointerEvent) => {
       if (event.pointerType === "mouse") reset();
     };
+    section.addEventListener("pointerenter", measure, { passive: true });
     section.addEventListener("pointermove", move, { passive: true });
     section.addEventListener("pointerleave", leave);
     section.addEventListener("pointerdown", tap, { passive: true });
     section.addEventListener("focusin", focusIn);
     section.addEventListener("focusout", reset);
     document.addEventListener("visibilitychange", updateActivity);
+    window.addEventListener("resize", measure, { passive: true });
     reduced.addEventListener("change", preference);
     fine.addEventListener("change", preference);
     return () => {
       observer.disconnect();
       window.cancelAnimationFrame(frame);
       window.clearTimeout(release);
-      response?.cancel();
       illumination?.cancel();
+      section.removeEventListener("pointerenter", measure);
       section.removeEventListener("pointermove", move);
       section.removeEventListener("pointerleave", leave);
       section.removeEventListener("pointerdown", tap);
       section.removeEventListener("focusin", focusIn);
       section.removeEventListener("focusout", reset);
       document.removeEventListener("visibilitychange", updateActivity);
+      window.removeEventListener("resize", measure);
       reduced.removeEventListener("change", preference);
       fine.removeEventListener("change", preference);
     };
@@ -234,71 +210,24 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
         ))}
       </div>
       <div className="home-hero-field" aria-hidden="true">
-        <svg viewBox="0 0 1200 760" fill="none" className="home-hero-contours">
-          <defs>
-            <radialGradient
-              id={`${lightId}-light`}
-              className="home-hero-light"
-              gradientUnits="userSpaceOnUse"
-              cx="900"
-              cy="350"
-              r="260"
-            >
-              <stop stopColor="white" />
-              <stop offset="0.35" stopColor="white" stopOpacity="0.65" />
-              <stop offset="1" stopColor="white" stopOpacity="0" />
-            </radialGradient>
-            <mask
-              id={`${lightId}-mask`}
-              maskUnits="userSpaceOnUse"
-              x="-200"
-              y="-200"
-              width="1800"
-              height="1400"
-            >
-              <rect x="-200" y="-200" width="1800" height="1400" fill={`url(#${lightId}-light)`} />
-            </mask>
-          </defs>
-          <g className="home-hero-contour-lines home-hero-contour-far">
-            {contours
-              .filter((_, index) => index % 2 === 0)
-              .map((path) => (
-                <path key={path} d={path} pathLength="1000" />
+        <div className="home-hero-flow">
+          <svg viewBox="0 0 1200 760" fill="none" className="home-hero-contours">
+            <defs>
+              <linearGradient id={`${lightId}-ink`} x1="0" y1="0" x2="1" y2="0">
+                <stop stopColor="currentColor" stopOpacity="0" />
+                <stop offset="0.5" stopColor="currentColor" stopOpacity="0.1" />
+                <stop offset="1" stopColor="currentColor" stopOpacity="0.24" />
+              </linearGradient>
+            </defs>
+            <g className="home-hero-contour-lines" stroke={`url(#${lightId}-ink)`}>
+              {contours.map((path) => (
+                <path key={path} d={path} />
               ))}
-          </g>
-          <g className="home-hero-contour-lines home-hero-contour-near">
-            {contours
-              .filter((_, index) => index % 2 !== 0)
-              .map((path) => (
-                <path key={path} d={path} pathLength="1000" />
-              ))}
-          </g>
-          <g className="home-hero-currents">
-            {contours
-              .filter((_, index) => index % 3 === 0)
-              .map((path, index) => (
-                <path
-                  key={path}
-                  d={path}
-                  pathLength="1000"
-                  style={
-                    {
-                      "--current-duration": `${24 + index * 5}s`,
-                      "--current-delay": `${index * -2.4}s`,
-                      "--current-opacity": 0.28 + (index % 3) * 0.12,
-                    } as CSSProperties
-                  }
-                />
-              ))}
-          </g>
-          <g className="home-hero-focus" mask={`url(#${lightId}-mask)`}>
-            {contours.map((path) => (
-              <path key={path} d={path} />
-            ))}
-          </g>
-        </svg>
+            </g>
+          </svg>
+        </div>
       </div>
-      <div className="home-hero-pulse" aria-hidden="true" />
+      <div className="home-hero-focus home-hero-pulse" aria-hidden="true" />
       <div className="wrap home-hero-inner">
         <p className="label home-hero-eyebrow">{content.eyebrow}</p>
         <h1 id="home-hero-heading" className="home-hero-heading">
