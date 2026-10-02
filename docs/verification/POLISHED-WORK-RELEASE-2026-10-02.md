@@ -35,6 +35,13 @@ this route's import list and source fingerprint. This acknowledges source drift,
 not new operation coverage or universal AI parity. Fresh protected CI is required
 for the corrected candidate.
 
+Run `37065771475` additionally identified the separate admin-page boundary
+inventory. Its website boundary now explicitly records shared-writer refresh,
+immutable-receipt preservation and timed recovery. Refresh updates the two
+website adapter observations and the reviewed adapter/writer fingerprints;
+preview remains read-only. Both inventory checks pass locally. This intermediate
+run is retained as failed evidence and a new exact-head run is required.
+
 Public fields retain placeholder, disabled, focus and invalid states. Workspace
 button/label recipes and custom-theme chevrons remain in their current owner.
 The browser regression checks real fetched assets and keyboard behavior, and is

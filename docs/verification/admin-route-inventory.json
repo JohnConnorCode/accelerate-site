@@ -155,7 +155,7 @@
     "src/app/api/admin/site/drafts/[id]/route.ts": "d1b109ec287325688acdd544984e10a0d91a0742dd5be50af106ce2950317692",
     "src/app/api/admin/site/drafts/[id]/sections/route.ts": "8bcadef5e0a52c3a3760c7619368451b9af9b5c133e2a22c2fe72a6d55cb8a6e",
     "src/app/api/admin/site/drafts/route.ts": "38ece6df30f16a0f108d76702b6bf75b340fd8616d2477b561c0c3cc78cd1579",
-    "src/app/api/admin/site/website/route.ts": "3d44da98b8e98d1ba8c8355a8d0f526c7657b5c3888160f695b1d8aab2c42469",
+    "src/app/api/admin/site/website/route.ts": "17e128b4083fcaf22ffce08041102e6aae75360dc39e84fa0c7c71d6232e5aca",
     "src/app/api/admin/site/website/suggest/route.ts": "f45ad05f4f39f1d62fe55f328fe7a354d29c2e4af8eb15bd3e34f6b0ff8e46f4",
     "src/app/api/admin/social-history/route.ts": "6c763c4d22eeadf9cd10b64256416fb06bda6439f0fa53a38c0fb899d313ee0b",
     "src/app/api/admin/social/route.ts": "3ed15ebef11c14c15ca17526cf2e03f1296cafb4090cbb20bb83593f6864a57c",
@@ -400,9 +400,8 @@
     "src/lib/site-studio/website-ai.ts": "5c08897bfb6eded0335d2c0d1f1f26eee705b156ee0172d109f59e9d5f8f1000",
     "src/lib/site-studio/website-commands.ts": "064486605dce783b163a46b9620947f4b0b01b8c080eb746b4e90076500ecad2",
     "src/lib/site-studio/website-document.ts": "f11491f0a4fa55a8a34833469737a233f2d7d5b03cbaec17f9deeb0483bb601f",
-    "src/lib/site-studio/website-public.ts": "043a3c01da82a5c366634e8ae9d9b9c3096ea8faf266167ba8cd526f98e477b5",
     "src/lib/site-studio/website-seed.ts": "3b21a1a09b355fdc021b37196f9aa29626e2eb439e1bfff325cd8be800039499",
-    "src/lib/site-studio/website-store.ts": "00cb5c9da5ba8fd5faed1b16c9444e9462d8959316d668503aab813367f340f4",
+    "src/lib/site-studio/website-store.ts": "a17e1efc93c4aa8fdd86276ef82a188de583ea9925476f3ab66eebc80c442f37",
     "src/lib/tenancy/context.ts": "511fecd436fb9d4028b6758bac59ba51ee71fa7f798f84ae3cb0adea12bdd949",
     "src/lib/tenancy/lifecycle.ts": "2b2ca947757d4ff3595062f918734b1b765f89352a834e440ae28ae140de8b53",
     "src/lib/tenancy/system.ts": "28e241c788fba9c5793536d0bcf6db076c0d56f6513976f9ae387acc4b222911"
@@ -1989,7 +1988,6 @@
           "domainImports": [
             "@/lib/site-studio/website-commands",
             "@/lib/site-studio/website-document",
-            "@/lib/site-studio/website-public",
             "@/lib/site-studio/website-seed",
             "@/lib/site-studio/website-store"
           ],
@@ -2009,7 +2007,7 @@
       "route": "/admin/site/website",
       "page": "src/app/admin/site/website/page.tsx",
       "primaryAction": "Create and edit website pages; review AI suggestions and publish a saved revision",
-      "boundary": "Installation owner, active bootstrap admin membership, tenant-bound database and enabled Site Studio are required. UI and typed AI/MCP operations share canonical commands, optimistic versions and immutable idempotent receipts. Published form choices use the module-guarded Form Builder API; shared command validation enforces publication and installation ownership, while exact completed retries reach the atomic writer. Draft previews never submit forms. The neutral bootstrap and public site share the same validated document and theme; application paths remain reserved. AI suggestion preparation uses the shared budget gateway and owner rate limit; local adoption and saving are explicit, and AI cannot invent form tokens. Public rendering reads only the published revision. The separate scoped OAuth endpoint allows owner-delegated execution without changing ordinary workspace MCP authority; client confirmation is not recorded as independent human approval. Direct authenticated RPC writes remain denied. Automatic import of remaining source layouts is still separate work on the linked claim.",
+      "boundary": "Installation owner, active bootstrap admin membership, tenant-bound database and enabled Site Studio are required. UI and typed AI/MCP operations share canonical commands, optimistic versions and immutable idempotent receipts. Published form choices use the module-guarded Form Builder API; shared command validation enforces publication and installation ownership, while exact completed retries reach the atomic writer. Draft previews never submit forms. The neutral bootstrap and public site share the same validated document and theme; application paths remain reserved. AI suggestion preparation uses the shared budget gateway and owner rate limit; local adoption and saving are explicit, and AI cannot invent form tokens. Public rendering reads only the published revision. The separate scoped OAuth endpoint allows owner-delegated execution without changing ordinary workspace MCP authority; client confirmation is not recorded as independent human approval. Direct authenticated RPC writes remain denied. Automatic import of remaining source layouts is still separate work on the linked claim. Committed publication changes and exact retries refresh the public tag and root layout through the shared writer; a cache-host failure preserves the immutable receipt and leaves the existing public revalidation window as recovery.",
       "followUp": {
         "id": "7b54f4b4-7519-4758-a268-eeaa17fc0d17",
         "key": "site-studio-installation-editor"
@@ -2022,7 +2020,6 @@
           "domainImports": [
             "@/lib/site-studio/website-commands",
             "@/lib/site-studio/website-document",
-            "@/lib/site-studio/website-public",
             "@/lib/site-studio/website-seed",
             "@/lib/site-studio/website-store"
           ],
