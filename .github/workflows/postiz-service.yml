@@ -75,7 +75,7 @@ jobs:
         run: ./verify-service.sh
       - name: Retain bounded verification receipts
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: postiz-service-evidence
           # Allowlist receipts even if cancellation interrupts fixture cleanup.
