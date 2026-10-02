@@ -624,8 +624,9 @@ const staticHero = await staticPage.evaluate(() => ({
   ribbonsStatic: [...document.querySelectorAll(".home-hero-ribbon")].every(
     (element) => getComputedStyle(element).animationName === "none",
   ),
-  backgroundPaused:
-    getComputedStyle(document.querySelector(".home-hero-contours")).animationPlayState === "paused",
+  backgroundStatic:
+    document.querySelector(".home-hero-flow").getAnimations().length === 0 &&
+    document.querySelector(".home-hero-contours").getAnimations({ subtree: true }).length === 0,
   allContentReadable: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -639,7 +640,7 @@ if (
   staticHero.cta !== "1" ||
   !staticHero.wordsStatic ||
   !staticHero.ribbonsStatic ||
-  !staticHero.backgroundPaused ||
+  !staticHero.backgroundStatic ||
   !staticHero.allContentReadable
 )
   failures.push("No-JavaScript hero did not remain complete and static");
