@@ -6393,41 +6393,49 @@ body.modal-open [data-dock] {
 }
 .home-hero-acceleration {
   position: absolute;
-  top: -18%;
-  right: -8%;
-  width: min(52vw, 740px);
+  --hero-ink-opacity: 0.34;
+  top: -20%;
+  right: -10%;
+  width: min(64vw, 940px);
   height: 135%;
   pointer-events: none;
   color: var(--fg);
-  opacity: 0.22;
+  opacity: var(--hero-ink-opacity);
   overflow: visible;
   contain: layout;
 }
+.home-hero-response {
+  position: absolute;
+  /* Include the rotated and offset ink inside the promoted response layer. */
+  inset: -50% -100%;
+  transform: translate3d(0, 0, 0);
+  transition: transform 850ms var(--hero-ease);
+}
 .home-hero-ribbon {
   position: absolute;
-  inset: 0;
-  transform-origin: 65% 50%;
+  /* Match the padded SVG viewport to finite HTML paint bounds. WebKit clips
+     overflowing SVG ink when its original narrow owner becomes a layer. */
+  inset: 12.5% calc(100% / 6);
+  translate: calc(var(--ribbon-index) * 4.5%) 0;
+  transform-origin: 57.5% 50%;
 }
 .home-hero-ribbon svg {
   width: 100%;
   height: 100%;
-  overflow: visible;
-  transform: translateX(calc(var(--ribbon-index) * 9%));
+  overflow: hidden;
 }
 .home-hero-acceleration path {
-  stroke: currentColor;
-  stroke-width: 3;
+  stroke-width: 1.2;
 }
-.home-hero-acceleration path + path {
-  stroke-width: 44;
-  opacity: 0.24;
+.home-hero-acceleration .home-hero-ribbon-sheet {
+  stroke: none;
 }
 .home-hero-field {
-  inset: -12px;
+  inset: -32px;
   color: var(--fg);
   contain: layout paint;
   transform: translate3d(0, 0, 0);
-  transition: transform 450ms var(--hero-ease);
+  transition: transform 650ms var(--hero-ease);
 }
 .home-hero-flow {
   position: absolute;
@@ -6448,25 +6456,35 @@ body.modal-open [data-dock] {
   position: absolute;
   top: 0;
   left: 0;
-  width: clamp(260px, 30vw, 420px);
+  width: clamp(320px, 34vw, 520px);
   aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--fg) 7%, transparent),
-    transparent 68%
-  );
+  color: var(--fg);
   opacity: 0;
   pointer-events: none;
   transform: translate3d(0, 0, 0);
   transition:
-    opacity 600ms var(--hero-ease),
-    transform 450ms var(--hero-ease);
+    opacity 500ms var(--hero-ease),
+    transform 300ms var(--hero-ease);
+}
+.home-hero-focus-surface {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 52% 58%,
+    color-mix(in srgb, var(--fg) 11%, transparent),
+    transparent 62%
+  );
+  transform: scale(1);
+}
+.home-hero-focus-surface svg {
+  width: 100%;
+  height: 100%;
 }
 .home-hero[data-hero-focus="true"] .home-hero-focus {
   opacity: 1;
 }
 .home-hero[data-hero-active="true"] .home-hero-field,
+.home-hero[data-hero-active="true"] .home-hero-response,
 .home-hero[data-hero-active="true"] .home-hero-focus {
   will-change: transform;
 }
@@ -6531,9 +6549,9 @@ body.modal-open [data-dock] {
 @media (prefers-reduced-motion: no-preference) {
   /* Three independently composited ribbons keep the artwork alive on phones
      without continuously repainting SVG strokes or moving the headline. */
-  .motion-ready .home-hero-ribbon {
-    animation: home-hero-ribbon-flow calc(28s + var(--ribbon-index) * 7s) ease-in-out
-      calc(var(--ribbon-index) * -4s) infinite alternate;
+  .home-hero[data-hero-mounted="true"] .home-hero-ribbon {
+    animation: home-hero-ribbon-flow calc(14s + var(--ribbon-index) * 5s) ease-in-out
+      calc(var(--ribbon-index) * -5s) infinite alternate;
     animation-play-state: paused;
   }
   .home-hero[data-hero-active="true"] .home-hero-ribbon {
@@ -6543,7 +6561,7 @@ body.modal-open [data-dock] {
     animation-play-state: paused;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-acceleration {
-    animation: home-hero-ribbon-enter 2600ms var(--hero-ease) 100ms backwards;
+    animation: home-hero-ribbon-enter 2800ms var(--hero-ease) 100ms backwards;
   }
   .motion-ready:not([data-navigation-kind="restore"])
     .home-hero[data-reveal-state="pending"]
@@ -6616,8 +6634,8 @@ body.modal-open [data-dock] {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .motion-ready .home-hero-flow {
-    animation: home-hero-contour-drift 44s ease-in-out infinite alternate;
+  .home-hero[data-hero-mounted="true"] .home-hero-flow {
+    animation: home-hero-contour-drift 22s ease-in-out infinite alternate;
     animation-play-state: paused;
   }
   .home-hero[data-hero-active="true"] .home-hero-flow {
@@ -6629,6 +6647,7 @@ body.modal-open [data-dock] {
 }
 @media (prefers-reduced-motion: reduce) {
   .home-hero-field,
+  .home-hero-response,
   .home-hero-focus {
     transition: none;
     transform: none;
@@ -6651,19 +6670,19 @@ body.modal-open [data-dock] {
 @keyframes home-hero-ribbon-enter {
   from {
     opacity: 0;
-    transform: translate3d(10%, 8%, 0) rotate(-4deg);
+    transform: translate3d(26%, 14%, 0) rotate(-8deg);
   }
   to {
-    opacity: 0.22;
+    opacity: var(--hero-ink-opacity);
     transform: translate3d(0, 0, 0);
   }
 }
 @keyframes home-hero-ribbon-flow {
   from {
-    transform: translate3d(-1%, 1%, 0) rotate(-2deg);
+    transform: translate3d(-3%, 2.6667%, 0) rotate(-6deg);
   }
   to {
-    transform: translate3d(2%, -2%, 0) rotate(3deg);
+    transform: translate3d(3%, -3.3333%, 0) rotate(7deg);
   }
 }
 @keyframes home-hero-label-enter {
@@ -6686,10 +6705,10 @@ body.modal-open [data-dock] {
 }
 @keyframes home-hero-contour-drift {
   from {
-    transform: translate3d(-6px, 5px, 0);
+    transform: translate3d(-22px, 16px, 0);
   }
   to {
-    transform: translate3d(6px, -5px, 0);
+    transform: translate3d(22px, -16px, 0);
   }
 }
 @keyframes home-hero-detail-enter {
@@ -6792,16 +6811,14 @@ body.modal-open [data-dock] {
     letter-spacing: -0.03em;
   }
   .home-hero-acceleration {
-    top: 8%;
-    right: -38%;
-    width: 125%;
-    height: 108%;
+    --hero-ink-opacity: 0.3;
+    top: -5%;
+    right: -54%;
+    width: 160%;
+    height: 120%;
   }
   .home-hero-acceleration path {
-    stroke-width: 2;
-  }
-  .home-hero-acceleration path + path {
-    stroke-width: 32;
+    stroke-width: 1;
   }
   .home-hero-contours {
     width: 230%;

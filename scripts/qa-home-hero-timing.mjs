@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { chromium } from "playwright";
+import { chromium, webkit } from "playwright";
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-home-hero-timing";
@@ -252,7 +252,8 @@ for (const [label, viewport, colorScheme] of [
   const ribbonStart = await ribbons.evaluateAll((elements) =>
     elements.map((element) => getComputedStyle(element).transform),
   );
-  await page.waitForTimeout(250);
+  const perceptible = label === "desktop" || label === "mobile";
+  await page.waitForTimeout(perceptible ? 3000 : 250);
   const ribbonMotion = await ribbons.evaluateAll((elements) => ({
     transforms: elements.map((element) => getComputedStyle(element).transform),
     durations: new Set(elements.map((element) => getComputedStyle(element).animationDuration)).size,
@@ -263,6 +264,20 @@ for (const [label, viewport, colorScheme] of [
     ribbonMotion.durations !== 3
   )
     failures.push(`${label}: artwork is static or its ribbon layers move in lockstep`);
+  if (perceptible) {
+    const travel = await page.evaluate(
+      ({ start, end }) =>
+        start.map((value, index) => {
+          const a = new DOMMatrix(value);
+          const b = new DOMMatrix(end[index]);
+          return Math.hypot(b.m41 - a.m41, b.m42 - a.m42);
+        }),
+      { start: ribbonStart, end: ribbonMotion.transforms },
+    );
+    ribbonMotion.naturalTravelPixels = travel;
+    if (travel.filter((distance) => distance >= (touch ? 12 : 18)).length < 2)
+      failures.push(`${label}: the artwork moves too little to perceive in a three-second visit`);
+  }
   if (touch) {
     const idle = await page
       .locator(".home-hero-contours")
@@ -281,7 +296,32 @@ for (const [label, viewport, colorScheme] of [
         element.getAnimations().some((animation) => animation.playState === "running"),
       );
     if (!touchLight) failures.push(`${label}: tap did not start the local light response`);
-    await page.waitForTimeout(180);
+    // Sample the retargetable compositor transition when it reaches the
+    // required displacement, within a bounded one-second response window.
+    await page
+      .waitForFunction(
+        () => {
+          const field = new DOMMatrix(
+            getComputedStyle(document.querySelector(".home-hero-field")).transform,
+          ).m41;
+          const response = new DOMMatrix(
+            getComputedStyle(document.querySelector(".home-hero-response")).transform,
+          ).m41;
+          return field >= 12 && response <= -18;
+        },
+        null,
+        { timeout: 1000 },
+      )
+      .catch(() => {});
+    const touchDepth = await page.evaluate(() =>
+      [".home-hero-field", ".home-hero-response"].map(
+        (selector) =>
+          new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).m41,
+      ),
+    );
+    ribbonMotion.touchDepth = touchDepth;
+    if (touchDepth[0] < 12 || touchDepth[1] > -18)
+      failures.push(`${label}: touch did not move the distinct artwork depths`);
     const beforeRepeat = await page
       .locator(".home-hero-focus")
       .evaluate((element) => Number(getComputedStyle(element).opacity));
@@ -330,11 +370,20 @@ for (const [label, viewport, colorScheme] of [
     const response = await page.evaluate(() => ({
       fieldX: new DOMMatrix(getComputedStyle(document.querySelector(".home-hero-field")).transform)
         .m41,
+      responseX: new DOMMatrix(
+        getComputedStyle(document.querySelector(".home-hero-response")).transform,
+      ).m41,
       lightX: new DOMMatrix(getComputedStyle(document.querySelector(".home-hero-focus")).transform)
         .m41,
       light: Number(getComputedStyle(document.querySelector(".home-hero-focus")).opacity),
     }));
-    if (!response.fieldX || response.lightX < viewport.width / 2 || response.light < 0.9)
+    ribbonMotion.pointerResponse = response;
+    if (
+      response.fieldX < 12 ||
+      response.responseX > -18 ||
+      response.lightX < viewport.width / 2 ||
+      response.light < 0.9
+    )
       failures.push(`${label}: artwork depth or the smooth local light response is missing`);
     if (label === "desktop") {
       await page.evaluate(() => document.fonts.ready);
@@ -589,6 +638,49 @@ for (const [label, viewport] of [
   delayedResults.push({ label, pending, complete });
   await delayed.close();
 }
+// A real late runtime must recover ambient artwork after the four-second
+// fail-open watchdog, without concealing foreground content a second time.
+const lateRuntime = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const latePage = await lateRuntime.newPage();
+await latePage.route("**/_next/static/**/*.js*", async (route) => {
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await route.continue();
+});
+await latePage.goto(baseUrl, { waitUntil: "commit", timeout: 60_000 });
+await latePage.waitForFunction(
+  () =>
+    document.querySelector(".home-hero-contours") &&
+    getComputedStyle(document.querySelector(".home-hero-contours")).position === "absolute",
+);
+await latePage.waitForFunction(() => !document.documentElement.classList.contains("motion-ready"));
+const lateReadable = await latePage
+  .locator(".home-hero")
+  .evaluate((hero) =>
+    [...hero.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions")].every(
+      (element) => getComputedStyle(element).opacity === "1",
+    ),
+  );
+await latePage.waitForFunction(
+  () => document.querySelector(".home-hero").dataset.heroActive === "true",
+);
+const lateRecovery = await latePage.locator(".home-hero").evaluate((hero) => ({
+  readable: [
+    ...hero.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions"),
+  ].every((element) => getComputedStyle(element).opacity === "1"),
+  wordsStatic: [...hero.querySelectorAll(".home-hero-word")].every(
+    (element) => element.getAnimations().length === 0,
+  ),
+  moving: [...hero.querySelectorAll(".home-hero-ribbon")].every(
+    (element) =>
+      getComputedStyle(element).animationPlayState === "running" &&
+      getComputedStyle(element).animationName === "home-hero-ribbon-flow",
+  ),
+}));
+if (!lateReadable || !lateRecovery.readable || !lateRecovery.wordsStatic || !lateRecovery.moving)
+  failures.push("Late hydration left artwork static or concealed readable foreground again");
+delayedResults.push({ label: "watchdog-then-hydration", lateReadable, ...lateRecovery });
+await latePage.screenshot({ caret: "initial", path: `${output}/desktop-late-runtime.png` });
+await lateRuntime.close();
 const failedRuntime = await browser.newContext({ viewport: { width: 390, height: 844 } });
 await failedRuntime.route("**/_next/static/**/*.js*", (route) => route.abort());
 const failedRuntimePage = await failedRuntime.newPage();
@@ -665,6 +757,77 @@ if (
 await staticPage.screenshot({ caret: "initial", path: `${output}/desktop-no-js.png` });
 await noJS.close();
 await browser.close();
+
+// WebKit can clip overflowing SVG to a promoted HTML layer's narrow bounds.
+// Keep all ink inside both prepared viewports and inspect actual interaction.
+const webkitArtwork = [];
+const webkitBrowser = await webkit.launch({ headless: true });
+for (const [label, viewport, touch] of [
+  ["webkit-desktop", { width: 1440, height: 900 }, false],
+  ["webkit-mobile", { width: 390, height: 844 }, true],
+]) {
+  const context = await webkitBrowser.newContext({
+    viewport,
+    hasTouch: touch,
+    isMobile: touch,
+    recordVideo: { dir: `${output}/video`, size: viewport },
+  });
+  const page = await context.newPage();
+  page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.waitForFunction(
+    () => document.querySelector(".home-hero")?.dataset.heroActive === "true",
+  );
+  await page.waitForTimeout(3200);
+  const readBounds = (elements) =>
+    elements.map((element) => {
+      const ink = element.getBBox();
+      const viewport = element.viewBox.baseVal;
+      const response = element.closest(".home-hero-response").getBoundingClientRect();
+      const matrix = element.getScreenCTM();
+      const corners = [
+        [ink.x, ink.y],
+        [ink.x + ink.width, ink.y],
+        [ink.x, ink.y + ink.height],
+        [ink.x + ink.width, ink.y + ink.height],
+      ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(matrix));
+      return {
+        contained:
+          ink.x >= viewport.x &&
+          ink.y >= viewport.y &&
+          ink.x + ink.width <= viewport.x + viewport.width &&
+          ink.y + ink.height <= viewport.y + viewport.height,
+        clipped: getComputedStyle(element).overflow === "hidden",
+        responseContainsInk: corners.every(
+          ({ x, y }) =>
+            x >= response.left && x <= response.right && y >= response.top && y <= response.bottom,
+        ),
+      };
+    });
+  const bounds = await page.locator(".home-hero-ribbon svg").evaluateAll(readBounds);
+  if (
+    bounds.length !== 3 ||
+    bounds.some((bound) => !bound.contained || !bound.clipped || !bound.responseContainsInk)
+  )
+    failures.push(`${label}: ink exceeds its prepared paint bounds`);
+  await page.screenshot({ caret: "initial", path: `${output}/${label}-settled.png` });
+  if (touch) await page.touchscreen.tap(330, 610);
+  else await page.mouse.move(viewport.width * 0.85, 550, { steps: 24 });
+  await page.waitForTimeout(touch ? 350 : 950);
+  const interactionBounds = await page.locator(".home-hero-ribbon svg").evaluateAll(readBounds);
+  if (
+    interactionBounds.length !== 3 ||
+    interactionBounds.some(
+      (bound) => !bound.contained || !bound.clipped || !bound.responseContainsInk,
+    )
+  )
+    failures.push(`${label}: interaction exceeds its prepared paint bounds`);
+  await page.screenshot({ caret: "initial", path: `${output}/${label}-interaction.png` });
+  webkitArtwork.push({ label, viewport, bounds, interactionBounds });
+  await context.close();
+  await page.video().saveAs(`${output}/${label}-interaction.webm`);
+}
+await webkitBrowser.close();
 await writeFile(
   `${output}/results.json`,
   JSON.stringify(
@@ -676,6 +839,7 @@ await writeFile(
       delayedResults,
       watchdog,
       staticHero,
+      webkitArtwork,
       failures,
     },
     null,
