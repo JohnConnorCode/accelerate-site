@@ -38,6 +38,18 @@ The disconnected test now uses the existing fictional provider runtime and
 asserts its simulated receipt. Navigation could previously replace its temporary
 fetch override. No authorization, approval or provider boundary is weakened.
 
+The first combined CI run passed contracts, build, native motion and installation
+checks, then caught a broad homepage test measuring event callback delivery as
+animation chronology. Its retained screenshot shows distinct eyebrow, heading
+and hidden later phases. The test now reads the browser animation timeline,
+retains callback delivery diagnostics and requires a measured opacity difference
+between phases. It still requires every entrance event, distinct phase clocks
+and complete final content. Invoice navigation runs before this broad homepage
+case so an unrelated failure does not hide its own receipt. Application motion
+code is unchanged. See the browser API references for
+[animation start time](https://developer.mozilla.org/en-US/docs/Web/API/Animation/startTime)
+and [effect timing](https://developer.mozilla.org/en-US/docs/Web/API/AnimationEffect/getTiming).
+
 The Stripe guide, manifest, plugin README, Command Center description and FAQ,
 changelog, documentation index and refreshed screenshot are included from the
 source handoff. Full protected CI must pass on this exact combined tree before
