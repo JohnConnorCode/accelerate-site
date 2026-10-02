@@ -191,7 +191,7 @@
     "src/components/admin/AdminDialog.tsx": "020f04a036c983f808dccc1b79f347ea6ee6a0a9a32229602a809811339a0699",
     "src/components/admin/AdminErrorBoundary.tsx": "b394d8434ccfe4def165e7cd532bf99edbc66c1cd65f4fe5077295f29f33057a",
     "src/components/admin/AdminFounderNoteModal.tsx": "01cc9a604ff0b1ef48ca43e59924ab8895d6f8a493a6c2bcd4e00bf6f3939b5a",
-    "src/components/admin/AdminLink.tsx": "207cfb602c068230fb3dedea04f5206a408675c0129e6fb4559abb55c9fd577d",
+    "src/components/admin/AdminLink.tsx": "f8cd70a0fda1961e9a46b06a868d6f5d09ee26092c17a461e55087f9c85ebab2",
     "src/components/admin/AdminPageLoading.tsx": "599a73d33e924dabc3fa5027ed814799b0d9c638e6298cef8fb610358068832e",
     "src/components/admin/AdminQueryProvider.tsx": "64e5872bd4521ba4f391782d3f9f1d261917e8dd8bed32f99b453a9cd7335336",
     "src/components/admin/AdminReadBody.tsx": "ed1b578fce0a9822afaf803910c1429b0d4dda8fedab721a322f310af73545bf",
