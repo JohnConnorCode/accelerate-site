@@ -281,6 +281,16 @@ for (const [label, viewport, colorScheme] of [
         element.getAnimations().some((animation) => animation.playState === "running"),
       );
     if (!touchLight) failures.push(`${label}: tap did not illuminate the nearby contours`);
+    await page.waitForTimeout(180);
+    const beforeRepeat = await page
+      .locator(".home-hero-focus")
+      .evaluate((element) => Number(getComputedStyle(element).opacity));
+    await page.touchscreen.tap(viewport.width - 24, 142);
+    const afterRepeat = await page
+      .locator(".home-hero-focus")
+      .evaluate((element) => Number(getComputedStyle(element).opacity));
+    if (beforeRepeat < 0.1 || afterRepeat < beforeRepeat - 0.08)
+      failures.push(`${label}: repeated touches reset the illumination instead of blending`);
     await page.screenshot({ caret: "initial", path: `${output}/${label}-touch.png` });
     await page.waitForTimeout(1950);
     const pulseFinished = await page
@@ -327,6 +337,13 @@ for (const [label, viewport, colorScheme] of [
       failures.push(
         `${label}: layered depth, local illumination or varied current timing is missing`,
       );
+    await page.mouse.down();
+    await page.mouse.up();
+    const pressedLight = await page
+      .locator(".home-hero-focus")
+      .evaluate((element) => Number(getComputedStyle(element).opacity));
+    if (pressedLight < 0.9)
+      failures.push(`${label}: pressing the hero flashes the pointer illumination`);
     await page.screenshot({ caret: "initial", path: `${output}/${label}-pointer.png` });
     // The full-height hero fills the viewport. Move onto the fixed header,
     // outside the section, rather than assuming its former 740px height.

@@ -25,6 +25,7 @@ are identical. This correction retains that completed integration.
 | Pointer displacement has a 44/32-pixel range; touch displacement has a 60/44-pixel range.         | Pointer range is 20/14 pixels and touch range is 28/20 pixels. Artwork transitions share the same 900 ms easing.                                                                              |
 | Touch emits two expanding, rotating rings and a sharp 850 ms illumination.                        | Touch produces a soft radial light field and local contour illumination over 1800 ms. The field expands gently and returns to rest.                                                           |
 | Pointer illumination changes over 450 ms.                                                         | It fades over 750 ms using the same easing as the composition.                                                                                                                                |
+| A mouse press or repeated touch restarts the light at zero, causing a visible flash.              | Mouse presses retain hover lighting. Repeated touches continue the existing opacity and transform, then fade smoothly to rest.                                                                |
 
 ## Verification and boundaries
 
@@ -46,6 +47,16 @@ menu pauses, restored history and reduced motion. Both engines recorded zero
 layout shift. The worst warm-visit p95 was 16.8 ms in Chromium with 4× CPU throttling
 and 23 ms in WebKit. Both the first failure receipt and rerun evidence are
 retained in the private review folder.
+
+Additional interaction review reproduced a mouse light falling from opacity 1
+to 0 on press and repeated-touch illumination falling from approximately 0.44
+to 0. The source now retains hover lighting and blends repeated touches from
+the current animated state. The hero journey includes regressions for both
+cases; a separate native WebKit probe checks the same interruption behavior.
+The original failing probe is retained. The corrected hero journey passed,
+and native WebKit measured mouse illumination staying at 1 and repeated-touch
+illumination staying near 0.41. The preceding full CI passed; a fresh full CI
+run is required for this final interaction fix before publication.
 
 No new dependency, animation library, frame loop, API, module default, customer
 message, provider configuration or database schema is introduced. Required full

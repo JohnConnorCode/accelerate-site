@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "homepage-hero-line-choreography",
     title: "A calmer, coordinated homepage entrance",
     description:
-      "The homepage reveals its headline in readable lines, with gentler pacing for the supporting copy and booking action. The artwork moves more slowly, pointer movement has a smaller range, and touch illumination fades softly. Fresh and cached visits retain the complete entrance; history restoration, keyboard access and reduced motion keep the page usable.",
+      "The homepage reveals its headline in readable lines, with gentler pacing for the supporting copy and booking action. The artwork moves more slowly, pointer movement has a smaller range, and touch illumination fades softly. Repeated touches blend into the existing glow, and clicking keeps pointer lighting steady. Fresh and cached visits retain the complete entrance; history restoration, keyboard access and reduced motion keep the page usable.",
     category: "fix",
     publishedAt: "2026-10-01",
   },

@@ -126,8 +126,20 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       });
     };
     const tap = (event: PointerEvent) => {
-      if (section.dataset.heroActive !== "true" || event.button !== 0) return;
+      if (
+        section.dataset.heroActive !== "true" ||
+        event.button !== 0 ||
+        (fine.matches && event.pointerType === "mouse")
+      )
+        return;
       if (event.target instanceof Element && event.target.closest("a, button, input")) return;
+      const lightOpacity = Number(getComputedStyle(focus).opacity);
+      const pulseStyle = getComputedStyle(pulse);
+      const pulseOpacity = Number(pulseStyle.opacity);
+      const pulseTransform =
+        response?.playState === "running"
+          ? pulseStyle.transform
+          : "translate(-50%, -50%) scale(0.7)";
       const bounds = section.getBoundingClientRect();
       window.clearTimeout(release);
       section.style.setProperty(
@@ -142,7 +154,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       locateLight(event.clientX, event.clientY);
       illumination?.cancel();
       illumination = focus.animate(
-        [{ opacity: 0 }, { opacity: 0.6, offset: 0.2 }, { opacity: 0 }],
+        [{ opacity: lightOpacity }, { opacity: 0.6, offset: 0.2 }, { opacity: 0 }],
         { duration: 1800, easing: "cubic-bezier(0.25, 0.5, 0.25, 1)" },
       );
       pulse.style.left = `${event.clientX - bounds.left}px`;
@@ -150,7 +162,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       response?.cancel();
       response = pulse.animate(
         [
-          { opacity: 0, transform: "translate(-50%, -50%) scale(0.7)" },
+          { opacity: pulseOpacity, transform: pulseTransform },
           { opacity: 0.24, transform: "translate(-50%, -50%) scale(0.85)", offset: 0.2 },
           { opacity: 0, transform: "translate(-50%, -50%) scale(1.1)" },
         ],
