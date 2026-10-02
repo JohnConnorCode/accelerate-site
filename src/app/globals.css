@@ -6546,7 +6546,7 @@ body.modal-open [data-dock] {
 @media (prefers-reduced-motion: no-preference) {
   /* Three independently composited ribbons keep the artwork alive on phones
      without continuously repainting SVG strokes or moving the headline. */
-  .motion-ready .home-hero-ribbon {
+  .home-hero[data-hero-mounted="true"] .home-hero-ribbon {
     animation: home-hero-ribbon-flow calc(14s + var(--ribbon-index) * 5s) ease-in-out
       calc(var(--ribbon-index) * -5s) infinite alternate;
     animation-play-state: paused;
@@ -6631,7 +6631,7 @@ body.modal-open [data-dock] {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .motion-ready .home-hero-flow {
+  .home-hero[data-hero-mounted="true"] .home-hero-flow {
     animation: home-hero-contour-drift 22s ease-in-out infinite alternate;
     animation-play-state: paused;
   }

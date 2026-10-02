@@ -621,6 +621,49 @@ for (const [label, viewport] of [
   delayedResults.push({ label, pending, complete });
   await delayed.close();
 }
+// A real late runtime must recover ambient artwork after the four-second
+// fail-open watchdog, without concealing foreground content a second time.
+const lateRuntime = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const latePage = await lateRuntime.newPage();
+await latePage.route("**/_next/static/**/*.js*", async (route) => {
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await route.continue();
+});
+await latePage.goto(baseUrl, { waitUntil: "commit", timeout: 60_000 });
+await latePage.waitForFunction(
+  () =>
+    document.querySelector(".home-hero-contours") &&
+    getComputedStyle(document.querySelector(".home-hero-contours")).position === "absolute",
+);
+await latePage.waitForFunction(() => !document.documentElement.classList.contains("motion-ready"));
+const lateReadable = await latePage
+  .locator(".home-hero")
+  .evaluate((hero) =>
+    [...hero.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions")].every(
+      (element) => getComputedStyle(element).opacity === "1",
+    ),
+  );
+await latePage.waitForFunction(
+  () => document.querySelector(".home-hero").dataset.heroActive === "true",
+);
+const lateRecovery = await latePage.locator(".home-hero").evaluate((hero) => ({
+  readable: [
+    ...hero.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions"),
+  ].every((element) => getComputedStyle(element).opacity === "1"),
+  wordsStatic: [...hero.querySelectorAll(".home-hero-word")].every(
+    (element) => element.getAnimations().length === 0,
+  ),
+  moving: [...hero.querySelectorAll(".home-hero-ribbon")].every(
+    (element) =>
+      getComputedStyle(element).animationPlayState === "running" &&
+      getComputedStyle(element).animationName === "home-hero-ribbon-flow",
+  ),
+}));
+if (!lateReadable || !lateRecovery.readable || !lateRecovery.wordsStatic || !lateRecovery.moving)
+  failures.push("Late hydration left artwork static or concealed readable foreground again");
+delayedResults.push({ label: "watchdog-then-hydration", lateReadable, ...lateRecovery });
+await latePage.screenshot({ caret: "initial", path: `${output}/desktop-late-runtime.png` });
+await lateRuntime.close();
 const failedRuntime = await browser.newContext({ viewport: { width: 390, height: 844 } });
 await failedRuntime.route("**/_next/static/**/*.js*", (route) => route.abort());
 const failedRuntimePage = await failedRuntime.newPage();

@@ -78,6 +78,9 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     const focus = section?.querySelector<HTMLElement>(".home-hero-focus");
     const surface = focus?.querySelector<HTMLElement>(".home-hero-focus-surface");
     if (!section || !field || !response || !focus || !surface) return;
+    // Ambient motion belongs to this hydrated owner, not the first-paint text
+    // gate. A late runtime may resume artwork without hiding readable content.
+    section.dataset.heroMounted = "true";
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const fine = window.matchMedia("(pointer: fine)");
     let visible = false;
@@ -196,6 +199,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     reduced.addEventListener("change", preference);
     fine.addEventListener("change", preference);
     return () => {
+      section.dataset.heroMounted = "false";
       observer.disconnect();
       window.cancelAnimationFrame(frame);
       window.clearTimeout(release);
@@ -222,6 +226,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       id="hero"
       aria-labelledby="home-hero-heading"
       data-hero-active="false"
+      data-hero-mounted="false"
       data-motion-role="home-hero"
       data-reveal-state="pending"
     >

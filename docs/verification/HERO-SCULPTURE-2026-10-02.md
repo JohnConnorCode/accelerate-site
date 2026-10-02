@@ -21,6 +21,7 @@ the full-height phone composition, readable content and smooth rendering.
 | Touch faded a light without a visible material response.                               | Touch moves both artwork depths and briefly expands the local surface. Repeated taps continue from the current transform and opacity. Native scrolling remains available; pointer cancellation restores the field.                          |
 | Automated verification proved only that an animation transform changed.                | The hero journey now requires perceptible natural movement over three seconds and distinct pointer/touch depth displacement, alongside existing paint, layout, entrance, cache, keyboard and fallback checks.                               |
 | The public release entry and shared motion contract described the quieter composition. | A new product changelog entry describes the expressive artwork. The shared contract includes perceptibility and native touch cancellation. Public platform guides, Command Center descriptions and FAQ need no business capability changes. |
+| When JavaScript arrived after the safety watchdog, ambient artwork never resumed. | Ambient motion follows the hero’s hydrated owner. Late hydration resumes artwork while the already readable foreground remains visible. Unavailable JavaScript and reduced motion keep a static composition. |
 
 ## Observable acceptance
 

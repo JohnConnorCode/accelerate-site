@@ -47,7 +47,10 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   moves prepared layers without layout reads in pointer frames. Touch uses the
   same local ink response with a finite expansion and fade. Repeated touches
   continue from the current presentation. Native scrolling remains available;
-  pointer cancellation restores the field. Pending content must not flash.
+  pointer cancellation restores the field. Ambient artwork uses its hydrated
+  owner rather than the first-paint text gate, so a late runtime resumes its
+  motion after the safety watchdog without concealing readable text again.
+  Pending content must not flash.
   Reduced motion, unavailable JavaScript and the hydration watchdog show the
   complete static composition. Concealed booking actions do not accept pointer
   clicks. Keyboard focus immediately exposes the booking

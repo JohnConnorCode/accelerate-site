@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "homepage-sculptural-motion",
     title: "A more expressive, responsive homepage",
     description:
-      "Three sculptural ink sheets sweep into the homepage and keep moving on distinct rhythms, including on phones. Pointer movement shifts opposing artwork depths and reveals a local contour response. Touch expands that response and blends repeated interactions. The headline stays readable and steady, with the existing full-height mobile layout, booking action, cached navigation and reduced-motion fallbacks.",
+      "Three sculptural ink sheets sweep into the homepage and keep moving on distinct rhythms, including on phones. Pointer movement shifts opposing artwork depths and reveals a local contour response. Touch expands that response and blends repeated interactions. Late JavaScript resumes the artwork after the loading safeguard without hiding the text again. The headline stays readable and steady, with the existing full-height mobile layout, booking action, cached navigation and reduced-motion fallbacks.",
     category: "improvement",
     publishedAt: "2026-10-02",
   },
