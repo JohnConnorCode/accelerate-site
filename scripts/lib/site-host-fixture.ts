@@ -18,10 +18,21 @@ export async function withSiteHostTransport<T>(
     const url = new URL(String(input));
     assert.equal(url.hostname, "site-fixture.supabase.co");
     const operation = url.pathname.split("/").at(-1)!;
-    assert.ok(["write_site_draft", "write_site_website"].includes(operation));
     const headers = new Headers(init?.headers);
-    assert.equal(headers.get("x-tenant-id"), actor.tenant.id);
     assert.equal(headers.get("authorization"), "Bearer controlled-site-host-key");
+    if (operation === "site_website_revisions" && init?.method === "GET") {
+      // Publication validates the saved revision's form bindings before its
+      // atomic write. Keep this privileged read scoped to the same owner.
+      assert.equal(url.searchParams.get("tenant_id"), `eq.${actor.tenant.id}`);
+      const revisionId = url.searchParams.get("id")?.replace(/^eq\./, "");
+      assert.ok(revisionId);
+      const rows = (mem.tables.site_website_revisions ?? [])
+        .filter((row) => row.tenant_id === actor.tenant.id && row.id === revisionId)
+        .map((row) => ({ document: row.document }));
+      return Response.json(rows);
+    }
+    assert.ok(["write_site_draft", "write_site_website"].includes(operation));
+    assert.equal(headers.get("x-tenant-id"), actor.tenant.id);
     const args = JSON.parse(String(init?.body));
     assert.equal(args.p_actor_email, actor.user.email ?? actor.user.id);
     const result = await (mem.client as SupabaseClient).rpc(operation, args);

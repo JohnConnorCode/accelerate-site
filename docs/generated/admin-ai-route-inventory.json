@@ -1874,13 +1874,12 @@
         "@/lib/http/bounded-json",
         "@/lib/site-studio/website-commands",
         "@/lib/site-studio/website-document",
-        "@/lib/site-studio/website-public",
         "@/lib/site-studio/website-seed",
         "@/lib/site-studio/website-store",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "3d44da98b8e98d1ba8c8355a8d0f526c7657b5c3888160f695b1d8aab2c42469"
+      "sourceSha256": "17e128b4083fcaf22ffce08041102e6aae75360dc39e84fa0c7c71d6232e5aca"
     },
     {
       "source": "src/app/api/admin/site/website/suggest/route.ts",

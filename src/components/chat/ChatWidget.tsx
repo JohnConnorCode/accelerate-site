@@ -61,10 +61,17 @@ export function ChatWidget() {
         closeChat();
       }
       if (event.key !== "Tab") return;
-      const focusable = rootRef.current?.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), a[href], textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      );
-      if (!focusable?.length) return;
+      // The backdrop and exiting bubble are outside the dialog. They must
+      // never enter its tab order, including while the panel chunk loads.
+      const focusable = rootRef.current
+        ?.querySelector('[role="dialog"]')
+        ?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+      if (!focusable?.length) {
+        event.preventDefault();
+        return;
+      }
       const first = focusable[0]!;
       const last = focusable[focusable.length - 1]!;
       if (event.shiftKey && document.activeElement === first) {

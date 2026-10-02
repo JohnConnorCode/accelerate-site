@@ -10,6 +10,7 @@ import {
 import { parseWebsiteDocument, type WebsiteDocument } from "./website-document";
 import { parseWebsiteCommand, websiteReceiptSchema, type WebsiteReceipt } from "./website-commands";
 import { assertWebsiteForms, websiteFormTokens } from "./website-forms";
+import { revalidatePublishedWebsite } from "./website-public";
 
 export interface WebsiteRevision {
   id: string;
@@ -100,7 +101,17 @@ export async function writeWebsite(
       "The website change was not completed. Reload the saved state before retrying.",
     );
   }
-  return websiteReceiptSchema.parse(data);
+  const receipt = websiteReceiptSchema.parse(data);
+  if (receipt.operation !== "save") {
+    try {
+      revalidatePublishedWebsite();
+    } catch {
+      // The write has committed. Preserve its receipt even if the cache host
+      // cannot refresh; the public revalidation window remains the fallback.
+      console.warn("[site-studio] Website change committed; public cache refresh unavailable");
+    }
+  }
+  return receipt;
 }
 
 export async function validateWebsiteCommandForms(

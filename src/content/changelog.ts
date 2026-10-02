@@ -2,6 +2,24 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "public-page-loading",
+    slug: "public-page-loading",
+    title: "Lighter public pages with publication-aware caching",
+    description:
+      "Public pages share a cached published website read, while publishing, rollback and unpublishing refresh that cache through the shared writer. Draft saves stay private. Search and chat load when opened, workspace styling loads with the workspace, and the homepage's lower screenshot gallery no longer competes with the first screen for image loading. Keyboard focus remains available when the delayed dialogs open.",
+    category: "improvement",
+    publishedAt: "2026-10-02",
+  },
+  {
+    id: "homepage-sculptural-motion",
+    slug: "homepage-sculptural-motion",
+    title: "A more expressive, responsive homepage",
+    description:
+      "Three sculptural ink sheets sweep into the homepage and keep moving on distinct rhythms, including on phones. Pointer movement shifts opposing artwork depths and reveals a local contour response. Touch expands that response and blends repeated interactions. Late JavaScript resumes the artwork after the loading safeguard without hiding the text again. The headline stays readable and steady, with the existing full-height mobile layout, booking action, cached navigation and reduced-motion fallbacks.",
+    category: "improvement",
+    publishedAt: "2026-10-02",
+  },
+  {
     id: "homepage-composited-artwork",
     slug: "homepage-composited-artwork",
     title: "Smoother homepage artwork and interaction",

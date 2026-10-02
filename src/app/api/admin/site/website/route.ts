@@ -12,7 +12,6 @@ import {
   writeWebsite,
   WebsiteConflictError,
 } from "@/lib/site-studio/website-store";
-import { revalidatePublishedWebsite } from "@/lib/site-studio/website-public";
 
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store" };
@@ -82,9 +81,6 @@ export async function POST(request: Request) {
     // Return the immutable receipt directly. A second read can fail after a
     // successful commit and must never turn a completed write into a false error.
     const receipt = await writeWebsite(auth, command);
-    // A draft save never changes the public output; publish, rollback and
-    // unpublish must invalidate the prerendered public pages immediately.
-    if (receipt.operation !== "save") revalidatePublishedWebsite();
     return NextResponse.json({ receipt }, { headers });
   } catch (error) {
     return NextResponse.json(
