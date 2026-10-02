@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-hero-line-choreography",
+    slug: "homepage-hero-line-choreography",
+    title: "A calmer, coordinated homepage entrance",
+    description:
+      "The homepage reveals its headline in readable lines, with gentler pacing for the supporting copy and booking action. The artwork moves more slowly, pointer movement has a smaller range, and touch illumination fades softly. Fresh and cached visits retain the complete entrance; history restoration, keyboard access and reduced motion keep the page usable.",
+    category: "fix",
+    publishedAt: "2026-10-01",
+  },
+  {
     id: "invoice-navigation",
     slug: "invoice-navigation",
     title: "Find invoices and start a new one directly",

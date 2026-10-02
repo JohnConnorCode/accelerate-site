@@ -117,7 +117,19 @@ for (const [engine, launcher] of Object.entries(engines)) {
     await page.waitForFunction(() =>
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
-    await page.waitForTimeout(2200);
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector(".home-hero")
+          .getAnimations({ subtree: true })
+          .every(
+            (animation) =>
+              animation.effect?.getTiming().iterations === Infinity ||
+              animation.playState === "finished",
+          ),
+      undefined,
+      { timeout: 4000 },
+    );
     const composition = await page.evaluate(() => {
       const hero = document.querySelector(".home-hero");
       const heading = hero.querySelector("h1");
