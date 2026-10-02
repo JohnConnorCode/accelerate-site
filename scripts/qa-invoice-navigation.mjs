@@ -27,6 +27,9 @@ async function search(page, query) {
 }
 
 async function observeDemo(page) {
+  await page.addInitScript(() => {
+    window.__accelerateInvoiceNavigationDocument = Math.random();
+  });
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => {
     if (message.type() === "error" && !message.text().includes("favicon"))
@@ -59,6 +62,7 @@ async function settle(page) {
 }
 
 async function openInvoices(page, mobile) {
+  const documentId = await page.evaluate(() => window.__accelerateInvoiceNavigationDocument);
   if (mobile) await page.getByRole("button", { name: "Open More", exact: true }).click();
   const navigation = page.locator('nav[aria-label="Admin navigation"]:visible');
   const invoices = navigation.getByRole("link", { name: "Invoices", exact: true });
@@ -67,9 +71,20 @@ async function openInvoices(page, mobile) {
     1,
     "Invoices must be a visible destination without expanding Records",
   );
+  const destination = new URL(await invoices.getAttribute("href"), page.url());
+  assert.equal(
+    destination.origin,
+    new URL(page.url()).origin,
+    "Demo links must retain the active public origin",
+  );
   await invoices.focus();
   await page.keyboard.press("Enter");
   await page.getByRole("heading", { level: 1, name: "Invoices", exact: true }).waitFor();
+  assert.equal(
+    await page.evaluate(() => window.__accelerateInvoiceNavigationDocument),
+    documentId,
+    "Demo navigation must preserve its mounted document",
+  );
   if (mobile)
     await page.getByRole("button", { name: "Close navigation" }).waitFor({ state: "detached" });
   await settle(page);

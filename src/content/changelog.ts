@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "demo-navigation-continuity",
+    slug: "demo-navigation-continuity",
+    title: "Move through the demo without restarting the workspace",
+    description:
+      "The full Command Center demo keeps its current workspace as you move between pages, including invoices and module setup. Public guides and demo links in connected private workspaces continue to open the public site.",
+    category: "fix",
+    publishedAt: "2026-10-01",
+  },
+  {
     id: "homepage-hero-line-choreography",
     slug: "homepage-hero-line-choreography",
     title: "A calmer, coordinated homepage entrance",
