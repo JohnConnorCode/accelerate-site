@@ -25,7 +25,7 @@ export default function AdminLink({ href, ...props }: AdminLinkProps) {
       : href;
   const destination =
     typeof resolvedHref === "string"
-      ? resolvePublicWorkspaceHref(resolvedHref, commandCenterOrigin ? siteUrl() : null)
+      ? resolvePublicWorkspaceHref(resolvedHref, commandCenterOrigin && !demo ? siteUrl() : null)
       : resolvedHref;
   return <Link href={destination} {...props} />;
 }
