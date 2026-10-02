@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "invoice-navigation",
+    slug: "invoice-navigation",
+    title: "Find invoices and start a new one directly",
+    description:
+      "Enabled invoicing now has a top-level Invoices destination in the desktop sidebar and mobile Menu. Create invoice opens the customer and line-item form without the account history above it. Workspace search finds invoice creation, or setup instructions when invoicing is off. Disconnected accounts show the connection step before creation; draft and sending approvals keep their existing review.",
+    category: "fix",
+    publishedAt: "2026-10-01",
+  },
+  {
     id: "homepage-hero-readable-typography",
     slug: "homepage-hero-readable-typography",
     title: "A balanced homepage with living ribbon artwork",

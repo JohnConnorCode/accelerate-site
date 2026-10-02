@@ -28,10 +28,13 @@ export function ModuleDisabledNotice({ module: mod }: { module: RevenueOSModule 
           {mod.name} is turned off
         </p>
         <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">
-          This workspace has disabled the {mod.name} module. Turn it back on from Integrations &amp;
-          Modules to use this page again.
+          This workspace has {mod.name} turned off. Enable it in Apps under Pluggable Modules to use
+          this page.
         </p>
-        <Link href="/admin/integrations" className="admin-button admin-button--primary mt-5">
+        <Link
+          href={`/admin/integrations?tab=modules&search=${encodeURIComponent(mod.name)}`}
+          className="admin-button admin-button--primary mt-5"
+        >
           Go to Integrations &amp; Modules
         </Link>
         {mod.historyRoute && (

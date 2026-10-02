@@ -547,6 +547,7 @@ jobs:
             node scripts/qa-conversational-agent.mjs
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
+            node scripts/qa-invoice-navigation.mjs
             node scripts/qa-home-polish.mjs
             node scripts/qa-demo-business-workflows.mjs
           ) &
@@ -598,6 +599,7 @@ jobs:
             /tmp/accelerate-turnkey-qa/
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/
+            /tmp/accelerate-invoice-navigation/
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-work-portfolio-qa/
             /tmp/accelerate-public-navigation-profile/

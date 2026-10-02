@@ -25,10 +25,23 @@ try {
           const target = event.target;
           if (!(target instanceof HTMLElement) || !target.matches("[data-home-step]")) return;
           const owner = target.closest(".home-sequence");
+          const animation = target
+            .getAnimations()
+            .find((animation) => animation.animationName === event.animationName);
+          const opacity = [...(owner?.querySelectorAll("[data-home-step]") ?? [])].map((step) =>
+            Number(getComputedStyle(step).opacity),
+          );
           window.__homeSequenceEvents.push({
             owner: owner?.dataset.qaEntryId,
             step: Number(target.dataset.homeStep),
-            time: performance.now(),
+            // Event callbacks may arrive together under CI load. Read the
+            // browser's actual animation clock and retain delivery as evidence.
+            time:
+              typeof animation?.startTime === "number"
+                ? animation.startTime + Number(animation.effect?.getTiming().delay ?? 0)
+                : null,
+            deliveredAt: performance.now(),
+            renderedSpread: Math.max(...opacity) - Math.min(...opacity),
           });
         });
       });
@@ -105,6 +118,10 @@ try {
                 .sort((a, b) => a.step - b.step),
             };
           });
+          writeFileSync(
+            `${output}/${label}-entrance-${index}.json`,
+            JSON.stringify({ wasPending, ...receipt }, null, 2),
+          );
           assert.ok(
             receipt.targets.every(
               (target) =>
@@ -129,10 +146,12 @@ try {
             if (wasPending)
               assert.ok(
                 receipt.events.length === receipt.targets.length &&
+                  receipt.events.every((event) => Number.isFinite(event.time)) &&
                   receipt.events
                     .slice(1)
-                    .every((event, i) => event.time - receipt.events[i].time >= 30),
-                `${label} entrance ${index}: phases started together`,
+                    .every((event, i) => event.time - receipt.events[i].time >= 30) &&
+                  receipt.events.some((event) => event.renderedSpread >= 0.08),
+                `${label} entrance ${index}: phases lack distinct clocks or rendered states`,
               );
           }
           entrances.push({ index, wasPending, ...receipt });
