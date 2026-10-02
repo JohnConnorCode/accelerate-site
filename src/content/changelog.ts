@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-dimensional-identity",
+    slug: "homepage-dimensional-identity",
+    title: "A new visual direction for the homepage",
+    description:
+      "Accelerate's three chevrons now form a dimensional studio composition beside the headline. A slow rotation and separation of the forms change their metallic reflections. A visible Pause/Play control works on desktop and mobile. The page retains readable copy, booking, history restoration and static fallbacks for reduced motion, unavailable JavaScript or graphics failure.",
+    category: "improvement",
+    publishedAt: "2026-10-02",
+  },
+  {
     id: "public-page-loading",
     slug: "public-page-loading",
     title: "Lighter public pages with publication-aware caching",
