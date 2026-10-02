@@ -6412,14 +6412,16 @@ body.modal-open [data-dock] {
 }
 .home-hero-ribbon {
   position: absolute;
-  inset: 0;
-  transform-origin: 65% 50%;
+  /* Match the padded SVG viewport to finite HTML paint bounds. WebKit clips
+     overflowing SVG ink when its original narrow owner becomes a layer. */
+  inset: -25% -50%;
+  translate: calc(var(--ribbon-index) * 4.5%) 0;
+  transform-origin: 57.5% 50%;
 }
 .home-hero-ribbon svg {
   width: 100%;
   height: 100%;
-  overflow: visible;
-  transform: translateX(calc(var(--ribbon-index) * 9%));
+  overflow: hidden;
 }
 .home-hero-acceleration path {
   stroke-width: 1.2;
@@ -6676,10 +6678,10 @@ body.modal-open [data-dock] {
 }
 @keyframes home-hero-ribbon-flow {
   from {
-    transform: translate3d(-6%, 4%, 0) rotate(-6deg);
+    transform: translate3d(-3%, 2.6667%, 0) rotate(-6deg);
   }
   to {
-    transform: translate3d(6%, -5%, 0) rotate(7deg);
+    transform: translate3d(3%, -3.3333%, 0) rotate(7deg);
   }
 }
 @keyframes home-hero-label-enter {

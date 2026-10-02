@@ -25,6 +25,15 @@ the full-height phone composition, readable content and smooth rendering.
 
 ## Observable acceptance
 
+The Mac WebKit interaction review exposed a hard cut where overflowing ink
+crossed its original narrow layer bounds. The SVG and HTML owner now have matching
+padded paint bounds. The enlarged owner retains the original artwork scale,
+rotation pivot and physical travel. Static sheet offsets move with their owner.
+
+| Before                                                                    | After                                                                                                                                                                                             |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WebKit could cut the ink at a hard vertical edge during pointer movement. | Every sheet fits within a padded SVG viewport and HTML layer. The hero journey includes WebKit desktop and phone interaction captures and checks that the ink stays inside its prepared viewport. |
+
 - At least two sheets naturally travel 18 pixels on desktop or 12 pixels on a
   phone during a three-second visit. Screenshots and recordings must also show
   coherent, perceptible artwork; numeric movement alone does not establish quality.

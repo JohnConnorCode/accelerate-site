@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { chromium } from "playwright";
+import { chromium, webkit } from "playwright";
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-home-hero-timing";
@@ -740,6 +740,54 @@ if (
 await staticPage.screenshot({ caret: "initial", path: `${output}/desktop-no-js.png` });
 await noJS.close();
 await browser.close();
+
+// WebKit can clip overflowing SVG to a promoted HTML layer's narrow bounds.
+// Keep all ink inside both prepared viewports and inspect actual interaction.
+const webkitArtwork = [];
+const webkitBrowser = await webkit.launch({ headless: true });
+for (const [label, viewport, touch] of [
+  ["webkit-desktop", { width: 1440, height: 900 }, false],
+  ["webkit-mobile", { width: 390, height: 844 }, true],
+]) {
+  const context = await webkitBrowser.newContext({
+    viewport,
+    hasTouch: touch,
+    isMobile: touch,
+    recordVideo: { dir: `${output}/video`, size: viewport },
+  });
+  const page = await context.newPage();
+  page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.waitForFunction(
+    () => document.querySelector(".home-hero")?.dataset.heroActive === "true",
+  );
+  await page.waitForTimeout(3200);
+  const bounds = await page.locator(".home-hero-ribbon svg").evaluateAll((elements) =>
+    elements.map((element) => {
+      const ink = element.getBBox();
+      const viewport = element.viewBox.baseVal;
+      return {
+        contained:
+          ink.x >= viewport.x &&
+          ink.y >= viewport.y &&
+          ink.x + ink.width <= viewport.x + viewport.width &&
+          ink.y + ink.height <= viewport.y + viewport.height,
+        clipped: getComputedStyle(element).overflow === "hidden",
+      };
+    }),
+  );
+  if (bounds.length !== 3 || bounds.some((bound) => !bound.contained || !bound.clipped))
+    failures.push(`${label}: ink exceeds its prepared paint bounds`);
+  await page.screenshot({ caret: "initial", path: `${output}/${label}-settled.png` });
+  if (touch) await page.touchscreen.tap(330, 610);
+  else await page.mouse.move(viewport.width * 0.85, 550, { steps: 24 });
+  await page.waitForTimeout(touch ? 350 : 950);
+  await page.screenshot({ caret: "initial", path: `${output}/${label}-interaction.png` });
+  webkitArtwork.push({ label, viewport, bounds });
+  await context.close();
+  await page.video().saveAs(`${output}/${label}-interaction.webm`);
+}
+await webkitBrowser.close();
 await writeFile(
   `${output}/results.json`,
   JSON.stringify(
@@ -751,6 +799,7 @@ await writeFile(
       delayedResults,
       watchdog,
       staticHero,
+      webkitArtwork,
       failures,
     },
     null,

@@ -239,7 +239,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
               key={index}
               style={{ "--ribbon-index": index } as CSSProperties}
             >
-              <svg viewBox="0 0 600 800" fill="none">
+              <svg viewBox="-300 -200 1200 1200" fill="none">
                 <defs>
                   <linearGradient id={`${lightId}-ribbon-${index}`} x2="1" y2="1">
                     <stop stopColor="currentColor" stopOpacity="0" />
