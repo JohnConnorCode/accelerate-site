@@ -26,6 +26,15 @@ owner authorization and newer editor/MCP guidance remain intact. The existing
 transport fixture now supports the owner's scoped revision read required by
 form validation, while retaining authenticated atomic-write checks.
 
+Combined CI run `37064518666` detected the expected route-inventory drift from
+removing that duplicate HTTP-adapter refresh. Review confirmed the GET/POST
+operations, authorization, command validation and immutable receipt are
+unchanged; publication refresh now runs through the shared writer for the
+existing UI and governed editor/MCP paths. The generated inventory updates only
+this route's import list and source fingerprint. This acknowledges source drift,
+not new operation coverage or universal AI parity. Fresh protected CI is required
+for the corrected candidate.
+
 Public fields retain placeholder, disabled, focus and invalid states. Workspace
 button/label recipes and custom-theme chevrons remain in their current owner.
 The browser regression checks real fetched assets and keyboard behavior, and is
