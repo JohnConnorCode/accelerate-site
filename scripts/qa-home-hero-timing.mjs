@@ -436,17 +436,35 @@ for (const [label, viewport, colorScheme] of [
     await page.waitForFunction(() =>
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
-    const forward = await page.evaluate(() => ({
-      kind: document.documentElement.dataset.navigationKind,
-      animated: getComputedStyle(document.querySelector(".home-hero-word")).animationName,
-      action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
-    }));
+    const forward = await page.evaluate(() => {
+      const hero = document.querySelector(".home-hero");
+      const word = hero.querySelector(".home-hero-word");
+      const entrance = word
+        .getAnimations()
+        .find((animation) => animation.animationName === "home-hero-word-enter");
+      return {
+        kind: document.documentElement.dataset.navigationKind,
+        animated: getComputedStyle(word).animationName,
+        immediate: hero.classList.contains("reveal-immediate"),
+        playState: entrance?.playState,
+        currentTime: entrance?.currentTime,
+        endTime: entrance?.effect.getComputedTiming().endTime,
+        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
+      };
+    });
+    settled.forward = forward;
+    // A client commit can be observed partway through its entrance. Require
+    // a live, fresh animation clock; concealed opening frames are tested above.
     if (
       forward.kind !== "fresh" ||
       forward.animated !== "home-hero-word-enter" ||
-      forward.action !== 0
+      forward.immediate ||
+      forward.playState !== "running" ||
+      forward.currentTime >= forward.endTime
     )
-      failures.push(`${label}: prefetched forward navigation skipped the fresh entrance`);
+      failures.push(
+        `${label}: prefetched forward navigation skipped the fresh entrance: ${JSON.stringify(forward)}`,
+      );
     await page.waitForTimeout(3000);
   }
   results.push({ label, viewport, colorScheme, opening, settled, ribbonMotion });

@@ -6401,7 +6401,7 @@ body.modal-open [data-dock] {
   color: var(--fg);
   opacity: 0.22;
   overflow: visible;
-  contain: layout paint;
+  contain: layout;
 }
 .home-hero-ribbon {
   position: absolute;
