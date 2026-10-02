@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-sculptural-motion",
+    slug: "homepage-sculptural-motion",
+    title: "A more expressive, responsive homepage",
+    description:
+      "Three sculptural ink sheets sweep into the homepage and keep moving on distinct rhythms, including on phones. Pointer movement shifts opposing artwork depths and reveals a local contour response. Touch expands that response and blends repeated interactions. The headline stays readable and steady, with the existing full-height mobile layout, booking action, cached navigation and reduced-motion fallbacks.",
+    category: "improvement",
+    publishedAt: "2026-10-02",
+  },
+  {
     id: "homepage-composited-artwork",
     slug: "homepage-composited-artwork",
     title: "Smoother homepage artwork and interaction",

@@ -252,7 +252,8 @@ for (const [label, viewport, colorScheme] of [
   const ribbonStart = await ribbons.evaluateAll((elements) =>
     elements.map((element) => getComputedStyle(element).transform),
   );
-  await page.waitForTimeout(250);
+  const perceptible = label === "desktop" || label === "mobile";
+  await page.waitForTimeout(perceptible ? 3000 : 250);
   const ribbonMotion = await ribbons.evaluateAll((elements) => ({
     transforms: elements.map((element) => getComputedStyle(element).transform),
     durations: new Set(elements.map((element) => getComputedStyle(element).animationDuration)).size,
@@ -263,6 +264,20 @@ for (const [label, viewport, colorScheme] of [
     ribbonMotion.durations !== 3
   )
     failures.push(`${label}: artwork is static or its ribbon layers move in lockstep`);
+  if (perceptible) {
+    const travel = await page.evaluate(
+      ({ start, end }) =>
+        start.map((value, index) => {
+          const a = new DOMMatrix(value);
+          const b = new DOMMatrix(end[index]);
+          return Math.hypot(b.m41 - a.m41, b.m42 - a.m42);
+        }),
+      { start: ribbonStart, end: ribbonMotion.transforms },
+    );
+    ribbonMotion.naturalTravelPixels = travel;
+    if (travel.filter((distance) => distance >= (touch ? 12 : 18)).length < 2)
+      failures.push(`${label}: the artwork moves too little to perceive in a three-second visit`);
+  }
   if (touch) {
     const idle = await page
       .locator(".home-hero-contours")
@@ -282,6 +297,14 @@ for (const [label, viewport, colorScheme] of [
       );
     if (!touchLight) failures.push(`${label}: tap did not start the local light response`);
     await page.waitForTimeout(180);
+    const touchDepth = await page.evaluate(() =>
+      [".home-hero-field", ".home-hero-response"].map(
+        (selector) =>
+          new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).m41,
+      ),
+    );
+    if (touchDepth[0] < 12 || touchDepth[1] > -18)
+      failures.push(`${label}: touch did not move the distinct artwork depths`);
     const beforeRepeat = await page
       .locator(".home-hero-focus")
       .evaluate((element) => Number(getComputedStyle(element).opacity));
@@ -330,11 +353,20 @@ for (const [label, viewport, colorScheme] of [
     const response = await page.evaluate(() => ({
       fieldX: new DOMMatrix(getComputedStyle(document.querySelector(".home-hero-field")).transform)
         .m41,
+      responseX: new DOMMatrix(
+        getComputedStyle(document.querySelector(".home-hero-response")).transform,
+      ).m41,
       lightX: new DOMMatrix(getComputedStyle(document.querySelector(".home-hero-focus")).transform)
         .m41,
       light: Number(getComputedStyle(document.querySelector(".home-hero-focus")).opacity),
     }));
-    if (!response.fieldX || response.lightX < viewport.width / 2 || response.light < 0.9)
+    ribbonMotion.pointerResponse = response;
+    if (
+      response.fieldX < 12 ||
+      response.responseX > -18 ||
+      response.lightX < viewport.width / 2 ||
+      response.light < 0.9
+    )
       failures.push(`${label}: artwork depth or the smooth local light response is missing`);
     if (label === "desktop") {
       await page.evaluate(() => document.fonts.ready);
