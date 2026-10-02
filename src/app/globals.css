@@ -6382,6 +6382,47 @@ body.modal-open [data-dock] {
 }
 .home-hero-atmosphere,
 .home-hero-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.home-hero-atmosphere {
+  background:
+    radial-gradient(ellipse at 84% 34%, var(--ambient-1), transparent 53%),
+    radial-gradient(ellipse at 66% 94%, var(--ambient-2), transparent 52%);
+}
+.home-hero-acceleration {
+  position: absolute;
+  top: -18%;
+  right: -8%;
+  width: min(52vw, 740px);
+  height: 135%;
+  pointer-events: none;
+  color: var(--fg);
+  opacity: 0.22;
+  overflow: visible;
+  contain: layout paint;
+}
+.home-hero-ribbon {
+  position: absolute;
+  inset: 0;
+  transform-origin: 65% 50%;
+}
+.home-hero-ribbon svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: translateX(calc(var(--ribbon-index) * 9%));
+}
+.home-hero-acceleration path {
+  stroke: currentColor;
+  stroke-width: 3;
+}
+.home-hero-acceleration path + path {
+  stroke-width: 44;
+  opacity: 0.24;
+}
+.home-hero-field {
   inset: -12px;
   color: var(--fg);
   contain: layout paint;
