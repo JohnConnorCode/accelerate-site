@@ -27,12 +27,15 @@ the full-height phone composition, readable content and smooth rendering.
 
 The Mac WebKit interaction review exposed a hard cut where overflowing ink
 crossed its original narrow layer bounds. The SVG and HTML owner now have matching
-padded paint bounds. The enlarged owner retains the original artwork scale,
-rotation pivot and physical travel. Static sheet offsets move with their owner.
+padded paint bounds. The parent response layer also contains the rotated and
+offset sheets; padding the SVG alone left that parent's edge visible. The
+enlarged owners retain the original artwork scale, rotation pivot and physical
+travel. Static sheet offsets move with their owner.
 
-| Before                                                                    | After                                                                                                                                                                                             |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| WebKit could cut the ink at a hard vertical edge during pointer movement. | Every sheet fits within a padded SVG viewport and HTML layer. The hero journey includes WebKit desktop and phone interaction captures and checks that the ink stays inside its prepared viewport. |
+| Before                                                                                                                       | After                                                                                                                                                                     |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WebKit could cut the ink at a hard vertical edge during pointer movement.                                                    | Every sheet fits within a padded SVG viewport, HTML owner and parent response layer. WebKit desktop and phone captures check contained ink before and during interaction. |
+| The touch check sampled a transitioning layer after a fixed 180 milliseconds, occasionally before its required displacement. | The same displacement must be reached within one second. The check records both actual depths and retains the existing mobile frame and stall budgets.                    |
 
 - At least two sheets naturally travel 18 pixels on desktop or 12 pixels on a
   phone during a three-second visit. Screenshots and recordings must also show

@@ -43,7 +43,8 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   Their movement must be perceptible during a three-second visit. Opposing
   artwork depths respond to pointer movement and touch; the headline stays
   steady. Each ink sheet fits inside a padded SVG viewport and its HTML paint
-  owner, so WebKit cannot cut overflowing ink at a promoted layer edge.
+  owner and parent response layer, including its rotation and offsets, so
+  WebKit cannot cut overflowing ink at a promoted layer edge.
   Settled decoration must not animate SVG strokes,
   masks or gradients. Pointer interaction caches geometry at entry/resize and
   moves prepared layers without layout reads in pointer frames. Touch uses the

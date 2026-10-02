@@ -6406,7 +6406,8 @@ body.modal-open [data-dock] {
 }
 .home-hero-response {
   position: absolute;
-  inset: 0;
+  /* Include the rotated and offset ink inside the promoted response layer. */
+  inset: -50% -100%;
   transform: translate3d(0, 0, 0);
   transition: transform 850ms var(--hero-ease);
 }
@@ -6414,7 +6415,7 @@ body.modal-open [data-dock] {
   position: absolute;
   /* Match the padded SVG viewport to finite HTML paint bounds. WebKit clips
      overflowing SVG ink when its original narrow owner becomes a layer. */
-  inset: -25% -50%;
+  inset: 12.5% calc(100% / 6);
   translate: calc(var(--ribbon-index) * 4.5%) 0;
   transform-origin: 57.5% 50%;
 }

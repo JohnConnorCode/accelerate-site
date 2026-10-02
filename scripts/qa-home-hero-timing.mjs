@@ -296,13 +296,30 @@ for (const [label, viewport, colorScheme] of [
         element.getAnimations().some((animation) => animation.playState === "running"),
       );
     if (!touchLight) failures.push(`${label}: tap did not start the local light response`);
-    await page.waitForTimeout(180);
+    // Sample the retargetable compositor transition when it reaches the
+    // required displacement, within a bounded one-second response window.
+    await page
+      .waitForFunction(
+        () => {
+          const field = new DOMMatrix(
+            getComputedStyle(document.querySelector(".home-hero-field")).transform,
+          ).m41;
+          const response = new DOMMatrix(
+            getComputedStyle(document.querySelector(".home-hero-response")).transform,
+          ).m41;
+          return field >= 12 && response <= -18;
+        },
+        null,
+        { timeout: 1000 },
+      )
+      .catch(() => {});
     const touchDepth = await page.evaluate(() =>
       [".home-hero-field", ".home-hero-response"].map(
         (selector) =>
           new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).m41,
       ),
     );
+    ribbonMotion.touchDepth = touchDepth;
     if (touchDepth[0] < 12 || touchDepth[1] > -18)
       failures.push(`${label}: touch did not move the distinct artwork depths`);
     const beforeRepeat = await page
@@ -762,10 +779,18 @@ for (const [label, viewport, touch] of [
     () => document.querySelector(".home-hero")?.dataset.heroActive === "true",
   );
   await page.waitForTimeout(3200);
-  const bounds = await page.locator(".home-hero-ribbon svg").evaluateAll((elements) =>
+  const readBounds = (elements) =>
     elements.map((element) => {
       const ink = element.getBBox();
       const viewport = element.viewBox.baseVal;
+      const response = element.closest(".home-hero-response").getBoundingClientRect();
+      const matrix = element.getScreenCTM();
+      const corners = [
+        [ink.x, ink.y],
+        [ink.x + ink.width, ink.y],
+        [ink.x, ink.y + ink.height],
+        [ink.x + ink.width, ink.y + ink.height],
+      ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(matrix));
       return {
         contained:
           ink.x >= viewport.x &&
@@ -773,17 +798,32 @@ for (const [label, viewport, touch] of [
           ink.x + ink.width <= viewport.x + viewport.width &&
           ink.y + ink.height <= viewport.y + viewport.height,
         clipped: getComputedStyle(element).overflow === "hidden",
+        responseContainsInk: corners.every(
+          ({ x, y }) =>
+            x >= response.left && x <= response.right && y >= response.top && y <= response.bottom,
+        ),
       };
-    }),
-  );
-  if (bounds.length !== 3 || bounds.some((bound) => !bound.contained || !bound.clipped))
+    });
+  const bounds = await page.locator(".home-hero-ribbon svg").evaluateAll(readBounds);
+  if (
+    bounds.length !== 3 ||
+    bounds.some((bound) => !bound.contained || !bound.clipped || !bound.responseContainsInk)
+  )
     failures.push(`${label}: ink exceeds its prepared paint bounds`);
   await page.screenshot({ caret: "initial", path: `${output}/${label}-settled.png` });
   if (touch) await page.touchscreen.tap(330, 610);
   else await page.mouse.move(viewport.width * 0.85, 550, { steps: 24 });
   await page.waitForTimeout(touch ? 350 : 950);
+  const interactionBounds = await page.locator(".home-hero-ribbon svg").evaluateAll(readBounds);
+  if (
+    interactionBounds.length !== 3 ||
+    interactionBounds.some(
+      (bound) => !bound.contained || !bound.clipped || !bound.responseContainsInk,
+    )
+  )
+    failures.push(`${label}: interaction exceeds its prepared paint bounds`);
   await page.screenshot({ caret: "initial", path: `${output}/${label}-interaction.png` });
-  webkitArtwork.push({ label, viewport, bounds });
+  webkitArtwork.push({ label, viewport, bounds, interactionBounds });
   await context.close();
   await page.video().saveAs(`${output}/${label}-interaction.webm`);
 }
