@@ -1,7 +1,7 @@
 ---
 title: "Draft public pages with Site Studio"
 description: "Create and edit website pages, review AI suggestions, and publish saved revisions."
-updated: "2026-09-13"
+updated: "2026-10-02"
 ---
 
 Open **Site Studio → Edit installation website** to create pages, edit content, preview changes and publish a saved revision. The installation owner needs an active admin membership and the Site Studio plugin enabled. Apply the installation migrations before enabling the editor. Other workspace admins can use their private page drafts without gaining control of the installation's public website.
@@ -34,6 +34,8 @@ AI changes must pass the same content validation as manual edits. Copy editing p
 ## Publish and recover
 
 Save your changes, then select **Review publication**. Review the saved page list and responsive previews before selecting **Publish saved revision**. The exact saved revision becomes public; subsequent draft edits stay private until another publication.
+
+Public pages reuse the published revision between visits. Publishing, rollback and unpublishing request a refresh for the next visit; saving a draft does not change public pages. Periodic revalidation provides recovery if that refresh is unavailable. After publishing, open the public page to check its content. If it still shows an older version, reload and check **History** for the recorded publication before retrying the change.
 
 **History** lists recent revisions. **Review rollback** restores a previously published version while preserving the current draft. **Unpublish** removes public website availability while retaining drafts and history. Review each confirmation before continuing. Scheduling and general-purpose AI/MCP publication tools are not provided by this editor.
 

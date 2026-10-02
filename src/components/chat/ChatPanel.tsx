@@ -48,6 +48,9 @@ const PAGE_QUESTIONS: { matches: (pathname: string) => boolean; questions: strin
 
 interface ChatPanelProps {
   onClose: () => void;
+  /** Fired once the panel exists in the DOM. The widget loads the panel on
+      demand, so it cannot rely on its own open state to hand off focus. */
+  onReady?: () => void;
 }
 
 const STORAGE_KEY = "accelerate-chat-v1";
@@ -103,7 +106,7 @@ function persistState(state: StoredChatState) {
   }
 }
 
-export function ChatPanel({ onClose }: ChatPanelProps) {
+export function ChatPanel({ onClose, onReady }: ChatPanelProps) {
   const pathname = usePathname();
   const quickQuestions = useMemo(() => {
     const selected =
@@ -125,6 +128,11 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   const hydratedRef = useRef(false);
   const requestControllerRef = useRef<AbortController | null>(null);
   const quickReplyTimerRef = useRef<number | null>(null);
+
+  // The widget loads this panel on demand, so tell it when the panel exists.
+  useEffect(() => {
+    onReady?.();
+  }, [onReady]);
 
   // Hydrate from sessionStorage on mount (client-only).
   useEffect(() => {

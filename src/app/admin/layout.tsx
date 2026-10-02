@@ -1,3 +1,4 @@
+import "../admin-chrome.css";
 import type { AdminThemeDefinition } from "@/lib/admin/theme-definition";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";

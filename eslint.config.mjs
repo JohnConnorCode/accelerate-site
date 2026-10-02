@@ -12,9 +12,16 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     ".next-*/**",
+    // Nested agent worktrees ship their own build output. The bare globs above
+    // are root-relative, so they must be repeated for any nested checkout.
+    "**/.next/**",
+    "**/.next-*/**",
+    ".agent-worktrees/**",
+    "**/.agent-worktrees/**",
     "out/**",
     "build/**",
     ".vercel/**",
+    "**/.vercel/**",
     "next-env.d.ts",
   ]),
 ]);

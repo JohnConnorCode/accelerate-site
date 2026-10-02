@@ -1,0 +1,6 @@
+/* Admin component surfaces: theme tokens plus the operations component sheet.
+   Imported only by routes that render the operations shell or an admin
+   primitive, so public pages never download it. The root stylesheet still owns
+   shared tokens, the dark variant and the public surface rules. */
+@import "./admin-themes.css";
+@import "./admin-components.css";

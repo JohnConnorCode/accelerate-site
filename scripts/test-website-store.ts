@@ -1,3 +1,4 @@
+import "next/dist/server/node-environment-baseline";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { MemorySupabase } from "./lib/memory-supabase";
@@ -9,6 +10,11 @@ import { runWithTenantRequestContext } from "../src/lib/tenancy/context";
 import { bindTenantDatabaseForTest, callWebsiteRpc } from "../src/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/constants";
 import type { AdminAuthorization } from "../src/lib/admin/auth";
+import {
+  workAsyncStorage,
+  type WorkStore,
+} from "next/dist/server/app-render/work-async-storage.external";
+import { PUBLIC_WEBSITE_TAG } from "../src/lib/site-studio/website-public";
 
 async function main() {
   const tenant = ACCELERATE_TENANT_ID,
@@ -162,8 +168,97 @@ async function main() {
     /current active admin/,
   );
   assert.equal(database.rpcCalls.length, 1);
+  database.tables.tenants![0]!.status = "active";
+  database.rpc("write_site_website", (args) => ({
+    requestKey: args.p_request_key,
+    operation: args.p_operation,
+    version: 2,
+    draftRevisionId: draft,
+    publishedRevisionId: args.p_operation === "unpublish" ? null : published,
+    previousPublishedRevisionId: published,
+    createdAt: new Date().toISOString(),
+  }));
+  // Exercise Next's real invalidation recording through the shared writer,
+  // including callers that do not enter through the website HTTP route.
+  for (const operation of ["save", "publish", "rollback", "unpublish"] as const) {
+    const store = { incrementalCache: {} } as WorkStore;
+    const command = {
+      operation,
+      requestKey: randomUUID(),
+      expectedVersion: 1,
+      ...(operation === "save" ? { document: websiteFixture } : {}),
+      ...(operation === "rollback" || operation === "publish" ? { revisionId: published } : {}),
+    };
+    const write = () => withSiteHostTransport(database, auth, () => writeWebsite(auth, command));
+    await workAsyncStorage.run(store, write);
+    if (operation === "save") assert.equal(store.pendingRevalidatedTags, undefined);
+    else {
+      assert.ok(
+        store.pendingRevalidatedTags?.some(
+          (entry) =>
+            entry.tag === PUBLIC_WEBSITE_TAG &&
+            typeof entry.profile === "object" &&
+            entry.profile.expire === 0,
+        ),
+        `${operation}: the next public read must block for fresh publication`,
+      );
+      assert.ok(
+        store.pendingRevalidatedTags?.some((entry) => entry.tag.includes("/(marketing)/layout")),
+        `${operation}: refresh public layouts as well as the data cache`,
+      );
+      // Retrying the same receipt still refreshes public output.
+      assert.equal((await workAsyncStorage.run(store, write)).requestKey, command.requestKey);
+    }
+  }
+  const invalidStore = { incrementalCache: {} } as WorkStore;
+  await assert.rejects(
+    workAsyncStorage.run(invalidStore, () =>
+      writeWebsite(auth, {
+        operation: "unpublish",
+        requestKey: "invalid",
+        expectedVersion: 1,
+      }),
+    ),
+  );
+  assert.equal(invalidStore.pendingRevalidatedTags, undefined);
+  const warning = console.warn;
+  const warnings: unknown[][] = [];
+  console.warn = (...args) => {
+    warnings.push(args);
+  };
+  try {
+    // No Next request context: refresh fails after commit, never the write.
+    const receipt = await withSiteHostTransport(database, auth, () =>
+      writeWebsite(auth, {
+        operation: "unpublish",
+        requestKey: randomUUID(),
+        expectedVersion: 1,
+      }),
+    );
+    assert.equal(receipt.operation, "unpublish");
+    assert.equal(warnings.length, 1);
+    assert.match(String(warnings[0]![0]), /committed; public cache refresh unavailable/);
+  } finally {
+    console.warn = warning;
+  }
+  database.rpc("write_site_website", () => {
+    throw new Error("Controlled storage failure");
+  });
+  const failedStore = { incrementalCache: {} } as WorkStore;
+  await assert.rejects(
+    workAsyncStorage.run(failedStore, () =>
+      withSiteHostTransport(database, auth, () =>
+        writeWebsite(auth, {
+          operation: "unpublish",
+          requestKey: randomUUID(),
+          expectedVersion: 1,
+        }),
+      ),
+    ),
+  );
+  assert.equal(failedStore.pendingRevalidatedTags, undefined);
   console.log(
-    "PASS: public selector never returns drafts or foreign revisions, explicit unpublish cannot resurrect bootstrap, storage failures fail closed, and only the enabled installation owner can reach website writes.",
+    "PASS: public selection and owner authorization fail closed; publication and replay invalidate public caches, draft saves do not, and refresh failure preserves committed receipts.",
   );
 }
 main().catch((error) => {

@@ -1,3 +1,4 @@
+import "../admin-chrome.css";
 import { WebsitePreviewRuntime } from "@/components/admin/site/WebsitePreviewRuntime";
 import { isDemoScenarioId } from "@/lib/admin/demo/scenarios";
 export const metadata = {

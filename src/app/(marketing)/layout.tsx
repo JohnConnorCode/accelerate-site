@@ -3,6 +3,10 @@ import { readPublicWebsite } from "@/lib/site-studio/website-public";
 import { notFound } from "next/navigation";
 import { MarketingChrome } from "@/components/layout/MarketingChrome";
 
+// Public pages are prerendered and revalidated on this window. The publish
+// write path invalidates them immediately; this is only the fallback.
+export const revalidate = 60;
+
 export default async function MarketingLayout({
   children,
 }: Readonly<{

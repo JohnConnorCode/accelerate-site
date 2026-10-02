@@ -344,6 +344,11 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
           // The interaction guard prevents this from stealing focus once the
           // operator has deliberately moved to another control.
           focusObserver = new MutationObserver(() => {
+            // The handoff only matters while the focused destination is gone.
+            // Everything else the route does after commit (reveals, data
+            // updates, animation frames) leaves it in place, and re-running
+            // the query work per mutation is what made entrances expensive.
+            if (focusedTarget && document.contains(focusedTarget)) return;
             focusDestination();
           });
           focusObserver.observe(root, { childList: true, subtree: true });

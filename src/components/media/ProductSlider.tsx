@@ -20,10 +20,15 @@ export function ProductSlider({
   slides,
   groupLabel = "Product screens",
   className,
+  priority = true,
 }: {
   slides: ProductScreenshot[];
   groupLabel?: string;
   className?: string;
+  /** Prefetch the first slide with high priority. Set false on long pages,
+      where the slider sits far below the fold and the eager preload would
+      compete with the actual first paint. */
+  priority?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -94,7 +99,7 @@ export function ProductSlider({
                 fill
                 sizes="(min-width: 1280px) 1200px, 90vw"
                 className="object-cover"
-                priority={i === 0}
+                priority={priority && i === 0}
                 draggable={false}
               />
             </button>
