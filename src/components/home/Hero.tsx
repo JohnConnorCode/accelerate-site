@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useId, type CSSProperties } from "react";
 import { trackConversion } from "@/lib/analytics";
 import { homeHeroContent } from "@/content/site-studio/home";
 import type { HomeHeroContent } from "@/lib/site-studio/native-templates";
@@ -15,8 +15,8 @@ const contours = Array.from(
 
 function HeroWords({
   text,
-  offset = 180,
-  stagger = 40,
+  offset = 320,
+  stagger = 0,
 }: {
   text: string;
   offset?: number;
@@ -39,6 +39,31 @@ function HeroWords({
 export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent }) {
   const sectionRef = useRevealLifecycle<HTMLElement>({ restoreHistory: true });
   const lightId = useId();
+  const legacy = "prefix" in content;
+  const heading = legacy
+    ? `${content.prefix} ${content.highlighted} ${content.suffix} ${content.replacedWord} and ${content.finalWord.toLowerCase()}.`
+    : content.heading;
+  useLayoutEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const masks = [...section.querySelectorAll<HTMLElement>(".home-hero-word-mask")];
+    // Read layout once. Words on the same responsive line share one clock,
+    // so a line enters as a readable unit instead of a rapid word cascade.
+    const measurements = masks.map((mask) => ({ mask, top: mask.getBoundingClientRect().top }));
+    let line = 0;
+    let top = measurements[0]?.top ?? 0;
+    measurements.forEach(({ mask, top: currentTop }) => {
+      if (Math.abs(currentTop - top) > 4) {
+        line++;
+        top = currentTop;
+      }
+      mask.style.setProperty("--hero-word-delay", `${320 + line * 200}ms`);
+      mask.dataset.heroLine = String(line);
+    });
+    section.style.setProperty("--hero-support-delay", `${720 + line * 200}ms`);
+    section.style.setProperty("--hero-action-delay", `${870 + line * 200}ms`);
+    section.style.setProperty("--hero-index-delay", `${1080 + line * 200}ms`);
+  }, [content, sectionRef]);
   useEffect(() => {
     const section = sectionRef.current;
     const field = section?.querySelector<HTMLElement>(".home-hero-field");
@@ -92,43 +117,56 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
         section.dataset.heroFocus = "true";
         section.style.setProperty(
           "--hero-x",
-          `${((event.clientX - bounds.left) / bounds.width - 0.5) * 44}px`,
+          `${((event.clientX - bounds.left) / bounds.width - 0.5) * 20}px`,
         );
         section.style.setProperty(
           "--hero-y",
-          `${((event.clientY - bounds.top) / bounds.height - 0.5) * 32}px`,
+          `${((event.clientY - bounds.top) / bounds.height - 0.5) * 14}px`,
         );
       });
     };
     const tap = (event: PointerEvent) => {
-      if (section.dataset.heroActive !== "true" || event.button !== 0) return;
+      if (
+        section.dataset.heroActive !== "true" ||
+        event.button !== 0 ||
+        (fine.matches && event.pointerType === "mouse")
+      )
+        return;
       if (event.target instanceof Element && event.target.closest("a, button, input")) return;
+      const lightOpacity = Number(getComputedStyle(focus).opacity);
+      const pulseStyle = getComputedStyle(pulse);
+      const pulseOpacity = Number(pulseStyle.opacity);
+      const pulseTransform =
+        response?.playState === "running"
+          ? pulseStyle.transform
+          : "translate(-50%, -50%) scale(0.7)";
       const bounds = section.getBoundingClientRect();
       window.clearTimeout(release);
       section.style.setProperty(
         "--hero-x",
-        `${((event.clientX - bounds.left) / bounds.width - 0.5) * 60}px`,
+        `${((event.clientX - bounds.left) / bounds.width - 0.5) * 28}px`,
       );
       section.style.setProperty(
         "--hero-y",
-        `${((event.clientY - bounds.top) / bounds.height - 0.5) * 44}px`,
+        `${((event.clientY - bounds.top) / bounds.height - 0.5) * 20}px`,
       );
-      release = window.setTimeout(reset, 900);
+      release = window.setTimeout(reset, 1900);
       locateLight(event.clientX, event.clientY);
       illumination?.cancel();
-      illumination = focus.animate([{ opacity: 0.85 }, { opacity: 0 }], {
-        duration: 850,
-        easing: "cubic-bezier(0.2, 0, 0, 1)",
-      });
+      illumination = focus.animate(
+        [{ opacity: lightOpacity }, { opacity: 0.6, offset: 0.2 }, { opacity: 0 }],
+        { duration: 1800, easing: "cubic-bezier(0.25, 0.5, 0.25, 1)" },
+      );
       pulse.style.left = `${event.clientX - bounds.left}px`;
       pulse.style.top = `${event.clientY - bounds.top}px`;
       response?.cancel();
       response = pulse.animate(
         [
-          { opacity: 0.42, transform: "translate(-50%, -50%) scale(0.12) rotate(-8deg)" },
-          { opacity: 0, transform: "translate(-50%, -50%) scale(1.8) rotate(12deg)" },
+          { opacity: pulseOpacity, transform: pulseTransform },
+          { opacity: 0.24, transform: "translate(-50%, -50%) scale(0.85)", offset: 0.2 },
+          { opacity: 0, transform: "translate(-50%, -50%) scale(1.1)" },
         ],
-        { duration: 850, easing: "cubic-bezier(0.2, 0, 0, 1)" },
+        { duration: 1800, easing: "cubic-bezier(0.25, 0.5, 0.25, 1)" },
       );
     };
     const preference = () => {
@@ -169,11 +207,6 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       fine.removeEventListener("change", preference);
     };
   }, [sectionRef]);
-  const legacy = "prefix" in content;
-  const heading = legacy
-    ? `${content.prefix} ${content.highlighted} ${content.suffix} ${content.replacedWord} and ${content.finalWord.toLowerCase()}.`
-    : content.heading;
-  const outcomeOffset = 180 + Math.min(heading.split(/\s+/).length, 16) * 40;
 
   return (
     <section
@@ -250,7 +283,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                   pathLength="1000"
                   style={
                     {
-                      "--current-duration": `${9 + index * 1.7}s`,
+                      "--current-duration": `${24 + index * 5}s`,
                       "--current-delay": `${index * -2.4}s`,
                       "--current-opacity": 0.28 + (index % 3) * 0.12,
                     } as CSSProperties
@@ -277,7 +310,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                 <HeroWords text={heading} />
               </span>{" "}
               <em>
-                <HeroWords text={content.emphasis} offset={outcomeOffset} />
+                <HeroWords text={content.emphasis} />
               </em>
             </>
           )}

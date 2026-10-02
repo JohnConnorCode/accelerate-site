@@ -27,7 +27,7 @@ for (const [label, viewport] of [
       );
     window.__heroFrameAnimations.forEach((animation) => animation.pause());
   });
-  for (const time of [0, 350, 850, 1250, 1800, 3000]) {
+  for (const time of [0, 600, 1000, 1600, 2300, 3200]) {
     await page.evaluate((time) => {
       window.__heroFrameAnimations.forEach((animation) => {
         animation.currentTime = time;
@@ -47,7 +47,28 @@ for (const [label, viewport] of [
             new DOMMatrix(style.transform).m42 < word.getBoundingClientRect().height * 0.95
           );
         }).length;
+      const lines = [];
+      for (const mask of document.querySelectorAll(".home-hero-word-mask")) {
+        const word = mask.querySelector(".home-hero-word");
+        const top = mask.getBoundingClientRect().top;
+        let line = lines.at(-1);
+        if (!line || Math.abs(line.top - top) > 4) {
+          line = { top, words: 0, visible: 0, delays: [] };
+          lines.push(line);
+        }
+        line.words++;
+        line.visible += visibleWordsForWord(word);
+        line.delays.push(getComputedStyle(word).animationDelay);
+      }
+      function visibleWordsForWord(word) {
+        const style = getComputedStyle(word);
+        return Number(
+          Number(style.opacity) > 0.1 &&
+            new DOMMatrix(style.transform).m42 < word.getBoundingClientRect().height * 0.95,
+        );
+      }
       return {
+        lines,
         artwork: Number(
           getComputedStyle(document.querySelector(".home-hero-acceleration")).opacity,
         ),
@@ -66,19 +87,35 @@ for (const [label, viewport] of [
       (frame.lead || frame.outcome || frame.action || frame.support || frame.artwork)
     )
       failures.push(`${label}: opening frame exposes content before its entrance`);
-    if (time === 350 && (!frame.lead || frame.outcome || frame.action))
-      failures.push(`${label}: lead did not enter independently from outcome and booking`);
-    if (time === 850 && (!frame.outcome || frame.action || frame.support))
-      failures.push(`${label}: outcome did not reveal before supporting content`);
-    if (time === 1250 && (!frame.action || !frame.support))
-      failures.push(`${label}: explanation and booking did not enter after the outcome`);
+    if (
+      frame.lines.some(
+        (line) =>
+          new Set(line.delays).size !== 1 || (line.visible !== 0 && line.visible !== line.words),
+      )
+    )
+      failures.push(`${label}: a rendered line breaks into separate word entrances`);
+    if (
+      time === 600 &&
+      (!frame.lines[0]?.visible ||
+        frame.lines.slice(1).some((line) => line.visible) ||
+        frame.action ||
+        frame.support)
+    )
+      failures.push(`${label}: the first readable line did not enter before later content`);
+    if (
+      time === 1000 &&
+      (frame.lines.filter((line) => line.visible).length < 2 || frame.action || frame.support)
+    )
+      failures.push(`${label}: headline lines lack a measured reveal before supporting content`);
+    if (time === 1600 && (!frame.action || !frame.support))
+      failures.push(`${label}: explanation and booking did not follow the headline`);
     if (frame.action === 0 && frame.actionReceivesPointer)
       failures.push(`${label}: concealed booking action still accepts pointer clicks`);
-    if (time === 3000 && !frame.actionReceivesPointer)
+    if (time === 3200 && !frame.actionReceivesPointer)
       failures.push(`${label}: completed booking action cannot receive pointer clicks`);
-    if (time === 3000 && (frame.action !== 1 || frame.support !== 1 || !frame.masks))
+    if (time === 3200 && (frame.action !== 1 || frame.support !== 1 || !frame.masks))
       failures.push(`${label}: completed entrance is incomplete or has no word masks`);
-    if (time === 3000 && frame.artwork < 0.2)
+    if (time === 3200 && frame.artwork < 0.2)
       failures.push(`${label}: artwork did not complete its entrance`);
     entranceFrames.push({ label, time, ...frame });
     await page.screenshot({ caret: "initial", path: `${output}/${label}-frame-${time}.png` });
@@ -244,8 +281,18 @@ for (const [label, viewport, colorScheme] of [
         element.getAnimations().some((animation) => animation.playState === "running"),
       );
     if (!touchLight) failures.push(`${label}: tap did not illuminate the nearby contours`);
+    await page.waitForTimeout(180);
+    const beforeRepeat = await page
+      .locator(".home-hero-focus")
+      .evaluate((element) => Number(getComputedStyle(element).opacity));
+    await page.touchscreen.tap(viewport.width - 24, 142);
+    const afterRepeat = await page
+      .locator(".home-hero-focus")
+      .evaluate((element) => Number(getComputedStyle(element).opacity));
+    if (beforeRepeat < 0.1 || afterRepeat < beforeRepeat - 0.08)
+      failures.push(`${label}: repeated touches reset the illumination instead of blending`);
     await page.screenshot({ caret: "initial", path: `${output}/${label}-touch.png` });
-    await page.waitForTimeout(950);
+    await page.waitForTimeout(1950);
     const pulseFinished = await page
       .locator(".home-hero-pulse")
       .evaluate((element) =>
@@ -290,6 +337,13 @@ for (const [label, viewport, colorScheme] of [
       failures.push(
         `${label}: layered depth, local illumination or varied current timing is missing`,
       );
+    await page.mouse.down();
+    await page.mouse.up();
+    const pressedLight = await page
+      .locator(".home-hero-focus")
+      .evaluate((element) => Number(getComputedStyle(element).opacity));
+    if (pressedLight < 0.9)
+      failures.push(`${label}: pressing the hero flashes the pointer illumination`);
     await page.screenshot({ caret: "initial", path: `${output}/${label}-pointer.png` });
     // The full-height hero fills the viewport. Move onto the fixed header,
     // outside the section, rather than assuming its former 740px height.

@@ -6336,6 +6336,7 @@ body.modal-open [data-dock] {
 /* The hero's flowing contours extend the paper-and-ink identity. Text stays
    readable throughout the entrance; only desktop decoration loops. */
 .home-hero {
+  --hero-ease: cubic-bezier(0.25, 0.5, 0.25, 1);
   position: relative;
   isolation: isolate;
   overflow: clip;
@@ -6401,7 +6402,7 @@ body.modal-open [data-dock] {
   opacity: 0.22;
   overflow: visible;
   transform: translate3d(calc(var(--hero-x, 0px) * -0.45), calc(var(--hero-y, 0px) * -0.45), 0);
-  transition: transform 900ms var(--ease);
+  transition: transform 900ms var(--hero-ease);
 }
 .home-hero-ribbon {
   position: absolute;
@@ -6426,7 +6427,7 @@ body.modal-open [data-dock] {
   color: var(--fg);
   mask-image: linear-gradient(110deg, transparent 25%, #000 75%);
   transform: translate(var(--hero-x, 0px), var(--hero-y, 0px));
-  transition: transform 700ms cubic-bezier(0.2, 0, 0, 1);
+  transition: transform 900ms var(--hero-ease);
 }
 .home-hero-contours {
   position: absolute;
@@ -6443,7 +6444,7 @@ body.modal-open [data-dock] {
 }
 .home-hero-contour-far,
 .home-hero-contour-near {
-  transition: transform 850ms cubic-bezier(0.2, 0, 0, 1);
+  transition: transform 900ms var(--hero-ease);
 }
 .home-hero-contour-far {
   transform: translate(calc(var(--hero-x, 0px) * -0.28), calc(var(--hero-y, 0px) * -0.28));
@@ -6464,7 +6465,7 @@ body.modal-open [data-dock] {
 }
 .home-hero-focus {
   opacity: 0;
-  transition: opacity 450ms var(--ease);
+  transition: opacity 750ms var(--hero-ease);
 }
 .home-hero-focus path {
   stroke: currentColor;
@@ -6476,20 +6477,16 @@ body.modal-open [data-dock] {
 }
 .home-hero-pulse {
   position: absolute;
-  width: 220px;
+  width: clamp(260px, 30vw, 420px);
   aspect-ratio: 1;
-  border: 1px solid var(--fg);
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--fg) 12%, transparent),
+    transparent 68%
+  );
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
-}
-.home-hero-pulse::after {
-  content: "";
-  position: absolute;
-  inset: 22%;
-  border: 1px solid var(--fg);
-  border-radius: 50%;
-  opacity: 0.45;
 }
 .home-hero-bottom {
   display: grid;
@@ -6553,7 +6550,7 @@ body.modal-open [data-dock] {
   /* Three independently composited ribbons keep the artwork alive on phones
      without continuously repainting SVG strokes or moving the headline. */
   .motion-ready .home-hero-ribbon {
-    animation: home-hero-ribbon-flow calc(14s + var(--ribbon-index) * 3s) ease-in-out
+    animation: home-hero-ribbon-flow calc(28s + var(--ribbon-index) * 7s) ease-in-out
       calc(var(--ribbon-index) * -4s) infinite alternate;
     animation-play-state: paused;
   }
@@ -6564,7 +6561,7 @@ body.modal-open [data-dock] {
     animation-play-state: paused;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-acceleration {
-    animation: home-hero-ribbon-enter 1800ms var(--ease) 160ms backwards;
+    animation: home-hero-ribbon-enter 2600ms var(--hero-ease) 100ms backwards;
   }
   .motion-ready:not([data-navigation-kind="restore"])
     .home-hero[data-reveal-state="pending"]
@@ -6603,37 +6600,36 @@ body.modal-open [data-dock] {
     stroke-dashoffset: 1000;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-eyebrow {
-    animation: home-hero-label-enter 620ms var(--ease) both;
+    animation: home-hero-label-enter 900ms var(--hero-ease) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-support,
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-index > span {
-    animation: home-hero-detail-enter 640ms var(--ease) var(--hero-entry-delay, 0ms) both;
+    animation: home-hero-detail-enter 900ms var(--hero-ease) var(--hero-entry-delay, 0ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-actions {
-    animation: home-hero-action-enter 620ms var(--ease) 1000ms both;
+    animation: home-hero-action-enter 900ms var(--hero-ease) var(--hero-action-delay, 1270ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-word {
-    animation: home-hero-word-enter 680ms cubic-bezier(0.16, 1, 0.3, 1) var(--hero-word-delay, 0ms)
-      both;
+    animation: home-hero-word-enter 1500ms var(--hero-ease) var(--hero-word-delay, 0ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-contour-lines path {
     stroke-dasharray: 1000;
-    animation: home-hero-contour-enter 1800ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+    animation: home-hero-contour-enter 2600ms var(--hero-ease) 100ms both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-contour-near path {
     animation-delay: 260ms;
   }
   .motion-ready .home-hero.in .home-hero-support {
-    --hero-entry-delay: 880ms;
+    --hero-entry-delay: var(--hero-support-delay, 1120ms);
   }
   .motion-ready .home-hero.in .home-hero-index > span {
-    --hero-entry-delay: 1220ms;
+    --hero-entry-delay: var(--hero-index-delay, 1480ms);
   }
   .motion-ready .home-hero.in .home-hero-index > span:nth-child(2) {
-    --hero-entry-delay: 1300ms;
+    --hero-entry-delay: calc(var(--hero-index-delay, 1480ms) + 100ms);
   }
   .motion-ready .home-hero.in .home-hero-index > span:nth-child(3) {
-    --hero-entry-delay: 1380ms;
+    --hero-entry-delay: calc(var(--hero-index-delay, 1480ms) + 200ms);
   }
   /* Keyboard users can reach the booking action before its visual cue. */
   .motion-ready .home-hero[data-reveal-state] .home-hero-actions:focus-within {
@@ -6645,7 +6641,7 @@ body.modal-open [data-dock] {
 }
 @media (prefers-reduced-motion: no-preference) and (pointer: fine) {
   .home-hero-contours {
-    animation: home-hero-contour-drift 24s ease-in-out infinite alternate;
+    animation: home-hero-contour-drift 44s ease-in-out infinite alternate;
     animation-play-state: paused;
   }
   .home-hero-currents path {
@@ -6690,7 +6686,7 @@ body.modal-open [data-dock] {
 @keyframes home-hero-ribbon-enter {
   from {
     opacity: 0;
-    transform: translate3d(35%, 20%, 0) rotate(-12deg);
+    transform: translate3d(10%, 8%, 0) rotate(-4deg);
   }
   to {
     opacity: 0.22;
@@ -6699,10 +6695,10 @@ body.modal-open [data-dock] {
 }
 @keyframes home-hero-ribbon-flow {
   from {
-    transform: translate3d(-2%, 2%, 0) rotate(-4deg);
+    transform: translate3d(-1%, 1%, 0) rotate(-2deg);
   }
   to {
-    transform: translate3d(3%, -3%, 0) rotate(5deg);
+    transform: translate3d(2%, -2%, 0) rotate(3deg);
   }
 }
 @keyframes home-hero-label-enter {
@@ -6725,10 +6721,10 @@ body.modal-open [data-dock] {
 }
 @keyframes home-hero-contour-drift {
   from {
-    transform: translateY(-12px) rotate(-2deg) scale(1.01);
+    transform: translateY(-8px) rotate(-1deg) scale(1.01);
   }
   to {
-    transform: translateY(16px) rotate(2deg) scale(1.04);
+    transform: translateY(10px) rotate(1deg) scale(1.025);
   }
 }
 @keyframes home-hero-current {
@@ -6739,7 +6735,7 @@ body.modal-open [data-dock] {
 @keyframes home-hero-detail-enter {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -6749,12 +6745,12 @@ body.modal-open [data-dock] {
 @keyframes home-hero-action-enter {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: translateY(8px);
     pointer-events: none;
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
     pointer-events: auto;
   }
 }
