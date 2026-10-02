@@ -36,6 +36,12 @@ for (const config of [
   // for global network idleness makes navigation QA hostage to unrelated
   // third-party media and analytics connections.
   await page.goto(`${base}/work`, { waitUntil: "domcontentloaded" });
+  // Direct HTML can precede hydration. A raw DOM click before the runtime
+  // mounts is a document navigation, not the client handoff this check owns.
+  await page.waitForFunction(() => document.documentElement.dataset.navigationPhase === "idle");
+  const publicDocumentCount = await page.evaluate(() =>
+    sessionStorage.getItem("accelerate:qa-document-count"),
+  );
   const card = page.locator('[data-work-card="work-shelter"] a').first();
   await card.scrollIntoViewIfNeeded();
   await page.evaluate(() => window.scrollBy(0, 80));
@@ -45,13 +51,26 @@ for (const config of [
   await page.waitForFunction(() => /WORK\+SHELTER/i.test(document.title), undefined, {
     timeout: 15_000,
   });
-  await page.waitForTimeout(32);
+  // Metadata can arrive before the route tree and its two-frame focus handoff.
+  // Observe the real destination, rather than guessing at browser frame timing.
+  await page
+    .waitForFunction(
+      () =>
+        document.querySelector('[data-route-entry="/work/work-shelter"]') &&
+        document.activeElement?.matches("h1, [data-route-heading]"),
+      undefined,
+      { timeout: 2000 },
+    )
+    .catch(() => {});
   const publicForward = await page.evaluate(() => ({
     y: window.scrollY,
     animation: getComputedStyle(document.querySelector("[data-route-entry]")).animationName,
     title: document.title,
     focused: document.activeElement?.matches("h1, [data-route-heading]") || false,
+    documentCount: sessionStorage.getItem("accelerate:qa-document-count"),
   }));
+  if (publicForward.documentCount !== publicDocumentCount)
+    failures.push(`${config.label}: public forward navigation reloaded the document`);
   if (publicForward.y > 2)
     failures.push(`${config.label}: public forward navigation landed at ${publicForward.y}px`);
   if (
@@ -120,6 +139,8 @@ for (const config of [
       .getAnimations()
       .filter(
         (animation) =>
+          animation instanceof CSSAnimation &&
+          animation.animationName === "admin-route-section-in" &&
           animation.effect?.target instanceof Element &&
           document.querySelector("[data-admin-route-stage]")?.contains(animation.effect.target),
       ).length,

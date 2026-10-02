@@ -1,47 +1,72 @@
-/* Public surfaces that reuse admin field and copy primitives: the public
-   intake form, the changelog filter and the roadmap feedback box. The rest
-   of the operations component sheet loads only behind the admin chrome, so
-   these few rules are kept where the public site can still reach them. */
+/* Public-surface rules for admin primitives that public pages render directly
+   (changelog and roadmap search fields, the public survey loading state).
+   Split out of admin-components.css so the public bundle does not carry the
+   whole admin component sheet. Admin routes load them through the root
+   stylesheet, so their cascade position is unchanged. */
 
 .admin-copy {
-  color: var(--admin-muted);
+  color: var(--admin-muted, var(--mid));
   text-wrap: pretty;
 }
 
+.admin-field-label {
+  display: grid;
+  gap: 6px;
+  color: var(--admin-muted, var(--mid));
+  font-size: var(--admin-text-label, 0.8125rem);
+  font-weight: 600;
+}
+
+.admin-field-label > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .admin-field {
-  font-family: var(--admin-font);
-  min-height: var(--admin-control-height);
+  font-family: var(--admin-font, var(--body));
+  min-height: var(--admin-control-height, 44px);
   width: 100%;
-  border: 1px solid color-mix(in srgb, var(--admin-ink) 13%, transparent);
-  border-radius: var(--admin-control-radius);
-  background: var(--admin-field-fill);
+  border: 1px solid color-mix(in srgb, var(--admin-ink, var(--fg)) 13%, transparent);
+  border-radius: var(--admin-control-radius, 12px);
+  background: var(--admin-field-fill, var(--surface-bg));
   padding: 0 12px;
-  color: var(--admin-ink);
-  font-size: var(--admin-text-body);
+  color: var(--admin-ink, var(--fg));
+  font-size: var(--admin-text-body, 0.875rem);
   outline: none;
   transition-property: border-color, box-shadow, background-color;
-  transition-duration: var(--admin-motion-fast);
+  transition-duration: var(--admin-motion-fast, 160ms);
 }
 
 .admin-field::placeholder {
-  color: var(--admin-muted);
+  color: var(--admin-muted, var(--mid));
   opacity: 1;
 }
 
 .admin-field:disabled {
   cursor: not-allowed;
-  background: var(--admin-surface-subtle);
-  color: var(--admin-muted);
+  background: var(--admin-surface-subtle, var(--surface-bg));
+  color: var(--admin-muted, var(--mid));
 }
 
 .admin-field:focus {
-  border-color: var(--admin-action);
-  box-shadow: var(--admin-focus-ring);
-  background: var(--admin-surface);
+  border-color: var(--admin-action, var(--fg));
+  box-shadow: var(--admin-focus-ring, 0 0 0 3px color-mix(in srgb, var(--fg) 25%, transparent));
+  background: var(--admin-surface, var(--bg));
+}
+
+.admin-field.rounded-full {
+  border-radius: var(--admin-control-radius, 9999px);
 }
 
 .admin-field.pl-10 {
   padding-left: 2.5rem;
+}
+
+.admin-field:focus-visible {
+  outline: 2px solid var(--admin-action, var(--fg));
+  outline-offset: 3px;
+  box-shadow: var(--admin-focus-ring, 0 0 0 3px color-mix(in srgb, var(--fg) 25%, transparent));
 }
 
 .admin-field {
@@ -49,18 +74,30 @@
 }
 
 .admin-field--leading-icon {
-  padding-left: calc(var(--admin-space-6) + var(--admin-space-4));
+  padding-left: calc(var(--admin-space-6, 24px) + var(--admin-space-4, 16px));
 }
 
 .admin-field--trailing-icon {
-  padding-right: calc(var(--admin-space-6) + var(--admin-space-4));
+  padding-right: calc(var(--admin-space-6, 24px) + var(--admin-space-4, 16px));
 }
 
 textarea.admin-field {
-  padding-block: var(--admin-space-3);
+  padding-block: var(--admin-space-3, 12px);
 }
 
 .admin-field--inline {
   width: revert-layer;
   max-width: 100%;
+}
+
+:is(.admin-shell, .admin-overlay-token-scope)
+  :is(.admin-field, [data-ui-input])[aria-invalid="true"] {
+  border-color: var(--admin-danger);
+  box-shadow: 0 0 0 1px var(--admin-danger);
+}
+
+.admin-field-label {
+  font-family: var(--admin-label-font, var(--util));
+  letter-spacing: var(--admin-label-tracking, 0.01em);
+  text-transform: var(--admin-label-transform, none);
 }

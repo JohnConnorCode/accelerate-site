@@ -136,6 +136,7 @@
     "qa:home-hero-timing": "node scripts/qa-home-hero-timing.mjs",
     "qa:mobile-motion": "node scripts/qa-mobile-motion.mjs",
     "qa:public-navigation-profile": "node scripts/qa-public-navigation-profile.mjs",
+    "qa:public-loading": "node scripts/resource-run.mjs node scripts/qa-public-loading.mjs",
     "test:navigation-runtime": "npx tsx scripts/test-navigation-runtime.ts && node scripts/qa-navigation-runtime.mjs && node scripts/qa-persistent-profile.mjs && node scripts/qa-public-navigation-profile.mjs",
     "verify:public-prerender": "node scripts/verify-public-prerender.mjs && npm run verify:docs -- --strict",
     "test:chat-house-style": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-chat-house-style.ts",
