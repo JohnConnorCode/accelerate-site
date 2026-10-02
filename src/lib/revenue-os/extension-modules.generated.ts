@@ -1533,10 +1533,11 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
   {
     moduleId: "stripe-invoicing",
     id: "stripe-invoicing",
-    label: "Invoicing",
+    label: "Invoices",
     href: "/admin/invoicing",
     icon: "FileText",
-    description: "Customer invoices and payment status",
+    description: "Find customer invoices, create an invoice, and track payment status",
+    keywords: "invoicing billing bills payments new invoice create invoice",
     moreGroup: "Revenue",
   },
   {

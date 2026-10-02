@@ -1,11 +1,48 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { getAdminBreadcrumbs } from "../src/lib/admin/breadcrumbs";
+import {
+  adminNavSections,
+  filterNavSectionsByTenant,
+  searchAdminNavLinks,
+} from "../src/lib/admin/navigation";
+import { resolveAdminHref } from "../src/lib/admin/navigation-paths";
 
 assert.deepEqual(getAdminBreadcrumbs("/admin/integrations"), [
   { label: "Integrations", href: "/admin/integrations" },
 ]);
 assert.deepEqual(getAdminBreadcrumbs("/admin/today"), [{ label: "Today", href: "/admin/today" }]);
+assert.deepEqual(getAdminBreadcrumbs("/admin/invoicing"), [
+  { label: "Invoices", href: "/admin/invoicing" },
+]);
+const invoiceLinks = filterNavSectionsByTenant(adminNavSections, {
+  modules: { "stripe-invoicing": true },
+}).flatMap((section) => section.links);
+for (const query of [
+  "invoice",
+  "invoices",
+  "invoicing",
+  "billing",
+  "create invoice",
+  "new invoice",
+]) {
+  assert.ok(
+    searchAdminNavLinks(invoiceLinks, query).some((link) => link.href === "/admin/invoicing"),
+    `Invoice search must recognize "${query}"`,
+  );
+}
+const disabledInvoiceLinks = filterNavSectionsByTenant(adminNavSections, {
+  modules: { "stripe-invoicing": false },
+}).flatMap((section) => section.links);
+assert.ok(!disabledInvoiceLinks.some((link) => link.id === "stripe-invoicing"));
+assert.equal(
+  resolveAdminHref("/admin/invoicing?view=create", "northline-roofing"),
+  "/demo/command-center/northline-roofing/invoicing?view=create",
+);
+assert.equal(
+  resolveAdminHref("/admin/invoicing?view=create", null, "example"),
+  "/t/example/admin/invoicing?view=create",
+);
 assert.deepEqual(getAdminBreadcrumbs("/admin/contacts/claire%40example.com"), [
   { label: "Contacts", href: "/admin/contacts" },
   { label: "Relationship", href: "/admin/contacts/claire%40example.com" },

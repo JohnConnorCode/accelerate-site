@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "commit": "e1ed4f638c259c772d7e9d1ede934d427a43340d",
+  "results": [
+    {
+      "scenario": "northline-roofing",
+      "viewport": "desktop",
+      "passed": true
+    },
+    {
+      "scenario": "superdebate",
+      "viewport": "desktop",
+      "passed": true
+    },
+    {
+      "viewport": "desktop",
+      "fixture": "disconnected Stripe",
+      "passed": true
+    },
+    {
+      "viewport": "desktop",
+      "fixture": "public invoice guide",
+      "passed": true
+    },
+    {
+      "scenario": "northline-roofing",
+      "viewport": "mobile",
+      "passed": true
+    },
+    {
+      "scenario": "superdebate",
+      "viewport": "mobile",
+      "passed": true
+    },
+    {
+      "viewport": "mobile",
+      "fixture": "disconnected Stripe",
+      "passed": true
+    },
+    {
+      "viewport": "mobile",
+      "fixture": "public invoice guide",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "escaped": [],
+  "providerEffects": "Fictional demo only; disconnected state uses a controlled browser fixture."
+}

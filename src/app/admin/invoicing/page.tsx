@@ -6,7 +6,7 @@ import {
   type InvoiceDesign,
 } from "@/components/business/InvoiceDocument";
 import type { WorkspaceBrand } from "@/lib/revenue-os/branding-contract";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Plus, ReceiptText, RefreshCw, Send, Trash2 } from "lucide-react";
 import { InvoicePageDesigner } from "@/components/admin/InvoicePageDesigner";
@@ -54,6 +54,13 @@ export default function InvoicingPage() {
   const [designAction, setDesignAction] = useState<string | null>(null);
   const demo = useAdminDemo();
   const params = useSearchParams();
+  const creating = params.get("view") === "create";
+  const pageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // Query-only navigation stays on this page. Bring the creation view back
+    // into sight even when it was opened from tools farther down the invoice list.
+    if (creating) pageRef.current?.closest("main")?.scrollTo({ top: 0 });
+  }, [creating]);
   const demoToken = demo ? params.get("demoInvoice") : null;
   const demoDocument = useAdminQuery<{
     brand: WorkspaceBrand;
@@ -232,34 +239,57 @@ export default function InvoicingPage() {
       </div>
     );
   return (
-    <div className="space-y-6 pb-10">
+    <div ref={pageRef} className="space-y-6 pb-10">
       <PageHeader
-        title="Invoicing"
-        subtitle="Manage invoices, create reviewed drafts, and follow payment status in one place."
+        title={creating ? "Create invoice" : "Invoices"}
+        subtitle={
+          creating
+            ? "Choose a customer, add line items, and review the draft before approving it."
+            : "Find customer invoices, track payments, and create a new invoice."
+        }
         actions={
-          <AdminLink href="/admin/plugins" className={button}>
-            Manage plugins
-          </AdminLink>
+          creating ? (
+            <AdminLink href="/admin/invoicing" className={button}>
+              All invoices
+            </AdminLink>
+          ) : (
+            <AdminLink href="/admin/invoicing?view=create" className={primary}>
+              <Plus className="size-4" aria-hidden="true" />
+              Create invoice
+            </AdminLink>
+          )
         }
       />
       <DemoBusinessNotice />
-      <nav aria-label="Invoice sections" className="flex flex-wrap gap-2">
-        <a className={button} href="#invoice-list">
-          All invoices
-        </a>
-        <a className={button} href="#new-invoice">
-          Create invoice
-        </a>
-        <AdminLink className={button} href="/admin/collections">
-          Collections
-        </AdminLink>
-        <AdminLink className={button} href="/admin/subscriptions">
-          Subscriptions
-        </AdminLink>
-      </nav>
-      <div id="invoice-list">
-        <InvoiceIndex enabled={connected || Boolean(demo)} />
-      </div>
+      {!creating && (
+        <nav aria-label="Invoice sections" className="flex flex-wrap gap-2">
+          <AdminLink
+            className={button}
+            href="/admin/invoicing"
+            aria-current={!creating ? "page" : undefined}
+          >
+            All invoices
+          </AdminLink>
+          <AdminLink
+            className={button}
+            href="/admin/invoicing?view=create"
+            aria-current={creating ? "page" : undefined}
+          >
+            Create invoice
+          </AdminLink>
+          <AdminLink className={button} href="/admin/collections">
+            Collections
+          </AdminLink>
+          <AdminLink className={button} href="/admin/subscriptions">
+            Subscriptions
+          </AdminLink>
+        </nav>
+      )}
+      {!creating && (
+        <div id="invoice-list">
+          <InvoiceIndex enabled={connected || Boolean(demo)} />
+        </div>
+      )}
       <>
         {(error || providers.error || billing.error) && (
           <div
@@ -278,7 +308,11 @@ export default function InvoicingPage() {
             {notice}
           </p>
         )}
-        {!connected ? (
+        {providers.isPending ? (
+          <p role="status" className="admin-copy">
+            Checking your Stripe connection…
+          </p>
+        ) : !connected ? (
           <AdminSurface padding="lg">
             <div className="flex items-start gap-3">
               <ReceiptText className="mt-1 size-6 shrink-0" aria-hidden="true" />
@@ -349,7 +383,7 @@ export default function InvoicingPage() {
                 Refresh history
               </button>
             </div>
-            {!demo && (
+            {!demo && !creating && (
               <details className="group rounded-xl border border-[var(--admin-border)] px-4 py-2">
                 <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
                   Stripe connection settings

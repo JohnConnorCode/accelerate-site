@@ -176,7 +176,7 @@ const SHOTS = [
   {
     id: "plugins/stripe-invoicing",
     scenario: "northline-roofing",
-    route: "invoicing",
+    route: "invoicing?view=create",
     wait: { role: "heading", name: /invoic/i },
   },
   {

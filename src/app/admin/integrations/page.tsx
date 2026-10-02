@@ -2,7 +2,7 @@
 
 import { adminPageName } from "@/lib/admin/navigation";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
@@ -549,6 +549,8 @@ function ModuleCard({
 
 export default function IntegrationsPage() {
   const searchParams = useSearchParams();
+  const focusedModuleSetup =
+    searchParams.get("tab") === "modules" && Boolean(searchParams.get("search")?.trim());
   const queryClient = useQueryClient();
   const integrationsQuery = useAdminQuery<IntegrationCatalog>(
     ["admin", "integrations"],
@@ -568,6 +570,13 @@ export default function IntegrationsPage() {
   const [query, setQuery] = useState("");
   const [googleSyncSource, setGoogleSyncSource] = useState<GoogleSyncSource | null>(null);
   const [pendingModuleId, setPendingModuleId] = useState<string | null>(null);
+  useEffect(() => {
+    if (searchParams.get("tab") === "modules") {
+      setActiveTab("modules");
+      setModuleFilter("all");
+      setQuery(searchParams.get("search") ?? "");
+    }
+  }, [searchParams]);
 
   const enabledModuleIds = useMemo(
     () => new Set(modulesQuery.data?.modules ?? REVENUE_OS_MODULES.map((mod) => mod.id)),
@@ -937,29 +946,31 @@ export default function IntegrationsPage() {
 
         {activeTab === "modules" && (
           <>
-            <section className="admin-grid admin-grid--metrics">
-              <AdminSurface padding="md">
-                <p className="admin-eyebrow">Total Modules</p>
-                <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)]">
-                  {REVENUE_OS_MODULES.length}
-                </p>
-                <p className="admin-copy mt-1 text-xs">Modular capabilities available</p>
-              </AdminSurface>
-              <AdminSurface padding="md">
-                <p className="admin-eyebrow">Core Modules</p>
-                <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-emerald-600 dark:text-emerald-300">
-                  {REVENUE_OS_MODULES.filter((m) => m.isCore).length}
-                </p>
-                <p className="admin-copy mt-1 text-xs">Immutable system backbone</p>
-              </AdminSurface>
-              <AdminSurface padding="md">
-                <p className="admin-eyebrow">Pluggable Business Modules</p>
-                <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-sky-600 dark:text-sky-300">
-                  {REVENUE_OS_MODULES.filter((m) => !m.isCore).length}
-                </p>
-                <p className="admin-copy mt-1 text-xs">Tenant-configurable plugins</p>
-              </AdminSurface>
-            </section>
+            {!focusedModuleSetup && (
+              <section className="admin-grid admin-grid--metrics">
+                <AdminSurface padding="md">
+                  <p className="admin-eyebrow">Total Modules</p>
+                  <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)]">
+                    {REVENUE_OS_MODULES.length}
+                  </p>
+                  <p className="admin-copy mt-1 text-xs">Modular capabilities available</p>
+                </AdminSurface>
+                <AdminSurface padding="md">
+                  <p className="admin-eyebrow">Core Modules</p>
+                  <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-emerald-600 dark:text-emerald-300">
+                    {REVENUE_OS_MODULES.filter((m) => m.isCore).length}
+                  </p>
+                  <p className="admin-copy mt-1 text-xs">Immutable system backbone</p>
+                </AdminSurface>
+                <AdminSurface padding="md">
+                  <p className="admin-eyebrow">Pluggable Business Modules</p>
+                  <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-sky-600 dark:text-sky-300">
+                    {REVENUE_OS_MODULES.filter((m) => !m.isCore).length}
+                  </p>
+                  <p className="admin-copy mt-1 text-xs">Tenant-configurable plugins</p>
+                </AdminSurface>
+              </section>
+            )}
 
             <AdminSurface
               padding="sm"
