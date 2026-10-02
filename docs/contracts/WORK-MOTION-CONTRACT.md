@@ -44,7 +44,9 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   reflections. Pointer movement and touches do not steer the composition.
   `HeroArtwork` owns a small native WebGL mesh and its server-rendered SVG poster.
   Drawing is capped at 30fps and 1.5 device-pixel ratio, with geometry measured
-  only on resize. Its clock pauses offscreen, in hidden tabs, behind mobile
+  only on resize. Graphics initialization follows the finite hero entrance so
+  shader compilation cannot collapse the headline sequence on software renderers.
+  The server poster stays visible during that wait. Its clock pauses offscreen, in hidden tabs, behind mobile
   navigation, for reduced motion, and through the visible keyboard-accessible
   Pause/Play control on desktop and mobile. Resuming preserves elapsed time.
   Keyboard focus exposes the control without cancelling its entrance clock;

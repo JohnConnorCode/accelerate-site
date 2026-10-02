@@ -123,6 +123,12 @@ for (const [label, viewport] of [
     entranceFrames.push({ label, time, ...frame });
     await page.screenshot({ caret: "initial", path: `${output}/${label}-frame-${time}.png` });
   }
+  await page.evaluate(() =>
+    window.__heroFrameAnimations.forEach((animation) => animation.finish()),
+  );
+  await page.waitForFunction(
+    () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
+  );
   await page.evaluate(() => {
     window.__heroFrameAnimations
       .filter((animation) => animation.effect.target.matches(".home-hero-artwork"))

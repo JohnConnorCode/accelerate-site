@@ -50,7 +50,9 @@ real context loss, then change theme to verify that the static poster remains.
 Both Chromium and WebKit render the WebGL composition. Disposable Linux CI
 browsers use Chromium's [documented SwiftShader GL driver](https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md)
 to exercise WebGL on runners without a GPU; unavailable WebGL remains a separate
-explicit fallback test. Safari initially exposed
+explicit fallback test. The first protected CI run caught shader initialization compressing headline
+animation-start events on its software renderer. Initialization now waits for the
+finite hero entrance while the server-rendered sculpture stays visible. Safari initially exposed
 minute floating-point differences in poster attributes; bounded decimal output
 fixes the hydration mismatch instead of suppressing it.
 

@@ -152,157 +152,205 @@ export function HeroArtwork() {
     const canvas = canvasRef.current;
     const hero = canvas?.closest<HTMLElement>(".home-hero");
     if (!canvas || !hero) return;
-    const gl = canvas.getContext("webgl", {
-      alpha: true,
-      antialias: true,
-      powerPreference: "low-power",
-    });
-    if (!gl) return;
-    const shaders: WebGLShader[] = [];
-    const compile = (type: number, source: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      shaders.push(shader);
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
-    };
-    const program = gl.createProgram();
-    const vs = compile(gl.VERTEX_SHADER, vertex),
-      fs = compile(gl.FRAGMENT_SHADER, fragment);
-    if (!program || !vs || !fs) {
-      shaders.forEach((shader) => gl.deleteShader(shader));
-      if (program) gl.deleteProgram(program);
-      return;
-    }
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      shaders.forEach((shader) => gl.deleteShader(shader));
-      gl.deleteProgram(program);
-      return;
-    }
-    const vertices: number[] = [];
-    faces.forEach((face) => {
-      const n = normal(face);
-      for (let i = 1; i < face.length - 1; i++)
-        [face[0]!, face[i]!, face[i + 1]!].forEach((p) => vertices.push(...p, ...n));
-    });
-    const buffer = gl.createBuffer();
-    if (!buffer) {
-      shaders.forEach((shader) => gl.deleteShader(shader));
-      gl.deleteProgram(program);
-      return;
-    }
-    gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    for (const [name, offset] of [
-      ["position", 0],
-      ["normal", 12],
-    ] as const) {
-      const attribute = gl.getAttribLocation(program, name);
-      gl.enableVertexAttribArray(attribute);
-      gl.vertexAttribPointer(attribute, 3, gl.FLOAT, false, 24, offset);
-    }
-    gl.enable(gl.DEPTH_TEST);
-    const model = gl.getUniformLocation(program, "model");
-    const viewport = gl.getUniformLocation(program, "viewport");
-    const theme = gl.getUniformLocation(program, "dark");
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let frame = 0,
-      last = 0,
-      painted = 0,
-      active = false,
-      lostContext = false;
-    const draw = () => {
-      if (lostContext) return;
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.uniform2f(viewport, canvas.width, canvas.height);
-      gl.uniform1f(theme, Number(document.documentElement.classList.contains("dark")));
-      const t = reduced.matches ? 0 : elapsed.current;
-      const arc = (t * Math.PI) / 9;
-      for (let i = 0; i < 3; i++) {
-        const depth = Math.sin(arc) ** 2 * (i - 1) * 0.5;
-        gl.uniformMatrix4fv(
-          model,
-          false,
-          pose(
-            -0.65 + Math.sin(arc) * 0.45,
-            0.25 + Math.sin(arc * 2) * 0.09,
-            -0.3 + Math.sin(arc) * 0.12,
-            i * 1.125,
-            depth,
-          ),
-        );
-        gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6);
+    const stage = canvas.parentElement!;
+    stage.dataset.motionState = "paused";
+    // Shader compilation can block on software renderers. Let the readable
+    // entrance finish first; the server poster occupies the same stage meanwhile.
+    let cancelled = false;
+    let queued = false;
+    let dispose: (() => void) | undefined;
+    const render = () => {
+      const gl = canvas.getContext("webgl", {
+        alpha: true,
+        antialias: true,
+        powerPreference: "low-power",
+      });
+      if (!gl) {
+        stage.dataset.artworkReady = "false";
+        return;
       }
-      canvas.parentElement!.dataset.artworkReady = "true";
-    };
-    const tick = (now: number) => {
-      if (!active) return;
-      if (last) elapsed.current += Math.min(now - last, 100) / 1000;
-      last = now;
-      if (now - painted >= 1000 / 30) {
+      const shaders: WebGLShader[] = [];
+      const compile = (type: number, source: string) => {
+        const shader = gl.createShader(type);
+        if (!shader) return null;
+        shaders.push(shader);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
+      };
+      const program = gl.createProgram();
+      const vs = compile(gl.VERTEX_SHADER, vertex),
+        fs = compile(gl.FRAGMENT_SHADER, fragment);
+      if (!program || !vs || !fs) {
+        shaders.forEach((shader) => gl.deleteShader(shader));
+        if (program) gl.deleteProgram(program);
+        stage.dataset.artworkReady = "false";
+        return;
+      }
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        shaders.forEach((shader) => gl.deleteShader(shader));
+        gl.deleteProgram(program);
+        stage.dataset.artworkReady = "false";
+        return;
+      }
+      const vertices: number[] = [];
+      faces.forEach((face) => {
+        const n = normal(face);
+        for (let i = 1; i < face.length - 1; i++)
+          [face[0]!, face[i]!, face[i + 1]!].forEach((p) => vertices.push(...p, ...n));
+      });
+      const buffer = gl.createBuffer();
+      if (!buffer) {
+        shaders.forEach((shader) => gl.deleteShader(shader));
+        gl.deleteProgram(program);
+        stage.dataset.artworkReady = "false";
+        return;
+      }
+      gl.useProgram(program);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+      for (const [name, offset] of [
+        ["position", 0],
+        ["normal", 12],
+      ] as const) {
+        const attribute = gl.getAttribLocation(program, name);
+        gl.enableVertexAttribArray(attribute);
+        gl.vertexAttribPointer(attribute, 3, gl.FLOAT, false, 24, offset);
+      }
+      gl.enable(gl.DEPTH_TEST);
+      const model = gl.getUniformLocation(program, "model");
+      const viewport = gl.getUniformLocation(program, "viewport");
+      const theme = gl.getUniformLocation(program, "dark");
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let frame = 0,
+        last = 0,
+        painted = 0,
+        active = false,
+        lostContext = false;
+      const draw = () => {
+        if (lostContext) return;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.uniform2f(viewport, canvas.width, canvas.height);
+        gl.uniform1f(theme, Number(document.documentElement.classList.contains("dark")));
+        const t = reduced.matches ? 0 : elapsed.current;
+        const arc = (t * Math.PI) / 9;
+        for (let i = 0; i < 3; i++) {
+          const depth = Math.sin(arc) ** 2 * (i - 1) * 0.5;
+          gl.uniformMatrix4fv(
+            model,
+            false,
+            pose(
+              -0.65 + Math.sin(arc) * 0.45,
+              0.25 + Math.sin(arc * 2) * 0.09,
+              -0.3 + Math.sin(arc) * 0.12,
+              i * 1.125,
+              depth,
+            ),
+          );
+          gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6);
+        }
+        stage.dataset.artworkReady = "true";
+      };
+      const tick = (now: number) => {
+        if (!active) return;
+        if (last) elapsed.current += Math.min(now - last, 100) / 1000;
+        last = now;
+        if (now - painted >= 1000 / 30) {
+          draw();
+          painted = now;
+        }
+        frame = requestAnimationFrame(tick);
+      };
+      const sync = () => {
+        cancelAnimationFrame(frame);
+        last = 0;
+        active =
+          !lostContext &&
+          !paused &&
+          !reduced.matches &&
+          !document.hidden &&
+          hero.dataset.heroActive === "true" &&
+          document.body.dataset.mobileNavigation !== "open";
+        stage.dataset.motionState = active ? "playing" : "paused";
         draw();
-        painted = now;
-      }
-      frame = requestAnimationFrame(tick);
+        if (active) frame = requestAnimationFrame(tick);
+      };
+      const resize = () => {
+        const bounds = canvas.getBoundingClientRect();
+        const density = Math.min(devicePixelRatio || 1, 1.5);
+        canvas.width = Math.max(1, Math.round(bounds.width * density));
+        canvas.height = Math.max(1, Math.round(bounds.height * density));
+        sync();
+      };
+      const size = new ResizeObserver(resize);
+      size.observe(canvas);
+      const state = new MutationObserver(sync);
+      state.observe(hero, { attributes: true, attributeFilter: ["data-hero-active"] });
+      state.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["data-mobile-navigation"],
+      });
+      state.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+      const lost = (event: Event) => {
+        event.preventDefault();
+        lostContext = true;
+        active = false;
+        cancelAnimationFrame(frame);
+        stage.dataset.artworkReady = "false";
+        stage.dataset.motionState = "paused";
+      };
+      // A lost GPU keeps the server-rendered poster. It never hides the content.
+      canvas.addEventListener("webglcontextlost", lost);
+      reduced.addEventListener("change", sync);
+      document.addEventListener("visibilitychange", sync);
+      resize();
+      return () => {
+        active = false;
+        cancelAnimationFrame(frame);
+        size.disconnect();
+        state.disconnect();
+        reduced.removeEventListener("change", sync);
+        document.removeEventListener("visibilitychange", sync);
+        canvas.removeEventListener("webglcontextlost", lost);
+        gl.deleteBuffer(buffer);
+        gl.deleteProgram(program);
+        shaders.forEach((shader) => gl.deleteShader(shader));
+      };
     };
-    const sync = () => {
-      cancelAnimationFrame(frame);
-      last = 0;
-      active =
-        !lostContext &&
-        !paused &&
-        !reduced.matches &&
-        !document.hidden &&
-        hero.dataset.heroActive === "true" &&
-        document.body.dataset.mobileNavigation !== "open";
-      canvas.parentElement!.dataset.motionState = active ? "playing" : "paused";
-      draw();
-      if (active) frame = requestAnimationFrame(tick);
+    const prepare = () => {
+      if (
+        queued ||
+        (hero.dataset.revealState !== "visible" &&
+          document.documentElement.classList.contains("motion-ready"))
+      )
+        return;
+      queued = true;
+      entrance.disconnect();
+      const animations = hero
+        .getAnimations({ subtree: true })
+        .filter(
+          (animation) =>
+            animation instanceof CSSAnimation && animation.animationName.startsWith("home-hero-"),
+        );
+      void Promise.all(animations.map((animation) => animation.finished.catch(() => {}))).then(
+        () => {
+          if (!cancelled) dispose = render();
+        },
+      );
     };
-    const resize = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const density = Math.min(devicePixelRatio || 1, 1.5);
-      canvas.width = Math.max(1, Math.round(bounds.width * density));
-      canvas.height = Math.max(1, Math.round(bounds.height * density));
-      sync();
-    };
-    const size = new ResizeObserver(resize);
-    size.observe(canvas);
-    const state = new MutationObserver(sync);
-    state.observe(hero, { attributes: true, attributeFilter: ["data-hero-active"] });
-    state.observe(document.body, { attributes: true, attributeFilter: ["data-mobile-navigation"] });
-    state.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    const lost = (event: Event) => {
-      event.preventDefault();
-      lostContext = true;
-      active = false;
-      cancelAnimationFrame(frame);
-      canvas.parentElement!.dataset.artworkReady = "false";
-      canvas.parentElement!.dataset.motionState = "paused";
-    };
-    // A lost GPU keeps the server-rendered poster. It never hides the content.
-    canvas.addEventListener("webglcontextlost", lost);
-    reduced.addEventListener("change", sync);
-    document.addEventListener("visibilitychange", sync);
-    resize();
+    const entrance = new MutationObserver(prepare);
+    entrance.observe(hero, { attributes: true, attributeFilter: ["class", "data-reveal-state"] });
+    prepare();
     return () => {
-      active = false;
-      cancelAnimationFrame(frame);
-      size.disconnect();
-      state.disconnect();
-      reduced.removeEventListener("change", sync);
-      document.removeEventListener("visibilitychange", sync);
-      canvas.removeEventListener("webglcontextlost", lost);
-      gl.deleteBuffer(buffer);
-      gl.deleteProgram(program);
-      shaders.forEach((shader) => gl.deleteShader(shader));
+      cancelled = true;
+      stage.dataset.motionState = "paused";
+      entrance.disconnect();
+      dispose?.();
     };
   }, [paused]);
   return (
