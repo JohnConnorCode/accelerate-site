@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-composited-artwork",
+    slug: "homepage-composited-artwork",
+    title: "Smoother homepage artwork and interaction",
+    description:
+      "The homepage uses a quieter layered composition with fewer contour lines. Background movement and local pointer lighting now move prepared layers, avoiding continuously redrawn strokes and moving SVG masks. Touch uses one soft response that blends between taps. The full-height mobile layout, readable headline, booking action, cached navigation and reduced-motion fallbacks remain available.",
+    category: "fix",
+    publishedAt: "2026-10-02",
+  },
+  {
     id: "demo-navigation-continuity",
     slug: "demo-navigation-continuity",
     title: "Move through the demo without restarting the workspace",

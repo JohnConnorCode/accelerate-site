@@ -280,7 +280,7 @@ for (const [label, viewport, colorScheme] of [
       .evaluate((element) =>
         element.getAnimations().some((animation) => animation.playState === "running"),
       );
-    if (!touchLight) failures.push(`${label}: tap did not illuminate the nearby contours`);
+    if (!touchLight) failures.push(`${label}: tap did not start the local light response`);
     await page.waitForTimeout(180);
     const beforeRepeat = await page
       .locator(".home-hero-focus")
@@ -306,37 +306,66 @@ for (const [label, viewport, colorScheme] of [
     )
       failures.push(`${label}: touch illumination did not return to rest`);
   } else {
-    const current = page.locator(".home-hero-currents path").first();
-    const first = await current.evaluate((element) => getComputedStyle(element).strokeDashoffset);
+    const flow = page.locator(".home-hero-flow");
+    const first = await flow.evaluate((element) => getComputedStyle(element).transform);
     await page.waitForTimeout(150);
-    if (first === (await current.evaluate((element) => getComputedStyle(element).strokeDashoffset)))
-      failures.push(`${label}: flow is static on desktop`);
-    await page.mouse.move(viewport.width * 0.85, 320);
-    await page.waitForTimeout(200);
-    const response = await page
-      .locator(".home-hero-field")
-      .evaluate((element) => parseFloat(getComputedStyle(element).getPropertyValue("--hero-x")));
-    if (!response) failures.push(`${label}: pointer response is missing`);
-    await page.waitForTimeout(700);
-    const depth = await page.evaluate(() => ({
-      near: new DOMMatrix(
-        getComputedStyle(document.querySelector(".home-hero-contour-near")).transform,
-      ).m41,
-      far: new DOMMatrix(
-        getComputedStyle(document.querySelector(".home-hero-contour-far")).transform,
-      ).m41,
-      light: Number(getComputedStyle(document.querySelector(".home-hero-focus")).opacity),
-      x: Number(document.querySelector(".home-hero-light").getAttribute("cx")),
-      durations: new Set(
-        [...document.querySelectorAll(".home-hero-currents path")].map(
-          (path) => getComputedStyle(path).animationDuration,
+    if (first === (await flow.evaluate((element) => getComputedStyle(element).transform)))
+      failures.push(`${label}: the composed artwork is static on desktop`);
+    const paintOnly = await page.locator(".home-hero").evaluate((hero) =>
+      hero
+        .getAnimations({ subtree: true })
+        .filter((animation) => animation.playState === "running")
+        .some((animation) =>
+          Object.keys(animation.effect.getKeyframes()[0]).some(
+            (property) =>
+              !["transform", "opacity", "offset", "computedOffset", "easing", "composite"].includes(
+                property,
+              ),
+          ),
         ),
-      ).size,
+    );
+    if (paintOnly) failures.push(`${label}: settled artwork animates a paint-only property`);
+    await page.mouse.move(viewport.width * 0.85, 320);
+    await page.waitForTimeout(900);
+    const response = await page.evaluate(() => ({
+      fieldX: new DOMMatrix(getComputedStyle(document.querySelector(".home-hero-field")).transform)
+        .m41,
+      lightX: new DOMMatrix(getComputedStyle(document.querySelector(".home-hero-focus")).transform)
+        .m41,
+      light: Number(getComputedStyle(document.querySelector(".home-hero-focus")).opacity),
     }));
-    if (depth.near * depth.far >= 0 || depth.light < 0.9 || depth.x === 900 || depth.durations < 3)
-      failures.push(
-        `${label}: layered depth, local illumination or varied current timing is missing`,
-      );
+    if (!response.fieldX || response.lightX < viewport.width / 2 || response.light < 0.9)
+      failures.push(`${label}: artwork depth or the smooth local light response is missing`);
+    if (label === "desktop") {
+      await page.evaluate(() => document.fonts.ready);
+      const session = await context.newCDPSession(page);
+      await session.send("LayerTree.enable");
+      await session.send("Performance.enable");
+      await page.mouse.move(30, 140);
+      await page.waitForTimeout(700);
+      let paints = 0;
+      session.on("LayerTree.layerPainted", () => paints++);
+      await page.waitForTimeout(1500);
+      const idlePaints = paints;
+      const before = (await session.send("Performance.getMetrics")).metrics;
+      paints = 0;
+      for (let step = 0; step < 20; step++) {
+        await page.mouse.move(100 + step * 50, 140);
+        await page.waitForTimeout(20);
+      }
+      await page.waitForTimeout(600);
+      const after = (await session.send("Performance.getMetrics")).metrics;
+      const metric = (values, name) => values.find((entry) => entry.name === name)?.value ?? 0;
+      const hoverLayoutSeconds = metric(after, "LayoutDuration") - metric(before, "LayoutDuration");
+      ribbonMotion.performance = { idlePaints, hoverPaints: paints, hoverLayoutSeconds };
+      if (idlePaints > 2 || paints > 4 || hoverLayoutSeconds > 0.002)
+        failures.push(
+          `${label}: settled idle/hover repaints or relayouts the artwork: ${JSON.stringify(ribbonMotion.performance)}`,
+        );
+      await session.detach();
+      await page.mouse.move(viewport.width * 0.85, 320);
+      await page.waitForTimeout(700);
+    }
     await page.mouse.down();
     await page.mouse.up();
     const pressedLight = await page
@@ -360,9 +389,7 @@ for (const [label, viewport, colorScheme] of [
     await page.waitForFunction(
       () => document.querySelector(".home-hero").dataset.heroActive === "false",
     );
-    const paused = await current.evaluate(
-      (element) => getComputedStyle(element).animationPlayState,
-    );
+    const paused = await flow.evaluate((element) => getComputedStyle(element).animationPlayState);
     if (paused !== "paused") failures.push(`${label}: decoration kept running offscreen`);
     if ((await page.locator(".home-hero").getAttribute("data-hero-focus")) === "true")
       failures.push(`${label}: interactive illumination stayed active offscreen`);
@@ -391,7 +418,7 @@ for (const [label, viewport, colorScheme] of [
     await booking.evaluate((element) => element.blur());
     await booking.focus();
     if ((await page.locator(".home-hero").getAttribute("data-hero-focus")) !== "true")
-      failures.push(`${label}: keyboard focus did not receive the contour response`);
+      failures.push(`${label}: keyboard focus did not receive the local light response`);
     await page.keyboard.press("Enter");
     await page.waitForURL(`${baseUrl}/contact`);
     await page.goBack({ waitUntil: "domcontentloaded" });
@@ -409,17 +436,35 @@ for (const [label, viewport, colorScheme] of [
     await page.waitForFunction(() =>
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
-    const forward = await page.evaluate(() => ({
-      kind: document.documentElement.dataset.navigationKind,
-      animated: getComputedStyle(document.querySelector(".home-hero-word")).animationName,
-      action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
-    }));
+    const forward = await page.evaluate(() => {
+      const hero = document.querySelector(".home-hero");
+      const word = hero.querySelector(".home-hero-word");
+      const entrance = word
+        .getAnimations()
+        .find((animation) => animation.animationName === "home-hero-word-enter");
+      return {
+        kind: document.documentElement.dataset.navigationKind,
+        animated: getComputedStyle(word).animationName,
+        immediate: hero.classList.contains("reveal-immediate"),
+        playState: entrance?.playState,
+        currentTime: entrance?.currentTime,
+        endTime: entrance?.effect.getComputedTiming().endTime,
+        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
+      };
+    });
+    settled.forward = forward;
+    // A client commit can be observed partway through its entrance. Require
+    // a live, fresh animation clock; concealed opening frames are tested above.
     if (
       forward.kind !== "fresh" ||
       forward.animated !== "home-hero-word-enter" ||
-      forward.action !== 0
+      forward.immediate ||
+      forward.playState !== "running" ||
+      forward.currentTime >= forward.endTime
     )
-      failures.push(`${label}: prefetched forward navigation skipped the fresh entrance`);
+      failures.push(
+        `${label}: prefetched forward navigation skipped the fresh entrance: ${JSON.stringify(forward)}`,
+      );
     await page.waitForTimeout(3000);
   }
   results.push({ label, viewport, colorScheme, opening, settled, ribbonMotion });
@@ -597,8 +642,9 @@ const staticHero = await staticPage.evaluate(() => ({
   ribbonsStatic: [...document.querySelectorAll(".home-hero-ribbon")].every(
     (element) => getComputedStyle(element).animationName === "none",
   ),
-  backgroundPaused:
-    getComputedStyle(document.querySelector(".home-hero-contours")).animationPlayState === "paused",
+  backgroundStatic:
+    document.querySelector(".home-hero-flow").getAnimations().length === 0 &&
+    document.querySelector(".home-hero-contours").getAnimations({ subtree: true }).length === 0,
   allContentReadable: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -612,7 +658,7 @@ if (
   staticHero.cta !== "1" ||
   !staticHero.wordsStatic ||
   !staticHero.ribbonsStatic ||
-  !staticHero.backgroundPaused ||
+  !staticHero.backgroundStatic ||
   !staticHero.allContentReadable
 )
   failures.push("No-JavaScript hero did not remain complete and static");

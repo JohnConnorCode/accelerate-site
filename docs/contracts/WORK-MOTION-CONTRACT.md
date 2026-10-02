@@ -36,10 +36,13 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   via `.motion-ready .work-reveal:not(.in)`.
 - The homepage hero uses the shared lifecycle with its own visual sequence.
   The pre-paint gate conceals complete words behind baseline-preserving masks,
-  rather than moving already visible text. The eyebrow wipes in, the lead and
-  outcome reveal in separate word cascades, emphasis lines draw, then the
-  explanation, booking action and service index enter. Contour lines trace once
-  beneath that sequence. Pending content must not flash before hydration.
+  rather than moving already visible text. The eyebrow wipes in, responsive
+  headline lines reveal as readable groups, then the explanation, booking
+  action and service index enter. The artwork fades once and drifts through
+  bounded HTML transforms. Settled decoration must not animate SVG strokes,
+  masks or gradients. Pointer interaction caches geometry at entry/resize and
+  moves one light layer without layout reads in pointer frames. Touch uses the
+  same interruptible light with a finite fade. Pending content must not flash.
   Reduced motion, unavailable JavaScript and the hydration watchdog show the
   complete static composition. Concealed booking actions do not accept pointer
   clicks. Keyboard focus immediately exposes the booking
