@@ -265,7 +265,7 @@ jobs:
 
       - name: Upload reference journey evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reference-business-journeys
           path: /tmp/accelerate-reference-journeys-*/
