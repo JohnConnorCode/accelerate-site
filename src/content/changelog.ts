@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-hero-readable-typography",
+    slug: "homepage-hero-readable-typography",
+    title: "A balanced homepage with living ribbon artwork",
+    description:
+      "The branded homepage presents its complete headline in one consistent typeface, size and weight. Balanced wrapping and more comfortable line spacing replace the oversized outcome words, small connectors, italic nouns and decorative underlines. Three broader ribbons move independently on desktop and phones, with pointer and touch illumination. The artwork pauses offscreen and behind the mobile menu; reduced motion and unavailable JavaScript keep it static. The full-height section and masked word entrance remain. This correction is included in this source release; production publication is separate.",
+    category: "fix",
+    publishedAt: "2026-10-01",
+  },
+  {
     id: "mobile-hero-and-cached-motion",
     slug: "mobile-hero-and-cached-motion",
     title: "A full-height mobile homepage and reliable cached entrances",

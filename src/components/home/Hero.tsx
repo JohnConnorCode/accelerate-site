@@ -16,13 +16,11 @@ const contours = Array.from(
 function HeroWords({
   text,
   offset = 180,
-  stagger = 45,
-  emphasis = false,
+  stagger = 40,
 }: {
   text: string;
   offset?: number;
   stagger?: number;
-  emphasis?: boolean;
 }) {
   return text.split(/\s+/).map((word, index) => (
     <span key={`${word}-${index}`}>
@@ -32,11 +30,7 @@ function HeroWords({
           { "--hero-word-delay": `${offset + Math.min(index, 16) * stagger}ms` } as CSSProperties
         }
       >
-        <span
-          className={`home-hero-word${emphasis && /^(money|time)[.!?]?$/.test(word) ? " home-hero-mark" : ""}`}
-        >
-          {word}
-        </span>
+        <span className="home-hero-word">{word}</span>
       </span>{" "}
     </span>
   ));
@@ -179,7 +173,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
   const heading = legacy
     ? `${content.prefix} ${content.highlighted} ${content.suffix} ${content.replacedWord} and ${content.finalWord.toLowerCase()}.`
     : content.heading;
-  const phrases = !legacy ? content.emphasis.match(/^(.*?)\s+(while you)\s+(.*)$/) : null;
+  const outcomeOffset = 180 + Math.min(heading.split(/\s+/).length, 16) * 40;
 
   return (
     <section
@@ -193,14 +187,18 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     >
       <div className="home-hero-atmosphere" aria-hidden="true" />
       <div className="home-hero-acceleration" aria-hidden="true">
-        <svg viewBox="0 0 600 800" fill="none">
-          {[0, 1, 2].map((index) => (
-            <g key={index} style={{ "--ribbon-index": index } as CSSProperties}>
+        {[0, 1, 2].map((index) => (
+          <div
+            className="home-hero-ribbon"
+            key={index}
+            style={{ "--ribbon-index": index } as CSSProperties}
+          >
+            <svg viewBox="0 0 600 800" fill="none">
               <path d="M-140 870 C-20 580 230 700 430 400 C560 205 395 75 710-160" />
               <path d="M-110 875 C25 595 265 720 465 425 C605 220 430 85 750-145" />
-            </g>
-          ))}
-        </svg>
+            </svg>
+          </div>
+        ))}
       </div>
       <div className="home-hero-field" aria-hidden="true">
         <svg viewBox="0 0 1200 760" fill="none" className="home-hero-contours">
@@ -279,21 +277,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                 <HeroWords text={heading} />
               </span>{" "}
               <em>
-                {phrases ? (
-                  <>
-                    <span className="home-hero-phrase">
-                      <HeroWords text={phrases[1] ?? ""} offset={420} stagger={60} emphasis />
-                    </span>{" "}
-                    <span className="home-hero-bridge">
-                      <HeroWords text={phrases[2] ?? ""} offset={600} />
-                    </span>{" "}
-                    <span className="home-hero-phrase">
-                      <HeroWords text={phrases[3] ?? ""} offset={720} stagger={60} emphasis />
-                    </span>
-                  </>
-                ) : (
-                  <HeroWords text={content.emphasis} offset={420} stagger={60} emphasis />
-                )}
+                <HeroWords text={content.emphasis} offset={outcomeOffset} />
               </em>
             </>
           )}

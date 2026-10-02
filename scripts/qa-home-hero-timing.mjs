@@ -23,7 +23,7 @@ for (const [label, viewport] of [
       .querySelector(".home-hero")
       .getAnimations({ subtree: true })
       .filter((animation) =>
-        /^home-hero-(word|label|detail|action|mark|contour)-enter$/.test(animation.animationName),
+        /^home-hero-(word|label|detail|action|contour|ribbon)-enter$/.test(animation.animationName),
       );
     window.__heroFrameAnimations.forEach((animation) => animation.pause());
   });
@@ -48,6 +48,9 @@ for (const [label, viewport] of [
           );
         }).length;
       return {
+        artwork: Number(
+          getComputedStyle(document.querySelector(".home-hero-acceleration")).opacity,
+        ),
         lead: visibleWords(".home-hero-lead .home-hero-word"),
         outcome: visibleWords(".home-hero-heading em .home-hero-word"),
         action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
@@ -58,7 +61,10 @@ for (const [label, viewport] of [
         ),
       };
     });
-    if (time === 0 && (frame.lead || frame.outcome || frame.action || frame.support))
+    if (
+      time === 0 &&
+      (frame.lead || frame.outcome || frame.action || frame.support || frame.artwork)
+    )
       failures.push(`${label}: opening frame exposes content before its entrance`);
     if (time === 350 && (!frame.lead || frame.outcome || frame.action))
       failures.push(`${label}: lead did not enter independently from outcome and booking`);
@@ -72,6 +78,8 @@ for (const [label, viewport] of [
       failures.push(`${label}: completed booking action cannot receive pointer clicks`);
     if (time === 3000 && (frame.action !== 1 || frame.support !== 1 || !frame.masks))
       failures.push(`${label}: completed entrance is incomplete or has no word masks`);
+    if (time === 3000 && frame.artwork < 0.2)
+      failures.push(`${label}: artwork did not complete its entrance`);
     entranceFrames.push({ label, time, ...frame });
     await page.screenshot({ caret: "initial", path: `${output}/${label}-frame-${time}.png` });
   }
@@ -126,12 +134,18 @@ for (const [label, viewport, colorScheme] of [
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
   const opening = await page.evaluate(() => {
     const heading = document.querySelector(".home-hero-heading");
+    const style = getComputedStyle(heading);
     const cta = document.querySelector(".home-hero-cta");
     return {
       heading: heading?.textContent?.trim(),
       cta: cta?.textContent?.trim(),
       aboveFold: cta?.getBoundingClientRect().bottom <= innerHeight,
       overflow: document.documentElement.scrollWidth > innerWidth + 1,
+      headingFontSize: parseFloat(style.fontSize),
+      headingLines: heading.getBoundingClientRect().height / parseFloat(style.lineHeight),
+      headingUniform: [...heading.querySelectorAll(".home-hero-word")].every(
+        (word) => getComputedStyle(word).font === style.font,
+      ),
       fullMessage: /make more money.*save more time/.test(
         heading?.textContent?.replace(/\s+/g, " ") ?? "",
       ),
@@ -145,6 +159,8 @@ for (const [label, viewport, colorScheme] of [
     !opening.fullMessage
   )
     failures.push(`${label}: headline or CTA is missing, below the fold, or page overflows`);
+  if (!opening.headingUniform || opening.headingFontSize < 34 || opening.headingLines > 6.1)
+    failures.push(`${label}: headline mixes typography or wraps into an unreadable composition`);
   await page.screenshot({ caret: "initial", path: `${output}/${label}-first.png` });
   await page.waitForFunction(
     () => document.querySelector(".home-hero").dataset.revealState === "visible",
@@ -195,11 +211,26 @@ for (const [label, viewport, colorScheme] of [
   await page.waitForFunction(
     () => document.querySelector(".home-hero").dataset.heroActive === "true",
   );
+  const ribbons = page.locator(".home-hero-ribbon");
+  const ribbonStart = await ribbons.evaluateAll((elements) =>
+    elements.map((element) => getComputedStyle(element).transform),
+  );
+  await page.waitForTimeout(250);
+  const ribbonMotion = await ribbons.evaluateAll((elements) => ({
+    transforms: elements.map((element) => getComputedStyle(element).transform),
+    durations: new Set(elements.map((element) => getComputedStyle(element).animationDuration)).size,
+  }));
+  if (
+    ribbonStart.length !== 3 ||
+    ribbonStart.some((transform, index) => transform === ribbonMotion.transforms[index]) ||
+    ribbonMotion.durations !== 3
+  )
+    failures.push(`${label}: artwork is static or its ribbon layers move in lockstep`);
   if (touch) {
     const idle = await page
       .locator(".home-hero-contours")
       .evaluate((element) => getComputedStyle(element).animationName);
-    if (idle !== "none") failures.push(`${label}: continuous decoration runs on a touch device`);
+    if (idle !== "none") failures.push(`${label}: repainting SVG contours loop on a touch device`);
     await page.touchscreen.tap(viewport.width - 18, 140);
     const pulseStarted = await page
       .locator(".home-hero-pulse")
@@ -283,6 +314,17 @@ for (const [label, viewport, colorScheme] of [
       failures.push(`${label}: interactive illumination stayed active offscreen`);
     await page.evaluate(() => window.scrollTo(0, 0));
   }
+  await page.locator("#selected-work").evaluate((element) => element.scrollIntoView());
+  await page.waitForFunction(
+    () => document.querySelector(".home-hero").dataset.heroActive === "false",
+  );
+  if (
+    !(await ribbons.evaluateAll((elements) =>
+      elements.every((element) => getComputedStyle(element).animationPlayState === "paused"),
+    ))
+  )
+    failures.push(`${label}: ribbon artwork kept running offscreen`);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ caret: "initial", path: `${output}/${label}-settled.png` });
   if (label === "desktop" || label === "mobile") {
     const booking = page.locator(".home-hero-cta");
@@ -326,7 +368,7 @@ for (const [label, viewport, colorScheme] of [
       failures.push(`${label}: prefetched forward navigation skipped the fresh entrance`);
     await page.waitForTimeout(3000);
   }
-  results.push({ label, viewport, colorScheme, opening, settled });
+  results.push({ label, viewport, colorScheme, opening, settled, ribbonMotion });
   await context.close();
   if (page.video()) await page.video().saveAs(`${output}/${label}-entrance.webm`);
 }
@@ -346,7 +388,10 @@ const reduced = await page.evaluate(() => ({
     (word) => getComputedStyle(word).animationName === "none",
   ),
   backgroundStatic:
-    getComputedStyle(document.querySelector(".home-hero-contours")).animationName === "none",
+    getComputedStyle(document.querySelector(".home-hero-contours")).animationName === "none" &&
+    [...document.querySelectorAll(".home-hero-ribbon")].every(
+      (element) => getComputedStyle(element).animationName === "none",
+    ),
   allContentStatic: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -495,6 +540,9 @@ const staticHero = await staticPage.evaluate(() => ({
   wordsStatic: [...document.querySelectorAll(".home-hero-word")].every(
     (word) => getComputedStyle(word).animationName === "none",
   ),
+  ribbonsStatic: [...document.querySelectorAll(".home-hero-ribbon")].every(
+    (element) => getComputedStyle(element).animationName === "none",
+  ),
   backgroundPaused:
     getComputedStyle(document.querySelector(".home-hero-contours")).animationPlayState === "paused",
   allContentReadable: [
@@ -509,6 +557,7 @@ if (
   !/make more money.*save more time/.test(staticHero.heading ?? "") ||
   staticHero.cta !== "1" ||
   !staticHero.wordsStatic ||
+  !staticHero.ribbonsStatic ||
   !staticHero.backgroundPaused ||
   !staticHero.allContentReadable
 )

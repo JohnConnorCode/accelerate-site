@@ -120,10 +120,18 @@ for (const [engine, launcher] of Object.entries(engines)) {
     await page.waitForTimeout(2200);
     const composition = await page.evaluate(() => {
       const hero = document.querySelector(".home-hero");
+      const heading = hero.querySelector("h1");
+      const headingStyle = getComputedStyle(heading);
       return {
         heroHeight: hero.getBoundingClientRect().height,
         viewportHeight: innerHeight,
-        headingHeight: hero.querySelector("h1").getBoundingClientRect().height,
+        headingHeight: heading.getBoundingClientRect().height,
+        headingFontSize: parseFloat(headingStyle.fontSize),
+        headingLines: heading.getBoundingClientRect().height / parseFloat(headingStyle.lineHeight),
+        headingUniform: [...heading.querySelectorAll(".home-hero-word")].every((word) => {
+          const style = getComputedStyle(word);
+          return style.font === headingStyle.font;
+        }),
         overflow: document.documentElement.scrollWidth > innerWidth + 1,
         actionOpacity: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
         documentId: window.__documentId,
@@ -131,7 +139,9 @@ for (const [engine, launcher] of Object.entries(engines)) {
     });
     if (
       composition.heroHeight < composition.viewportHeight ||
-      composition.headingHeight < 290 ||
+      composition.headingFontSize < 34 ||
+      composition.headingLines > 6.1 ||
+      !composition.headingUniform ||
       composition.overflow ||
       composition.actionOpacity !== 1
     )
@@ -144,6 +154,14 @@ for (const [engine, launcher] of Object.entries(engines)) {
     for (let visit = 0; visit < 3; visit++) {
       stage = `warm-visit-${visit}`;
       await page.getByRole("button", { name: "Open navigation menu" }).click();
+      if (
+        !(await page
+          .locator(".home-hero-ribbon")
+          .evaluateAll((elements) =>
+            elements.every((element) => getComputedStyle(element).animationPlayState === "paused"),
+          ))
+      )
+        failures.push(`${engine}: hero artwork kept moving behind the open menu`);
       await page.locator('#mobile-site-navigation a[href="/services"]').first().click();
       await page.waitForURL(`${base}/services`);
       await page.locator('header .logo-link[href="/"]').click();
