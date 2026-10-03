@@ -23,7 +23,9 @@ in the application.
 The design inference is to give the animation an identifiable subject, material
 and composed movement. Accelerate's existing three-chevron mark supplies that
 subject. Its three dimensional forms turn and separate on one continuous loop;
-their bevels and changing metallic reflections provide depth. The headline has
+their bevels and changing metallic reflections provide depth. The depth offsets
+open their projected spacing instead of collapsing the three forms at the far
+angle. The headline has
 its own space and stays steady. The implementation uses a small native WebGL
 mesh and a server-rendered SVG poster, without another graphics dependency.
 

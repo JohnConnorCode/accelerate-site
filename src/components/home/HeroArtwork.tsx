@@ -240,7 +240,7 @@ export function HeroArtwork() {
         const t = reduced.matches ? 0 : elapsed.current;
         const arc = (t * Math.PI) / 9;
         for (let i = 0; i < 3; i++) {
-          const depth = Math.sin(arc) ** 2 * (i - 1) * 0.5;
+          const depth = Math.sin(arc) ** 2 * (1 - i) * 0.5;
           gl.uniformMatrix4fv(
             model,
             false,
