@@ -32,7 +32,12 @@ const sampleFrames = (duration) =>
 
 for (const [engine, launcher] of Object.entries(engines)) {
   const browser = await launcher.launch({
-    ...(engine === "chromium" ? { ignoreDefaultArgs: ["--disable-back-forward-cache"] } : {}),
+    ...(engine === "chromium"
+      ? {
+          ignoreDefaultArgs: ["--disable-back-forward-cache"],
+          args: process.platform === "linux" ? ["--use-gl=angle", "--use-angle=swiftshader"] : [],
+        }
+      : {}),
   });
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -166,13 +171,10 @@ for (const [engine, launcher] of Object.entries(engines)) {
     for (let visit = 0; visit < 3; visit++) {
       stage = `warm-visit-${visit}`;
       await page.getByRole("button", { name: "Open navigation menu" }).click();
-      if (
-        !(await page
-          .locator(".home-hero-ribbon")
-          .evaluateAll((elements) =>
-            elements.every((element) => getComputedStyle(element).animationPlayState === "paused"),
-          ))
-      )
+      await page.waitForFunction(
+        () => document.querySelector(".home-hero-artwork").dataset.motionState === "paused",
+      );
+      if ((await page.locator(".home-hero-artwork").getAttribute("data-motion-state")) !== "paused")
         failures.push(`${engine}: hero artwork kept moving behind the open menu`);
       await page.locator('#mobile-site-navigation a[href="/services"]').first().click();
       await page.waitForURL(`${base}/services`);
