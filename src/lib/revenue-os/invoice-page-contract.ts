@@ -5,6 +5,13 @@ export const invoiceDesignSchema = z
     heading: z.string().trim().min(1).max(80),
     introduction: z.string().trim().max(500),
     closing: z.string().trim().max(300),
+    accentColor: z
+      .string()
+      .length(7)
+      .regex(/^#[0-9a-fA-F]{6}$/)
+      .optional(),
+    font: z.enum(["workspace", "sans", "serif"]).optional(),
+    spacing: z.enum(["comfortable", "compact"]).optional(),
   })
   .strict();
 

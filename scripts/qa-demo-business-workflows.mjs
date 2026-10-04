@@ -121,8 +121,76 @@ try {
         .locator(`[data-action-id="${creationId}"]`)
         .getByRole("button", { name: "Design customer page", exact: true })
         .click();
-      await page.getByRole("button", { name: "Draft with AI", exact: true }).click();
+      const livePreview = page.getByRole("region", { name: "Invoice design preview", exact: true });
+      await livePreview.waitFor();
+      const billingBefore = await livePreview.locator("table, dl").allTextContents();
+      const invoiceHeading = `${name} services`;
+      await page.getByLabel("Heading", { exact: true }).fill(invoiceHeading);
+      await livePreview.getByRole("heading", { name: invoiceHeading, exact: true }).waitFor();
+      await page
+        .getByRole("textbox", { name: "Describe your changes", exact: true })
+        .fill(
+          "Use editorial layout, serif typography, compact spacing, and #164e63. Keep my wording.",
+        );
+      await page.getByRole("button", { name: "Apply AI changes", exact: true }).focus();
+      await page.keyboard.press("Enter");
+      await page.getByRole("button", { name: "Undo AI changes", exact: true }).waitFor();
+      assert.equal(await page.getByLabel("Heading", { exact: true }).inputValue(), invoiceHeading);
+      assert.equal(
+        await page.getByRole("combobox", { name: "Typography", exact: true }).inputValue(),
+        "serif",
+      );
+      assert.equal(
+        await page.getByRole("combobox", { name: "Spacing", exact: true }).inputValue(),
+        "compact",
+      );
+      assert.equal(
+        await page.getByLabel("Invoice accent color", { exact: true }).inputValue(),
+        "#164e63",
+      );
+      assert.deepEqual(await livePreview.locator("table, dl").allTextContents(), billingBefore);
+      const appearance = await livePreview.evaluate((node) => ({
+        font: getComputedStyle(node).fontFamily,
+        headingFont: getComputedStyle(node.querySelector("h2")).fontFamily,
+        accent: getComputedStyle(node.firstElementChild).backgroundColor,
+        padding: getComputedStyle(node.children[1]).paddingTop,
+      }));
+      assert.match(appearance.font, /Georgia/);
+      assert.match(appearance.headingFont, /Georgia/);
+      assert.equal(appearance.accent, "rgb(22, 78, 99)");
+      assert.equal(appearance.padding, mobile ? "20px" : "28px");
+      assert.equal(
+        await livePreview.getByRole("link", { name: "Pay securely with Stripe" }).count(),
+        0,
+        "The editor must not navigate to payment",
+      );
+
+      await page.getByRole("button", { name: "Undo AI changes", exact: true }).click();
+      assert.equal(
+        await page.getByRole("combobox", { name: "Typography", exact: true }).inputValue(),
+        "workspace",
+      );
+      await page.getByRole("button", { name: "Apply AI changes", exact: true }).click();
+      await page.getByRole("button", { name: "Undo AI changes", exact: true }).waitFor();
       await page.getByRole("button", { name: "Preview page", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Request publication approval", exact: true })
+        .waitFor();
+      await page
+        .getByRole("textbox", { name: "Closing note", exact: true })
+        .fill("Thank you for working with our team.");
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Request publication approval", exact: true })
+          .count(),
+        0,
+        "Any edit requires a new publication review",
+      );
+      await page.getByRole("button", { name: "Preview page", exact: true }).click();
+      await stable(page);
+      await page.screenshot({
+        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-invoice-designer.png`,
+      });
       await page.getByRole("button", { name: "Request publication approval", exact: true }).click();
       await page
         .getByRole("button", { name: "Approve & publish page", exact: true })
@@ -132,6 +200,10 @@ try {
       await page.getByRole("link", { name: "Open demo invoice", exact: true }).click();
       await page.getByRole("heading", { name: "Customer invoice", exact: true }).waitFor();
       await page.getByRole("region", { name: "Customer invoice", exact: true }).waitFor();
+      await page
+        .getByRole("region", { name: "Customer invoice", exact: true })
+        .getByRole("heading", { name: invoiceHeading, exact: true })
+        .waitFor();
       await page.locator(".admin-main").evaluate((el) => {
         el.scrollTop = 0;
       });
@@ -141,6 +213,27 @@ try {
         path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-invoice.png`,
       });
       const customerUrl = page.url();
+      await page.getByRole("link", { name: "Back to invoices" }).click();
+      await page
+        .locator(`[data-action-id="${creationId}"]`)
+        .getByRole("button", { name: "Design customer page", exact: true })
+        .click();
+      await page.getByRole("region", { name: "Invoice design preview", exact: true }).waitFor();
+      assert.equal(
+        await page.getByLabel("Heading", { exact: true }).inputValue(),
+        invoiceHeading,
+        "Reopening starts from the published design",
+      );
+      assert.equal(
+        await page.getByRole("combobox", { name: "Typography", exact: true }).inputValue(),
+        "serif",
+      );
+      await page.getByLabel("Heading", { exact: true }).fill("Private draft changes");
+      await page.goto(customerUrl);
+      await page
+        .getByRole("region", { name: "Customer invoice", exact: true })
+        .getByRole("heading", { name: invoiceHeading, exact: true })
+        .waitFor();
       await page.getByRole("link", { name: "Back to invoices" }).click();
       await page
         .locator(`[data-action-id="${creationId}"]`)

@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "701775f0ea202849d1b45d124e3b13c374277332e328e1d9d519d1291b8e611a",
+      contractHash: "48972f85721ce54e2d50f388cb2438e2fb568b6ad68dcd6c9b2c6836bddda26f",
       tools: [
         {
           operation: "prepare-workflow",
@@ -464,7 +464,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "7b6898ffed0b9499e275ad2ffda158fece195fa4fb55735554eda7882b05c936",
+      contractHash: "98cb193223a0d5a0528241de92ff006300752c7fc27d22a38d0ff0933077b94d",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1161,7 +1161,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "9ce6b06966485617186f619f94b2907cacbf9a45f4dcd63fa6228c6882410cdb",
+      contractHash: "de61ed044dbc3f6a317cf32488360ef3904c21eec6cdb421e993557d023261da",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1383,6 +1383,20 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                     type: "string",
                     maxLength: 300,
                   },
+                  accentColor: {
+                    type: "string",
+                    minLength: 7,
+                    maxLength: 7,
+                    pattern: "^#[0-9a-fA-F]{6}$",
+                  },
+                  font: {
+                    type: "string",
+                    enum: ["workspace", "sans", "serif"],
+                  },
+                  spacing: {
+                    type: "string",
+                    enum: ["comfortable", "compact"],
+                  },
                 },
                 required: ["layout", "heading", "introduction", "closing"],
                 additionalProperties: false,
@@ -1430,6 +1444,20 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                   closing: {
                     type: "string",
                     maxLength: 300,
+                  },
+                  accentColor: {
+                    type: "string",
+                    minLength: 7,
+                    maxLength: 7,
+                    pattern: "^#[0-9a-fA-F]{6}$",
+                  },
+                  font: {
+                    type: "string",
+                    enum: ["workspace", "sans", "serif"],
+                  },
+                  spacing: {
+                    type: "string",
+                    enum: ["comfortable", "compact"],
                   },
                 },
                 required: ["layout", "heading", "introduction", "closing"],

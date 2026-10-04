@@ -485,8 +485,12 @@ It creates a fictional customer and a USD 5.00 test invoice, deliberately loses 
 successful line-write response, verifies an idempotent retry leaves one invoice
 and one line, checks disabled/duplicate approvals, finalizes and requests a
 test-mode send, and verifies branded publication/revocation using actual Stripe
-facts. It voids its open test invoice and retains provider audit history; a failed
-draft is reported for inspection. A successful run writes provider request IDs to
+facts. It now also attaches Stripe's documented test payment methods, proves a
+decline leaves the full invoice balance open, then pays with a successful test card
+and checks the shared receipt and customer page become paid with zero remaining.
+No real money moves. The paid test invoice retains provider audit history; an open
+invoice is voided on cleanup and a failed draft is reported for inspection.
+A successful run writes provider request IDs to
 `accelerate-stripe-sandbox-evidence.json` in the OS temporary directory.
 
 Real Stripe verification passed on 2026-09-05. This proves provider integration,

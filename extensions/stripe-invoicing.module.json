@@ -85,7 +85,7 @@
       "impact": "external_action",
       "reversibility": "irreversible"
     },
-    "contractHash": "9ce6b06966485617186f619f94b2907cacbf9a45f4dcd63fa6228c6882410cdb",
+    "contractHash": "de61ed044dbc3f6a317cf32488360ef3904c21eec6cdb421e993557d023261da",
     "tools": [
       {
         "operation": "prepare-workflow",
@@ -237,7 +237,15 @@
                 "layout": { "type": "string", "enum": ["classic", "editorial"] },
                 "heading": { "type": "string", "minLength": 1, "maxLength": 80 },
                 "introduction": { "type": "string", "maxLength": 500 },
-                "closing": { "type": "string", "maxLength": 300 }
+                "closing": { "type": "string", "maxLength": 300 },
+                "accentColor": {
+                  "type": "string",
+                  "minLength": 7,
+                  "maxLength": 7,
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "font": { "type": "string", "enum": ["workspace", "sans", "serif"] },
+                "spacing": { "type": "string", "enum": ["comfortable", "compact"] }
               },
               "required": ["layout", "heading", "introduction", "closing"],
               "additionalProperties": false
@@ -270,7 +278,15 @@
                 "layout": { "type": "string", "enum": ["classic", "editorial"] },
                 "heading": { "type": "string", "minLength": 1, "maxLength": 80 },
                 "introduction": { "type": "string", "maxLength": 500 },
-                "closing": { "type": "string", "maxLength": 300 }
+                "closing": { "type": "string", "maxLength": 300 },
+                "accentColor": {
+                  "type": "string",
+                  "minLength": 7,
+                  "maxLength": 7,
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "font": { "type": "string", "enum": ["workspace", "sans", "serif"] },
+                "spacing": { "type": "string", "enum": ["comfortable", "compact"] }
               },
               "required": ["layout", "heading", "introduction", "closing"],
               "additionalProperties": false

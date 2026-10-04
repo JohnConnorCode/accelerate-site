@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "invoice-design-revisions",
+    slug: "invoice-design-revisions",
+    title: "Refine customer invoice pages with AI",
+    description:
+      "Edit the current invoice presentation with AI and see changes in a live preview. Typography, spacing, color and wording are directly editable, with an undo control for AI changes. Reopen a published design to start another draft, then preview it before requesting publication approval. Existing customer links keep their approved design; Stripe continues to supply billing facts and the secure payment page.",
+    category: "improvement",
+    publishedAt: "2026-10-04",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

@@ -360,7 +360,7 @@ try {
     await page.getByRole("button", { name: "Approve & send invoice" }).click();
     await page.getByText("Stripe accepted the test request. No customer email was sent.").waitFor();
     await page.getByRole("button", { name: "Design customer page" }).click();
-    await page.getByRole("button", { name: "Draft with AI" }).click();
+    await page.getByRole("button", { name: "Apply AI changes" }).click();
     await page.getByRole("button", { name: "Preview page", exact: true }).click();
     await page.getByRole("heading", { name: "Built for your next chapter" }).waitFor();
 

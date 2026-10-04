@@ -205,13 +205,19 @@ async function main() {
     )) as import("../src/lib/revenue-os/stripe-contract").StripeInvoiceReceipt;
     assert.equal(sent.status, "open");
     assert.equal(sent.delivery, "not_sent_test_mode");
-    const design = await previewInvoicePage(db, proposed.id, defaultInvoiceDesign);
+    const design = await previewInvoicePage(db, proposed.id, {
+      ...defaultInvoiceDesign,
+      layout: "editorial",
+      accentColor: "#164e63",
+      font: "serif",
+      spacing: "compact",
+    });
     assert.equal(design.document.total, 500);
     const publication = await proposeInvoicePage(
       db,
       {
         creationActionId: proposed.id,
-        design: defaultInvoiceDesign,
+        design: design.design,
         digest: design.digest,
         requestId: randomUUID(),
       },
@@ -221,15 +227,32 @@ async function main() {
       pageId: string;
     };
     const links = await listInvoicePages(db, proposed.id);
+    assert.deepEqual(links[0]!.design, design.design);
     assert.equal((await readPublicInvoicePage(db, links[0]!.token!)).document.amountRemaining, 500);
+    const declinedCard = await api("/payment_methods/pm_card_chargeCustomerFail/attach", {
+      customer: customer.id,
+    });
+    await assert.rejects(
+      () => api("/invoices/" + draft.invoiceId + "/pay", { payment_method: declinedCard.id }),
+      /card_declined/,
+    );
+    const afterDecline = await readPublicInvoicePage(db, links[0]!.token!);
+    assert.equal(afterDecline.document.status, "open");
+    assert.equal(afterDecline.document.amountRemaining, 500);
+    const card = await api("/payment_methods/pm_card_visa/attach", { customer: customer.id });
+    const paid = await api("/invoices/" + draft.invoiceId + "/pay", { payment_method: card.id });
+    assert.equal(paid.livemode, false);
+    assert.equal(paid.status, "paid");
+    assert.equal(paid.amount_paid, 500);
+    const paidPage = await readPublicInvoicePage(db, links[0]!.token!);
+    assert.equal(paidPage.document.status, "paid");
+    assert.equal(paidPage.document.amountRemaining, 0);
+    assert.deepEqual(paidPage.design, design.design);
     await revokeInvoicePage(db, published.pageId, actor);
     await assert.rejects(() => readPublicInvoicePage(db, links[0]!.token!), /unavailable/);
     const final = await readStripeInvoiceForAction(db, proposed.id);
-    assert.equal(final.receipt.amountRemaining, 500);
-    // Only the exact test invoice created above is voided; retain provider audit history.
-    const voided = await api("/invoices/" + draft.invoiceId + "/void", {});
-    assert.equal(voided.status, "void");
-    assert.equal(voided.livemode, false);
+    assert.equal(final.receipt.status, "paid");
+    assert.equal(final.receipt.amountRemaining, 0);
     const evidence = {
       verifiedAt: new Date().toISOString(),
       accountId: account.id,
@@ -239,7 +262,7 @@ async function main() {
       currency: "usd",
       creates,
       lineCalls,
-      finalStatus: "void",
+      finalStatus: "paid",
       applicationDatabase: "isolated in-memory domain fixture; real Stripe transport",
       checks: [
         "real QuickJS and shared approval executor",
@@ -248,6 +271,8 @@ async function main() {
         "disabled queued send refused",
         "finalize and test send accepted",
         "branded publication and revocation with live Stripe facts",
+        "declined test payment keeps invoice open with full balance",
+        "successful test-card payment updates receipt and customer page to paid with zero balance",
       ],
       requests,
     };
