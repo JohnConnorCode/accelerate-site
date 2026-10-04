@@ -278,6 +278,9 @@ for (const [label, viewport, colorScheme] of [
   // Element screenshots scroll short/narrow viewports. Let the header and
   // floating chat transitions finish so they cannot masquerade as canvas motion.
   await canvas.scrollIntoViewIfNeeded();
+  // Scroll listeners and React state updates enqueue those transitions after
+  // scrollIntoView resolves; allow their existing 300 ms entrance to start/end.
+  await page.waitForTimeout(400);
   await page.waitForFunction(
     () =>
       !document
