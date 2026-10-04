@@ -9,7 +9,7 @@ const chapters = [
     output: "A clear plan",
     route:
       "M100 48 C100 100 176 104 176 174 M266 198 C318 184 338 236 374 246 M466 278 C516 290 514 314 514 350",
-    body: "An inquiry lost between a form and an inbox. A report rebuilt by hand every week. We find the gaps worth fixing.",
+    body: "Repeated data entry and reports rebuilt by hand are places to start. We trace the work and prioritize useful changes.",
     yaw: -0.55,
     pitch: 0.2,
     roll: -0.22,

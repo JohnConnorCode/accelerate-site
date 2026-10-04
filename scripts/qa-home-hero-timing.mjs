@@ -297,7 +297,7 @@ for (const [label, viewport, colorScheme] of [
           ? /CRM.*integrations/s
           : name === "Run & improve"
             ? /team learns.*monitor results/s
-            : /inquiry.*report/s
+            : /data entry.*reports/s
       ).test(detail)
     )
       failures.push(`${label}: ${name} has no distinct, concrete explanation`);
