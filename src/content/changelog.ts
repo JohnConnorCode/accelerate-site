@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "invoice-design-revisions",
     title: "Refine customer invoice pages with AI",
     description:
-      "Edit the current invoice presentation with AI and see changes in a live preview. Typography, spacing, color and wording are directly editable, with an undo control for AI changes. Reopen a published design to start another draft, then preview it before requesting publication approval. Existing customer links keep their approved design; Stripe continues to supply billing facts and the secure payment page.",
+      "See revisions in a live preview, adjust typography, spacing, color and wording directly, and undo the latest AI edit. Reopen a published design to start another draft, then preview it before requesting publication approval. Existing customer links keep their approved design; Stripe continues to supply billing facts and the secure payment page.",
     category: "improvement",
     publishedAt: "2026-10-04",
   },
