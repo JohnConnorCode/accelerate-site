@@ -275,6 +275,20 @@ for (const [label, viewport, colorScheme] of [
     failures.push(`${label}: decorative playback controls remain`);
   if ((await artwork.textContent()).includes("Accelerate / 01"))
     failures.push(`${label}: unexplained artwork numbering remains`);
+  // Element screenshots scroll short/narrow viewports. Let the header and
+  // floating chat transitions finish so they cannot masquerade as canvas motion.
+  await canvas.scrollIntoViewIfNeeded();
+  await page.waitForFunction(
+    () =>
+      !document
+        .getAnimations()
+        .some(
+          (animation) =>
+            animation.playState === "running" &&
+            (!(animation instanceof CSSAnimation) ||
+              animation.animationName.startsWith("home-hero-")),
+        ),
+  );
   const resting = await canvas.screenshot();
   await page.waitForTimeout(350);
   if (!resting.equals(await canvas.screenshot()))
@@ -360,11 +374,25 @@ for (const [label, viewport, colorScheme] of [
     const homeLink = page.locator('header .logo-link[href="/"]');
     await homeLink.hover();
     await page.waitForTimeout(350);
+    await page.evaluate(() => {
+      window.__heroForwardStart = performance.now();
+      window.__heroEntrances = [];
+    });
     await homeLink.click();
     await page.waitForURL(`${baseUrl}/`);
     await page.waitForFunction(() =>
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
+    await page
+      .waitForFunction(
+        () =>
+          window.__heroEntrances.some(
+            (entry) => entry.phase === "lead" && entry.time >= window.__heroForwardStart,
+          ),
+        null,
+        { timeout: 3000 },
+      )
+      .catch(() => {});
     const forward = await page.evaluate(() => {
       const hero = document.querySelector(".home-hero");
       const word = hero.querySelector(".home-hero-word");
@@ -379,17 +407,21 @@ for (const [label, viewport, colorScheme] of [
         currentTime: entrance?.currentTime,
         endTime: entrance?.effect.getComputedTiming().endTime,
         action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
+        freshLead: window.__heroEntrances.some(
+          (entry) => entry.phase === "lead" && entry.time >= window.__heroForwardStart,
+        ),
       };
     });
     settled.forward = forward;
-    // A client commit can be observed partway through its entrance. Require
-    // a live, fresh animation clock; concealed opening frames are tested above.
+    // A busy renderer can finish the first line before navigation is observed.
+    // Require a new rendered animation event, rather than sampling its clock
+    // within a deadline. Concealed opening frames are tested above.
     if (
       forward.kind !== "fresh" ||
       forward.animated !== "home-hero-word-enter" ||
       forward.immediate ||
-      forward.playState !== "running" ||
-      forward.currentTime >= forward.endTime
+      !["running", "finished"].includes(forward.playState) ||
+      !forward.freshLead
     )
       failures.push(
         `${label}: prefetched forward navigation skipped the fresh entrance: ${JSON.stringify(forward)}`,
