@@ -463,7 +463,12 @@ the migration twice, and verifies cross-tenant foreign keys, terminal replay
 constraints, RLS, immutable publication and permanent revocation.
 
 Browser QA uses `qa-business-fixture-server.mjs` on port 3044 and Next on 3023
-configured with its local Supabase URL, fixture keys and `ADMIN_EMAIL=qa@example.example`.
+configured with `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:3044`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_controlledfixture`,
+`SUPABASE_SERVICE_ROLE_KEY=controlled-fixture-key` and `ADMIN_EMAIL=qa@example.example`.
+These are fictional test keys, not credentials. The fixture acknowledges only the
+validated `consume_rate_limit` RPC with fictional abuse metadata; business-record
+writes remain refused. This does not prove production rate-limit concurrency.
 For the public page, preload `qa-business-fetch-fixture.mjs` through `NODE_OPTIONS`
 and set `GOOGLE_TOKEN_ENCRYPTION_KEY=controlled-browser-encryption`. The preload
 refuses external fetches and serves only the declared Stripe read fixture. Run
