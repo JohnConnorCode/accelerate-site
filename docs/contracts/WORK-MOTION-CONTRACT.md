@@ -38,21 +38,24 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   The pre-paint gate conceals complete words behind baseline-preserving masks,
   rather than moving already visible text. The eyebrow wipes in, responsive
   headline lines reveal as readable groups, then the explanation, booking
-  action and service index enter. Three sculptural ink sheets sweep into the
-  composition and move on separate 14/19/24-second clocks, including on phones.
-  Their movement must be perceptible during a three-second visit. Opposing
-  artwork depths respond to pointer movement and touch; the headline stays
-  steady. Each ink sheet fits inside a padded SVG viewport and its HTML paint
-  owner and parent response layer, including its rotation and offsets, so
-  WebKit cannot cut overflowing ink at a promoted layer edge.
-  Settled decoration must not animate SVG strokes,
-  masks or gradients. Pointer interaction caches geometry at entry/resize and
-  moves prepared layers without layout reads in pointer frames. Touch uses the
-  same local ink response with a finite expansion and fade. Repeated touches
-  continue from the current presentation. Native scrolling remains available;
-  pointer cancellation restores the field. Ambient artwork uses its hydrated
-  owner rather than the first-paint text gate, so a late runtime resumes its
-  motion after the safety watchdog without concealing readable text again.
+  action and service index enter. The artwork is a bevelled, dimensional version
+  of the existing three-chevron identity, composed beside the text. A controlled
+  rotation and separation of the three forms change their studio-light
+  reflections. Pointer movement and touches do not steer the composition.
+  `HeroArtwork` owns a small native WebGL mesh and its server-rendered SVG poster.
+  Drawing is capped at 30fps and 1.5 device-pixel ratio, with geometry measured
+  only on resize. Graphics initialization follows the finite hero entrance so
+  shader compilation cannot collapse the headline sequence on software renderers.
+  The server poster stays visible during that wait. Its clock pauses offscreen, in hidden tabs, behind mobile
+  navigation, for reduced motion, and through the visible keyboard-accessible
+  Pause/Play control on desktop and mobile. Resuming preserves elapsed time.
+  Keyboard focus exposes the control without cancelling its entrance clock;
+  moving focus away must not restart the entrance or change paused pixels.
+  GPU initialization failure or context loss retains the static poster, including
+  after a theme change. Cleanup releases GPU resources and observers.
+  Ambient artwork uses its hydrated owner rather than the first-paint text gate,
+  so a late runtime resumes motion after the safety watchdog without concealing
+  readable text again.
   Pending content must not flash.
   Reduced motion, unavailable JavaScript and the hydration watchdog show the
   complete static composition. Concealed booking actions do not accept pointer
@@ -72,7 +75,7 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 - Pending owners share one frame-coalesced fallback scroll listener. Geometry
   reads precede state writes. Coarse-pointer scrolling avoids large entrance
   blur and continuous media spring subscriptions. The homepage's full-height
-  touch composition keeps its bounded ribbon entrance and touch response.
+  touch composition keeps a dedicated artwork area and an accessible motion control.
 - Group children use a restrained semantic stagger. Cards stagger five semantic
   children from one owning wrapper; proof, CTA, and standalone media use one
   entrance on their owning wrapper.
@@ -90,7 +93,8 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 `npm run test:work-portfolio` enforces the ownership boundary statically.
 `npm run qa:home-hero-timing` additionally checks concealed pending words and
 actions, rendered entrance frames, semantic timing, complete fallback states,
-keyboard activation, history restoration and desktop/mobile interaction.
+keyboard activation, history restoration, actual changing and paused canvas pixels,
+GPU-unavailable/context-loss fallbacks, and desktop/mobile composition.
 `npm run qa:mobile-motion` checks full-height mobile composition, repeated warm
 client visits, reloads, Back/Forward, document history restoration, complete
 chapter traversal, layout stability and reduced motion. Pass `-- --webkit` for

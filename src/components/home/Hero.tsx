@@ -1,24 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useId, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, type CSSProperties } from "react";
 import { trackConversion } from "@/lib/analytics";
 import { homeHeroContent } from "@/content/site-studio/home";
 import type { HomeHeroContent } from "@/lib/site-studio/native-templates";
 import { useRevealLifecycle } from "@/components/motion/useReveal";
-
-const contours = Array.from(
-  { length: 4 },
-  (_, index) =>
-    `M-180 ${180 + index * 108} C150 ${-160 + index * 171} 330 ${790 - index * 99} 650 ${410 + index * 36} S1030 ${80 + index * 90} 1370 ${240 + index * 126}`,
-);
-
-// Static ink sheets. Their HTML owners provide motion; SVG never redraws a
-// changing curve, mask or gradient while the visitor moves through the field.
-const ribbonContours = [0, 4, 8, 12].map(
-  (lane) =>
-    `M${-180 + lane * 12} ${890 + lane * 5} C${-50 + lane * 16} ${560 + lane * 8} ${250 + lane * 10} ${755 + lane * 6} ${425 + lane * 10} ${420 + lane * 8} C${600 + lane * 14} ${160 + lane * 8} ${350 + lane * 14} ${65 + lane * 7} ${700 + lane * 14} ${-170 + lane * 7}`,
-);
+import { HeroArtwork } from "./HeroArtwork";
 
 function HeroWords({
   text,
@@ -45,7 +33,6 @@ function HeroWords({
 
 export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent }) {
   const sectionRef = useRevealLifecycle<HTMLElement>({ restoreHistory: true });
-  const lightId = useId();
   const legacy = "prefix" in content;
   const heading = legacy
     ? `${content.prefix} ${content.highlighted} ${content.suffix} ${content.replacedWord} and ${content.finalWord.toLowerCase()}.`
@@ -73,149 +60,24 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
   }, [content, sectionRef]);
   useEffect(() => {
     const section = sectionRef.current;
-    const field = section?.querySelector<HTMLElement>(".home-hero-field");
-    const response = section?.querySelector<HTMLElement>(".home-hero-response");
-    const focus = section?.querySelector<HTMLElement>(".home-hero-focus");
-    const surface = focus?.querySelector<HTMLElement>(".home-hero-focus-surface");
-    if (!section || !field || !response || !focus || !surface) return;
-    // Ambient motion belongs to this hydrated owner, not the first-paint text
-    // gate. A late runtime may resume artwork without hiding readable content.
-    section.dataset.heroMounted = "true";
+    if (!section) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const fine = window.matchMedia("(pointer: fine)");
     let visible = false;
-    let frame = 0;
-    let illumination: Animation | undefined;
-    let pressure: Animation | undefined;
-    let release = 0;
-    let bounds = section.getBoundingClientRect();
-    let lightSize = focus.offsetWidth;
-    let x = 0;
-    let y = 0;
-    const measure = () => {
-      bounds = section.getBoundingClientRect();
-      lightSize = focus.offsetWidth;
-    };
-    // Cache geometry at entry/resize. Pointer frames only change compositor
-    // transforms, rather than measuring layout or repainting SVG masks.
-    const position = () => {
-      frame = 0;
-      const localX = x - bounds.left;
-      const localY = y - bounds.top;
-      const depthX = Math.max(-0.5, Math.min(0.5, localX / bounds.width - 0.5));
-      const depthY = Math.max(-0.5, Math.min(0.5, localY / bounds.height - 0.5));
-      field.style.transform = `translate3d(${depthX * 56}px, ${depthY * 36}px, 0)`;
-      response.style.transform = `translate3d(${depthX * -88}px, ${depthY * -56}px, 0)`;
-      focus.style.transform = `translate3d(${localX - lightSize / 2}px, ${localY - lightSize / 2}px, 0)`;
-    };
-    const reset = () => {
-      window.cancelAnimationFrame(frame);
-      frame = 0;
-      window.clearTimeout(release);
-      illumination?.cancel();
-      pressure?.cancel();
-      section.dataset.heroFocus = "false";
-      field.style.transform = "translate3d(0, 0, 0)";
-      response.style.transform = "translate3d(0, 0, 0)";
-    };
-    const updateActivity = () => {
+    section.dataset.heroMounted = "true";
+    const activity = () => {
       section.dataset.heroActive = String(visible && !document.hidden && !reduced.matches);
-      if (section.dataset.heroActive === "false") reset();
     };
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry?.isIntersecting ?? false;
-      updateActivity();
+      activity();
     });
     observer.observe(section);
-    const move = (event: PointerEvent) => {
-      if (section.dataset.heroActive !== "true") return;
-      const mouse = fine.matches && event.pointerType === "mouse";
-      if (!mouse && (event.pointerType !== "touch" || event.buttons !== 1)) return;
-      x = event.clientX;
-      y = event.clientY;
-      if (mouse) {
-        illumination?.cancel();
-        if (section.dataset.heroFocus !== "true") section.dataset.heroFocus = "true";
-      }
-      if (!frame) frame = window.requestAnimationFrame(position);
-    };
-    const tap = (event: PointerEvent) => {
-      if (
-        section.dataset.heroActive !== "true" ||
-        event.button !== 0 ||
-        (event.target instanceof Element && event.target.closest("a, button, input"))
-      )
-        return;
-      const opacity = Number(getComputedStyle(focus).opacity);
-      const currentTransform = getComputedStyle(surface).transform;
-      measure();
-      x = event.clientX;
-      y = event.clientY;
-      position();
-      window.clearTimeout(release);
-      pressure?.cancel();
-      pressure = surface.animate(
-        [
-          { transform: currentTransform },
-          { transform: "scale(1.14)", offset: 0.35 },
-          { transform: "scale(1)" },
-        ],
-        { duration: 1800, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
-      );
-      if (fine.matches && event.pointerType === "mouse") return;
-      illumination?.cancel();
-      illumination = focus.animate([{ opacity }, { opacity: 1, offset: 0.25 }, { opacity: 0 }], {
-        duration: 1800,
-        easing: "cubic-bezier(0.25, 0.5, 0.25, 1)",
-      });
-      release = window.setTimeout(reset, 1850);
-    };
-    const preference = () => {
-      reset();
-      updateActivity();
-    };
-    const focusIn = (event: FocusEvent) => {
-      if (section.dataset.heroActive !== "true" || !(event.target instanceof HTMLElement)) return;
-      measure();
-      const target = event.target.getBoundingClientRect();
-      x = target.left + target.width / 2;
-      y = target.top + target.height / 2;
-      position();
-      illumination?.cancel();
-      section.dataset.heroFocus = "true";
-    };
-    const leave = (event: PointerEvent) => {
-      if (event.pointerType === "mouse") reset();
-    };
-    section.addEventListener("pointerenter", measure, { passive: true });
-    section.addEventListener("pointermove", move, { passive: true });
-    section.addEventListener("pointerleave", leave);
-    section.addEventListener("pointercancel", reset);
-    section.addEventListener("pointerdown", tap, { passive: true });
-    section.addEventListener("focusin", focusIn);
-    section.addEventListener("focusout", reset);
-    document.addEventListener("visibilitychange", updateActivity);
-    window.addEventListener("resize", measure, { passive: true });
-    reduced.addEventListener("change", preference);
-    fine.addEventListener("change", preference);
+    reduced.addEventListener("change", activity);
+    document.addEventListener("visibilitychange", activity);
     return () => {
-      section.dataset.heroMounted = "false";
       observer.disconnect();
-      window.cancelAnimationFrame(frame);
-      window.clearTimeout(release);
-      illumination?.cancel();
-      pressure?.cancel();
-      section.removeEventListener("pointerenter", measure);
-      section.removeEventListener("pointermove", move);
-      section.removeEventListener("pointerleave", leave);
-      section.removeEventListener("pointercancel", reset);
-      section.removeEventListener("pointerdown", tap);
-      section.removeEventListener("focusin", focusIn);
-      section.removeEventListener("focusout", reset);
-      document.removeEventListener("visibilitychange", updateActivity);
-      window.removeEventListener("resize", measure);
-      reduced.removeEventListener("change", preference);
-      fine.removeEventListener("change", preference);
+      reduced.removeEventListener("change", activity);
+      document.removeEventListener("visibilitychange", activity);
     };
   }, [sectionRef]);
 
@@ -230,86 +92,6 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       data-motion-role="home-hero"
       data-reveal-state="pending"
     >
-      <div className="home-hero-atmosphere" aria-hidden="true" />
-      <div className="home-hero-acceleration" aria-hidden="true">
-        <div className="home-hero-response">
-          {[0, 1, 2].map((index) => (
-            <div
-              className="home-hero-ribbon"
-              key={index}
-              style={{ "--ribbon-index": index } as CSSProperties}
-            >
-              <svg viewBox="-300 -200 1200 1200" fill="none">
-                <defs>
-                  <linearGradient id={`${lightId}-ribbon-${index}`} x2="1" y2="1">
-                    <stop stopColor="currentColor" stopOpacity="0" />
-                    <stop offset="0.22" stopColor="currentColor" stopOpacity="0.4" />
-                    <stop offset="0.58" stopColor="currentColor" stopOpacity="1" />
-                    <stop offset="1" stopColor="currentColor" stopOpacity="0" />
-                  </linearGradient>
-                  <linearGradient id={`${lightId}-sheet-${index}`} x1="0" y1="0.5" x2="1" y2="0.7">
-                    <stop stopColor="currentColor" stopOpacity="0" />
-                    <stop offset="0.22" stopColor="currentColor" stopOpacity="0.04" />
-                    <stop offset="0.5" stopColor="currentColor" stopOpacity="0.18" />
-                    <stop offset="0.72" stopColor="currentColor" stopOpacity="0.45" />
-                    <stop offset="1" stopColor="currentColor" stopOpacity="0.05" />
-                  </linearGradient>
-                </defs>
-                <path
-                  className="home-hero-ribbon-sheet"
-                  fill={`url(#${lightId}-sheet-${index})`}
-                  d="M-180 890 C-50 560 250 755 425 420 C600 160 350 65 700-170 L868-86 C518 149 768 256 545 516 C370 827 142 656-36 950 Z"
-                />
-                <g stroke={`url(#${lightId}-ribbon-${index})`}>
-                  {ribbonContours.map((path) => (
-                    <path key={path} d={path} />
-                  ))}
-                </g>
-              </svg>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="home-hero-field" aria-hidden="true">
-        <div className="home-hero-flow">
-          <svg viewBox="0 0 1200 760" fill="none" className="home-hero-contours">
-            <defs>
-              <linearGradient id={`${lightId}-ink`} x1="0" y1="0" x2="1" y2="0">
-                <stop stopColor="currentColor" stopOpacity="0" />
-                <stop offset="0.5" stopColor="currentColor" stopOpacity="0.1" />
-                <stop offset="1" stopColor="currentColor" stopOpacity="0.24" />
-              </linearGradient>
-            </defs>
-            <g className="home-hero-contour-lines" stroke={`url(#${lightId}-ink)`}>
-              {contours.map((path) => (
-                <path key={path} d={path} />
-              ))}
-            </g>
-          </svg>
-        </div>
-      </div>
-      <div className="home-hero-focus home-hero-pulse" aria-hidden="true">
-        <div className="home-hero-focus-surface">
-          <svg viewBox="0 0 300 300" fill="none">
-            <defs>
-              <linearGradient id={`${lightId}-focus`}>
-                <stop stopColor="currentColor" stopOpacity="0" />
-                <stop offset="0.45" stopColor="currentColor" stopOpacity="0.3" />
-                <stop offset="0.65" stopColor="currentColor" stopOpacity="0.18" />
-                <stop offset="1" stopColor="currentColor" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <g stroke={`url(#${lightId}-focus)`} strokeWidth="0.8">
-              {Array.from({ length: 6 }, (_, lane) => (
-                <path
-                  key={lane}
-                  d={`M-30 ${210 + lane * 9} C90 ${45 + lane * 15} 150 ${245 + lane * 6} 330 ${55 + lane * 15}`}
-                />
-              ))}
-            </g>
-          </svg>
-        </div>
-      </div>
       <div className="wrap home-hero-inner">
         <p className="label home-hero-eyebrow">{content.eyebrow}</p>
         <h1 id="home-hero-heading" className="home-hero-heading">
@@ -349,6 +131,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
           <span>Ongoing execution</span>
         </div>
       </div>
+      <HeroArtwork />
     </section>
   );
 }
