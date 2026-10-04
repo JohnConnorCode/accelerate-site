@@ -99,7 +99,7 @@
     "src/app/api/admin/google/sync/route.ts": "f48402ec4aecb7033af6f4f6e68f49e0623dd0d57dcc56c17bd95b6f525dd7de",
     "src/app/api/admin/inbox/route.ts": "cccb2726c649b723803094a08b45459d2f95c01299c7170a92ffa52e7a2667cf",
     "src/app/api/admin/integrations/route.ts": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb",
-    "src/app/api/admin/invoicing/pages/route.ts": "f94e4ac92458b7e68c88a6b610fc82c81ba5fc52605d7251f9bc16a9c4fb8233",
+    "src/app/api/admin/invoicing/pages/route.ts": "976266b5f66a3e8b0b7b58e5946e321a0c76ad030b910d58e7f928a5ec5f0e82",
     "src/app/api/admin/invoicing/route.ts": "5f4c2479a6239162bd1591fad503818c7276e09e2dc3ffa167910391a8ebe54c",
     "src/app/api/admin/knowledge/documents/route.ts": "2bd5551ffa70098c449cbcfac12e60bc9684c10af0a895ef84df9a72a2c18f35",
     "src/app/api/admin/leads/route.ts": "46aac5c5656abc5382e714e9d7f0976a4dd649959b8d8709240688f680d6f057",
@@ -235,7 +235,7 @@
     "src/components/admin/EmptyState.tsx": "8f132fb9c46c909d96dbcbc189faceaafb0055e6be06d217e61de3030533d2a1",
     "src/components/admin/FormsWorkspace.tsx": "4029feb6ee217b4b7f028f34b6319cac7907d28f77fba6049e4815e0ab40572b",
     "src/components/admin/InvoiceIndex.tsx": "30efc69dc7a789d08ac675da9cd6f1cdb475a13d705962704b4012327c3f6107",
-    "src/components/admin/InvoicePageDesigner.tsx": "8f23de09a4bbe8e5c58fcd3f87af34c74daac70b89bed0e3925456e1ef725e08",
+    "src/components/admin/InvoicePageDesigner.tsx": "52c0c03946d7e260d0fa154c3fe9e154a591ea49aba61fb7e5f89f05455fafc7",
     "src/components/admin/KnowledgeSources.tsx": "84fe6c5bcb787c4b75655166911cdf695edb22347074b0e1f2c9f3d304d1d6c8",
     "src/components/admin/LayoutCustomizeDialog.tsx": "b44371cf020302b208208d68d674d6554020030518c4e57d87c34b714ead7510",
     "src/components/admin/LayoutScopeCard.tsx": "2392593a0b7b7b2995dabfba624fbbb72928690eb05e2b92eef12da243928df3",
@@ -351,8 +351,8 @@
     "src/lib/revenue-os/inbound.ts": "e7befa23ba586f0c4a3b2fd5b2e1c6ea95710eb4dce4ec75601ef46e476a5f19",
     "src/lib/revenue-os/integration-adapters.ts": "7f427bb456d210228a21a62dc8afe84514a5c1c3f864815157d93742cf871baf",
     "src/lib/revenue-os/integrations.ts": "8d4d468661f4325468c53e9dfd613fa5ecc7c84b85ece0cb36f8f5b00c7aa304",
-    "src/lib/revenue-os/invoice-page-contract.ts": "350da047e7317f8e8e6d73cbce19749be9dd40bda82f180f8f0b8bd037da8baa",
-    "src/lib/revenue-os/invoice-pages.ts": "6572730905437cc60ff24cb31bd2f80724c4f49d67d1297fe567c454656c3d06",
+    "src/lib/revenue-os/invoice-page-contract.ts": "d17d126c0a6c8150529b679fdd1895eaaf7818a932046c662578b94f512aae07",
+    "src/lib/revenue-os/invoice-pages.ts": "270e214dd19657be1b4eabd19469fabb5a4eba405def1c2ed7a1372ed0ff6214",
     "src/lib/revenue-os/knowledge-documents.ts": "47a34d44a1dd97fc57b136f4d1f746b18572f627a0d8b18b8c24f9d1c8b99481",
     "src/lib/revenue-os/learning-inbox.ts": "3e41488df45146b0cccd60306eab937d1429c9aa86e5feedddbd040640021cd4",
     "src/lib/revenue-os/learning-signals.ts": "952ade0d696341fd1c1c48471cdc695cd591d4b38863bad9eaaa4cf98c6123e9",
@@ -1239,7 +1239,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice.",
+      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice. Invoice AI revisions validate the current presentation and use the tenant AI gateway; presentation fields do not author billing facts. Draft edits and Undo do not change published links. Reusing a saved design requires a fresh provider preview and publication approval to create a new customer link. Disabled plugins refuse design generation and customer access.",
       "followUp": null,
       "specialBoundary": null
     },
