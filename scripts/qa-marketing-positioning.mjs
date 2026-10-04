@@ -117,12 +117,12 @@ await motionPage.waitForTimeout(1_600);
 const hero = await motionPage.evaluate(() => {
   const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
   const header = rect(".site-header");
-  const eyebrow = rect(".home-hero-eyebrow");
+  const heading = rect(".home-hero-heading");
   const support = rect(".home-hero-support");
   const cta = rect(".home-hero-cta");
   const statement = rect(".hero-statement");
   return {
-    headerGap: eyebrow.top - header.bottom,
+    headerGap: heading.top - header.bottom,
     copyGap: support.top - rect(".home-hero-heading").bottom,
     actionGap: cta.top - support.bottom,
     headingOpacity: Number.parseFloat(

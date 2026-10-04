@@ -2,6 +2,46 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
+const chapters = [
+  {
+    label: "Strategy",
+    input: "Your everyday work",
+    output: "A clear plan",
+    route:
+      "M100 48 C100 100 176 104 176 174 M266 198 C318 184 338 236 374 246 M466 278 C516 290 514 314 514 350",
+    body: "An inquiry lost between a form and an inbox. A report rebuilt by hand every week. We find the gaps worth fixing.",
+    yaw: -0.55,
+    pitch: 0.2,
+    roll: -0.22,
+    spread: 0.3,
+    depth: 0.5,
+  },
+  {
+    label: "Build",
+    input: "The tools you use",
+    output: "Connected systems",
+    route: "M100 48 C100 132 144 208 200 208 C290 208 294 208 380 208 C488 208 514 280 514 350",
+    body: "Your inbox, CRM and team knowledge can work together. We connect them through custom workflows, AI agents and integrations.",
+    yaw: -0.3,
+    pitch: 0.12,
+    roll: -0.12,
+    spread: 0,
+    depth: 0,
+  },
+  {
+    label: "Run & improve",
+    input: "Work in motion",
+    output: "Reliable follow-through",
+    route: "M100 48 C34 48 28 318 126 318 H438 C558 318 568 100 466 100 H346",
+    body: "Follow-ups get handled. Your team learns the system. We monitor results and adjust the agreed work as your business changes.",
+    yaw: -0.42,
+    pitch: -0.12,
+    roll: -0.2,
+    spread: 0.12,
+    depth: -0.35,
+  },
+];
+
 type Point = [number, number, number];
 type Face = Point[];
 const outline: [number, number][] = [
@@ -61,8 +101,8 @@ const normal = (face: Face): Point => {
   return n.map((v) => v / length) as Point;
 };
 
-// A small, real mesh of the existing brand mark. Flat planes, bevels and studio
-// reflections give it a material; there is no pointer-following decoration.
+// The three brand chevrons move from separate opportunities into a connected
+// system. Pointer movement changes the viewpoint and the studio reflections.
 const vertex = `
 attribute vec3 position;
 attribute vec3 normal;
@@ -84,20 +124,22 @@ precision mediump float;
 varying vec3 point;
 varying vec3 surface;
 uniform float dark;
+uniform vec2 pointer;
 void main() {
   vec3 n = normalize(surface);
   vec3 eye = normalize(vec3(0.0, 0.0, 6.8) - point);
   vec3 r = reflect(-eye, n);
-  float key = max(dot(n, normalize(vec3(-1.0, 1.8, 2.0))), 0.0);
+  float key = max(dot(n, normalize(vec3(-1.0 + pointer.x, 1.8 + pointer.y, 2.0))), 0.0);
   float rim = pow(1.0 - max(dot(n, eye), 0.0), 3.0);
   // Rectangular studio softboxes reflected by the actual bevelled geometry.
-  float strip = exp(-pow((r.x + 0.68) / 0.16, 2.0)) * (1.0 - smoothstep(0.6, 0.9, abs(r.y)));
+  float strip = exp(-pow((r.x + 0.68 - pointer.x * 0.18) / 0.16, 2.0)) * (1.0 - smoothstep(0.6, 0.9, abs(r.y)));
   float softbox = exp(-pow((r.x - 0.3) / 0.45, 2.0)) * exp(-pow((r.y + 0.4) / 0.6, 2.0));
   float roof = exp(-pow((r.y + 0.74) / 0.25, 2.0)) * 0.3;
   float edge = pow(max(dot(n, normalize(vec3(1.0, -0.3, 2.0))), 0.0), 32.0);
   vec3 graphite = vec3(0.027, 0.032, 0.038);
   vec3 steel = vec3(0.92, 0.94, 0.96);
-  vec3 color = mix(graphite, steel, clamp(key * 0.05 + strip * 0.86 + softbox * 0.42 + roof, 0.0, 1.0));
+  vec3 color = mix(graphite, steel, clamp(key * 0.16 + strip * 0.86 + softbox * 0.42 + roof, 0.0, 1.0));
+  color += vec3(0.15, 0.1, 0.04) * rim * 0.35;
   color += rim * mix(0.04, 0.14, dark) + edge * 0.2;
   gl_FragColor = vec4(color, 1.0);
 }`;
@@ -127,37 +169,48 @@ const transform = (p: Point, m: Float32Array): Point => [
   m[1]! * p[0] + m[5]! * p[1] + m[9]! * p[2] + m[13]!,
   m[2]! * p[0] + m[6]! * p[1] + m[10]! * p[2] + m[14]!,
 ];
-const poster = [0, 1, 2]
-  .flatMap((index) => {
-    const m = pose(-0.65, 0.25, -0.3, index * 1.125);
-    return faces
-      .map((face) => {
-        const points = face.map((p) => transform(p, m));
-        return {
-          points,
-          shade: normal(points)[2],
-          depth: points.reduce((s, p) => s + p[2], 0) / points.length,
-        };
-      })
-      .filter((face) => face.shade > 0);
-  })
-  .sort((a, b) => a.depth - b.depth);
+const posters = chapters.map((chapter) =>
+  [0, 1, 2]
+    .flatMap((index) => {
+      const m = pose(
+        chapter.yaw + (index - 1) * chapter.spread * 0.18,
+        chapter.pitch,
+        chapter.roll,
+        index * 1.125 + (index - 1) * chapter.spread,
+        (1 - index) * chapter.depth,
+      );
+      return faces
+        .map((face) => {
+          const points = face.map((p) => transform(p, m));
+          return {
+            points,
+            shade: normal(points)[2],
+            depth: points.reduce((s, p) => s + p[2], 0) / points.length,
+          };
+        })
+        .filter((face) => face.shade > 0);
+    })
+    .sort((a, b) => a.depth - b.depth),
+);
 
 export function HeroArtwork() {
   const id = useId();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const elapsed = useRef(0);
-  const [paused, setPaused] = useState(false);
+  const [chapter, setChapter] = useState(0);
+  const selected = useRef(0);
+  const wake = useRef<() => void>(() => {});
   useEffect(() => {
     const canvas = canvasRef.current;
     const hero = canvas?.closest<HTMLElement>(".home-hero");
     if (!canvas || !hero) return;
-    const stage = canvas.parentElement!;
+    const scene = canvas.parentElement!;
+    const stage = canvas.closest<HTMLElement>(".home-hero-artwork")!;
     stage.dataset.motionState = "paused";
     // Shader compilation can block on software renderers. Let the readable
     // entrance finish first; the server poster occupies the same stage meanwhile.
     let cancelled = false;
     let queued = false;
+    const mountedAt = performance.now();
     let dispose: (() => void) | undefined;
     const render = () => {
       const gl = canvas.getContext("webgl", {
@@ -224,7 +277,12 @@ export function HeroArtwork() {
       const model = gl.getUniformLocation(program, "model");
       const viewport = gl.getUniformLocation(program, "viewport");
       const theme = gl.getUniformLocation(program, "dark");
+      const pointer = gl.getUniformLocation(program, "pointer");
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const current = { ...chapters[selected.current]!, x: 0, y: 0 };
+      let targetX = 0,
+        targetY = 0,
+        elapsed = Math.min((performance.now() - mountedAt) / 1000, 4.4);
       let frame = 0,
         last = 0,
         painted = 0,
@@ -237,19 +295,21 @@ export function HeroArtwork() {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.uniform2f(viewport, canvas.width, canvas.height);
         gl.uniform1f(theme, Number(document.documentElement.classList.contains("dark")));
-        const t = reduced.matches ? 0 : elapsed.current;
-        const arc = (t * Math.PI) / 9;
+        gl.uniform2f(pointer, current.x, current.y);
+        // One short entrance settles into a still composition. Further motion
+        // follows an intentional interaction, with no perpetual playback control.
+        const entrance = reduced.matches ? 0 : Math.sin(Math.min(elapsed / 4.4, 1) * Math.PI) ** 2;
         for (let i = 0; i < 3; i++) {
-          const depth = Math.sin(arc) ** 2 * (1 - i) * 0.5;
+          const separation = (i - 1) * current.spread;
           gl.uniformMatrix4fv(
             model,
             false,
             pose(
-              -0.65 + Math.sin(arc) * 0.45,
-              0.25 + Math.sin(arc * 2) * 0.09,
-              -0.3 + Math.sin(arc) * 0.12,
-              i * 1.125,
-              depth,
+              current.yaw + current.x * 0.38 + entrance * 0.18 + separation * 0.18,
+              current.pitch + current.y * 0.24,
+              current.roll + current.x * 0.04,
+              i * 1.125 + separation,
+              (1 - i) * (current.depth + entrance * 0.3),
             ),
           );
           gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6);
@@ -258,28 +318,59 @@ export function HeroArtwork() {
       };
       const tick = (now: number) => {
         if (!active) return;
-        if (last) elapsed.current += Math.min(now - last, 100) / 1000;
+        const delta = last ? Math.min(now - last, 64) : 16;
+        elapsed += delta / 1000;
         last = now;
+        const blend = 1 - Math.exp(-delta / 170);
+        const goal = chapters[selected.current]!;
+        let distance = Math.abs(targetX - current.x) + Math.abs(targetY - current.y);
+        current.x += (targetX - current.x) * blend;
+        current.y += (targetY - current.y) * blend;
+        for (const key of ["yaw", "pitch", "roll", "spread", "depth"] as const) {
+          distance += Math.abs(goal[key] - current[key]);
+          current[key] += (goal[key] - current[key]) * blend;
+        }
         if (now - painted >= 1000 / 30) {
           draw();
           painted = now;
         }
-        frame = requestAnimationFrame(tick);
+        if (elapsed < 4.4 || distance > 0.0005) frame = requestAnimationFrame(tick);
+        else {
+          active = false;
+          stage.dataset.motionState = "settled";
+        }
       };
       const sync = () => {
         cancelAnimationFrame(frame);
         last = 0;
         active =
           !lostContext &&
-          !paused &&
           !reduced.matches &&
           !document.hidden &&
           hero.dataset.heroActive === "true" &&
           document.body.dataset.mobileNavigation !== "open";
         stage.dataset.motionState = active ? "playing" : "paused";
+        if (reduced.matches) {
+          Object.assign(current, chapters[selected.current]!, { x: 0, y: 0 });
+          targetX = targetY = 0;
+        }
         draw();
         if (active) frame = requestAnimationFrame(tick);
       };
+      wake.current = sync;
+      const point = (event: PointerEvent) => {
+        if (event.pointerType === "touch" || reduced.matches) return;
+        const bounds = scene.getBoundingClientRect();
+        targetX = Math.max(-1, Math.min(1, ((event.clientX - bounds.left) / bounds.width) * 2 - 1));
+        targetY = Math.max(-1, Math.min(1, 1 - ((event.clientY - bounds.top) / bounds.height) * 2));
+        if (!active) sync();
+      };
+      const release = () => {
+        targetX = targetY = 0;
+        if (!active) sync();
+      };
+      scene.addEventListener("pointermove", point);
+      scene.addEventListener("pointerleave", release);
       const resize = () => {
         const bounds = canvas.getBoundingClientRect();
         const density = Math.min(devicePixelRatio || 1, 1.5);
@@ -317,6 +408,9 @@ export function HeroArtwork() {
         reduced.removeEventListener("change", sync);
         document.removeEventListener("visibilitychange", sync);
         canvas.removeEventListener("webglcontextlost", lost);
+        scene.removeEventListener("pointermove", point);
+        scene.removeEventListener("pointerleave", release);
+        wake.current = () => {};
         gl.deleteBuffer(buffer);
         gl.deleteProgram(program);
         shaders.forEach((shader) => gl.deleteShader(shader));
@@ -335,7 +429,8 @@ export function HeroArtwork() {
         .getAnimations({ subtree: true })
         .filter(
           (animation) =>
-            animation instanceof CSSAnimation && animation.animationName.startsWith("home-hero-"),
+            animation instanceof CSSAnimation &&
+            /^home-hero-(word|detail|action)-enter$/.test(animation.animationName),
         );
       void Promise.all(animations.map((animation) => animation.finished.catch(() => {}))).then(
         () => {
@@ -352,50 +447,84 @@ export function HeroArtwork() {
       entrance.disconnect();
       dispose?.();
     };
-  }, [paused]);
+  }, []);
+  const chapterContent = chapters[chapter]!;
   return (
-    <div className="home-hero-artwork" data-artwork-ready="false" data-motion-state="paused">
-      <svg className="home-hero-poster" viewBox="0 0 600 650" aria-hidden="true">
-        <defs>
-          <linearGradient id={id} x1="0" y1="0" x2="1" y2="0.5">
-            <stop stopColor="#22262a" />
-            <stop offset="0.28" stopColor="#9ca1a5" />
-            <stop offset="0.46" stopColor="#e7e9ea" />
-            <stop offset="0.53" stopColor="#555b60" />
-            <stop offset="1" stopColor="#292d31" />
-          </linearGradient>
-        </defs>
-        {poster.map(({ points, shade }, index) => (
+    <div
+      className="home-hero-artwork"
+      data-artwork-ready="false"
+      data-motion-state="paused"
+      data-chapter={chapter}
+    >
+      <div className="home-hero-scene" aria-hidden="true">
+        <svg className="home-hero-flow" viewBox="0 0 600 400" preserveAspectRatio="none">
+          <path d={chapterContent.route} />
           <path
-            key={index}
-            d={
-              points
-                .map(
-                  ([x, y, z], i) =>
-                    `${i ? "L" : "M"}${(300 + (x * 861.25) / (6.8 - z)).toFixed(3)} ${(325 - (y * 861.25) / (6.8 - z)).toFixed(3)}`,
-                )
-                .join(" ") + " Z"
-            }
-            fill={
-              shade > 0.5
-                ? `url(#${id})`
-                : `rgb(${(40 + shade * 110).toFixed(2)}, ${(43 + shade * 110).toFixed(2)}, ${(47 + shade * 110).toFixed(2)})`
-            }
+            key={chapter}
+            className="home-hero-flow-signal"
+            d={chapterContent.route}
+            pathLength="1"
           />
+          <circle cx="100" cy="48" r="3" />
+          {chapter === 2 ? <circle cx="346" cy="100" r="3" /> : <circle cx="514" cy="350" r="3" />}
+        </svg>
+        <span className="home-hero-signal home-hero-signal-input">{chapterContent.input}</span>
+        <svg className="home-hero-poster" viewBox="0 0 600 650" aria-hidden="true">
+          <defs>
+            <linearGradient id={id} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="325">
+              <stop stopColor="#22262a" />
+              <stop offset="0.28" stopColor="#9ca1a5" />
+              <stop offset="0.46" stopColor="#e7e9ea" />
+              <stop offset="0.53" stopColor="#555b60" />
+              <stop offset="1" stopColor="#292d31" />
+            </linearGradient>
+          </defs>
+          {posters[chapter]!.map(({ points, shade }, index) => (
+            <path
+              key={index}
+              d={
+                points
+                  .map(
+                    ([x, y, z], i) =>
+                      `${i ? "L" : "M"}${(300 + (x * 861.25) / (6.8 - z)).toFixed(3)} ${(325 - (y * 861.25) / (6.8 - z)).toFixed(3)}`,
+                  )
+                  .join(" ") + " Z"
+              }
+              fill={
+                shade > 0.5
+                  ? `url(#${id})`
+                  : `rgb(${(40 + shade * 110).toFixed(2)}, ${(43 + shade * 110).toFixed(2)}, ${(47 + shade * 110).toFixed(2)})`
+              }
+            />
+          ))}
+        </svg>
+        <canvas ref={canvasRef} className="home-hero-canvas" aria-hidden="true" />
+        <span className="home-hero-signal home-hero-signal-output">{chapterContent.output}</span>
+      </div>
+      <div className="home-hero-chapters" role="group" aria-label="Explore how we help">
+        {chapters.map((item, index) => (
+          <button
+            key={item.label}
+            type="button"
+            aria-pressed={chapter === index}
+            aria-controls={`${id}-detail`}
+            onClick={() => {
+              selected.current = index;
+              setChapter(index);
+              wake.current();
+            }}
+          >
+            {item.label}
+          </button>
         ))}
-      </svg>
-      <canvas ref={canvasRef} className="home-hero-canvas" aria-hidden="true" />
-      <div className="home-hero-artwork-caption">
-        <span aria-hidden="true">Accelerate / 01</span>
-        <button
-          type="button"
-          className="home-hero-artwork-pause"
-          onClick={() => setPaused(!paused)}
-          aria-label={paused ? "Play hero animation" : "Pause hero animation"}
-        >
-          <span aria-hidden="true">{paused ? "▶" : "Ⅱ"}</span>
-          {paused ? "Play motion" : "Pause motion"}
-        </button>
+      </div>
+      <div
+        id={`${id}-detail`}
+        className="home-hero-artwork-detail"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <p>{chapterContent.body}</p>
       </div>
     </div>
   );

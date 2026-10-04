@@ -637,7 +637,7 @@ await firstFramePage.route("**/_next/static/chunks/*.js", async (route) => {
   await route.continue();
 });
 const firstFrameNavigation = firstFramePage.goto(`${baseUrl}/`, { waitUntil: "load" });
-await firstFramePage.waitForSelector(".home-hero-eyebrow");
+await firstFramePage.waitForSelector(".home-hero-heading");
 const firstPaint = await firstFramePage.evaluate(() => ({
   headline: document.querySelector(".home-hero-heading")?.textContent?.trim(),
   cta: document.querySelector(".home-hero-cta")?.textContent?.trim(),
@@ -648,7 +648,7 @@ await firstFrameNavigation;
 await firstFramePage.locator(".home-hero-heading").waitFor({ timeout: 4_000 });
 await firstFramePage.waitForTimeout(160);
 await firstFramePage.screenshot({
-  path: `${output}/mobile-home-eyebrow-entry.png`,
+  path: `${output}/mobile-home-heading-entry.png`,
   fullPage: false,
 });
 await firstFrame.close();
