@@ -169,6 +169,9 @@ const transform = (p: Point, m: Float32Array): Point => [
   m[1]! * p[0] + m[5]! * p[1] + m[9]! * p[2] + m[13]!,
   m[2]! * p[0] + m[6]! * p[1] + m[10]! * p[2] + m[14]!,
 ];
+// SVG fills the concave front/back planes directly, avoiding anti-alias seams
+// between the triangles used by the GPU mesh.
+const posterFaces = [front.slice().reverse(), back, ...faces.slice(8)];
 const posters = chapters.map((chapter) =>
   [0, 1, 2]
     .flatMap((index) => {
@@ -179,7 +182,7 @@ const posters = chapters.map((chapter) =>
         index * 1.125 + (index - 1) * chapter.spread,
         (1 - index) * chapter.depth,
       );
-      return faces
+      return posterFaces
         .map((face) => {
           const points = face.map((p) => transform(p, m));
           return {
@@ -337,6 +340,10 @@ export function HeroArtwork() {
         if (elapsed < 4.4 || distance > 0.0005) frame = requestAnimationFrame(tick);
         else {
           active = false;
+          // Paint the exact resting pose even if the last tick missed the
+          // 30 fps budget. Subsequent visibility/resize reads stay identical.
+          Object.assign(current, goal, { x: targetX, y: targetY });
+          draw();
           stage.dataset.motionState = "settled";
         }
       };

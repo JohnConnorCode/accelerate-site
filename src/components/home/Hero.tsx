@@ -34,6 +34,8 @@ function HeroWords({
 export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent }) {
   const sectionRef = useRevealLifecycle<HTMLElement>({ restoreHistory: true });
   const legacy = "prefix" in content;
+  // The default service list repeats the artwork controls; distinct owner copy still renders.
+  const eyebrow = content.eyebrow === homeHeroContent.eyebrow ? "" : content.eyebrow;
   const heading = legacy
     ? `${content.prefix} ${content.highlighted} ${content.suffix} ${content.replacedWord} and ${content.finalWord.toLowerCase()}.`
     : content.heading;
@@ -92,6 +94,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       data-reveal-state="pending"
     >
       <div className="wrap home-hero-inner">
+        {eyebrow && <p className="label home-hero-eyebrow">{eyebrow}</p>}
         <h1 id="home-hero-heading" className="home-hero-heading">
           {legacy ? (
             <HeroWords text={heading} />

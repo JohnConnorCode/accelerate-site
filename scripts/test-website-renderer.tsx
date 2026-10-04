@@ -44,8 +44,23 @@ for (const [template, fields] of Object.entries(nativeTemplateDefaults)) {
     />,
   );
   assert.ok(output.length > 0);
-  if ("eyebrow" in fields) assert.ok(output.includes(fields.eyebrow));
+  if ("eyebrow" in fields) {
+    if (template === "home-hero") assert.ok(!output.includes(fields.eyebrow));
+    else assert.ok(output.includes(fields.eyebrow));
+  }
 }
+const customHero = renderToStaticMarkup(
+  renderNativeWebsiteSection({
+    id: "owner-hero",
+    template: "home-hero",
+    hidden: false,
+    fields: { ...nativeTemplateDefaults["home-hero"], eyebrow: "An independent local workshop" },
+  }),
+);
+assert.ok(
+  customHero.includes("An independent local workshop"),
+  "A distinct owner-authored eyebrow remains editable",
+);
 const custom = renderToStaticMarkup(
   renderNativeWebsiteSection({
     id: "owner-copy",
