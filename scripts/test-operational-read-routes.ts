@@ -143,13 +143,13 @@ async function route(path: string) {
       },
     ],
   });
-  const module = { exports: {} as { GET: (request: NextRequest) => Promise<NextResponse> } };
+  const compiled = { exports: {} as { GET: (request: NextRequest) => Promise<NextResponse> } };
   new Function("require", "module", "exports", bundle.outputFiles[0]!.text)(
     require,
-    module,
-    module.exports,
+    compiled,
+    compiled.exports,
   );
-  return module.exports.GET;
+  return compiled.exports.GET;
 }
 async function main() {
   const inbox = await route("src/app/api/admin/inbox/route.ts");
