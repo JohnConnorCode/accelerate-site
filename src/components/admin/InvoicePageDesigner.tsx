@@ -114,16 +114,17 @@ export function InvoicePageDesigner({
   function travel(direction: "undo" | "redo") {
     setHistory((previous) => {
       const source = direction === "undo" ? previous.past : previous.future;
-      if (!source.length) return previous;
+      const target = direction === "undo" ? source.at(-1) : source[0];
+      if (!target) return previous;
       return direction === "undo"
         ? {
-            current: source.at(-1)!,
+            current: target,
             past: source.slice(0, -1),
             future: [design, ...previous.future],
             field: null,
           }
         : {
-            current: source[0],
+            current: target,
             past: [...previous.past, design].slice(-40),
             future: source.slice(1),
             field: null,
