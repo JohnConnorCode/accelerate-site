@@ -254,9 +254,12 @@ try {
       });
       await sync.focus();
       await page.keyboard.press("Enter");
-      await page
-        .getByText("Workspace sync is already running; no new sync was started.", { exact: true })
-        .waitFor();
+      const busyNotice = page.getByText(
+        "Workspace sync is already running; no new sync was started.",
+        { exact: true },
+      );
+      await busyNotice.waitFor();
+      await busyNotice.scrollIntoViewIfNeeded();
       assert.equal(await page.getByText("Workspace sync completed.", { exact: true }).count(), 0);
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
@@ -271,7 +274,7 @@ try {
       await page.goto(`${base}/demo/command-center/${scenario}/emails`, {
         waitUntil: "networkidle",
       });
-      await page.getByRole("heading", { name: "Email Studio", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Email Templates", exact: true }).waitFor();
       await page.evaluate(() => {
         const original = window.fetch;
         window.fetch = async (input, init) => {
@@ -285,10 +288,11 @@ try {
       await history.focus();
       await page.keyboard.press("Enter");
       await page.getByRole("button", { name: "Refresh Email Studio", exact: true }).click();
-      await page
+      const partialNotice = page
         .getByRole("status")
-        .filter({ hasText: "Some email history could not be read." })
-        .waitFor();
+        .filter({ hasText: "Some email history could not be read." });
+      await partialNotice.waitFor();
+      await partialNotice.scrollIntoViewIfNeeded();
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
         false,

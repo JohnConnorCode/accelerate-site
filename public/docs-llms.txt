@@ -107,10 +107,10 @@ The discipline that decides most inquiries: respond first, follow through, and l
 ## Outreach
 Campaigns, email templates, and reactivation of past demand.
 
-- [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-09-19): Review audiences and messages, run approved campaigns, and inspect delivery results.
+- [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-10-05): Review audiences and messages, run approved campaigns, and inspect delivery results.
 - [Review collection reminders](https://www.acceleratewith.us/docs/outreach/collections) (updated 2026-09-29): Chase what invoicing confirms is owed, with every reminder requiring your approval.
 - [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-09): Approve one version, then automation runs entirely inside the rules you set for it.
-- [Email Studio](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-10-05): Edit the actual live copy, check what really sent, and write a direct one-off follow-up.
+- [Email Templates](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-10-05): Edit the actual live copy, check what really sent, and write a direct one-off follow-up.
 - [Review recovery outreach](https://www.acceleratewith.us/docs/outreach/recovery) (updated 2026-09-19): Check who qualifies and the proposed playbook before reopening a past lead.
 
 ## Delivery
@@ -119,7 +119,7 @@ Clients, bookings, content, and resources after the sale.
 - [Delivery](https://www.acceleratewith.us/docs/delivery/overview) (updated 2026-09-27): Coordinate client accounts, bookings, editorial work and resource-download follow-up.
 - [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-09-19): Find an account, check what it's worth, and open its delivery record.
 - [Review bookings](https://www.acceleratewith.us/docs/delivery/bookings) (updated 2026-09-27): Prep for the call, then record what happened once it's over.
-- [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-23): Track a brief from idea to published, and verify a review caught what mattered.
+- [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-10-05): Track a brief from idea to published, and verify a review caught what mattered.
 - [Review resource downloads](https://www.acceleratewith.us/docs/delivery/resources) (updated 2026-09-27): Find who requested a resource, when, and whether that's worth a real follow-up.
 
 ## Sources

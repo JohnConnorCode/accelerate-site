@@ -10,7 +10,7 @@ const scenarioBrands = [
   ["hearthline-realty", "Hearthline Realty Group"],
   ["common-table-network", "Common Table Community Network"],
 ];
-const output = "/tmp/accelerate-email-studio";
+const output = process.env.QA_OUTPUT || "/tmp/accelerate-email-studio";
 const failures = [];
 
 await mkdir(output, { recursive: true });
@@ -39,7 +39,9 @@ for (const [label, viewport] of [
     waitUntil: "domcontentloaded",
     timeout: 60_000,
   });
-  await page.getByRole("heading", { name: "Email Studio" }).waitFor({ timeout: 30_000 });
+  await page
+    .getByRole("heading", { name: "Email Templates", exact: true })
+    .waitFor({ timeout: 30_000 });
   const initialPreview = page.locator('iframe[title^="Email preview:"]');
   await initialPreview.waitFor({ timeout: 15_000 });
   const initialFrame = page.frameLocator('iframe[title^="Email preview:"]');
