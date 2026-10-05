@@ -53,18 +53,38 @@ try {
       const errors = [];
       const escaped = [];
       page.on("pageerror", (error) => errors.push(error.message));
+      page.on("console", (message) => {
+        if (
+          message.type() === "error" &&
+          !(
+            message.location().url.includes("/auth/v1/user") && /status of 400/.test(message.text())
+          )
+        )
+          errors.push(message.text());
+      });
       let attempt = 0;
       await context.route("**/*", async (route) => {
         const url = new URL(route.request().url());
         if (url.pathname.startsWith("/auth/v1/")) {
+          const headers = {
+            "access-control-allow-origin": base,
+            "access-control-allow-headers":
+              route.request().headers()["access-control-request-headers"] ||
+              "authorization,apikey,content-type,x-client-info,x-supabase-api-version",
+            "access-control-allow-methods": "GET,PUT,OPTIONS",
+            "access-control-expose-headers": "x-supabase-api-version",
+            "x-supabase-api-version": "2024-01-01",
+          };
+          if (route.request().method() === "OPTIONS")
+            return route.fulfill({ status: 204, headers });
           if (url.pathname.endsWith("/settings"))
-            return route.fulfill({ json: { external: { google: false } } });
+            return route.fulfill({ headers, json: { external: { google: false } } });
           if (url.pathname.endsWith("/user") && route.request().method() === "PUT") {
             attempt++;
             await new Promise((resolve) => setTimeout(resolve, 600));
             return route.fulfill({
               status: 400,
-              headers: { "x-supabase-api-version": "2024-01-01" },
+              headers,
               json: {
                 code: attempt === 1 ? "fixture_provider_failure" : "same_password",
                 message: "PRIVATE_PROVIDER_DETAIL_MUST_NOT_BE_DISPLAYED",
