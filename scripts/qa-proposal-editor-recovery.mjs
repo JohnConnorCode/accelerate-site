@@ -228,8 +228,10 @@ try {
       await page
         .getByRole("button", { name: "Mark Sent", exact: true })
         .waitFor({ state: "hidden" });
-      while (await page.getByRole("button", { name: "Dismiss", exact: true }).count())
-        await page.getByRole("button", { name: "Dismiss", exact: true }).first().click();
+      await page
+        .getByRole("button", { name: "Dismiss", exact: true })
+        .first()
+        .waitFor({ state: "hidden" });
       await page.evaluate(() => {
         window.__edit.mode = "revise";
       });
