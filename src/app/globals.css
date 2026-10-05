@@ -6417,6 +6417,25 @@ body.modal-open [data-dock] {
   opacity: 0.24;
   transform: translateY(0);
 }
+.home-hero-flow .home-hero-feedback[data-active="true"] {
+  opacity: 0.6;
+}
+.home-hero-feedback-label {
+  position: absolute;
+  left: 61%;
+  top: 87%;
+  z-index: 2;
+  padding: 2px 6px;
+  color: var(--mid);
+  background: var(--bg);
+  font: 10px/1.5 var(--util);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 500ms var(--hero-ease);
+}
+.home-hero-feedback-label[data-active="true"] {
+  opacity: 1;
+}
 .home-hero-poster,
 .home-hero-canvas {
   position: absolute;
@@ -6680,6 +6699,7 @@ body.modal-open [data-dock] {
   .home-hero-chapter-line,
   .home-hero-poster g[data-active],
   .home-hero-flow g[data-active],
+  .home-hero-feedback-label[data-active],
   .home-hero-signal span[data-active],
   .home-hero-detail-layers p[data-active] {
     transition: none;

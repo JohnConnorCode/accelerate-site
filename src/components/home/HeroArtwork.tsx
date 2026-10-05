@@ -222,6 +222,10 @@ const transform = (p: Point, m: Float32Array): Point => [
 ];
 const project = ([x, y, z]: Point) =>
   `${(300 + (x * 650) / (6 - z)).toFixed(2)} ${(200 - (y * 650) / (6 - z)).toFixed(2)}`;
+const feedbackPath = (matrix: Float32Array) =>
+  ([[1.7, 0, 0], [2, -0.05, 0], [2, -1.48, 0], [-0.68, -1.48, 0], center(0.3, 1, 2)] as Point[])
+    .map((point, index) => `${index ? "L" : "M"}${project(transform(point, matrix))}`)
+    .join(" ");
 const posters = chapters.map((chapter, index) => {
   const matrix = pose(chapter.yaw, chapter.pitch, chapter.roll);
   return [0, 1, 2].map((strand) => {
@@ -251,6 +255,7 @@ export function HeroArtwork() {
   const id = useId();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const portsRef = useRef<HTMLDivElement>(null);
+  const feedbackRef = useRef<SVGPathElement>(null);
   const [chapter, setChapter] = useState(0);
   const selected = useRef(0);
   const wake = useRef<() => void>(() => {});
@@ -261,20 +266,25 @@ export function HeroArtwork() {
     const scene = canvas.parentElement!;
     const stage = canvas.closest<HTMLElement>(".home-hero-artwork")!;
     stage.dataset.motionState = "paused";
-    const ports = [...(portsRef.current?.querySelectorAll<HTMLElement>(".home-hero-port") ?? [])];
-    const positionPorts = (matrix: Float32Array) => {
+    const labels = [
+      ...(portsRef.current?.querySelectorAll<HTMLElement>(
+        ".home-hero-port, .home-hero-feedback-label",
+      ) ?? []),
+    ];
+    const positionLabels = (matrix: Float32Array) => {
       const bounds = scene.getBoundingClientRect();
       const aspect = bounds.width / bounds.height;
       const zoom = Math.min(3.25, aspect * 2.05);
       const anchors = [0, 1, 2].map((strand) => center(0, strand, 0));
-      anchors.push([1.7, 0, 0]);
-      ports.forEach((port, index) => {
+      anchors.push([1.7, 0, 0], [0.65, -1.48, 0]);
+      labels.forEach((port, index) => {
         const [x, y, z] = transform(anchors[index]!, matrix);
         port.style.left = `${(0.5 + (x * zoom) / (aspect * (6 - z)) / 2) * 100}%`;
         port.style.top = `${(0.5 - (y * zoom) / (6 - z) / 2) * 100}%`;
       });
+      feedbackRef.current?.setAttribute("d", feedbackPath(matrix));
     };
-    positionPorts(pose(chapters[0]!.yaw, chapters[0]!.pitch, chapters[0]!.roll));
+    positionLabels(pose(chapters[0]!.yaw, chapters[0]!.pitch, chapters[0]!.roll));
     // Shader compilation can block on software renderers. Let the readable
     // entrance finish first; the server poster occupies the same stage meanwhile.
     let cancelled = false;
@@ -383,7 +393,7 @@ export function HeroArtwork() {
           current.roll + current.x * 0.02,
         );
         gl.uniformMatrix4fv(model, false, matrix);
-        positionPorts(matrix);
+        positionLabels(matrix);
         gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
         stage.dataset.artworkReady = "true";
       };
@@ -548,6 +558,19 @@ export function HeroArtwork() {
     >
       <div className="home-hero-scene" aria-hidden="true">
         <svg className="home-hero-flow" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <marker
+              id={`${id}-feedback`}
+              viewBox="0 0 7 7"
+              refX="6"
+              refY="3.5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto"
+            >
+              <path d="M0 0L7 3.5L0 7Z" fill="var(--fg)" stroke="none" />
+            </marker>
+          </defs>
           {filaments.map((paths, index) => (
             <g key={index} data-active={chapter === index}>
               {paths.map((d, line) => (
@@ -555,6 +578,13 @@ export function HeroArtwork() {
               ))}
             </g>
           ))}
+          <g className="home-hero-feedback" data-active={chapter === 2}>
+            <path
+              ref={feedbackRef}
+              d={feedbackPath(pose(chapters[0]!.yaw, chapters[0]!.pitch, chapters[0]!.roll))}
+              markerEnd={`url(#${id}-feedback)`}
+            />
+          </g>
         </svg>
         <svg className="home-hero-poster" viewBox="0 0 600 400" aria-hidden="true">
           <defs>
@@ -602,6 +632,9 @@ export function HeroArtwork() {
               ))}
             </div>
           </div>
+          <span className="home-hero-feedback-label" data-active={chapter === 2}>
+            Performance feedback
+          </span>
         </div>
       </div>
       <div

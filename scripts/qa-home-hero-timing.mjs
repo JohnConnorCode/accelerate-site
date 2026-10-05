@@ -388,6 +388,12 @@ for (const [label, viewport, colorScheme] of [
       (name === "Build" ? "Workflows" : name === "Run & improve" ? "Delivery" : "Priorities")
     )
       failures.push(`${label}: ${name} has no connected result`);
+    if (name === "Run & improve") {
+      const feedback = await page.locator(".home-hero-feedback-label").boundingBox();
+      const route = await page.locator(".home-hero-feedback path").boundingBox();
+      if (Math.abs(feedback.y + feedback.height / 2 - (route.y + route.height)) > 10)
+        failures.push(`${label}: feedback caption detaches from the return path`);
+    }
     const detail = await page
       .locator('.home-hero-detail-layers p[data-active="true"]')
       .textContent();
