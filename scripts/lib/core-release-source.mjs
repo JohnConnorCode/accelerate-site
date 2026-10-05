@@ -20,9 +20,10 @@ export function sourceIdentity(root) {
     const raw = JSON.parse(readFileSync(join(root, "core-release.json"), "utf8"));
     core = raw === null ? null : parseReleaseMetadata(raw);
     if (core) git(root, ["merge-base", "--is-ancestor", core.sourceCommit, "HEAD"]);
-    customized =
-      Boolean(git(root, ["status", "--porcelain", "--untracked-files=no"])) ||
-      Boolean(core && forkCommit !== core.sourceCommit);
+    customized = core
+      ? Boolean(git(root, ["status", "--porcelain", "--untracked-files=no"])) ||
+        forkCommit !== core.sourceCommit
+      : null;
   } catch {
     core = null;
   }

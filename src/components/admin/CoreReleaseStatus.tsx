@@ -16,7 +16,11 @@ type ReleaseStatus = {
     customized: boolean | null;
   };
   path: string[];
-  target: { version: string; url: string } | null;
+  target: {
+    version: string;
+    url: string;
+    runtime: { nodeMinimum: string; npmMinimum: string; postgresMinimum: string };
+  } | null;
 };
 
 export function CoreReleaseStatus() {
@@ -94,14 +98,21 @@ export function CoreReleaseStatus() {
               </p>
             )}
             {result.target && (
-              <a
-                href={result.target.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-[var(--admin-ink)] underline underline-offset-4"
-              >
-                Read {result.target.version} release notes
-              </a>
+              <>
+                <p className="admin-copy text-sm">
+                  Target requirements: Node {result.target.runtime.nodeMinimum}+, npm{" "}
+                  {result.target.runtime.npmMinimum}+ and PostgreSQL{" "}
+                  {result.target.runtime.postgresMinimum}+.
+                </p>
+                <a
+                  href={result.target.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-[var(--admin-ink)] underline underline-offset-4"
+                >
+                  Read {result.target.version} release notes
+                </a>
+              </>
             )}
             <p className="admin-copy text-xs">
               Checked {new Date(result.checkedAt).toLocaleString()}. Stable channel.

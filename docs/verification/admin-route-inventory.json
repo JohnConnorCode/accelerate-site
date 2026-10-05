@@ -225,7 +225,7 @@
     "src/components/admin/ContentItemForm.tsx": "c38501325fb916ac37d567f3e957c26b22d0b79d2f0218cd0c6cd48d0f4afbf1",
     "src/components/admin/ContentKanban.tsx": "142a69aca2337d8b78f54ecb383951c2293de0e821d8e5c17edd71f2709e285c",
     "src/components/admin/ConversionFunnel.tsx": "27757a15e248ce5478a21f614e53d8ead969d350a301a42573213b0435cee310",
-    "src/components/admin/CoreReleaseStatus.tsx": "c7f86012d5d71205e982025dd9e578a94a8c43a965015a5d87149268201b8331",
+    "src/components/admin/CoreReleaseStatus.tsx": "fe9cc2ab69c58db766b7bdebedc6a9bf68560799b16cdc78a96ea0076ef372fa",
     "src/components/admin/DashboardMetrics.tsx": "5b5cba2bb1428f8e6e7679f9962c626853977db25af7d1e7fdd9f5fd177137de",
     "src/components/admin/DateRangeFilter.tsx": "fff3da0f7a72aeece714791da8655799cfaf35eed43c12c6e852849fc63ee6c5",
     "src/components/admin/DemoBusinessNotice.tsx": "006392b9131053d3272373cd2b8d96043fb42eeefccf7ebe5d88ef0611b5a3dd",

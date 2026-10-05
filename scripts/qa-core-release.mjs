@@ -67,6 +67,11 @@ try {
                   status === "available"
                     ? {
                         version: "v0.3.0",
+                        runtime: {
+                          nodeMinimum: "22.16.0",
+                          npmMinimum: "10.0.0",
+                          postgresMinimum: "15.0.0",
+                        },
                         url: "https://github.com/JohnConnorCode/accelerate-site/releases/tag/v0.3.0",
                       }
                     : null,
