@@ -494,7 +494,7 @@ export function AIRunHistory() {
                 <div>
                   <p className="admin-eyebrow">Trace ledger</p>
                   <p className="mt-1 text-sm font-semibold text-[var(--admin-ink)]">
-                    {data?.metrics.runs ?? 0} matching runs
+                    {data?.metrics.runs ?? 0} matching {data?.metrics.runs === 1 ? "run" : "runs"}
                   </p>
                 </div>
                 {loading && <Loader2 className="size-4 animate-spin text-[var(--admin-muted)]" />}

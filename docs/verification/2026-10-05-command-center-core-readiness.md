@@ -111,8 +111,25 @@ not establish a current sender-key failure. No scheduler outage is claimed.
   baseline; those fixtures do not establish connected provider delivery.
 - CI run `37318896258` for `69e883ba3de1518e9ef89d0c42c2290ecdea6443`
   passed all jobs, including a clean full-admin desktop/mobile rerun. Its AI run
-  screenshots were opened. The later mobile fit assertion and worker/Today fixes
-  require their own final build/browser and CI evidence before handoff.
+  screenshots were opened. The new worker and mobile-fit source then passed the
+  gated full-admin browser script locally against compiled
+  `974dd7b8acfdd24895d638bd6e5a0cbcbca90424`: all 30 routes, desktop/mobile,
+  keyboard, controlled inference, console checks, reduced motion and reload.
+  Both AI run screenshots were opened; the mobile conversation control fits.
+- CI for `974dd7b8acfdd24895d638bd6e5a0cbcbca90424` exposed two stale metadata
+  checks: the public migration count and four silent-catch allowances. They were
+  corrected and their focused stats, boundary and four adoption tests passed.
+  The allowances were reduced, not widened. The successful connected-fork proof
+  is run `37340256149`; the broader superseded run is not claimed green.
+- `1ee0e49f0aeeb781b6657421564d56152d329fec` passed remote production build,
+  TypeScript and built documentation verification. Its retained production
+  artifact runs locally on port 3016; launcher, Today and AI routes returned
+  HTTP 200. Broader candidate CI is recorded on PR 211, including follow-on copy
+  and receipt-only changes. Use its exact passing run rather than inferring final
+  acceptance from earlier builds.
+- Local build admission receipts retain the disk-capacity and other-worktree
+  gate refusals. No resource limits were bypassed or unrelated output removed.
+  After capacity recovered, the local browser run used the normal gate.
 - The admin inventory contains 66 pages and 398 fingerprints; the AI inventory
   checks 129 routes and 115 mutation handlers. These are source review boundaries,
   not universal parity acceptance.
@@ -120,4 +137,5 @@ not establish a current sender-key failure. No scheduler outage is claimed.
 Baseline: `c2b090e51ec74c0433d368adde9c150686b2f`. Private operational receipts
 remain under `/tmp/accelerate-command-center-core-audit-20261005`; raw workspace
 metadata and credentials are not committed. The existing homepage preview at
-port 3014 remains intact and uses its earlier hero source.
+port 3014 remains intact and uses its earlier hero source. The core preview is
+`http://localhost:3016/demo/command-center` and contains fictional demo data.
