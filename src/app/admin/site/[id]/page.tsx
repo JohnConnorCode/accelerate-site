@@ -286,7 +286,7 @@ function SiteDraftEditor({ id }: { id: string }) {
           className="overflow-hidden"
           style={{
             maxWidth: width.px,
-            margin: width.px === "100%" ? "0" : "0 auto",
+            marginInline: "auto",
           }}
         >
           <SitePageRenderer document={document} />

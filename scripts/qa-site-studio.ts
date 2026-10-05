@@ -16,8 +16,8 @@ async function verifyDefaultDemo(
       viewport: { width, height: 1000 },
       reducedMotion: "reduce",
     });
+    const page = await context.newPage();
     try {
-      const page = await context.newPage();
       const errors: string[] = [];
       const protectedRequests: string[] = [];
       page.on("pageerror", (error) => errors.push(error.message));
@@ -38,18 +38,26 @@ async function verifyDefaultDemo(
       await page.getByLabel("Service name", { exact: true }).fill("Roof inspection");
       await page.getByLabel("Audience", { exact: true }).fill("Property owners");
       await page.getByLabel("Outcome", { exact: true }).fill("Review the condition report");
-      await page.getByLabel("Creation mode", { exact: true }).selectOption("ai");
-      assert.equal(await page.getByLabel("Creation mode", { exact: true }).inputValue(), "ai");
+      await page.getByRole("combobox", { name: /^Creation mode/ }).selectOption("ai");
+      assert.equal(await page.getByRole("combobox", { name: /^Creation mode/ }).inputValue(), "ai");
       await page.screenshot({ path: `${output}/${width}-default-demo-create.png`, fullPage: true });
       await page.getByLabel("Outcome", { exact: true }).press("Enter");
-      await page.getByRole("heading", { name: "Roof inspection", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Roof inspection", exact: true }).first().waitFor();
       assert.ok((await page.locator("main").innerText()).includes("AI example (simulated)"));
       const draftUrl = page.url();
       await page.getByLabel("Draft title", { exact: true }).fill("Inspection review");
       await page.getByRole("button", { name: "Save title", exact: true }).click();
-      await page.getByText("Title saved", { exact: true }).waitFor();
+      await page.getByText("Title saved.", { exact: true }).waitFor();
       await page.reload();
       await page.getByRole("heading", { name: "Inspection review", exact: true }).waitFor();
+      const preview = await page.locator(".site-document").locator("..").boundingBox();
+      const rename = await page
+        .getByRole("region", { name: "Rename draft", exact: true })
+        .boundingBox();
+      assert.ok(
+        preview && rename && rename.y - (preview.y + preview.height) >= 16,
+        "preview must retain spacing before rename controls",
+      );
       await page.screenshot({ path: `${output}/${width}-default-demo-saved.png`, fullPage: true });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       await page.getByRole("button", { name: "Discard draft", exact: true }).click();
@@ -69,6 +77,11 @@ async function verifyDefaultDemo(
       await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
       assert.deepEqual(protectedRequests, []);
       assert.deepEqual(errors, []);
+    } catch (error) {
+      await page
+        .screenshot({ path: `${output}/${width}-default-demo-failure.png`, fullPage: true })
+        .catch(() => {});
+      throw error;
     } finally {
       await context.close();
     }
@@ -106,6 +119,13 @@ async function main() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
     browser = await chromium.launch();
+    if (process.env.SITE_STUDIO_QA_DEMO_ONLY === "1") {
+      await verifyDefaultDemo(browser, base, output);
+      console.log(
+        "PASS: default demo private draft journey at 1440/390; protected/provider requests and browser errors absent.",
+      );
+      return;
+    }
     const document = servicePageTemplate({
       serviceName: "Roof inspection",
       audience: "Property owners",

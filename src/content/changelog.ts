@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "private-page-draft-demo",
     title: "Try private page drafts in the demo",
     description:
-      "Create, preview, rename and discard private page drafts in each fictional business. Saved titles survive reloads, businesses keep separate copies, and confirmed changes appear as simulated activity. AI example mode uses the service template without a provider call. Drafts remain in browser-session storage until discarded or the business is reset.",
+      "Create, preview, rename and discard private page drafts in each fictional business. Saved titles survive reloads, businesses keep separate copies, and confirmed changes appear as simulated activity. AI example mode uses the service template without a provider call. Drafts remain in browser-session storage until discarded or the business is reset. Preview centering preserves the gap before rename controls.",
     category: "fix",
     publishedAt: "2026-10-05",
   },

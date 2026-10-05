@@ -21,6 +21,9 @@ so concurrent requests cannot overwrite a newer document or claim the same slug.
 The 200-draft list ceiling is also the demo creation ceiling. Confirmed changes
 produce bounded simulated receipts, visible in the shared Activity read model.
 
+Private preview centering uses horizontal margins only, preserving the shared
+vertical gap before rename controls. Browser QA measures that gap at both widths.
+
 The creation screen labels AI example mode and hides the live model picker in
 that mode. The draft detail identifies an AI example as simulated. The demo
 uses the built-in service template and calls no provider. Connected generation

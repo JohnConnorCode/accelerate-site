@@ -195,6 +195,14 @@ const latest = {
   version: 2,
 };
 await page.reply({ draft: latest });
+const previewStyle = find(page.render(), (node) => node.props?.style?.maxWidth === "100%").props
+  .style;
+assert.equal(previewStyle.marginInline, "auto");
+assert.equal(
+  previewStyle.margin,
+  undefined,
+  "preview centering must preserve vertical stack spacing",
+);
 assert.equal(input(page.render()).props.value, "My reviewed title");
 assert.equal(button(page.render(), "Save title").props.disabled, false);
 button(page.render(), "Save title").props.onClick();
