@@ -132,7 +132,7 @@ export function Header({
         )}
         style={{
           backgroundColor:
-            pathname === "/docs" || pathname.startsWith("/docs/")
+            pathname === "/" || pathname === "/docs" || pathname.startsWith("/docs/")
               ? "var(--bg)"
               : scrolled
                 ? "var(--header-bg-scrolled)"
