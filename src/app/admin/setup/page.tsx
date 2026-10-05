@@ -544,7 +544,7 @@ export default function AdminSetupPage() {
     setGoogleSyncing(true);
     setGoogleMessage(null);
     try {
-      await fetchJson("/api/admin/google/sync", {
+      const result = await fetchJson<{ skipped?: boolean }>("/api/admin/google/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ source }),
@@ -555,7 +555,12 @@ export default function AdminSetupPage() {
         calendar: "Calendar",
         drive: "Drive",
       }[source];
-      setGoogleMessage({ tone: "success", text: `${sourceLabel} sync completed.` });
+      setGoogleMessage({
+        tone: "success",
+        text: result.skipped
+          ? `${sourceLabel} sync is already running; no new sync was started.`
+          : `${sourceLabel} sync completed.`,
+      });
       await load();
     } catch (syncError) {
       setGoogleMessage({

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3018";
-const output = "/tmp/accelerate-workspace-configuration";
+const output = process.env.QA_OUTPUT || "/tmp/accelerate-workspace-configuration";
 mkdirSync(output, { recursive: true });
 const scenarios = [
   "northline-roofing",
@@ -218,6 +218,56 @@ try {
       await page.screenshot({
         path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-integrations.png`,
       });
+      assert.equal(
+        (await request("/api/admin/google/sync", "PATCH", { driveFolderIds: [] })).status,
+        200,
+      );
+      assert.equal(
+        (await request("/api/admin/google/sync", "POST", { source: "all" })).status,
+        200,
+        "Sync all permits Gmail and Calendar with unconfigured Drive",
+      );
+      assert.equal(
+        (await request("/api/admin/google/sync", "POST", { source: "drive" })).status,
+        409,
+        "Drive-only sync still requires selected folders",
+      );
+      await page.goto(`${base}/demo/command-center/${scenario}/setup`, {
+        waitUntil: "networkidle",
+      });
+      const sync = page.getByRole("button", { name: "Sync Workspace", exact: true });
+      await sync.waitFor();
+      // Simulate a busy job at the existing transport boundary. No provider
+      // credentials or live API calls are involved.
+      await page.evaluate(() => {
+        const original = window.fetch;
+        let requests = 0;
+        window.fetch = async (input, init) => {
+          if (String(input) === "/api/admin/google/sync" && init?.method === "POST")
+            return Response.json(
+              requests++ === 0
+                ? { success: false, skipped: true, existingStatus: "running" }
+                : { success: true, skipped: false },
+            );
+          return original(input, init);
+        };
+      });
+      await sync.focus();
+      await page.keyboard.press("Enter");
+      await page
+        .getByText("Workspace sync is already running; no new sync was started.", { exact: true })
+        .waitFor();
+      assert.equal(await page.getByText("Workspace sync completed.", { exact: true }).count(), 0);
+      assert.equal(
+        await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+        false,
+      );
+      await page.screenshot({
+        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-setup-sync-running.png`,
+      });
+      await sync.focus();
+      await page.keyboard.press("Enter");
+      await page.getByText("Workspace sync completed.", { exact: true }).waitFor();
       assert.equal(escaped.length, 0, JSON.stringify(escaped));
       assert.equal(errors.length, 0, JSON.stringify(errors));
       results.push({
@@ -230,6 +280,8 @@ try {
         stale: true,
         reload: true,
         replay: true,
+        optionalDriveSync: true,
+        skippedSyncFeedback: true,
         escapedWrites: 0,
         consoleErrors: 0,
         reducedMotion: true,

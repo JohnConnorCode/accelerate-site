@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "google-sync-optional-drive",
+    slug: "google-sync-optional-drive",
+    title: "Sync Gmail and Calendar before selecting Drive folders",
+    description:
+      "Workspace sync now reads Gmail and Calendar when no Drive folders are selected, records Drive as not configured and performs no Drive file requests. Drive-only sync still requires selected folders. Setup distinguishes an already-running sync from completed work. The Google readiness check follows the current bounded folder validation and allowlist rules.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "coworker-setup-and-evidence",
     slug: "coworker-setup-and-evidence",
     title: "Configure coworkers without resetting saved settings",
