@@ -299,6 +299,7 @@
     "src/components/admin/work-board/WorkAgents.tsx": "121364e1d6de244e38afa6ab92f769bd6f84610b9f677b40295befd5435f8232",
     "src/components/admin/work-board/WorkControls.tsx": "1a4c021380e0d557a108480652a772f503e33d55f63b546279bb95c1a4320f0b",
     "src/components/admin/work-board/WorkViews.tsx": "50e28eb8c22d05cae7e1dd6196758a35c65541cd21dace1782e1ced6a2138d04",
+    "src/lib/admin/auth.ts": "7e110b623b546dd407bd34daa348d31c95c6ef031a19016a14eae94532df635b",
     "src/lib/admin/navigation.ts": "bc51b7337972e9fe06e4e664b31a6f4b95db7f7100d6a41f6f03a3c546825ee3",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
     "src/lib/ai/openrouter-models.ts": "005042ecb73505abc050af9b753e47db588f80fcfe3598fd81a04112a7b72784",
@@ -405,6 +406,7 @@
     "src/lib/site-studio/website-document.ts": "f11491f0a4fa55a8a34833469737a233f2d7d5b03cbaec17f9deeb0483bb601f",
     "src/lib/site-studio/website-seed.ts": "3b21a1a09b355fdc021b37196f9aa29626e2eb439e1bfff325cd8be800039499",
     "src/lib/site-studio/website-store.ts": "a17e1efc93c4aa8fdd86276ef82a188de583ea9925476f3ab66eebc80c442f37",
+    "src/lib/supabase/configuration.mjs": "d3f6d31e7ef52126c7b0aaef7abd6e332e36bbefa94ade60443c5e5839291af6",
     "src/lib/tenancy/context.ts": "511fecd436fb9d4028b6758bac59ba51ee71fa7f798f84ae3cb0adea12bdd949",
     "src/lib/tenancy/lifecycle.ts": "2b2ca947757d4ff3595062f918734b1b765f89352a834e440ae28ae140de8b53",
     "src/lib/tenancy/system.ts": "28e241c788fba9c5793536d0bcf6db076c0d56f6513976f9ae387acc4b222911"

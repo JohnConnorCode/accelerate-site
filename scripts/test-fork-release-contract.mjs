@@ -330,6 +330,97 @@ test("installed core and customized fork commit remain distinct", () => {
   }
 });
 await asyncTest(
+  "shared admin authorization returns setup-required before client creation and preserves owner/membership checks",
+  async () => {
+    const require = createRequire(import.meta.url);
+    const { NextResponse } = require("next/server");
+    mkdirSync(".accelerate", { recursive: true });
+    const dir = mkdtempSync(join(process.cwd(), ".accelerate/admin-auth-"));
+    const keys = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "ADMIN_EMAIL"];
+    const prior = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+    try {
+      const outfile = join(dir, "auth.cjs");
+      await build({
+        entryPoints: ["src/lib/admin/auth.ts"],
+        outfile,
+        bundle: true,
+        format: "cjs",
+        platform: "node",
+        packages: "external",
+        plugins: [
+          {
+            name: "controlled-auth-dependencies",
+            setup(b) {
+              b.onResolve(
+                { filter: /^(?:next\/headers|@\/lib\/supabase\/server|@\/lib\/tenancy\/context)$/ },
+                (args) => ({ path: args.path, namespace: "controlled" }),
+              );
+              b.onLoad({ filter: /.*/, namespace: "controlled" }, (args) => ({
+                contents:
+                  args.path === "next/headers"
+                    ? 'export async function headers(){return new Headers({"x-tenant-slug":"accelerate"})} export async function cookies(){return {get(){return undefined}}}'
+                    : args.path.endsWith("context")
+                      ? 'export const ACCELERATE_TENANT_SLUG="accelerate"; export function enterTenantRequestContext(actor){globalThis.__coreAuth.entered=actor}'
+                      : 'export async function createServerSupabaseClient(tenantId){const state=globalThis.__coreAuth;state.clients.push(tenantId);return {auth:{async getUser(){return {data:{user:state.user}}}},from(table){return {select(){return this},eq(){return this},async maybeSingle(){return {data:table==="tenants"?state.tenant:state.membership,error:null}}}}}}',
+              }));
+            },
+          },
+        ],
+      });
+      const { requireAdmin, requirePlatformAdmin } = require(outfile);
+      globalThis.__coreAuth = {
+        clients: [],
+        user: null,
+        tenant: {
+          id: "fictional-tenant",
+          slug: "accelerate",
+          name: "Fictional workspace",
+          status: "active",
+          config: {},
+        },
+        membership: { role: "admin", status: "active" },
+      };
+      process.env.ADMIN_EMAIL = "owner@example.test";
+      for (const [url, key] of [
+        [undefined, undefined],
+        ["https://your-project.supabase.co", "your-anon-key"],
+        ["https://example.supabase.co", "invalid-key"],
+      ]) {
+        if (url === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+        else process.env.NEXT_PUBLIC_SUPABASE_URL = url;
+        if (key === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        else process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = key;
+        const result = await requireAdmin();
+        assert(result instanceof NextResponse);
+        assert.equal(result.status, 503);
+        assert((await result.json()).error.includes("/docs/self-hosting/installation"));
+      }
+      assert.equal(globalThis.__coreAuth.clients.length, 0);
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://fixture.supabase.co";
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_fixture";
+      assert.equal((await requireAdmin()).status, 401);
+      globalThis.__coreAuth.user = { id: "fictional-user", email: "owner@example.test" };
+      const owner = await requirePlatformAdmin();
+      assert.equal(owner.isPlatformAdmin, true);
+      assert.equal(owner.tenant.id, "fictional-tenant");
+      assert.equal(globalThis.__coreAuth.clients.at(-1), "fictional-tenant");
+      globalThis.__coreAuth.membership.status = "revoked";
+      assert.equal((await requireAdmin()).status, 403);
+      globalThis.__coreAuth.membership.status = "active";
+      globalThis.__coreAuth.user.email = "member@example.test";
+      assert.equal((await requirePlatformAdmin()).status, 403);
+      globalThis.__coreAuth.tenant.status = "suspended";
+      assert.equal((await requireAdmin()).status, 403);
+    } finally {
+      for (const key of keys)
+        if (prior[key] === undefined) delete process.env[key];
+        else process.env[key] = prior[key];
+      delete globalThis.__coreAuth;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  },
+);
+await asyncTest(
   "actual Setup GET refuses unauthorized access before discovery and returns a private redacted result",
   async () => {
     const require = createRequire(import.meta.url);

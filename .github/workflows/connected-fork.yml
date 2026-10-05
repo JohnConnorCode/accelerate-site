@@ -13,6 +13,8 @@ on:
       - src/app/api/admin/contacts/**
       - src/lib/revenue-os/identity.ts
       - src/lib/revenue-os/tasks.ts
+      - src/lib/admin/auth.ts
+      - src/lib/supabase/configuration.mjs
       - src/lib/revenue-os/workspace-mcp-oauth.ts
       - src/app/api/public/*/mcp/**
       - migrations/**

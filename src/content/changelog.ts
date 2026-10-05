@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "fork-core-release-contract",
     title: "Verified core versions for self-hosted forks",
     description:
-      "Setup and the release-check command verify stable upstream metadata, exact tag commits and supported source paths. Recorded core identity remains separate from a customized fork commit. Explicit compatibility rules check migration history, the extension contract and the running Node version, including required bridge releases. Unversioned and unavailable results explain recovery. Release preparation requires complete CI for the exact source; publication, database upgrades and deployment remain separate maintainer actions.",
+      "Setup and the release-check command verify stable upstream metadata, exact tag commits and supported source paths. Recorded core identity remains separate from a customized fork commit. Explicit compatibility rules check migration history, the extension contract and the running Node version, including required bridge releases. Unversioned and unavailable results explain recovery. Fresh installations show sign-in setup guidance until the database connection is configured. Release preparation requires complete CI for the exact source; publication, database upgrades and deployment remain separate maintainer actions.",
     category: "feature",
     publishedAt: "2026-10-05",
   },
