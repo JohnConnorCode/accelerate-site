@@ -44,17 +44,16 @@ the sculpture. Phone artwork is smaller and raised clear of the chapter index;
 the Pause/Play control sits at the left gutter, clear of the booking note and
 artwork. Tablet controls sit at the lower edge of their stage.
 
-| Before                                           | After                                                                        |
-| ------------------------------------------------ | ---------------------------------------------------------------------------- |
-| Three rigid metallic chevrons                    | Five layered cylindrical bands derived from the Tower reference              |
-| Rotation and separation of arrow meshes          | Continuous wordmark and counter-running ribbon printing                      |
-| One material without printed typography          | Two original brand textures with depth shading and smooth filtering          |
-| SVG arrow fallback                               | Matching, eagerly loaded PNG with dark-mode inversion                        |
-| Caption and control overlaying the new sculpture | Separate desktop, tablet and phone control positions                         |
-| SVG-specific no-JavaScript assertion             | Decoded, non-placeholder image checks for no JavaScript and graphics failure |
-
-| Renderer observing an unused `dark` class | Renderer, poster and graphics-loss test follow the shared `data-theme` attribute |
-| Navigation observer armed after a click | Existing observer armed before navigation, with unchanged timing thresholds |
+| Before                                           | After                                                                            |
+| ------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Three rigid metallic chevrons                    | Five layered cylindrical bands derived from the Tower reference                  |
+| Rotation and separation of arrow meshes          | Continuous wordmark and counter-running ribbon printing                          |
+| One material without printed typography          | Two original brand textures with depth shading and smooth filtering              |
+| SVG arrow fallback                               | Matching, eagerly loaded PNG with dark-mode inversion                            |
+| Caption and control overlaying the new sculpture | Separate desktop, tablet and phone control positions                             |
+| SVG-specific no-JavaScript assertion             | Decoded, non-placeholder image checks for no JavaScript and graphics failure     |
+| Renderer observing an unused `dark` class        | Renderer, poster and graphics-loss test follow the shared `data-theme` attribute |
+| Navigation observer armed after a click          | Existing observer armed before navigation, with unchanged timing thresholds      |
 
 ## Verification and release boundaries
 
@@ -75,6 +74,18 @@ must be opened alongside the automated results. Private evidence lives outside
 the repository under `20261005-home-hero-reference`; exact revision and completed
 check receipts belong in the PR. A passing implementation or CI run is separate
 from visual acceptance, merge and production publication.
+
+The final local hero journey passed on October 5 with the corrected renderer
+and poster. Chromium covered eight viewport/theme combinations, reduced motion,
+actual pixel movement and pause, hidden/offscreen/menu suspension, keyboard,
+cache/history, delayed/failed/no JavaScript and real graphics loss. Both native
+WebKit viewport journeys passed. Desktop, phone, dark, no-script, reduced-motion,
+graphics-loss and WebKit captures were opened; motion recordings are retained
+privately for review. The full homepage composition journey also passed its
+eight width/theme cases. Production build, full TypeScript and strict repository
+lint passed remotely for the same application source; later commits adjust only
+verification and this record. Full protected CI and hosting status remain separate
+receipts in the PR.
 
 ## Public release-content review
 
