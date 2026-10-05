@@ -345,14 +345,14 @@ for (const [label, viewport, colorScheme] of [
         failures.push(`${label}: chapter rule or description jumps to its final state`);
       intermediate = await canvas.screenshot({ path: `${output}/${label}-service-transition.png` });
       if (before.equals(intermediate))
-        failures.push(`${label}: chevrons do not begin moving during chapter change`);
+        failures.push(`${label}: artwork does not begin deforming during chapter change`);
     }
     await page.waitForTimeout(1100);
     const after = await canvas.screenshot();
     if ((await control.getAttribute("aria-pressed")) !== "true" || before.equals(after))
-      failures.push(`${label}: ${name} does not change selection and actual chevron pixels`);
+      failures.push(`${label}: ${name} does not change selection and actual artwork pixels`);
     if (intermediate?.equals(after))
-      failures.push(`${label}: chevrons snap to the final pose instead of transitioning`);
+      failures.push(`${label}: artwork snaps to the final shape instead of transforming`);
     const detail = await page
       .locator('.home-hero-detail-layers p[data-active="true"]')
       .textContent();

@@ -6379,7 +6379,7 @@ body.modal-open [data-dock] {
   position: relative;
   display: inline-block;
 }
-/* The dimensional brand mark and service controls share the editorial stage. */
+/* Interwoven ink bands show the work beside the editorial offer. */
 .home-hero-artwork {
   position: absolute;
   z-index: 2;
@@ -6389,10 +6389,10 @@ body.modal-open [data-dock] {
 }
 .home-hero-scene {
   position: relative;
-  height: clamp(300px, 44svh, 440px);
+  height: clamp(330px, 43svh, 450px);
   isolation: isolate;
 }
-/* Angular routes show handoffs, integration and a delivery feedback path. */
+/* Engraved contours make the many paths through the work visible. */
 .home-hero-flow {
   position: absolute;
   z-index: -1;
@@ -6402,7 +6402,7 @@ body.modal-open [data-dock] {
   overflow: visible;
   fill: none;
   stroke: var(--fg);
-  stroke-width: 0.75;
+  stroke-width: 0.6;
   pointer-events: none;
 }
 .home-hero-flow g {
@@ -6414,7 +6414,7 @@ body.modal-open [data-dock] {
     transform 900ms var(--hero-ease);
 }
 .home-hero-flow g[data-active="true"] {
-  opacity: 0.16;
+  opacity: 0.24;
   transform: translateY(0);
 }
 .home-hero-poster,
@@ -6434,7 +6434,8 @@ body.modal-open [data-dock] {
   left: 50%;
   right: auto;
   width: auto;
-  max-width: none;
+  /* Match the canvas projection's aspect cap on narrow screens. */
+  max-width: 122.31%;
   aspect-ratio: 3 / 2;
   transform: translateX(-50%);
 }
@@ -6450,9 +6451,17 @@ body.modal-open [data-dock] {
 .home-hero-artwork[data-artwork-ready="true"] .home-hero-poster {
   opacity: 0;
 }
-/* Annotation belongs to the composition, rather than floating in UI pills. */
+/* Captions frame the print, with enough room for every chapter label. */
+.home-hero-artwork-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  min-height: 30px;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
 .home-hero-signal {
-  position: absolute;
+  position: relative;
   z-index: 1;
   display: grid;
   max-width: 29ch;
@@ -6477,12 +6486,10 @@ body.modal-open [data-dock] {
     transform 700ms var(--hero-ease) 80ms;
 }
 .home-hero-signal-input {
-  top: 0;
-  left: 3%;
+  align-self: start;
 }
 .home-hero-signal-output {
-  bottom: 0;
-  right: 3%;
+  justify-self: end;
   text-align: right;
   color: var(--fg);
 }
@@ -6812,7 +6819,7 @@ body.modal-open [data-dock] {
     margin: 0 auto;
   }
   .home-hero-scene {
-    height: 280px;
+    height: 300px;
   }
   .home-hero-artwork-detail {
     min-height: 144px;

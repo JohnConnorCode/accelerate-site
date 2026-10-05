@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "homepage-purposeful-interaction",
     title: "Explore how Accelerate helps from the homepage",
     description:
-      "The homepage uses Accelerate's three chevrons to explore strategy, custom builds and ongoing execution through concrete examples. The dimensional mark separates, connects and advances between stages, with monochrome surfaces and angular routes showing handoffs and feedback. Explanations cross-fade and a fine rule travels between the service controls. Pointer movement changes the viewpoint and studio lighting. The brief entrance settles automatically, replacing decorative numbering and playback controls. Keyboard, touch, reduced motion and static graphics fallbacks remain available.",
+      "The homepage connects strategy, custom builds and ongoing execution to concrete examples through a moving ink-and-paper composition. Three broad, engraved bands transform from separate paths into an interwoven system and a returning loop. Fine contour lines follow the work; captions remain clear of the artwork. Stage explanations cross-fade and a fine rule travels between the controls. Pointer movement changes the viewpoint and material. The entrance settles automatically, replacing decorative numbering and playback controls. Keyboard, touch, theme changes, reduced motion and static graphics fallbacks remain available.",
     category: "improvement",
     publishedAt: "2026-10-04",
   },
