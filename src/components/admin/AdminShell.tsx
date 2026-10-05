@@ -2,6 +2,7 @@
 
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { siteUrl, tenant } from "@/config/tenant";
+import { fetchJson } from "@/lib/admin/fetchJson";
 import {
   useCallback,
   useEffect,
@@ -299,6 +300,7 @@ export default function AdminShell({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchPeople, setSearchPeople] = useState<SearchPerson[]>([]);
   const [searchingPeople, setSearchingPeople] = useState(false);
+  const [peopleSearchError, setPeopleSearchError] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeDraft, setComposeDraft] = useState({ subject: "", body: "" });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -399,19 +401,27 @@ export default function AdminShell({
     };
   }, [effectivePathname, identityHref, scenarioId]);
 
-  const closeSearch = useCallback(() => {
-    setSearchOpen(false);
+  const resetSearch = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    searchAbortRef.current?.abort();
+    searchAbortRef.current = null;
     setSearchQuery("");
     setSearchPeople([]);
+    setPeopleSearchError("");
+    setSearchingPeople(false);
   }, []);
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    resetSearch();
+  }, [resetSearch]);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setSearchOpen((current) => !current);
-        setSearchQuery("");
-        setSearchPeople([]);
+        resetSearch();
         return;
       }
       if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "m") {
@@ -429,30 +439,41 @@ export default function AdminShell({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [resetSearch]);
 
   const searchForPeople = useCallback(async (query: string) => {
     searchAbortRef.current?.abort();
     if (query.length < 3) {
       setSearchPeople([]);
       setSearchingPeople(false);
+      setPeopleSearchError("");
       return;
     }
     const controller = new AbortController();
     searchAbortRef.current = controller;
     setSearchingPeople(true);
+    setPeopleSearchError("");
     try {
-      const response = await fetch(`/api/admin/search?q=${encodeURIComponent(query)}`, {
-        signal: controller.signal,
-      });
-      if (!response.ok) throw new Error(`Search failed (${response.status})`);
-      const data = await response.json();
-      setSearchPeople(data.results || []);
-    } catch (error) {
-      if (!controller.signal.aborted) {
-        console.error("[admin-search] failed:", error);
-        setSearchPeople([]);
-      }
+      const data = await fetchJson<{ results: SearchPerson[] }>(
+        `/api/admin/search?q=${encodeURIComponent(query)}`,
+        { signal: controller.signal },
+      );
+      if (controller.signal.aborted || searchAbortRef.current !== controller) return;
+      if (
+        !Array.isArray(data.results) ||
+        !data.results.every(
+          (person) =>
+            person &&
+            typeof person.name === "string" &&
+            typeof person.email === "string" &&
+            typeof person.type === "string",
+        )
+      )
+        throw new Error("Incomplete search response");
+      setSearchPeople(data.results);
+    } catch {
+      if (!controller.signal.aborted && searchAbortRef.current === controller)
+        setPeopleSearchError("People search couldn’t load. Try again.");
     } finally {
       if (searchAbortRef.current === controller) {
         searchAbortRef.current = null;
@@ -462,9 +483,14 @@ export default function AdminShell({
   }, []);
 
   const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => searchForPeople(value), 120);
+    searchAbortRef.current?.abort();
+    searchAbortRef.current = null;
+    setSearchQuery(value);
+    setSearchPeople([]);
+    setPeopleSearchError("");
+    setSearchingPeople(value.trim().length >= 3);
+    debounceRef.current = setTimeout(() => searchForPeople(value.trim()), 120);
   };
 
   useEffect(
@@ -893,6 +919,11 @@ export default function AdminShell({
                   pageResults={filteredLinks}
                   peopleResults={searchPeople}
                   searchingPeople={searchingPeople}
+                  peopleSearchError={peopleSearchError}
+                  onRetryPeople={() => {
+                    searchInputRef.current?.focus();
+                    void searchForPeople(searchQuery.trim());
+                  }}
                   onSelectPage={(href) => {
                     router.push(href);
                     closeSearch();
@@ -1494,6 +1525,8 @@ function CmdKSearch({
   pageResults,
   peopleResults,
   searchingPeople,
+  peopleSearchError,
+  onRetryPeople,
   onSelectPage,
   onSelectPerson,
   onSelectAction,
@@ -1507,6 +1540,8 @@ function CmdKSearch({
   pageResults: AdminNavLink[];
   peopleResults: SearchPerson[];
   searchingPeople: boolean;
+  peopleSearchError: string;
+  onRetryPeople: () => void;
   onSelectPage: (href: string) => void;
   onSelectPerson: (email: string) => void;
   onSelectAction: (action: CommandAction) => void;
@@ -1644,9 +1679,29 @@ function CmdKSearch({
               Searching records…
             </p>
           )}
-          {!searchingPeople && items.length === 0 && query && (
+          {peopleSearchError && (
+            <div
+              role="alert"
+              className="m-2 rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface-subtle)] p-3"
+            >
+              <p className="text-sm font-semibold">{peopleSearchError}</p>
+              {peopleResults.length > 0 && (
+                <p className="admin-copy mt-1 text-xs">Previously loaded matches remain visible.</p>
+              )}
+              <button
+                type="button"
+                onClick={onRetryPeople}
+                className="admin-button admin-button--secondary mt-3"
+              >
+                Retry people search
+              </button>
+            </div>
+          )}
+          {!searchingPeople && !peopleSearchError && items.length === 0 && query.trim() && (
             <p className="px-3 py-8 text-center text-sm text-[var(--admin-muted)]">
-              No matching people, pages, or commands.
+              {query.trim().length < 3
+                ? "Type at least 3 characters to search people."
+                : "No matching people, pages, or commands."}
             </p>
           )}
         </div>

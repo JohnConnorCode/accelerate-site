@@ -43,6 +43,16 @@ export async function GET(request: NextRequest) {
       .limit(5),
   ]);
 
+  // A failed read cannot establish that the workspace has no matching people.
+  if (
+    [canonicalRes, leadsRes, contactsRes, subscribersRes, chatRes].some((result) => result.error)
+  ) {
+    return NextResponse.json(
+      { error: "People search is temporarily unavailable. Try again." },
+      { status: 503 },
+    );
+  }
+
   interface SearchResult {
     name: string;
     email: string;

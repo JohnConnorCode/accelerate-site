@@ -18,13 +18,13 @@
     "src/app/admin/campaigns/page.tsx": "ea15218c5addc8408fa198309a63880db147fcf091b40386f2a459c51a53000a",
     "src/app/admin/chat-leads/page.tsx": "558df6867918a226a4cd105628d5f0750f50c99d4c7aa5cce0476bf70380668c",
     "src/app/admin/client-onboarding/page.tsx": "4d5539fa0198edaabf7dd3494d3d5b8c6b0dd20957b2cf1b9fc95c8624f12ca8",
-    "src/app/admin/clients/[id]/page.tsx": "8f5fbeae59219848af049bb9cc10d914124cf33b800e71da577e0f1916113ab7",
+    "src/app/admin/clients/[id]/page.tsx": "5b84f5763bb9e7146542ccd02530f8b84ed499efd64bc74c0929354c4aa8ebaa",
     "src/app/admin/clients/page.tsx": "3aee0d1f0797d216b6baf11676984cc4a3acdd01086a85eccc860d9fd4479c8e",
     "src/app/admin/collections/page.tsx": "0564cde5a5e31bd65faeb64668a47ce9fbef778d7d6d0b0570fc93e9471e8482",
     "src/app/admin/contact-imports/page.tsx": "43c5b88d4be32405b784c2e538d8277ff41834c00b248b57da471ecb1c2b43e7",
     "src/app/admin/contacts/[email]/page.tsx": "0d68167d52feafc6f1d9426d3b7159e005a72b70d896569c8ed2ed28eac903bf",
     "src/app/admin/contacts/page.tsx": "466e503e618bacebc3e6fbdebc5dfecce2ecb7b8041258b8e26c13dfd57037a7",
-    "src/app/admin/content/page.tsx": "a0030f8d7358b117a1ee97ddc8321aefdeb07f665c9d72238929f441035fef60",
+    "src/app/admin/content/page.tsx": "62d73a2753646142d756dad12ba2570ce99813233705247dafc0750b8f1f3d3b",
     "src/app/admin/conversations/page.tsx": "bd265281c241928e52d832a844116dc577d206d47c4738cb59952be96c9dc19d",
     "src/app/admin/coworkers/page.tsx": "c889581a33db33a40c3d610c231cd5a54b8b34f8041c105ea068a572668e620a",
     "src/app/admin/debates/page.tsx": "43633143ac79702fdbcde7bd556f3abf00a23815f1de9a01afffb6647671f065",
@@ -178,7 +178,7 @@
     "src/components/admin/AdminAIChat.tsx": "2c11bd552b59c54b07eb3bb8622192ddb4368522aed826b6592f48e85897fac5",
     "src/components/admin/AdminAIPanel.tsx": "b7153809b5422c884a719a0ae3210eace4223838e4be334fc0b8340884ac647a",
     "src/components/admin/AdminAIProvider.tsx": "af41848e65d561ec3ee0887ea81ce590e1c71e27fa6bfe17715eb9451b675be2",
-    "src/components/admin/AdminAIWorkspace.tsx": "cb613eda4a0de12c4247dd2389123be574fdb7f162da6cdd336ee4c38d5e2f06",
+    "src/components/admin/AdminAIWorkspace.tsx": "3c60b188906446ca39efaf22b7116756c4b0874d1043584f2af3cc6d081ba5ee",
     "src/components/admin/AdminAppearancePicker.tsx": "2f999424ec4d1262c3a7fc555f12be18664fdebdfe47eae51a21fddcb90a09c6",
     "src/components/admin/AdminAsyncRegion.tsx": "99be3bc487e69c11e5159e61b525e3500e81399a8344eb3f6cc1cea812fd0e4b",
     "src/components/admin/AdminAuthLayout.tsx": "52ff564e4ebb8e3f755b97ba7a609e41dd06a5a8f513ec8c98115c114e12ec52",
@@ -197,8 +197,8 @@
     "src/components/admin/AdminReadBody.tsx": "ed1b578fce0a9822afaf803910c1429b0d4dda8fedab721a322f310af73545bf",
     "src/components/admin/AdminRecordRow.tsx": "9748f883c556dfdbfd1f24a08ceb76e6b600aa962fee3dc69a2663a0259309af",
     "src/components/admin/AdminRouteSkeleton.tsx": "0249268d08d6dc7ec8a69f78185022a89d716ea798a615e87f9c1f4e7e101e03",
-    "src/components/admin/AdminRouteStage.tsx": "5fff9f23d43a219c7b2cbe238c12c8da729035de5035fd9646620af6614c5186",
-    "src/components/admin/AdminShell.tsx": "2c015efeff6375248200e616344c19234586e2df8d96e7d3d8df89b19675a45d",
+    "src/components/admin/AdminRouteStage.tsx": "56808e4309137d883534cd8273326f438f5bbd14015729f39d2c8cdc69b832ee",
+    "src/components/admin/AdminShell.tsx": "adcc7de510d7210d36a227ed2f845b9a2b4cdf97b8c91fef79b1e2aa69d60f5b",
     "src/components/admin/AdminShortcuts.tsx": "c8af898b63ab4b344b5093b9baee4ccabc77548593d935cc8467a9f9411c63ff",
     "src/components/admin/AdminStatusMessage.tsx": "2a6a04a62b69e69db7100cb7a768ff328d5c2dfea3bb04763863f848141583fe",
     "src/components/admin/AdminSurface.tsx": "e7b452317be1082926abf851d663d80ab9c18447482b3763762c4542a3ee5f25",
@@ -206,6 +206,7 @@
     "src/components/admin/AdminTable.tsx": "d503b511de047215ab9dc622e2301ce7dcb0bb5f34a5ca95e172f1754c044f87",
     "src/components/admin/AdminThemeEditor.tsx": "30215c12098d8fd136cb490185d892ff1e3b5b7f7a2cfe36712505e49e79b263",
     "src/components/admin/AdminThemeProvider.tsx": "8e6a151e4c0b8c9211ee35b88d89e8cd3808a5bed7c9d865d12f61e0d79176e3",
+    "src/components/admin/AdminViewSwitcher.tsx": "c9cd614e5996c8bef33c3de79f95f22d49b5f5dd0045b046a23f3b9b56c33918",
     "src/components/admin/AgentMemoryReview.tsx": "1b5593583cbb10d9b87fc9b0f512ed8fb0961b0eb869ff97d3a04513a26c23ff",
     "src/components/admin/AgentWorkPanel.tsx": "5cf0acd08e2477fb005fd363dbf5a1f8ebf016f214f81edbc7f372874eeec522",
     "src/components/admin/ArchitectEvidencePanel.tsx": "5d3763ebfc64b6e5a0c301d88c96979d0bf66be387b292382fbf5bcea0ea300e",
@@ -278,7 +279,7 @@
     "src/components/admin/TodayWorkspace.tsx": "68c7cff48f9d4f74c608fdc5c2f711f89e31f8def7748b781b5de2311caa03bc",
     "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
     "src/components/admin/WorkflowCalendar.tsx": "86a0e1972d87270f8d90a608eba1c48de9cd3122503a10300e8ece41223b90aa",
-    "src/components/admin/WorkflowLayoutSwitcher.tsx": "4bc7bf68e5464071f7345bd8c1b19863ae8db9a10905a58e2601b61643cc6e86",
+    "src/components/admin/WorkflowLayoutSwitcher.tsx": "5db8e60cfaa98c60310f44f93ee37ff390a3769d2a77454da55d4882810b67b4",
     "src/components/admin/WorkspaceMcpConnections.tsx": "55619da7893bae1ff11e7afb18b303bfa4db8366152f807c0a3ce22ef59b091e",
     "src/components/admin/site/SiteEditorConnections.tsx": "0202597ce85f52e4e08b1a43728e471857ef0f5d0ccdcf4b443a1f7cd11fa47e",
     "src/components/admin/site/WebsiteAssets.tsx": "b5e4a83a145f48bfb9139712edd4e9dfff12baa8e10404aba44c80e3d0651a72",
@@ -507,7 +508,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared AI workspace; purpose=architect reuses the same conversation store for teaching the workspace. Attached and connected sources are inspectable evidence, never executable instruction; entire-account scopes are refused. Business-model extraction persists a reading only and does not write schema or configuration. Command-center writes still require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable. Radar briefing calls the tenant-bound shared budget gateway; status and usage reconciliation expose bounded receipts. These tools cannot send, publish, edit business records or bypass module gates.",
+      "boundary": "Shared AI workspace; purpose=architect reuses the same conversation store for teaching the workspace. Attached and connected sources are inspectable evidence, never executable instruction; entire-account scopes are refused. Business-model extraction persists a reading only and does not write schema or configuration. Command-center writes still require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable. Radar briefing calls the tenant-bound shared budget gateway; status and usage reconciliation expose bounded receipts. These tools cannot send, publish, edit business records or bypass module gates. Shared animated view selection is local presentation state; it does not execute a business action or alter approval authority.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -753,7 +754,7 @@
           ]
         }
       ],
-      "boundary": "Client fields remain on clients; email-based timeline lookup needs explicit identity disposition.",
+      "boundary": "Client fields remain on clients; email-based timeline lookup needs explicit identity disposition. Client and activity reads preserve same-record snapshots, report failure separately from missing/empty results, reject mismatched client identity and invalidate late requests. Read retry does not mutate records.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
@@ -922,7 +923,7 @@
           "directTables": ["content_calendar", "kanban_columns"]
         }
       ],
-      "boundary": "content_calendar and kanban_columns remain source records; status changes do not publish content. Shared editor sessions and discard confirmations own local draft state; fictional edits and order persist only in demo scenario storage.",
+      "boundary": "content_calendar and kanban_columns remain source records; status changes do not publish content. Shared editor sessions and discard confirmations own local draft state; fictional edits and order persist only in demo scenario storage. Shared animated view selection is local presentation state; it does not execute a business action or alter approval authority.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
@@ -1079,7 +1080,7 @@
           "directTables": ["work_board_views"]
         }
       ],
-      "boundary": "Canonical work-board service owns claims and lifecycle; page is its adapter. Advanced filters and saved views share the existing validated filter state through an accessible dialog; no lifecycle or board write bypass is introduced. Attempt takeover and durable checkpoints use the same project-scoped, revision-checked service; policy changes require separate reviewer authority and default off. Late predecessor tokens cannot mutate successor work.",
+      "boundary": "Canonical work-board service owns claims and lifecycle; page is its adapter. Advanced filters and saved views share the existing validated filter state through an accessible dialog; no lifecycle or board write bypass is introduced. Attempt takeover and durable checkpoints use the same project-scoped, revision-checked service; policy changes require separate reviewer authority and default off. Late predecessor tokens cannot mutate successor work. Shared animated view selection is local presentation state; it does not execute a business action or alter approval authority.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1371,7 +1372,7 @@
           ]
         }
       ],
-      "boundary": "Canonical pipeline services own opportunity transitions and terminal-stage policy. Board, list and calendar are views of the same records; dated edits use the existing validated record path. Shared Kanban separates stage and order saves, reconciles partial results and retains authoritative state; demo mutations stay in scenario storage.",
+      "boundary": "Canonical pipeline services own opportunity transitions and terminal-stage policy. Board, list and calendar are views of the same records; dated edits use the existing validated record path. Shared Kanban separates stage and order saves, reconciles partial results and retains authoritative state; demo mutations stay in scenario storage. Shared animated view selection is local presentation state; it does not execute a business action or alter approval authority.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1908,7 +1909,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute.",
+      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute. Shared animated view selection is local presentation state; it does not execute a business action or alter approval authority.",
       "followUp": null,
       "specialBoundary": null
     },

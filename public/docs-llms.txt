@@ -64,7 +64,7 @@ Combine features and plugins around a specific business outcome.
 ## Command Center
 One shared operating layer for the businesses that need it, and how to run the daily workspace.
 
-- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-27): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
+- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-10-05): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
 - [Setup, integrations, and health](https://www.acceleratewith.us/docs/command-center/setup) (updated 2026-09-27): Check which connections are ready, run a first sync, and recover a failed setup check.
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-27): Find supported capabilities, their business purpose and the setup or review each needs.
 - [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-30): Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.
@@ -117,7 +117,7 @@ Campaigns, email templates, and reactivation of past demand.
 Clients, bookings, content, and resources after the sale.
 
 - [Delivery](https://www.acceleratewith.us/docs/delivery/overview) (updated 2026-09-27): Coordinate client accounts, bookings, editorial work and resource-download follow-up.
-- [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-09-19): Find an account, check what it's worth, and open its delivery record.
+- [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-10-05): Find an account, check what it's worth, and open its delivery record.
 - [Review bookings](https://www.acceleratewith.us/docs/delivery/bookings) (updated 2026-09-27): Prep for the call, then record what happened once it's over.
 - [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-23): Track a brief from idea to published, and verify a review caught what mattered.
 - [Review resource downloads](https://www.acceleratewith.us/docs/delivery/resources) (updated 2026-09-27): Find who requested a resource, when, and whether that's worth a real follow-up.

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-center-view-and-recovery",
+    slug: "command-center-view-and-recovery",
+    title: "Smoother workspace views and clearer recovery",
+    description:
+      "Work, Pipeline, Content, Features, and the AI workspace share animated view selection with keyboard access and reduced-motion support. AI and Content view changes use the shared section entrance. People search shows failed reads and retry separately from no matches, while local commands remain available. Client detail and activity retain loaded information after refresh failures and offer independent retry. Unavailable records no longer appear as missing clients or empty history.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

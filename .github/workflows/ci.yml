@@ -566,6 +566,7 @@ jobs:
               if ! node "scripts/${polish_suite}.mjs"; then polish_status=1; fi
             done
             if [ "$polish_status" -ne 0 ]; then exit "$polish_status"; fi
+            node scripts/qa-command-center-interactions.mjs
             node scripts/qa-contact-review-copy.mjs
             node scripts/qa-demo-marketing.mjs
             node scripts/qa-theme-persistence.mjs
@@ -585,6 +586,14 @@ jobs:
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
+      - name: Retain Command Center interaction evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: command-center-interaction-evidence
+          path: /tmp/accelerate-command-interactions/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

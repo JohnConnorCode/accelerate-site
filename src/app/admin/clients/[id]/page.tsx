@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, use } from "react";
+import { useEffect, useState, useCallback, useRef, use } from "react";
 import Link from "@/components/admin/AdminLink";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -9,8 +9,7 @@ import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { ClientDetail } from "@/components/admin/ClientDetail";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { fetchJson } from "@/lib/admin/fetchJson";
-import { toast } from "@/lib/admin/useToast";
+import { AdminRequestError, fetchJson } from "@/lib/admin/fetchJson";
 
 interface Client {
   id: string;
@@ -43,41 +42,88 @@ interface TimelineItem {
 
 export default function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [client, setClient] = useState<Client | null>(null);
-  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
+  const [clientRead, setClientRead] = useState<{
+    id: string;
+    data: Client | null;
+    error: string;
+  } | null>(null);
+  const currentClientRead = clientRead?.id === id ? clientRead : null;
+  const client = currentClientRead?.data || null;
+  const error = currentClientRead?.error || "";
+  const [timeline, setTimeline] = useState<{
+    clientId: string;
+    items: TimelineItem[] | null;
+    error: string;
+  } | null>(null);
+  const currentTimelineRead = timeline?.clientId === id ? timeline : null;
+  const currentTimeline = currentTimelineRead?.items || null;
+  const timelineError = currentTimelineRead?.error || "";
   const [loading, setLoading] = useState(true);
+  const [timelineLoading, setTimelineLoading] = useState(false);
+  const clientRequest = useRef(0);
+  const timelineRequest = useRef(0);
+
+  const fetchTimeline = useCallback(async (target: Client) => {
+    const version = ++timelineRequest.current;
+    setTimelineLoading(true);
+    try {
+      const data = target.contact_email
+        ? await fetchJson<{ timeline: TimelineItem[] }>(
+            `/api/admin/contacts/timeline?email=${encodeURIComponent(target.contact_email)}`,
+          )
+        : { timeline: [] };
+      if (version !== timelineRequest.current) return;
+      if (!Array.isArray(data.timeline)) throw new Error("The activity response is incomplete.");
+      setTimeline({ clientId: target.id, items: data.timeline, error: "" });
+    } catch (cause) {
+      if (version === timelineRequest.current)
+        setTimeline((previous) => ({
+          clientId: target.id,
+          items: previous?.clientId === target.id ? previous.items : null,
+          error: cause instanceof Error ? cause.message : "Activity could not load.",
+        }));
+    } finally {
+      if (version === timelineRequest.current) setTimelineLoading(false);
+    }
+  }, []);
 
   const fetchClient = useCallback(async () => {
+    const version = ++clientRequest.current;
+    setLoading(true);
     try {
-      const data = await fetchJson<{ client?: Client | null }>(
+      const data = await fetchJson<{ client: Client | null }>(
         `/api/admin/clients?id=${encodeURIComponent(id)}`,
       );
-      setClient(data.client || null);
-
-      // Fetch timeline for this client's email
-      if (data.client?.contact_email) {
-        try {
-          const timelineData = await fetchJson<{ timeline?: TimelineItem[] }>(
-            `/api/admin/contacts/timeline?email=${encodeURIComponent(data.client.contact_email)}`,
-          );
-          setTimeline(timelineData.timeline || []);
-        } catch {
-          setTimeline([]);
-          toast.error("Client loaded, but activity could not load. Reload to try again.");
-        }
-      }
-    } catch (error) {
-      setClient(null);
-      toast.error(error instanceof Error ? error.message : "Failed to load client");
+      if (version !== clientRequest.current) return;
+      if (data.client === undefined || (data.client && data.client.id !== id))
+        throw new Error("The client response is incomplete.");
+      setClientRead({ id, data: data.client, error: "" });
+      if (data.client) void fetchTimeline(data.client);
+      else ++timelineRequest.current;
+    } catch (cause) {
+      if (version !== clientRequest.current) return;
+      if (cause instanceof AdminRequestError && cause.status === 404) {
+        setClientRead({ id, data: null, error: "" });
+        ++timelineRequest.current;
+      } else
+        setClientRead((previous) => ({
+          id,
+          data: previous?.id === id ? previous.data : null,
+          error: cause instanceof Error ? cause.message : "Client could not load.",
+        }));
     } finally {
-      setLoading(false);
+      if (version === clientRequest.current) setLoading(false);
     }
-  }, [id]);
+  }, [id, fetchTimeline]);
 
+  const invalidateRequests = useCallback(() => {
+    ++clientRequest.current;
+    ++timelineRequest.current;
+  }, []);
   useEffect(() => {
-    setLoading(true);
     void fetchClient();
-  }, [fetchClient]);
+    return invalidateRequests;
+  }, [fetchClient, invalidateRequests]);
 
   const handleUpdate = async (data: Record<string, unknown>) => {
     await fetchJson("/api/admin/clients", {
@@ -88,13 +134,15 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     await fetchClient();
   };
 
-  if (loading) {
+  if (!client && (loading || !currentClientRead || error)) {
     return (
       <div>
         <PageHeader title="Client" />
         <AdminReadBody
-          loading
+          loading={loading || !currentClientRead}
           hasData={false}
+          error={error}
+          refreshing={loading}
           onRetry={() => void fetchClient()}
           loadingFallback={<LoadingSkeleton variant="page" />}
           label="Loading client"
@@ -140,6 +188,8 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       <AdminReadBody
         loading={loading}
         hasData={Boolean(client)}
+        error={error}
+        refreshing={loading}
         onRetry={() => void fetchClient()}
         loadingFallback={<LoadingSkeleton variant="page" />}
         label="Loading client"
@@ -160,7 +210,17 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
               <h4 className="mb-4 text-sm font-semibold text-[var(--admin-ink)]">
                 Activity Timeline
               </h4>
-              <ContactTimeline items={timeline} />
+              <AdminReadBody
+                loading={timelineLoading || (!currentTimeline && !timelineError)}
+                hasData={currentTimeline !== null}
+                error={timelineError}
+                refreshing={timelineLoading}
+                onRetry={() => void fetchTimeline(client)}
+                loadingFallback={<LoadingSkeleton variant="detail" />}
+                label="Loading client activity"
+              >
+                <ContactTimeline items={currentTimeline || []} />
+              </AdminReadBody>
             </AdminSurface>
           </div>
         </div>

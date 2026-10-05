@@ -43,6 +43,7 @@ try {
     ["touch", "./qa-admin-polish-touch.mjs"],
     ["editor", "./qa-admin-polish-theme-editor.mjs"],
     ["navigation", "./qa-admin-polish-navigation.mjs"],
+    ["command", "./qa-command-center-interactions.mjs"],
   ])
     if (!focus || focus.split(",").includes(name)) await import(file);
   if (focus?.split(",").includes("home")) await import("./qa-home-polish.mjs");
