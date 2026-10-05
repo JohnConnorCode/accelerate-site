@@ -397,10 +397,12 @@ jobs:
           hero_status=0
           mobile_status=0
           loading_status=0
+          core_release_status=0
           node scripts/qa-home-hero-timing.mjs || hero_status=$?
           node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
           node scripts/qa-public-loading.mjs || loading_status=$?
-          test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
+          node scripts/qa-core-release.mjs || core_release_status=$?
+          test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0 && test "$core_release_status" -eq 0
       - name: Retain native mobile motion evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
         uses: actions/upload-artifact@v7
@@ -410,6 +412,7 @@ jobs:
             /tmp/accelerate-home-hero-timing/
             /tmp/accelerate-mobile-motion/
             /tmp/accelerate-public-loading/
+            /tmp/accelerate-core-release-browser/
             /tmp/accelerate-mobile-motion-server.log
           if-no-files-found: ignore
           retention-days: 7
