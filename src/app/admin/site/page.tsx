@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { WebsiteModelPicker } from "@/components/admin/site/WebsiteModelPicker";
 import { DEFAULT_SITE_MODEL, siteModel, modelPriceCeiling } from "@/lib/site-studio/models";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -37,6 +38,7 @@ export default function AdminSiteStudioPage() {
 
 function SiteStudioEditor() {
   const router = useAdminNavigation();
+  const demo = useAdminDemo();
   const [drafts, setDrafts] = useState<DraftSummary[]>([]);
   const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -158,6 +160,12 @@ function SiteStudioEditor() {
         title="Site Studio"
         subtitle="Create private service-page drafts using a template or AI. Publish installation pages in the website editor."
       />
+      {demo !== null && (
+        <p className="text-sm text-[var(--admin-muted)]">
+          Draft changes are simulated and stay in this business’s browser session. AI example mode
+          uses the service template without calling a model. Resetting this demo clears its drafts.
+        </p>
+      )}
       <AdminSurface>
         <h2 className="admin-section-title">Installation website</h2>
         <Link href="/admin/site/connect" className="admin-button admin-button--secondary mt-3">
@@ -246,10 +254,12 @@ function SiteStudioEditor() {
                   className={fieldClass}
                 >
                   <option value="template">Built-in service template</option>
-                  <option value="ai">AI generated (needs OpenRouter)</option>
+                  <option value="ai">
+                    {demo !== null ? "AI example (simulated)" : "AI generated (needs OpenRouter)"}
+                  </option>
                 </select>
               </label>
-              {mode === "ai" && (
+              {mode === "ai" && demo === null && (
                 <WebsiteModelPicker value={model} onChange={setModel} disabled={creating} />
               )}
               {SITE_ASSET_CATALOG.length > 0 && (

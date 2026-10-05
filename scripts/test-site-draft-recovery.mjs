@@ -78,6 +78,7 @@ function harness(path) {
   const fetch = (url, options = {}) =>
     new Promise((resolve, reject) => requests.push({ url, options, resolve, reject }));
   const mocks = {
+    "@/components/admin/AdminDemoBoundary": { useAdminDemo: () => null },
     react,
     "next/navigation": { usePathname: () => currentPath },
     "@/components/admin/AdminLink": {

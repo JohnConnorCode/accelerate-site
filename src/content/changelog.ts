@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "private-page-draft-demo",
+    slug: "private-page-draft-demo",
+    title: "Try private page drafts in the demo",
+    description:
+      "Create, preview, rename and discard private page drafts in each fictional business. Saved titles survive reloads, businesses keep separate copies, and confirmed changes appear as simulated activity. AI example mode uses the service template without a provider call. Drafts remain in browser-session storage until discarded or the business is reset.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "private-page-draft-recovery",
     slug: "private-page-draft-recovery",
     title: "Recover private page drafts without losing your title",

@@ -59,9 +59,9 @@
     "src/app/admin/revenue/page.tsx": "067e05606e15de6d3e1cb29feff33b925373d98c8d9017148cd8e6072013daab",
     "src/app/admin/settings/page.tsx": "ddc02dcafabc97ec8f408f9cafaa3c56342fe9364495fe09167be42ee55188c8",
     "src/app/admin/setup/page.tsx": "5f314b54610fe02f5c0179bca6cb99a50426b017cc6ff5f78cd8a5dea52b67ce",
-    "src/app/admin/site/[id]/page.tsx": "c8355980bbf54360c1863b9114d0745066fea83d8e29c757ae051cc03c05d87a",
+    "src/app/admin/site/[id]/page.tsx": "04c48d29d04bd237539374c917bfde803d6929726fce6b0bdaa2d4ef49955b84",
     "src/app/admin/site/connect/page.tsx": "46746b81f2b127b7c002509cc1d3b04e673e8bb44e7ca389fcad43eca7c7dd74",
-    "src/app/admin/site/page.tsx": "4ba4d28a6cd443e7029abcdd83a0e837eacebb5fa2c12903edd42983cebdc503",
+    "src/app/admin/site/page.tsx": "8d3dd4e6ebb0af26c1561b4c46e86768a7178f819583ce7c838e3fbf2f180090",
     "src/app/admin/site/website/page.tsx": "1652cf0e48e62ab7c772bc1eb83655cc6b5dfdd40f4483b841cb0015adcc9a0f",
     "src/app/admin/site/website/preview/page.tsx": "ba3b9457651a48b4045b913c4bb959f80cd510e356968c66b20bdae666eb1582",
     "src/app/admin/social/history/page.tsx": "86febd1247f7fb57489a0daa4e71f31f57bb2809989f4972b6dff1a233d30672",
@@ -152,9 +152,9 @@
     "src/app/api/admin/settings/test/route.ts": "f8418e1833464d34dbcb16316986faa252b85d331627d1417f4e66ec64d352f4",
     "src/app/api/admin/setup/route.ts": "dd275356738ca89aab4c50ca5166915d0532ca74d2ca95023567be9f9201946d",
     "src/app/api/admin/site/delegations/route.ts": "3333c0a130adf584099b498e191d0d8fef5bbbc700305d5cefd4ca4770ad91fc",
-    "src/app/api/admin/site/drafts/[id]/route.ts": "d1b109ec287325688acdd544984e10a0d91a0742dd5be50af106ce2950317692",
+    "src/app/api/admin/site/drafts/[id]/route.ts": "f7e547c8e1baf242021191bb7e4e934ff1dba0707c3b205795901a09b3888f74",
     "src/app/api/admin/site/drafts/[id]/sections/route.ts": "8bcadef5e0a52c3a3760c7619368451b9af9b5c133e2a22c2fe72a6d55cb8a6e",
-    "src/app/api/admin/site/drafts/route.ts": "38ece6df30f16a0f108d76702b6bf75b340fd8616d2477b561c0c3cc78cd1579",
+    "src/app/api/admin/site/drafts/route.ts": "a3f163bcf2b4db06fd18c711da058cee46c61ec0161163e823101be85c53e717",
     "src/app/api/admin/site/website/route.ts": "17e128b4083fcaf22ffce08041102e6aae75360dc39e84fa0c7c71d6232e5aca",
     "src/app/api/admin/site/website/suggest/route.ts": "0012a5f62a698e1e605226b5ac7ad1795a6f919aba971febe5c3143df87b293c",
     "src/app/api/admin/social-history/route.ts": "6c763c4d22eeadf9cd10b64256416fb06bda6439f0fa53a38c0fb899d313ee0b",
@@ -391,12 +391,12 @@
     "src/lib/site-studio/database-store.ts": "58a4234f1af081f015727ba72c527e6b7ac78e110a868d0dc5b18c895e674842",
     "src/lib/site-studio/delegation.ts": "a0e55a813bb33b3a791c6b84be69e3f3a6c8f6a38ed52372c5dc3e85416fe4e9",
     "src/lib/site-studio/document.ts": "fa1e5a9b58b02ca02dfe7310087274e52d1e3112119f4c995cd405c71a7af8f8",
-    "src/lib/site-studio/drafts.ts": "eb016af336fa9d0efa3e7f3e628de3414f22486017b3cf8682658c4076eb6d42",
-    "src/lib/site-studio/generate.ts": "625c4fb23e5af9ba5d98443131f9a6697884141424baa78296d18ebfd11a2a96",
+    "src/lib/site-studio/drafts.ts": "76359587c993100f7da8cddb076ef1e3a009cf86edfdee1ac84eaf7a2d3ce3a7",
+    "src/lib/site-studio/generate.ts": "a511b5f85c42bd93610abb305ddbfe86a5bce64a05f31d368a14f3d164affa6c",
     "src/lib/site-studio/models.ts": "3b2c7552368a6163543629c3fa3a1e9d1131f98d4f412319c6587a053afe17a5",
     "src/lib/site-studio/openrouter-adapter.ts": "79bd52ee6584e430936b8d7c6e1a5b25f758ef46b46a53401a0345deaaa17303",
     "src/lib/site-studio/regenerate.ts": "ddec0aa53354e760a55324ce3c13c53ffa44dfb254e7f415672c2bb1fabaa802",
-    "src/lib/site-studio/revision.ts": "3a945fd87c2524a81bbd3b321ecefa97a0a5a3764a39fde3f8a3764313cafb20",
+    "src/lib/site-studio/revision.ts": "59a0002647d99958e956ec19c40b8a27f60d18328faccef8a99595c1d6e73923",
     "src/lib/site-studio/website-ai.ts": "613dfb089df3cd6b70e3b74946f87f88171bfbb69e5a028363da96fce9905dc4",
     "src/lib/site-studio/website-commands.ts": "064486605dce783b163a46b9620947f4b0b01b8c080eb746b4e90076500ecad2",
     "src/lib/site-studio/website-document.ts": "f11491f0a4fa55a8a34833469737a233f2d7d5b03cbaec17f9deeb0483bb601f",
@@ -1921,16 +1921,14 @@
           "path": "src/app/api/admin/site/drafts/route.ts",
           "domainImports": [
             "@/lib/site-studio/database-store",
-            "@/lib/site-studio/document",
             "@/lib/site-studio/drafts",
             "@/lib/site-studio/generate",
-            "@/lib/site-studio/models",
             "@/lib/site-studio/openrouter-adapter"
           ],
           "directTables": []
         }
       ],
-      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate list and create receipts. Pending creation locks the form, and an uncertain result requires a successful list refresh before retrying. Route/workspace changes ignore late replies. Fictional demo does not implement private draft creation; browser recovery proof uses a controlled adapter around the real UI.",
+      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate list and create receipts. Pending creation locks the form, and an uncertain result requires a successful list refresh before retrying. Route/workspace changes ignore late replies. Fictional demo does not implement private draft creation; browser recovery proof uses a controlled adapter around the real UI. The fictional runtime reuses the same pure draft operations with browser-session storage, scenario isolation and simulated Activity receipts. AI example mode uses the service template without provider traffic; authenticated live storage and provider adapters remain server-only.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1977,7 +1975,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate document, record ID and checksum. Failed refreshes retain the preview and typed title. Stale or uncertain writes require an explicit successful latest read and review; discard includes cancellation and validates its receipt. State is keyed by workspace path and draft ID, canceled reads and late write replies cannot overwrite another route.",
+      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate document, record ID and checksum. Failed refreshes retain the preview and typed title. Stale or uncertain writes require an explicit successful latest read and review; discard includes cancellation and validates its receipt. State is keyed by workspace path and draft ID, canceled reads and late write replies cannot overwrite another route. The fictional runtime reuses the same pure draft operations with browser-session storage, scenario isolation and simulated Activity receipts. AI example mode uses the service template without provider traffic; authenticated live storage and provider adapters remain server-only.",
       "followUp": null,
       "specialBoundary": null
     },

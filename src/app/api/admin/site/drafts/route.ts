@@ -1,42 +1,14 @@
-import {
-  DEFAULT_SITE_MODEL,
-  siteModelIdSchema,
-  sitePriceCeilingSchema,
-} from "@/lib/site-studio/models";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
-import { siteSlugSchema } from "@/lib/site-studio/document";
 import { siteDrafts } from "@/lib/site-studio/database-store";
-import { createSiteDraft, MAX_ATTACHED_ASSETS, SlugInUseError } from "@/lib/site-studio/drafts";
+import { createSiteDraft, createSiteDraftSchema, SlugInUseError } from "@/lib/site-studio/drafts";
 import {
   buildPageSystemPrompt,
   buildPageUserPrompt,
   type PageBrief,
 } from "@/lib/site-studio/generate";
 import { generatePageWithOpenRouter } from "@/lib/site-studio/openrouter-adapter";
-
-const briefSchema = z
-  .object({
-    serviceName: z.string().trim().min(1).max(120),
-    audience: z.string().trim().min(1).max(160),
-    outcome: z.string().trim().min(1).max(500),
-    extra: z.string().trim().max(1000).optional(),
-  })
-  .strict();
-
-const createSchema = z
-  .object({
-    title: z.string().trim().min(1).max(120).optional(),
-    slug: siteSlugSchema.optional(),
-    brief: briefSchema,
-    mode: z.enum(["template", "ai"]),
-    model: siteModelIdSchema.default(DEFAULT_SITE_MODEL),
-    priceCeiling: sitePriceCeilingSchema.optional(),
-    assetIds: z.array(z.string().min(1).max(120)).max(MAX_ATTACHED_ASSETS).optional(),
-  })
-  .strict();
 
 export const maxDuration = 180;
 
@@ -64,7 +36,7 @@ export async function POST(request: NextRequest) {
     console.warn("[site-studio] Draft create received a non-JSON body");
     return NextResponse.json({ error: "Request body must be JSON" }, { status: 400 });
   }
-  const parsed = createSchema.safeParse(body);
+  const parsed = createSiteDraftSchema.safeParse(body);
   if (!parsed.success)
     return NextResponse.json({ error: "Check the title, slug, brief, and mode" }, { status: 400 });
   const input = parsed.data;

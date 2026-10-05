@@ -1,6 +1,7 @@
 "use client";
 import { use, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -28,6 +29,7 @@ export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: s
 
 function SiteDraftEditor({ id }: { id: string }) {
   const router = useAdminNavigation();
+  const demo = useAdminDemo();
   const [draft, setDraft] = useState<SiteDraft | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
@@ -233,7 +235,7 @@ function SiteDraftEditor({ id }: { id: string }) {
     <div className="space-y-7 pb-10">
       <PageHeader
         title={draft.title}
-        subtitle={`/${draft.slug} · Private ${draft.source === "ai" ? "AI-assisted" : "template"} draft · Updated ${draft.updatedAt.slice(0, 10)}`}
+        subtitle={`/${draft.slug} · Private ${draft.source === "ai" ? (demo ? "AI example (simulated)" : "AI-assisted") : "template"} draft · Updated ${draft.updatedAt.slice(0, 10)}`}
       />
       <div className="flex flex-wrap items-center gap-3">
         <button

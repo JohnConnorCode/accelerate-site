@@ -6,6 +6,75 @@ import { randomUUID, createHash } from "node:crypto";
 import { chromium } from "playwright";
 import { servicePageTemplate } from "../src/lib/site-studio/templates";
 
+async function verifyDefaultDemo(
+  browser: import("playwright").Browser,
+  base: string,
+  output: string,
+) {
+  for (const width of [1440, 390]) {
+    const context = await browser.newContext({
+      viewport: { width, height: 1000 },
+      reducedMotion: "reduce",
+    });
+    try {
+      const page = await context.newPage();
+      const errors: string[] = [];
+      const protectedRequests: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      page.on("console", (message) => {
+        if (message.type() === "error") errors.push(message.text());
+      });
+      await context.route("**/*", (route) => {
+        const url = new URL(route.request().url());
+        if (url.origin !== new URL(base).origin || url.pathname.startsWith("/api/")) {
+          protectedRequests.push(url.pathname);
+          return route.abort();
+        }
+        return route.continue();
+      });
+      const home = `${base}/demo/command-center/northline-roofing/site`;
+      await page.goto(home);
+      await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
+      await page.getByLabel("Service name", { exact: true }).fill("Roof inspection");
+      await page.getByLabel("Audience", { exact: true }).fill("Property owners");
+      await page.getByLabel("Outcome", { exact: true }).fill("Review the condition report");
+      await page.getByLabel("Creation mode", { exact: true }).selectOption("ai");
+      assert.equal(await page.getByLabel("Creation mode", { exact: true }).inputValue(), "ai");
+      await page.screenshot({ path: `${output}/${width}-default-demo-create.png`, fullPage: true });
+      await page.getByLabel("Outcome", { exact: true }).press("Enter");
+      await page.getByRole("heading", { name: "Roof inspection", exact: true }).waitFor();
+      assert.ok((await page.locator("main").innerText()).includes("AI example (simulated)"));
+      const draftUrl = page.url();
+      await page.getByLabel("Draft title", { exact: true }).fill("Inspection review");
+      await page.getByRole("button", { name: "Save title", exact: true }).click();
+      await page.getByText("Title saved", { exact: true }).waitFor();
+      await page.reload();
+      await page.getByRole("heading", { name: "Inspection review", exact: true }).waitFor();
+      await page.screenshot({ path: `${output}/${width}-default-demo-saved.png`, fullPage: true });
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await page.getByRole("button", { name: "Discard draft", exact: true }).click();
+      await page.getByRole("button", { name: "Keep draft", exact: true }).press("Enter");
+      await page.getByRole("button", { name: "Discard draft", exact: true }).waitFor();
+      await page.goto(`${base}/demo/command-center/ledgerstone-advisory/site`);
+      await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
+      await page.goto(home);
+      await page.getByRole("link", { name: /Inspection review/ }).click();
+      assert.equal(page.url(), draftUrl);
+      await page.getByRole("button", { name: "Discard draft", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Click again to discard Inspection review", exact: true })
+        .click();
+      await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
+      await page.reload();
+      await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
+      assert.deepEqual(protectedRequests, []);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  }
+}
+
 async function main() {
   const base = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3028";
   const output = process.env.SITE_STUDIO_QA_OUTPUT ?? "/tmp/accelerate-site-studio-qa";
@@ -371,7 +440,7 @@ async function main() {
         ["/docs/plugins/site-studio", "A failed refresh retains the preview and your text"],
         ["/docs/plugins/overview", "checking the list after an uncertain create"],
         ["/command-center", "Private workspace drafts retain typed titles"],
-        ["/changelog", "Recover private page drafts without losing your title"],
+        ["/changelog", "Try private page drafts in the demo"],
       ] as const) {
         const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
         assert.equal(response?.status(), 200, route);
@@ -414,8 +483,9 @@ async function main() {
       assert.deepEqual(errors, []);
       await context.close();
     }
+    await verifyDefaultDemo(browser, base, output);
     console.log(
-      "PASS: Site Studio shared admin Enter submission, locked creation, uncertain create refresh, stale title review, failed refresh retention, discard cancellation/recovery and responsive rendering at 1440/390, plus changed public guide, overview, feature and changelog rendering (controlled adapter).",
+      "PASS: Site Studio shared admin Enter submission, locked creation, uncertain create refresh, stale title review, failed refresh retention, discard cancellation/recovery and responsive rendering at 1440/390, plus changed public guide, overview, feature and changelog rendering (controlled adapter); default demo creation, AI labeling, rename persistence, scenario isolation, confirmed discard and zero protected/provider requests.",
     );
   } catch (error) {
     if (activePage && !activePage.isClosed()) {
