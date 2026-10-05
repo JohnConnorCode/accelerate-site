@@ -188,7 +188,9 @@ async function main() {
     200,
     "person attachments remain available when unrelated records fail",
   );
-  assert.equal((await peopleOnly.json()).records.length, 0);
+  const peopleBody = await peopleOnly.json();
+  assert.equal(peopleBody.records.length, 0);
+  assert.equal(peopleBody.results[0].email, "owner@example.test");
   assert(
     memory.queryTables.slice(beforePeopleOnly).every((table) => tables.slice(0, 5).includes(table)),
     "people-only callers never read unrelated records",

@@ -1795,7 +1795,7 @@ function CommandRow({
         <span
           className={cn(
             "block truncate text-[11px]",
-            selected ? "text-current opacity-80" : "text-[var(--admin-muted)]",
+            selected ? "text-current" : "text-[var(--admin-muted)]",
           )}
         >
           {description}
