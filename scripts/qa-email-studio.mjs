@@ -44,6 +44,19 @@ for (const [label, viewport] of [
     .waitFor({ timeout: 30_000 });
   const initialPreview = page.locator('iframe[title^="Email preview:"]');
   await initialPreview.waitFor({ timeout: 15_000 });
+  if (label === "mobile") {
+    const headerWidth = await page
+      .getByRole("heading", { name: "New inquiry response", exact: true })
+      .evaluate((heading) => {
+        const copy = heading.parentElement?.parentElement;
+        return {
+          copy: copy?.getBoundingClientRect().width ?? 0,
+          header: copy?.parentElement?.getBoundingClientRect().width ?? 0,
+        };
+      });
+    if (!headerWidth.header || headerWidth.copy < headerWidth.header * 0.6)
+      failures.push(`${label}: email title and description are squeezed by header actions`);
+  }
   const initialFrame = page.frameLocator('iframe[title^="Email preview:"]');
   await initialFrame.locator("body").waitFor();
   const initialEmail = await initialFrame.locator("body").innerText();

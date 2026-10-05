@@ -448,7 +448,7 @@ export default function EmailsPage() {
                     >
                       <ArrowLeft className="size-4" />
                     </button>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 basis-3/4 sm:basis-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-balance text-lg font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
                           {detail.name}
@@ -468,7 +468,7 @@ export default function EmailsPage() {
                       </div>
                       <p className="admin-copy mt-1 text-xs">{detail.description}</p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="ml-auto flex flex-wrap items-center gap-2">
                       <button
                         type="button"
                         onClick={compose}
