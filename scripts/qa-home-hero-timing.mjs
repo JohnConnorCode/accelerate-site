@@ -619,6 +619,12 @@ if (
   !staticHero.allContentReadable
 )
   failures.push("No-JavaScript hero did not remain complete and static");
+// The image and local fonts can be fetched but still await decoding/painting.
+// Capture their settled no-script presentation, not the network's first paint.
+await staticPage.evaluate(async () => {
+  await document.fonts.ready;
+  await document.querySelector(".home-hero-poster").decode();
+});
 await staticPage.screenshot({ caret: "initial", path: `${output}/desktop-no-js.png` });
 await noJS.close();
 const gpuFallbacks = [];
@@ -717,7 +723,10 @@ for (const [label, viewport, touch] of [
         .evaluate(
           (element) =>
             getComputedStyle(element).opacity === "1" &&
-            element.querySelectorAll("path").length > 0,
+            element instanceof HTMLImageElement &&
+            element.complete &&
+            element.naturalWidth > 1 &&
+            element.naturalHeight > 1,
         ))
     )
       failures.push(`${label}: unavailable GPU has no visible poster`);
