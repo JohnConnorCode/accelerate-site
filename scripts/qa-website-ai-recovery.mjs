@@ -274,6 +274,17 @@ try {
       await page.getByText("40 of 40 sections", { exact: true }).waitFor();
       await page.getByRole("button", { name: "Save draft", exact: true }).click();
       await page.getByText("Private revision 2 saved.", { exact: false }).waitFor();
+      const draftFrame = page.locator('.admin-route-frame iframe[title="Live website preview"]');
+      assert.equal(
+        await draftFrame.evaluate((element) => getComputedStyle(element).visibility),
+        "visible",
+        "closing the dialog restores the draft preview",
+      );
+      await page
+        .frameLocator('.admin-route-frame iframe[title="Live website preview"]')
+        .getByRole("heading", { name: "Bookkeeping service", exact: true })
+        .first()
+        .waitFor();
       await page.evaluate(() => scrollTo(0, 0));
       await page.screenshot({ path: `${output}/saved-builder-${width}-${reducedMotion}.png` });
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
