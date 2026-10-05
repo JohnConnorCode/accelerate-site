@@ -29,18 +29,18 @@ function compile(path, mocks, window, navigator = {}) {
   const output = ts.transpileModule(readFileSync(path, "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
-  const module = { exports: {} };
+  const compiled = { exports: {} };
   const localRequire = (name) =>
     mocks[name] ||
     (name === "react/jsx-runtime" ? require(name) : new Proxy({}, { get: () => passthrough }));
   new Function("require", "module", "exports", "window", "navigator", output)(
     localRequire,
-    module,
-    module.exports,
+    compiled,
+    compiled.exports,
     window,
     navigator,
   );
-  return module.exports;
+  return compiled.exports;
 }
 function pageHarness(patch, failRead = false) {
   const state = [[first, second], 0, 0, false, "all", first, false];
