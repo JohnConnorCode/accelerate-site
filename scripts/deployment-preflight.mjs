@@ -1,7 +1,37 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { assertForkHosting, loadOriginalHosting } from "./lib/neutral-distribution.mjs";
+
+/** Fork-owned target survives upstream changes to the tracked maintainer target. */
+export function loadDeploymentTarget(root = process.cwd()) {
+  for (const file of ["deployment-target.local.json", "deployment-target.json"]) {
+    const path = resolve(root, file);
+    let stat;
+    try {
+      stat = lstatSync(path);
+    } catch (error) {
+      if (error.code === "ENOENT") continue;
+      throw new Error(`Cannot read ${file}. Check local hosting configuration.`);
+    }
+    if (!stat.isFile() || stat.size > 16384)
+      throw new Error(`${file} must be a regular, bounded JSON file.`);
+    let target;
+    try {
+      target = JSON.parse(readFileSync(path, "utf8"));
+    } catch {
+      throw new Error(`Invalid ${file}. Repair it before checking hosting.`);
+    }
+    if (!target || typeof target !== "object" || Array.isArray(target))
+      throw new Error(`Invalid ${file}. Expected a hosting target object.`);
+    for (const key of ["projectId", "teamId", "projectName", "canonicalUrl"])
+      if (typeof target[key] !== "string" || !target[key].trim() || target[key].length > 500)
+        throw new Error(`${file} requires a valid ${key}.`);
+    return target;
+  }
+  throw new Error("No hosting target. Run scripts/generate-fork-hosting.mjs with your own IDs.");
+}
 
 export function verifyDeploymentTarget({ target, linked, env = process.env, request }) {
   if (!target.projectId || !target.teamId || !target.projectName) {
@@ -48,7 +78,7 @@ export function deploymentConfigArgs(target, args = [], original = loadOriginalH
 }
 
 export function deploymentPreflight() {
-  const target = JSON.parse(readFileSync("deployment-target.json", "utf8"));
+  const target = loadDeploymentTarget();
   verifyHostingSelection(target);
   let linked;
   try {

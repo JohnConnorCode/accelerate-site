@@ -105,6 +105,22 @@ try {
     await page.screenshot({ path: `${output}/homepage-${width}.png`, fullPage: true });
     assert.deepEqual(external, [], "No external calls from the fresh homepage");
     assert.deepEqual(errors, [], "No browser runtime errors");
+    await page.goto(`${base}/docs/self-hosting/installation`);
+    const updateGuide = page.getByRole("heading", {
+      name: "Keep your changes through an update",
+      exact: true,
+    });
+    await updateGuide.scrollIntoViewIfNeeded();
+    assert.ok(
+      await page.getByText("npm run fork:check -- --ref <commit-or-tag>", { exact: true }).count(),
+    );
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      "Fork update instructions fit the viewport",
+    );
+    await page.screenshot({ path: `${output}/fork-update-guide-${width}.png` });
+    assert.deepEqual(errors, [], "Update guide has no browser runtime errors");
+    assert.deepEqual(external, [], "Update guide requires no external requests");
     await context.addInitScript(() => {
       let requests = 0;
       const wrap = (next) => async (input, init) => {
@@ -194,6 +210,7 @@ try {
       accessibility: "passed",
       externalRequests: external.length,
       formPicker: "failure, empty, published-only binding, private save and non-submitting preview",
+      forkUpdateGuide: "rendered without overflow or external requests",
     });
     await context.close();
   }

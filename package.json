@@ -36,6 +36,8 @@
     "verify:docs": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/verify-docs.ts",
     "docs:llms": "npx tsx scripts/generate-docs-llms.ts",
     "docs:llms:check": "npx tsx scripts/generate-docs-llms.ts --check",
+    "fork:check": "node scripts/check-fork-upgrade.mjs",
+    "test:fork-upgrade-preservation": "node scripts/test-fork-upgrade-preservation.mjs",
     "deploy:check": "node scripts/deployment-preflight.mjs",
     "deploy:pull": "npm run deploy:check && vercel pull --yes --environment=production",
     "deploy:build": "node scripts/next-release.mjs vercel-build",
