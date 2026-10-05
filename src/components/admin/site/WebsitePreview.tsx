@@ -2,13 +2,27 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { websiteThemeStyle } from "@/lib/site-studio/website-theme";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { WebsitePageContent } from "@/lib/site-studio/website-renderer";
 import { renderNativeWebsiteSection } from "@/lib/site-studio/native-renderer";
 import { parseWebsiteDocument, type WebsiteDocument } from "@/lib/site-studio/website-document";
+import {
+  assertDocumentSize,
+  parseSiteDocument,
+  type SiteDocument,
+} from "@/lib/site-studio/document";
+import { SitePageRenderer } from "@/lib/site-studio/renderer";
+
+function preventPreviewNavigation(event: MouseEvent<HTMLDivElement>) {
+  if (event.target instanceof Element && event.target.closest("a")) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+}
 
 export function WebsitePreview({ pageId }: { pageId?: string }) {
   const [document, setDocument] = useState<WebsiteDocument | null>(null);
+  const [privateDraft, setPrivateDraft] = useState<SiteDocument | null>(null);
   const [message, setMessage] = useState("Loading the saved private preview…");
   const [livePage, setLivePage] = useState(pageId);
   useEffect(() => {
@@ -16,12 +30,21 @@ export function WebsitePreview({ pageId }: { pageId?: string }) {
       if (
         event.origin !== window.location.origin ||
         event.source !== window.parent ||
-        event.data?.type !== "website-preview-document"
+        !["website-preview-document", "site-draft-preview-document"].includes(event.data?.type)
       )
         return;
       try {
-        setDocument(parseWebsiteDocument(event.data.document));
-        setLivePage(event.data.pageId);
+        if (event.data.type === "site-draft-preview-document") {
+          const next = parseSiteDocument(event.data.document);
+          assertDocumentSize(next);
+          setPrivateDraft(next);
+          setDocument(null);
+        } else {
+          const next = parseWebsiteDocument(event.data.document);
+          setDocument(next);
+          setPrivateDraft(null);
+          setLivePage(event.data.pageId);
+        }
         setMessage("Private live preview");
       } catch {
         /* Retain the last valid preview. */
@@ -71,13 +94,8 @@ export function WebsitePreview({ pageId }: { pageId?: string }) {
     : (document?.pages.find((candidate) => candidate.id === livePage) ?? document?.pages[0]);
   return (
     <div
-      onClickCapture={(event) => {
-        const target = event.target as HTMLElement;
-        if (target.closest("a")) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      }}
+      onClickCapture={preventPreviewNavigation}
+      onAuxClickCapture={preventPreviewNavigation}
       onSubmitCapture={(event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -89,6 +107,7 @@ export function WebsitePreview({ pageId }: { pageId?: string }) {
       <p role="status" className="sr-only">
         {message}
       </p>
+      {privateDraft && <SitePageRenderer document={privateDraft} />}
       {document && page && (
         <>
           <Header

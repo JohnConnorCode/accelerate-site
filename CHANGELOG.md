@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Private page drafts now reuse the validated iframe preview with real responsive viewports and public page styling. Links, including keyboard and middle-button activation, stay inside the preview; FAQ disclosure remains interactive.
+
 - The fictional Site Studio demo now supports private draft creation, renaming and checksum-checked discard through shared draft rules. Scenario-local receipts appear in Activity; AI examples use the template without a provider call.
 
 - Site Studio previews AI suggestions before applying, forwards cancellation through the existing model gateway, and rejects late or stale replies. Page-scoped tools preserve custom addresses and enforce validated section limits.

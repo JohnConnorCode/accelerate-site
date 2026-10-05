@@ -59,7 +59,7 @@
     "src/app/admin/revenue/page.tsx": "067e05606e15de6d3e1cb29feff33b925373d98c8d9017148cd8e6072013daab",
     "src/app/admin/settings/page.tsx": "ddc02dcafabc97ec8f408f9cafaa3c56342fe9364495fe09167be42ee55188c8",
     "src/app/admin/setup/page.tsx": "5f314b54610fe02f5c0179bca6cb99a50426b017cc6ff5f78cd8a5dea52b67ce",
-    "src/app/admin/site/[id]/page.tsx": "aab52fdb1cf948c3be0e16abb0ecf75d5c6d3ae5db42fd3132e79aefd971cb60",
+    "src/app/admin/site/[id]/page.tsx": "567dc597fe81d1552cd81c17f18765718181678b9569174dd156eb0baaa70efe",
     "src/app/admin/site/connect/page.tsx": "46746b81f2b127b7c002509cc1d3b04e673e8bb44e7ca389fcad43eca7c7dd74",
     "src/app/admin/site/page.tsx": "8d3dd4e6ebb0af26c1561b4c46e86768a7178f819583ce7c838e3fbf2f180090",
     "src/app/admin/site/website/page.tsx": "1652cf0e48e62ab7c772bc1eb83655cc6b5dfdd40f4483b841cb0015adcc9a0f",
@@ -287,10 +287,10 @@
     "src/components/admin/site/WebsiteEditor.tsx": "f5cab75d92e4da8499c053f0cf3029353f6d148d8ceaa06fb6d940a2d70b6577",
     "src/components/admin/site/WebsiteFields.tsx": "6b5d3b2fe83da6a676afbb420b69de8b86aca2bb52d800409bc715db76744116",
     "src/components/admin/site/WebsiteFormPicker.tsx": "bb611fa58e98668187992f62b4f18700fac353c4a12f4da2174be6629c9cb49b",
-    "src/components/admin/site/WebsiteLivePreview.tsx": "ca00c1896711944cc8bc843164501847dd5bc6babc8d5e6924824469813e1164",
+    "src/components/admin/site/WebsiteLivePreview.tsx": "63df93da44ebe3c757c57fe5c263465b4ce0482eef127ce00a816007167e6297",
     "src/components/admin/site/WebsiteModelPicker.tsx": "afd7c84948e05ad417b6ff5aefb3201cee8dee5e679a9f1848a8ac12b612169f",
     "src/components/admin/site/WebsitePageTools.tsx": "36e716e12f2a013fc2c9368a922e7c82404f62285ae825a24d3634eedcc2aeee",
-    "src/components/admin/site/WebsitePreview.tsx": "bf8311f0add8e7765f8f6911b4540667d5f95cc7ec6e3429997d6ac2c0347c4b",
+    "src/components/admin/site/WebsitePreview.tsx": "d06951c2ecd6dce76ce3c24e3a451f80968ac605d5b8394de38ac973c89af961",
     "src/components/admin/site/WebsitePreviewFrame.tsx": "28e60da16e883e94480ee3c5e3a2e2a502284a805de170c69d1bf2ba6dfcc245",
     "src/components/admin/site/WebsitePreviewRuntime.tsx": "7e733f728af32992d95ebd684e9deeb3eba1ad9e45199da766f5f74eddf4b3e5",
     "src/components/admin/site/WebsitePublishing.tsx": "43fa82fe3408d9138977c9c34ec8459b5e174fc1844d4b4c1cce515be8d44864",
@@ -1975,7 +1975,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate document, record ID and checksum. Failed refreshes retain the preview and typed title. Stale or uncertain writes require an explicit successful latest read and review; discard includes cancellation and validates its receipt. State is keyed by workspace path and draft ID, canceled reads and late write replies cannot overwrite another route. The fictional runtime reuses the same pure draft operations with browser-session storage, scenario isolation and simulated Activity receipts. AI example mode uses the service template without provider traffic; authenticated live storage and provider adapters remain server-only.",
+      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate document, record ID and checksum. Failed refreshes retain the preview and typed title. Stale or uncertain writes require an explicit successful latest read and review; discard includes cancellation and validates its receipt. State is keyed by workspace path and draft ID, canceled reads and late write replies cannot overwrite another route. The fictional runtime reuses the same pure draft operations with browser-session storage, scenario isolation and simulated Activity receipts. AI example mode uses the service template without provider traffic; authenticated live storage and provider adapters remain server-only. Saved private documents render in the shared live iframe with real 390/768/1440 pixel viewports and public styles; same-origin parent messages validate schema and size. Preview links and forms are inactive, FAQ disclosure remains interactive, and live private frames do not fetch owner website data.",
       "followUp": null,
       "specialBoundary": null
     },

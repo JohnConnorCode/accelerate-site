@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "private-draft-responsive-preview",
+    slug: "private-draft-responsive-preview",
+    title: "Check private drafts in real responsive viewports",
+    description:
+      "Preview saved private drafts at 390, 768 and 1440 pixels. Each size gives the page its own viewport, so responsive layouts and typography match the selected width even on a small admin screen. The preview uses public page styling, keeps links and forms inactive, and lets you open FAQ answers without leaving the editor.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "private-page-draft-demo",
     slug: "private-page-draft-demo",
     title: "Try private page drafts in the demo",

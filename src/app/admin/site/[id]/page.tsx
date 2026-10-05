@@ -6,7 +6,7 @@ import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { SitePageRenderer } from "@/lib/site-studio/renderer";
+import { WebsiteLivePreview } from "@/components/admin/site/WebsiteLivePreview";
 import {
   collectAssetIds,
   isSiteDocument,
@@ -14,12 +14,6 @@ import {
   type SiteDraft,
 } from "@/lib/site-studio/document";
 import { resolveSiteAsset } from "@/lib/site-studio/assets";
-
-const WIDTHS = [
-  { label: "Desktop", px: "100%" },
-  { label: "Tablet", px: "768px" },
-  { label: "Mobile", px: "390px" },
-] as const;
 
 export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -33,7 +27,6 @@ function SiteDraftEditor({ id }: { id: string }) {
   const [draft, setDraft] = useState<SiteDraft | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
-  const [width, setWidth] = useState<(typeof WIDTHS)[number]>(WIDTHS[0]!);
   const [titleInput, setTitleInput] = useState<string | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [renameError, setRenameError] = useState<string | null>(null);
@@ -235,6 +228,11 @@ function SiteDraftEditor({ id }: { id: string }) {
     <div className="space-y-7 pb-10">
       <PageHeader
         title={draft.title}
+        actions={
+          <Link href="/admin/site" className="admin-button admin-button--secondary">
+            All drafts
+          </Link>
+        }
         subtitle={`/${draft.slug} · Private ${draft.source === "ai" ? (demo ? "AI example (simulated)" : "AI-assisted") : "template"} draft · Updated ${draft.updatedAt.slice(0, 10)}`}
       />
       <div className="flex flex-wrap items-center gap-3">
@@ -257,40 +255,12 @@ function SiteDraftEditor({ id }: { id: string }) {
           {loadError} Your title text is retained.
         </p>
       )}
-      <div className="flex items-center gap-2" role="group" aria-label="Preview width">
-        {WIDTHS.map((option) => (
-          <button
-            key={option.label}
-            type="button"
-            onClick={() => setWidth(option)}
-            aria-pressed={width.label === option.label}
-            className="admin-button admin-button--secondary"
-          >
-            {option.label}
-          </button>
-        ))}
-        <Link
-          href="/admin/site"
-          className="ml-auto text-sm font-semibold text-[var(--admin-ink)] hover:underline"
-        >
-          All drafts
-        </Link>
-      </div>
       {!document ? (
         <p role="alert" className="admin-copy text-sm text-[var(--admin-danger)]">
           This draft failed validation and cannot render.
         </p>
       ) : (
-        <AdminSurface
-          padding="none"
-          className="overflow-hidden"
-          style={{
-            maxWidth: width.px,
-            marginInline: "auto",
-          }}
-        >
-          <SitePageRenderer document={document} />
-        </AdminSurface>
+        <WebsiteLivePreview document={document} kind="private-draft" />
       )}
       <section aria-label="Rename draft">
         <h2 className="admin-section-title">Rename draft</h2>

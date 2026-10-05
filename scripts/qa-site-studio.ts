@@ -4,7 +4,120 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { randomUUID, createHash } from "node:crypto";
 import { chromium } from "playwright";
+import { parseSiteDocument } from "../src/lib/site-studio/document";
 import { servicePageTemplate } from "../src/lib/site-studio/templates";
+
+async function verifyDraftPreview(page: import("playwright").Page, output: string, width: number) {
+  const preview = page.getByRole("region", { name: "Private draft preview", exact: true });
+  const frame = page.frameLocator('iframe[title="Private draft page preview"]');
+  const heading = frame.getByRole("heading", { name: "Roof inspection", exact: true });
+  await heading.waitFor();
+  await frame.locator("body").evaluate(async () => {
+    await Promise.all(Array.from(document.images, (image) => image.decode()));
+  });
+  const sizes = [
+    [390, "Phone"],
+    [768, "Tablet"],
+    [1440, "Desktop"],
+  ] as const;
+  const fontSizes: number[] = [];
+  for (const [size, label] of sizes) {
+    await preview.getByRole("button", { name: label, exact: true }).press("Enter");
+    await page.waitForFunction(
+      (size) =>
+        document.querySelector<HTMLIFrameElement>('iframe[title="Private draft page preview"]')
+          ?.contentWindow?.innerWidth === size,
+      size,
+    );
+    assert.equal(
+      await preview.getByRole("button", { name: label, exact: true }).getAttribute("aria-pressed"),
+      "true",
+    );
+    assert.equal(
+      await frame.locator("body").evaluate(() => matchMedia("(max-width: 640px)").matches),
+      size <= 640,
+    );
+    fontSizes.push(
+      await heading.evaluate((element) => parseFloat(getComputedStyle(element).fontSize)),
+    );
+    assert.equal(await frame.locator(".admin-route-frame, header, footer").count(), 0);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await preview.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/${width}-preview-${size}.png` });
+  }
+  assert.ok(fontSizes[2]! > fontSizes[0]!, "hero type must respond to the iframe viewport");
+  await preview.getByRole("button", { name: "Phone", exact: true }).press("Enter");
+  const iframe = await page.locator('iframe[title="Private draft page preview"]').elementHandle();
+  assert.ok(iframe);
+  const frameUrl = await iframe.evaluate(
+    (element) => (element as HTMLIFrameElement).contentWindow!.location.href,
+  );
+  const outerUrl = page.url();
+  const popups: string[] = [];
+  page.on("popup", (popup) => popups.push(popup.url()));
+  const link = frame.getByRole("link", { name: "Start a conversation", exact: true }).first();
+  await link.click();
+  await link.press("Enter");
+  await link.click({ button: "middle" });
+  assert.equal(
+    await iframe.evaluate((element) => (element as HTMLIFrameElement).contentWindow!.location.href),
+    frameUrl,
+  );
+  assert.equal(page.url(), outerUrl);
+  assert.deepEqual(popups, []);
+  const question = frame.locator("summary").first();
+  await question.press("Enter");
+  assert.equal(await question.locator("..").getAttribute("open"), "");
+  await question.press("Enter");
+  // Invalid parent messages and valid messages from the wrong source must not replace the preview.
+  await iframe.evaluate((element) => {
+    (element as HTMLIFrameElement).contentWindow!.postMessage(
+      { type: "site-draft-preview-document", document: { engine: "script" } },
+      location.origin,
+    );
+  });
+  const rejected = servicePageTemplate({
+    serviceName: "Untrusted replacement",
+    audience: "QA",
+    outcome: "Ignore self messages",
+  });
+  await frame.locator("body").evaluate((_, document) => {
+    window.postMessage({ type: "site-draft-preview-document", document }, location.origin);
+  }, rejected);
+  const oversized = parseSiteDocument({
+    ...rejected,
+    root: Array.from({ length: 15 }, (_, section) => ({
+      id: `section-${section}`,
+      type: "section",
+      children: Array.from({ length: 20 }, (_, text) => ({
+        id: `text-${section}-${text}`,
+        type: "text",
+        props: { text: "a".repeat(2000) },
+      })),
+    })),
+  });
+  assert.ok(new TextEncoder().encode(JSON.stringify(oversized)).length > 512_000);
+  await iframe.evaluate((element, document) => {
+    (element as HTMLIFrameElement).contentWindow!.postMessage(
+      { type: "site-draft-preview-document", document },
+      location.origin,
+    );
+  }, oversized);
+  await page.waitForTimeout(250);
+  assert.equal(await heading.count(), 1);
+  assert.equal(
+    await frame.getByRole("heading", { name: "Untrusted replacement", exact: true }).count(),
+    0,
+  );
+  const bounds = await preview.boundingBox();
+  const rename = await page
+    .getByRole("region", { name: "Rename draft", exact: true })
+    .boundingBox();
+  assert.ok(
+    bounds && rename && rename.y - (bounds.y + bounds.height) >= 16,
+    "preview must retain spacing before rename controls",
+  );
+}
 
 async function verifyDefaultDemo(
   browser: import("playwright").Browser,
@@ -50,14 +163,7 @@ async function verifyDefaultDemo(
       await page.getByText("Title saved.", { exact: true }).waitFor();
       await page.reload();
       await page.getByRole("heading", { name: "Inspection review", exact: true }).waitFor();
-      const preview = await page.locator(".site-document").locator("..").boundingBox();
-      const rename = await page
-        .getByRole("region", { name: "Rename draft", exact: true })
-        .boundingBox();
-      assert.ok(
-        preview && rename && rename.y - (preview.y + preview.height) >= 16,
-        "preview must retain spacing before rename controls",
-      );
+      await verifyDraftPreview(page, output, width);
       await page.screenshot({ path: `${output}/${width}-default-demo-saved.png`, fullPage: true });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       await page.getByRole("button", { name: "Discard draft", exact: true }).click();
@@ -123,7 +229,7 @@ async function main() {
     if (process.env.SITE_STUDIO_QA_DEMO_ONLY === "1") {
       await verifyDefaultDemo(browser, base, output);
       console.log(
-        "PASS: default demo private draft journey at 1440/390; protected/provider requests and browser errors absent.",
+        "PASS: real 390/768/1440 private preview viewports, typography, keyboard controls, inactive links, interactive FAQ, message validation and default demo recovery at outer 1440/390; protected/provider requests and browser errors absent.",
       );
       return;
     }
@@ -461,7 +567,7 @@ async function main() {
         ["/docs/plugins/site-studio", "A failed refresh retains the preview and your text"],
         ["/docs/plugins/overview", "checking the list after an uncertain create"],
         ["/command-center", "Private workspace drafts retain typed titles"],
-        ["/changelog", "Try private page drafts in the demo"],
+        ["/changelog", "Check private drafts in real responsive viewports"],
       ] as const) {
         const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
         assert.equal(response?.status(), 200, route);
