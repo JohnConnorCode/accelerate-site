@@ -55,8 +55,11 @@ They are not merged or deployed.
   passed. The current source inventory has 66 admin pages and 398 fingerprints;
   those counts do not establish complete AI parity.
 - The final trace/usage source passed production build, full lint, TypeScript
-  validation and route inventory in CI run `37315522167`. The full core and database
-  checks also passed. The restored admin browser receipt is pending.
+  validation and route inventory in CI runs `37315522167` and `37317222516`.
+  The full core and database checks also passed. The restored browser script
+  completed every core interaction on desktop and mobile with no runtime or
+  console failure. Its only failure was a stale launcher heading assertion,
+  corrected against the current page. A clean browser rerun is pending.
   Local heavy verification was deferred because another active worktree held the
   shared resource slot. Full final CI success is not claimed.
 

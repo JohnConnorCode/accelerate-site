@@ -132,7 +132,7 @@ async function readStablePageState(page) {
   )
     failures.push("launcher: current workflow-led heading is missing");
   if (
-    !(await page.getByRole("heading", { name: "Follow the work through to its result." }).count())
+    !(await page.getByRole("heading", { name: "Start with a request. Review the result." }).count())
   )
     failures.push("launcher: complete-workflow showcase is missing");
   if (await page.getByText("Command Center overview", { exact: false }).count())
@@ -795,6 +795,7 @@ for (const scenario of scenarios) {
       await page.getByText("Ordered trace", { exact: true }).waitFor();
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2))
         failures.push("AI workspace: run history has horizontal overflow on mobile");
+      await page.getByText("Ordered trace", { exact: true }).scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${output}/ai-run-history-mobile.png`, fullPage: true });
       await page.setViewportSize(viewport);
       await page
