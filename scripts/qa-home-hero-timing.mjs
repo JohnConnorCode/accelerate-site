@@ -247,6 +247,34 @@ for (const [label, viewport, colorScheme] of [
       (element) => element.getAnimations().every((animation) => animation.playState === "finished"),
     ),
   }));
+  const layout = await page.evaluate(() => {
+    const bounds = (selector) => {
+      const { x, y, width, bottom } = document.querySelector(selector).getBoundingClientRect();
+      return { x, y, width, bottom };
+    };
+    return {
+      heading: bounds(".home-hero-heading"),
+      artwork: bounds(".home-hero-artwork"),
+      scene: bounds(".home-hero-scene"),
+      offer: bounds(".home-hero-bottom"),
+      services: bounds(".home-hero-services"),
+    };
+  });
+  if (
+    Math.abs(layout.heading.x - layout.artwork.x) > 1 ||
+    Math.abs(layout.heading.width - layout.artwork.width) > 1
+  )
+    failures.push(`${label}: artwork and headline do not share the editorial grid`);
+  if (
+    viewport.width > 640 &&
+    (layout.scene.bottom > layout.offer.y + 1 || Math.abs(layout.offer.y - layout.services.y) > 1)
+  )
+    failures.push(`${label}: artwork, offer and services are disconnected in the layout`);
+  if (
+    viewport.width <= 640 &&
+    (layout.offer.bottom > layout.scene.y + 1 || layout.scene.bottom > layout.services.y + 1)
+  )
+    failures.push(`${label}: mobile offer, artwork and services overlap or appear out of order`);
   if (settled.heading !== "none" && settled.heading !== "matrix(1, 0, 0, 1, 0, 0)")
     failures.push(`${label}: short entrance did not settle`);
   if (settled.cta !== "1") failures.push(`${label}: CTA is not visible`);

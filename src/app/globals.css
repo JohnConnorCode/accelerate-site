@@ -6333,7 +6333,7 @@ body.modal-open [data-dock] {
   }
 }
 
-/* The hero pairs a readable offer with an explorable, connected brand sculpture. */
+/* One editorial composition joins the offer, continuous artwork and service detail. */
 .home-hero {
   --hero-ease: cubic-bezier(0.25, 0.5, 0.25, 1);
   position: relative;
@@ -6354,10 +6354,10 @@ body.modal-open [data-dock] {
   margin-bottom: clamp(28px, 3.8vw, 46px);
 }
 .home-hero-heading {
-  max-width: 23ch;
+  max-width: 30ch;
   margin: 0;
   color: var(--fg);
-  font: 500 clamp(48px, 6.2vw, 88px)/1.08 var(--display);
+  font: 500 clamp(48px, 5.2vw, 76px)/1.08 var(--display);
   letter-spacing: -0.035em;
   text-wrap: balance;
 }
@@ -6379,20 +6379,29 @@ body.modal-open [data-dock] {
   position: relative;
   display: inline-block;
 }
-/* Interwoven ink bands show the work beside the editorial offer. */
+/* The same three inputs stretch across a shared field on larger screens. */
 .home-hero-artwork {
-  position: absolute;
-  z-index: 2;
-  top: clamp(130px, 12svh, 160px);
-  right: max(30px, calc((100vw - 1320px) / 2));
-  width: min(43vw, 600px);
+  position: relative;
+  inset: auto;
+  width: 100%;
+  margin-top: 28px;
 }
 .home-hero-scene {
   position: relative;
-  height: clamp(330px, 43svh, 450px);
+  height: clamp(200px, 28svh, 300px);
   isolation: isolate;
+  container-type: size;
 }
-/* Engraved contours make the many paths through the work visible. */
+.home-hero-caption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(40px, 7vw, 100px);
+  align-items: start;
+}
+.home-hero-services {
+  min-width: 0;
+}
+/* A return path makes ongoing improvement part of the connected system. */
 .home-hero-flow {
   position: absolute;
   z-index: -1;
@@ -6422,8 +6431,8 @@ body.modal-open [data-dock] {
 }
 .home-hero-feedback-label {
   position: absolute;
-  left: 61%;
-  top: 87%;
+  left: 61.1042%;
+  top: calc(50% + min(37.925cqh, 25.2833cqw));
   z-index: 2;
   padding: 2px 6px;
   color: var(--mid);
@@ -6449,15 +6458,18 @@ body.modal-open [data-dock] {
   opacity: 0;
   transition: opacity 550ms var(--hero-ease);
 }
-.home-hero-poster,
-.home-hero-flow {
-  left: 50%;
-  right: auto;
-  width: auto;
-  /* Match the canvas projection's aspect cap on narrow screens. */
-  max-width: 94.62%;
-  aspect-ratio: 3 / 2;
-  transform: translateX(-50%);
+@container (max-aspect-ratio: 3 / 2) {
+  .home-hero-poster,
+  .home-hero-flow {
+    left: 50%;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    transform: translate(-50%, -50%);
+  }
 }
 .home-hero-poster g[data-active="true"] {
   opacity: 1;
@@ -6576,7 +6588,7 @@ body.modal-open [data-dock] {
   border-radius: 0;
 }
 .home-hero-artwork-detail {
-  min-height: 140px;
+  min-height: 116px;
   padding: 22px 4px 0;
   color: var(--mid);
   font: 14px/1.6 var(--body);
@@ -6608,12 +6620,12 @@ body.modal-open [data-dock] {
 }
 .home-hero-bottom {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: clamp(30px, 7vw, 100px);
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 22px;
   width: 100%;
-  margin-top: clamp(28px, 3vw, 42px);
-  padding-bottom: 36px;
+  margin: 0;
+  padding-bottom: 0;
 }
 .home-hero-support {
   max-width: 47ch;
@@ -6625,6 +6637,7 @@ body.modal-open [data-dock] {
 }
 .home-hero-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 20px;
 }
@@ -6741,33 +6754,6 @@ body.modal-open [data-dock] {
   }
 }
 
-@media (min-width: 1001px) {
-  .home-hero-heading {
-    max-width: min(16ch, 57%);
-    font-size: clamp(58px, 4.8vw, 74px);
-  }
-  .home-hero-bottom {
-    grid-template-columns: 1fr;
-    width: 51%;
-    gap: 26px;
-  }
-  .home-hero-support {
-    max-width: 40ch;
-  }
-  .home-hero-actions {
-    align-items: center;
-  }
-}
-@media (min-width: 641px) and (max-width: 1000px) {
-  .home-hero-artwork {
-    position: relative;
-    top: auto;
-    right: auto;
-    width: min(600px, 85%);
-    margin: 16px auto 0;
-  }
-}
-
 /* Homepage chapters share one entrance clock per compact editorial group.
    Long lists retain one owner per row so slow scrolling never skips a beat. */
 .home-sequence [data-home-step="0"] {
@@ -6820,8 +6806,8 @@ body.modal-open [data-dock] {
     min-height: auto;
   }
   .home-hero-heading {
-    max-width: 23ch;
-    font-size: clamp(48px, 6.2vw, 68px);
+    max-width: 30ch;
+    font-size: clamp(48px, 5.2vw, 68px);
   }
   .home-hero-eyebrow {
     margin-bottom: 28px;
@@ -6850,11 +6836,21 @@ body.modal-open [data-dock] {
     letter-spacing: -0.03em;
   }
   .home-hero-artwork {
-    position: relative;
-    top: auto;
-    right: auto;
-    width: calc(100% - 40px);
-    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    margin-top: 24px;
+  }
+  .home-hero-caption {
+    display: contents;
+  }
+  .home-hero-bottom {
+    order: 1;
+  }
+  .home-hero-scene {
+    order: 2;
+  }
+  .home-hero-services {
+    order: 3;
   }
   .home-hero-scene {
     height: 300px;
@@ -6872,8 +6868,8 @@ body.modal-open [data-dock] {
   }
   .home-hero-bottom {
     gap: 22px;
-    margin-top: 24px;
-    padding-bottom: 28px;
+    margin-top: 0;
+    padding-bottom: 0;
   }
   .home-hero-support {
     font-size: 16px;

@@ -109,25 +109,26 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
             </>
           )}
         </h1>
-        <div className="home-hero-bottom">
-          <p className="home-hero-support">{content.support}</p>
-          <div className="home-hero-actions">
-            <Link
-              href={content.ctaHref}
-              data-booking-cta
-              onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })}
-              className="btn home-hero-cta"
-            >
-              {content.ctaLabel}{" "}
-              <span className="arw" aria-hidden="true">
-                →
-              </span>
-            </Link>
-            <span className="home-hero-note">30 minutes · a clear next step</span>
+        <HeroArtwork>
+          <div className="home-hero-bottom">
+            <p className="home-hero-support">{content.support}</p>
+            <div className="home-hero-actions">
+              <Link
+                href={content.ctaHref}
+                data-booking-cta
+                onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })}
+                className="btn home-hero-cta"
+              >
+                {content.ctaLabel}{" "}
+                <span className="arw" aria-hidden="true">
+                  →
+                </span>
+              </Link>
+              <span className="home-hero-note">30 minutes · a clear next step</span>
+            </div>
           </div>
-        </div>
+        </HeroArtwork>
       </div>
-      <HeroArtwork />
     </section>
   );
 }

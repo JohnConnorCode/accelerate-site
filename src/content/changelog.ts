@@ -6,9 +6,9 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "homepage-purposeful-interaction",
     title: "Explore how Accelerate helps from the homepage",
     description:
-      "The homepage shows how Accelerate turns tools, knowledge and people into useful priorities, custom workflows and ongoing delivery. Three engraved ink bands share fixed inputs and a destination. Their center transforms from separate paths into an interwoven system and a feedback path, keeping every stage connected to the same business context. Labels attach to the material and follow the viewpoint. Stage explanations cross-fade and a fine rule travels between the controls. The entrance settles automatically, replacing decorative numbering and playback controls. Keyboard, touch, theme changes, reduced motion and static graphics fallbacks remain available.",
+      "The homepage brings a wide editorial headline, continuous artwork, booking and service explanations into one composition. Three engraved ink bands connect tools, knowledge and people to useful priorities, custom workflows and ongoing delivery. Their center transforms from separate paths into an interwoven system and a feedback path, keeping every stage connected to the same business context. Labels attach to the material and follow the viewpoint. The artwork spans the desktop layout, while phones keep the offer and booking first. Stage explanations cross-fade and a fine rule travels between the controls. The entrance settles automatically, replacing decorative numbering and playback controls. Keyboard, touch, theme changes, reduced motion and static graphics fallbacks remain available.",
     category: "improvement",
-    publishedAt: "2026-10-04",
+    publishedAt: "2026-10-05",
   },
   {
     id: "homepage-dimensional-identity",

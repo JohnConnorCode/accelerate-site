@@ -1,30 +1,30 @@
 "use client";
 
-import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useId, useRef, useState } from "react";
 
 const chapters = [
   {
     label: "Strategy",
     output: "Priorities",
     body: "Repeated data entry and reports rebuilt by hand are places to start. We trace the work and prioritize useful changes.",
-    yaw: -0.12,
-    pitch: 0.06,
+    yaw: 0,
+    pitch: 0,
     roll: 0,
   },
   {
     label: "Build",
     output: "Workflows",
     body: "Your inbox, CRM and team knowledge can work together. We connect them through custom workflows, AI agents and integrations.",
-    yaw: -0.12,
-    pitch: 0.06,
+    yaw: 0,
+    pitch: 0,
     roll: 0,
   },
   {
     label: "Run & improve",
     output: "Delivery",
     body: "Follow-ups get handled. Your team learns the system. We monitor results and adjust the agreed work as your business changes.",
-    yaw: -0.12,
-    pitch: 0.06,
+    yaw: 0,
+    pitch: 0,
     roll: 0,
   },
 ];
@@ -79,7 +79,7 @@ function ribbon(u: number, angle: number, strand: number, chapter: number): Poin
   return add(
     center(u, strand, chapter),
     add(
-      scale(across, Math.cos(angle) * (0.1 + Math.sin(u * Math.PI) * 0.23)),
+      scale(across, Math.cos(angle) * (0.07 * (1 - u) + 0.018 * u + Math.sin(u * Math.PI) * 0.3)),
       scale(through, Math.sin(angle) * 0.014),
     ),
   );
@@ -148,6 +148,7 @@ uniform vec3 weights;
 uniform vec2 viewport;
 uniform mediump vec2 pointer;
 uniform float entrance;
+uniform float span;
 varying vec3 point;
 varying vec3 surface;
 varying mediump vec3 print;
@@ -156,13 +157,15 @@ void main() {
   vec3 n = normal0 * weights.x + normal1 * weights.y + normal2 * weights.z;
   float pull = exp(-pow((local.x - pointer.x * 2.0) / 1.5, 2.0));
   local.z += sin(registration.x * 3.14159) * sin(registration.x * 3.14159) * (pointer.y * pull * 0.2 + entrance * sin(local.x * 1.8) * 0.14);
+  local.x *= span;
+  n.x /= span;
   vec4 p = model * vec4(local, 1.0);
   point = p.xyz;
   surface = mat3(model) * n;
   print = registration;
   float camera = 6.0 - p.z;
   float aspect = viewport.x / viewport.y;
-  float zoom = min(3.25, aspect * 2.05);
+  float zoom = min(3.075, aspect * 2.05);
   gl_Position = vec4(p.x * zoom / aspect, p.y * zoom, camera * 1.002 - 0.2002, camera);
 }`;
 const fragment = `
@@ -177,12 +180,12 @@ void main() {
   float key = max(dot(n, normalize(vec3(-1.0 + pointer.x * 0.4, 1.8 + pointer.y, 2.0))), 0.0);
   // A graphic ink surface replaces reflective metal. Fine inlaid lines follow
   // the material through every transformation, rather than floating over it.
-  float ink = 0.045 + (1.0 - print.z) * 0.10 + key * 0.07;
-  float paper = 0.94 - (1.0 - print.z) * 0.10 - (1.0 - key) * 0.06;
-  float grain = abs(fract(print.x * 60.0 + print.y * 3.0) - 0.5);
-  float hatch = 1.0 - smoothstep(0.055, 0.15, grain);
+  float ink = 0.045 + (1.0 - print.z) * 0.30 + key * 0.05;
+  float paper = 0.94 - (1.0 - print.z) * 0.30 - (1.0 - key) * 0.05;
+  float grain = abs(fract(print.y * 10.0) - 0.5);
+  float hatch = 1.0 - smoothstep(0.025, 0.09, grain);
   float edge = 1.0 - smoothstep(0.010, 0.026, abs(abs(print.y) - 0.86));
-  float engraving = hatch * 0.19 + edge * 0.24;
+  float engraving = hatch * 0.12 + edge * 0.18;
   float color = mix(ink, paper, dark);
   color = mix(color, mix(0.97, 0.04, dark), engraving);
   gl_FragColor = vec4(vec3(color), 1.0);
@@ -215,16 +218,20 @@ function pose(yaw: number, pitch: number, roll: number) {
     1,
   ]);
 }
-const transform = (p: Point, m: Float32Array): Point => [
-  m[0]! * p[0] + m[4]! * p[1] + m[8]! * p[2],
-  m[1]! * p[0] + m[5]! * p[1] + m[9]! * p[2],
-  m[2]! * p[0] + m[6]! * p[1] + m[10]! * p[2],
+const transform = (p: Point, m: Float32Array, span = 1): Point => [
+  m[0]! * p[0] * span + m[4]! * p[1] + m[8]! * p[2],
+  m[1]! * p[0] * span + m[5]! * p[1] + m[9]! * p[2],
+  m[2]! * p[0] * span + m[6]! * p[1] + m[10]! * p[2],
 ];
 const project = ([x, y, z]: Point) =>
-  `${(300 + (x * 650) / (6 - z)).toFixed(2)} ${(200 - (y * 650) / (6 - z)).toFixed(2)}`;
-const feedbackPath = (matrix: Float32Array) =>
+  `${(300 + (x * 615) / (6 - z)).toFixed(2)} ${(200 - (y * 615) / (6 - z)).toFixed(2)}`;
+const feedbackPath = (matrix: Float32Array, span = 1) =>
   ([[1.7, 0, 0], [2, -0.05, 0], [2, -1.48, 0], [-0.68, -1.48, 0], center(0.3, 1, 2)] as Point[])
-    .map((point, index) => `${index ? "L" : "M"}${project(transform(point, matrix))}`)
+    .map((point, index) => {
+      const projected = transform(point, matrix, span);
+      projected[0] /= span;
+      return `${index ? "L" : "M"}${project(projected)}`;
+    })
     .join(" ");
 const posters = chapters.map((chapter, index) => {
   const matrix = pose(chapter.yaw, chapter.pitch, chapter.roll);
@@ -238,20 +245,7 @@ const posters = chapters.map((chapter, index) => {
     return `M${outline.map(project).join(" L")} Z`;
   });
 });
-const filaments = chapters.map((chapter, index) => {
-  const matrix = pose(chapter.yaw, chapter.pitch, chapter.roll);
-  return Array.from({ length: 21 }, (_, line) => {
-    const points = Array.from({ length: 65 }, (_, sample) => {
-      const p = center(sample / 64, line % 3, index);
-      p[1] += (Math.floor(line / 3) - 3) * 0.14 * Math.sin((sample / 64) * Math.PI);
-      p[2] -= 0.3 * Math.sin((sample / 64) * Math.PI);
-      return transform(p, matrix);
-    });
-    return `M${points.map(project).join(" L")}`;
-  });
-});
-
-export function HeroArtwork() {
+export function HeroArtwork({ children }: { children?: ReactNode }) {
   const id = useId();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const portsRef = useRef<HTMLDivElement>(null);
@@ -274,15 +268,16 @@ export function HeroArtwork() {
     const positionLabels = (matrix: Float32Array) => {
       const bounds = scene.getBoundingClientRect();
       const aspect = bounds.width / bounds.height;
-      const zoom = Math.min(3.25, aspect * 2.05);
+      const zoom = Math.min(3.075, aspect * 2.05);
+      const span = Math.max(1, aspect / 1.5);
       const anchors = [0, 1, 2].map((strand) => center(0, strand, 0));
       anchors.push([1.7, 0, 0], [0.65, -1.48, 0]);
       labels.forEach((port, index) => {
-        const [x, y, z] = transform(anchors[index]!, matrix);
+        const [x, y, z] = transform(anchors[index]!, matrix, span);
         port.style.left = `${(0.5 + (x * zoom) / (aspect * (6 - z)) / 2) * 100}%`;
         port.style.top = `${(0.5 - (y * zoom) / (6 - z) / 2) * 100}%`;
       });
-      feedbackRef.current?.setAttribute("d", feedbackPath(matrix));
+      feedbackRef.current?.setAttribute("d", feedbackPath(matrix, span));
     };
     positionLabels(pose(chapters[0]!.yaw, chapters[0]!.pitch, chapters[0]!.roll));
     // Shader compilation can block on software renderers. Let the readable
@@ -363,6 +358,7 @@ export function HeroArtwork() {
       const pointer = gl.getUniformLocation(program, "pointer");
       const weights = gl.getUniformLocation(program, "weights");
       const intro = gl.getUniformLocation(program, "entrance");
+      const width = gl.getUniformLocation(program, "span");
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
       const current = { ...chapters[selected.current]!, x: 0, y: 0 };
       const mix = [0, 1, 2].map((index) => Number(index === selected.current));
@@ -387,10 +383,12 @@ export function HeroArtwork() {
         const entrance = reduced.matches ? 0 : Math.sin(Math.min(elapsed / 4.4, 1) * Math.PI) ** 2;
         gl.uniform1f(intro, entrance);
         gl.uniform3f(weights, mix[0]!, mix[1]!, mix[2]!);
+        const span = Math.max(1, canvas.width / canvas.height / 1.5);
+        gl.uniform1f(width, span);
         const matrix = pose(
-          current.yaw + current.x * 0.12,
+          current.yaw + (current.x * 0.12) / span,
           current.pitch + current.y * 0.1,
-          current.roll + current.x * 0.02,
+          current.roll + (current.x * 0.02) / span,
         );
         gl.uniformMatrix4fv(model, false, matrix);
         positionLabels(matrix);
@@ -557,7 +555,7 @@ export function HeroArtwork() {
       data-chapter={chapter}
     >
       <div className="home-hero-scene" aria-hidden="true">
-        <svg className="home-hero-flow" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+        <svg className="home-hero-flow" viewBox="0 0 600 400" preserveAspectRatio="none">
           <defs>
             <marker
               id={`${id}-feedback`}
@@ -571,13 +569,6 @@ export function HeroArtwork() {
               <path d="M0 0L7 3.5L0 7Z" fill="var(--fg)" stroke="none" />
             </marker>
           </defs>
-          {filaments.map((paths, index) => (
-            <g key={index} data-active={chapter === index}>
-              {paths.map((d, line) => (
-                <path key={line} d={d} />
-              ))}
-            </g>
-          ))}
           <g className="home-hero-feedback" data-active={chapter === 2}>
             <path
               ref={feedbackRef}
@@ -586,7 +577,12 @@ export function HeroArtwork() {
             />
           </g>
         </svg>
-        <svg className="home-hero-poster" viewBox="0 0 600 400" aria-hidden="true">
+        <svg
+          className="home-hero-poster"
+          viewBox="0 0 600 400"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
           <defs>
             <pattern
               id={`${id}-hatch`}
@@ -618,12 +614,21 @@ export function HeroArtwork() {
             <div
               key={label}
               className="home-hero-port"
-              style={{ left: "21%", top: `${30 + index * 20}%` }}
+              style={{
+                left: "20.9583%",
+                top:
+                  index === 1
+                    ? "50%"
+                    : `calc(50% ${index === 0 ? "-" : "+"} min(21.0125cqh, 14.0083cqw))`,
+              }}
             >
               {label}
             </div>
           ))}
-          <div className="home-hero-port home-hero-port-output" style={{ left: "79%", top: "50%" }}>
+          <div
+            className="home-hero-port home-hero-port-output"
+            style={{ left: "79.0417%", top: "50%" }}
+          >
             <div className="home-hero-signal">
               {chapters.map((item, index) => (
                 <span key={item.label} data-active={chapter === index}>
@@ -637,40 +642,45 @@ export function HeroArtwork() {
           </span>
         </div>
       </div>
-      <div
-        className="home-hero-chapters"
-        role="group"
-        aria-label="Explore how we help"
-        style={{ "--hero-chapter": chapter } as CSSProperties}
-      >
-        <span className="home-hero-chapter-line" aria-hidden="true" />
-        {chapters.map((item, index) => (
-          <button
-            key={item.label}
-            type="button"
-            aria-pressed={chapter === index}
-            aria-controls={`${id}-detail`}
-            onClick={() => {
-              selected.current = index;
-              setChapter(index);
-              wake.current();
-            }}
+      <div className="home-hero-caption">
+        {children}
+        <div className="home-hero-services">
+          <div
+            className="home-hero-chapters"
+            role="group"
+            aria-label="Explore how we help"
+            style={{ "--hero-chapter": chapter } as CSSProperties}
           >
-            {item.label}
-          </button>
-        ))}
-      </div>
-      <div id={`${id}-detail`} className="home-hero-artwork-detail">
-        <div className="home-hero-detail-layers" aria-hidden="true">
-          {chapters.map((item, index) => (
-            <p key={item.label} data-active={chapter === index}>
-              {item.body}
+            <span className="home-hero-chapter-line" aria-hidden="true" />
+            {chapters.map((item, index) => (
+              <button
+                key={item.label}
+                type="button"
+                aria-pressed={chapter === index}
+                aria-controls={`${id}-detail`}
+                onClick={() => {
+                  selected.current = index;
+                  setChapter(index);
+                  wake.current();
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div id={`${id}-detail`} className="home-hero-artwork-detail">
+            <div className="home-hero-detail-layers" aria-hidden="true">
+              {chapters.map((item, index) => (
+                <p key={item.label} data-active={chapter === index}>
+                  {item.body}
+                </p>
+              ))}
+            </div>
+            <p className="sr-only" aria-live="polite" aria-atomic="true">
+              {chapters[chapter]!.body}
             </p>
-          ))}
+          </div>
         </div>
-        <p className="sr-only" aria-live="polite" aria-atomic="true">
-          {chapters[chapter]!.body}
-        </p>
       </div>
     </div>
   );
