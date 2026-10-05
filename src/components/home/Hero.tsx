@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useLayoutEffect, type CSSProperties } from "react";
+import { useLayoutEffect, type CSSProperties } from "react";
 import { trackConversion } from "@/lib/analytics";
 import { homeHeroContent } from "@/content/site-studio/home";
 import type { HomeHeroContent } from "@/lib/site-studio/native-templates";
@@ -34,7 +34,7 @@ function HeroWords({
 export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent }) {
   const sectionRef = useRevealLifecycle<HTMLElement>({ restoreHistory: true });
   const legacy = "prefix" in content;
-  // The default service list repeats the artwork controls; distinct owner copy still renders.
+  // The default eyebrow repeats the offer; distinct owner copy still renders.
   const eyebrow = content.eyebrow === homeHeroContent.eyebrow ? "" : content.eyebrow;
   const heading = legacy
     ? `${content.prefix} ${content.highlighted} ${content.suffix} ${content.replacedWord} and ${content.finalWord.toLowerCase()}.`
@@ -59,28 +59,6 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     section.style.setProperty("--hero-support-delay", `${720 + line * 200}ms`);
     section.style.setProperty("--hero-action-delay", `${870 + line * 200}ms`);
   }, [content, sectionRef]);
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let visible = false;
-    section.dataset.heroMounted = "true";
-    const activity = () => {
-      section.dataset.heroActive = String(visible && !document.hidden && !reduced.matches);
-    };
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry?.isIntersecting ?? false;
-      activity();
-    });
-    observer.observe(section);
-    reduced.addEventListener("change", activity);
-    document.addEventListener("visibilitychange", activity);
-    return () => {
-      observer.disconnect();
-      reduced.removeEventListener("change", activity);
-      document.removeEventListener("visibilitychange", activity);
-    };
-  }, [sectionRef]);
 
   return (
     <section
@@ -88,8 +66,6 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
       className="home-hero"
       id="hero"
       aria-labelledby="home-hero-heading"
-      data-hero-active="false"
-      data-hero-mounted="false"
       data-motion-role="home-hero"
       data-reveal-state="pending"
     >
