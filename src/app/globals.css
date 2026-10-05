@@ -6379,7 +6379,7 @@ body.modal-open [data-dock] {
   position: relative;
   display: inline-block;
 }
-/* The sculpture and its service controls share a stage beside the offer. */
+/* The dimensional brand mark and service controls share the editorial stage. */
 .home-hero-artwork {
   position: absolute;
   z-index: 2;
@@ -6392,7 +6392,7 @@ body.modal-open [data-dock] {
   height: clamp(300px, 44svh, 440px);
   isolation: isolate;
 }
-/* Fine contour lines sit behind the material, without diagram chrome. */
+/* Angular routes show handoffs, integration and a delivery feedback path. */
 .home-hero-flow {
   position: absolute;
   z-index: -1;
@@ -6402,7 +6402,7 @@ body.modal-open [data-dock] {
   overflow: visible;
   fill: none;
   stroke: var(--fg);
-  stroke-width: 0.55;
+  stroke-width: 0.75;
   pointer-events: none;
 }
 .home-hero-flow g {
@@ -6414,7 +6414,7 @@ body.modal-open [data-dock] {
     transform 900ms var(--hero-ease);
 }
 .home-hero-flow g[data-active="true"] {
-  opacity: 0.12;
+  opacity: 0.16;
   transform: translateY(0);
 }
 .home-hero-poster,
@@ -6429,6 +6429,14 @@ body.modal-open [data-dock] {
 .home-hero-poster g {
   opacity: 0;
   transition: opacity 550ms var(--hero-ease);
+}
+.home-hero-poster {
+  left: 50%;
+  right: auto;
+  width: auto;
+  max-width: none;
+  aspect-ratio: 3 / 2;
+  transform: translateX(-50%);
 }
 .home-hero-poster g[data-active="true"] {
   opacity: 1;
@@ -6521,7 +6529,7 @@ body.modal-open [data-dock] {
 .home-hero-chapters button:focus-visible {
   outline: 2px solid var(--fg);
   outline-offset: 3px;
-  border-radius: 3px;
+  border-radius: 0;
 }
 .home-hero-artwork-detail {
   min-height: 140px;

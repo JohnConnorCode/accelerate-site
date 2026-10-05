@@ -271,6 +271,30 @@ for (const [label, viewport, colorScheme] of [
   await page.waitForFunction(
     () => document.querySelector(".home-hero-artwork").dataset.motionState === "settled",
   );
+  const themeUniform = await canvas.evaluate((element) => {
+    const gl = element.getContext("webgl");
+    const program = gl.getParameter(gl.CURRENT_PROGRAM);
+    return gl.getUniform(program, gl.getUniformLocation(program, "dark"));
+  });
+  if (themeUniform !== Number(colorScheme === "dark"))
+    failures.push(`${label}: artwork material does not follow the active theme`);
+  if (label === "desktop") {
+    const light = await canvas.screenshot();
+    await page.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
+    await page.waitForFunction(() => {
+      const gl = document.querySelector(".home-hero-canvas").getContext("webgl");
+      const program = gl.getParameter(gl.CURRENT_PROGRAM);
+      return gl.getUniform(program, gl.getUniformLocation(program, "dark")) === 1;
+    });
+    if (light.equals(await canvas.screenshot()))
+      failures.push(`${label}: theme switching leaves the actual artwork unchanged`);
+    await page.getByRole("button", { name: "Switch to light mode", exact: true }).click();
+    await page.waitForFunction(() => {
+      const gl = document.querySelector(".home-hero-canvas").getContext("webgl");
+      const program = gl.getParameter(gl.CURRENT_PROGRAM);
+      return gl.getUniform(program, gl.getUniformLocation(program, "dark")) === 0;
+    });
+  }
   if (await page.getByRole("button", { name: /Pause hero|Play hero/ }).count())
     failures.push(`${label}: decorative playback controls remain`);
   if ((await artwork.textContent()).includes("Accelerate / 01"))
@@ -321,14 +345,14 @@ for (const [label, viewport, colorScheme] of [
         failures.push(`${label}: chapter rule or description jumps to its final state`);
       intermediate = await canvas.screenshot({ path: `${output}/${label}-service-transition.png` });
       if (before.equals(intermediate))
-        failures.push(`${label}: sculpture does not start deforming during chapter change`);
+        failures.push(`${label}: chevrons do not begin moving during chapter change`);
     }
     await page.waitForTimeout(1100);
     const after = await canvas.screenshot();
     if ((await control.getAttribute("aria-pressed")) !== "true" || before.equals(after))
-      failures.push(`${label}: ${name} does not change selection and actual sculpture pixels`);
+      failures.push(`${label}: ${name} does not change selection and actual chevron pixels`);
     if (intermediate?.equals(after))
-      failures.push(`${label}: sculpture snaps to the final chapter instead of morphing`);
+      failures.push(`${label}: chevrons snap to the final pose instead of transitioning`);
     const detail = await page
       .locator('.home-hero-detail-layers p[data-active="true"]')
       .textContent();
