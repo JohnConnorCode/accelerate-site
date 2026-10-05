@@ -16,6 +16,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Proposal forms reset when opening another record, rejected saves retain the draft for retry, and sent/viewed edits open the returned successor draft. Late completions preserve the current record. Saved changes and failed list refreshes receive separate feedback; clipboard success waits for confirmation and failed copying selects the link for manual copying.
+
 - A newly connected workspace can add a contact directly from Contacts and create a follow-up from that contact's record. The task is linked to the contact timeline and refuses cross-workspace contact IDs. The fictional demo persists newly added contacts instead of claiming success without saving them.
 
 - The local cold-start PostgreSQL check now reports a clear version requirement before migrations; self-hosting and recovery guides specify PostgreSQL 15+ for this native test.

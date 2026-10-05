@@ -4,6 +4,7 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { useAdminNavigation } from "@/components/admin/AdminLink";
@@ -62,6 +63,7 @@ export default function ProposalsPage() {
   const [generating] = useState(false);
   const searchParams = useSearchParams();
   const navigation = useAdminNavigation();
+  const queryClient = useQueryClient();
   const emptyMessage =
     statusFilter === "all"
       ? "No proposals yet. Create one from a lead or start blank."
@@ -74,25 +76,32 @@ export default function ProposalsPage() {
     { enabled: Boolean(requestedProposal && !listedProposal), placeholderData: undefined },
   );
 
-  const fetchProposals = useCallback(async () => {
-    try {
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") params.set("status", statusFilter);
+  const fetchProposals = useCallback(
+    async (afterSave = false) => {
+      try {
+        const params = new URLSearchParams();
+        if (statusFilter !== "all") params.set("status", statusFilter);
 
-      const data = await fetchJson<{
-        proposals?: Proposal[];
-        totalOneTime?: number;
-        totalMonthly?: number;
-      }>(`/api/admin/proposals?${params}`);
-      setProposals(data.proposals || []);
-      setTotalOneTime(data.totalOneTime || 0);
-      setTotalMonthly(data.totalMonthly || 0);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to load proposals");
-    } finally {
-      setLoading(false);
-    }
-  }, [statusFilter]);
+        const data = await fetchJson<{
+          proposals?: Proposal[];
+          totalOneTime?: number;
+          totalMonthly?: number;
+        }>(`/api/admin/proposals?${params}`);
+        setProposals(data.proposals || []);
+        setTotalOneTime(data.totalOneTime || 0);
+        setTotalMonthly(data.totalMonthly || 0);
+      } catch (err) {
+        if (afterSave)
+          toast.warning(
+            "The proposal list couldn’t refresh. Your changes are saved; reload the page to refresh the list.",
+          );
+        else toast.error(err instanceof Error ? err.message : "Failed to load proposals");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [statusFilter],
+  );
 
   useEffect(() => {
     fetchProposals();
@@ -115,23 +124,26 @@ export default function ProposalsPage() {
   };
 
   const handleSave = async (updates: Record<string, unknown>) => {
-    try {
-      await fetchJson("/api/admin/proposals", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
-      await fetchProposals();
-      if (selectedProposal && updates.id === selectedProposal.id) {
-        const data = await fetchJson<{ proposal: Proposal }>(
-          `/api/admin/proposals?id=${selectedProposal.id}`,
-        );
-        setSelectedProposal(data.proposal);
+    const ownerPath = window.location.pathname;
+    const { proposal: saved } = await fetchJson<{ proposal: Proposal }>("/api/admin/proposals", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    });
+    if (!saved?.id)
+      throw new Error("The save response is incomplete. Refresh the proposal before trying again.");
+    // A revision can return a new draft ID. Late receipts must not change another open record.
+    if (
+      window.location.pathname === ownerPath &&
+      new URLSearchParams(window.location.search).get("proposal") === updates.id
+    ) {
+      setSelectedProposal((current) => (current?.id === updates.id ? saved : current));
+      if (saved.id !== updates.id) {
+        queryClient.setQueryData(["proposals", "detail", saved.id], { proposal: saved });
+        navigation.replace(`/admin/proposals?proposal=${encodeURIComponent(saved.id)}`, "preserve");
       }
-      toast.success("Proposal saved");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Couldn't save proposal");
     }
+    await fetchProposals(true);
   };
 
   const handleCreateBlank = async () => {
@@ -154,7 +166,7 @@ export default function ProposalsPage() {
       });
       if (data.proposal) {
         openProposal(data.proposal);
-        await fetchProposals();
+        await fetchProposals(true);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't create proposal");
@@ -335,7 +347,11 @@ export default function ProposalsPage() {
                     </h2>
                     <p className="text-sm text-white-muted">{selectedProposal.client_name}</p>
                   </div>
-                  <ProposalEditor proposal={selectedProposal} onSave={handleSave} />
+                  <ProposalEditor
+                    key={selectedProposal.id}
+                    proposal={selectedProposal}
+                    onSave={handleSave}
+                  />
                 </div>
               ) : (
                 <GlassCard

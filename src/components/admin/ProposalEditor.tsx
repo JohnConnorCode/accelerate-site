@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Save, Send, Eye, Trash2, Plus } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { Toast } from "@/components/ui/Toast";
+import { toast } from "@/lib/admin/useToast";
 
 interface ProposalSection {
   title: string;
@@ -38,12 +38,12 @@ interface ProposalEditorProps {
 
 export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
   const pathname = usePathname();
+  const shareLink = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(proposal.title);
   const [sections, setSections] = useState<ProposalSection[]>(proposal.content?.sections || []);
   const [totalMonthly, setTotalMonthly] = useState(proposal.total_monthly?.toString() || "0");
   const [totalOneTime, setTotalOneTime] = useState(proposal.total_one_time?.toString() || "0");
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const handleSave = async () => {
     setSaving(true);
@@ -55,20 +55,27 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
         total_monthly: parseFloat(totalMonthly) || 0,
         total_one_time: parseFloat(totalOneTime) || 0,
       });
-      setToast({ message: "Proposal saved", type: "success" });
-    } catch {
-      setToast({ message: "Failed to save", type: "error" });
+      toast.success(`Proposal saved: ${title}`);
+    } catch (cause) {
+      toast.error(
+        cause instanceof Error ? cause.message : "The proposal couldn’t save. Try again.",
+      );
     } finally {
       setSaving(false);
     }
   };
 
   const handleMarkSent = async () => {
+    setSaving(true);
     try {
       await onSave({ id: proposal.id, status: "sent" });
-      setToast({ message: "Proposal marked as sent", type: "success" });
-    } catch {
-      setToast({ message: "Failed to update status", type: "error" });
+      toast.success(`Proposal marked as sent: ${proposal.title}`);
+    } catch (cause) {
+      toast.error(
+        cause instanceof Error ? cause.message : "The status couldn’t update. Try again.",
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -100,7 +107,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
           {saving ? "Saving..." : "Save"}
         </Button>
         {proposal.status === "draft" && (
-          <Button variant="secondary" size="sm" onClick={handleMarkSent}>
+          <Button variant="secondary" size="sm" onClick={handleMarkSent} disabled={saving}>
             <Send className="h-3.5 w-3.5 mr-1.5" />
             Mark Sent
           </Button>
@@ -124,13 +131,24 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
       <GlassCard hover="none" padding="sm">
         <p className="text-[10px] text-white-muted uppercase font-semibold mb-1">Share Link</p>
         <div className="flex min-w-0 items-center gap-2">
-          <code className="min-w-0 flex-1 truncate rounded bg-white/5 px-2 py-1 text-xs text-white-secondary">
-            {shareUrl}
-          </code>
+          <input
+            ref={shareLink}
+            readOnly
+            aria-label="Proposal share link"
+            value={shareUrl}
+            onFocus={(event) => event.currentTarget.select()}
+            className="admin-field min-w-0 flex-1 font-mono text-xs"
+          />
           <button
-            onClick={() => {
-              navigator.clipboard.writeText(shareUrl);
-              setToast({ message: "Link copied!", type: "success" });
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(shareUrl);
+                toast.success("Link copied");
+              } catch {
+                shareLink.current?.focus();
+                shareLink.current?.select();
+                toast.error("Copy failed. The link is selected so you can copy it manually.");
+              }
             }}
             type="button"
             className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-xs text-gold-light transition-colors hover:bg-white/5 hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
@@ -261,15 +279,6 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
         <Plus className="h-4 w-4" />
         Add Section
       </button>
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible={true}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 }

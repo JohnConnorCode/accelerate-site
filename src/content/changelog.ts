@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "proposal-editor-recovery",
+    slug: "proposal-editor-recovery",
+    title: "Keep proposal edits with the right record",
+    description:
+      "Opening another proposal loads its own fields. Failed saves retain your draft for retry, and edits to sent or viewed proposals open the new draft version. A save that finishes later leaves the record you opened in place. Saved changes and a failed list refresh show separate feedback. Copy confirms the clipboard result and selects the link for manual copying if access fails.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "workspace-record-search",
     slug: "workspace-record-search",
     title: "Find workspace records from one search",
