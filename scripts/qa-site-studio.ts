@@ -443,6 +443,10 @@ async function main() {
       );
       await page.evaluate(() => Reflect.get(window, "__siteDraftQA").releaseCreate());
       await page.getByRole("heading", { name: "Rename draft", exact: true }).waitFor();
+      await page
+        .frameLocator('iframe[title="Private draft page preview"]')
+        .getByRole("heading", { name: "Roof inspection", exact: true })
+        .waitFor();
       assert.match(page.url(), /\/demo\/command-center\/superdebate\/site\//);
       assert.equal(
         await page.getByRole("button", { name: "Save title", exact: true }).isDisabled(),
@@ -616,11 +620,21 @@ async function main() {
     );
   } catch (error) {
     if (activePage && !activePage.isClosed()) {
-      await activePage.screenshot({ path: `${output}/failure.png`, fullPage: true });
+      console.error(error);
+      await activePage
+        .screenshot({ path: `${output}/failure.png`, fullPage: true, timeout: 5_000 })
+        .catch(() => {});
       await writeFile(
         `${output}/failure.json`,
         JSON.stringify(
-          { url: activePage.url(), text: await activePage.locator("body").innerText() },
+          {
+            url: activePage.url(),
+            error: String(error),
+            text: await activePage
+              .locator("body")
+              .innerText({ timeout: 5_000 })
+              .catch(() => "Unavailable"),
+          },
           null,
           2,
         ),
