@@ -14,6 +14,54 @@ const failures = [];
 const results = [];
 const entranceFrames = [];
 
+// Capture in the browser before clicking. A busy test process may not read the
+// result until after this short animation has finished; that is not a skipped entrance.
+function armFreshHeroEntrance() {
+  const fromPath = location.pathname;
+  window.__freshHeroEntrance = null;
+  const capture = (event) => {
+    const hero = document.querySelector(".home-hero");
+    const word = hero?.querySelector(".home-hero-word");
+    if (event.target !== word || event.animationName !== "home-hero-word-enter") return;
+    const entrance = word
+      .getAnimations()
+      .find((animation) => animation.animationName === event.animationName);
+    window.__freshHeroEntrance = {
+      fromPath,
+      path: location.pathname,
+      trusted: event.isTrusted,
+      kind: document.documentElement.dataset.navigationKind,
+      animated: getComputedStyle(word).animationName,
+      immediate: hero.classList.contains("reveal-immediate"),
+      playState: entrance?.playState,
+      currentTime: entrance?.currentTime,
+      endTime: entrance?.effect.getComputedTiming().endTime,
+      action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
+    };
+    document.removeEventListener("animationstart", capture);
+    clearTimeout(timeout);
+  };
+  document.addEventListener("animationstart", capture);
+  const timeout = setTimeout(() => document.removeEventListener("animationstart", capture), 10_000);
+}
+
+function isFreshHeroEntrance(sample) {
+  return Boolean(
+    sample &&
+    sample.fromPath === "/services" &&
+    sample.path === "/" &&
+    sample.trusted &&
+    sample.kind === "fresh" &&
+    sample.animated === "home-hero-word-enter" &&
+    !sample.immediate &&
+    sample.playState === "running" &&
+    Number.isFinite(sample.currentTime) &&
+    sample.currentTime >= 0 &&
+    Number.isFinite(sample.endTime) &&
+    sample.currentTime < sample.endTime,
+  );
+}
+
 // Inspect actual rendered frames, not just animation names or a changed transform.
 for (const [label, viewport] of [
   ["desktop", { width: 1440, height: 900 }],
@@ -344,45 +392,80 @@ for (const [label, viewport, colorScheme] of [
     const homeLink = page.locator('header .logo-link[href="/"]');
     await homeLink.hover();
     await page.waitForTimeout(350);
+    await page.evaluate(armFreshHeroEntrance);
     await homeLink.click();
     await page.waitForURL(`${baseUrl}/`);
     await page.waitForFunction(() =>
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
-    const forward = await page.evaluate(() => {
-      const hero = document.querySelector(".home-hero");
-      const word = hero.querySelector(".home-hero-word");
-      const entrance = word
-        .getAnimations()
-        .find((animation) => animation.animationName === "home-hero-word-enter");
-      return {
-        kind: document.documentElement.dataset.navigationKind,
-        animated: getComputedStyle(word).animationName,
-        immediate: hero.classList.contains("reveal-immediate"),
-        playState: entrance?.playState,
-        currentTime: entrance?.currentTime,
-        endTime: entrance?.effect.getComputedTiming().endTime,
-        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
-      };
-    });
+    // Deliberately read after the entrance duration. This reproduces the late
+    // CI observation while requiring an actual earlier native animation event.
+    await page.waitForTimeout(3000);
+    const forward = await page.evaluate(() => window.__freshHeroEntrance);
     settled.forward = forward;
-    // A client commit can be observed partway through its entrance. Require
-    // a live, fresh animation clock; concealed opening frames are tested above.
-    if (
-      forward.kind !== "fresh" ||
-      forward.animated !== "home-hero-word-enter" ||
-      forward.immediate ||
-      forward.playState !== "running" ||
-      forward.currentTime >= forward.endTime
-    )
+    if (!isFreshHeroEntrance(forward))
       failures.push(
         `${label}: prefetched forward navigation skipped the fresh entrance: ${JSON.stringify(forward)}`,
       );
-    await page.waitForTimeout(3000);
   }
   results.push({ label, viewport, colorScheme, opening, settled, artworkMotion });
   await context.close();
   if (page.video()) await page.video().saveAs(`${output}/${label}-entrance.webm`);
+}
+
+// Prove the event observation cannot turn absent or non-fresh motion into a pass.
+// Faults apply only in disposable browser contexts, never in application code.
+const forwardControls = [];
+for (const [label, viewport] of [
+  ["desktop", { width: 1440, height: 900 }],
+  ["mobile", { width: 390, height: 844 }],
+]) {
+  for (const control of ["suppressed", "immediate", "restore"]) {
+    const context = await browser.newContext({ viewport, hasTouch: viewport.width < 1000 });
+    const page = await context.newPage();
+    await page.goto(`${baseUrl}/services`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    if (control === "suppressed")
+      await page.addStyleTag({ content: ".home-hero-word { animation: none !important; }" });
+    else
+      await page.evaluate((control) => {
+        const fault = (event) => {
+          const hero = document.querySelector(".home-hero");
+          if (
+            event.target !== hero?.querySelector(".home-hero-word") ||
+            event.animationName !== "home-hero-word-enter"
+          )
+            return;
+          if (control === "immediate") hero.classList.add("reveal-immediate");
+          else document.documentElement.dataset.navigationKind = "restore";
+          document.removeEventListener("animationstart", fault);
+        };
+        document.addEventListener("animationstart", fault);
+      }, control);
+    const homeLink = page.locator('header .logo-link[href="/"]');
+    await homeLink.hover();
+    await page.waitForTimeout(350);
+    await page.evaluate(armFreshHeroEntrance);
+    await homeLink.click();
+    await page.waitForURL(`${baseUrl}/`);
+    await page.waitForFunction(() =>
+      document.querySelector(".home-hero")?.classList.contains("in"),
+    );
+    await page.waitForTimeout(3000);
+    const sample = await page.evaluate(() => window.__freshHeroEntrance);
+    const injected =
+      control === "suppressed"
+        ? sample === null
+        : control === "immediate"
+          ? sample?.immediate === true
+          : sample?.kind === "restore";
+    const refused = !isFreshHeroEntrance(sample);
+    if (!injected || !refused)
+      failures.push(
+        `${label}: ${control} forward entrance control failed: ${JSON.stringify(sample)}`,
+      );
+    forwardControls.push({ label, control, injected, refused, sample });
+    await context.close();
+  }
 }
 
 const context = await browser.newContext({
@@ -721,6 +804,7 @@ await writeFile(
   JSON.stringify(
     {
       result: failures.length ? "failed" : "passed",
+      forwardControls,
       results,
       entranceFrames,
       reduced,
