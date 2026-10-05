@@ -59,7 +59,7 @@
     "src/app/admin/revenue/page.tsx": "067e05606e15de6d3e1cb29feff33b925373d98c8d9017148cd8e6072013daab",
     "src/app/admin/settings/page.tsx": "ddc02dcafabc97ec8f408f9cafaa3c56342fe9364495fe09167be42ee55188c8",
     "src/app/admin/setup/page.tsx": "5f314b54610fe02f5c0179bca6cb99a50426b017cc6ff5f78cd8a5dea52b67ce",
-    "src/app/admin/site/[id]/page.tsx": "d973a3c13b23f53dc5daba8253f8fa8c43cdb31c3ffa022ac1dce70437308155",
+    "src/app/admin/site/[id]/page.tsx": "c8355980bbf54360c1863b9114d0745066fea83d8e29c757ae051cc03c05d87a",
     "src/app/admin/site/connect/page.tsx": "46746b81f2b127b7c002509cc1d3b04e673e8bb44e7ca389fcad43eca7c7dd74",
     "src/app/admin/site/page.tsx": "4ba4d28a6cd443e7029abcdd83a0e837eacebb5fa2c12903edd42983cebdc503",
     "src/app/admin/site/website/page.tsx": "1652cf0e48e62ab7c772bc1eb83655cc6b5dfdd40f4483b841cb0015adcc9a0f",

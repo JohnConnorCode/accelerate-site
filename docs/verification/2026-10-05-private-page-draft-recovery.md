@@ -9,7 +9,7 @@ are unchanged.
 
 - A failed detail refresh previously replaced the loaded draft with null and
   could leave an indefinite loading skeleton. Reads now check status, validate
-  the native document, record ID and checksum, and retain the loaded preview
+  the native document, UUID identity and checksum, and retain the loaded preview
   and typed title on failure. Initial read failures have an in-place Retry.
 - A title conflict previously claimed that the latest draft was loaded even
   when its follow-up read failed. Stale and uncertain saves now require an
@@ -43,7 +43,8 @@ are unchanged.
 `test:site-draft-recovery` executes the actual component source with controlled
 React hooks and transport. It checks failed and mismatched reads, conflict and
 receipt recovery, retained titles, matching confirmed writes, record/path keys,
-read aborts, late write replies, no-op saves, length limits, Enter submission,
+read aborts, late write replies, UUID letter-case equivalence, no-op saves,
+length limits, Enter submission,
 normalized custom addresses and repeated-create prevention. It is registered in
 `test:core`; the public automated-check count is updated to 290.
 

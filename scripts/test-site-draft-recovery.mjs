@@ -34,6 +34,7 @@ function harness(path) {
     navigation = [];
   let index = 0,
     currentPath = `/admin/site/${draft.id}`,
+    currentId = draft.id,
     mounted = true;
   const react = {
     ...React,
@@ -102,11 +103,14 @@ function harness(path) {
   return {
     requests,
     navigation,
-    wrapper(id = draft.id) {
+    wrapper(id = currentId) {
       return compiled.exports.default({ params: { id } });
     },
     setPath(value) {
       currentPath = value;
+    },
+    setId(value) {
+      currentId = value;
     },
     render() {
       assert(mounted);
@@ -261,6 +265,31 @@ for (const invalid of [
   );
   bad.unmount();
 }
+const uppercase = harness(detailPath);
+uppercase.setId(draft.id.toUpperCase());
+uppercase.render();
+await uppercase.reply({ draft });
+assert(input(uppercase.render()), "UUID letter case cannot reject the same draft");
+input(uppercase.render()).props.onChange({ target: { value: "Uppercase link title" } });
+button(uppercase.render(), "Save title").props.onClick();
+await uppercase.reply({
+  draft: {
+    ...draft,
+    title: "Uppercase link title",
+    document: { ...document, metadata: { ...document.metadata, title: "Uppercase link title" } },
+    checksum: "e".repeat(64),
+    version: 2,
+  },
+});
+assert(
+  find(
+    uppercase.render(),
+    (node) => node.props?.role === "status" && node.props.children === "Title saved.",
+  ),
+  "canonical save receipts match uppercase UUID URLs",
+);
+uppercase.unmount();
+
 const oldRead = harness(detailPath);
 oldRead.render();
 const signal = oldRead.requests[0].options.signal;

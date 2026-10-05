@@ -70,7 +70,7 @@ function SiteDraftEditor({ id }: { id: string }) {
         if (controller.signal.aborted) return;
         if (!res.ok) throw new Error("Draft unavailable");
         const next = siteDraftSchema.parse(data.draft);
-        if (next.id !== id || !/^[a-f0-9]{64}$/.test(next.checksum))
+        if (next.id.toLowerCase() !== id.toLowerCase() || !/^[a-f0-9]{64}$/.test(next.checksum))
           throw new Error("Draft identity mismatch");
         setDraft(next);
         setMissing(false);
@@ -166,7 +166,11 @@ function SiteDraftEditor({ id }: { id: string }) {
       }
       if (!res.ok) throw new Error("Title save unavailable");
       const saved = siteDraftSchema.parse(data.draft);
-      if (saved.id !== id || saved.title !== title || !/^[a-f0-9]{64}$/.test(saved.checksum))
+      if (
+        saved.id.toLowerCase() !== id.toLowerCase() ||
+        saved.title !== title ||
+        !/^[a-f0-9]{64}$/.test(saved.checksum)
+      )
         throw new Error("Title receipt mismatch");
       setDraft(saved);
       setTitleInput(null);
