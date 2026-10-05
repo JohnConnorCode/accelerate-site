@@ -49,7 +49,7 @@
     "src/app/admin/pipeline/[id]/page.tsx": "8c68643fc06af47ce8d74c3b6cbd419ca81c3b5bce4a151a0fb8c9214c011920",
     "src/app/admin/pipeline/page.tsx": "05e14bafce5974519ee4dc1eeec1b2507e9e9b5f62597b65d3f0db144fef5f83",
     "src/app/admin/plugins/page.tsx": "a377bebea912eca2a70f3418a5770948ea056bf60e67a2c6dfca434669fb4061",
-    "src/app/admin/proposals/page.tsx": "7e73e9b67e3564709743040d8465a9ddfcefeb748d237467397cb534622684c0",
+    "src/app/admin/proposals/page.tsx": "3bccfd1330bf678114266b5537e7891236a8d2faf4789a203635b1ed76081b9e",
     "src/app/admin/radar/history/page.tsx": "623933fc9c5c073ae71be3f4b1811dc7be3b1da2b708d71b1e2a1f7fbc22329f",
     "src/app/admin/radar/opportunities/[id]/page.tsx": "d07e3a8bcfc257339da4b4fa6ff5f3abe7dc693186e0a217f8fe6ab9a0f396f5",
     "src/app/admin/radar/page.tsx": "952f463a826f122874794dd91cded3498578f4bc73d222e2cc871ddd005bc246",

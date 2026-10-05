@@ -114,7 +114,7 @@ try {
       const first = rows[0],
         draft = rows.find((row) => row.status === "draft");
       assert(first && draft && first.id !== draft.id);
-      async function open(row) {
+      async function open(row, expectedTitle = row.title) {
         await page.keyboard.press("ControlOrMeta+k");
         const input = page.getByRole("combobox", { name: "Search workspace" });
         await input.fill(row.title);
@@ -133,7 +133,7 @@ try {
         assert.equal(await option.getAttribute("aria-selected"), "true");
         await input.press("Enter");
         await page.waitForURL((url) => url.searchParams.get("proposal") === row.id);
-        await page.getByRole("heading", { name: row.title, exact: true }).waitFor();
+        await page.getByRole("heading", { name: expectedTitle, exact: true }).waitFor();
       }
       const title = page.getByLabel("Proposal Title", { exact: true });
       await open(first);
@@ -181,6 +181,18 @@ try {
       await page.getByText("Proposal save temporarily unavailable", { exact: true }).waitFor();
       assert.equal(await page.getByText(/^Proposal saved:/).count(), 0);
       assert.equal(await title.inputValue(), edited, "failed save preserves the draft");
+      await page
+        .getByText("Copy failed. The link is selected so you can copy it manually.", {
+          exact: true,
+        })
+        .locator("..")
+        .getByRole("button", { name: "Dismiss", exact: true })
+        .click();
+      await page
+        .getByText("Link copied", { exact: true })
+        .locator("..")
+        .getByRole("button", { name: "Dismiss", exact: true })
+        .click();
       await page.screenshot({ path: `${output}/save-failure-${width}-${reducedMotion}.png` });
       await page.evaluate(() => {
         window.__edit.mode = "save";
@@ -201,6 +213,13 @@ try {
         ),
         edited,
       );
+      await open(first);
+      await open(draft, edited);
+      assert.equal(
+        await title.inputValue(),
+        edited,
+        "reopening a confirmed save must retain the saved fields",
+      );
       await page.evaluate(() => {
         window.__edit.failRead = false;
       });
@@ -209,6 +228,8 @@ try {
       await page
         .getByRole("button", { name: "Mark Sent", exact: true })
         .waitFor({ state: "hidden" });
+      while (await page.getByRole("button", { name: "Dismiss", exact: true }).count())
+        await page.getByRole("button", { name: "Dismiss", exact: true }).first().click();
       await page.evaluate(() => {
         window.__edit.mode = "revise";
       });
@@ -220,7 +241,15 @@ try {
       await page.getByRole("heading", { name: revisedTitle, exact: true }).waitFor();
       assert.equal(await title.inputValue(), revisedTitle);
       assert((await link.inputValue()).endsWith("/proposal/fictional-revised-draft"));
-      await page.screenshot({ path: `${output}/revised-draft-${width}-${reducedMotion}.png` });
+      await page.getByText(`Proposal saved: ${revisedTitle}`, { exact: true }).waitFor();
+      await page.getByRole("button", { name: "Dismiss", exact: true }).click();
+      await page
+        .getByText(`Proposal saved: ${revisedTitle}`, { exact: true })
+        .waitFor({ state: "hidden" });
+      await page.screenshot({
+        path: `${output}/revised-draft-${width}-${reducedMotion}.png`,
+        fullPage: true,
+      });
       await page.evaluate(() => {
         window.__edit.mode = "save";
       });
@@ -251,6 +280,7 @@ try {
         retainedDraft: true,
         saveFailureAndRetry: true,
         refreshWarning: true,
+        reopenAfterReadFailure: true,
         successor: true,
         lateSave: true,
         clipboardFailureAndSuccess: true,

@@ -137,9 +137,12 @@ export default function ProposalsPage() {
       window.location.pathname === ownerPath &&
       new URLSearchParams(window.location.search).get("proposal") === updates.id
     ) {
+      setProposals((current) =>
+        current.map((proposal) => (proposal.id === saved.id ? saved : proposal)),
+      );
       setSelectedProposal((current) => (current?.id === updates.id ? saved : current));
+      queryClient.setQueryData(["proposals", "detail", saved.id], { proposal: saved });
       if (saved.id !== updates.id) {
-        queryClient.setQueryData(["proposals", "detail", saved.id], { proposal: saved });
         navigation.replace(`/admin/proposals?proposal=${encodeURIComponent(saved.id)}`, "preserve");
       }
     }

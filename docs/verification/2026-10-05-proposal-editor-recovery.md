@@ -4,7 +4,7 @@
 
 This follow-on to PR #213 repairs the existing proposal page and editor. Reused local form state could show one record's values under another record ID. The page swallowed rejected writes, so the editor reported success. It ignored the canonical PATCH result when an edit created a successor draft. Clipboard success appeared before the browser accepted the link.
 
-The editor now resets on record identity, preserves failed drafts, awaits writes and clipboard completion, and uses the shared workspace toaster so completion remains visible after navigation. Save and Mark Sent share a pending lock. A rejected clipboard request focuses and selects the native read-only share field for manual copying. The page uses the canonical returned proposal, follows a successor ID, and checks the current path and proposal before changing the open record. A confirmed write followed by a failed list refresh produces a saved-changes warning.
+The editor now resets on record identity, preserves failed drafts, awaits writes and clipboard completion, and uses the shared workspace toaster so completion remains visible after navigation. Save and Mark Sent share a pending lock. A rejected clipboard request focuses and selects the native read-only share field for manual copying. The page uses the canonical returned proposal in its retained list row and detail cache, follows a successor ID, and checks the current path and proposal before changing the open record. A confirmed write followed by a failed list refresh produces a saved-changes warning.
 
 ## Existing domain contract
 
@@ -14,9 +14,9 @@ The fictional runtime currently does not implement proposal PATCH. This change m
 
 ## Verification
 
-- `test:proposal-editor-recovery` executes the actual page/editor sources with controlled adapters: record key, rejected write, successor receipt, late completion, confirmed-write/read warning, incomplete receipt and pending/rejected/confirmed clipboard behavior.
+- `test:proposal-editor-recovery` executes the actual page/editor sources with controlled adapters: record key, rejected write, successor receipt, late completion, confirmed-write/read warning with saved row/cache retention, incomplete receipt and pending/rejected/confirmed clipboard behavior.
 - `test:proposal-lifecycle` verifies transaction keys, freshness, successor identity, validation, tenant scope and failure propagation.
-- `qa-proposal-editor-recovery.mjs` checks the real production UI at 1440px and 390px with normal and reduced motion: keyboard search/navigation, record isolation, failed-save draft retention and retry, saved/read warning, pending status controls, successor selection, late completion, selected clipboard fallback and successful copy. It asserts no console/page errors, horizontal overflow or escaped protected requests and retains screenshots plus a four-context receipt.
+- `qa-proposal-editor-recovery.mjs` checks the real production UI at 1440px and 390px with normal and reduced motion: keyboard search/navigation, record isolation, failed-save draft retention and retry, saved/read warning and reopen with confirmed fields, pending status controls, successor selection, late completion, selected clipboard fallback and successful copy. It asserts no console/page errors, horizontal overflow or escaped protected requests and retains screenshots plus a four-context receipt.
 - Full lint, production build/typecheck, core tests, native database tests and browser suites must pass on the exact PR head in CI before review handoff. Focused evidence is retained as `proposal-editor-recovery-evidence`; inspect its desktop/mobile screenshots and receipt before reporting acceptance.
 
 ## Release information

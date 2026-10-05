@@ -128,10 +128,20 @@ assert(
   "use the mutation receipt instead of rereading the old version",
 );
 
-const refreshFailure = pageHarness(() => ({ proposal: first }), true);
+const savedFirst = { ...first, title: "Saved title" };
+const refreshFailure = pageHarness(() => ({ proposal: savedFirst }), true);
 await refreshFailure.save({ id: first.id });
 assert.equal(refreshFailure.notices[0].kind, "warning");
 assert.match(refreshFailure.notices[0].message, /changes are saved/);
+assert.equal(
+  refreshFailure.state[0][0].title,
+  savedFirst.title,
+  "reopening the retained row must use the confirmed saved fields",
+);
+assert.deepEqual(refreshFailure.cache[0], [
+  ["proposals", "detail", first.id],
+  { proposal: savedFirst },
+]);
 
 let finish;
 const late = pageHarness(
