@@ -64,6 +64,7 @@ try {
             await new Promise((resolve) => setTimeout(resolve, 600));
             return route.fulfill({
               status: 400,
+              headers: { "x-supabase-api-version": "2024-01-01" },
               json: {
                 code: attempt === 1 ? "fixture_provider_failure" : "same_password",
                 message: "PRIVATE_PROVIDER_DETAIL_MUST_NOT_BE_DISPLAYED",
