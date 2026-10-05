@@ -150,7 +150,7 @@ does not activate Google capabilities or establish deployment.
   checks 129 routes and 115 mutation handlers. These are source review boundaries,
   not universal parity acceptance.
 
-Baseline: `c2b090e51ec74c0433d368adde9c150686b2f`. Private operational receipts
+Baseline: `c2b090e51ec74c0433d368adde9c150686686b2f`. Private operational receipts
 remain under `/tmp/accelerate-command-center-core-audit-20261005`; raw workspace
 metadata and credentials are not committed. The existing homepage preview at
 port 3014 remains intact and uses its earlier hero source. The core preview is
