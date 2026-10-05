@@ -19,13 +19,13 @@ To connect a form, publish it in Form Builder and use **Connect a form → Load 
 
 ## Hosting
 
-Copy `deployment-target.example.json` to `deployment-target.json` and fill IDs for a Vercel project you control:
+Generate an ignored `deployment-target.local.json` using IDs for a Vercel project you control:
 
 ```bash
 node scripts/generate-fork-hosting.mjs --project prj_your_id --team team_your_id --name my-revenue-os --url https://your-business.example
 ```
 
-The generator refuses the original Accelerate project, team and canonical URL. `vercel.json` lets forks deploy on Git pushes and includes no scheduled jobs. Cron routes require `CRON_SECRET` and a scheduler you own; configure triggers only after workspace setup and check your plan’s frequency limits. Original production releases select `vercel.production.json` through the guarded release commands. `npm run deploy:check` refuses original IDs by default in either profile. The original maintainer follows the separate hosting acknowledgement and authenticated target verification in [Deployment](../../DEPLOY.md); turning agency presentation on never grants hosting access.
+The generator refuses the original Accelerate project, team and canonical URL, and refuses to overwrite an existing local target. Deployment preflight reads the local target first; an invalid local file stops the check rather than selecting the tracked maintainer target. Retain this file with your installation backup. `vercel.json` lets forks deploy on Git pushes and includes no scheduled jobs. Cron routes require `CRON_SECRET` and a scheduler you own; configure triggers only after workspace setup and check your plan’s frequency limits. Original production releases select `vercel.production.json` through the guarded release commands. `npm run deploy:check` refuses original IDs by default in either profile. The original maintainer follows the separate hosting acknowledgement and authenticated target verification in [Deployment](../../DEPLOY.md); turning agency presentation on never grants hosting access.
 
 This does not deploy the original production account.
 
@@ -46,7 +46,7 @@ npm run start
 
 The output must be a new directory outside the source checkout. Existing files are never overwritten. `neutral-starter-receipt.json` lists every copied path and its content hash, so a reviewer can identify the exact exported source. The exporter copies tracked source selected by `distribution/inclusion-manifest.json` and its explicit replacement files. It refuses path escapes and symlinks and omits private environment, repository metadata and original hosting IDs.
 
-The optional starter contains a fictional Harbor Operations identity in `src/config/tenant.ts`. Replace that configuration with your business name, domain, contact details and AI instructions before connecting real services. Both the full repository and the exported starter default to neutral. Start your own Git history with your configured author identity; the normal build uses that commit as its release identifier.
+The optional starter begins with a fictional Harbor Operations identity. Set `NEXT_PUBLIC_BUSINESS_NAME` and `NEXT_PUBLIC_SITE_URL` in your private environment, use the guided installer for owner/workspace identity, and edit saved branding and website settings through the existing controls. Shared tenant source does not need editing. Both the full repository and the exported starter default to neutral. Start your own Git history with your configured author identity; the normal build uses that commit as its release identifier.
 
 All original public assets, article collections, team biographies and work examples are omitted. Business-owned content collections start empty; editable page sections use neutral placeholders. The shared runtime, fictional admin scenarios, extension code and product documentation remain. The manifest excludes all `src/content/` by default; its reviewed exceptions are the documentation directory, runtime intake taxonomy and provider integration names. Other content enters only through explicit neutral replacement files, so adding a future marketing module cannot silently include it. Original guide screenshots under `/images/docs/` are omitted by the existing figure component in the neutral profile, so retained text guides do not request missing protected images. Add your own permitted images under a new path when customizing the guides. Supply assets you have rights to publish and update your own page content before public release.
 
@@ -64,4 +64,4 @@ Stable interfaces: module manifests in `extensions/`, integration adapters, regi
 
 Sample business applications: fictional demo workspaces, marketing case-study pages, and plugin examples under `plugins/` that demonstrate a pattern. Keep those as examples; put your business records in your own workspace.
 
-To take upstream upgrades, keep a fork on published `main`, replace only tenant identity, hosting IDs and excluded media, and avoid editing `src/lib/revenue-os/` unless you are contributing the change back.
+Keep the full Git fork history so upstream releases retain a common ancestor. Use [fork customization and updates](FORK-UPGRADES.md) to inspect a source update, adopt legacy configuration edits and preserve local settings. A reduced export starts independent history and uses the documented manual adoption path.

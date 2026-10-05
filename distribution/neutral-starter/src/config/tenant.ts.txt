@@ -49,15 +49,17 @@ export interface TenantConfig {
         supabaseProjectRef: string | null;
     };
 }
+const businessName = process.env.NEXT_PUBLIC_BUSINESS_NAME || "Harbor Operations";
+const businessUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://harbor.example";
 export const tenant: TenantConfig = {
   "brand": {
-    "name": "Harbor Operations",
-    "domain": "harbor.example",
-    "siteUrl": "https://harbor.example",
-    "logoMark": "H",
+    "name": businessName,
+    "domain": new URL(businessUrl).hostname,
+    "siteUrl": businessUrl,
+    "logoMark": businessName.slice(0, 1).toUpperCase(),
     "accentColor": "#2563eb",
     "tagline": "Our business workspace",
-    "emailFooter": "Harbor Operations"
+    "emailFooter": businessName
   },
   "founder": {
     "name": "Owner",
@@ -69,12 +71,12 @@ export const tenant: TenantConfig = {
     "publicBooking": false
   },
   "ai": {
-    "businessDescriptor": "Harbor Operations, a fictional sample business",
+    "businessDescriptor": `${businessName}, an independently operated business workspace`,
     "voice": "Be clear and factual.",
     "positioning": "Help our team organize and complete its work."
   },
   "booking": {
-    "url": "https://harbor.example",
+    "url": businessUrl,
     "path": "/",
     "schedulerUrl": null
   },
