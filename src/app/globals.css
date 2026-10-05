@@ -6333,10 +6333,6 @@ body.modal-open [data-dock] {
   }
 }
 
-/* Keep navigation legible above the homepage's ink field in both themes. */
-body:has(.home-hero) .site-header {
-  background: var(--bg);
-}
 /* The homepage opens as a single typographic print, with a concrete workflow. */
 .home-hero {
   --hero-ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -6525,6 +6521,11 @@ body:has(.home-hero) .site-header {
     transform: none;
     pointer-events: auto;
   }
+}
+body[data-mobile-navigation="open"] .home-hero-artwork,
+body[data-mobile-navigation="open"] .home-hero-artwork * {
+  animation-play-state: paused !important;
+  transition: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .home-hero-print-input,

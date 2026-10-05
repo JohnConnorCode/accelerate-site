@@ -47,6 +47,9 @@ try {
           heading.getBoundingClientRect().top -
           document.querySelector(".site-header").getBoundingClientRect().bottom,
         overflow: document.documentElement.scrollWidth > innerWidth + 1,
+        headerOpaque:
+          getComputedStyle(document.querySelector(".site-header")).backgroundColor !==
+          "rgba(0, 0, 0, 0)",
         buttons: hero.querySelectorAll("button, [role=tab], input[type=range]").length,
         canvases: hero.querySelectorAll("canvas").length,
       };
@@ -64,8 +67,8 @@ try {
       `${label}: booking, header clearance or containment failed`,
     );
     fail(
-      !opening.buttons && !opening.canvases,
-      `${label}: old selector or graphics dependency remains`,
+      !opening.buttons && !opening.canvases && opening.headerOpaque,
+      `${label}: old selector, graphics dependency or transparent header remains`,
     );
     await page.waitForFunction(() => document.querySelector(".home-hero").classList.contains("in"));
 
@@ -198,7 +201,8 @@ try {
       await page.goBack();
       await page.waitForURL(base + "/");
       fail(await cta.isVisible(), "History restoration conceals booking");
-      await page.getByRole("link", { name: "Services", exact: true }).first().click();
+      await page.getByRole("button", { name: "Open navigation menu", exact: true }).click();
+      await page.locator('#mobile-site-navigation a[href="/services"]').first().click();
       await page.waitForURL("**/services");
       await page
         .getByRole("link", { name: /Accelerate.*home/i })

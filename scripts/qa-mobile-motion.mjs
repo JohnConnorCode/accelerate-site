@@ -145,10 +145,11 @@ for (const [engine, launcher] of Object.entries(engines)) {
         headingHeight: heading.getBoundingClientRect().height,
         headingFontSize: parseFloat(headingStyle.fontSize),
         headingLines: heading.getBoundingClientRect().height / parseFloat(headingStyle.lineHeight),
-        headingUniform: [...heading.querySelectorAll(".home-hero-word")].every((word) => {
-          const style = getComputedStyle(word);
-          return style.font === headingStyle.font;
-        }),
+        headingConsistent: [...heading.querySelectorAll(".home-hero-lead, em")].every((group) =>
+          [...group.querySelectorAll(".home-hero-word")].every(
+            (word) => getComputedStyle(word).font === getComputedStyle(group).font,
+          ),
+        ),
         overflow: document.documentElement.scrollWidth > innerWidth + 1,
         actionOpacity: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
         documentId: window.__documentId,
@@ -158,7 +159,7 @@ for (const [engine, launcher] of Object.entries(engines)) {
       composition.heroHeight < composition.viewportHeight ||
       composition.headingFontSize < 34 ||
       composition.headingLines > 6.1 ||
-      !composition.headingUniform ||
+      !composition.headingConsistent ||
       composition.overflow ||
       composition.actionOpacity !== 1
     )
@@ -171,11 +172,12 @@ for (const [engine, launcher] of Object.entries(engines)) {
     for (let visit = 0; visit < 3; visit++) {
       stage = `warm-visit-${visit}`;
       await page.getByRole("button", { name: "Open navigation menu" }).click();
-      await page.waitForFunction(
-        () => document.querySelector(".home-hero-artwork").dataset.motionState === "paused",
+      await page.waitForFunction(() =>
+        document
+          .querySelector(".home-hero-artwork")
+          .getAnimations({ subtree: true })
+          .every((animation) => animation.playState !== "running"),
       );
-      if ((await page.locator(".home-hero-artwork").getAttribute("data-motion-state")) !== "paused")
-        failures.push(`${engine}: hero artwork kept moving behind the open menu`);
       await page.locator('#mobile-site-navigation a[href="/services"]').first().click();
       await page.waitForURL(`${base}/services`);
       await page.locator('header .logo-link[href="/"]').click();
