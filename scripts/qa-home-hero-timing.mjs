@@ -344,27 +344,41 @@ for (const [label, viewport, colorScheme] of [
     const homeLink = page.locator('header .logo-link[href="/"]');
     await homeLink.hover();
     await page.waitForTimeout(350);
+    // Sample in the page before the click/URL round trip can outlast the entrance.
+    await page.evaluate(() => {
+      window.__heroForwardSample = null;
+      const sample = () => {
+        const hero = document.querySelector(".home-hero");
+        const word = hero?.querySelector(".home-hero-word");
+        const entrance = word
+          ?.getAnimations()
+          .find((animation) => animation.animationName === "home-hero-word-enter");
+        if (
+          location.pathname !== "/" ||
+          !hero?.classList.contains("in") ||
+          !entrance ||
+          typeof entrance.currentTime !== "number" ||
+          entrance.currentTime === 0
+        ) {
+          requestAnimationFrame(sample);
+          return;
+        }
+        window.__heroForwardSample = {
+          kind: document.documentElement.dataset.navigationKind,
+          animated: getComputedStyle(word).animationName,
+          immediate: hero.classList.contains("reveal-immediate"),
+          playState: entrance.playState,
+          currentTime: entrance.currentTime,
+          endTime: entrance.effect.getComputedTiming().endTime,
+          action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
+        };
+      };
+      requestAnimationFrame(sample);
+    });
     await homeLink.click();
     await page.waitForURL(`${baseUrl}/`);
-    await page.waitForFunction(() =>
-      document.querySelector(".home-hero")?.classList.contains("in"),
-    );
-    const forward = await page.evaluate(() => {
-      const hero = document.querySelector(".home-hero");
-      const word = hero.querySelector(".home-hero-word");
-      const entrance = word
-        .getAnimations()
-        .find((animation) => animation.animationName === "home-hero-word-enter");
-      return {
-        kind: document.documentElement.dataset.navigationKind,
-        animated: getComputedStyle(word).animationName,
-        immediate: hero.classList.contains("reveal-immediate"),
-        playState: entrance?.playState,
-        currentTime: entrance?.currentTime,
-        endTime: entrance?.effect.getComputedTiming().endTime,
-        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
-      };
-    });
+    await page.waitForFunction(() => window.__heroForwardSample, null, { timeout: 10_000 });
+    const forward = await page.evaluate(() => window.__heroForwardSample);
     settled.forward = forward;
     // A client commit can be observed partway through its entrance. Require
     // a live, fresh animation clock; concealed opening frames are tested above.

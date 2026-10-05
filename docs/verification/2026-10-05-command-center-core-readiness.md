@@ -132,12 +132,17 @@ does not activate Google capabilities or establish deployment.
   corrected and their focused stats, boundary and four adoption tests passed.
   The allowances were reduced, not widened. The successful connected-fork proof
   is run `37340256149`; the broader superseded run is not claimed green.
-- `1ee0e49f0aeeb781b6657421564d56152d329fec` passed remote production build,
-  TypeScript and built documentation verification. Its retained production
-  artifact runs locally on port 3016; launcher, Today and AI routes returned
-  HTTP 200. Broader candidate CI is recorded on PR 211, including follow-on copy
-  and receipt-only changes. Use its exact passing run rather than inferring final
-  acceptance from earlier builds.
+- Application source `7d9e4960c69a38c18117c87dd0e97b7018ba17f6` passed remote
+  production build, TypeScript, built documentation, all fork journeys, native
+  database proofs and full-admin desktop/mobile verification in CI run
+  `37344619207`. Its AI history screenshots were opened and checked. That run
+  failed a separate homepage timing assertion: its driver sampled a finished
+  entrance clock after navigation. The test now samples the actual animation
+  from inside the page before navigation, retaining its running-clock and fresh
+  entrance assertions. Final branch verification is recorded on PR 211.
+- The retained production artifact for `7d9e4960` runs locally on port 3016;
+  launcher, Today and AI routes returned HTTP 200. Its deployment ID matches
+  `7d9e4960c69a`. Subsequent verification-only changes do not change this app.
 - Local build admission receipts retain the disk-capacity and other-worktree
   gate refusals. No resource limits were bypassed or unrelated output removed.
   After capacity recovered, the local browser run used the normal gate.
