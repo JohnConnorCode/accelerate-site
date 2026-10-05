@@ -796,6 +796,15 @@ for (const scenario of scenarios) {
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2))
         failures.push("AI workspace: run history has horizontal overflow on mobile");
       await page.getByText("Ordered trace", { exact: true }).scrollIntoViewIfNeeded();
+      const conversationControlFits = await page
+        .getByRole("button", { name: "Open conversation", exact: true })
+        .evaluate((node) => {
+          const button = node.getBoundingClientRect();
+          const container = node.closest(".overflow-hidden").getBoundingClientRect();
+          return button.left >= container.left && button.right <= container.right;
+        });
+      if (!conversationControlFits)
+        failures.push("AI workspace: mobile run-detail control is clipped inside its surface");
       await page.screenshot({ path: `${output}/ai-run-history-mobile.png`, fullPage: true });
       await page.setViewportSize(viewport);
       await page

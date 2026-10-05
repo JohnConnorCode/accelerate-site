@@ -45,38 +45,40 @@ export async function gatherBusinessSignals(
 
   // --- Pipeline signals ---
   // New opportunities created.
-  const { count: newOpportunities } = await supabase
+  const { count: newOpportunities, error: newOpportunitiesError } = await supabase
     .from("opportunities")
     .select("*", { count: "exact", head: true })
     .gte("created_at", since);
+  if (newOpportunitiesError) throw new Error(newOpportunitiesError.message);
   if (newOpportunities && newOpportunities > 0) {
     signals.push({
       category: "pipeline",
       severity: "info",
-      summary: `${newOpportunities} new opportunity${newOpportunities > 1 ? "ies" : "y"} entered the pipeline`,
+      summary: `${newOpportunities} new ${newOpportunities === 1 ? "opportunity" : "opportunities"} entered the pipeline`,
       evidence: `opportunities.created_at >= ${since}`,
     });
   }
 
   // Stage transitions.
-  const { data: transitions } = await supabase
+  const { data: transitions, error: transitionsError } = await supabase
     .from("activities")
-    .select("entity_id, metadata")
-    .eq("activity_type", "stage_change")
+    .select("opportunity_id, metadata")
+    .eq("activity_type", "opportunity_stage_changed")
     .gte("occurred_at", since)
     .limit(20);
+  if (transitionsError) throw new Error(transitionsError.message);
   const wonDeals = (transitions ?? []).filter(
-    (t) => (t.metadata as Record<string, unknown>)?.to === "won",
+    (t) => (t.metadata as Record<string, unknown>)?.to_stage === "won",
   );
   const lostDeals = (transitions ?? []).filter(
-    (t) => (t.metadata as Record<string, unknown>)?.to === "lost",
+    (t) => (t.metadata as Record<string, unknown>)?.to_stage === "lost",
   );
   if (wonDeals.length > 0) {
     signals.push({
       category: "revenue",
       severity: "info",
       summary: `${wonDeals.length} deal${wonDeals.length > 1 ? "s" : ""} won`,
-      evidence: `stage_change to won since ${since}`,
+      evidence: `opportunity_stage_changed to won since ${since}`,
     });
   }
   if (lostDeals.length > 0) {
@@ -84,17 +86,18 @@ export async function gatherBusinessSignals(
       category: "risk",
       severity: "attention",
       summary: `${lostDeals.length} deal${lostDeals.length > 1 ? "s" : ""} lost`,
-      evidence: `stage_change to lost since ${since}`,
+      evidence: `opportunity_stage_changed to lost since ${since}`,
     });
   }
 
   // Stale deals (no update in 7+ days, still active).
   const staleThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { count: staleDeals } = await supabase
+  const { count: staleDeals, error: staleDealsError } = await supabase
     .from("opportunities")
     .select("*", { count: "exact", head: true })
     .not("stage", "in", '("won","lost","nurture")')
     .lt("updated_at", staleThreshold);
+  if (staleDealsError) throw new Error(staleDealsError.message);
   if (staleDeals && staleDeals > 0) {
     signals.push({
       category: "risk",
@@ -106,10 +109,11 @@ export async function gatherBusinessSignals(
 
   // --- Activity signals ---
   // Pending actions count.
-  const { count: pendingActions } = await supabase
+  const { count: pendingActions, error: pendingActionsError } = await supabase
     .from("action_queue")
     .select("*", { count: "exact", head: true })
     .eq("status", "pending");
+  if (pendingActionsError) throw new Error(pendingActionsError.message);
   if (pendingActions && pendingActions > 0) {
     signals.push({
       category: "activity",
@@ -120,26 +124,28 @@ export async function gatherBusinessSignals(
   }
 
   // Work items completed.
-  const { count: completedWork } = await supabase
+  const { count: completedWork, error: completedWorkError } = await supabase
     .from("work_items")
     .select("*", { count: "exact", head: true })
     .eq("status", "completed")
-    .gte("completed_at", since);
+    .gte("finished_at", since);
+  if (completedWorkError) throw new Error(completedWorkError.message);
   if (completedWork && completedWork > 0) {
     signals.push({
       category: "activity",
       severity: "info",
       summary: `${completedWork} work item${completedWork > 1 ? "s" : ""} completed by coworkers`,
-      evidence: `work_items.completed_at >= ${since}`,
+      evidence: `work_items.finished_at >= ${since}`,
     });
   }
 
   // Work items that failed.
-  const { count: failedWork } = await supabase
+  const { count: failedWork, error: failedWorkError } = await supabase
     .from("work_items")
     .select("*", { count: "exact", head: true })
     .eq("status", "failed")
-    .gte("updated_at", since);
+    .gte("finished_at", since);
+  if (failedWorkError) throw new Error(failedWorkError.message);
   if (failedWork && failedWork > 0) {
     signals.push({
       category: "risk",
@@ -151,17 +157,18 @@ export async function gatherBusinessSignals(
 
   // --- Opportunity signals ---
   // High-value deals in late stages.
-  const { data: highStage } = await supabase
+  const { data: highStage, error: highStageError } = await supabase
     .from("opportunities")
-    .select("id, company_name, stage, probability")
+    .select("id, name, stage, probability")
     .in("stage", ["proposal", "negotiation"])
     .order("probability", { ascending: false })
     .limit(5);
+  if (highStageError) throw new Error(highStageError.message);
   if (highStage && highStage.length > 0) {
     signals.push({
       category: "opportunity",
       severity: "info",
-      summary: `${highStage.length} deal${highStage.length > 1 ? "s" : ""} in late stages: ${highStage.map((d) => `${d.company_name} (${d.stage})`).join(", ")}`,
+      summary: `${highStage.length} deal${highStage.length > 1 ? "s" : ""} in late stages: ${highStage.map((d) => `${d.name} (${d.stage})`).join(", ")}`,
       evidence: `opportunities.stage in (proposal, negotiation)`,
     });
   }
@@ -172,18 +179,19 @@ export async function gatherBusinessSignals(
   // a `discrepancy` field when a note mentions a stage that conflicts
   // with the canonical opportunity record.
   try {
-    const { data: activeDeals } = await supabase
+    const { data: activeDeals, error: activeDealsError } = await supabase
       .from("opportunities")
-      .select("id, name, company_name, stage")
+      .select("id, name, stage")
       .not("stage", "in", '("won","lost","nurture")')
       .order("updated_at", { ascending: true })
       .limit(10);
+    if (activeDealsError) throw new Error(activeDealsError.message);
 
     if (activeDeals && activeDeals.length > 0) {
       const discrepancySignals: BusinessSignal[] = [];
       for (const deal of activeDeals) {
         const knowledge = await retrieveKnowledge(supabase, {
-          entityName: deal.company_name || deal.name,
+          entityName: deal.name || deal.id,
           limit: 5,
         });
         const discrepancies = knowledge.chunks.filter((c) => c.discrepancy);
@@ -192,7 +200,7 @@ export async function gatherBusinessSignals(
           discrepancySignals.push({
             category: "risk",
             severity: "attention",
-            summary: `${deal.company_name || deal.name}: note says "${firstDiscrepancy.discrepancy.slice(0, 120)}"`,
+            summary: `${deal.name || deal.id}: note says "${firstDiscrepancy.discrepancy.slice(0, 120)}"`,
             evidence: `knowledge discrepancy for opportunity ${deal.id}`,
             relatedEntityType: "opportunity",
             relatedEntityId: deal.id,
@@ -210,13 +218,14 @@ export async function gatherBusinessSignals(
   // from human feedback — surface this so the operator knows what the
   // system has absorbed.
   try {
-    const { data: recentPolicies } = await supabase
+    const { data: recentPolicies, error: recentPoliciesError } = await supabase
       .from("agent_memory")
       .select("subject, body")
       .eq("category", "prior_work")
       .ilike("subject", "learned_policy:%")
       .gte("created_at", since)
       .limit(5);
+    if (recentPoliciesError) throw new Error(recentPoliciesError.message);
     if (recentPolicies && recentPolicies.length > 0) {
       signals.push({
         category: "activity",

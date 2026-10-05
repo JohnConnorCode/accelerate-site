@@ -247,11 +247,166 @@ export async function proveAutonomyPolicyWrites({ sql, asyncSql, context, a, b }
     /suspended|inactive|forbidden|unavailable/i,
   );
   sql(`UPDATE tenants SET status='active' WHERE id='${b}'`);
+  sql(readFileSync("migrations/20260902-workspace-capabilities.sql", "utf8"));
+  sql("GRANT SELECT ON workspace_capabilities TO service_role");
+  const capability = (key, source, available = false, policy = "NULL", integration = "NULL") =>
+    `SELECT upsert_workspace_capability('${key}','Fixture','integration','read','read',${available},${policy},'${source}',${integration},NULL)`;
+  const capabilityRow = (key, tenant = a) =>
+    sql(
+      `${context(tenant)} SELECT row_to_json(c) FROM workspace_capabilities c WHERE capability_key='${key}' AND tenant_id='${tenant}'`,
+    );
+  const connectedId = sql(
+    `${context()} ${capability("gmail.read", "integration_registry", true, "'approval_required'", "'google'")}`,
+  );
+  sql(`${context()} ${capability("gmail.read", "coworker_bootstrap")}`);
+  assert.equal(
+    JSON.parse(capabilityRow("gmail.read")).available,
+    false,
+    "before: setup overwrites a connected capability",
+  );
+  sql(
+    `${context()} ${capability("gmail.read", "integration_registry", true, "'approval_required'", "'google'")}`,
+  );
+
+  const setupMigration = readFileSync(
+    "migrations/20261005141858_coworker_setup_preserves_workspace_state.sql",
+    "utf8",
+  );
+  sql(setupMigration);
+  sql(setupMigration);
+  sql(`${context()} ${capability("crm.write", "coworker_bootstrap")}`);
+  const legacyNativeId = JSON.parse(capabilityRow("crm.write")).id;
+  sql(readFileSync("migrations/20261005154158_repair_legacy_native_capability_seeds.sql", "utf8"));
+  sql(readFileSync("migrations/20261005154158_repair_legacy_native_capability_seeds.sql", "utf8"));
+  assert.equal(
+    sql(`${context()} ${capability("crm.write", "native", true, "'automatic'")}`),
+    legacyNativeId,
+  );
+  assert.equal(
+    JSON.parse(capabilityRow("crm.write")).available,
+    true,
+    "untouched legacy native placeholders repair through setup",
+  );
+  sql(`${context()} ${capability("crm.read", "manual", false)}`);
+  const manualNativeBefore = capabilityRow("crm.read");
+  sql(`${context()} ${capability("crm.read", "native", true, "'automatic'")}`);
+  assert.equal(
+    capabilityRow("crm.read"),
+    manualNativeBefore,
+    "manual unavailable state stays unavailable",
+  );
+  const connectedBefore = capabilityRow("gmail.read");
+  assert.equal(sql(`${context()} ${capability("gmail.read", "coworker_bootstrap")}`), connectedId);
+  assert.equal(
+    capabilityRow("gmail.read"),
+    connectedBefore,
+    "setup retains connection and verification receipt",
+  );
+  const nativeId = sql(`${context()} ${capability("crm.write", "native", true, "'automatic'")}`);
+  assert.equal(
+    JSON.parse(capabilityRow("crm.write")).available,
+    true,
+    "missing native capability seeds ready",
+  );
+  sql(`${context()} ${capability("crm.write", "manual", true, "'prohibited'")}`);
+  const nativeBefore = capabilityRow("crm.write");
+  assert.equal(
+    sql(`${context()} ${capability("crm.write", "native", true, "'automatic'")}`),
+    nativeId,
+  );
+  assert.equal(
+    capabilityRow("crm.write"),
+    nativeBefore,
+    "native setup cannot replace a human restriction",
+  );
+  sql(`${context(b)} ${capability("gmail.read", "coworker_bootstrap")}`);
+  assert.equal(
+    capabilityRow("gmail.read"),
+    connectedBefore,
+    "other tenant setup leaves Accelerate unchanged",
+  );
+  assert.equal(JSON.parse(capabilityRow("gmail.read", b)).available, false);
+  await Promise.all(
+    Array.from({ length: 8 }, (_, index) =>
+      asyncSql(
+        `${context()} ${capability("calendar.read", index % 2 ? "coworker_bootstrap" : "integration_registry", index % 2 === 0, index % 2 ? "NULL" : "'approval_required'", index % 2 ? "NULL" : "'google'")}`,
+      ),
+    ),
+  );
+  const raced = JSON.parse(capabilityRow("calendar.read"));
+  assert.equal(raced.available, true, "concurrent setup cannot reset provider sync");
+  assert.equal(raced.integration_id, "google");
+  sql(`${context()} ${capability("gmail.read", "integration_registry", false)}`);
+  assert.equal(
+    JSON.parse(capabilityRow("gmail.read")).available,
+    false,
+    "explicit disconnect still updates readiness",
+  );
+
+  for (const [key, scope] of [
+    ["fixture.legacy", "'sales'"],
+    ["fixture.prohibited", "NULL"],
+    ["fixture.floor", "NULL"],
+  ]) {
+    const rows = () =>
+      sql(
+        `SELECT jsonb_agg(to_jsonb(p) ORDER BY created_at,id) FROM autonomy_policies p WHERE tenant_id='${a}' AND action_key='${key}' AND coworker_id IS NOT DISTINCT FROM ${scope}`,
+      );
+    const before = rows();
+    sql(`${context()} ${register(key, "ask_until_trusted", scope, "{}", "coworker_bootstrap")}`);
+    assert.equal(rows(), before, "setup preserves grants, restrictions and hard-floor receipts");
+  }
+  const seeded = await Promise.all(
+    Array.from({ length: 8 }, () =>
+      asyncSql(
+        `${context()} ${register("fixture.setup.new", "always_ask", "'sales'", "{}", "coworker_bootstrap")}`,
+      ),
+    ),
+  );
+  assert.equal(new Set(seeded).size, 1, "concurrent setup creates one policy identity");
+  await Promise.all([
+    asyncSql(
+      `${context()} ${register("fixture.setup.new", "always_ask", "'sales'", "{}", "coworker_bootstrap")}`,
+    ),
+    asyncSql(
+      `${context()} ${register("fixture.setup.new", "prohibited", "'sales'", '{"maximumAmount":10}', "manual")}`,
+    ),
+  ]);
+  assert.equal(
+    current("fixture.setup.new", "'sales'").level,
+    "prohibited",
+    "explicit restriction wins a setup race",
+  );
+  sql(`${context()} ${register("fixture.legacy", "always_ask", "'sales'")}`);
+  assert.equal(
+    current("fixture.legacy", "'sales'").requires_approval,
+    true,
+    "explicit policy revocation still works",
+  );
+  for (const role of ["anon", "authenticated"]) {
+    assert.throws(
+      () =>
+        sql(
+          `SET request.headers='{"x-tenant-id":"${a}"}'; SET request.jwt.claim.role='${role}'; SET ROLE ${role}; ${capability("crm.write", "native", true, "'automatic'")}`,
+        ),
+      /permission denied/,
+    );
+    assert.throws(
+      () =>
+        sql(
+          `SET request.headers='{"x-tenant-id":"${a}"}'; SET request.jwt.claim.role='${role}'; SET ROLE ${role}; ${register("fixture.setup.new", "always_ask", "'sales'", "{}", "coworker_bootstrap")}`,
+        ),
+      /permission denied/,
+    );
+  }
   assert.equal(
     sql("SELECT row_to_json(a) FROM audit_log a WHERE action='fixture.immutable'"),
     auditBefore,
   );
   console.log(
     "PASS: policy writes reproduce NULL duplicate/grant failure before migration; preserve legacy IDs/history; converge concurrent scopes; revoke/regrant; clear material approval; retain strict reads, hard floors and tenant/role authorization.",
+  );
+  console.log(
+    "PASS: coworker setup reproduces capability reset before migration; preserves provider connections, human permissions, IDs and receipts; seeds missing requirements; retains explicit sync/revocation and tenant/role boundaries under races.",
   );
 }

@@ -70,6 +70,20 @@ export async function bootstrapSalesCoworker(
   supabase: SupabaseClient,
   actorEmail?: string | null,
 ): Promise<{ coworker: Coworker; capabilityGaps: string[]; readyToWork: boolean }> {
+  // Register the tenant-owned identity before its scoped policies.
+  const coworker = await registerCoworker(supabase, {
+    id: SALES_COWORKER_ID,
+    name: "Sales Coworker",
+    role: "Qualifies inbound leads, drafts follow-ups, monitors stale proposals, and keeps the pipeline moving",
+    description:
+      "The reference coworker that proves the Phase B primitives. Handles the full lead-to-close loop: lead arrives → identity resolved → context gathered → qualified → reply drafted → human approves → email sent → follow-up scheduled.",
+    toolPack: "pipeline",
+    requiredCapabilities: [...SALES_COWORKER_REQUIRED_CAPABILITIES],
+    workKinds: [...SALES_COWORKER_WORK_KINDS],
+    actorEmail,
+    seedOnly: true,
+  });
+
   // Register required capabilities
   for (const capKey of SALES_COWORKER_REQUIRED_CAPABILITIES) {
     await registerRequiredCapability(supabase, capKey);
@@ -84,23 +98,8 @@ export async function bootstrapSalesCoworker(
       coworkerId: SALES_COWORKER_ID,
       source: "coworker_bootstrap",
       actorEmail,
-    }).catch(() => {
-      // Policy may already exist — that's fine.
     });
   }
-
-  // Register the coworker
-  const coworker = await registerCoworker(supabase, {
-    id: SALES_COWORKER_ID,
-    name: "Sales Coworker",
-    role: "Qualifies inbound leads, drafts follow-ups, monitors stale proposals, and keeps the pipeline moving",
-    description:
-      "The reference coworker that proves the Phase B primitives. Handles the full lead-to-close loop: lead arrives → identity resolved → context gathered → qualified → reply drafted → human approves → email sent → follow-up scheduled.",
-    toolPack: "pipeline",
-    requiredCapabilities: [...SALES_COWORKER_REQUIRED_CAPABILITIES],
-    workKinds: [...SALES_COWORKER_WORK_KINDS],
-    actorEmail,
-  });
 
   // Check readiness
   const manifest = await getCoworkerManifest(supabase, SALES_COWORKER_ID);
@@ -275,7 +274,7 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi, signal) => {
   // Resolve the canonical contact before spending model budget.
   const { data: contact, error: contactError } = await supabase
     .from("contacts")
-    .select("id, email, first_name, last_name, company_id")
+    .select("id, primary_email, full_name, company_id")
     .eq("tenant_id", wi.tenant_id)
     .eq("id", wi.entity_id)
     .maybeSingle();
@@ -295,7 +294,7 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi, signal) => {
   // Both AI and deterministic qualification use this same durable handoff.
   const { data: opportunity, error: opportunityError } = await supabase
     .from("opportunities")
-    .select("id, stage, company_name")
+    .select("id, stage, name")
     .eq("tenant_id", wi.tenant_id)
     .eq("contact_id", contact.id)
     .not("stage", "in", '("won","lost")')
@@ -304,7 +303,7 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi, signal) => {
     .maybeSingle();
 
   if (opportunityError) throw new Error(opportunityError.message);
-  const companyName = opportunity?.company_name ?? "Unknown";
+  const opportunityName = opportunity?.name ?? "Unknown";
   const stage = opportunity?.stage ?? "none";
 
   const artifacts = [...(aiResult?.artifacts ?? [])];
@@ -313,7 +312,7 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi, signal) => {
   if (opportunity && ["new", "contacted"].includes(opportunity.stage)) {
     const child = await createDraftFollowupWork(supabase, {
       opportunityId: opportunity.id,
-      reason: `Lead record reviewed for ${companyName} (stage: ${stage})`,
+      reason: `Lead record reviewed for ${opportunityName} (stage: ${stage})`,
       source: "sales_coworker",
       actorEmail: "system",
     });
@@ -326,16 +325,16 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi, signal) => {
     entityType: "contact",
     entityId: contact.id,
     source: "automation",
-    after: { company: companyName, opportunity_stage: stage, work_item: wi.id, artifacts },
+    after: { opportunity: opportunityName, opportunity_stage: stage, work_item: wi.id, artifacts },
   });
 
   const outcome =
     aiResult?.outcome ??
-    `Lead record reviewed: ${contact.first_name ?? ""} ${contact.last_name ?? ""} at ${companyName} (stage: ${stage})`;
+    `Lead record reviewed: ${contact.full_name || contact.primary_email || contact.id} for opportunity ${opportunityName} (stage: ${stage})`;
   await storeAgentMemory(supabase, {
     coworkerId: SALES_COWORKER_ID,
     category: "prior_work",
-    subject: `qualify_lead: ${companyName}`,
+    subject: `qualify_lead: ${opportunityName}`,
     body: outcome,
     entityType: "contact",
     entityId: contact.id,
@@ -377,7 +376,7 @@ const draftFollowupHandler: WorkKindHandler = async (supabase, wi, signal) => {
 const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
   const { data: opportunity, error: opportunityError } = await supabase
     .from("opportunities")
-    .select("id, stage, company_name, updated_at")
+    .select("id, stage, name, updated_at")
     .eq("id", wi.entity_id)
     .maybeSingle();
 
@@ -389,7 +388,7 @@ const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
   if (opportunity.stage !== "proposal") {
     return {
       status: "skipped",
-      outcome: `Opportunity ${opportunity.company_name} no longer in proposal stage (now: ${opportunity.stage})`,
+      outcome: `Opportunity ${opportunity.name} no longer in proposal stage (now: ${opportunity.stage})`,
     };
   }
 
@@ -405,17 +404,17 @@ const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
   // Create a draft_followup work item to re-engage.
   const child = await createDraftFollowupWork(supabase, {
     opportunityId: opportunity.id,
-    reason: `Stale proposal detected for ${opportunity.company_name}`,
+    reason: `Stale proposal detected for ${opportunity.name}`,
     source: "stale_proposal_detector",
     priority: "high",
     actorEmail: "system",
   });
 
-  const outcome = `Stale proposal reviewed for ${opportunity.company_name} — follow-up queued`;
+  const outcome = `Stale proposal reviewed for ${opportunity.name} — follow-up queued`;
   await storeAgentMemory(supabase, {
     coworkerId: SALES_COWORKER_ID,
     category: "prior_work",
-    subject: `review_stale_proposal: ${opportunity.company_name}`,
+    subject: `review_stale_proposal: ${opportunity.name}`,
     body: outcome,
     entityType: "opportunity",
     entityId: opportunity.id,
@@ -432,7 +431,7 @@ const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
 const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
   const { data: contact, error: contactError } = await supabase
     .from("contacts")
-    .select("id, email, first_name, last_name, company_id")
+    .select("id, primary_email, full_name, company_id")
     .eq("id", wi.entity_id)
     .maybeSingle();
 
@@ -470,11 +469,11 @@ const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
     actorEmail: "system",
   });
 
-  const outcome = `Context gathered for ${contact.first_name ?? ""} ${contact.last_name ?? ""}: ${contextSummary}`;
+  const outcome = `Context gathered for ${contact.full_name || contact.primary_email || contact.id}: ${contextSummary}`;
   await storeAgentMemory(supabase, {
     coworkerId: SALES_COWORKER_ID,
     category: "prior_work",
-    subject: `gather_lead_context: ${contact.first_name ?? ""} ${contact.last_name ?? ""}`,
+    subject: `gather_lead_context: ${contact.full_name || contact.primary_email || contact.id}`,
     body: outcome,
     entityType: "contact",
     entityId: contact.id,
@@ -491,7 +490,7 @@ const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
 const scheduleFollowupCheckHandler: WorkKindHandler = async (supabase, wi) => {
   const { data: opportunity, error: opportunityError } = await supabase
     .from("opportunities")
-    .select("id, stage, company_name")
+    .select("id, stage, name")
     .eq("id", wi.entity_id)
     .maybeSingle();
 
@@ -503,7 +502,7 @@ const scheduleFollowupCheckHandler: WorkKindHandler = async (supabase, wi) => {
   if (["won", "lost"].includes(opportunity.stage)) {
     return {
       status: "skipped",
-      outcome: `Opportunity ${opportunity.company_name} is ${opportunity.stage} — no follow-up needed`,
+      outcome: `Opportunity ${opportunity.name} is ${opportunity.stage} — no follow-up needed`,
     };
   }
 
@@ -511,16 +510,16 @@ const scheduleFollowupCheckHandler: WorkKindHandler = async (supabase, wi) => {
   // is still active.
   const child = await createDraftFollowupWork(supabase, {
     opportunityId: opportunity.id,
-    reason: `Scheduled follow-up check for ${opportunity.company_name} (stage: ${opportunity.stage})`,
+    reason: `Scheduled follow-up check for ${opportunity.name} (stage: ${opportunity.stage})`,
     source: "sales_coworker",
     actorEmail: "system",
   });
 
-  const outcome = `Follow-up check executed for ${opportunity.company_name} (stage: ${opportunity.stage}) — draft queued`;
+  const outcome = `Follow-up check executed for ${opportunity.name} (stage: ${opportunity.stage}) — draft queued`;
   await storeAgentMemory(supabase, {
     coworkerId: SALES_COWORKER_ID,
     category: "prior_work",
-    subject: `schedule_followup_check: ${opportunity.company_name}`,
+    subject: `schedule_followup_check: ${opportunity.name}`,
     body: outcome,
     entityType: "opportunity",
     entityId: opportunity.id,

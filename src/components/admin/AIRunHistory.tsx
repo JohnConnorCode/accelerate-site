@@ -488,7 +488,7 @@ export function AIRunHistory() {
       )}
       {!error && data?.schemaReady !== false && (
         <AdminSurface padding="none" className="overflow-hidden">
-          <div className="grid min-h-[520px] lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.35fr)]">
+          <div className="grid min-h-[520px] grid-cols-1 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.35fr)]">
             <div className="border-b border-[var(--admin-border)] lg:border-b-0 lg:border-r">
               <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-5 py-4">
                 <div>

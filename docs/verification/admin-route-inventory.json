@@ -172,7 +172,7 @@
     "src/app/api/admin/work/agent-items/route.ts": "7cd6c8e2873c0c8d96a3008470453e6118f3486d8e2a19092f1fd50f1028fce5",
     "src/components/admin/AICapabilities.tsx": "a002a0ed29cca7fbbb4be4599b317dafbf5be1fad7b8ad17aef54864945c3b2b",
     "src/components/admin/AIReadinessPanel.tsx": "4a2f79fb03c96f6c8763118392a4bdb5d7c5ce5ccc9351f8bbed2a31828cc18f",
-    "src/components/admin/AIRunHistory.tsx": "281c7fcadb4b21a28143acfc61220a725fd1e9d0ddefc1d32539a6765f0e78dd",
+    "src/components/admin/AIRunHistory.tsx": "655a7e68afcb2774769c4e0aec8d4040e4d8c16ceb958e5a768744d1fae913ad",
     "src/components/admin/ActionReviewDialog.tsx": "0291df53e5df3331c07b42bf2633f162340e29fabad19656ba02b7eb8254fe91",
     "src/components/admin/AddLeadModal.tsx": "57e3653a3cd765a8788b50135ac98140c417c8b9369bccc43b0f1b6159c5a30b",
     "src/components/admin/AdminAIChat.tsx": "2c11bd552b59c54b07eb3bb8622192ddb4368522aed826b6592f48e85897fac5",
