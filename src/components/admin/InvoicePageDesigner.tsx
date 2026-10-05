@@ -253,8 +253,8 @@ export function InvoicePageDesigner({
                             ? "01"
                             : "Invoice"}
                       </span>
-                      <span className="h-px w-full bg-slate-300" />
-                      <span className="h-px w-full bg-slate-300" />
+                      <span className="h-px w-full bg-current/20" />
+                      <span className="h-px w-full bg-current/20" />
                     </span>
                     <span className="relative">{style.name}</span>
                   </button>
