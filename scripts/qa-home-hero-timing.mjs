@@ -135,7 +135,9 @@ try {
       `${label}: artwork has no concrete connected workflow`,
     );
     const geometry = await print.evaluate((svg) => {
-      const bounds = svg.closest("figure").getBoundingClientRect();
+      // SVG deliberately allows its font metrics to extend beyond its own box.
+      // The hero is the actual clipping boundary; assert containment there.
+      const bounds = svg.closest(".home-hero").getBoundingClientRect();
       return [...svg.querySelectorAll("text")].every((text) => {
         const rect = text.getBoundingClientRect();
         return (
@@ -238,7 +240,36 @@ try {
       });
     const page = await context.newPage();
     await page.goto(base, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(delay > 0 ? 3500 : delay < 0 ? 4500 : 300);
+    if (delay === 5000) {
+      await page.waitForFunction(
+        () => !document.documentElement.classList.contains("motion-ready"),
+        null,
+        { timeout: 10000 },
+      );
+      fail(
+        await page
+          .locator(".home-hero-word")
+          .evaluateAll((words) => words.every((word) => getComputedStyle(word).opacity === "1")),
+        "Late runtime watchdog conceals the headline",
+      );
+      await screenshot(page, "desktop-watchdog-readable");
+    }
+    if (delay > 0) {
+      await page.waitForFunction(
+        () => document.documentElement.hasAttribute("data-motion-hydrated"),
+        null,
+        { timeout: 12000 },
+      );
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector(".home-hero")
+            .getAnimations({ subtree: true })
+            .every((animation) => animation.playState === "finished"),
+        null,
+        { timeout: 5000 },
+      );
+    } else await page.waitForTimeout(delay < 0 ? 4500 : 300);
     const staticState = await page.evaluate(() => ({
       readable: [
         ...document.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions"),
