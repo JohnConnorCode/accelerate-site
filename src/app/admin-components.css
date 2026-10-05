@@ -1099,7 +1099,7 @@ body.admin-dialog-open [data-admin-sidebar] {
 body.admin-dialog-open [data-contact-import-actions] {
   visibility: hidden;
 }
-body.admin-dialog-open iframe {
+body.admin-dialog-open .admin-route-frame iframe {
   visibility: hidden !important;
 }
 

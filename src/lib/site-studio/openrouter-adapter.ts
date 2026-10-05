@@ -22,12 +22,14 @@ export async function generatePageWithOpenRouter(
   user: string,
   model = DEFAULT_SITE_MODEL,
   priceCeiling?: SitePriceCeiling,
+  signal?: AbortSignal,
 ): Promise<SiteDocument> {
   let raw: unknown;
   try {
     const result = await openRouterJson({
       database,
       job: "site-page-draft",
+      signal,
       timeoutMs: 150_000,
       ...(await resolveSiteModel(model, priceCeiling)),
       maxTokens: 8000,

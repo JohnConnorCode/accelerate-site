@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "website-ai-review-recovery",
+    slug: "website-ai-review-recovery",
+    title: "Preview and recover AI website edits",
+    description:
+      "Review proposed pages at phone, tablet and desktop widths before applying them. Cancel a pending suggestion without changing your draft, and prepare a fresh suggestion when newer edits need protection. AI review stays with its page, custom addresses survive title changes, and visible section limits keep pages valid and saveable.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

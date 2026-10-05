@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I preview an AI page change before applying it?",
+    answer:
+      "Yes. In Site Studio, choose Ask AI, prepare a suggestion and use Preview suggestion to inspect phone, tablet and desktop layouts. Review changes shows the text comparison. Apply to draft updates your local draft; saving and publishing are separate steps. Cancel suggestion stops a pending request and preserves your edits, though provider charges may still apply. If the page changes after preparation, prepare a fresh suggestion before applying.",
+  },
+  {
     question: "Can I run work by talking to an agent?",
     answer:
       "Yes. Ask AI and authenticated member MCP connections can read records, prepare exact changes and start an ordered job with saved progress. Review proposals inside chat, or open the focused review link from an external agent. Background work needs an active scheduler and a finite AI call budget. You can pause, resume or cancel future steps. Interrupted work keeps its receipts for reconciliation instead of replaying effects.",

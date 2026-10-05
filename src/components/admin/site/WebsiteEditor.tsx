@@ -478,6 +478,7 @@ export function WebsiteEditor() {
                       />
                     </label>
                     <WebsitePageTools
+                      key={selectedPage.id}
                       website={document}
                       page={selectedPage}
                       disabled={locked}
@@ -501,6 +502,7 @@ export function WebsiteEditor() {
                       }
                     />
                     <WebsiteContentEditor
+                      key={`${selectedPage.id}:${selectedPage.content.kind}`}
                       page={selectedPage}
                       onChange={(content) =>
                         setDocument({

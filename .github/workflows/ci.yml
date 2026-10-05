@@ -533,6 +533,7 @@ jobs:
             node scripts/qa-leads-bulk.mjs
             node scripts/qa-website-editor.mjs
             node scripts/qa-website-authoring.mjs
+            node scripts/qa-website-ai-recovery.mjs
             node scripts/qa-analytics-workspace.mjs --demo
             node scripts/qa-radar-workspace.mjs
             node scripts/qa-command-center-offline-store.mjs
@@ -596,6 +597,7 @@ jobs:
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-website-editor/
             /tmp/accelerate-website-authoring/
+            /tmp/accelerate-website-ai-recovery/
             /tmp/accelerate-campaign-duplicate/
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/

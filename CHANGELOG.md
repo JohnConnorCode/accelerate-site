@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Site Studio previews AI suggestions before applying, forwards cancellation through the existing model gateway, and rejects late or stale replies. Page-scoped tools preserve custom addresses and enforce validated section limits.
+
 - A newly connected workspace can add a contact directly from Contacts and create a follow-up from that contact's record. The task is linked to the contact timeline and refuses cross-workspace contact IDs. The fictional demo persists newly added contacts instead of claiming success without saving them.
 
 - The local cold-start PostgreSQL check now reports a clear version requirement before migrations; self-hosting and recovery guides specify PostgreSQL 15+ for this native test.
