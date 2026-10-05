@@ -1,12 +1,12 @@
 ---
 title: "Put AI to work with your business context"
 description: "Ask a real question, see the evidence behind the answer, and review whatever it prepares."
-updated: "2026-09-19"
+updated: "2026-10-05"
 ---
 
 When a customer asks for an update, a useful answer depends on the conversation and the work already promised. AI in Command Center can read available workspace records through registered tools, explain the context it found and prepare supported next actions for review.
 
-Open **AI Workspace** to start a conversation. A connected workspace needs its AI provider configured first; the public demo simulates the experience without making a real model request, so you can see the shape of it before connecting anything.
+Open **AI Workspace** to start a conversation. A connected workspace needs its AI provider configured first. The public demo uses fictional business records and keeps business actions simulated; its answers use a real model when the server's AI provider is configured.
 
 AI workflows use **DeepSeek V4.1 Flash** by default through the shared OpenRouter gateway. An installation can keep that default or select another approved model through its optional model setting. Provider keys remain server-side, and model calls keep the workspace budget, capability checks and usage receipt.
 
@@ -31,6 +31,8 @@ For a request that changes something, name the customer or record and the exact 
 A read can answer you immediately, since nothing about it changes a record. A supported write instead prepares a proposal that waits for your review: inspect the affected record and the exact change in [Approvals](/docs/command-center/approvals), approve it once it's right, then check the result afterward. That loop is what lets AI help with real operational work while the decision, and its outcome, both stay visible to you.
 
 If a source is missing or a connection is down, a well-behaved answer says so rather than guessing around the gap. [Action results](/docs/start/receipts) explains how to tell a prepared draft, an approved request, and a completed effect apart, which matters whenever you're deciding whether to retry something that might have already happened.
+
+To inspect an answer, open **Run history** and select its row. The ordered trace shows recorded tool results, including failures, separately from the model response. An answer that asks for clarification may use no tools. Token usage displays as **Not recorded** when the provider did not report it. Older saved demo runs disclose missing tool evidence; ask a new question to record an inspectable trace.
 
 ## Adding the capability your business needs
 

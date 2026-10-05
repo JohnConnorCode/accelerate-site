@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "demo-ai-recorded-traces",
+    slug: "demo-ai-recorded-traces",
+    title: "Inspect demo answers without invented evidence",
+    description:
+      "Demo Run history opens answers that used no tools and preserves recorded tool successes, failures and prepared proposals across reloads. Unknown token usage displays as not recorded. Older saved runs disclose missing trace evidence. The inspector no longer invents a completed tool call or links an unrelated opportunity.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "operational-health-unresolved-outcomes",
     slug: "operational-health-unresolved-outcomes",
     title: "Keep uncertain outcomes visible in operational health",

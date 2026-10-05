@@ -133,6 +133,26 @@ async function main() {
   assert.match(history.runs[0]?.promptPreview ?? "", /authorization=\[redacted\]/);
   assert.doesNotMatch(history.runs[0]?.promptPreview ?? "", /secret-token/);
   assert.equal(history.runs[0]?.resultPreview, "api_key=[redacted]");
+  assert.equal(history.metrics.totalTokens, 20);
+  for (const [input, output, total] of [
+    [null, 8, null],
+    [12, null, null],
+    [0, 0, 0],
+  ]) {
+    const usageFixture = fakeClient({
+      agent_runs: [
+        { data: [{ ...rawRun, input_tokens: input, output_tokens: output }], error: null },
+      ],
+      agent_run_events: [{ data: [], error: null }],
+    });
+    const usage = await loadAiRunHistory(
+      usageFixture.client,
+      parseAiRunHistoryFilters(new URLSearchParams()),
+    );
+    assert.equal(usage.runs[0]?.inputTokens, input);
+    assert.equal(usage.runs[0]?.outputTokens, output);
+    assert.equal(usage.metrics.totalTokens, total, "Missing usage must not become a measured zero");
+  }
   for (const [method, field] of [
     ["eq", "status"],
     ["eq", "surface"],

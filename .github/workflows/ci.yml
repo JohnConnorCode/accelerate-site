@@ -558,6 +558,7 @@ jobs:
           (
             set -e
             if [ "$PUBLIC_PAGES_ONLY" = "true" ] || [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
+            node scripts/qa-admin-demo.mjs --one
             node scripts/qa-social-marketing.mjs
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
@@ -602,6 +603,7 @@ jobs:
             /tmp/accelerate-turnkey-qa/
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/
+            /tmp/accelerate-full-admin-demo/
             /tmp/accelerate-invoice-navigation/
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-work-portfolio-qa/

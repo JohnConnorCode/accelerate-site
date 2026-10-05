@@ -15,8 +15,8 @@ export interface AiRunSummary {
   conversationId: string | null;
   status: AiRunDisplayStatus;
   toolNames: string[];
-  inputTokens: number;
-  outputTokens: number;
+  inputTokens: number | null;
+  outputTokens: number | null;
   durationMs: number | null;
   promptPreview: string | null;
   resultPreview: string | null;
@@ -33,7 +33,7 @@ export interface AiRunMetrics {
   failed: number;
   cancelled: number;
   successRate: number | null;
-  totalTokens: number;
+  totalTokens: number | null;
   medianDurationMs: number | null;
   feedbackCoverage: number | null;
 }
