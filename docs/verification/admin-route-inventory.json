@@ -29,7 +29,7 @@
     "src/app/admin/coworkers/page.tsx": "c889581a33db33a40c3d610c231cd5a54b8b34f8041c105ea068a572668e620a",
     "src/app/admin/debates/page.tsx": "43633143ac79702fdbcde7bd556f3abf00a23815f1de9a01afffb6647671f065",
     "src/app/admin/email-sequences/page.tsx": "a0653d19827ea87cffd77c12501180118ce97099238e09ed1617c27e23aaa881",
-    "src/app/admin/emails/page.tsx": "08f46f76e4c42134b0fbfa6b77a54b7400969f6eff03b60f246c7feaaea98a02",
+    "src/app/admin/emails/page.tsx": "1cb55c7eceb0f05b5edb1d82e4d6081b3774e4258a9ea33ea944b5a4b5420a28",
     "src/app/admin/example-inventory/page.tsx": "18eeaa9e5c5802e02b01a471271db10ab5a7cdfb447af33667c524890fba691b",
     "src/app/admin/features/page.tsx": "5ed7a5159c0d1d5234b620c98da60006e3029821575d91d4808d684252278830",
     "src/app/admin/forms/page.tsx": "8b2b917e0174872a6c7b2b1314540c0b00a4d20fbbfd80e5101c4858c0f8ec65",
@@ -89,7 +89,7 @@
     "src/app/api/admin/content/route.ts": "e53f5044795f2009c4c6276358f3476bd2d6fe675a5061409e9433177d8e1ec2",
     "src/app/api/admin/corrections/detect/route.ts": "74315d275feaaf6bec1d247cff193480819677efa3a50278fe88eb8af30e92a2",
     "src/app/api/admin/email-sequences/route.ts": "9f3ccd0bff8a241ab65bb0a5cf08c750e7d6f558254ba1cb0b01af26ce6240b1",
-    "src/app/api/admin/emails/history/route.ts": "7e0d48ee096aaa52047b23e748570e89da1a7b46c0729e37fb9e1e0ee5c7a02c",
+    "src/app/api/admin/emails/history/route.ts": "e32b181321a859caa4f2d56e473ec07b5b9990c34a9f0eaea678dbcaec3d3078",
     "src/app/api/admin/emails/preview/route.ts": "74e83fb3d54ac25280e13ef4282e852f2e597f639b820c834ec69a42c20dbd65",
     "src/app/api/admin/features/agents/route.ts": "5e3f84e0ebb5ef161da251d2662334ded0dfaf7a63c8d3e0c26784ea09ce0656",
     "src/app/api/admin/features/route.ts": "0e864c3544c47c54146f56d1900e3248e11e9be2c63563bd6715f22bb949d88a",
@@ -97,7 +97,7 @@
     "src/app/api/admin/forms/route.ts": "8168bca4de53ee289fc11bc8fabd2e15944efc6bec13991a6e12b0feab1bea03",
     "src/app/api/admin/get-started/route.ts": "fe02a68b546dcb6e8101056ca5ef54b568ec15c9d1a98aca836e55ea64f2c287",
     "src/app/api/admin/google/sync/route.ts": "f48402ec4aecb7033af6f4f6e68f49e0623dd0d57dcc56c17bd95b6f525dd7de",
-    "src/app/api/admin/inbox/route.ts": "cccb2726c649b723803094a08b45459d2f95c01299c7170a92ffa52e7a2667cf",
+    "src/app/api/admin/inbox/route.ts": "5792e238abbe5610624ff3cd932f33618c2571aee9b11fd8b2f9e7b8b0c5638b",
     "src/app/api/admin/integrations/route.ts": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb",
     "src/app/api/admin/invoicing/pages/route.ts": "f94e4ac92458b7e68c88a6b610fc82c81ba5fc52605d7251f9bc16a9c4fb8233",
     "src/app/api/admin/invoicing/route.ts": "5f4c2479a6239162bd1591fad503818c7276e09e2dc3ffa167910391a8ebe54c",
@@ -308,7 +308,7 @@
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
     "src/lib/revenue-os/README.md": "16ab060272509bd090ca9d4625ff76e254249a366ab1f6ff5871ce820987820d",
-    "src/lib/revenue-os/action-executor.ts": "11c9c370dbe11e3776d9a38635c73492060100b2fb1494b80c18d760b5ef787f",
+    "src/lib/revenue-os/action-executor.ts": "ede035371ddac358ccd1cfec904727dea14381bae07655d006c9dd82192761d2",
     "src/lib/revenue-os/actions.ts": "95635bbe32710683f6c74b609daac3cdd98595821d41b92e984d0f9adf96372f",
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
@@ -1045,7 +1045,7 @@
           "directTables": ["email_template_versions", "email_templates"]
         }
       ],
-      "boundary": "Email template services own saved versions; history is delivery evidence, preview is not delivery.",
+      "boundary": "Email template services own saved versions; history is delivery evidence, preview is not delivery. History reads sent_emails.sent_at and messages.provider_id, retains available evidence with a visible partial notice, and returns an error when both sources fail. Approved email eligibility uses contacts.communication_status; unknown or suppressed contacts cannot execute.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1143,7 +1143,7 @@
           "directTables": ["tasks"]
         }
       ],
-      "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count. Approval opens the exact action in Work for review; only rejection is decided directly from Inbox.",
+      "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count. Approval opens the exact action in Work for review; only rejection is decided directly from Inbox. Coworker visibility follows the existing work-item Inbox task bridge and does not invent a work_items flag. Canonical pending actions retain urgency and exact Work approval links. Required source failures return an unavailable response before reporting counts; a bridged work item is represented once.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"

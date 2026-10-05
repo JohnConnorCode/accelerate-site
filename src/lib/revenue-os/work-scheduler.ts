@@ -266,11 +266,12 @@ export async function scheduleMeetingBriefs(
 
   const { data: upcoming, error } = await supabase
     .from("calendar_events")
-    .select("id, contact_id, start_time")
-    .gte("start_time", now.toISOString())
-    .lt("start_time", lookAhead)
+    .select("id, contact_id, start_at")
+    .gte("start_at", now.toISOString())
+    .lt("start_at", lookAhead)
+    .neq("status", "cancelled")
     .not("contact_id", "is", null)
-    .order("start_time", { ascending: true })
+    .order("start_at", { ascending: true })
     .limit(20);
 
   if (error || !upcoming?.length) {
@@ -280,12 +281,13 @@ export async function scheduleMeetingBriefs(
 
   for (const event of upcoming) {
     try {
-      await createPreCallBriefWork(supabase, {
+      const { deduplicated } = await createPreCallBriefWork(supabase, {
         contactId: event.contact_id,
-        meetingAt: event.start_time,
+        meetingAt: event.start_at,
         actorEmail: "system",
       });
-      summary.created++;
+      if (deduplicated) summary.skipped++;
+      else summary.created++;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("duplicate") || msg.includes("23505")) {

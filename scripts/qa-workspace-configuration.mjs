@@ -268,6 +268,34 @@ try {
       await sync.focus();
       await page.keyboard.press("Enter");
       await page.getByText("Workspace sync completed.", { exact: true }).waitFor();
+      await page.goto(`${base}/demo/command-center/${scenario}/emails`, {
+        waitUntil: "networkidle",
+      });
+      await page.getByRole("heading", { name: "Email Studio", exact: true }).waitFor();
+      await page.evaluate(() => {
+        const original = window.fetch;
+        window.fetch = async (input, init) => {
+          const response = await original(input, init);
+          if (String(input) === "/api/admin/emails/history" && response.ok)
+            return Response.json({ ...(await response.json()), partial: true });
+          return response;
+        };
+      });
+      const history = page.getByRole("tab", { name: "Sent history", exact: true });
+      await history.focus();
+      await page.keyboard.press("Enter");
+      await page.getByRole("button", { name: "Refresh Email Studio", exact: true }).click();
+      await page
+        .getByRole("status")
+        .filter({ hasText: "Some email history could not be read." })
+        .waitFor();
+      assert.equal(
+        await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+        false,
+      );
+      await page.screenshot({
+        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-email-history-partial.png`,
+      });
       assert.equal(escaped.length, 0, JSON.stringify(escaped));
       assert.equal(errors.length, 0, JSON.stringify(errors));
       results.push({
@@ -282,6 +310,7 @@ try {
         replay: true,
         optionalDriveSync: true,
         skippedSyncFeedback: true,
+        partialHistoryFeedback: true,
         escapedWrites: 0,
         consoleErrors: 0,
         reducedMotion: true,

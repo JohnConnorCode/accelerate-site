@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "operational-read-and-eligibility-repairs",
+    slug: "operational-read-and-eligibility-repairs",
+    title: "Restore Intake review, email evidence and meeting scheduling",
+    description:
+      "Intake review reads canonical action fields and the existing coworker task bridge, avoids duplicate bridge entries, opens exact approvals and reports failed reads. Email history uses recorded send times and provider IDs, warns when incomplete and fails clearly when both sources are unavailable. Approved email checks canonical contact eligibility; automated first replies recognize existing clients and decline when eligibility or send limits cannot be verified. Meeting briefs use the actual calendar start time, skip cancelled meetings and report repeated work as skipped.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "google-sync-optional-drive",
     slug: "google-sync-optional-drive",
     title: "Sync Gmail and Calendar before selecting Drive folders",

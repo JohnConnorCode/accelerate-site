@@ -98,7 +98,7 @@ export default function EmailsPage() {
     ["admin", "emails"],
     "/api/admin/emails/preview",
   );
-  const historyQuery = useAdminQuery<{ history: HistoryItem[] }>(
+  const historyQuery = useAdminQuery<{ history: HistoryItem[]; partial?: boolean }>(
     ["admin", "emails-history"],
     "/api/admin/emails/history",
   );
@@ -276,6 +276,14 @@ export default function EmailsPage() {
         loadingFallback={<LoadingSkeleton variant="detail" />}
         label="Loading Email Studio"
       >
+        {tab === "history" && historyQuery.data?.partial && (
+          <AdminSurface tone="attention" className="flex items-center gap-3" role="status">
+            <TriangleAlert className="size-5 shrink-0 text-amber-600" />
+            <p className="text-sm text-[var(--admin-ink)]">
+              Some email history could not be read. Refresh before treating this list as complete.
+            </p>
+          </AdminSurface>
+        )}
         {actionError && (
           <AdminSurface tone="attention" className="flex items-center gap-3">
             <TriangleAlert className="size-5 shrink-0 text-rose-600" />

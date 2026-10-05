@@ -68,7 +68,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 - [Setup, integrations, and health](https://www.acceleratewith.us/docs/command-center/setup) (updated 2026-10-05): Check which connections are ready, run a first sync, and recover a failed setup check.
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-27): Find supported capabilities, their business purpose and the setup or review each needs.
 - [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-10-05): Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.
-- [Triage new work in Intake review](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-27): Find new inquiries, handoffs, tasks and proposed actions, then open the record that needs attention.
+- [Triage new work in Intake review](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-10-05): Find new inquiries, handoffs, tasks and proposed actions, then open the record that needs attention.
 - [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-10-05): Review tasks, approvals and AI work, and save task views for your workspace.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-30): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-27): Trace a change back to who made it, what happened, and when.
@@ -110,7 +110,7 @@ Campaigns, email templates, and reactivation of past demand.
 - [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-09-19): Review audiences and messages, run approved campaigns, and inspect delivery results.
 - [Review collection reminders](https://www.acceleratewith.us/docs/outreach/collections) (updated 2026-09-29): Chase what invoicing confirms is owed, with every reminder requiring your approval.
 - [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-09): Approve one version, then automation runs entirely inside the rules you set for it.
-- [Email Studio](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-09-19): Edit the actual live copy, check what really sent, and write a direct one-off follow-up.
+- [Email Studio](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-10-05): Edit the actual live copy, check what really sent, and write a direct one-off follow-up.
 - [Review recovery outreach](https://www.acceleratewith.us/docs/outreach/recovery) (updated 2026-09-19): Check who qualifies and the proposed playbook before reopening a past lead.
 
 ## Delivery
