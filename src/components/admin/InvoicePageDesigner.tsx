@@ -366,22 +366,25 @@ export function InvoicePageDesigner({
                 </button>
               )}
             </div>
-            <label className="block text-sm font-medium">
-              Heading
-              <input
-                className={field}
-                value={design.heading}
-                maxLength={80}
-                onChange={(event) => edit({ ...design, heading: event.target.value }, "heading")}
-                onBlur={finishField}
-                aria-invalid={!design.heading.trim()}
-              />
+            <div>
+              <label className="block text-sm font-medium">
+                Heading
+                <input
+                  className={field}
+                  value={design.heading}
+                  maxLength={80}
+                  onChange={(event) => edit({ ...design, heading: event.target.value }, "heading")}
+                  onBlur={finishField}
+                  aria-invalid={!design.heading.trim()}
+                  aria-describedby={!design.heading.trim() ? `${motionId}-heading-help` : undefined}
+                />
+              </label>
               {!design.heading.trim() && (
-                <span className="admin-copy mt-2 block text-xs">
+                <p id={`${motionId}-heading-help`} className="admin-copy mt-2 block text-xs">
                   Enter a heading before using AI or reviewing this page.
-                </span>
+                </p>
               )}
-            </label>
+            </div>
             <label className="block text-sm font-medium">
               Introduction
               <textarea

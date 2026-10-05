@@ -235,7 +235,7 @@
     "src/components/admin/EmptyState.tsx": "8f132fb9c46c909d96dbcbc189faceaafb0055e6be06d217e61de3030533d2a1",
     "src/components/admin/FormsWorkspace.tsx": "4029feb6ee217b4b7f028f34b6319cac7907d28f77fba6049e4815e0ab40572b",
     "src/components/admin/InvoiceIndex.tsx": "30efc69dc7a789d08ac675da9cd6f1cdb475a13d705962704b4012327c3f6107",
-    "src/components/admin/InvoicePageDesigner.tsx": "4fccd4154f29050d985a14e895db85b8d9b1107a46e4845cd0383ef12423bae4",
+    "src/components/admin/InvoicePageDesigner.tsx": "c01b861401ba1c3493916ddbf4a0918e33ee44c504c956b9a0a13802a3c7ed61",
     "src/components/admin/KnowledgeSources.tsx": "84fe6c5bcb787c4b75655166911cdf695edb22347074b0e1f2c9f3d304d1d6c8",
     "src/components/admin/LayoutCustomizeDialog.tsx": "b44371cf020302b208208d68d674d6554020030518c4e57d87c34b714ead7510",
     "src/components/admin/LayoutScopeCard.tsx": "2392593a0b7b7b2995dabfba624fbbb72928690eb05e2b92eef12da243928df3",
