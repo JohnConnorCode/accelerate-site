@@ -175,6 +175,12 @@ try {
       await page.getByLabel("Heading", { exact: true }).fill(invoiceHeading);
       await livePreview.getByRole("heading", { name: invoiceHeading, exact: true }).waitFor();
       await page
+        .getByRole("heading", { name: "Customer invoice page", exact: true })
+        .scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-studio.png`,
+      });
+      await page
         .getByRole("textbox", { name: "Describe your changes", exact: true })
         .fill(
           "Use editorial layout, serif typography, compact spacing, and #164e63. Keep my wording.",
@@ -269,6 +275,13 @@ try {
         await livePreview.evaluate((node) => node.scrollWidth <= node.clientWidth),
         "Phone invoice content fits",
       );
+      const normalViewport = page.viewportSize();
+      const documentHeight = Math.ceil((await livePreview.boundingBox()).height);
+      await page.setViewportSize({ width: normalViewport.width, height: documentHeight + 600 });
+      await livePreview.screenshot({
+        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-phone-document.png`,
+      });
+      await page.setViewportSize(normalViewport);
       await page.getByRole("button", { name: "Full width", exact: true }).click();
       await page.getByRole("button", { name: "Undo changes", exact: true }).click();
       assert.equal(
