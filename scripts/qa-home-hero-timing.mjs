@@ -1,932 +1,302 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { chromium, webkit } from "playwright";
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
+const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-home-hero-timing";
 await mkdir(output, { recursive: true });
-// Exercise WebGL on GPU-less Linux CI through Chromium's documented GL driver.
-// These are disposable test browsers; application fallback behavior is tested below.
-const browser = await chromium.launch({
-  headless: true,
-  args: process.platform === "linux" ? ["--use-gl=angle", "--use-angle=swiftshader"] : [],
-});
 const failures = [];
 const results = [];
-const entranceFrames = [];
+const browser = await chromium.launch({ headless: true });
+const fail = (condition, message) => {
+  if (!condition) failures.push(message);
+};
+const screenshot = (page, label) => page.screenshot({ path: `${output}/${label}.png` });
 
-// Inspect actual rendered frames, not just animation names or a changed transform.
-for (const [label, viewport] of [
-  ["desktop", { width: 1440, height: 900 }],
-  ["mobile", { width: 390, height: 844 }],
-]) {
-  const context = await browser.newContext({ viewport, hasTouch: viewport.width < 1000 });
-  const page = await context.newPage();
-  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.waitForFunction(() => document.querySelector(".home-hero")?.classList.contains("in"));
-  await page.evaluate(() => {
-    window.__heroFrameAnimations = document
-      .querySelector(".home-hero")
-      .getAnimations({ subtree: true })
-      .filter((animation) =>
-        /^home-hero-(word|label|detail|action)-enter$/.test(animation.animationName),
-      );
-    window.__heroFrameAnimations.forEach((animation) => animation.pause());
-  });
-  for (const time of [0, 600, 1000, 1600, 2300, 3200]) {
-    await page.evaluate((time) => {
-      window.__heroFrameAnimations.forEach((animation) => {
-        animation.currentTime = time;
-      });
-    }, time);
-    const frame = await page.evaluate(() => {
-      const booking = document.querySelector(".home-hero-cta").getBoundingClientRect();
-      const hit = document.elementFromPoint(
-        booking.x + booking.width / 2,
-        booking.y + booking.height / 2,
-      );
-      const visibleWords = (selector) =>
-        [...document.querySelectorAll(selector)].filter((word) => {
-          const style = getComputedStyle(word);
-          return (
-            Number(style.opacity) > 0.1 &&
-            new DOMMatrix(style.transform).m42 < word.getBoundingClientRect().height * 0.95
-          );
-        }).length;
-      const lines = [];
-      for (const mask of document.querySelectorAll(".home-hero-word-mask")) {
-        const word = mask.querySelector(".home-hero-word");
-        const top = mask.getBoundingClientRect().top;
-        let line = lines.at(-1);
-        if (!line || Math.abs(line.top - top) > 4) {
-          line = { top, words: 0, visible: 0, delays: [] };
-          lines.push(line);
-        }
-        line.words++;
-        line.visible += visibleWordsForWord(word);
-        line.delays.push(getComputedStyle(word).animationDelay);
-      }
-      function visibleWordsForWord(word) {
-        const style = getComputedStyle(word);
-        return Number(
-          Number(style.opacity) > 0.1 &&
-            new DOMMatrix(style.transform).m42 < word.getBoundingClientRect().height * 0.95,
-        );
-      }
-      return {
-        lines,
-        artwork: Number(getComputedStyle(document.querySelector(".home-hero-artwork")).opacity),
-        lead: visibleWords(".home-hero-lead .home-hero-word"),
-        outcome: visibleWords(".home-hero-heading em .home-hero-word"),
-        action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
-        actionReceivesPointer: Boolean(hit?.closest(".home-hero-cta")),
-        support: Number(getComputedStyle(document.querySelector(".home-hero-support")).opacity),
-        masks: [...document.querySelectorAll(".home-hero-word-mask")].every(
-          (mask) => getComputedStyle(mask).clipPath !== "none",
-        ),
-      };
+try {
+  for (const [label, width, height, theme] of [
+    ["desktop", 1440, 900, "light"],
+    ["desktop-dark", 1440, 900, "dark"],
+    ["small-desktop", 1024, 900, "light"],
+    ["tablet", 820, 1180, "light"],
+    ["mobile", 390, 844, "light"],
+    ["mobile-dark", 390, 844, "dark"],
+    ["short-mobile", 390, 667, "light"],
+    ["narrow-mobile", 320, 667, "light"],
+  ]) {
+    const context = await browser.newContext({
+      viewport: { width, height },
+      hasTouch: width < 1000,
+      colorScheme: theme,
     });
-    if (
-      time === 0 &&
-      (frame.lead || frame.outcome || frame.action || frame.support || frame.artwork)
-    )
-      failures.push(`${label}: opening frame exposes content before its entrance`);
-    if (
-      frame.lines.some(
-        (line) =>
-          new Set(line.delays).size !== 1 || (line.visible !== 0 && line.visible !== line.words),
-      )
-    )
-      failures.push(`${label}: a rendered line breaks into separate word entrances`);
-    if (
-      time === 600 &&
-      (!frame.lines[0]?.visible ||
-        frame.lines.slice(1).some((line) => line.visible) ||
-        frame.action ||
-        frame.support)
-    )
-      failures.push(`${label}: the first readable line did not enter before later content`);
-    if (
-      time === 1000 &&
-      (frame.lines.filter((line) => line.visible).length < 2 || frame.action || frame.support)
-    )
-      failures.push(`${label}: headline lines lack a measured reveal before supporting content`);
-    if (time === 1600 && (!frame.action || !frame.support))
-      failures.push(`${label}: explanation and booking did not follow the headline`);
-    if (frame.action === 0 && frame.actionReceivesPointer)
-      failures.push(`${label}: concealed booking action still accepts pointer clicks`);
-    if (time === 3200 && !frame.actionReceivesPointer)
-      failures.push(`${label}: completed booking action cannot receive pointer clicks`);
-    if (time === 3200 && (frame.action !== 1 || frame.support !== 1 || !frame.masks))
-      failures.push(`${label}: completed entrance is incomplete or has no word masks`);
-    if (time === 3200 && frame.artwork < 0.2)
-      failures.push(`${label}: artwork did not complete its entrance`);
-    entranceFrames.push({ label, time, ...frame });
-    await page.screenshot({ caret: "initial", path: `${output}/${label}-frame-${time}.png` });
-  }
-  await page.evaluate(() =>
-    window.__heroFrameAnimations.forEach((animation) => animation.finish()),
-  );
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
-  );
-  await page.evaluate(() => {
-    window.__heroFrameAnimations
-      .filter((animation) => animation.effect.target.matches(".home-hero-artwork"))
-      .forEach((animation) => (animation.currentTime = 0));
-  });
-  await page.getByRole("button", { name: "Strategy", exact: true }).focus();
-  const focusedArtwork = await page.locator(".home-hero-artwork").evaluate((element) => ({
-    visible: getComputedStyle(element).opacity === "1",
-    bookingFirst: Boolean(
-      document
-        .querySelector(".home-hero-cta")
-        .compareDocumentPosition(element.querySelector("button")) &
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    ),
-  }));
-  if (!focusedArtwork.visible || !focusedArtwork.bookingFirst)
-    failures.push(
-      `${label}: service control has concealed focus or precedes booking in the reading order`,
-    );
-  await context.close();
-}
-
-for (const [label, viewport, colorScheme] of [
-  ["desktop", { width: 1440, height: 900 }, "light"],
-  ["desktop-dark", { width: 1440, height: 900 }, "dark"],
-  ["small-desktop", { width: 1024, height: 900 }, "light"],
-  ["tablet", { width: 820, height: 1180 }, "light"],
-  ["mobile", { width: 390, height: 844 }, "light"],
-  ["mobile-dark", { width: 390, height: 844 }, "dark"],
-  ["short-mobile", { width: 390, height: 667 }, "light"],
-  ["narrow-mobile", { width: 320, height: 667 }, "light"],
-]) {
-  const touch = viewport.width < 1000;
-  const context = await browser.newContext({
-    viewport,
-    colorScheme,
-    hasTouch: touch,
-    reducedMotion: "no-preference",
-    ...(label === "desktop" || label === "mobile"
-      ? { recordVideo: { dir: `${output}/video`, size: viewport } }
-      : {}),
-  });
-  await context.addInitScript((theme) => localStorage.setItem("theme", theme), colorScheme);
-  await context.addInitScript(() => {
-    window.__heroEntrances = [];
-    document.addEventListener("animationstart", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement) || !target.closest(".home-hero")) return;
-      const phase = target.matches(".home-hero-lead .home-hero-word")
-        ? "lead"
-        : target.matches(".home-hero-heading em .home-hero-word")
-          ? "outcome"
-          : target.matches(".home-hero-support")
-            ? "support"
-            : target.matches(".home-hero-actions")
-              ? "action"
-              : null;
-      if (phase) window.__heroEntrances.push({ phase, time: performance.now() });
+    await context.addInitScript((theme) => localStorage.setItem("theme", theme), theme);
+    const page = await context.newPage();
+    page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
+    page.on("console", (message) => {
+      if (message.type() === "error") failures.push(`${label}: ${message.text()}`);
     });
-  });
-  const page = await context.newPage();
-  page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
-  page.on("console", (message) => {
-    if (message.type() === "error") failures.push(`${label}: ${message.text()}`);
-  });
-  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  const opening = await page.evaluate(() => {
-    const heading = document.querySelector(".home-hero-heading");
-    const style = getComputedStyle(heading);
-    const cta = document.querySelector(".home-hero-cta");
-    return {
-      heading: heading?.textContent?.trim(),
-      cta: cta?.textContent?.trim(),
-      aboveFold: cta?.getBoundingClientRect().bottom <= innerHeight,
-      overflow: document.documentElement.scrollWidth > innerWidth + 1,
-      headingFontSize: parseFloat(style.fontSize),
-      headingLines: heading.getBoundingClientRect().height / parseFloat(style.lineHeight),
-      headingUniform: [...heading.querySelectorAll(".home-hero-word")].every(
-        (word) => getComputedStyle(word).font === style.font,
-      ),
-      fullMessage: /make more money.*save more time/.test(
-        heading?.textContent?.replace(/\s+/g, " ") ?? "",
-      ),
-    };
-  });
-  if (
-    !opening.heading ||
-    !opening.cta ||
-    !opening.aboveFold ||
-    opening.overflow ||
-    !opening.fullMessage
-  )
-    failures.push(`${label}: headline or CTA is missing, below the fold, or page overflows`);
-  if (!opening.headingUniform || opening.headingFontSize < 34 || opening.headingLines > 6.1)
-    failures.push(`${label}: headline mixes typography or wraps into an unreadable composition`);
-  await page.screenshot({ caret: "initial", path: `${output}/${label}-first.png` });
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero").dataset.revealState === "visible",
-  );
-  if (label === "desktop" || label === "mobile") {
-    await page.screenshot({ caret: "initial", path: `${output}/${label}-entry.png` });
-    await page.waitForTimeout(300);
-    await page.screenshot({ caret: "initial", path: `${output}/${label}-sequence.png` });
-  }
-  await page.waitForTimeout(3000);
-  const settled = await page.evaluate(() => ({
-    heading: getComputedStyle(document.querySelector(".home-hero-heading")).transform,
-    cta: getComputedStyle(document.querySelector(".home-hero-cta")).opacity,
-    wordsComplete: [...document.querySelectorAll(".home-hero-word")].every((word) =>
-      word.getAnimations().every((animation) => animation.playState === "finished"),
-    ),
-    phases: ["lead", "outcome", "support", "action"].map((phase) =>
-      window.__heroEntrances.find((entry) => entry.phase === phase),
-    ),
-    entriesComplete: [...document.querySelectorAll(".home-hero-support, .home-hero-actions")].every(
-      (element) => element.getAnimations().every((animation) => animation.playState === "finished"),
-    ),
-  }));
-  const layout = await page.evaluate(() => {
-    const bounds = (selector) => {
-      const { x, y, width, bottom } = document.querySelector(selector).getBoundingClientRect();
-      return { x, y, width, bottom };
-    };
-    return {
-      heading: bounds(".home-hero-heading"),
-      artwork: bounds(".home-hero-artwork"),
-      scene: bounds(".home-hero-scene"),
-      offer: bounds(".home-hero-bottom"),
-      services: bounds(".home-hero-services"),
-    };
-  });
-  if (
-    Math.abs(layout.heading.x - layout.artwork.x) > 1 ||
-    Math.abs(layout.heading.width - layout.artwork.width) > 1
-  )
-    failures.push(`${label}: artwork and headline do not share the editorial grid`);
-  if (
-    viewport.width > 640 &&
-    (layout.scene.bottom > layout.offer.y + 1 || Math.abs(layout.offer.y - layout.services.y) > 1)
-  )
-    failures.push(`${label}: artwork, offer and services are disconnected in the layout`);
-  if (
-    viewport.width <= 640 &&
-    (layout.offer.bottom > layout.scene.y + 1 || layout.scene.bottom > layout.services.y + 1)
-  )
-    failures.push(`${label}: mobile offer, artwork and services overlap or appear out of order`);
-  if (settled.heading !== "none" && settled.heading !== "matrix(1, 0, 0, 1, 0, 0)")
-    failures.push(`${label}: short entrance did not settle`);
-  if (settled.cta !== "1") failures.push(`${label}: CTA is not visible`);
-  if (!settled.wordsComplete) failures.push(`${label}: word entrance did not settle`);
-  if (!settled.entriesComplete) failures.push(`${label}: hero sequence did not settle`);
-  if (
-    settled.phases.some((phase) => !phase) ||
-    settled.phases.some(
-      (phase, index, phases) =>
-        index > 0 && phase && phases[index - 1] && phase.time - phases[index - 1].time < 30,
-    )
-  )
-    failures.push(`${label}: hero phases did not enter in a perceptible sequence`);
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero").dataset.heroActive === "true",
-  );
-  const artwork = page.locator(".home-hero-artwork");
-  const canvas = page.locator(".home-hero-canvas");
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
-  );
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero-artwork").dataset.motionState === "settled",
-  );
-  const themeUniform = await canvas.evaluate((element) => {
-    const gl = element.getContext("webgl");
-    const program = gl.getParameter(gl.CURRENT_PROGRAM);
-    return gl.getUniform(program, gl.getUniformLocation(program, "dark"));
-  });
-  if (themeUniform !== Number(colorScheme === "dark"))
-    failures.push(`${label}: artwork material does not follow the active theme`);
-  if (label === "desktop") {
-    const light = await canvas.screenshot();
-    await page.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
-    await page.waitForFunction(() => {
-      const gl = document.querySelector(".home-hero-canvas").getContext("webgl");
-      const program = gl.getParameter(gl.CURRENT_PROGRAM);
-      return gl.getUniform(program, gl.getUniformLocation(program, "dark")) === 1;
-    });
-    if (light.equals(await canvas.screenshot()))
-      failures.push(`${label}: theme switching leaves the actual artwork unchanged`);
-    await page.getByRole("button", { name: "Switch to light mode", exact: true }).click();
-    await page.waitForFunction(() => {
-      const gl = document.querySelector(".home-hero-canvas").getContext("webgl");
-      const program = gl.getParameter(gl.CURRENT_PROGRAM);
-      return gl.getUniform(program, gl.getUniformLocation(program, "dark")) === 0;
-    });
-  }
-  if (await page.getByRole("button", { name: /Pause hero|Play hero/ }).count())
-    failures.push(`${label}: decorative playback controls remain`);
-  if ((await artwork.textContent()).includes("Accelerate / 01"))
-    failures.push(`${label}: unexplained artwork numbering remains`);
-  // Element screenshots scroll short/narrow viewports. Let the header and
-  // floating chat transitions finish so they cannot masquerade as canvas motion.
-  await canvas.scrollIntoViewIfNeeded();
-  // Scroll listeners and React state updates enqueue those transitions after
-  // scrollIntoView resolves; allow their existing 300 ms entrance to start/end.
-  await page.waitForTimeout(400);
-  await page.waitForFunction(
-    () =>
-      !document
-        .getAnimations()
-        .some(
-          (animation) =>
-            animation.playState === "running" &&
-            (!(animation instanceof CSSAnimation) ||
-              animation.animationName.startsWith("home-hero-")),
-        ),
-  );
-  const sourcePorts = await page
-    .locator(".home-hero-port:not(.home-hero-port-output)")
-    .evaluateAll((ports) =>
-      ports.map((port) => ({
-        label: port.textContent.trim(),
-        left: parseFloat(port.style.left),
-        top: parseFloat(port.style.top),
-      })),
-    );
-  if (sourcePorts.map((port) => port.label).join(",") !== "Tools,Knowledge,People")
-    failures.push(`${label}: artwork has no stable business inputs`);
-  const resting = await canvas.screenshot();
-  await page.waitForTimeout(350);
-  if (!resting.equals(await canvas.screenshot()))
-    failures.push(`${label}: entrance keeps moving without interaction`);
-  for (const name of ["Build", "Run & improve", "Strategy"]) {
-    const before = await canvas.screenshot();
-    const control = page.getByRole("button", { name, exact: true });
-    await control.focus();
-    await page.keyboard.press("Enter");
-    let intermediate;
-    if (name === "Build") {
-      await page.waitForTimeout(90);
-      const transition = await page.evaluate(() => {
-        const line = document.querySelector(".home-hero-chapter-line");
-        const detail = document.querySelector('.home-hero-detail-layers p[data-active="true"]');
-        return {
-          offset: new DOMMatrix(getComputedStyle(line).transform).m41,
-          destination: line.getBoundingClientRect().width,
-          detailOpacity: Number(getComputedStyle(detail).opacity),
-        };
-      });
-      if (
-        transition.offset <= 0 ||
-        transition.offset >= transition.destination ||
-        transition.detailOpacity >= 0.99
-      )
-        failures.push(`${label}: chapter rule or description jumps to its final state`);
-      intermediate = await canvas.screenshot({ path: `${output}/${label}-service-transition.png` });
-      if (before.equals(intermediate))
-        failures.push(`${label}: artwork does not begin deforming during chapter change`);
-    }
-    await page.waitForTimeout(1100);
-    const after = await canvas.screenshot();
-    if ((await control.getAttribute("aria-pressed")) !== "true" || before.equals(after))
-      failures.push(`${label}: ${name} does not change selection and actual artwork pixels`);
-    if (intermediate?.equals(after))
-      failures.push(`${label}: artwork snaps to the final shape instead of transforming`);
-    const currentPorts = await page
-      .locator(".home-hero-port:not(.home-hero-port-output)")
-      .evaluateAll((ports) =>
-        ports.map((port) => ({
-          left: parseFloat(port.style.left),
-          top: parseFloat(port.style.top),
-        })),
-      );
-    if (
-      currentPorts.some(
-        (port, index) =>
-          Math.abs(port.left - sourcePorts[index].left) > 0.5 ||
-          Math.abs(port.top - sourcePorts[index].top) > 0.5,
-      )
-    )
-      failures.push(`${label}: ${name} detaches the work from its inputs`);
-    const result = await page
-      .locator('.home-hero-port-output span[data-active="true"]')
-      .textContent();
-    if (
-      result !==
-      (name === "Build" ? "Workflows" : name === "Run & improve" ? "Delivery" : "Priorities")
-    )
-      failures.push(`${label}: ${name} has no connected result`);
-    if (name === "Run & improve") {
-      const feedback = await page.locator(".home-hero-feedback-label").boundingBox();
-      const route = await page.locator(".home-hero-feedback path").boundingBox();
-      if (Math.abs(feedback.y + feedback.height / 2 - (route.y + route.height)) > 10)
-        failures.push(`${label}: feedback caption detaches from the return path`);
-    }
-    const detail = await page
-      .locator('.home-hero-detail-layers p[data-active="true"]')
-      .textContent();
-    if (
-      !(
-        name === "Build"
-          ? /CRM.*integrations/s
-          : name === "Run & improve"
-            ? /team learns.*monitor results/s
-            : /data entry.*reports/s
-      ).test(detail)
-    )
-      failures.push(`${label}: ${name} has no distinct, concrete explanation`);
-  }
-  if (!touch) {
-    await page.waitForFunction(
-      () => document.querySelector(".home-hero-artwork").dataset.motionState === "settled",
-    );
-    const before = await canvas.screenshot();
-    const bounds = await canvas.boundingBox();
-    await page.mouse.move(bounds.x + bounds.width * 0.85, bounds.y + bounds.height * 0.3);
-    await page.waitForTimeout(600);
-    if (before.equals(await canvas.screenshot()))
-      failures.push(`${label}: pointer does not change viewpoint and lighting`);
-    await page.mouse.move(10, 100);
-  } else {
-    const control = page.getByRole("button", { name: "Build", exact: true });
-    await control.tap();
-    if ((await control.getAttribute("aria-pressed")) !== "true")
-      failures.push(`${label}: touch selection failed`);
-  }
-  const artworkMotion = await canvas.evaluate((element) => ({
-    width: element.width,
-    height: element.height,
-    density: element.width / element.getBoundingClientRect().width,
-    state: element.closest(".home-hero-artwork").dataset.motionState,
-  }));
-  if (artworkMotion.density > 1.51)
-    failures.push(`${label}: artwork exceeds its pixel-density budget`);
-  await page.locator("#selected-work").evaluate((element) => element.scrollIntoView());
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero-artwork").dataset.motionState === "paused",
-  );
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForFunction(() =>
-    ["playing", "settled"].includes(
-      document.querySelector(".home-hero-artwork").dataset.motionState,
-    ),
-  );
-  await page.screenshot({ caret: "initial", path: `${output}/${label}-settled.png` });
-  if (label === "desktop" || label === "mobile") {
-    const booking = page.locator(".home-hero-cta");
-    await booking.focus();
-    if (!(await booking.evaluate((element) => element === document.activeElement)))
-      failures.push(`${label}: booking focus is missing`);
-    await page.waitForFunction(
-      () => document.querySelector(".home-hero").dataset.heroActive === "true",
-    );
-    await booking.evaluate((element) => element.blur());
-    await booking.focus();
-    await page.keyboard.press("Enter");
-    await page.waitForURL(`${baseUrl}/contact`);
-    await page.goBack({ waitUntil: "domcontentloaded" });
-    const restored = await page
-      .locator(".home-hero-actions")
-      .evaluate((element) => Number(getComputedStyle(element).opacity));
-    if (restored !== 1) failures.push(`${label}: booking action concealed after Back`);
-    // A forward client navigation is a fresh entrance, even after a history restore.
-    await page.goto(`${baseUrl}/services`, { waitUntil: "domcontentloaded" });
-    const homeLink = page.locator('header .logo-link[href="/"]');
-    await homeLink.hover();
-    await page.waitForTimeout(350);
-    await page.evaluate(() => {
-      window.__heroForwardStart = performance.now();
-      window.__heroEntrances = [];
-    });
-    await homeLink.click();
-    await page.waitForURL(`${baseUrl}/`);
-    await page.waitForFunction(() =>
-      document.querySelector(".home-hero")?.classList.contains("in"),
-    );
-    await page
-      .waitForFunction(
-        () =>
-          window.__heroEntrances.some(
-            (entry) => entry.phase === "lead" && entry.time >= window.__heroForwardStart,
-          ),
-        null,
-        { timeout: 3000 },
-      )
-      .catch(() => {});
-    const forward = await page.evaluate(() => {
+    await page.goto(base, { waitUntil: "domcontentloaded" });
+    const opening = await page.evaluate(() => {
       const hero = document.querySelector(".home-hero");
-      const word = hero.querySelector(".home-hero-word");
-      const entrance = word
-        .getAnimations()
-        .find((animation) => animation.animationName === "home-hero-word-enter");
+      const heading = hero.querySelector("h1");
+      const booking = hero.querySelector(".home-hero-cta").getBoundingClientRect();
       return {
-        kind: document.documentElement.dataset.navigationKind,
-        animated: getComputedStyle(word).animationName,
-        immediate: hero.classList.contains("reveal-immediate"),
-        playState: entrance?.playState,
-        currentTime: entrance?.currentTime,
-        endTime: entrance?.effect.getComputedTiming().endTime,
-        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
-        freshLead: window.__heroEntrances.some(
-          (entry) => entry.phase === "lead" && entry.time >= window.__heroForwardStart,
-        ),
+        heading: heading.textContent.replace(/\s+/g, " ").trim(),
+        support: hero.querySelector(".home-hero-support").textContent,
+        aboveFold: booking.bottom <= innerHeight,
+        headerGap:
+          heading.getBoundingClientRect().top -
+          document.querySelector(".site-header").getBoundingClientRect().bottom,
+        overflow: document.documentElement.scrollWidth > innerWidth + 1,
+        buttons: hero.querySelectorAll("button, [role=tab], input[type=range]").length,
+        canvases: hero.querySelectorAll("canvas").length,
       };
     });
-    settled.forward = forward;
-    // A busy renderer can finish the first line before navigation is observed.
-    // Require a new rendered animation event, rather than sampling its clock
-    // within a deadline. Concealed opening frames are tested above.
-    if (
-      forward.kind !== "fresh" ||
-      forward.animated !== "home-hero-word-enter" ||
-      forward.immediate ||
-      !["running", "finished"].includes(forward.playState) ||
-      !forward.freshLead
-    )
-      failures.push(
-        `${label}: prefetched forward navigation skipped the fresh entrance: ${JSON.stringify(forward)}`,
-      );
-    await page.waitForTimeout(3000);
-  }
-  results.push({ label, viewport, colorScheme, opening, settled, artworkMotion });
-  await context.close();
-  if (page.video()) await page.video().saveAs(`${output}/${label}-entrance.webm`);
-}
+    fail(
+      opening.heading.includes("AI, built around") && opening.heading.includes("your business."),
+      `${label}: headline is incomplete`,
+    );
+    fail(
+      /make more money.*save more time/.test(opening.support),
+      `${label}: offer omits the outcomes`,
+    );
+    fail(
+      opening.aboveFold && opening.headerGap >= 20 && !opening.overflow,
+      `${label}: booking, header clearance or containment failed`,
+    );
+    fail(
+      !opening.buttons && !opening.canvases,
+      `${label}: old selector or graphics dependency remains`,
+    );
+    await page.waitForFunction(() => document.querySelector(".home-hero").classList.contains("in"));
 
-const context = await browser.newContext({
-  viewport: { width: 390, height: 844 },
-  reducedMotion: "reduce",
-  hasTouch: true,
-});
-const page = await context.newPage();
-await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-const reduced = await page.evaluate(() => ({
-  heading: document.querySelector(".home-hero-heading")?.textContent?.trim(),
-  animation: getComputedStyle(document.querySelector(".home-hero-heading")).animationName,
-  cta: getComputedStyle(document.querySelector(".home-hero-cta")).opacity,
-  wordsStatic: [...document.querySelectorAll(".home-hero-word")].every(
-    (word) => getComputedStyle(word).animationName === "none",
-  ),
-  backgroundStatic: document.querySelector(".home-hero-artwork").dataset.motionState === "paused",
-  allContentStatic: [
-    ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
-  ].every(
-    (element) =>
-      getComputedStyle(element).opacity === "1" &&
-      getComputedStyle(element).animationName === "none",
-  ),
-}));
-await page.touchscreen.tap(370, 140);
-const reducedCanvas = page.locator(".home-hero-canvas");
-await page.waitForTimeout(500);
-const reducedFrame = await reducedCanvas.screenshot();
-await page.waitForTimeout(800);
-if (!reducedFrame.equals(await reducedCanvas.screenshot()))
-  failures.push("Reduced motion changes the rendered artwork");
-await page.getByRole("button", { name: "Build", exact: true }).tap();
-if (
-  (await page.getByRole("button", { name: "Build", exact: true }).getAttribute("aria-pressed")) !==
-  "true"
-)
-  failures.push("Reduced motion prevents service selection");
-const reducedChapter = await page.evaluate(() => ({
-  line: getComputedStyle(document.querySelector(".home-hero-chapter-line")).transitionDuration,
-  detail: getComputedStyle(document.querySelector('.home-hero-detail-layers p[data-active="true"]'))
-    .transitionDuration,
-}));
-if (reducedChapter.line !== "0s" || reducedChapter.detail !== "0s")
-  failures.push("Reduced-motion chapter change starts interface transitions");
-await page.waitForTimeout(100);
-const reducedSelection = await reducedCanvas.screenshot();
-await page.waitForTimeout(400);
-if (!reducedSelection.equals(await reducedCanvas.screenshot()))
-  failures.push("Reduced-motion service selection starts an animation");
-if (
-  !reduced.heading ||
-  reduced.animation !== "none" ||
-  reduced.cta !== "1" ||
-  !reduced.wordsStatic ||
-  !reduced.backgroundStatic ||
-  !reduced.allContentStatic
-)
-  failures.push("reduced motion did not render the complete static hero");
-await page.screenshot({ caret: "initial", path: `${output}/mobile-reduced.png` });
-await context.close();
-const delayedResults = [];
-for (const [label, viewport] of [
-  ["desktop", { width: 1440, height: 900 }],
-  ["mobile", { width: 390, height: 844 }],
-]) {
-  const delayed = await browser.newContext({ viewport, hasTouch: viewport.width < 1000 });
-  const delayedPage = await delayed.newPage();
-  await delayedPage.route("**/_next/static/**/*.js*", async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    await route.continue();
-  });
-  await delayedPage.goto(baseUrl, { waitUntil: "commit", timeout: 60_000 });
-  await delayedPage.waitForFunction(
-    () =>
-      document.querySelector(".home-hero-poster") &&
-      getComputedStyle(document.querySelector(".home-hero-poster")).position === "absolute",
-  );
-  const pending = await delayedPage.evaluate(() => ({
-    state: document.querySelector(".home-hero").dataset.revealState,
-    concealed: [
-      ...document.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions"),
-    ].every((element) => getComputedStyle(element).opacity === "0"),
-    masked: [...document.querySelectorAll(".home-hero-word")].every((word) => {
-      const mask = word.parentElement;
+    // Seek the real CSS animations to inspect rendered opening and intermediate frames.
+    if (label === "desktop" || label === "mobile") {
+      await page.evaluate(() => {
+        window.__heroAnimations = document
+          .querySelector(".home-hero")
+          .getAnimations({ subtree: true });
+        window.__heroAnimations.forEach((animation) => animation.pause());
+      });
+      const frames = [];
+      for (const time of [0, 600, 1000, 1700, 3200]) {
+        await page.evaluate(
+          (time) =>
+            window.__heroAnimations.forEach((animation) => {
+              animation.currentTime = time;
+            }),
+          time,
+        );
+        const frame = await page.evaluate(() => ({
+          words: [...document.querySelectorAll(".home-hero-word")].map((word) => ({
+            opacity: Number(getComputedStyle(word).opacity),
+            y: new DOMMatrix(getComputedStyle(word).transform).m42,
+            mask: getComputedStyle(word.parentElement).clipPath,
+          })),
+          action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
+          artwork: Number(getComputedStyle(document.querySelector(".home-hero-artwork")).opacity),
+        }));
+        frames.push({ time, ...frame });
+        if (time === 0)
+          fail(
+            frame.words.every((word) => word.opacity === 0) && frame.action === 0,
+            `${label}: entrance opening is exposed`,
+          );
+        if (time === 1000)
+          fail(
+            frame.words.some((word) => word.opacity > 0 && word.opacity < 1),
+            `${label}: headline has no perceptible transition`,
+          );
+        if (time === 3200)
+          fail(
+            frame.words.every(
+              (word) => word.opacity === 1 && Math.abs(word.y) < 0.1 && word.mask !== "none",
+            ) &&
+              frame.action === 1 &&
+              frame.artwork === 1,
+            `${label}: entrance does not finish`,
+          );
+        await screenshot(page, `${label}-frame-${time}`);
+      }
+      await page.evaluate(() => window.__heroAnimations.forEach((animation) => animation.finish()));
+      results.push({ label, frames });
+    }
+    await page.waitForTimeout(3300);
+    const artwork = page.locator(".home-hero-artwork");
+    const print = page.locator(
+      width <= 640 ? ".home-hero-print-mobile" : ".home-hero-print-desktop",
+    );
+    fail(await print.isVisible(), `${label}: responsive artwork is missing`);
+    const printed = await print.textContent();
+    fail(
+      /INQUIRY.*INBOX.*CRM.*FOLLOW-UP.*HANDOFF/s.test(printed),
+      `${label}: artwork has no concrete connected workflow`,
+    );
+    const geometry = await print.evaluate((svg) => {
+      const bounds = svg.closest("figure").getBoundingClientRect();
+      return [...svg.querySelectorAll("text")].every((text) => {
+        const rect = text.getBoundingClientRect();
+        return (
+          rect.x >= bounds.x - 1 &&
+          rect.right <= bounds.right + 1 &&
+          rect.y >= bounds.y - 1 &&
+          rect.bottom <= bounds.bottom + 1
+        );
+      });
+    });
+    fail(geometry, `${label}: artwork typography is clipped`);
+    await screenshot(page, `${label}-settled`);
+    await artwork.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    const visible = width <= 640 ? ".home-hero-print-mobile" : ".home-hero-print-desktop";
+    const mark = page.locator(`${visible} .home-hero-print-mark`);
+    const before = await mark.evaluate((node) => getComputedStyle(node).transform);
+    const bounds = await artwork.boundingBox();
+    if (width >= 1000) {
+      const initial = await print.screenshot();
+      await page.mouse.move(bounds.x + bounds.width * 0.9, bounds.y + bounds.height * 0.25);
+      await page.waitForTimeout(90);
+      const middle = await mark.evaluate((node) => getComputedStyle(node).transform);
+      await page.waitForTimeout(900);
+      const end = await mark.evaluate((node) => getComputedStyle(node).transform);
+      fail(
+        before !== middle && middle !== end && before !== end,
+        `${label}: interaction lacks an intermediate transition`,
+      );
+      fail(
+        !initial.equals(await print.screenshot()),
+        `${label}: pointer changes no artwork pixels`,
+      );
+      await page.mouse.move(5, 5);
+      await page.waitForTimeout(1000);
+    } else {
+      await page.touchscreen.tap(bounds.x + bounds.width * 0.85, bounds.y + bounds.height * 0.3);
+      await page.waitForTimeout(150);
+      fail(
+        before !== (await mark.evaluate((node) => getComputedStyle(node).transform)),
+        `${label}: touch produces no response`,
+      );
+      await page.waitForTimeout(1600);
+    }
+    const settled = await mark.evaluate((node) => getComputedStyle(node).transform);
+    await page.waitForTimeout(300);
+    fail(
+      settled === (await mark.evaluate((node) => getComputedStyle(node).transform)),
+      `${label}: artwork continues moving at rest`,
+    );
+    const cta = page.locator(".home-hero-cta");
+    await cta.focus();
+    const focus = await cta.evaluate((node) => {
+      const style = getComputedStyle(node.parentElement);
       return (
-        getComputedStyle(mask).clipPath !== "none" &&
-        new DOMMatrix(getComputedStyle(word).transform).m42 >= word.getBoundingClientRect().height
+        document.activeElement === node && style.opacity === "1" && style.pointerEvents !== "none"
       );
-    }),
-    notStarted: [...document.querySelectorAll(".home-hero-word")].every(
-      (word) => word.getAnimations().length === 0,
-    ),
-    chaptersPending: [...document.querySelectorAll(".home-sequence")].every(
-      (group) => group.dataset.revealState === "pending",
-    ),
-  }));
-  if (
-    pending.state !== "pending" ||
-    !pending.concealed ||
-    !pending.masked ||
-    !pending.notStarted ||
-    !pending.chaptersPending
-  )
-    failures.push(`${label}: pending hero was visible before hydration or has no full word mask`);
-  await delayedPage.screenshot({
-    caret: "initial",
-    path: `${output}/${label}-delayed-hydration.png`,
-  });
-  await delayedPage.locator(".home-hero-cta").focus();
-  if (
-    (await delayedPage.locator(".home-hero-actions").evaluate((element) => {
-      const style = getComputedStyle(element);
-      return style.opacity === "1" && style.pointerEvents === "auto";
-    })) !== true
-  )
-    failures.push(`${label}: keyboard focus did not expose the pending booking action`);
-  await delayedPage.locator(".home-hero-cta").evaluate((element) => element.blur());
-  await delayedPage.waitForFunction(
-    () => document.querySelector(".home-hero").dataset.revealState === "visible",
-  );
-  await delayedPage.waitForTimeout(3000);
-  const complete = await delayedPage
-    .locator(".home-hero-word")
-    .evaluateAll((words) =>
-      words.every((word) =>
-        word.getAnimations().every((animation) => animation.playState === "finished"),
-      ),
-    );
-  if (!complete) failures.push(`${label}: entrance did not complete after delayed hydration`);
-  delayedResults.push({ label, pending, complete });
-  await delayed.close();
-}
-// A real late runtime must recover ambient artwork after the four-second
-// fail-open watchdog, without concealing foreground content a second time.
-const lateRuntime = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-const latePage = await lateRuntime.newPage();
-await latePage.route("**/_next/static/**/*.js*", async (route) => {
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  await route.continue();
-});
-await latePage.goto(baseUrl, { waitUntil: "commit", timeout: 60_000 });
-await latePage.waitForFunction(
-  () =>
-    document.querySelector(".home-hero-poster") &&
-    getComputedStyle(document.querySelector(".home-hero-poster")).position === "absolute",
-);
-await latePage.waitForFunction(() => !document.documentElement.classList.contains("motion-ready"));
-const lateReadable = await latePage
-  .locator(".home-hero")
-  .evaluate((hero) =>
-    [...hero.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions")].every(
-      (element) => getComputedStyle(element).opacity === "1",
-    ),
-  );
-await latePage.waitForFunction(
-  () => document.querySelector(".home-hero").dataset.heroActive === "true",
-);
-const lateRecovery = await latePage.locator(".home-hero").evaluate((hero) => ({
-  readable: [
-    ...hero.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions"),
-  ].every((element) => getComputedStyle(element).opacity === "1"),
-  wordsStatic: [...hero.querySelectorAll(".home-hero-word")].every(
-    (element) => element.getAnimations().length === 0,
-  ),
-  moving:
-    ["playing", "settled"].includes(hero.querySelector(".home-hero-artwork").dataset.motionState) &&
-    hero.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
-}));
-if (!lateReadable || !lateRecovery.readable || !lateRecovery.wordsStatic || !lateRecovery.moving)
-  failures.push("Late hydration left artwork static or concealed readable foreground again");
-delayedResults.push({ label: "watchdog-then-hydration", lateReadable, ...lateRecovery });
-await latePage.screenshot({ caret: "initial", path: `${output}/desktop-late-runtime.png` });
-await lateRuntime.close();
-const failedRuntime = await browser.newContext({ viewport: { width: 390, height: 844 } });
-await failedRuntime.route("**/_next/static/**/*.js*", (route) => route.abort());
-const failedRuntimePage = await failedRuntime.newPage();
-await failedRuntimePage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-await failedRuntimePage.waitForFunction(
-  () => !document.documentElement.classList.contains("motion-ready"),
-);
-const watchdog = await failedRuntimePage.evaluate(() => ({
-  readable: [
-    ...document.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions"),
-  ].every(
-    (element) =>
-      getComputedStyle(element).opacity === "1" &&
-      getComputedStyle(element).animationName === "none",
-  ),
-  hydrated: document.documentElement.hasAttribute("data-motion-hydrated"),
-}));
-if (!watchdog.readable || watchdog.hydrated)
-  failures.push("Failed runtime did not expose the static hero through the watchdog");
-await failedRuntimePage.screenshot({
-  caret: "initial",
-  path: `${output}/mobile-failed-runtime.png`,
-});
-await failedRuntime.close();
-const noJS = await browser.newContext({
-  viewport: { width: 1440, height: 900 },
-  javaScriptEnabled: false,
-});
-const staticPage = await noJS.newPage();
-await staticPage.route("**/_next/static/css/**", async (route) => {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  await route.continue();
-});
-await staticPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-// Disabled scripts let DOMContentLoaded precede CSS and stop in-page polling.
-// Poll from the test process so computed-style checks cover the rendered hero.
-let stylesReady = false;
-for (let attempt = 0; attempt < 100 && !stylesReady; attempt++) {
-  stylesReady = await staticPage.evaluate(
-    () => getComputedStyle(document.querySelector(".home-hero-poster")).position === "absolute",
-  );
-  if (!stylesReady) await staticPage.waitForTimeout(100);
-}
-if (!stylesReady) failures.push("No-JavaScript hero stylesheet did not load");
-const staticHero = await staticPage.evaluate(() => ({
-  heading: document.querySelector(".home-hero-heading")?.textContent?.replace(/\s+/g, " "),
-  cta: getComputedStyle(document.querySelector(".home-hero-cta")).opacity,
-  wordsStatic: [...document.querySelectorAll(".home-hero-word")].every(
-    (word) => getComputedStyle(word).animationName === "none",
-  ),
-  backgroundStatic:
-    document.querySelector(".home-hero-artwork").dataset.artworkReady === "false" &&
-    getComputedStyle(document.querySelector(".home-hero-poster")).opacity === "1" &&
-    document.querySelectorAll(".home-hero-poster path").length > 0,
-  allContentReadable: [
-    ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
-  ].every(
-    (element) =>
-      getComputedStyle(element).opacity === "1" &&
-      getComputedStyle(element).animationName === "none",
-  ),
-}));
-if (
-  !/make more money.*save more time/.test(staticHero.heading ?? "") ||
-  staticHero.cta !== "1" ||
-  !staticHero.wordsStatic ||
-  !staticHero.backgroundStatic ||
-  !staticHero.allContentReadable
-)
-  failures.push("No-JavaScript hero did not remain complete and static");
-await staticPage.screenshot({ caret: "initial", path: `${output}/desktop-no-js.png` });
-await noJS.close();
-const gpuFallbacks = [];
-for (const mode of ["unavailable", "context-lost"]) {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  if (mode === "unavailable")
-    await context.addInitScript(() => {
-      const original = HTMLCanvasElement.prototype.getContext;
-      HTMLCanvasElement.prototype.getContext = function (type, ...args) {
-        return type === "webgl" ? null : original.call(this, type, ...args);
-      };
     });
-  const page = await context.newPage();
-  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.waitForTimeout(3500);
-  if (mode === "context-lost") {
-    await page.waitForFunction(
-      () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
-    );
-    const lost = await page.locator(".home-hero-canvas").evaluate((element) => {
-      const extension = element.getContext("webgl").getExtension("WEBGL_lose_context");
-      extension?.loseContext();
-      return Boolean(extension);
-    });
-    if (!lost) failures.push("GPU loss test could not induce a real lost context");
-    await page.waitForFunction(
-      () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "false",
-    );
-    await page.evaluate(() => document.documentElement.classList.toggle("dark"));
-    await page.waitForTimeout(600);
+    fail(focus, `${label}: booking focus is concealed`);
+    if (label === "mobile") {
+      await page.keyboard.press("Enter");
+      await page.waitForURL("**/contact");
+      await page.goBack();
+      await page.waitForURL(base + "/");
+      fail(await cta.isVisible(), "History restoration conceals booking");
+      await page.getByRole("link", { name: "Services", exact: true }).first().click();
+      await page.waitForURL("**/services");
+      await page
+        .getByRole("link", { name: /Accelerate.*home/i })
+        .first()
+        .click();
+      await page.waitForURL(base + "/");
+      await page.waitForTimeout(3300);
+      fail(await cta.isVisible(), "Forward navigation conceals booking");
+    }
+    results.push({ label, opening, geometry, focus });
+    await context.close();
   }
-  const fallback = await page.evaluate(() => ({
-    ready: document.querySelector(".home-hero-artwork").dataset.artworkReady,
-    state: document.querySelector(".home-hero-artwork").dataset.motionState,
-    poster: getComputedStyle(document.querySelector(".home-hero-poster")).opacity,
-    booking: getComputedStyle(document.querySelector(".home-hero-actions")).opacity,
-  }));
-  if (
-    fallback.ready !== "false" ||
-    fallback.state !== "paused" ||
-    fallback.poster !== "1" ||
-    fallback.booking !== "1"
-  )
-    failures.push(`${mode}: GPU failure hid the poster or booking action`);
-  const originalPoster = await page.locator(".home-hero-poster").innerHTML();
-  await page.getByRole("button", { name: "Build", exact: true }).click();
-  if (
-    originalPoster === (await page.locator(".home-hero-poster").innerHTML()) ||
-    !(await page.locator(".home-hero-artwork-detail").textContent()).includes("CRM")
-  )
-    failures.push(`${mode}: graphics fallback prevents exploration of the service stages`);
-  await page.screenshot({ path: `${output}/gpu-${mode}.png` });
-  gpuFallbacks.push({ mode, ...fallback });
-  await context.close();
-}
-await browser.close();
 
-// WebKit verifies the actual canvas or an explicit GPU-unavailable poster.
-const webkitArtwork = [];
-const webkitBrowser = await webkit.launch({ headless: true });
-for (const [label, viewport, touch] of [
-  ["webkit-desktop", { width: 1440, height: 900 }, false],
-  ["webkit-mobile", { width: 390, height: 844 }, true],
-]) {
-  const context = await webkitBrowser.newContext({ viewport, hasTouch: touch, isMobile: touch });
-  const page = await context.newPage();
-  page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
-  page.on("console", (message) => {
-    if (
-      message.type() === "error" &&
-      !message
-        .text()
-        .includes("was delivered in report-only mode, but does not specify a 'report-to'")
-    )
-      failures.push(`${label}: ${message.text()}`);
-  });
-  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.waitForTimeout(3500);
-  const ready = await page.locator(".home-hero-artwork").getAttribute("data-artwork-ready");
-  const canvas = page.locator(".home-hero-canvas");
-  if (ready === "true") {
-    const first = await canvas.screenshot();
-    await page.getByRole("button", { name: "Build", exact: true }).click();
-    await page.waitForTimeout(1200);
-    if (first.equals(await canvas.screenshot()))
-      failures.push(`${label}: service selection does not change GPU artwork`);
-  } else {
-    if (
-      !(await page
-        .locator(".home-hero-poster")
-        .evaluate(
-          (element) =>
-            getComputedStyle(element).opacity === "1" &&
-            element.querySelectorAll("path").length > 0,
-        ))
-    )
-      failures.push(`${label}: unavailable GPU has no visible poster`);
+  for (const [label, options, delay] of [
+    [
+      "mobile-reduced",
+      { reducedMotion: "reduce", viewport: { width: 390, height: 844 }, hasTouch: true },
+      0,
+    ],
+    ["desktop-no-js", { javaScriptEnabled: false, viewport: { width: 1440, height: 900 } }, 0],
+    ["mobile-delayed-js", { viewport: { width: 390, height: 844 } }, 1500],
+    ["desktop-late-js", { viewport: { width: 1440, height: 900 } }, 5000],
+    ["mobile-failed-js", { viewport: { width: 390, height: 844 } }, -1],
+  ]) {
+    const context = await browser.newContext(options);
+    if (delay)
+      await context.route("**/_next/static/**/*.js*", async (route) => {
+        if (delay < 0) await route.abort();
+        else {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          await route.continue();
+        }
+      });
+    const page = await context.newPage();
+    await page.goto(base, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(delay > 0 ? 3500 : delay < 0 ? 4500 : 300);
+    const staticState = await page.evaluate(() => ({
+      readable: [
+        ...document.querySelectorAll(".home-hero-word, .home-hero-support, .home-hero-actions"),
+      ].every((node) => getComputedStyle(node).opacity === "1"),
+      graphic: [...document.querySelectorAll(".home-hero-print")].some(
+        (node) =>
+          getComputedStyle(node).display !== "none" && node.querySelectorAll("text").length === 4,
+      ),
+      running: document
+        .querySelector(".home-hero")
+        .getAnimations({ subtree: true })
+        .some((animation) => animation.playState === "running"),
+    }));
+    fail(
+      staticState.readable && staticState.graphic && !staticState.running,
+      `${label}: fallback is incomplete or keeps animating`,
+    );
+    if (label === "mobile-reduced") {
+      const print = page.locator(".home-hero-print-mobile");
+      const frame = await print.screenshot();
+      const bounds = await print.boundingBox();
+      await page.touchscreen.tap(bounds.x + bounds.width * 0.85, bounds.y + bounds.height * 0.3);
+      await page.waitForTimeout(400);
+      fail(frame.equals(await print.screenshot()), "Reduced motion changes artwork pixels");
+    }
+    await screenshot(page, label);
+    results.push({ label, ...staticState });
+    await context.close();
   }
-  if (!(await page.locator(".home-hero-cta").isVisible()))
-    failures.push(`${label}: booking is unavailable`);
-  await page.screenshot({ path: `${output}/${label}-settled.png` });
-  webkitArtwork.push({
-    label,
-    viewport,
-    ready,
-    mode: ready === "true" ? "WebGL" : "static GPU fallback",
-  });
-  await context.close();
+} finally {
+  await browser.close();
 }
-await webkitBrowser.close();
+
+const safari = await webkit.launch({ headless: true });
+try {
+  for (const [label, width, height] of [
+    ["webkit-desktop", 1440, 900],
+    ["webkit-mobile", 390, 844],
+  ]) {
+    const page = await safari.newPage({ viewport: { width, height } });
+    page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
+    await page.goto(base, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(3300);
+    fail(await page.locator(".home-hero-cta").isVisible(), `${label}: booking is unavailable`);
+    fail(
+      await page
+        .locator(width <= 640 ? ".home-hero-print-mobile" : ".home-hero-print-desktop")
+        .isVisible(),
+      `${label}: vector artwork is unavailable`,
+    );
+    await screenshot(page, `${label}-settled`);
+    await page.close();
+  }
+} finally {
+  await safari.close();
+}
 await writeFile(
   `${output}/results.json`,
-  JSON.stringify(
-    {
-      result: failures.length ? "failed" : "passed",
-      results,
-      entranceFrames,
-      reduced,
-      delayedResults,
-      watchdog,
-      staticHero,
-      webkitArtwork,
-      gpuFallbacks,
-      failures,
-    },
-    null,
-    2,
-  ),
+  JSON.stringify({ result: failures.length ? "failed" : "passed", results, failures }, null, 2),
 );
-
 if (failures.length) {
   console.error(JSON.stringify({ result: "failed", failures }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ result: "passed", screenshots: output }, null, 2));
+console.log(JSON.stringify({ result: "passed", screenshots: output }));

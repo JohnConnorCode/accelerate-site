@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "homepage-purposeful-interaction",
     title: "Explore how Accelerate helps from the homepage",
     description:
-      "The homepage brings a wide editorial headline, continuous artwork, booking and service explanations into one composition. Three engraved ink bands connect tools, knowledge and people to useful priorities, custom workflows and ongoing delivery. Their center transforms from separate paths into an interwoven system and a feedback path, keeping every stage connected to the same business context. Labels attach to the material and follow the viewpoint. The artwork spans the desktop layout, while phones keep the offer and booking first. Stage explanations cross-fade and a fine rule travels between the controls. The entrance settles automatically, replacing decorative numbering and playback controls. Keyboard, touch, theme changes, reduced motion and static graphics fallbacks remain available.",
+      "The homepage opens with an editorial ink-and-paper composition and a clear focus on AI built around each business. Oversized workflow typography shows one custom automation example, connecting an inquiry in an inbox and CRM with a reply, follow-up and handoff. The artwork responds to pointer and touch movement, with smooth transitions and a finite entrance. Service tabs, ribbons, unexplained numbering and playback controls are removed. Mobile uses its own complete composition. Booking, keyboard access, history restoration, reduced motion and static rendering remain available.",
     category: "improvement",
     publishedAt: "2026-10-05",
   },
