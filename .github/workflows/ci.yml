@@ -375,10 +375,11 @@ jobs:
 
       - name: Install browser for first-run verification
         run: npx playwright install --with-deps chromium webkit
-      - name: Verify native homepage and cached mobile motion
+      - name: Verify admin history and native mobile motion
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
+          PUBLIC_PAGES_ONLY: ${{ inputs.public_pages_only }}
         run: |
           setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-mobile-motion-server.log 2>&1 &
           server_pid=$!
@@ -390,14 +391,18 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-mobile-motion-server.log; exit 1; fi
+          admin_status=0
+          if [ "$PUBLIC_PAGES_ONLY" != "true" ]; then
+            node scripts/qa-admin-demo.mjs --one || admin_status=$?
+          fi
           hero_status=0
           mobile_status=0
           loading_status=0
           node scripts/qa-home-hero-timing.mjs || hero_status=$?
           node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
           node scripts/qa-public-loading.mjs || loading_status=$?
-          test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
-      - name: Retain native mobile motion evidence
+          test "$admin_status" -eq 0 && test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
+      - name: Retain admin history and native mobile evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
         uses: actions/upload-artifact@v7
         with:
@@ -407,6 +412,7 @@ jobs:
             /tmp/accelerate-mobile-motion/
             /tmp/accelerate-public-loading/
             /tmp/accelerate-mobile-motion-server.log
+            /tmp/accelerate-full-admin-demo/
           if-no-files-found: ignore
           retention-days: 7
       - name: Verify Leads partial writes and recovery
@@ -558,7 +564,6 @@ jobs:
           (
             set -e
             if [ "$PUBLIC_PAGES_ONLY" = "true" ] || [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
-            node scripts/qa-admin-demo.mjs --one
             node scripts/qa-social-marketing.mjs
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
@@ -603,7 +608,6 @@ jobs:
             /tmp/accelerate-turnkey-qa/
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/
-            /tmp/accelerate-full-admin-demo/
             /tmp/accelerate-invoice-navigation/
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-work-portfolio-qa/

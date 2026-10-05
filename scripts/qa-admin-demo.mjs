@@ -787,6 +787,16 @@ for (const scenario of scenarios) {
       if (await page.getByText("Linked records", { exact: true }).count())
         failures.push("AI workspace: a no-tool answer invented a linked record");
       await page.screenshot({ path: `${output}/ai-run-history-desktop.png`, fullPage: true });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page
+        .getByRole("button", { name: /What matters now\?/ })
+        .first()
+        .press("Enter");
+      await page.getByText("Ordered trace", { exact: true }).waitFor();
+      if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2))
+        failures.push("AI workspace: run history has horizontal overflow on mobile");
+      await page.screenshot({ path: `${output}/ai-run-history-mobile.png`, fullPage: true });
+      await page.setViewportSize(viewport);
       await page
         .getByRole("button", { name: /Capabilities Understand tools and safeguards/ })
         .click();
