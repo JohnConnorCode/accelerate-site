@@ -143,11 +143,21 @@
 }
 
 @media (min-width: 1280px) {
+  .controls,
   .canvas {
-    max-height: calc(100dvh - 120px);
+    max-height: calc(100dvh - 180px);
     overflow: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
+  }
+
+  .controls {
+    padding: 4px 12px 4px 4px;
+  }
+
+  .canvas {
+    position: sticky;
+    top: 100px;
   }
 }
 

@@ -178,7 +178,7 @@ try {
         .getByRole("heading", { name: "Customer invoice page", exact: true })
         .scrollIntoViewIfNeeded();
       await page.screenshot({
-        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-studio.png`,
+        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-invoice-studio.png`,
       });
       await page
         .getByRole("textbox", { name: "Describe your changes", exact: true })

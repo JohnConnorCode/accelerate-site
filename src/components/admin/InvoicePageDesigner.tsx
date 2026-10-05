@@ -177,7 +177,11 @@ export function InvoicePageDesigner({
       </AnimatePresence>
       <LayoutGroup id={motionId}>
         <div className="mt-6 grid items-start gap-7 xl:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
-          <fieldset disabled={unavailable} className="min-w-0 space-y-5" aria-busy={busy}>
+          <fieldset
+            disabled={unavailable}
+            className={`${styles.controls} min-w-0 space-y-5`}
+            aria-busy={busy}
+          >
             <legend className="sr-only">Invoice page presentation</legend>
             <div>
               <p className="text-sm font-medium">Style starters</p>
@@ -472,7 +476,12 @@ export function InvoicePageDesigner({
               </p>
             )}
           </fieldset>
-          <div className={`${styles.canvas} min-w-0 xl:sticky xl:top-6`}>
+          <div
+            className={`${styles.canvas} min-w-0`}
+            role="region"
+            aria-label="Invoice preview canvas"
+            tabIndex={0}
+          >
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className={styles.segment} role="group" aria-label="Preview width">
                 <button
