@@ -72,7 +72,7 @@
     "src/app/admin/today/page.tsx": "cbbba1645450b9ecc3bce1771bd06029306e62c33025bff07d5b7b1a30d13a4c",
     "src/app/admin/update-password/page.tsx": "e62f24ee8b4843f033eb5b4d28f6ed4141765990678e88fde91799f7b35a8274",
     "src/app/admin/website-grades/page.tsx": "81e08a663b69ba64ae3f123857d3558dc7e71b8c562161f3df6df2f1c1765639",
-    "src/app/admin/work/page.tsx": "dc63f7cf367112ea603bcffebdab03130629ca97087934c76ad240849ef3f305",
+    "src/app/admin/work/page.tsx": "888a7f807c5f473dc4a9851ee1371ee6868e1f93e54657213b7e9b3b1aa72cd3",
     "src/app/api/admin/activity/route.ts": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f",
     "src/app/api/admin/blueprints/[id]/route.ts": "0f320be38283c086d60f7bc49c8138abba4e99ca967b14c90c20bb2a7047f67f",
     "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",

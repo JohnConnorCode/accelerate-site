@@ -21,6 +21,8 @@ try {
           timelineFailure: true,
           searchFailure: true,
           slowStarted: false,
+          taskDelayId: null,
+          taskFailure: true,
           frames: [],
           panels: [],
         };
@@ -49,6 +51,15 @@ try {
                   return json({ error: "Client not found" }, 404);
                 if (window.__qa.clientFailure)
                   return json({ error: "Client temporarily unavailable" }, 503);
+              }
+              if (
+                url.pathname === "/api/admin/tasks" &&
+                window.__qa.taskDelayId &&
+                url.searchParams.get("id") === window.__qa.taskDelayId
+              ) {
+                await new Promise((resolve) => setTimeout(resolve, 600));
+                if (window.__qa.taskFailure)
+                  return json({ error: "Task detail temporarily unavailable" }, 503);
               }
               if (url.pathname === "/api/admin/contacts/timeline" && window.__qa.timelineFailure)
                 return json({ error: "Activity temporarily unavailable" }, 503);
@@ -304,6 +315,13 @@ try {
             href: `/work?task=${tasks.tasks[0].id}`,
           },
           {
+            kind: "Work",
+            label: tasks.tasks[1].title,
+            id: tasks.tasks[1].id,
+            href: `/work?task=${tasks.tasks[1].id}`,
+            repeatTask: true,
+          },
+          {
             kind: "Opportunities",
             label: pipeline.opportunities[0].name,
             id: pipeline.opportunities[0].id,
@@ -324,6 +342,10 @@ try {
         ];
       });
       for (const record of records) {
+        if (record.repeatTask)
+          await page.evaluate((id) => {
+            window.__qa.taskDelayId = id;
+          }, record.id);
         const input = page.getByRole("combobox", { name: "Search workspace" });
         if (!(await input.count())) await page.keyboard.press("Control+k");
         await input.fill(record.label);
@@ -364,6 +386,19 @@ try {
           .getByRole("dialog", { name: "Admin command palette" })
           .waitFor({ state: "hidden" });
         if (record.kind === "Work") {
+          if (record.repeatTask) {
+            const alert = page
+              .getByRole("alert")
+              .filter({ hasText: "We couldn’t load this information" });
+            await alert.waitFor();
+            await page
+              .getByRole("dialog", { name: "Task details", exact: true })
+              .waitFor({ state: "hidden" });
+            await page.evaluate(() => {
+              window.__qa.taskFailure = false;
+            });
+            await alert.getByRole("button", { name: "Retry", exact: true }).click();
+          }
           const details = page.getByRole("dialog", { name: "Task details", exact: true });
           await details.waitFor();
           assert.equal(
@@ -421,6 +456,7 @@ try {
         retainedActivity: "passed",
         searchRecoveryAndRace: "passed",
         recordDetailNavigation: "passed: work, opportunities, clients, proposals",
+        taskDetailCacheAndRecovery: "passed",
         selectionMotion: moved,
         panels: "passed",
         retainedAIDraft: "passed",
