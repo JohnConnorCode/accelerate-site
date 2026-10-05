@@ -344,13 +344,11 @@ for (const [label, viewport, colorScheme] of [
     const homeLink = page.locator('header .logo-link[href="/"]');
     await homeLink.hover();
     await page.waitForTimeout(350);
-    await homeLink.click();
-    await page.waitForURL(`${baseUrl}/`);
-    await page.waitForFunction(() =>
-      document.querySelector(".home-hero")?.classList.contains("in"),
-    );
-    const forward = await page.evaluate(() => {
+    // Observe the entrance in the browser before clicking. Waiting for navigation
+    // load or sampling after a host round trip can consume the entire animation.
+    const forwardSample = page.waitForFunction(() => {
       const hero = document.querySelector(".home-hero");
+      if (!hero?.classList.contains("in")) return false;
       const word = hero.querySelector(".home-hero-word");
       const entrance = word
         .getAnimations()
@@ -365,6 +363,9 @@ for (const [label, viewport, colorScheme] of [
         action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
       };
     });
+    await homeLink.click({ noWaitAfter: true });
+    await page.waitForURL(`${baseUrl}/`, { waitUntil: "commit" });
+    const forward = await (await forwardSample).jsonValue();
     settled.forward = forward;
     // A client commit can be observed partway through its entrance. Require
     // a live, fresh animation clock; concealed opening frames are tested above.
