@@ -67,7 +67,8 @@ async function verifyDefaultDemo(
       await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
       await page.goto(home);
       await page.getByRole("link", { name: /Inspection review/ }).click();
-      assert.equal(page.url(), draftUrl);
+      await page.waitForURL(draftUrl);
+      await page.getByRole("heading", { name: "Inspection review", exact: true }).waitFor();
       await page.getByRole("button", { name: "Discard draft", exact: true }).click();
       await page
         .getByRole("button", { name: "Click again to discard Inspection review", exact: true })
