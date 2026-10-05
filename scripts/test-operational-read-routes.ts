@@ -72,25 +72,30 @@ const columns: Record<string, string[]> = {
   ],
 };
 function database(seed: Record<string, Row[]> = {}) {
+  const tables: Record<string, Row[]> = {
+    solution_requests: [],
+    contact_submissions: [],
+    chat_leads: [],
+    partner_applications: [],
+    proposals: [],
+    tasks: [],
+    work_items: [],
+    action_queue: [],
+    sent_emails: [],
+    messages: [],
+    ...seed,
+  };
   const mem = new MemorySupabase(
     Object.fromEntries(
-      Object.entries({
-        solution_requests: [],
-        contact_submissions: [],
-        chat_leads: [],
-        partner_applications: [],
-        proposals: [],
-        tasks: [],
-        work_items: [],
-        action_queue: [],
-        sent_emails: [],
-        messages: [],
-        ...seed,
-      }).map(([table, rows]) => [table, rows.map((row) => ({ tenant_id: tenant, ...row }))]),
+      Object.entries(tables).map(([table, rows]) => [
+        table,
+        rows.map((row) => ({ tenant_id: tenant, ...row })),
+      ]),
     ),
   );
+  const client = mem.client as { from: (table: string) => Record<string, unknown> };
   const from = (table: string) => {
-    const raw = mem.client.from(table) as Record<string, unknown>;
+    const raw = client.from(table);
     const allowed = new Set(["tenant_id", ...(columns[table] ?? [])]);
     const proxy: Record<string, unknown> = new Proxy(raw, {
       get(target, property) {
@@ -115,7 +120,7 @@ function database(seed: Record<string, Row[]> = {}) {
     });
     return proxy;
   };
-  const db = bindTenantDatabaseForTest({ ...mem.client, from } as never, tenant);
+  const db = bindTenantDatabaseForTest({ ...client, from } as never, tenant);
   fixture.operationalReadAuth = { database: db, user: { email: "operator@example.test" } };
   return mem;
 }
