@@ -58,7 +58,7 @@
     "src/app/admin/resources/page.tsx": "4f9c6539ebcdd69d96e0e81d5f60b746fc8d37b643ef33a94c1535902da0a3a3",
     "src/app/admin/revenue/page.tsx": "067e05606e15de6d3e1cb29feff33b925373d98c8d9017148cd8e6072013daab",
     "src/app/admin/settings/page.tsx": "ddc02dcafabc97ec8f408f9cafaa3c56342fe9364495fe09167be42ee55188c8",
-    "src/app/admin/setup/page.tsx": "5f314b54610fe02f5c0179bca6cb99a50426b017cc6ff5f78cd8a5dea52b67ce",
+    "src/app/admin/setup/page.tsx": "912186665a7cca90f85ac7f99c9a10c7023c893a01c183a7ed11b8f1fe49ffc6",
     "src/app/admin/site/[id]/page.tsx": "967b7d53e5e731e05e9c88fa943853ee977b8bd8afd8ee2bb88a8d7ce016fee9",
     "src/app/admin/site/connect/page.tsx": "46746b81f2b127b7c002509cc1d3b04e673e8bb44e7ca389fcad43eca7c7dd74",
     "src/app/admin/site/page.tsx": "759acbf21797f27e6f49b56fd3c358b38fc354c810566c4db1d2bab4a8b63f4c",
@@ -386,7 +386,7 @@
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
     "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
-    "src/lib/revenue-os/workspace-configuration.ts": "f293e0d1481a964a5e6e761e3d4e114b06c5ddaba1b266cdfb287c54ff9081d4",
+    "src/lib/revenue-os/workspace-configuration.ts": "e31e6ccc812f890bf9f10515332e8c062c0349e7a533edc5626c95330713f5b6",
     "src/lib/revenue-os/workspace-mcp-oauth.ts": "9073501451d28a00dad04577404eefdc5c85c51a50890bf243eda505528b1753",
     "src/lib/site-studio/database-store.ts": "58a4234f1af081f015727ba72c527e6b7ac78e110a868d0dc5b18c895e674842",
     "src/lib/site-studio/delegation.ts": "a0e55a813bb33b3a791c6b84be69e3f3a6c8f6a38ed52372c5dc3e85416fe4e9",
@@ -1188,7 +1188,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Integration, module and tenant provider services have separate ownership. Registered plugin settings reuse a reviewed schema and reject credentials in public configuration. Radar requires complete public profile fields before enablement; saved model preferences do not enable workers. Radar source briefs enforce them through shared atomic budget reservations and a pinned single-attempt model gateway. Module documentation links are manifest data. A targeted module setup query filters to its existing enable switch. Search and tab state do not enable a module or change provider configuration; the existing module and provider APIs remain the mutation boundary.",
+      "boundary": "Integration, module and tenant provider services have separate ownership. Registered plugin settings reuse a reviewed schema and reject credentials in public configuration. Radar requires complete public profile fields before enablement; saved model preferences do not enable workers. Radar source briefs enforce them through shared atomic budget reservations and a pinned single-attempt model gateway. Module documentation links are manifest data. A targeted module setup query filters to its existing enable switch. Search and tab state do not enable a module or change provider configuration; the existing module and provider APIs remain the mutation boundary. Shared Google sync preserves reviewed account, scopes and folder selection between sources. Unconfigured Drive is optional for Sync all, while partial or failed source receipts still prevent overall completion.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1610,7 +1610,7 @@
           ]
         }
       ],
-      "boundary": "Health and schema checks are operational evidence, not business record parity. Optional Gmail draft permission reports connection and scope readiness without a scheduled run or exposing credentials. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming.",
+      "boundary": "Health and schema checks are operational evidence, not business record parity. Optional Gmail draft permission reports connection and scope readiness without a scheduled run or exposing credentials. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. Google sync uses the shared tenant/admin-guarded configuration service. Setup distinguishes a skipped busy job from completed work. Sync all can read Gmail and Calendar without Drive folders, recording Drive as not configured; a Drive-only request requires selected folders.",
       "followUp": null,
       "specialBoundary": null
     },
