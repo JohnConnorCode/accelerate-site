@@ -87,9 +87,11 @@ async function main() {
           : require(name.startsWith("@/") ? resolve("src", name.slice(2)) : name),
     },
   );
-  const get = (query: string) =>
+  const get = (query: string, scope = "workspace") =>
     exported.GET!(
-      new NextRequest(`https://example.test/api/admin/search?q=${encodeURIComponent(query)}`),
+      new NextRequest(
+        `https://example.test/api/admin/search?scope=${scope}&q=${encodeURIComponent(query)}`,
+      ),
     );
   let response = await get("owner");
   assert.equal(response.status, 200);
@@ -177,6 +179,21 @@ async function main() {
   }
   assert.equal((await get("owner")).status, 200, "same query recovers after a failed read");
   assert.deepEqual(await (await get("missing-person")).json(), { results: [], records: [] });
+  const beforePeopleOnly = memory.queryTables.length;
+  for (const table of ["tasks", "opportunities", "clients", "proposals"])
+    memory.fail(table, { message: "Unrelated record source unavailable" });
+  const peopleOnly = await get("owner", "people");
+  assert.equal(
+    peopleOnly.status,
+    200,
+    "person attachments remain available when unrelated records fail",
+  );
+  assert.equal((await peopleOnly.json()).records.length, 0);
+  assert(
+    memory.queryTables.slice(beforePeopleOnly).every((table) => tables.slice(0, 5).includes(table)),
+    "people-only callers never read unrelated records",
+  );
+  for (const table of ["tasks", "opportunities", "clients", "proposals"]) memory.recover(table);
   const actor = authorization as { tenant: { config: { modules: Record<string, boolean> } } };
   actor.tenant.config.modules = { clients: false, proposals: false };
   const queriedBeforeDisabled = memory.queryTables.length;

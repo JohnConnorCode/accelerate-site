@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const rawQ = searchParams.get("q");
+  const peopleOnly = searchParams.get("scope") === "people";
   const q = normalizeSearchQuery(rawQ || "");
   if (q.length < 3) {
     return NextResponse.json({ results: [], records: [] });
@@ -53,19 +54,23 @@ export async function GET(request: NextRequest) {
       .select("name, email")
       .or(`name.ilike.${pattern},email.ilike.${pattern}`)
       .limit(5),
-    supabase
-      .from("tasks")
-      .select("id, title, status, related_name")
-      .or(`title.ilike.${pattern},related_name.ilike.${pattern}`)
-      .order("created_at", { ascending: false })
-      .limit(5),
-    supabase
-      .from("opportunities")
-      .select("id, name, stage")
-      .ilike("name", pattern)
-      .order("created_at", { ascending: false })
-      .limit(5),
-    isModuleEnabled("clients", modules)
+    peopleOnly
+      ? skipped
+      : supabase
+          .from("tasks")
+          .select("id, title, status, related_name")
+          .or(`title.ilike.${pattern},related_name.ilike.${pattern}`)
+          .order("created_at", { ascending: false })
+          .limit(5),
+    peopleOnly
+      ? skipped
+      : supabase
+          .from("opportunities")
+          .select("id, name, stage")
+          .ilike("name", pattern)
+          .order("created_at", { ascending: false })
+          .limit(5),
+    !peopleOnly && isModuleEnabled("clients", modules)
       ? supabase
           .from("clients")
           .select("id, business_name, contact_name, status")
@@ -75,7 +80,7 @@ export async function GET(request: NextRequest) {
           .order("created_at", { ascending: false })
           .limit(5)
       : skipped,
-    isModuleEnabled("proposals", modules)
+    !peopleOnly && isModuleEnabled("proposals", modules)
       ? supabase
           .from("proposals")
           .select("id, title, client_name, status")

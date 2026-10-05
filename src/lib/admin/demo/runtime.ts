@@ -4662,18 +4662,23 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           .filter((item) => matches(item.name, item.email))
           .slice(0, 10)
           .map((item) => ({ name: item.name, email: item.email, type: item.role })),
-        records: formatSearchRecords({
-          tasks: demoTaskRows(pack, state).filter((item) => matches(item.title, item.related_name)),
-          opportunities: opportunityRows(pack, state).filter((item) => matches(item.name)),
-          clients: isModuleEnabled("clients", config)
-            ? clientRows(pack, state).filter((item) =>
-                matches(item.business_name, item.contact_name, item.contact_email),
-              )
-            : [],
-          proposals: isModuleEnabled("proposals", config)
-            ? proposals(pack).filter((item) => matches(item.title, item.client_name))
-            : [],
-        }),
+        records:
+          url.searchParams.get("scope") === "people"
+            ? []
+            : formatSearchRecords({
+                tasks: demoTaskRows(pack, state).filter((item) =>
+                  matches(item.title, item.related_name),
+                ),
+                opportunities: opportunityRows(pack, state).filter((item) => matches(item.name)),
+                clients: isModuleEnabled("clients", config)
+                  ? clientRows(pack, state).filter((item) =>
+                      matches(item.business_name, item.contact_name, item.contact_email),
+                    )
+                  : [],
+                proposals: isModuleEnabled("proposals", config)
+                  ? proposals(pack).filter((item) => matches(item.title, item.client_name))
+                  : [],
+              }),
       });
     }
     if (path === "/api/admin/revenue-os/overview") {

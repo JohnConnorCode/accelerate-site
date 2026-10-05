@@ -87,7 +87,7 @@ export function AdminFounderNoteModal() {
     searchTimer.current = setTimeout(async () => {
       try {
         const result = await fetchJson<{ results: PersonResult[] }>(
-          `/api/admin/search?q=${encodeURIComponent(value.trim())}`,
+          `/api/admin/search?scope=people&q=${encodeURIComponent(value.trim())}`,
         );
         setPeople(
           result.results.filter((person) => person.type === "Canonical contact").slice(0, 5),
