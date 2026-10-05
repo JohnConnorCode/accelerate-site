@@ -413,10 +413,12 @@ try {
           await page.getByRole("heading", { name: record.label, exact: true }).waitFor();
           // A selected proposal remains reachable when its status is excluded from the list.
           await page.getByLabel("Filter by status").selectOption("declined");
-          await page
-            .getByText("No proposals yet. Create one from a lead or start blank.", { exact: true })
-            .waitFor();
+          await page.getByText("No proposals match this filter.", { exact: true }).waitFor();
           await page.getByRole("heading", { name: record.label, exact: true }).waitFor();
+          await page.screenshot({
+            path: `${output}/proposal-empty-filter-${width}-${reducedMotion}.png`,
+            style: "nextjs-portal{visibility:hidden}",
+          });
         }
       }
       await page.keyboard.press("Control+k");

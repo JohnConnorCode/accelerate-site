@@ -62,6 +62,10 @@ export default function ProposalsPage() {
   const [generating] = useState(false);
   const searchParams = useSearchParams();
   const navigation = useAdminNavigation();
+  const emptyMessage =
+    statusFilter === "all"
+      ? "No proposals yet. Create one from a lead or start blank."
+      : "No proposals match this filter.";
   const requestedProposal = searchParams.get("proposal");
   const listedProposal = proposals.find((proposal) => proposal.id === requestedProposal);
   const selectedQuery = useAdminQuery<{ proposal: Proposal | null }>(
@@ -222,83 +226,91 @@ export default function ProposalsPage() {
           </GlassCard>
         )}
 
-        {proposals.length === 0 ? (
-          <EmptyState message="No proposals yet. Create one from a lead or start blank." />
+        {proposals.length === 0 && !selectedProposal ? (
+          <EmptyState message={emptyMessage} />
         ) : (
           <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
-            <div className={selectedProposal ? "min-w-0 hidden lg:block" : "min-w-0"}>
-              <GlassCard hover="none">
-                <div className="overflow-x-auto">
-                  <table className="admin-table w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border-glass">
-                        <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
-                          Title
-                        </th>
-                        <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
-                          Client
-                        </th>
-                        <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
-                          Monthly
-                        </th>
-                        <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
-                          One-Time
-                        </th>
-                        <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
-                          Status
-                        </th>
-                        <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
-                          Created
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {proposals.map((proposal, i) => (
-                        <motion.tr
-                          key={proposal.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: i * 0.03 }}
-                          tabIndex={0}
-                          aria-label={`Open ${proposal.title}`}
-                          aria-selected={selectedProposal?.id === proposal.id}
-                          className="cursor-pointer border-b border-border-glass transition-colors hover:bg-white/[0.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] last:border-b-0"
-                          onClick={(event) => {
-                            if (isInteractiveTarget(event.target)) return;
-                            openProposal(proposal);
-                          }}
-                          onKeyDown={(event) => {
-                            if (event.target !== event.currentTarget) return;
-                            if (event.key === "Enter" || event.key === " ") {
-                              event.preventDefault();
+            <div
+              className={
+                selectedProposal && proposals.length > 0 ? "min-w-0 hidden lg:block" : "min-w-0"
+              }
+            >
+              {proposals.length === 0 ? (
+                <EmptyState message={emptyMessage} />
+              ) : (
+                <GlassCard hover="none">
+                  <div className="overflow-x-auto">
+                    <table className="admin-table w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border-glass">
+                          <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
+                            Title
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
+                            Client
+                          </th>
+                          <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
+                            Monthly
+                          </th>
+                          <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
+                            One-Time
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
+                            Status
+                          </th>
+                          <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
+                            Created
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {proposals.map((proposal, i) => (
+                          <motion.tr
+                            key={proposal.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: i * 0.03 }}
+                            tabIndex={0}
+                            aria-label={`Open ${proposal.title}`}
+                            aria-selected={selectedProposal?.id === proposal.id}
+                            className="cursor-pointer border-b border-border-glass transition-colors hover:bg-white/[0.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] last:border-b-0"
+                            onClick={(event) => {
+                              if (isInteractiveTarget(event.target)) return;
                               openProposal(proposal);
-                            }
-                          }}
-                        >
-                          <td className="px-3 py-2.5 font-medium text-white-primary">
-                            {proposal.title}
-                          </td>
-                          <td className="px-3 py-2.5 text-white-secondary">
-                            {proposal.client_name}
-                          </td>
-                          <td className="hidden px-3 py-2.5 text-emerald-400 2xl:table-cell">
-                            ${proposal.total_monthly?.toLocaleString() || "0"}/mo
-                          </td>
-                          <td className="hidden px-3 py-2.5 text-white-secondary 2xl:table-cell">
-                            ${proposal.total_one_time?.toLocaleString() || "0"}
-                          </td>
-                          <td className="px-3 py-2.5">
-                            <StatusBadge status={statusMap[proposal.status] || proposal.status} />
-                          </td>
-                          <td className="hidden px-3 py-2.5 text-xs text-white-muted 2xl:table-cell">
-                            {new Date(proposal.created_at).toLocaleDateString()}
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </GlassCard>
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.target !== event.currentTarget) return;
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                openProposal(proposal);
+                              }
+                            }}
+                          >
+                            <td className="px-3 py-2.5 font-medium text-white-primary">
+                              {proposal.title}
+                            </td>
+                            <td className="px-3 py-2.5 text-white-secondary">
+                              {proposal.client_name}
+                            </td>
+                            <td className="hidden px-3 py-2.5 text-emerald-400 2xl:table-cell">
+                              ${proposal.total_monthly?.toLocaleString() || "0"}/mo
+                            </td>
+                            <td className="hidden px-3 py-2.5 text-white-secondary 2xl:table-cell">
+                              ${proposal.total_one_time?.toLocaleString() || "0"}
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <StatusBadge status={statusMap[proposal.status] || proposal.status} />
+                            </td>
+                            <td className="hidden px-3 py-2.5 text-xs text-white-muted 2xl:table-cell">
+                              {new Date(proposal.created_at).toLocaleDateString()}
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </GlassCard>
+              )}
             </div>
             <section
               className={selectedProposal ? "min-w-0 block" : "min-w-0 hidden lg:block"}
