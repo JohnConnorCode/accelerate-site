@@ -278,7 +278,7 @@ export default function EmailsPage() {
       >
         {tab === "history" && historyQuery.data?.partial && (
           <AdminSurface tone="attention" className="flex items-center gap-3" role="status">
-            <TriangleAlert className="size-5 shrink-0 text-amber-600" />
+            <TriangleAlert className="size-5 shrink-0 text-[var(--admin-warning)]" />
             <p className="text-sm text-[var(--admin-ink)]">
               Some email history could not be read. Refresh before treating this list as complete.
             </p>
