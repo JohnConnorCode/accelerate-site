@@ -19,6 +19,8 @@ Try six fictional businesses without an account or provider keys. When you are r
 
 ## Quick start
 
+For version identity and upgrade planning, see [Core releases and fork upgrades](docs/self-hosting/RELEASES.md). Run `npm run release:check` to inspect verified stable metadata; applying an upgrade remains maintainer work.
+
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJohnConnorCode%2Faccelerate-site&project-name=my-revenue-os&repository-name=my-revenue-os&demo-title=Accelerate%20Revenue%20OS&demo-description=Self-hosted%20revenue%20operations%2C%20CRM%2C%20and%20AI%20workspace&demo-url=https%3A%2F%2Fwww.acceleratewith.us%2Fdemo%2Fcommand-center)
 
 The full repository starts with a neutral Command Center homepage and the fictional demo, with no environment variables required. Accelerate agency pages and assets are off by default. Admin routes show a clearly labeled setup screen until you connect your own Supabase project. Follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md) to create your workspace.

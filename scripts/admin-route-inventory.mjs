@@ -50,7 +50,7 @@ export function refreshEvidence(inventory, root = process.cwd()) {
     for (const adapter of row.adapters) {
       sources.add(adapter.path);
       for (const imported of adapter.domainImports)
-        sources.add(imported.replace("@/", "src/") + ".ts");
+        sources.add(imported.replace("@/", "src/") + (/\.(?:ts|mjs)$/.test(imported) ? "" : ".ts"));
     }
   }
   inventory.sources = Object.fromEntries(

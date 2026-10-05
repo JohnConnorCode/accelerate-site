@@ -67,6 +67,11 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes, after your installer configures and verifies the owner-only Site Studio OAuth connection. Check OpenAI’s current connection instructions for account eligibility and client support. It can read and edit website content, prepare an exact preview, save drafts, publish and restore revisions through the same editor services. Access lasts 30 days and can be revoked in Site Studio. A separate workspace OAuth connection exposes registered workspace tools, with business changes staged for approval. Workspace MCP keys cannot be pasted into ChatGPT.",
   },
   {
+    question: "How do I check for updates to my own installation?",
+    answer:
+      "The installation owner can select Check stable releases in Setup, or run npm run release:check from the repository. The check verifies published upstream metadata and reports the recorded core version separately from your fork commit. A supported path lists required bridge releases. An unversioned checkout needs to adopt an actual published release first; an unavailable result means no update was verified. Your maintainer still reviews backups, runtime requirements and local changes before applying or deploying an upgrade.",
+  },
+  {
     question: "Can I run the workspace for my own business?",
     answer:
       "Yes. Fork the complete repository: it starts with a neutral Command Center homepage, the full workspace, and fictional demos. Explore without credentials, then follow guided setup to connect your own Supabase project and owner account. Save a contact and task before connecting optional email or AI providers. Fork deployments include no scheduled jobs by default. Edit or replace the homepage in Site Studio. Agency content remains in the source and is disabled unless you explicitly enable the branded profile. A separate export remains available when you want to omit protected agency assets entirely. The self-hosting guide explains setup and recovery.",

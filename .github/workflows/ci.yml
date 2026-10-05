@@ -204,6 +204,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:setup-status
 
+      - name: Verify fork release metadata and compatibility
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:fork-release-contract
+
       - name: Verify fresh-fork install runbook
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:install-runbook

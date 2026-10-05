@@ -35,6 +35,7 @@ import {
 import { bookingModeSummary, bookingModeTitle, type BookingMode } from "@/lib/booking";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { CoreReleaseStatus } from "@/components/admin/CoreReleaseStatus";
 import { AdminStatusMessage } from "@/components/admin/AdminStatusMessage";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
@@ -701,6 +702,8 @@ export default function AdminSetupPage() {
           </>
         }
       />
+
+      <CoreReleaseStatus />
 
       {loading && !data ? (
         <AdminSurface className="flex min-h-64 items-center justify-center">

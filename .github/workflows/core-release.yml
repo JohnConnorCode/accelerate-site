@@ -1,0 +1,118 @@
+name: Core release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Exact reviewed main commit with full CI and connected-fork evidence
+        required: true
+        type: string
+      version:
+        description: Stable tag matching package.json, for example v0.1.0
+        required: true
+        type: string
+      supported_sources:
+        description: Comma-separated exact supported source tags; empty for the first release
+        default: ""
+        type: string
+      notes_path:
+        description: Reviewed release notes file within the source checkout
+        required: true
+        type: string
+      publish:
+        description: Publish after separate release approval and launch acceptance
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: core-release
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: ${{ github.repository == 'JohnConnorCode/accelerate-site' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    outputs:
+      source_commit: ${{ steps.identity.outputs.source_commit }}
+      version: ${{ steps.identity.outputs.version }}
+    steps:
+      - name: Validate exact source inputs
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          VERSION: ${{ inputs.version }}
+          NOTES_PATH: ${{ inputs.notes_path }}
+          SUPPORTED_SOURCES: ${{ inputs.supported_sources }}
+        run: |
+          [[ "$SOURCE_COMMIT" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$NOTES_PATH" =~ ^docs/verification/releases/[a-zA-Z0-9_-]+\.md$ ]]
+          [[ -z "$SUPPORTED_SOURCES" || "$SUPPORTED_SOURCES" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(,v[0-9]+\.[0-9]+\.[0-9]+)*$ ]]
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.source_commit }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Bind reviewed metadata and full CI to exact source
+        id: identity
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          VERSION: ${{ inputs.version }}
+          NOTES_PATH: ${{ inputs.notes_path }}
+          SUPPORTED_SOURCES: ${{ inputs.supported_sources }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
+          git merge-base --is-ancestor "$SOURCE_COMMIT" origin/main
+          node scripts/test-fork-release-contract.mjs
+          node scripts/core-release.mjs prepare --version "$VERSION" --sources "$SUPPORTED_SOURCES" --notes "$NOTES_PATH" --output "$RUNNER_TEMP/accelerate-release.json"
+          node scripts/verify-release-ci.mjs "$RUNNER_TEMP/accelerate-release.json" "$RUNNER_TEMP/release-ci.json"
+          echo "source_commit=$SOURCE_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: validated-core-release
+          path: |
+            ${{ runner.temp }}/accelerate-release.json
+            ${{ runner.temp }}/release-ci.json
+          retention-days: 30
+
+  publish:
+    needs: validate
+    if: ${{ inputs.publish }}
+    environment: core-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.validate.outputs.source_commit }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v7
+        with:
+          name: validated-core-release
+          path: ${{ runner.temp }}/release
+      - name: Recheck CI and publish the exact validated tag
+        env:
+          SOURCE_COMMIT: ${{ needs.validate.outputs.source_commit }}
+          VERSION: ${{ needs.validate.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/verify-release-ci.mjs "$RUNNER_TEMP/release/accelerate-release.json" "$RUNNER_TEMP/release/release-ci.json"
+          node -e 'const fs=require("node:fs");const m=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/release/accelerate-release.json")); if(m.sourceCommit!==process.env.SOURCE_COMMIT || m.version!==process.env.VERSION)process.exit(1);fs.writeFileSync(process.env.RUNNER_TEMP+"/release/notes.md",m.notes)'
+          git push origin "$SOURCE_COMMIT:refs/tags/$VERSION"
+          gh release create "$VERSION" "$RUNNER_TEMP/release/accelerate-release.json" "$RUNNER_TEMP/release/release-ci.json" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$VERSION" --notes-file "$RUNNER_TEMP/release/notes.md"

@@ -1,7 +1,7 @@
 ---
 title: "Connect your installation"
 description: "Create the owner account, apply the ordered schema, and sign in to a workspace you control."
-updated: "2026-09-29"
+updated: "2026-10-05"
 ---
 
 This walkthrough turns a local demo into a connected installation you control: database, authentication, and a real owner account. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email; complete [the local quickstart](/docs/self-hosting) first if you haven't already.
@@ -111,3 +111,20 @@ See the repository `deployment/README.md` for DNS, updates and retained data.
 Before importing customer records, keep recovery copies of the database, uploaded files and encryption configuration, then test restoring them into an isolated installation. Follow the repository's [backup and recovery guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/BACKUP-RECOVERY.md) and record the result so the next maintainer can repeat it.
 
 Protected actions share request limits across server instances. A 429 response means the limit was reached; wait for the indicated retry time. A 503 means the action is temporarily unavailable, so check Setup, the migration catalog and server configuration before retrying. The request stops before sending messages or starting the protected action.
+
+## Check core releases
+
+The installation owner can open **Setup** and select **Check stable releases**. The result separates the recorded core version from your fork's source commit and reports when it was checked. A supported path names the release order, including any bridge versions you must apply first. Read those release notes, check the required Node, npm and PostgreSQL versions, and test your recovery copies before changing a connected installation.
+
+A checkout from main starts **Unversioned**. Once a stable upstream release exists, fetch its tag and confirm that commit is part of your fork's history. From that checkout, run:
+
+```bash
+git fetch https://github.com/JohnConnorCode/accelerate-site.git 'refs/tags/v0.1.0:refs/tags/v0.1.0'
+npm run release:adopt -- --tag v0.1.0
+```
+
+Replace the example tag with an actual published stable release. Adoption checks its metadata, checksum and exact tag commit, then writes `core-release.json`. Commit that file with your fork and rebuild so the deployed application retains the recorded version. Adoption records a source baseline; it does not certify your database or merge local changes. Package version `0.1.0` alone is not release proof.
+
+You can also run `npm run release:check` from the repository. Both checks use the same public upstream and compatibility rules, without sending installation records or credentials. If no stable release exists, the result is unknown. Offline access, rate limits or unverifiable metadata produce an unavailable result with a check time. Retry later; an older result does not establish current compatibility.
+
+These controls help plan an upgrade. Applying it, migrating the database and deploying remain reviewed maintainer work. The repository [release policy](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/RELEASES.md) explains supported source versions and release preparation.

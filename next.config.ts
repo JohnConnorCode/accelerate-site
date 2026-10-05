@@ -2,6 +2,7 @@ import { lstatSync, realpathSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
+import { sourceIdentity } from "./scripts/lib/core-release-source.mjs";
 
 // Shared worktree checkouts symlink node_modules to a sibling tree. Turbopack
 // only resolves modules inside its root, so a link out of the checkout panics
@@ -27,6 +28,8 @@ if (requestedDistDir && !/^\.next-[a-z0-9-]+$/.test(requestedDistDir)) {
 }
 
 const nextConfig: NextConfig = {
+  // Public source identity only. Kept in the artifact so deployed forks need no Git checkout.
+  env: { ACCELERATE_CORE_IDENTITY: JSON.stringify(sourceIdentity(__dirname)) },
   ...(linkedNodeModules ? { turbopack: { root: turbopackRoot } } : {}),
   // Allows browser verification to use an isolated artifact when another local
   // worktree process is building concurrently. Production remains on `.next`.

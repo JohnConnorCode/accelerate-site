@@ -535,7 +535,7 @@ export const capabilities: Capability[] = [
     promise:
       "Run and extend the MIT-licensed application with infrastructure and provider accounts you control.",
     detail:
-      "Use the neutral starter and self-hosting guides for your own installation. Review the documented content exports, data ownership and support arrangements when planning a handoff.",
+      "Fork the complete application and follow the self-hosting guides. Setup can check the recorded core version and its supported path to a stable upstream release, keeping your fork commit separate. Review backups, local changes and release notes before a maintainer applies an upgrade.",
   },
 ];
 
