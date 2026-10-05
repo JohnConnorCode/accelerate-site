@@ -143,7 +143,7 @@ Tenants, setup, settings, integrations, and the Feature Board.
 - [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-27): How your business gets provisioned, connected, verified, and kept running.
 - [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-29): Turn a message, calendar event, or invoice sitting in another app into usable context here.
 - [Manage your subscription](https://www.acceleratewith.us/docs/workspace/customer-billing) (updated 2026-09-19): Subscribe, update payment details, and understand renewals from your customer account.
-- [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-27): Verify the connections one real workflow needs, before layering on more.
+- [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-10-05): Verify the connections one real workflow needs, before layering on more.
 - [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-30): Change a notification or your workspace's look, then confirm the change saved.
 
 ## Customize

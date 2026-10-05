@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "operational-health-unresolved-outcomes",
+    slug: "operational-health-unresolved-outcomes",
+    title: "Keep uncertain outcomes visible in operational health",
+    description:
+      "Setup and Today flag uncertain outbound message outcomes for receipt review, alongside failed and processing messages. Open work counts include claimed and in-progress items, so work does not disappear from the count while a worker handles it. Check the provider receipt before retrying an uncertain action.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

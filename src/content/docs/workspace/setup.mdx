@@ -1,7 +1,7 @@
 ---
 title: "Set up a working workspace"
 description: "Verify the connections one real workflow needs, before layering on more."
-updated: "2026-09-27"
+updated: "2026-10-05"
 ---
 
 A saved connection still needs to demonstrate that the intended workflow can run. **Setup** shows readiness checks and recovery steps, so you can verify one useful path, such as replying to a customer, before adding more connections.
@@ -45,7 +45,7 @@ Record the check name, its visible error, and the time of the last successful ve
 
 Read the latest execution evidence and the pending work counts together. A successful Gmail incremental sync with zero changed threads is quiet, not broken. A Drive source with no selected folders is not configured. A configured source without a run is never run; listed items that have not been stored or remain deferred indicate incomplete processing.
 
-Today links source and job status to the operational receipts. Live failed work and outbound messages still awaiting resolution can require attention even when the most recent sync succeeded. Pending counts describe work to inspect; they are not a count of successfully delivered results.
+Today links source and job status to the operational receipts. Live failed work and failed, processing, or uncertain outbound messages require receipt review even when the most recent sync succeeded. An uncertain outcome means the provider may have accepted the action, so verify its receipt before retrying. Open work counts include pending, waiting, claimed and in-progress items; completed and cancelled work are excluded.
 
 ### Read Drive indexing results
 

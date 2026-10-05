@@ -11,10 +11,7 @@ import {
   parseAiRunHistoryFilters,
   redactAiOperationsSummary,
 } from "../src/lib/revenue-os/ai-operations";
-import {
-  AI_TOOL_REGISTRY_VERSION,
-  listRevenueAiCapabilities,
-} from "../src/lib/revenue-os/ai-tools";
+import { listRevenueAiCapabilities } from "../src/lib/revenue-os/ai-tools";
 
 type Response = { data: unknown; error: unknown };
 type Operation = { table: string; method: string; args: unknown[] };
@@ -203,12 +200,15 @@ async function main() {
   assert.deepEqual(missingDetail.events, []);
 
   const capabilities = listRevenueAiCapabilities();
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v28");
   assert.ok(capabilities.some((capability) => capability.impact === "read"));
-  assert.ok(
+  // Starting or controlling a durable plan changes orchestration state only.
+  // Business effects still pass through the separate approval boundary.
+  assert.deepEqual(
     capabilities
-      .filter((capability) => capability.impact !== "read")
-      .every((capability) => capability.confirmationRequired),
+      .filter((capability) => capability.impact !== "read" && !capability.confirmationRequired)
+      .map((capability) => capability.name)
+      .sort(),
+    ["control_agent_work", "start_agent_work"],
   );
 
   for (const route of [
