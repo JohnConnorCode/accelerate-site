@@ -47,20 +47,21 @@ export async function POST(request: NextRequest) {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
-  const supabase = createPlatformServiceRoleClient("admin-password-reset");
-  const { data: membership } = await supabase
-    .from("tenant_memberships")
-    .select("tenant_id")
-    .eq("invited_email", normalizedEmail)
-    .in("status", ["invited", "active"])
-    .limit(1)
-    .maybeSingle();
-  // Do not disclose whether a submitted email has access.
-  if (!isConfiguredAdmin(normalizedEmail) && !membership) {
-    return NextResponse.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
-  }
-
   try {
+    const supabase = createPlatformServiceRoleClient("admin-password-reset");
+    const { data: membership, error: membershipError } = await supabase
+      .from("tenant_memberships")
+      .select("tenant_id")
+      .eq("invited_email", normalizedEmail)
+      .in("status", ["invited", "active"])
+      .limit(1)
+      .maybeSingle();
+    if (membershipError) throw new Error("Recovery membership lookup is unavailable.");
+    // Do not disclose whether a submitted email has access.
+    if (!isConfiguredAdmin(normalizedEmail) && !membership) {
+      return NextResponse.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
+    }
+
     const resetUrl = new URL(
       "/auth/callback",
       commandCenterOrigin || process.env.NEXT_PUBLIC_SITE_URL || request.url,
@@ -111,11 +112,11 @@ export async function POST(request: NextRequest) {
       html: adminPasswordResetEmail(resetUrl.toString()),
     });
     if (sendError) throw sendError;
-  } catch (error) {
-    console.error("[admin-password-reset] Failed to issue recovery email", error);
+  } catch {
+    console.error("[admin-password-reset] Recovery is temporarily unavailable.");
     return NextResponse.json(
       { error: "We could not send a reset email. Please try again shortly." },
-      { status: 500 },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 

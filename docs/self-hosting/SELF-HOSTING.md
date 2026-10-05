@@ -36,6 +36,18 @@ that your Auth email delivery works before relying on the workspace. Supabase's
 default hosted sender is limited; configure SMTP for regular use. When Resend is
 configured, Command Center sends its own recovery email instead.
 
+Before relying on recovery, open **Sign in to Command Center**, choose **Forgot
+password?**, enter the owner's email and select **Send reset link**. Open the
+email in the same browser that requested it so the browser can finish the secure
+exchange. Set a different password, sign out, and confirm the new password opens
+the existing workspace. Check a saved contact and its follow-up after signing in.
+
+An expired or previously used link opens **Reset your password** with guidance to
+request another email. If the update fails, the form keeps the entered values and
+allows another attempt. **Request a new reset link** returns to recovery without
+requiring access to the workspace. A successful request message does not prove
+email delivery; check the inbox and complete the sign-in test.
+
 ## 3. Plan and apply workspace setup
 
 Set `BOOTSTRAP_BRAND_NAME`, `ADMIN_EMAIL` and `NEXT_PUBLIC_SITE_URL` alongside
