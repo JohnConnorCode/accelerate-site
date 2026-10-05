@@ -90,6 +90,8 @@ try {
       taskActions = [],
       previewInput,
       failDraft = true,
+      failPageRead = true,
+      failDesign = true,
       published = false;
     const receipt = {
       invoiceId: "in_fixture",
@@ -244,9 +246,23 @@ try {
         return json(action.result || {});
       }
       if (path === "/api/admin/invoicing/pages") {
-        if (req.method() === "GET")
+        if (req.method() === "GET") {
+          if (failPageRead)
+            return json({ error: "Invoice page could not be loaded. Try again." }, 422);
           return json({
             tenantSlug: "accelerate",
+            preview: {
+              brand,
+              document: invoice,
+              design: {
+                layout: "classic",
+                heading: "Invoice",
+                introduction: "Thank you for your business.",
+                closing: "Questions? Contact our team.",
+              },
+              digest: "f".repeat(64),
+              testMode: true,
+            },
             pages: published
               ? [
                   {
@@ -258,7 +274,17 @@ try {
                 ]
               : [],
           });
-        if (body.mode === "generate")
+        }
+        if (body.mode === "generate") {
+          assert.equal(
+            body.currentDesign.heading,
+            "Client implementation invoice",
+            "AI retries use the unchanged draft",
+          );
+          if (failDesign) {
+            failDesign = false;
+            return json({ error: "AI provider unavailable. Your draft is unchanged." }, 422);
+          }
           return json({
             design: {
               layout: "editorial",
@@ -267,6 +293,7 @@ try {
               closing: "We appreciate your business.",
             },
           });
+        }
         if (body.mode === "preview")
           return json({
             brand,
@@ -360,6 +387,26 @@ try {
     await page.getByRole("button", { name: "Approve & send invoice" }).click();
     await page.getByText("Stripe accepted the test request. No customer email was sent.").waitFor();
     await page.getByRole("button", { name: "Design customer page" }).click();
+    await page.getByRole("alert").filter({ hasText: "Invoice page could not be loaded" }).waitFor();
+    assert.equal(
+      await page.getByRole("button", { name: "Apply AI changes", exact: true }).isEnabled(),
+      false,
+    );
+    assert.equal(
+      await page.getByText("No published links yet.", { exact: true }).count(),
+      0,
+      "A failed read is not an empty history",
+    );
+    failPageRead = false;
+    await page.getByRole("button", { name: "Retry loading invoice", exact: true }).click();
+    await page.getByRole("region", { name: "Invoice design preview", exact: true }).waitFor();
+    await page.getByLabel("Heading", { exact: true }).fill("Client implementation invoice");
+    await page.getByRole("button", { name: "Apply AI changes" }).click();
+    await page.getByRole("alert").filter({ hasText: "AI provider unavailable" }).waitFor();
+    assert.equal(
+      await page.getByLabel("Heading", { exact: true }).inputValue(),
+      "Client implementation invoice",
+    );
     await page.getByRole("button", { name: "Apply AI changes" }).click();
     await page.getByRole("button", { name: "Preview page", exact: true }).click();
     await page.getByRole("heading", { name: "Built for your next chapter" }).waitFor();
@@ -367,6 +414,12 @@ try {
     await page.getByRole("button", { name: "Request publication approval" }).click();
     await page.getByRole("button", { name: "Approve & publish page" }).click();
     await page.getByRole("button", { name: "Refresh published links" }).click();
+    const customerPage = page.getByRole("link", { name: /Open customer page/ });
+    assert.equal(
+      await customerPage.getAttribute("href"),
+      "/t/accelerate/invoice/" + "a".repeat(43),
+    );
+    assert.equal(await customerPage.getAttribute("target"), "_blank");
     await page.getByRole("button", { name: "Revoke", exact: true }).click();
     await page.getByText("Customer access revoked.").waitFor();
     await page.evaluate(() => document.querySelector(".admin-main")?.scrollTo(0, 0));
