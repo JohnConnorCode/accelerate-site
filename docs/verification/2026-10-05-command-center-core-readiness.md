@@ -75,7 +75,7 @@ unchanged.
 
 | Requirement                       | Confirmed state                                                                                                                                                                                                                                     | Next action                                                                                                                                                                              |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Google connection                 | No Google integration connection or source receipts. Gmail and Calendar capabilities remain unavailable.                                                                                                                                            | Identify the intended account, complete secure human consent, verify scopes and source receipts, then check Sales/Roofing readiness.                                                     |
+| Google connection                 | The selected account awaits secure human consent. No Google integration connection or source receipts were present in the latest read. Gmail and Calendar capabilities remain unavailable.                                                          | Complete secure human consent, verify scopes and source receipts, then check Sales/Roofing readiness.                                                                                    |
 | Historical timeout reconciliation | Four failed items retain unknown effect outcomes. Their linked artifacts and audits were reviewed; none has proof sufficient to declare complete. One has a partial internal handler receipt. No business action receipt was found for these items. | Obtain missing completion/provider evidence or use a supported reviewed reconciliation operation. Preserve history and idempotency; do not blindly requeue.                              |
 | Connected business journeys       | The inquiry-to-approved-reply and qualification-to-booking-to-follow-up outcomes lack accepted connected-provider proof.                                                                                                                            | Run controlled fixtures after provider setup, with explicitly approved sends/booking, actual provider receipts, duplicate/failure/recovery checks and the existing Phase A/C acceptance. |
 | Universal AI/admin parity         | Domain coverage remains partial. The shipped Collections policy slice does not satisfy the commerce parent or universal initiative.                                                                                                                 | Finish existing domain acceptance matrices and governed proposal, invoice and Collections operation gaps through shared services. Inventory counts alone are not proof of coverage.      |
@@ -101,6 +101,48 @@ before the fix and passed afterward. This proof sent no external messages and
 does not activate Google capabilities or establish deployment.
 
 ## Verification
+
+The subsequent broader audit repairs Google sync, email evidence, Intake review,
+recipient eligibility and meeting scheduling in application source
+`f74e732b9740be2de6986f5be947a82fb351bc4b`:
+
+- Sync all permits Gmail and Calendar without Drive folders. Drive records
+  `not_configured`, with no file request. Drive-only sync still requires selected
+  folders. Setup distinguishes a busy skipped job from a completed sync.
+- Google source readiness now checks the actual Zod limit, shared folder cap,
+  normalized selection and parent allowlist. Six negative boundary variants must
+  still fail. These checks join the core gate.
+- Email history reads the actual `sent_emails.sent_at` and `messages.provider_id`
+  fields, retains recorded template metadata, warns when one source is unavailable
+  and returns an error when both fail.
+- Intake review reads canonical action fields and follows the saved task bridge
+  created by `surfaceInInbox`. Bridged work is shown once. Pending actions retain
+  recorded urgency and open their exact Work approval. Required source failures
+  return an unavailable response before reporting counts.
+- Approved email eligibility reads `contacts.communication_status`. Automated
+  first replies recognize `clients.contact_email` and decline when contact,
+  client, prior-send or daily-limit evidence cannot be verified.
+- Meeting briefs use `calendar_events.start_at`, exclude cancelled meetings and
+  report an existing deduplicated brief as skipped rather than newly created.
+
+Seven old projection families returned PostgreSQL code `42703` through the live
+tenant-bound REST client; all seven corrected projections passed with a zero-row
+limit. The verified schema contains 151 public tables. A nesting-aware source
+scan checked 2,597 literal top-level select/filter/order calls against those
+columns and found no remaining missing fields. Dynamic fields and embedded
+relation columns are outside that scan's proof. It establishes neither universal
+AI parity nor provider workflow completion. No production row or external
+message was changed by these checks.
+
+Thirteen additional controlled/static checks passed across Gmail, conversations,
+analytics, notifications, job/task receipts and revenue reads. The actual Inbox
+and email-history route handlers also passed controlled database tests for
+canonical fields, bridge deduplication, exact approval links, history ordering,
+provider evidence, partial/failed reads and authorization refusal. Sender and
+meeting regressions passed. Public Inbox, Email Studio and Integrations guides,
+their generated index, the changelog and route boundaries were synchronized;
+Command Center descriptions and FAQ remain accurate. The core gate now contains
+77 commands. Current full-review and browser receipts are recorded on PR 211.
 
 - The final worker source passed the 72-suite core run, full lint, documentation
   checks, generated docs index and source inventory checks. The focused Sales
@@ -140,9 +182,9 @@ does not activate Google capabilities or establish deployment.
   entrance clock after navigation. The test now samples the actual animation
   from inside the page before navigation, retaining its running-clock and fresh
   entrance assertions. Final branch verification is recorded on PR 211.
-- The retained production artifact for `7d9e4960` runs locally on port 3016;
+- The earlier production artifact for `7d9e4960` ran locally on port 3016;
   launcher, Today and AI routes returned HTTP 200. Its deployment ID matches
-  `7d9e4960c69a`. Subsequent verification-only changes do not change this app.
+  `7d9e4960c69a`. Its receipts precede the broader source repairs above.
 - Local build admission receipts retain the disk-capacity and other-worktree
   gate refusals. No resource limits were bypassed or unrelated output removed.
   After capacity recovered, the local browser run used the normal gate.
