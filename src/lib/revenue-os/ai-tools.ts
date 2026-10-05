@@ -146,12 +146,12 @@ import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
 import { readCompleteGmailThread, readGmailReplyTarget } from "./google";
 import {
-  debateMilestoneSchema,
   listDebateProductions,
   loadDebateProduction,
   proposeDebateMilestone,
 } from "./debate-bookings";
-import { debateInvitationSchema, proposeDebateInvitation } from "./debate-invitations";
+import { debateMilestoneSchema, debateInvitationSchema } from "./debate-booking-contract";
+import { proposeDebateInvitation } from "./debate-invitations";
 import { reversibilityOf } from "./action-reversibility-contract";
 import {
   assertGmailDraftTarget,

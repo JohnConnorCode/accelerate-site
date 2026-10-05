@@ -27,6 +27,9 @@ claimed. Existing Feature Board cards remain the authority for their acceptance.
 - Today reads recent workspace activity through the existing tenant-bound reader.
   Record pages retain their scoped timelines. A completely unavailable daily
   snapshot fails clearly instead of generating an empty successful digest.
+- Fresh Today, queue and booking imports no longer depend on a warmed AI tool
+  registry. Booking validation schemas live in the existing pure contract, while
+  approved domain services and validation rules remain unchanged.
 - Operational health counts all active work states and uncertain outbound
   outcomes. No recorded integration failures is no longer described as proof that
   every integration is connected and healthy.
@@ -90,6 +93,13 @@ The scheduler and health snapshot job were active. One historical outbound
 failure was a controlled send-verification fixture with an invalid key; it does
 not establish a current sender-key failure. No scheduler outage is claimed.
 
+A final read-only Today proof at `2026-10-05T16:51:37.710Z` returned 20 recent
+workspace activities. Attention, handling, metrics and facts all resolved ready.
+The initial fresh import exposed schema initialization cycles for Today, queue,
+debate bookings and debate invitations. All four failed in isolated processes
+before the fix and passed afterward. This proof sent no external messages and
+does not activate Google capabilities or establish deployment.
+
 ## Verification
 
 - The final worker source passed the 72-suite core run, full lint, documentation
@@ -99,7 +109,8 @@ not establish a current sender-key failure. No scheduler outage is claimed.
 - Runtime regressions check all 16 worker/report paths against canonical field
   names and inject essential read failures. They prove setup ordering, preserved
   settings, explicit clearing, failed setup receipts, meeting deferral and Today
-  workspace activity behavior.
+  workspace activity behavior. Four fresh-process import regressions also load
+  both booking tool schemas successfully without relying on earlier imports.
 - Native PostgreSQL runtime proof passed preservation, concurrent seed/sync,
   explicit revocation/disconnection, role denial, tenant isolation and audit
   checks. Full populated migration upgrade, replay and immutable checksum proof

@@ -6,19 +6,8 @@ import { tenantIdForDatabase, callDebateProductionHostRpc } from "@/lib/supabase
 import { proposeAction } from "./actions";
 import { loadDebateProduction, recordDebateMilestone } from "./debate-bookings";
 import { createVerifiedCalendarInvitation, readGmailReplyTarget } from "./google";
-
-export const debateInvitationSchema = z.object({
-  productionId: z.uuid(),
-  expectedRevision: z.number().int().min(0),
-  summary: z.string().trim().min(3).max(240),
-  description: z.string().trim().min(10).max(4000),
-  startAt: z.iso.datetime({ offset: true }),
-  endAt: z.iso.datetime({ offset: true }),
-  timeZone: z.string().trim().min(3).max(80),
-  location: z.string().trim().max(300).nullable().optional(),
-  createMeet: z.boolean(),
-  acceptanceMessageIds: z.tuple([z.uuid(), z.uuid()]),
-});
+import { debateInvitationSchema } from "./debate-booking-contract";
+export { debateInvitationSchema } from "./debate-booking-contract";
 
 type Invitation = z.infer<typeof debateInvitationSchema>;
 type Acceptance = {

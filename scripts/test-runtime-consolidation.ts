@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
@@ -89,6 +90,26 @@ function workFixture() {
   return mem;
 }
 async function main() {
+  // Warm registry imports hid schema initialization cycles in Today and booking reads.
+  for (const owner of ["today-snapshot", "queue", "debate-bookings", "debate-invitations"]) {
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--conditions=react-server",
+        "--import",
+        "tsx",
+        "-e",
+        `require('./src/lib/revenue-os/${owner}.ts');
+         const tools = require('./src/lib/revenue-os/ai-tools.ts').getRevenueAiTools();
+         for (const name of ['propose_debate_milestone', 'propose_debate_invitation']) {
+           if (!tools.some(tool => tool.name === name && tool.inputSchema.type === 'object'))
+             throw new Error('Booking schema missing: ' + name);
+         }`,
+      ],
+      { encoding: "utf8", timeout: 15_000 },
+    );
+    assert.equal(result.status, 0, `${owner} cold import failed: ${result.stderr}`);
+  }
   registerFinanceWorkHandlers();
   registerOperationsWorkHandlers();
   registerBusinessPulseWorkHandlers();
@@ -718,6 +739,7 @@ async function main() {
     JSON.stringify({
       result: "passed",
       checks: [
+        "cold-today-and-booking-imports",
         "database-error-gates",
         "coworker-setup-preserves-settings-and-failures",
         "coworker-evidence-read-failures",

@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "coworker-setup-and-evidence",
     title: "Configure coworkers without resetting saved settings",
     description:
-      "Coworker setup preserves saved settings, connected accounts and existing permissions, creates the coworker before its scoped policies, and reports policy failures. It repairs untouched native CRM placeholders left by older setup. Worker reports use canonical contact, opportunity and execution fields, and fail clearly when business evidence cannot be read. Meeting work keeps unresolved CRM changes waiting for review. Today refreshes recent workspace activity, and AI run details fit the mobile screen.",
+      "Coworker setup preserves saved settings, connected accounts and existing permissions, creates the coworker before its scoped policies, and reports policy failures. It repairs untouched native CRM placeholders left by older setup. Worker reports use canonical contact, opportunity and execution fields, and fail clearly when business evidence cannot be read. Meeting work keeps unresolved CRM changes waiting for review. Today refreshes recent workspace activity, Today and booking reads load consistently after a restart, and AI run details fit the mobile screen.",
     category: "fix",
     publishedAt: "2026-10-05",
   },
