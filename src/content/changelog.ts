@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "private-page-draft-recovery",
+    slug: "private-page-draft-recovery",
+    title: "Recover private page drafts without losing your title",
+    description:
+      "Failed refreshes retain your preview and typed title. Load the latest copy after a stale or uncertain save or discard, review it, then retry. Creation keeps its brief fixed while pending, supports Enter submission, and requires a successful list refresh after an unclear result. Late replies cannot move you away from another page, and Keep draft cancels a discard choice. The optional image catalogue opens on demand and shows the eight-image selection limit.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "website-ai-review-recovery",
     slug: "website-ai-review-recovery",
     title: "Preview and recover AI website edits",

@@ -87,9 +87,15 @@ Choose **Import draft** in your own installation, review the imported content, t
 
 ## Private workspace drafts and the fictional demo
 
-The original Site Studio draft list remains available for tenant-owned service drafts. Enter a brief, choose a built-in template or AI model, attach approved catalogue photography and create a draft. Its preview supports rename and discard. These drafts are separate from the installation website and do not publish from that screen. Section regeneration is available through its authenticated API with a required checksum and a supported model ID.
+Workspace admins can create private service-page drafts in a connected workspace. Enter a service name, audience and outcome, choose a built-in template or AI model, and open **Browse image catalogue** to optionally attach up to eight approved images. Choose **Create draft** or press Enter in a brief field. Fields stay fixed while creation is pending. A successful result opens the saved draft's preview. These records are separate from the installation website and do not publish from this screen.
 
-In the [full admin demo](/demo/command-center), open the installation website editor to try creation, fictional AI suggestions, saving, publication receipts and rollback. Changes remain in that business scenario's browser session. They do not publish a live website, contact a provider or mutate production records. Switching scenarios isolates their drafts; resetting removes the scenario's changes.
+To rename a draft, enter **Draft title** and choose **Save title**. **Title saved** confirms the result. If the draft changed elsewhere or a save cannot be confirmed, your title text stays available. Choose **Load latest draft**, review the current preview and title, then save again if needed. A failed refresh retains the preview and your text; retry the read before saving or discarding. If the draft was removed, copy the retained **Unsaved title** before returning to the list.
+
+**Discard draft** asks for a second click; **Keep draft** cancels that choice. A failed or uncertain discard requires **Load latest draft** and another review. Discard affects only this private working copy.
+
+If creation cannot be confirmed, choose **Refresh drafts** before retrying. Check the list for the saved copy first; another create is enabled only after a successful refresh. Section regeneration remains available through the authenticated API with a required checksum and supported model ID.
+
+Private workspace draft operations are not simulated in the fictional demo. In the [full admin demo](/demo/command-center), open the installation website editor to try creation, fictional AI suggestions, saving, publication receipts and rollback. Changes remain in that business scenario's browser session. They do not publish a live website, contact a provider or mutate production records. Switching scenarios isolates their drafts; resetting removes the scenario's changes.
 
 ## What to check
 

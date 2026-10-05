@@ -59,9 +59,9 @@
     "src/app/admin/revenue/page.tsx": "067e05606e15de6d3e1cb29feff33b925373d98c8d9017148cd8e6072013daab",
     "src/app/admin/settings/page.tsx": "ddc02dcafabc97ec8f408f9cafaa3c56342fe9364495fe09167be42ee55188c8",
     "src/app/admin/setup/page.tsx": "5f314b54610fe02f5c0179bca6cb99a50426b017cc6ff5f78cd8a5dea52b67ce",
-    "src/app/admin/site/[id]/page.tsx": "967b7d53e5e731e05e9c88fa943853ee977b8bd8afd8ee2bb88a8d7ce016fee9",
+    "src/app/admin/site/[id]/page.tsx": "d973a3c13b23f53dc5daba8253f8fa8c43cdb31c3ffa022ac1dce70437308155",
     "src/app/admin/site/connect/page.tsx": "46746b81f2b127b7c002509cc1d3b04e673e8bb44e7ca389fcad43eca7c7dd74",
-    "src/app/admin/site/page.tsx": "759acbf21797f27e6f49b56fd3c358b38fc354c810566c4db1d2bab4a8b63f4c",
+    "src/app/admin/site/page.tsx": "4ba4d28a6cd443e7029abcdd83a0e837eacebb5fa2c12903edd42983cebdc503",
     "src/app/admin/site/website/page.tsx": "1652cf0e48e62ab7c772bc1eb83655cc6b5dfdd40f4483b841cb0015adcc9a0f",
     "src/app/admin/site/website/preview/page.tsx": "ba3b9457651a48b4045b913c4bb959f80cd510e356968c66b20bdae666eb1582",
     "src/app/admin/social/history/page.tsx": "86febd1247f7fb57489a0daa4e71f31f57bb2809989f4972b6dff1a233d30672",
@@ -1930,7 +1930,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Owner-only Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
+      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate list and create receipts. Pending creation locks the form, and an uncertain result requires a successful list refresh before retrying. Route/workspace changes ignore late replies. Fictional demo does not implement private draft creation; browser recovery proof uses a controlled adapter around the real UI.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1977,7 +1977,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Owner-only Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
+      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate document, record ID and checksum. Failed refreshes retain the preview and typed title. Stale or uncertain writes require an explicit successful latest read and review; discard includes cancellation and validates its receipt. State is keyed by workspace path and draft ID, canceled reads and late write replies cannot overwrite another route.",
       "followUp": null,
       "specialBoundary": null
     },

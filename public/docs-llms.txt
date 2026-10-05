@@ -154,7 +154,7 @@ Configure your workspace or build around a different business process.
 ## Plugin examples
 See what you can build: reports, reviewed workflows and dedicated business workspaces.
 
-- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-19): Explore bundled reports, reviewed workflows and business workspaces, with setup and extension guides.
+- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-10-05): Explore bundled reports, reviewed workflows and business workspaces, with setup and extension guides.
 - [Business Pulse](https://www.acceleratewith.us/docs/plugins/business-pulse) (updated 2026-09-19): See pipeline risks, overdue commitments and upcoming meetings in one report.
 - [Client onboarding](https://www.acceleratewith.us/docs/plugins/client-onboarding) (updated 2026-09-20): Turn a won opportunity into a reviewed, assigned kickoff checklist.
 - [Overdue commitments](https://www.acceleratewith.us/docs/plugins/commitment-watch) (updated 2026-09-19): Find overdue tasks and return to the work behind each commitment.

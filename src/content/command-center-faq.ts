@@ -124,7 +124,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can the AI change my live website without me?",
     answer:
-      "No. Creating a draft, applying an AI suggestion, and saving all keep the work private, and an installation owner reviews and publishes a saved revision separately. You can preview the copy at phone and desktop widths, choose a model by provider and price, and roll back from history. Private drafts stay separate from the published site.",
+      "No. Creating a draft, applying an AI suggestion, and saving all keep the work private, and an installation owner reviews and publishes a saved revision separately. You can preview the copy at phone and desktop widths, choose a model by provider and price, and roll back from history. Private drafts stay separate from the published site. If a private draft save or discard cannot be confirmed, load its latest copy and review before retrying; your typed title is retained. After uncertain creation, refresh the draft list to find a saved copy before creating another.",
   },
   {
     question: "What does a completed delivery handoff actually mean?",

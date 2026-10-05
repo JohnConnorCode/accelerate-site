@@ -218,7 +218,7 @@ export const capabilities: Capability[] = [
     promise:
       "Draft and edit pages with AI help, preview them at phone and desktop widths, and publish only a revision you have reviewed.",
     detail:
-      "New forks start with an editable, neutral product homepage and a fictional demo that needs no credentials. Guided setup connects your own workspace; save a contact and task before adding optional providers. Create your own pages, connect published forms to reviewed intake, and choose an AI model by provider and price or edit manually. Review AI suggestions at phone, tablet and desktop widths before applying, or cancel a pending request and keep editing. Drafts stay private until published, with revision history and optional owner-only ChatGPT access through the same editor services.",
+      "New forks include an editable, neutral homepage and a fictional demo. Connect published forms to workspace intake, choose models by provider and price, and cancel pending suggestions without losing edits. Revision history supports rollback; installation owners can connect ChatGPT through the same editor services. Private workspace drafts retain typed titles through failed refreshes and require a fresh read after uncertain saves or discards.",
   },
   {
     id: "social-marketing",
