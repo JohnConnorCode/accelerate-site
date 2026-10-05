@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { isModuleEnabled } from "@/lib/revenue-os/modules";
+import { formatSearchRecords, normalizeSearchQuery } from "@/lib/admin/workspace-search";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -7,19 +9,29 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const rawQ = searchParams.get("q");
-  // Strip characters that are meaningful in the PostgREST .or() filter DSL
-  // (commas, parentheses, backslash, quotes) so a crafted q cannot inject
-  // extra filter conditions. Dots, @, _, - are kept so name/email search works.
-  const q = (rawQ || "").replace(/[,()\\"]/g, "").trim();
-
+  const q = normalizeSearchQuery(rawQ || "");
   if (q.length < 3) {
-    return NextResponse.json({ results: [] });
+    return NextResponse.json({ results: [], records: [] });
   }
 
   const supabase = auth.database;
-  const pattern = `%${q}%`;
+  const pattern = `%${q.replaceAll("_", "\\_")}%`;
+  const modules = {
+    modules: auth.tenant.config?.modules as Partial<Record<string, boolean>> | undefined,
+  };
+  const skipped = { data: [], error: null };
 
-  const [canonicalRes, leadsRes, contactsRes, subscribersRes, chatRes] = await Promise.all([
+  const [
+    canonicalRes,
+    leadsRes,
+    contactsRes,
+    subscribersRes,
+    chatRes,
+    tasksRes,
+    opportunitiesRes,
+    clientsRes,
+    proposalsRes,
+  ] = await Promise.all([
     supabase
       .from("contacts")
       .select("full_name, primary_email")
@@ -41,14 +53,54 @@ export async function GET(request: NextRequest) {
       .select("name, email")
       .or(`name.ilike.${pattern},email.ilike.${pattern}`)
       .limit(5),
+    supabase
+      .from("tasks")
+      .select("id, title, status, related_name")
+      .or(`title.ilike.${pattern},related_name.ilike.${pattern}`)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("opportunities")
+      .select("id, name, stage")
+      .ilike("name", pattern)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    isModuleEnabled("clients", modules)
+      ? supabase
+          .from("clients")
+          .select("id, business_name, contact_name, status")
+          .or(
+            `business_name.ilike.${pattern},contact_name.ilike.${pattern},contact_email.ilike.${pattern}`,
+          )
+          .order("created_at", { ascending: false })
+          .limit(5)
+      : skipped,
+    isModuleEnabled("proposals", modules)
+      ? supabase
+          .from("proposals")
+          .select("id, title, client_name, status")
+          .or(`title.ilike.${pattern},client_name.ilike.${pattern}`)
+          .order("created_at", { ascending: false })
+          .limit(5)
+      : skipped,
   ]);
 
-  // A failed read cannot establish that the workspace has no matching people.
+  // A failed read cannot establish that the workspace has no matching records.
   if (
-    [canonicalRes, leadsRes, contactsRes, subscribersRes, chatRes].some((result) => result.error)
+    [
+      canonicalRes,
+      leadsRes,
+      contactsRes,
+      subscribersRes,
+      chatRes,
+      tasksRes,
+      opportunitiesRes,
+      clientsRes,
+      proposalsRes,
+    ].some((result) => result.error)
   ) {
     return NextResponse.json(
-      { error: "People search is temporarily unavailable. Try again." },
+      { error: "Workspace search is temporarily unavailable. Try again." },
       { status: 503 },
     );
   }
@@ -62,10 +114,10 @@ export async function GET(request: NextRequest) {
   const results: SearchResult[] = [];
   const seenEmails = new Set<string>();
 
-  const addResult = (name: string, email: string, type: string) => {
-    if (!seenEmails.has(email)) {
-      seenEmails.add(email);
-      results.push({ name, email, type });
+  const addResult = (name: string | null, email: string, type: string) => {
+    if (email && !seenEmails.has(email.toLowerCase())) {
+      seenEmails.add(email.toLowerCase());
+      results.push({ name: name?.trim() || email, email, type });
     }
   };
 
@@ -84,5 +136,13 @@ export async function GET(request: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (chatRes.data || []).forEach((r: any) => addResult(r.name, r.email, "Chat Lead"));
 
-  return NextResponse.json({ results: results.slice(0, 10) });
+  return NextResponse.json({
+    results: results.slice(0, 10),
+    records: formatSearchRecords({
+      tasks: tasksRes.data ?? [],
+      opportunities: opportunitiesRes.data ?? [],
+      clients: clientsRes.data ?? [],
+      proposals: proposalsRes.data ?? [],
+    }),
+  });
 }

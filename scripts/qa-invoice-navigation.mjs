@@ -22,7 +22,7 @@ async function search(page, query) {
       .getByRole("button", { name: /^Search/ })
       .click();
   const dialog = page.getByRole("dialog", { name: "Admin command palette" });
-  await dialog.getByPlaceholder("Search people, pages, or run a command…").fill(query);
+  await dialog.getByPlaceholder("Search records, pages, or run a command…").fill(query);
   return dialog;
 }
 
@@ -163,8 +163,8 @@ try {
 
       // The palette must find creation and retain the current demo workspace.
       const dialog = await search(page, "create invoice");
-      await dialog.getByRole("button", { name: /Create invoice/ }).waitFor();
-      await dialog.getByPlaceholder("Search people, pages, or run a command…").press("Enter");
+      await dialog.getByRole("option", { name: /Create invoice/ }).waitFor();
+      await dialog.getByPlaceholder("Search records, pages, or run a command…").press("Enter");
       await page.getByRole("heading", { level: 1, name: "Create invoice", exact: true }).waitFor();
       assert.ok(page.url().startsWith(root + "/invoicing?view=create"));
 
@@ -173,13 +173,13 @@ try {
       await plugin.getByRole("button", { name: /^Disable / }).click();
       await plugin.getByRole("button", { name: /^Enable / }).click({ trial: true });
       const disabledSearch = await search(page, "invoice");
-      await disabledSearch.getByRole("button", { name: /Set up invoicing/ }).waitFor();
+      await disabledSearch.getByRole("option", { name: /Set up invoicing/ }).waitFor();
       assert.equal(
-        await disabledSearch.getByRole("button", { name: /^Create invoice/ }).count(),
+        await disabledSearch.getByRole("option", { name: /^Create invoice/ }).count(),
         0,
       );
       await disabledSearch
-        .getByPlaceholder("Search people, pages, or run a command…")
+        .getByPlaceholder("Search records, pages, or run a command…")
         .press("Enter");
       await page.getByText("Stripe invoicing is turned off", { exact: true }).waitFor();
       await page.getByRole("link", { name: "Go to Integrations & Modules", exact: true }).click();
@@ -226,7 +226,7 @@ try {
     });
     assert.ok(disconnected.ok && disconnected.body.simulated && disconnected.body.success);
     const dialog = await search(page, "create invoice");
-    await dialog.getByPlaceholder("Search people, pages, or run a command…").press("Enter");
+    await dialog.getByPlaceholder("Search records, pages, or run a command…").press("Enter");
     await page.getByRole("heading", { name: "Connect your Stripe account", exact: true }).waitFor();
     assert.equal(
       await page.getByRole("button", { name: "Prepare invoice", exact: true }).count(),

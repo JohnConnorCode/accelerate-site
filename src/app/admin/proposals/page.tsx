@@ -14,6 +14,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { ProposalEditor } from "@/components/admin/ProposalEditor";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
 import { isInteractiveTarget } from "@/lib/admin/interaction";
@@ -61,6 +62,13 @@ export default function ProposalsPage() {
   const [generating] = useState(false);
   const searchParams = useSearchParams();
   const navigation = useAdminNavigation();
+  const requestedProposal = searchParams.get("proposal");
+  const listedProposal = proposals.find((proposal) => proposal.id === requestedProposal);
+  const selectedQuery = useAdminQuery<{ proposal: Proposal | null }>(
+    ["proposals", "detail", requestedProposal],
+    `/api/admin/proposals?id=${encodeURIComponent(requestedProposal ?? "")}`,
+    { enabled: Boolean(requestedProposal && !listedProposal), placeholderData: undefined },
+  );
 
   const fetchProposals = useCallback(async () => {
     try {
@@ -87,10 +95,10 @@ export default function ProposalsPage() {
   }, [fetchProposals]);
 
   useEffect(() => {
-    const requestedId = searchParams.get("proposal");
-    const requested = proposals.find((proposal) => proposal.id === requestedId);
-    setSelectedProposal(requested ?? null);
-  }, [proposals, searchParams]);
+    setSelectedProposal(
+      requestedProposal ? (listedProposal ?? selectedQuery.data?.proposal ?? null) : null,
+    );
+  }, [listedProposal, requestedProposal, selectedQuery.data]);
 
   const openProposal = (proposal: Proposal) => {
     setSelectedProposal(proposal);
@@ -166,6 +174,22 @@ export default function ProposalsPage() {
           </div>
         }
       />
+      {requestedProposal && !listedProposal && (
+        <AdminReadBody
+          loading={selectedQuery.isLoading}
+          hasData={Boolean(selectedQuery.data)}
+          error={selectedQuery.error?.message}
+          onRetry={() => void selectedQuery.refetch()}
+          loadingFallback={<LoadingSkeleton variant="table" />}
+          label="Loading selected proposal"
+        >
+          {selectedQuery.data && !selectedQuery.data.proposal && (
+            <p role="status" className="admin-copy mb-4">
+              This proposal is no longer available.
+            </p>
+          )}
+        </AdminReadBody>
+      )}
       <AdminReadBody
         loading={loading}
         hasData={!loading || proposals.length > 0}

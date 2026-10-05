@@ -5,6 +5,11 @@ import { resolve } from "node:path";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  normalizeSearchQuery,
+  parseSearchResponse,
+  searchRecordHref,
+} from "../src/lib/admin/workspace-search";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 
@@ -17,6 +22,10 @@ async function main() {
     "contact_submissions",
     "subscribers",
     "chat_leads",
+    "tasks",
+    "opportunities",
+    "clients",
+    "proposals",
   ];
   const memory = new MemorySupabase({
     contacts: [
@@ -31,8 +40,36 @@ async function main() {
       { tenant_id: tenantId, contact_name: "Legacy Owner", contact_email: "owner@example.test" },
     ],
   });
+  for (const [table, row] of Object.entries({
+    tasks: {
+      id: "task-1",
+      title: "Owner review",
+      status: "in_progress",
+      related_name: "Test Owner",
+    },
+    opportunities: { id: "opportunity-1", name: "Owner expansion", stage: "negotiation" },
+    clients: {
+      id: "client-1",
+      business_name: "Owner Studio",
+      contact_name: "Test Owner",
+      contact_email: "owner@example.test",
+      status: "active",
+    },
+    proposals: {
+      id: "proposal-1",
+      title: "Owner scope",
+      client_name: "Owner Studio",
+      status: "sent",
+    },
+  })) {
+    memory.tables[table] = [
+      { ...row, tenant_id: tenantId },
+      { ...row, id: `foreign-${row.id}`, tenant_id: foreignId },
+    ];
+  }
   // Model the row isolation supplied by production RLS in this in-memory fixture.
   let authorization: unknown = {
+    tenant: { config: { modules: { clients: true, proposals: true } } },
     database: bindTenantDatabase(memory.client as never, tenantId, true),
   };
   const require = createRequire(resolve("package.json"));
@@ -45,7 +82,9 @@ async function main() {
       exports: exported,
       URL,
       require: (name: string) =>
-        name === "@/lib/admin/auth" ? { requireAdmin: async () => authorization } : require(name),
+        name === "@/lib/admin/auth"
+          ? { requireAdmin: async () => authorization }
+          : require(name.startsWith("@/") ? resolve("src", name.slice(2)) : name),
     },
   );
   const get = (query: string) =>
@@ -54,13 +93,75 @@ async function main() {
     );
   let response = await get("owner");
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), {
-    results: [{ name: "Test Owner", email: "owner@example.test", type: "Canonical contact" }],
-  });
+  const body = await response.json();
+  assert.deepEqual(body.results, [
+    { name: "Test Owner", email: "owner@example.test", type: "Canonical contact" },
+  ]);
+  assert.deepEqual(
+    body.records.map((row: { kind: string; id: string }) => [row.kind, row.id]),
+    [
+      ["work", "task-1"],
+      ["opportunities", "opportunity-1"],
+      ["clients", "client-1"],
+      ["proposals", "proposal-1"],
+    ],
+  );
+  for (const row of body.records) assert.equal(row.href, searchRecordHref(row.kind, row.id));
+  assert.equal(body.records[0].description, "Test Owner · in progress");
+  assert.equal(parseSearchResponse(body).length, 5);
+  assert.throws(() =>
+    parseSearchResponse({
+      results: [],
+      records: [{ ...body.records[0], href: "https://evil.example" }],
+    }),
+  );
+  assert.throws(() =>
+    parseSearchResponse({
+      results: [],
+      records: [{ ...body.records[0], href: "/admin/settings" }],
+    }),
+  );
+  assert.throws(() => parseSearchResponse({ results: [], records: null as never }));
+  assert.equal(normalizeSearchQuery("x".repeat(200)).length, 100);
+  memory.tables.tasks!.push(
+    {
+      tenant_id: tenantId,
+      id: "literal",
+      title: "review_owner",
+      status: "pending",
+      related_name: null,
+    },
+    {
+      tenant_id: tenantId,
+      id: "wildcard",
+      title: "reviewXowner",
+      status: "pending",
+      related_name: null,
+    },
+  );
+  assert.deepEqual(
+    (await (await get("review_owner")).json()).records.map((row: { id: string }) => row.id),
+    ["literal"],
+    "underscore remains literal",
+  );
+  assert.deepEqual(await (await get("%*%")).json(), { results: [], records: [] });
+  memory.tables.tasks = memory.tables.tasks!.filter(
+    (row) => !["literal", "wildcard"].includes(String(row.id)),
+  );
+  memory.tables.chat_leads = [{ tenant_id: tenantId, name: null, email: "unnamed@example.test" }];
+  assert.equal(
+    (await (await get("unnamed")).json()).results[0].name,
+    "unnamed@example.test",
+    "unnamed captures remain searchable",
+  );
+  memory.tables.chat_leads = [];
   const before = memory.queryTables.length;
-  assert.deepEqual(await (await get("a")).json(), { results: [] });
+  assert.deepEqual(await (await get("a")).json(), { results: [], records: [] });
   assert.equal(memory.queryTables.length, before, "short queries do not read records");
-  assert.deepEqual(await (await get('owner),(tenant_id.eq.foreign)"')).json(), { results: [] });
+  assert.deepEqual(await (await get('owner),(tenant_id.eq.foreign)"')).json(), {
+    results: [],
+    records: [],
+  });
   for (const table of tables) {
     memory.fail(table, { message: "Controlled private database error", code: "XX000" });
     response = await get("owner");
@@ -70,12 +171,29 @@ async function main() {
       `${table} failure must not become an empty or partial success`,
     );
     assert.deepEqual(await response.json(), {
-      error: "People search is temporarily unavailable. Try again.",
+      error: "Workspace search is temporarily unavailable. Try again.",
     });
     memory.recover(table);
   }
   assert.equal((await get("owner")).status, 200, "same query recovers after a failed read");
-  assert.deepEqual(await (await get("missing-person")).json(), { results: [] });
+  assert.deepEqual(await (await get("missing-person")).json(), { results: [], records: [] });
+  const actor = authorization as { tenant: { config: { modules: Record<string, boolean> } } };
+  actor.tenant.config.modules = { clients: false, proposals: false };
+  const queriedBeforeDisabled = memory.queryTables.length;
+  memory.fail("clients", { message: "Disabled table must not be read" });
+  memory.fail("proposals", { message: "Disabled table must not be read" });
+  const disabled = await get("owner");
+  assert.equal(disabled.status, 200);
+  assert.deepEqual(
+    (await disabled.json()).records.map((row: { kind: string }) => row.kind),
+    ["work", "opportunities"],
+  );
+  assert(
+    !memory.queryTables
+      .slice(queriedBeforeDisabled)
+      .some((table) => ["clients", "proposals"].includes(table)),
+    "disabled sources never queried",
+  );
   for (const status of [401, 403]) {
     authorization = NextResponse.json({ error: "Not authorized" }, { status });
     const queried = memory.queryTables.length;
@@ -87,7 +205,7 @@ async function main() {
     );
   }
   console.log(
-    "Admin search: canonical identity, tenant scope, sanitization, short/empty results, all five read failures, recovery and authorization passed.",
+    "Admin search: canonical identity, tenant scope, sanitization, short/empty results, all nine read failures and disabled-module gates, recovery and authorization passed.",
   );
 }
 main().catch((error) => {

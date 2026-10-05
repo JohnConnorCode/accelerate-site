@@ -406,7 +406,7 @@ export const capabilities: Capability[] = [
     promise:
       "Today leads with sourced decisions and follow-up; the same tasks and approvals stay editable in Work.",
     detail:
-      "Eight primary destinations group the workspace around Today, Work, Records, Conversations, Knowledge, Coworkers, Apps and Settings. Personal and shared Today arrangements keep view tools under More, wide desktop layouts keep independent columns, and Search and Ask AI stay available while you scroll. The mobile dock keeps the three daily destinations within reach. People search has its own retry, leaving pages and local commands available if that read fails.",
+      "Eight primary destinations group the workspace around Today, Work, Records, Conversations, Knowledge, Coworkers, Apps and Settings. Personal and shared Today arrangements keep view tools under More, wide desktop layouts keep independent columns, and Search and Ask AI stay available while you scroll. The mobile dock keeps the three daily destinations within reach. Search opens tasks, opportunities, clients, proposals and people directly, with grouped matches and status context. Disabled modules stay out of results, and record search has its own retry while pages and local commands remain available.",
   },
   {
     id: "chat",

@@ -4,9 +4,15 @@ import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { siteUrl, tenant } from "@/config/tenant";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import {
+  parseSearchResponse,
+  searchRecordGroups,
+  type SearchRecord,
+} from "@/lib/admin/workspace-search";
+import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -98,12 +104,6 @@ function resolveAdminPageTitle(pathname: string) {
   if (pathname.startsWith("/admin/pipeline/") && pathname !== "/admin/pipeline")
     return "Opportunity";
   return resolveAdminNavLink(pathname)?.label || "Command Center";
-}
-
-interface SearchPerson {
-  name: string;
-  email: string;
-  type: string;
 }
 
 interface CommandAction {
@@ -298,9 +298,9 @@ export default function AdminShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchPeople, setSearchPeople] = useState<SearchPerson[]>([]);
-  const [searchingPeople, setSearchingPeople] = useState(false);
-  const [peopleSearchError, setPeopleSearchError] = useState("");
+  const [searchRecords, setSearchRecords] = useState<SearchRecord[]>([]);
+  const [searchingRecords, setSearchingRecords] = useState(false);
+  const [recordSearchError, setRecordSearchError] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeDraft, setComposeDraft] = useState({ subject: "", body: "" });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -406,9 +406,9 @@ export default function AdminShell({
     searchAbortRef.current?.abort();
     searchAbortRef.current = null;
     setSearchQuery("");
-    setSearchPeople([]);
-    setPeopleSearchError("");
-    setSearchingPeople(false);
+    setSearchRecords([]);
+    setRecordSearchError("");
+    setSearchingRecords(false);
   }, []);
 
   const closeSearch = useCallback(() => {
@@ -441,43 +441,32 @@ export default function AdminShell({
     return () => window.removeEventListener("keydown", handler);
   }, [resetSearch]);
 
-  const searchForPeople = useCallback(async (query: string) => {
+  const searchForRecords = useCallback(async (query: string) => {
     searchAbortRef.current?.abort();
     if (query.length < 3) {
-      setSearchPeople([]);
-      setSearchingPeople(false);
-      setPeopleSearchError("");
+      setSearchRecords([]);
+      setSearchingRecords(false);
+      setRecordSearchError("");
       return;
     }
     const controller = new AbortController();
     searchAbortRef.current = controller;
-    setSearchingPeople(true);
-    setPeopleSearchError("");
+    setSearchingRecords(true);
+    setRecordSearchError("");
     try {
-      const data = await fetchJson<{ results: SearchPerson[] }>(
+      const data = await fetchJson<Parameters<typeof parseSearchResponse>[0]>(
         `/api/admin/search?q=${encodeURIComponent(query)}`,
         { signal: controller.signal },
       );
       if (controller.signal.aborted || searchAbortRef.current !== controller) return;
-      if (
-        !Array.isArray(data.results) ||
-        !data.results.every(
-          (person) =>
-            person &&
-            typeof person.name === "string" &&
-            typeof person.email === "string" &&
-            typeof person.type === "string",
-        )
-      )
-        throw new Error("Incomplete search response");
-      setSearchPeople(data.results);
+      setSearchRecords(parseSearchResponse(data));
     } catch {
       if (!controller.signal.aborted && searchAbortRef.current === controller)
-        setPeopleSearchError("People search couldn’t load. Try again.");
+        setRecordSearchError("Workspace search couldn’t load. Try again.");
     } finally {
       if (searchAbortRef.current === controller) {
         searchAbortRef.current = null;
-        setSearchingPeople(false);
+        setSearchingRecords(false);
       }
     }
   }, []);
@@ -487,10 +476,10 @@ export default function AdminShell({
     searchAbortRef.current?.abort();
     searchAbortRef.current = null;
     setSearchQuery(value);
-    setSearchPeople([]);
-    setPeopleSearchError("");
-    setSearchingPeople(value.trim().length >= 3);
-    debounceRef.current = setTimeout(() => searchForPeople(value.trim()), 120);
+    setSearchRecords([]);
+    setRecordSearchError("");
+    setSearchingRecords(value.trim().length >= 3);
+    debounceRef.current = setTimeout(() => searchForRecords(value.trim()), 120);
   };
 
   useEffect(
@@ -917,19 +906,15 @@ export default function AdminShell({
                   onQueryChange={handleSearchChange}
                   actions={filteredActions}
                   pageResults={filteredLinks}
-                  peopleResults={searchPeople}
-                  searchingPeople={searchingPeople}
-                  peopleSearchError={peopleSearchError}
-                  onRetryPeople={() => {
+                  recordResults={searchRecords}
+                  searchingRecords={searchingRecords}
+                  recordSearchError={recordSearchError}
+                  onRetryRecords={() => {
                     searchInputRef.current?.focus();
-                    void searchForPeople(searchQuery.trim());
+                    void searchForRecords(searchQuery.trim());
                   }}
                   onSelectPage={(href) => {
                     router.push(href);
-                    closeSearch();
-                  }}
-                  onSelectPerson={(email) => {
-                    router.push(`/admin/contacts/${encodeURIComponent(email)}`);
                     closeSearch();
                   }}
                   onSelectAction={(action) => {
@@ -1523,12 +1508,11 @@ function CmdKSearch({
   onQueryChange,
   actions,
   pageResults,
-  peopleResults,
-  searchingPeople,
-  peopleSearchError,
-  onRetryPeople,
+  recordResults,
+  searchingRecords,
+  recordSearchError,
+  onRetryRecords,
   onSelectPage,
-  onSelectPerson,
   onSelectAction,
   inputRef,
 }: {
@@ -1538,24 +1522,33 @@ function CmdKSearch({
   onQueryChange: (query: string) => void;
   actions: CommandAction[];
   pageResults: AdminNavLink[];
-  peopleResults: SearchPerson[];
-  searchingPeople: boolean;
-  peopleSearchError: string;
-  onRetryPeople: () => void;
+  recordResults: SearchRecord[];
+  searchingRecords: boolean;
+  recordSearchError: string;
+  onRetryRecords: () => void;
   onSelectPage: (href: string) => void;
-  onSelectPerson: (email: string) => void;
   onSelectAction: (action: CommandAction) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
+  const listId = useId();
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const orderedRecords = useMemo(
+    () =>
+      searchRecordGroups.flatMap((group) =>
+        recordResults.filter((record) => record.kind === group.kind),
+      ),
+    [recordResults],
+  );
   const items = useMemo(
     () => [
       ...actions.map((action) => ({ kind: "action" as const, action })),
       ...pageResults.map((page) => ({ kind: "page" as const, page })),
-      ...peopleResults.map((person) => ({ kind: "person" as const, person })),
+      ...orderedRecords.map((record) => ({ kind: "record" as const, record })),
     ],
-    [actions, pageResults, peopleResults],
+    [actions, pageResults, orderedRecords],
   );
+
+  const activeIndex = Math.min(selectedIndex, Math.max(0, items.length - 1));
 
   useEffect(() => {
     if (!open) return;
@@ -1571,7 +1564,7 @@ function CmdKSearch({
     if (!item) return;
     if (item.kind === "action") onSelectAction(item.action);
     if (item.kind === "page") onSelectPage(item.page.href);
-    if (item.kind === "person") onSelectPerson(item.person.email);
+    if (item.kind === "record") onSelectPage(item.record.href);
   };
 
   return (
@@ -1589,6 +1582,12 @@ function CmdKSearch({
           <Search className="h-4 w-4 shrink-0 text-[var(--admin-muted)]" />
           <input
             ref={inputRef}
+            role="combobox"
+            aria-label="Search workspace"
+            aria-expanded={open}
+            aria-autocomplete="list"
+            aria-controls={listId}
+            aria-activedescendant={items.length ? `${listId}-${activeIndex}` : undefined}
             value={query}
             onChange={(event) => {
               setSelectedIndex(0);
@@ -1605,11 +1604,11 @@ function CmdKSearch({
               }
               if (event.key === "Enter") {
                 event.preventDefault();
-                select(selectedIndex);
+                select(activeIndex);
               }
               if (event.key === "Escape") onClose();
             }}
-            placeholder="Search people, pages, or run a command…"
+            placeholder="Search records, pages, or run a command…"
             className="min-w-0 flex-1 bg-transparent text-base text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] sm:text-sm focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
           />
           <button
@@ -1625,16 +1624,22 @@ function CmdKSearch({
           </kbd>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-2 sm:max-h-[58vh]">
+        <div
+          id={listId}
+          role="listbox"
+          aria-label="Search results"
+          className="min-h-0 flex-1 overflow-y-auto p-2 sm:max-h-[58vh]"
+        >
           {actions.length > 0 && (
             <ResultSection label="Actions">
               {actions.map((action, index) => (
                 <CommandRow
+                  id={`${listId}-${index}`}
                   key={action.label}
                   icon={action.icon}
                   label={action.label}
                   description={action.description}
-                  selected={selectedIndex === index}
+                  selected={activeIndex === index}
                   onClick={() => onSelectAction(action)}
                 />
               ))}
@@ -1646,62 +1651,75 @@ function CmdKSearch({
                 const itemIndex = actions.length + index;
                 return (
                   <CommandRow
+                    id={`${listId}-${itemIndex}`}
                     key={page.href}
                     icon={page.icon}
                     label={page.label}
                     description={page.description}
-                    selected={selectedIndex === itemIndex}
+                    selected={activeIndex === itemIndex}
                     onClick={() => onSelectPage(page.href)}
                   />
                 );
               })}
             </ResultSection>
           )}
-          {peopleResults.length > 0 && (
-            <ResultSection label="People">
-              {peopleResults.map((person, index) => {
-                const itemIndex = actions.length + pageResults.length + index;
-                return (
+          {searchRecordGroups.map((group) => {
+            const matches = recordResults.filter((record) => record.kind === group.kind);
+            if (matches.length === 0) return null;
+            const icon = {
+              people: User,
+              work: CheckSquare,
+              opportunities: ArrowUpRight,
+              clients: UsersRound,
+              proposals: ReceiptText,
+            }[group.kind];
+            return (
+              <ResultSection key={group.kind} label={group.label}>
+                {matches.map((record) => (
                   <CommandRow
-                    key={person.email}
-                    icon={User}
-                    label={person.name}
-                    description={`${person.email} · ${person.type}`}
-                    selected={selectedIndex === itemIndex}
-                    onClick={() => onSelectPerson(person.email)}
+                    id={`${listId}-${actions.length + pageResults.length + orderedRecords.indexOf(record)}`}
+                    key={`${record.kind}:${record.id}`}
+                    icon={icon}
+                    label={record.label}
+                    description={record.description}
+                    selected={
+                      activeIndex ===
+                      actions.length + pageResults.length + orderedRecords.indexOf(record)
+                    }
+                    onClick={() => onSelectPage(record.href)}
                   />
-                );
-              })}
-            </ResultSection>
-          )}
-          {searchingPeople && (
+                ))}
+              </ResultSection>
+            );
+          })}
+          {searchingRecords && (
             <p className="px-3 py-4 text-center text-xs text-[var(--admin-muted)]">
               Searching records…
             </p>
           )}
-          {peopleSearchError && (
+          {recordSearchError && (
             <div
               role="alert"
               className="m-2 rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface-subtle)] p-3"
             >
-              <p className="text-sm font-semibold">{peopleSearchError}</p>
-              {peopleResults.length > 0 && (
+              <p className="text-sm font-semibold">{recordSearchError}</p>
+              {recordResults.length > 0 && (
                 <p className="admin-copy mt-1 text-xs">Previously loaded matches remain visible.</p>
               )}
               <button
                 type="button"
-                onClick={onRetryPeople}
+                onClick={onRetryRecords}
                 className="admin-button admin-button--secondary mt-3"
               >
-                Retry people search
+                Retry search
               </button>
             </div>
           )}
-          {!searchingPeople && !peopleSearchError && items.length === 0 && query.trim() && (
+          {!searchingRecords && !recordSearchError && items.length === 0 && query.trim() && (
             <p className="px-3 py-8 text-center text-sm text-[var(--admin-muted)]">
               {query.trim().length < 3
-                ? "Type at least 3 characters to search people."
-                : "No matching people, pages, or commands."}
+                ? "Type at least 3 characters to search workspace records."
+                : "No matching records, pages, or commands."}
             </p>
           )}
         </div>
@@ -1718,7 +1736,7 @@ function CmdKSearch({
 
 function ResultSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="mb-2 last:mb-0">
+    <section role="group" aria-label={label} className="mb-2 last:mb-0">
       <p className="px-3 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-muted)]">
         {label}
       </p>
@@ -1728,20 +1746,32 @@ function ResultSection({ label, children }: { label: string; children: React.Rea
 }
 
 function CommandRow({
+  id,
   icon: Icon,
   label,
   description,
   selected,
   onClick,
 }: {
+  id: string;
   icon: LucideIcon;
   label: string;
   description: string;
   selected: boolean;
   onClick: () => void;
 }) {
+  const rowRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (selected) rowRef.current?.scrollIntoView({ block: "nearest" });
+  }, [selected]);
   return (
     <button
+      ref={rowRef}
+      id={id}
+      role="option"
+      aria-selected={selected}
+      tabIndex={-1}
+      data-command-selected={selected || undefined}
       type="button"
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
@@ -1765,7 +1795,7 @@ function CommandRow({
         <span
           className={cn(
             "block truncate text-[11px]",
-            selected ? "opacity-60" : "text-[var(--admin-muted)]",
+            selected ? "text-current opacity-80" : "text-[var(--admin-muted)]",
           )}
         >
           {description}

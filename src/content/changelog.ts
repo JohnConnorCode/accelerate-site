@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "workspace-record-search",
+    slug: "workspace-record-search",
+    title: "Find workspace records from one search",
+    description:
+      "Search now opens tasks, opportunities, clients and proposals alongside people, pages and commands. Grouped results include status and relationship context, arrow-key selection stays in view, and proposal links work outside the current list filter. Disabled modules stay out of results. Failed reads offer Retry search while local pages and commands remain available.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "command-center-view-and-recovery",
     slug: "command-center-view-and-recovery",
     title: "Smoother workspace views and clearer recovery",

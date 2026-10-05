@@ -253,17 +253,17 @@ try {
         style: "nextjs-portal{visibility:hidden}",
       });
       await page.keyboard.press("ControlOrMeta+k");
-      const search = page.getByPlaceholder("Search people, pages, or run a command…");
+      const search = page.getByPlaceholder("Search records, pages, or run a command…");
       await search.fill("invoice");
-      await page.getByText("People search couldn’t load. Try again.", { exact: true }).waitFor();
+      await page.getByText("Workspace search couldn’t load. Try again.", { exact: true }).waitFor();
       assert.equal(
-        await page.getByText("No matching people, pages, or commands.", { exact: true }).count(),
+        await page.getByText("No matching records, pages, or commands.", { exact: true }).count(),
         0,
       );
       assert(
         (await page
           .getByRole("dialog")
-          .getByRole("button", { name: /invoice/i })
+          .getByRole("option", { name: /invoice/i })
           .count()) > 0,
         "local actions remain available after remote failure",
       );
@@ -274,10 +274,10 @@ try {
       await page.evaluate(() => {
         window.__qa.searchFailure = false;
       });
-      await page.getByRole("button", { name: "Retry people search", exact: true }).focus();
+      await page.getByRole("button", { name: "Retry search", exact: true }).focus();
       await page.keyboard.press("Enter");
       await page
-        .getByText("People search couldn’t load. Try again.", { exact: true })
+        .getByText("Workspace search couldn’t load. Try again.", { exact: true })
         .waitFor({ state: "hidden" });
       assert(
         await search.evaluate((element) => element === document.activeElement),
@@ -289,11 +289,107 @@ try {
       await page.getByText("Fresh fictional match", { exact: true }).waitFor();
       await page.waitForTimeout(1100);
       assert.equal(await page.getByText("Stale fictional match", { exact: true }).count(), 0);
+      // Search actual scenario records, then open each record through its owned detail link.
+      const records = await page.evaluate(async () => {
+        const read = async (path) => await (await fetch(path)).json();
+        const tasks = await read("/api/admin/tasks");
+        const pipeline = await read("/api/admin/revenue-os/pipeline");
+        const clients = await read("/api/admin/clients");
+        const proposals = await read("/api/admin/proposals");
+        return [
+          {
+            kind: "Work",
+            label: tasks.tasks[0].title,
+            id: tasks.tasks[0].id,
+            href: `/work?task=${tasks.tasks[0].id}`,
+          },
+          {
+            kind: "Opportunities",
+            label: pipeline.opportunities[0].name,
+            id: pipeline.opportunities[0].id,
+            href: `/pipeline/${pipeline.opportunities[0].id}`,
+          },
+          {
+            kind: "Clients",
+            label: clients.clients[0].business_name,
+            id: clients.clients[0].id,
+            href: `/clients/${clients.clients[0].id}`,
+          },
+          {
+            kind: "Proposals",
+            label: proposals.proposals[0].title,
+            id: proposals.proposals[0].id,
+            href: `/proposals?proposal=${proposals.proposals[0].id}`,
+          },
+        ];
+      });
+      for (const record of records) {
+        const input = page.getByRole("combobox", { name: "Search workspace" });
+        if (!(await input.count())) await page.keyboard.press("Control+k");
+        await input.fill(record.label);
+        const group = page.getByRole("group", { name: record.kind, exact: true });
+        const option = group
+          .getByRole("option")
+          .filter({ has: page.getByText(record.label, { exact: true }) })
+          .first();
+        await option.waitFor();
+        for (
+          let step = 0;
+          step < 40 && (await option.getAttribute("aria-selected")) !== "true";
+          step++
+        )
+          await input.press("ArrowDown");
+        assert.equal(
+          await option.getAttribute("aria-selected"),
+          "true",
+          "keyboard reaches the desired group",
+        );
+        assert.equal(
+          await input.getAttribute("aria-activedescendant"),
+          await option.getAttribute("id"),
+        );
+        const bounds = await option.boundingBox();
+        assert(
+          bounds && bounds.y >= 0 && bounds.y + bounds.height <= (width === 390 ? 844 : 1000),
+          "selected result stays in view",
+        );
+        await page.waitForTimeout(150); // Let the 100ms selected-row color transition settle.
+        await page.screenshot({
+          path: `${output}/record-search-${record.kind.toLowerCase()}-${width}-${reducedMotion}.png`,
+          style: "nextjs-portal{visibility:hidden}",
+        });
+        await input.press("Enter");
+        await page.waitForURL((url) => `${url.pathname}${url.search}`.endsWith(record.href));
+        await page
+          .getByRole("dialog", { name: "Admin command palette" })
+          .waitFor({ state: "hidden" });
+        if (record.kind === "Work") {
+          const details = page.getByRole("dialog", { name: "Task details", exact: true });
+          await details.waitFor();
+          assert.equal(
+            await details.getByLabel("Title", { exact: true }).inputValue(),
+            record.label,
+          );
+          await details.getByRole("button", { name: "Close task", exact: true }).click();
+        } else {
+          await page.getByRole("heading", { name: record.label, exact: true }).waitFor();
+        }
+        if (record.kind === "Proposals") {
+          await page.getByRole("heading", { name: record.label, exact: true }).waitFor();
+          // A selected proposal remains reachable when its status is excluded from the list.
+          await page.getByLabel("Filter by status").selectOption("declined");
+          await page
+            .getByText("No proposals yet. Create one from a lead or start blank.", { exact: true })
+            .waitFor();
+          await page.getByRole("heading", { name: record.label, exact: true }).waitFor();
+        }
+      }
+      await page.keyboard.press("Control+k");
       await search.fill("zzzx-no-fixture-match");
-      await page.getByText("No matching people, pages, or commands.", { exact: true }).waitFor();
+      await page.getByText("No matching records, pages, or commands.", { exact: true }).waitFor();
       await search.fill("zx");
       await page
-        .getByText("Type at least 3 characters to search people.", { exact: true })
+        .getByText("Type at least 3 characters to search workspace records.", { exact: true })
         .waitFor();
       await page.keyboard.press("Escape");
       await page.goto(route("content"));
@@ -324,6 +420,7 @@ try {
         clientRecovery: "passed",
         retainedActivity: "passed",
         searchRecoveryAndRace: "passed",
+        recordDetailNavigation: "passed: work, opportunities, clients, proposals",
         selectionMotion: moved,
         panels: "passed",
         retainedAIDraft: "passed",

@@ -8,6 +8,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Added
 
+- The Command Center search palette now opens tasks, opportunities, clients and proposals alongside people, pages and commands. Tenant-bound reads respect module configuration; grouped results include status context, keyboard selection stays visible and proposal links resolve outside the current list filter.
+
 - AI can now prepare exact Content Calendar item updates for administrator approval. The admin editor and approved-action executor share a tenant-scoped, revision-checked writer; approval does not publish content.
 
 - Shared themed fields now govern Clients, Analytics, Campaigns, Integrations and Proposals; compact custom themes retain usable targets. Setup readiness inherits readable theme colors, and contact relationship failures offer retry instead of appearing empty.
