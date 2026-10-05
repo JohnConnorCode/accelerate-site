@@ -29,7 +29,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can AI redesign a customer invoice?",
     answer:
-      "Yes. For a workspace-created invoice, choose Design customer page in Invoice operations. Describe changes to the current design, then Apply AI changes. Review the live preview or use Undo AI changes; layout, typography, spacing, color and wording are also directly editable. Stripe supplies the amounts and payment state. Preview the final design before requesting publication approval. The approved customer page gets a new link; Stripe’s hosted payment form and PDF keep their own design settings.",
+      "Yes. For a workspace-created invoice, choose Design customer page in Invoice operations. Describe changes to the current design, then Apply AI changes. Try a style starter, check the Phone preview, and use Undo changes or Redo changes; layout, typography, spacing, color and wording are also directly editable. Stripe supplies the amounts and payment state. Preview the final design before requesting publication approval. The approved customer page gets a new link; Stripe’s hosted payment form and PDF keep their own design settings.",
   },
   {
     question: "What should I do when an inquiry update needs attention?",

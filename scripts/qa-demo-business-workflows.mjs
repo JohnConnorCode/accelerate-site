@@ -31,7 +31,7 @@ try {
   for (const mobile of process.argv.includes("--mobile") ? [true] : [false, true]) {
     const context = await browser.newContext({
       viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 },
-      reducedMotion: "reduce",
+      reducedMotion: mobile ? "reduce" : "no-preference",
     });
     const page = await context.newPage();
     activePage = page;
@@ -124,6 +124,53 @@ try {
       const livePreview = page.getByRole("region", { name: "Invoice design preview", exact: true });
       await livePreview.waitFor();
       const billingBefore = await livePreview.locator("table, dl").allTextContents();
+      // Reversible style starters preserve presentation wording and financial facts.
+      assert.equal(
+        await page.getByRole("button", { name: "Undo changes", exact: true }).isEnabled(),
+        false,
+      );
+      const originalHeading = await page.getByLabel("Heading", { exact: true }).inputValue();
+      await page.getByRole("button", { name: "Use minimal style", exact: true }).click();
+      assert.equal(await page.getByLabel("Heading", { exact: true }).inputValue(), originalHeading);
+      assert.equal(
+        await page.getByRole("combobox", { name: "Typography", exact: true }).inputValue(),
+        "sans",
+      );
+      await page.getByRole("button", { name: "Undo changes", exact: true }).click();
+      assert.equal(
+        await page.getByRole("combobox", { name: "Typography", exact: true }).inputValue(),
+        "workspace",
+      );
+      await page.getByRole("button", { name: "Redo changes", exact: true }).click();
+      assert.equal(
+        await page.getByRole("combobox", { name: "Spacing", exact: true }).inputValue(),
+        "compact",
+      );
+      await page.getByRole("button", { name: "Use workspace style", exact: true }).click();
+      assert.equal(
+        await page.getByRole("button", { name: "Redo changes", exact: true }).isEnabled(),
+        false,
+      );
+      // One typing session is one undo, rather than one step per keystroke.
+      await page.getByLabel("Heading", { exact: true }).focus();
+      await page.getByLabel("Heading", { exact: true }).pressSequentially(" revised");
+      await page.getByLabel("Heading", { exact: true }).blur();
+      await page.getByRole("button", { name: "Undo changes", exact: true }).click();
+      assert.equal(await page.getByLabel("Heading", { exact: true }).inputValue(), originalHeading);
+      await page.getByRole("button", { name: "Redo changes", exact: true }).click();
+      assert.equal(
+        await page.getByLabel("Heading", { exact: true }).inputValue(),
+        originalHeading + " revised",
+      );
+      await page.getByLabel("Heading", { exact: true }).fill("");
+      assert.equal(
+        await page.getByRole("button", { name: "Apply AI changes", exact: true }).isEnabled(),
+        false,
+      );
+      assert.equal(
+        await page.getByRole("button", { name: "Preview page", exact: true }).isEnabled(),
+        false,
+      );
       const invoiceHeading = `${name} services`;
       await page.getByLabel("Heading", { exact: true }).fill(invoiceHeading);
       await livePreview.getByRole("heading", { name: invoiceHeading, exact: true }).waitFor();
@@ -134,7 +181,8 @@ try {
         );
       await page.getByRole("button", { name: "Apply AI changes", exact: true }).focus();
       await page.keyboard.press("Enter");
-      await page.getByRole("button", { name: "Undo AI changes", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Apply AI changes", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Undo changes", exact: true }).click({ trial: true });
       assert.equal(await page.getByLabel("Heading", { exact: true }).inputValue(), invoiceHeading);
       assert.equal(
         await page.getByRole("combobox", { name: "Typography", exact: true }).inputValue(),
@@ -149,6 +197,15 @@ try {
         "#164e63",
       );
       assert.deepEqual(await livePreview.locator("table, dl").allTextContents(), billingBefore);
+      await page.waitForFunction(
+        ({ mobile }) => {
+          const node = document.querySelector('[aria-label="Invoice design preview"]');
+          return (
+            node && getComputedStyle(node.children[1]).paddingTop === (mobile ? "20px" : "28px")
+          );
+        },
+        { mobile },
+      );
       const appearance = await livePreview.evaluate((node) => ({
         font: getComputedStyle(node).fontFamily,
         headingFont: getComputedStyle(node.querySelector("h2")).fontFamily,
@@ -165,17 +222,80 @@ try {
         "The editor must not navigate to payment",
       );
 
-      await page.getByRole("button", { name: "Undo AI changes", exact: true }).click();
+      const paper = page.locator("[data-invoice-preview-width]");
+      const motionDuration = await paper.evaluate(
+        (node) => getComputedStyle(node).transitionDuration,
+      );
+      assert.equal(motionDuration, mobile ? "0s" : "0.32s", "Preview motion honors reduced motion");
+      if (!mobile) {
+        // Capture an in-progress native transition and interrupt it with a reversal.
+        await page.getByRole("button", { name: "Phone", exact: true }).click();
+        await page.waitForFunction(() => {
+          const node = document.querySelector('[data-invoice-preview-width="phone"]');
+          return (
+            node && node.getAnimations().some((animation) => animation.playState === "running")
+          );
+        });
+        await page.getByRole("button", { name: "Full width", exact: true }).click();
+        await page.waitForFunction(() => {
+          const node = document.querySelector('[data-invoice-preview-width="desktop"]');
+          return (
+            node && node.getAnimations().every((animation) => animation.playState !== "running")
+          );
+        });
+        assert.equal(
+          await page
+            .getByRole("button", { name: "Full width", exact: true })
+            .getAttribute("aria-pressed"),
+          "true",
+        );
+      }
+      await page.getByRole("button", { name: "Phone", exact: true }).click();
+      await page.waitForFunction(() => {
+        const node = document.querySelector('[data-invoice-preview-width="phone"]');
+        return node && node.getBoundingClientRect().width <= 360;
+      });
+      await page.waitForFunction(() => {
+        const node = document.querySelector('[aria-label="Invoice design preview"]');
+        return node && getComputedStyle(node.children[1]).paddingTop === "20px";
+      });
+      const phone = await livePreview.boundingBox();
+      assert.ok(phone.width <= 360, "Phone preview is bounded on a desktop screen");
+      assert.equal(
+        await livePreview.evaluate((node) => getComputedStyle(node.children[1]).paddingTop),
+        "20px",
+      );
+      assert.ok(
+        await livePreview.evaluate((node) => node.scrollWidth <= node.clientWidth),
+        "Phone invoice content fits",
+      );
+      await page.getByRole("button", { name: "Full width", exact: true }).click();
+      await page.getByRole("button", { name: "Undo changes", exact: true }).click();
       assert.equal(
         await page.getByRole("combobox", { name: "Typography", exact: true }).inputValue(),
         "workspace",
       );
       await page.getByRole("button", { name: "Apply AI changes", exact: true }).click();
-      await page.getByRole("button", { name: "Undo AI changes", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Apply AI changes", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Undo changes", exact: true }).click({ trial: true });
       await page.getByRole("button", { name: "Preview page", exact: true }).click();
       await page
         .getByRole("button", { name: "Request publication approval", exact: true })
         .waitFor();
+      await page.getByRole("button", { name: "Undo changes", exact: true }).click();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Request publication approval", exact: true })
+          .count(),
+        0,
+      );
+      await page.getByRole("button", { name: "Redo changes", exact: true }).click();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Request publication approval", exact: true })
+          .count(),
+        0,
+      );
       await page
         .getByRole("textbox", { name: "Closing note", exact: true })
         .fill("Thank you for working with our team.");

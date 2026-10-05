@@ -235,7 +235,7 @@
     "src/components/admin/EmptyState.tsx": "8f132fb9c46c909d96dbcbc189faceaafb0055e6be06d217e61de3030533d2a1",
     "src/components/admin/FormsWorkspace.tsx": "4029feb6ee217b4b7f028f34b6319cac7907d28f77fba6049e4815e0ab40572b",
     "src/components/admin/InvoiceIndex.tsx": "30efc69dc7a789d08ac675da9cd6f1cdb475a13d705962704b4012327c3f6107",
-    "src/components/admin/InvoicePageDesigner.tsx": "52c0c03946d7e260d0fa154c3fe9e154a591ea49aba61fb7e5f89f05455fafc7",
+    "src/components/admin/InvoicePageDesigner.tsx": "6753caa7f886fe9d83c63f09a3f2f90d4061e1ae9eab53729467d97b715771f1",
     "src/components/admin/KnowledgeSources.tsx": "84fe6c5bcb787c4b75655166911cdf695edb22347074b0e1f2c9f3d304d1d6c8",
     "src/components/admin/LayoutCustomizeDialog.tsx": "b44371cf020302b208208d68d674d6554020030518c4e57d87c34b714ead7510",
     "src/components/admin/LayoutScopeCard.tsx": "2392593a0b7b7b2995dabfba624fbbb72928690eb05e2b92eef12da243928df3",
@@ -1239,7 +1239,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice. Invoice AI revisions validate the current presentation and use the tenant AI gateway; presentation fields do not author billing facts. Draft edits and Undo do not change published links. Reusing a saved design requires a fresh provider preview and publication approval to create a new customer link. Disabled plugins refuse design generation and customer access.",
+      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice. Invoice AI revisions validate the current presentation and use the tenant AI gateway; presentation fields do not author billing facts. Draft edits and Undo do not change published links. Reusing a saved design requires a fresh provider preview and publication approval to create a new customer link. Disabled plugins refuse design generation and customer access. Style starters, grouped Undo/Redo, and responsive preview controls are local presentation edits; published-link access reuses the tenant-bound shared page path. Billing facts and publication freshness/approval remain domain-owned.",
       "followUp": null,
       "specialBoundary": null
     },

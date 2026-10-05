@@ -237,7 +237,7 @@ export const capabilities: Capability[] = [
     promise:
       "Group verified invoices by account and currency, record promises and disputes, and approve an exact reminder when you are ready to send.",
     detail:
-      "With Stripe invoicing enabled, open Invoices from the sidebar to create customer invoices, then use Collections to manage overdue balances. Workspace-created invoices also offer an AI-assisted customer-page editor with a live preview and separate publication approval. Ask AI to propose a pause, promise, dispute, owner or next action, then review the exact change. Fresh invoice and contact checks guard approvals; reminders require a separate review and send receipt.",
+      "With Stripe invoicing enabled, open Invoices from the sidebar to create customer invoices, then use Collections to manage overdue balances. Workspace-created invoices also offer an AI-assisted customer-page editor with style starters, phone previews, Undo/Redo, and separate publication approval. Ask AI to propose a pause, promise, dispute, owner or next action, then review the exact change. Fresh invoice and contact checks guard approvals; reminders require a separate review and send receipt.",
     gated: true,
   },
   {

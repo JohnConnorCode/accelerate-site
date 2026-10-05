@@ -43,7 +43,7 @@ export function InvoiceDocument({
   return (
     <section
       aria-label={preview || editing ? "Invoice design preview" : "Customer invoice"}
-      className="overflow-hidden rounded-2xl break-words shadow-[0_0_0_1px_#1720330a,0_12px_48px_#17203312]"
+      className="@container overflow-hidden rounded-[4px] break-words shadow-[0_0_0_1px_#1720330a,0_12px_48px_#17203312]"
       style={{
         backgroundColor: "#ffffff",
         color: brand.inkColor,
@@ -52,9 +52,11 @@ export function InvoiceDocument({
     >
       <div
         style={{ backgroundColor: accentColor }}
-        className={design.layout === "editorial" ? "h-3" : "h-1.5"}
+        className={`transition-[height,background-color] duration-300 motion-reduce:transition-none ${design.layout === "editorial" ? "h-3" : "h-1.5"}`}
       />
-      <div className={compact ? "p-5 sm:p-7" : "p-6 sm:p-9"}>
+      <div
+        className={`transition-[padding] duration-300 motion-reduce:transition-none ${compact ? "p-5 @sm:p-7" : "p-6 @sm:p-9"}`}
+      >
         <header className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <BusinessLogo brand={brand} />
@@ -63,19 +65,33 @@ export function InvoiceDocument({
           </div>
           <div className="text-sm">
             <p className="font-semibold">{invoice.number}</p>
-            <p className="mt-2 capitalize">{invoice.status}</p>
+            <p
+              className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize"
+              style={{
+                backgroundColor: invoice.status === "paid" ? "#dcfce7" : "#f1f5f9",
+                color: invoice.status === "paid" ? "#166534" : "#334155",
+              }}
+            >
+              {invoice.status === "paid"
+                ? "Paid"
+                : invoice.status === "open"
+                  ? "Awaiting payment"
+                  : invoice.status === "void"
+                    ? "Voided"
+                    : invoice.status}
+            </p>
             {preview && (
               <p className="mt-2 text-xs font-semibold">Sample · Not a payable invoice</p>
             )}
           </div>
         </header>
         <div
-          className={`${compact ? "mt-6" : "mt-10"} ${design.layout === "editorial" ? "grid gap-6 sm:grid-cols-[1fr_auto] sm:items-end" : ""}`}
+          className={`${compact ? "mt-6" : "mt-10"} ${design.layout === "editorial" ? "grid gap-6 @sm:grid-cols-[1fr_auto] @sm:items-end" : ""}`}
         >
           <div className="min-w-0">
             <h2
               style={{ fontFamily: "inherit" }}
-              className={`${design.layout === "editorial" ? "text-4xl" : "text-3xl"} font-semibold tracking-tight text-balance`}
+              className={`${design.layout === "editorial" ? "text-4xl" : "text-3xl"} font-semibold tracking-tight text-balance transition-[font-size] duration-300 motion-reduce:transition-none`}
             >
               {design.heading}
             </h2>
@@ -90,7 +106,7 @@ export function InvoiceDocument({
             </div>
           )}
         </div>
-        <div className="my-8 grid gap-5 border-y border-current/10 py-5 text-sm sm:grid-cols-2">
+        <div className="my-8 grid gap-5 border-y border-current/10 py-5 text-sm @sm:grid-cols-2">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-widest">Bill to</p>
             <p className="mt-2 font-semibold">{invoice.customerName}</p>
@@ -105,8 +121,12 @@ export function InvoiceDocument({
           <caption className="sr-only">Invoice line items</caption>
           <thead>
             <tr className="border-b border-current/10 text-[10px] uppercase tracking-widest">
-              <th className="pb-3 font-semibold">Description</th>
-              <th className="w-28 pb-3 text-right font-semibold">Amount</th>
+              <th scope="col" className="pb-3 font-semibold">
+                Description
+              </th>
+              <th scope="col" className="w-28 pb-3 text-right font-semibold">
+                Amount
+              </th>
             </tr>
           </thead>
           <tbody>

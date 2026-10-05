@@ -31,11 +31,15 @@ receiving payment.
    invoice. The live preview opens the latest active published design or the workspace
    defaults. Enter **Describe your changes**, then **Apply AI changes** to refine the
    current draft. For example: “Keep my wording. Use editorial layout, serif typography,
-   compact spacing, and #164e63.” **Undo AI changes** restores the previous draft.
+   compact spacing, and #164e63.” **Undo changes** and **Redo changes** navigate up to 40 editing steps, including AI
+   revisions and manual edits. Consecutive typing in one field is one step.
    Layout, typography, spacing, accent color and wording are also directly editable.
-   Logo and business identity remain workspace branding.
+   Logo and business identity remain workspace branding. **Workspace**, **Editorial**,
+   and **Minimal** style starters preserve your wording and accent color. Choose
+   **Phone** to check a narrow customer view, then **Full width** to return. Draft
+   edits last until you close the editor; publish a reviewed version to save it.
 6. Choose **Preview page**, then **Request publication approval**. Edits invalidate
-   that review. After execution, refresh published links and copy the customer link.
+   that review. After execution, refresh published links, then open the customer page or copy its link.
    Each publication creates a new link; existing links keep their approved design.
    **Edit this design** reuses a saved version. Revoke an old link explicitly.
    Publishing does not email the customer. Never put secrets or private notes in
