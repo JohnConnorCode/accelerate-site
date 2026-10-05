@@ -316,6 +316,17 @@ for (const [label, viewport, colorScheme] of [
               animation.animationName.startsWith("home-hero-")),
         ),
   );
+  const sourcePorts = await page
+    .locator(".home-hero-port:not(.home-hero-port-output)")
+    .evaluateAll((ports) =>
+      ports.map((port) => ({
+        label: port.textContent.trim(),
+        left: parseFloat(port.style.left),
+        top: parseFloat(port.style.top),
+      })),
+    );
+  if (sourcePorts.map((port) => port.label).join(",") !== "Tools,Knowledge,People")
+    failures.push(`${label}: artwork has no stable business inputs`);
   const resting = await canvas.screenshot();
   await page.waitForTimeout(350);
   if (!resting.equals(await canvas.screenshot()))
@@ -353,6 +364,30 @@ for (const [label, viewport, colorScheme] of [
       failures.push(`${label}: ${name} does not change selection and actual artwork pixels`);
     if (intermediate?.equals(after))
       failures.push(`${label}: artwork snaps to the final shape instead of transforming`);
+    const currentPorts = await page
+      .locator(".home-hero-port:not(.home-hero-port-output)")
+      .evaluateAll((ports) =>
+        ports.map((port) => ({
+          left: parseFloat(port.style.left),
+          top: parseFloat(port.style.top),
+        })),
+      );
+    if (
+      currentPorts.some(
+        (port, index) =>
+          Math.abs(port.left - sourcePorts[index].left) > 0.5 ||
+          Math.abs(port.top - sourcePorts[index].top) > 0.5,
+      )
+    )
+      failures.push(`${label}: ${name} detaches the work from its inputs`);
+    const result = await page
+      .locator('.home-hero-port-output span[data-active="true"]')
+      .textContent();
+    if (
+      result !==
+      (name === "Build" ? "Workflows" : name === "Run & improve" ? "Delivery" : "Priorities")
+    )
+      failures.push(`${label}: ${name} has no connected result`);
     const detail = await page
       .locator('.home-hero-detail-layers p[data-active="true"]')
       .textContent();

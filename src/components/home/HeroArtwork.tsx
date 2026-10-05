@@ -5,30 +5,27 @@ import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
 const chapters = [
   {
     label: "Strategy",
-    input: "Manual work · scattered data",
-    output: "Prioritized opportunities",
+    output: "Priorities",
     body: "Repeated data entry and reports rebuilt by hand are places to start. We trace the work and prioritize useful changes.",
     yaw: -0.12,
-    pitch: 0.22,
-    roll: -0.18,
+    pitch: 0.06,
+    roll: 0,
   },
   {
     label: "Build",
-    input: "Tools · knowledge · people",
-    output: "Connected workflows",
+    output: "Workflows",
     body: "Your inbox, CRM and team knowledge can work together. We connect them through custom workflows, AI agents and integrations.",
-    yaw: -0.25,
-    pitch: 0.3,
-    roll: -0.2,
+    yaw: -0.12,
+    pitch: 0.06,
+    roll: 0,
   },
   {
     label: "Run & improve",
-    input: "Follow-ups · reports · tasks",
-    output: "Managed, measured & improved",
+    output: "Delivery",
     body: "Follow-ups get handled. Your team learns the system. We monitor results and adjust the agreed work as your business changes.",
-    yaw: -0.35,
-    pitch: 0.16,
-    roll: -0.16,
+    yaw: -0.12,
+    pitch: 0.06,
+    roll: 0,
   },
 ];
 
@@ -46,23 +43,29 @@ const cross = (a: Point, b: Point): Point => [
 // A single continuous material changes from separate strands to a woven system
 // to a returning loop. The mesh has the same topology in every state, so the
 // GPU can deform it continuously instead of replacing one sculpture with another.
+// Every state shares the same inputs and destination. The work reorganizes
+// between those fixed points, so the composition remains one connected system.
 function center(u: number, strand: number, chapter: number): Point {
   const tau = Math.PI * 2;
+  const envelope = Math.abs(Math.sin(u * Math.PI)) ** 1.5;
+  const baseline = (1 - strand) * (0.82 * (1 - u) + 0.08 * u);
+  const phase = u * tau + (strand * tau) / 3;
   if (chapter === 0)
     return [
-      (u - 0.5) * 4.15 + (strand - 1) * 0.1,
-      (strand - 1) * 0.78 + Math.sin(u * Math.PI * 1.7 + strand * 0.7) * 0.34,
-      Math.sin(u * tau + strand * 1.3) * 0.35,
+      (u - 0.5) * 3.4,
+      baseline + envelope * (1 - strand) * 0.17,
+      envelope * (strand - 1) * 0.14,
     ];
-  if (chapter === 1) {
-    const phase = u * tau * 1.1 + (strand * tau) / 3;
-    return [(u - 0.5) * 4.25, Math.sin(phase) * 0.82, Math.cos(phase) * 0.78];
-  }
-  const angle = u * Math.PI * 1.62 - Math.PI * 0.76;
+  if (chapter === 1)
+    return [
+      (u - 0.5) * 3.4,
+      baseline + Math.sin(phase) * envelope * 0.75,
+      Math.cos(phase) * envelope * 0.72,
+    ];
   return [
-    Math.cos(angle) * 1.7 + (u - 0.5) * 0.25,
-    Math.sin(angle) * 1.07 + (strand - 1) * 0.34,
-    Math.sin(angle * 1.3 + strand * 0.5) * 0.36 + (strand - 1) * 0.34,
+    (u - 0.5) * 3.4,
+    baseline + (1 - strand) * envelope * 0.85 + Math.sin(u * tau) * envelope * 0.12,
+    Math.sin(phase) * envelope * 0.26,
   ];
 }
 function ribbon(u: number, angle: number, strand: number, chapter: number): Point {
@@ -71,14 +74,12 @@ function ribbon(u: number, angle: number, strand: number, chapter: number): Poin
   );
   const width = unit(cross([0, 0, 1], tangent));
   const depth = unit(cross(tangent, width));
-  const twist =
-    u * Math.PI * (chapter === 1 ? 1.4 : 0.95) + strand * (chapter === 1 ? 1.3 : 0.5) - 0.7;
-  const across = add(scale(width, Math.cos(twist)), scale(depth, Math.sin(twist)));
-  const through = subtract(scale(depth, Math.cos(twist)), scale(width, Math.sin(twist)));
+  const across = width;
+  const through = depth;
   return add(
     center(u, strand, chapter),
     add(
-      scale(across, Math.cos(angle) * (0.31 + Math.sin(u * Math.PI) * 0.05)),
+      scale(across, Math.cos(angle) * (0.1 + Math.sin(u * Math.PI) * 0.23)),
       scale(through, Math.sin(angle) * 0.014),
     ),
   );
@@ -154,14 +155,14 @@ void main() {
   vec3 local = position0 * weights.x + position1 * weights.y + position2 * weights.z;
   vec3 n = normal0 * weights.x + normal1 * weights.y + normal2 * weights.z;
   float pull = exp(-pow((local.x - pointer.x * 2.0) / 1.5, 2.0));
-  local.z += pointer.y * pull * 0.2 + entrance * sin(local.x * 1.8) * 0.22;
+  local.z += sin(registration.x * 3.14159) * sin(registration.x * 3.14159) * (pointer.y * pull * 0.2 + entrance * sin(local.x * 1.8) * 0.14);
   vec4 p = model * vec4(local, 1.0);
   point = p.xyz;
   surface = mat3(model) * n;
   print = registration;
   float camera = 6.0 - p.z;
   float aspect = viewport.x / viewport.y;
-  float zoom = min(3.25, aspect * 2.65);
+  float zoom = min(3.25, aspect * 2.05);
   gl_Position = vec4(p.x * zoom / aspect, p.y * zoom, camera * 1.002 - 0.2002, camera);
 }`;
 const fragment = `
@@ -178,7 +179,7 @@ void main() {
   // the material through every transformation, rather than floating over it.
   float ink = 0.045 + (1.0 - print.z) * 0.10 + key * 0.07;
   float paper = 0.94 - (1.0 - print.z) * 0.10 - (1.0 - key) * 0.06;
-  float grain = abs(fract(print.x * 110.0 + print.y * 3.0) - 0.5);
+  float grain = abs(fract(print.x * 60.0 + print.y * 3.0) - 0.5);
   float hatch = 1.0 - smoothstep(0.055, 0.15, grain);
   float edge = 1.0 - smoothstep(0.010, 0.026, abs(abs(print.y) - 0.86));
   float engraving = hatch * 0.19 + edge * 0.24;
@@ -238,8 +239,8 @@ const filaments = chapters.map((chapter, index) => {
   return Array.from({ length: 21 }, (_, line) => {
     const points = Array.from({ length: 65 }, (_, sample) => {
       const p = center(sample / 64, line % 3, index);
-      p[1] += (Math.floor(line / 3) - 3) * 0.18;
-      p[2] -= 0.3;
+      p[1] += (Math.floor(line / 3) - 3) * 0.14 * Math.sin((sample / 64) * Math.PI);
+      p[2] -= 0.3 * Math.sin((sample / 64) * Math.PI);
       return transform(p, matrix);
     });
     return `M${points.map(project).join(" L")}`;
@@ -249,6 +250,7 @@ const filaments = chapters.map((chapter, index) => {
 export function HeroArtwork() {
   const id = useId();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const portsRef = useRef<HTMLDivElement>(null);
   const [chapter, setChapter] = useState(0);
   const selected = useRef(0);
   const wake = useRef<() => void>(() => {});
@@ -259,6 +261,20 @@ export function HeroArtwork() {
     const scene = canvas.parentElement!;
     const stage = canvas.closest<HTMLElement>(".home-hero-artwork")!;
     stage.dataset.motionState = "paused";
+    const ports = [...(portsRef.current?.querySelectorAll<HTMLElement>(".home-hero-port") ?? [])];
+    const positionPorts = (matrix: Float32Array) => {
+      const bounds = scene.getBoundingClientRect();
+      const aspect = bounds.width / bounds.height;
+      const zoom = Math.min(3.25, aspect * 2.05);
+      const anchors = [0, 1, 2].map((strand) => center(0, strand, 0));
+      anchors.push([1.7, 0, 0]);
+      ports.forEach((port, index) => {
+        const [x, y, z] = transform(anchors[index]!, matrix);
+        port.style.left = `${(0.5 + (x * zoom) / (aspect * (6 - z)) / 2) * 100}%`;
+        port.style.top = `${(0.5 - (y * zoom) / (6 - z) / 2) * 100}%`;
+      });
+    };
+    positionPorts(pose(chapters[0]!.yaw, chapters[0]!.pitch, chapters[0]!.roll));
     // Shader compilation can block on software renderers. Let the readable
     // entrance finish first; the server poster occupies the same stage meanwhile.
     let cancelled = false;
@@ -361,15 +377,13 @@ export function HeroArtwork() {
         const entrance = reduced.matches ? 0 : Math.sin(Math.min(elapsed / 4.4, 1) * Math.PI) ** 2;
         gl.uniform1f(intro, entrance);
         gl.uniform3f(weights, mix[0]!, mix[1]!, mix[2]!);
-        gl.uniformMatrix4fv(
-          model,
-          false,
-          pose(
-            current.yaw + current.x * 0.3,
-            current.pitch + current.y * 0.2,
-            current.roll + entrance * 0.07 + current.x * 0.035,
-          ),
+        const matrix = pose(
+          current.yaw + current.x * 0.12,
+          current.pitch + current.y * 0.1,
+          current.roll + current.x * 0.02,
         );
+        gl.uniformMatrix4fv(model, false, matrix);
+        positionPorts(matrix);
         gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
         stage.dataset.artworkReady = "true";
       };
@@ -532,22 +546,6 @@ export function HeroArtwork() {
       data-motion-state="paused"
       data-chapter={chapter}
     >
-      <div className="home-hero-artwork-meta" aria-hidden="true">
-        <div className="home-hero-signal home-hero-signal-input">
-          {chapters.map((item, index) => (
-            <span key={item.label} data-active={chapter === index}>
-              {item.input}
-            </span>
-          ))}
-        </div>
-        <div className="home-hero-signal home-hero-signal-output">
-          {chapters.map((item, index) => (
-            <span key={item.label} data-active={chapter === index}>
-              {item.output}
-            </span>
-          ))}
-        </div>
-      </div>
       <div className="home-hero-scene" aria-hidden="true">
         <svg className="home-hero-flow" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
           {filaments.map((paths, index) => (
@@ -585,6 +583,26 @@ export function HeroArtwork() {
           ))}
         </svg>
         <canvas ref={canvasRef} className="home-hero-canvas" aria-hidden="true" />
+        <div ref={portsRef} className="home-hero-ports">
+          {["Tools", "Knowledge", "People"].map((label, index) => (
+            <div
+              key={label}
+              className="home-hero-port"
+              style={{ left: "21%", top: `${30 + index * 20}%` }}
+            >
+              {label}
+            </div>
+          ))}
+          <div className="home-hero-port home-hero-port-output" style={{ left: "79%", top: "50%" }}>
+            <div className="home-hero-signal">
+              {chapters.map((item, index) => (
+                <span key={item.label} data-active={chapter === index}>
+                  {item.output}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
       <div
         className="home-hero-chapters"

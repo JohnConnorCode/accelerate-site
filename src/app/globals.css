@@ -6430,12 +6430,13 @@ body.modal-open [data-dock] {
   opacity: 0;
   transition: opacity 550ms var(--hero-ease);
 }
-.home-hero-poster {
+.home-hero-poster,
+.home-hero-flow {
   left: 50%;
   right: auto;
   width: auto;
   /* Match the canvas projection's aspect cap on narrow screens. */
-  max-width: 122.31%;
+  max-width: 94.62%;
   aspect-ratio: 3 / 2;
   transform: translateX(-50%);
 }
@@ -6451,14 +6452,39 @@ body.modal-open [data-dock] {
 .home-hero-artwork[data-artwork-ready="true"] .home-hero-poster {
   opacity: 0;
 }
-/* Captions frame the print, with enough room for every chapter label. */
-.home-hero-artwork-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  min-height: 30px;
-  margin-bottom: 16px;
-  padding: 0 4px;
+/* Labels connect to the same endpoints as the moving material. */
+.home-hero-ports {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.home-hero-port {
+  position: absolute;
+  z-index: 2;
+  padding-right: 12px;
+  color: var(--mid);
+  font: 10px/1.5 var(--util);
+  letter-spacing: 0.035em;
+  transform: translate(-100%, -50%);
+}
+.home-hero-port::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 9px;
+  height: 1px;
+  background: var(--fg);
+}
+.home-hero-port-output {
+  padding-right: 0;
+  padding-left: 12px;
+  color: var(--fg);
+  transform: translate(0, -50%);
+}
+.home-hero-port-output::after {
+  right: auto;
+  left: 0;
 }
 .home-hero-signal {
   position: relative;
@@ -6484,14 +6510,6 @@ body.modal-open [data-dock] {
   transition:
     opacity 500ms var(--hero-ease) 120ms,
     transform 700ms var(--hero-ease) 80ms;
-}
-.home-hero-signal-input {
-  align-self: start;
-}
-.home-hero-signal-output {
-  justify-self: end;
-  text-align: right;
-  color: var(--fg);
 }
 /* An uninterrupted rule travels between quiet editorial chapter controls. */
 .home-hero-chapters {
