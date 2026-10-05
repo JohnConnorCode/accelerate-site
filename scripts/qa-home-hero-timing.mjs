@@ -301,13 +301,37 @@ for (const [label, viewport, colorScheme] of [
     const control = page.getByRole("button", { name, exact: true });
     await control.focus();
     await page.keyboard.press("Enter");
+    let intermediate;
+    if (name === "Build") {
+      await page.waitForTimeout(90);
+      const transition = await page.evaluate(() => {
+        const line = document.querySelector(".home-hero-chapter-line");
+        const detail = document.querySelector('.home-hero-detail-layers p[data-active="true"]');
+        return {
+          offset: new DOMMatrix(getComputedStyle(line).transform).m41,
+          destination: line.getBoundingClientRect().width,
+          detailOpacity: Number(getComputedStyle(detail).opacity),
+        };
+      });
+      if (
+        transition.offset <= 0 ||
+        transition.offset >= transition.destination ||
+        transition.detailOpacity >= 0.99
+      )
+        failures.push(`${label}: chapter rule or description jumps to its final state`);
+      intermediate = await canvas.screenshot({ path: `${output}/${label}-service-transition.png` });
+      if (before.equals(intermediate))
+        failures.push(`${label}: sculpture does not start deforming during chapter change`);
+    }
     await page.waitForTimeout(1100);
-    if (
-      (await control.getAttribute("aria-pressed")) !== "true" ||
-      before.equals(await canvas.screenshot())
-    )
+    const after = await canvas.screenshot();
+    if ((await control.getAttribute("aria-pressed")) !== "true" || before.equals(after))
       failures.push(`${label}: ${name} does not change selection and actual sculpture pixels`);
-    const detail = await page.locator(".home-hero-artwork-detail").textContent();
+    if (intermediate?.equals(after))
+      failures.push(`${label}: sculpture snaps to the final chapter instead of morphing`);
+    const detail = await page
+      .locator('.home-hero-detail-layers p[data-active="true"]')
+      .textContent();
     if (
       !(
         name === "Build"
@@ -472,6 +496,13 @@ if (
   "true"
 )
   failures.push("Reduced motion prevents service selection");
+const reducedChapter = await page.evaluate(() => ({
+  line: getComputedStyle(document.querySelector(".home-hero-chapter-line")).transitionDuration,
+  detail: getComputedStyle(document.querySelector('.home-hero-detail-layers p[data-active="true"]'))
+    .transitionDuration,
+}));
+if (reducedChapter.line !== "0s" || reducedChapter.detail !== "0s")
+  failures.push("Reduced-motion chapter change starts interface transitions");
 await page.waitForTimeout(100);
 const reducedSelection = await reducedCanvas.screenshot();
 await page.waitForTimeout(400);

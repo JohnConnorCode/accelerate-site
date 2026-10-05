@@ -6392,6 +6392,7 @@ body.modal-open [data-dock] {
   height: clamp(300px, 44svh, 440px);
   isolation: isolate;
 }
+/* Fine contour lines sit behind the material, without diagram chrome. */
 .home-hero-flow {
   position: absolute;
   z-index: -1;
@@ -6400,38 +6401,21 @@ body.modal-open [data-dock] {
   height: 100%;
   overflow: visible;
   fill: none;
-  stroke: var(--rule);
-  stroke-width: 1;
+  stroke: var(--fg);
+  stroke-width: 0.55;
   pointer-events: none;
 }
-.home-hero-flow circle {
-  fill: var(--mid);
-  stroke: none;
-}
-.home-hero-flow-signal {
-  stroke: var(--mid);
-  stroke-dasharray: 0.12 0.88;
-  stroke-dashoffset: 0.12;
+.home-hero-flow g {
   opacity: 0;
+  transform: translateY(8px);
+  transform-origin: center;
+  transition:
+    opacity 700ms var(--hero-ease),
+    transform 900ms var(--hero-ease);
 }
-@media (prefers-reduced-motion: no-preference) {
-  .home-hero[data-hero-active="true"] .home-hero-flow-signal {
-    animation: home-hero-signal-pass 3400ms var(--hero-ease) both;
-  }
-}
-@keyframes home-hero-signal-pass {
-  0% {
-    stroke-dashoffset: 0.12;
-    opacity: 0;
-  }
-  15%,
-  75% {
-    opacity: 0.65;
-  }
-  100% {
-    stroke-dashoffset: -1;
-    opacity: 0;
-  }
+.home-hero-flow g[data-active="true"] {
+  opacity: 0.12;
+  transform: translateY(0);
 }
 .home-hero-poster,
 .home-hero-canvas {
@@ -6439,8 +6423,15 @@ body.modal-open [data-dock] {
   inset: 0;
   width: 100%;
   height: 100%;
-  transition: opacity 240ms var(--ease);
+  transition: opacity 400ms var(--hero-ease);
   pointer-events: none;
+}
+.home-hero-poster g {
+  opacity: 0;
+  transition: opacity 550ms var(--hero-ease);
+}
+.home-hero-poster g[data-active="true"] {
+  opacity: 1;
 }
 .home-hero-canvas {
   opacity: 0;
@@ -6451,76 +6442,74 @@ body.modal-open [data-dock] {
 .home-hero-artwork[data-artwork-ready="true"] .home-hero-poster {
   opacity: 0;
 }
+/* Annotation belongs to the composition, rather than floating in UI pills. */
 .home-hero-signal {
   position: absolute;
   z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  display: grid;
+  max-width: 29ch;
   color: var(--mid);
-  background: var(--bg);
-  box-shadow:
-    0 0 0 1px var(--rule),
-    0 4px 16px rgb(0 0 0 / 3%);
-  border-radius: 20px;
-  font: 11px/1.4 var(--body);
+  font: 10px/1.5 var(--util);
+  letter-spacing: 0.035em;
+  pointer-events: none;
 }
-.home-hero-signal::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--mid);
+.home-hero-signal span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 180ms var(--ease),
+    transform 400ms var(--hero-ease);
+}
+.home-hero-signal span[data-active="true"] {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 500ms var(--hero-ease) 120ms,
+    transform 700ms var(--hero-ease) 80ms;
 }
 .home-hero-signal-input {
-  top: 10%;
-  left: 7%;
+  top: 0;
+  left: 3%;
 }
 .home-hero-signal-output {
-  bottom: 10%;
-  right: 4%;
+  bottom: 0;
+  right: 3%;
+  text-align: right;
   color: var(--fg);
 }
-.home-hero-signal-output::before {
-  background: var(--fg);
-}
+/* An uninterrupted rule travels between quiet editorial chapter controls. */
 .home-hero-chapters {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 28px;
-  background: color-mix(in srgb, var(--fg) 4%, var(--bg));
-  box-shadow: inset 0 0 0 1px var(--rule);
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid var(--rule);
+}
+.home-hero-chapter-line {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: calc(100% / 3);
+  height: 1px;
+  background: var(--fg);
+  transform: translateX(calc(var(--hero-chapter, 0) * 100%));
+  transition: transform 650ms var(--hero-ease);
+  pointer-events: none;
 }
 .home-hero-chapters button {
-  flex: 1;
-  min-height: 44px;
-  padding: 10px 12px;
-  border-radius: 24px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 12px 8px;
   color: var(--mid);
-  font: 500 13px/1.3 var(--body);
+  font: 400 13px/1.4 var(--body);
   cursor: pointer;
   transition:
-    color 180ms var(--ease),
-    background-color 180ms var(--ease),
-    box-shadow 180ms var(--ease),
+    color 300ms var(--ease),
     transform 180ms var(--ease);
 }
-.home-hero-chapters button[aria-pressed="true"] {
-  color: var(--bg);
-  background: var(--fg);
-  box-shadow: 0 2px 6px rgb(0 0 0 / 12%);
-}
+.home-hero-chapters button[aria-pressed="true"],
 .home-hero-chapters button:hover {
   color: var(--fg);
-  background: color-mix(in srgb, var(--fg) 9%, var(--bg));
-}
-.home-hero-chapters button[aria-pressed="true"]:hover {
-  color: var(--bg);
-  background: var(--fg);
 }
 .home-hero-chapters button:active {
   transform: scale(0.96);
@@ -6532,17 +6521,38 @@ body.modal-open [data-dock] {
 .home-hero-chapters button:focus-visible {
   outline: 2px solid var(--fg);
   outline-offset: 3px;
+  border-radius: 3px;
 }
 .home-hero-artwork-detail {
   min-height: 140px;
-  padding: 22px 8px 0;
+  padding: 22px 4px 0;
   color: var(--mid);
   font: 14px/1.6 var(--body);
   text-wrap: pretty;
 }
-.home-hero-artwork-detail p {
+.home-hero-detail-layers {
+  display: grid;
+}
+.home-hero-detail-layers p {
+  grid-area: 1 / 1;
   margin: 0;
   max-width: 48ch;
+  opacity: 0;
+  transform: translateY(-6px);
+  filter: blur(2px);
+  transition:
+    opacity 180ms var(--ease),
+    transform 350ms var(--hero-ease),
+    filter 200ms var(--ease);
+}
+.home-hero-detail-layers p[data-active="true"] {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 450ms var(--hero-ease) 120ms,
+    transform 700ms var(--hero-ease) 80ms,
+    filter 500ms var(--hero-ease) 80ms;
 }
 .home-hero-bottom {
   display: grid;
@@ -6633,7 +6643,12 @@ body.modal-open [data-dock] {
 @media (prefers-reduced-motion: reduce) {
   .home-hero-poster,
   .home-hero-canvas,
-  .home-hero-chapters button {
+  .home-hero-chapters button,
+  .home-hero-chapter-line,
+  .home-hero-poster g[data-active],
+  .home-hero-flow g[data-active],
+  .home-hero-signal span[data-active],
+  .home-hero-detail-layers p[data-active] {
     transition: none;
   }
   .home-hero-chapters button:active {
@@ -6789,7 +6804,7 @@ body.modal-open [data-dock] {
     margin: 0 auto;
   }
   .home-hero-scene {
-    height: 250px;
+    height: 280px;
   }
   .home-hero-artwork-detail {
     min-height: 144px;

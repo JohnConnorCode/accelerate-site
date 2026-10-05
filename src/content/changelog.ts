@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "homepage-purposeful-interaction",
     title: "Explore how Accelerate helps from the homepage",
     description:
-      "The homepage artwork now connects strategy, custom builds and ongoing execution to concrete examples. Selecting a stage changes the sculpture, input and outcome labels, and explanation. Pointer movement changes the viewpoint and metallic lighting. The brief entrance settles automatically, replacing decorative numbering and playback controls. Service controls work with keyboard and touch, and static artwork remains available with reduced motion or graphics failure.",
+      "The homepage artwork now connects strategy, custom builds and ongoing execution to concrete examples. A continuous ribbon sculpture moves from separate strands to a woven system and a returning loop. Selecting a stage deforms the material while annotations and explanations cross-fade, and a fine rule travels between the service controls. Pointer movement changes the viewpoint, shape and metallic lighting. The brief entrance settles automatically, replacing decorative numbering and playback controls. Controls work with keyboard and touch, and static artwork remains available with reduced motion or graphics failure.",
     category: "improvement",
     publishedAt: "2026-10-04",
   },
