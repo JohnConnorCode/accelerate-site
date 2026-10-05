@@ -58,7 +58,7 @@
     "src/app/admin/resources/page.tsx": "4f9c6539ebcdd69d96e0e81d5f60b746fc8d37b643ef33a94c1535902da0a3a3",
     "src/app/admin/revenue/page.tsx": "067e05606e15de6d3e1cb29feff33b925373d98c8d9017148cd8e6072013daab",
     "src/app/admin/settings/page.tsx": "ddc02dcafabc97ec8f408f9cafaa3c56342fe9364495fe09167be42ee55188c8",
-    "src/app/admin/setup/page.tsx": "912186665a7cca90f85ac7f99c9a10c7023c893a01c183a7ed11b8f1fe49ffc6",
+    "src/app/admin/setup/page.tsx": "7491b6e309517b7d3bb69543c2e6be658acf4d6f05228ce1f2ff2a1d8d5016da",
     "src/app/admin/site/[id]/page.tsx": "967b7d53e5e731e05e9c88fa943853ee977b8bd8afd8ee2bb88a8d7ce016fee9",
     "src/app/admin/site/connect/page.tsx": "46746b81f2b127b7c002509cc1d3b04e673e8bb44e7ca389fcad43eca7c7dd74",
     "src/app/admin/site/page.tsx": "759acbf21797f27e6f49b56fd3c358b38fc354c810566c4db1d2bab4a8b63f4c",

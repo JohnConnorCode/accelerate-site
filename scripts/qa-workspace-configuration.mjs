@@ -237,6 +237,13 @@ try {
       });
       const sync = page.getByRole("button", { name: "Sync Workspace", exact: true });
       await sync.waitFor();
+      assert.equal(
+        (await page.locator("#supabase").innerText()).split(
+          "Stores operating records and receipts.",
+        ).length - 1,
+        1,
+        "A setup check shows repeated description/outcome copy only once",
+      );
       // Simulate a busy job at the existing transport boundary. No provider
       // credentials or live API calls are involved.
       await page.evaluate(() => {
@@ -260,6 +267,14 @@ try {
       );
       await busyNotice.waitFor();
       await busyNotice.scrollIntoViewIfNeeded();
+      assert.match(
+        (await page
+          .getByRole("status")
+          .filter({ hasText: "Workspace sync is already running; no new sync was started." })
+          .getAttribute("class")) ?? "",
+        /admin-status-message--info/,
+        "A skipped busy job is informational, not a completion receipt",
+      );
       assert.equal(await page.getByText("Workspace sync completed.", { exact: true }).count(), 0);
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
@@ -271,6 +286,13 @@ try {
       await sync.focus();
       await page.keyboard.press("Enter");
       await page.getByText("Workspace sync completed.", { exact: true }).waitFor();
+      assert.match(
+        (await page
+          .getByRole("status")
+          .filter({ hasText: "Workspace sync completed." })
+          .getAttribute("class")) ?? "",
+        /admin-status-message--success/,
+      );
       await page.goto(`${base}/demo/command-center/${scenario}/emails`, {
         waitUntil: "networkidle",
       });

@@ -134,11 +134,11 @@ const setupGuides: Record<string, SetupGuide> = {
   email_studio: {
     steps: [
       "Apply migrations/20260816-email-studio.sql in the Supabase SQL editor.",
-      "Open Email Studio, choose a template, save a draft, and send a test to the founder account.",
+      "Open Email Templates, choose a template, save a draft, and send a test to the founder account.",
       "Review the rendered desktop and mobile preview, then publish only when the exact copy is ready for recipients.",
     ],
     href: "/admin/emails",
-    linkLabel: "Open Email Studio",
+    linkLabel: "Open Email Templates",
   },
   email: {
     steps: [
@@ -405,10 +405,12 @@ function SetupCheckCard({ check, bookingMode }: { check: SetupCheck; bookingMode
             </span>
           </div>
           <p className="admin-copy mt-1.5 text-pretty text-sm leading-6">{check.description}</p>
-          <p className="mt-3 text-pretty text-xs leading-5 text-[var(--admin-ink)]/72">
-            <span className="font-semibold text-[var(--admin-ink)]">What it unlocks:</span>{" "}
-            {check.accomplishes}
-          </p>
+          {check.accomplishes && check.accomplishes.trim() !== check.description.trim() && (
+            <p className="mt-3 text-pretty text-xs leading-5 text-[var(--admin-ink)]/72">
+              <span className="font-semibold text-[var(--admin-ink)]">What it unlocks:</span>{" "}
+              {check.accomplishes}
+            </p>
+          )}
           {(check.lastSuccessAt || check.lastFailure || check.nextRun) && (
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] text-[var(--admin-muted)]">
               {check.lastSuccessAt && (
@@ -509,7 +511,7 @@ export default function AdminSetupPage() {
   const [googleSyncing, setGoogleSyncing] = useState(false);
   const [driveFolders, setDriveFolders] = useState("");
   const [googleMessage, setGoogleMessage] = useState<{
-    tone: "success" | "error";
+    tone: "success" | "error" | "info";
     text: string;
   } | null>(null);
 
@@ -556,7 +558,7 @@ export default function AdminSetupPage() {
         drive: "Drive",
       }[source];
       setGoogleMessage({
-        tone: "success",
+        tone: result.skipped ? "info" : "success",
         text: result.skipped
           ? `${sourceLabel} sync is already running; no new sync was started.`
           : `${sourceLabel} sync completed.`,
@@ -1004,10 +1006,7 @@ export default function AdminSetupPage() {
                     </div>
                   </div>
                   {googleMessage && (
-                    <AdminStatusMessage
-                      tone={googleMessage.tone === "success" ? "success" : "error"}
-                      className="mt-5"
-                    >
+                    <AdminStatusMessage tone={googleMessage.tone} className="mt-5">
                       {googleMessage.text}
                     </AdminStatusMessage>
                   )}
