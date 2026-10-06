@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { chromium } from "playwright";
 
-const base = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3047";
-const output = "/tmp/accelerate-daily-work-qa";
+const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3047";
+const output = process.env.QA_DAILY_WORK_OUTPUT || "/tmp/accelerate-daily-work-qa";
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 
