@@ -196,7 +196,7 @@ async function verifyDefaultDemo(
 }
 
 async function main() {
-  const base = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3028";
+  const base = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3028";
   const output = process.env.SITE_STUDIO_QA_OUTPUT ?? "/tmp/accelerate-site-studio-qa";
   await mkdir(output, { recursive: true });
   const server = process.env.PLAYWRIGHT_BASE_URL
@@ -208,7 +208,7 @@ async function main() {
           "dev",
           "--webpack",
           "--hostname",
-          "127.0.0.1",
+          "localhost",
           "--port",
           "3028",
         ],
