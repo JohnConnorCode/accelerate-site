@@ -6,6 +6,16 @@ const output = process.env.QA_CLIENT_OUTPUT || "/tmp/accelerate-client-interacti
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const results = [];
+async function settleRoute(page) {
+  await page.locator("[data-admin-route-stage]").evaluate(async (root) => {
+    await Promise.all(
+      root
+        .getAnimations({ subtree: true })
+        .filter((animation) => Number.isFinite(animation.effect.getComputedTiming().endTime))
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
+}
 async function checkRecovery(width) {
   const context = await browser.newContext({
     viewport: { width, height: 1000 },
@@ -118,10 +128,12 @@ async function checkRecovery(width) {
         .waitFor({ state: "hidden" });
     }
     // Populate Work's query cache before creating a follow-up, then return through client navigation.
-    await page.locator('a[href="/demo/command-center/northline-roofing/work"]').first().click();
+    await page
+      .locator('a[href="/demo/command-center/northline-roofing/work"]:visible')
+      .first()
+      .click();
     await page.getByRole("textbox", { name: "Search tasks", exact: true }).waitFor();
-    await page.locator('a[href="/demo/command-center/northline-roofing/clients"]').first().click();
-    await page.locator('[data-client-row="client-0"] td').nth(3).click();
+    await page.goBack();
     await notes.waitFor();
     await notes.fill("Unsaved draft survives independent reads");
     const value = page.getByRole("spinbutton", { name: "Monthly value (MRR)", exact: true });
@@ -197,6 +209,7 @@ async function checkRecovery(width) {
       await page.evaluate(() => window.__clientQA.calls.filter((x) => x === "create").length),
       creates + 1,
     );
+    await page.screenshot({ path: `${output}/followup-pending-${width}.png` });
     await page.evaluate(() => {
       window.__clientQA.hold = "";
       window.__clientQA.release();
@@ -204,16 +217,23 @@ async function checkRecovery(width) {
     });
     await followups.getByRole("link", { name: new RegExp(taskTitle) }).waitFor();
     await history.getByText(taskTitle, { exact: true }).waitFor();
-    await page.locator('a[href="/demo/command-center/northline-roofing/work"]').first().click();
+    await page
+      .locator('a[href="/demo/command-center/northline-roofing/work"]:visible')
+      .first()
+      .click();
     await page.getByRole("button", { name: `Open task ${taskTitle}`, exact: true }).waitFor();
-    await page.locator('a[href="/demo/command-center/northline-roofing/clients"]').first().click();
-    await page.locator('[data-client-row="client-0"] td').nth(3).click();
+    await page.goBack();
     await page.reload();
     await notes.waitFor();
     assert.equal(await value.inputValue(), "1250.25");
     assert.equal(await notes.inputValue(), "Unsaved draft survives independent reads");
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await settleRoute(page);
     await page.screenshot({ path: `${output}/recovery-${width}.png`, fullPage: true });
+    await followups.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/followups-${width}.png` });
+    await history.getByRole("heading", { name: "Activity", exact: true }).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/activity-${width}.png` });
     assert.deepEqual(errors, []);
     results.push({
       scenario: "northline-roofing",
@@ -293,6 +313,7 @@ try {
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "Clients should fit the phone viewport",
       );
+      await settleRoute(page);
       await page.screenshot({ path: `${output}/${scenario}-${width}-list.png`, fullPage: true });
       // Click a table cell, not just the tiny business-name text.
       await page.locator(`[data-client-row="${first.id}"] td`).nth(3).click();
@@ -319,6 +340,7 @@ try {
         .getByText(taskTitle, { exact: true })
         .waitFor();
       await taskLink.waitFor();
+      await settleRoute(page);
       await page.screenshot({ path: `${output}/${scenario}-${width}-detail.png`, fullPage: true });
       await taskLink.click();
       const inspector = page.getByRole("dialog", { name: "Task details", exact: true });
