@@ -14,6 +14,8 @@ const routes = [
   "/docs/start/agencies",
   "/docs/extend/first-change",
   "/docs/self-hosting/installation",
+  "/docs/self-hosting/recovery",
+  "/docs/self-hosting/overview",
   "/docs/start/troubleshooting",
   "/docs/command-center",
   "/docs/contacts/import",

@@ -535,7 +535,7 @@ export const capabilities: Capability[] = [
     promise:
       "Run and extend the MIT-licensed application with infrastructure and provider accounts you control.",
     detail:
-      "Use the neutral starter and self-hosting guides for your own installation. Review the documented content exports, data ownership and support arrangements when planning a handoff.",
+      "Use the neutral starter and self-hosting guides for your own installation. Keep database, uploaded-file and encryption recovery copies, verify a separate restoration, and review external action receipts before reconnecting providers. Content exports, data ownership and support responsibilities remain explicit when planning a handoff.",
   },
 ];
 

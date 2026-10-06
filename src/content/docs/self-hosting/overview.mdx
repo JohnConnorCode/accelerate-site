@@ -1,7 +1,7 @@
 ---
 title: "Self-hosting quickstart"
 description: "Explore the real interface with zero credentials, then connect a workspace you control."
-updated: "2026-09-27"
+updated: "2026-10-05"
 ---
 
 You can run the real Command Center interface before you've connected a single database or provider, which is the fastest way to decide whether this is worth setting up for real. A connected installation, when you're ready for one, adds your own workspace, authentication, and provider configuration on top of that same interface.
@@ -43,6 +43,6 @@ Before importing real contacts, confirm that you can sign in to the intended wor
 
 ## Keep your installation maintainable
 
-Use the installation and upgrade instructions shipped with your version. Back up your database before upgrades. Keep server credentials in local or hosting-provider secret configuration, not in source control.
+Use the installation and upgrade instructions shipped with your version. Before importing customer records or upgrading, make recovery copies of the database, actual uploaded files and encryption configuration, then test a separate restoration. The [recovery guide](/docs/self-hosting/recovery) explains the file-copy commands and receipt review before reconnecting providers. Keep server credentials in local or hosting-provider secret configuration, not in source control.
 
 For extending the application, start with [Build on it](/docs/extend). For connecting an external assistant, see [MCP client setup](/docs/extend/mcp-clients).

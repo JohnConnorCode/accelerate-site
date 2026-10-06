@@ -94,7 +94,7 @@ async function bytes(storage, object) {
 }
 
 /** Private byte copy; project keys and file paths never enter the public receipt. */
-export async function backupStorage(storage, project, directory, { origin } = {}) {
+export async function backupStorage(storage, project, directory, { origin = "" } = {}) {
   identity(project, origin);
   const root = resolve(directory);
   await mkdir(root, { mode: 0o700 }); // Refuse an existing or partial snapshot.
@@ -203,7 +203,12 @@ async function readManifest(directory) {
 }
 
 /** Plans are read-only. Writes never upsert; a concurrent conflicting upload also fails. */
-export async function restoreStorage(storage, project, directory, { apply = false, origin } = {}) {
+export async function restoreStorage(
+  storage,
+  project,
+  directory,
+  { apply = false, origin = "" } = {},
+) {
   identity(project, origin);
   const manifest = await readManifest(directory);
   if (project === manifest.project || origin === manifest.origin)
