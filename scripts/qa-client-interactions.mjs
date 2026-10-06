@@ -308,12 +308,14 @@ async function checkTaskInspector(width) {
     await page.evaluate(() => {
       window.__taskQA.holdWrite = true;
     });
-    await title.fill(`Unmounted task edit ${width}`);
+    await title.fill(`Task edit after navigation ${width}`);
     await dialog.getByRole("button", { name: "Save changes", exact: true }).click();
     await page.waitForFunction(() => Boolean(window.__taskQA.release));
-    await dialog.getByRole("link", { name: "Open related contact", exact: true }).click();
-    await page.waitForURL((url) => url.pathname.includes("/contacts/"));
-    const contactURL = page.url();
+    await page.evaluate(() => {
+      history.pushState(null, "", "/demo/command-center/northline-roofing/work?tab=approvals");
+    });
+    await dialog.waitFor({ state: "hidden" });
+    const approvalsURL = page.url();
     await page.evaluate(() => {
       window.__taskQA.holdWrite = false;
       window.__taskQA.release();
@@ -322,9 +324,14 @@ async function checkTaskInspector(width) {
     await page.waitForFunction(async (id) => {
       const task = (await (await fetch(`/api/admin/tasks?id=${encodeURIComponent(id)}`)).json())
         .tasks[0];
-      return task.title.startsWith("Unmounted task edit");
+      return task.title.startsWith("Task edit after navigation");
     }, first.id);
-    assert.equal(page.url(), contactURL, "Leaving Work must fence late mutation navigation");
+    assert.equal(page.url(), approvalsURL, "Leaving the task must fence late mutation navigation");
+    await select(first.id);
+    await title.waitFor();
+    await dialog.getByRole("link", { name: "Open related contact", exact: true }).click();
+    await page.waitForURL((url) => url.pathname.includes("/contacts/"));
+    await page.getByRole("heading", { name: first.related_name, exact: true }).waitFor();
 
     assert.deepEqual(errors, []);
     results.push({
