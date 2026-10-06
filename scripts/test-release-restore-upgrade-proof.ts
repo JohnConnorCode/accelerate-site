@@ -64,7 +64,7 @@ async function main() {
     return result.stdout;
   }
   const literal = (value: string) => `'${value.replaceAll("'", "''")}'`;
-  const sql = (project: Project, input: string) =>
+  const sql = (project: Project, input: string, user = "postgres") =>
     run(
       "docker",
       [
@@ -75,7 +75,7 @@ async function main() {
         "-X",
         "-qAt",
         "-U",
-        "postgres",
+        user,
         "-d",
         "postgres",
         "-v",
@@ -230,7 +230,7 @@ INSERT INTO opportunities(tenant_id,name,contact_id) VALUES('${a}','Saved recove
 INSERT INTO tasks(tenant_id,title,status,contact_id) VALUES('${a}','Completed recovery task','completed','${contactA}');
 INSERT INTO integration_connections(tenant_id,provider,account_email,status,encrypted_credentials,settings,environment_fallback_allowed) VALUES('${a}','stripe','billing@recovery.test','connected',jsonb_build_object('api_key',${literal(envelope)}),'{"sync_cursor":"fictional-cursor"}',false);
 INSERT INTO work_items(id,tenant_id,kind,objective,reason,source,status,lease_owner,lease_expires_at,claimed_at,attempt_count) VALUES('${workId}','${a}','recovery-uncertain','Review uncertain outcome','Provider receipt not available','recovery-proof','in_progress','fixture-owner',now()+interval '1 hour',now(),1);
-INSERT INTO action_queue(id,tenant_id,action_type,title,status,result,expires_at) VALUES('${actionId}','${a}','send_stripe_invoice','Expired uncertain operation','failed','{"providerOutcome":"unknown","idempotencyKey":"fictional-operation"}',now()-interval '1 hour'),('${completedAction}','${a}','send_email','Already recorded send','executed','{"providerReceipt":"fictional-recorded-effect"}',now()+interval '1 hour');
+INSERT INTO action_queue(id,tenant_id,action_type,title,status,result,expires_at,updated_at) VALUES('${actionId}','${a}','send_stripe_invoice','Expired uncertain operation','executing','{"providerOutcome":"unknown","idempotencyKey":"fictional-operation"}',now()-interval '1 hour',now()-interval '1 day'),('${completedAction}','${a}','send_email','Already recorded send','executed','{"providerReceipt":"fictional-recorded-effect"}',now()+interval '1 hour',now());
 INSERT INTO model_call_receipts(id,tenant_id,module_key,operation_key,cache_key,config_fingerprint,requested_model,state,reserved_usd,input_token_bound,output_token_bound) VALUES('${receiptId}','${a}','recovery-proof','${randomUUID()}','${"a".repeat(64)}','${"b".repeat(64)}','fictional-model','uncertain',0,1,1);
 INSERT INTO model_call_events(tenant_id,receipt_id,state,reason) VALUES('${a}','${receiptId}','uncertain','Immutable provider uncertainty evidence');
 NOTIFY pgrst,'reload schema';`,
@@ -312,9 +312,15 @@ NOTIFY pgrst,'reload schema';`,
     sql(target, migrationProgram(priorCatalog));
     // Only this newly-created, verified empty fixture is cleared. Never a product
     // operator path: hosted restoration must follow the provider's managed flow.
+    assert.equal(
+      sql(target, "SELECT rolsuper FROM pg_roles WHERE rolname=current_user;", "supabase_admin"),
+      "t",
+      "Native fixture restoration needs its container's bootstrap administrator",
+    );
     sql(
       target,
       `DO $$ DECLARE targets text; BEGIN SELECT string_agg(format('%I.%I',schemaname,tablename),',') INTO targets FROM pg_tables WHERE schemaname IN ('public','private','auth') AND NOT(schemaname='auth' AND tablename='schema_migrations'); EXECUTE 'TRUNCATE '||targets||' RESTART IDENTITY CASCADE'; END $$;`,
+      "supabase_admin",
     );
     run(
       "docker",
@@ -324,7 +330,7 @@ NOTIFY pgrst,'reload schema';`,
         `supabase_db_${target.id}`,
         "pg_restore",
         "-U",
-        "postgres",
+        "supabase_admin",
         "-d",
         "postgres",
         "--data-only",
@@ -423,6 +429,11 @@ NOTIFY pgrst,'reload schema';`,
       const auth = client(targetApi.origin, targetApi.anon, tenant);
       const login = await auth.auth.signInWithPassword({ email, password });
       assert.ok(!login.error && login.data.user, "Restored native password sign-in must succeed");
+      assert.equal(
+        login.data.user.id,
+        email === owner ? firstUser.data.user.id : secondUser.data.user.id,
+        "Password login must preserve the original Auth identity",
+      );
       return auth;
     };
     const first = await access(owner, a),
@@ -502,11 +513,21 @@ NOTIFY pgrst,'reload schema';`,
       leaseOwner: "restored-worker",
     });
     assert.equal(workClaim.claimed, false, "Unknown effects must remain quarantined after restore");
+    assert.equal(
+      sql(target, `SELECT status FROM action_queue WHERE id='${actionId}';`),
+      "executing",
+      "Interrupted action checkpoint must survive restoration",
+    );
     await assert.rejects(
       claimApprovedAction(scopedTarget, completedAction, owner),
       /already handled|expired/,
     );
     await assert.rejects(retryPluginAction(scopedTarget, actionId, owner), /reconcile/);
+    assert.equal(
+      sql(target, `SELECT status FROM action_queue WHERE id='${actionId}';`),
+      "failed",
+      "Canonical stale-claim recovery closes the interrupted action without replay",
+    );
     assert.equal(
       sql(target, `SELECT status FROM action_queue WHERE id='${completedAction}';`),
       "executed",

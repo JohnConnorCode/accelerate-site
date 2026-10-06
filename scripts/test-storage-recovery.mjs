@@ -175,6 +175,10 @@ test("same target and conflicting or concurrent files never overwrite", async ()
       /different/,
     );
     await assert.rejects(
+      restoreStorage(target.storage, "target", directory, { origin: "http://localhost:54321" }),
+      /different/,
+    );
+    await assert.rejects(
       restoreStorage(target.storage, "target", directory, { ...targetOptions, apply: true }),
       /conflicting/,
     );

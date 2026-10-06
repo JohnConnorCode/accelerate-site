@@ -3,6 +3,7 @@ import { lstat, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 const limit = 100_000_000;
+const loopback = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const objectFile = (bucket, path) => `${hash(`${bucket}\0${path}`)}.bin`;
 export class RecoveryError extends Error {}
@@ -20,9 +21,10 @@ function identity(project, origin) {
     !/^[a-z0-9-]{1,80}$/.test(project) ||
     url.origin !== origin ||
     !["http:", "https:"].includes(url.protocol) ||
-    (url.protocol === "http:" && !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname))
+    (url.protocol === "http:" && !loopback.has(url.hostname))
   )
     fail("Recovery project identity is invalid.");
+  return url;
 }
 
 async function inventory(storage) {
@@ -218,9 +220,17 @@ export async function restoreStorage(
   directory,
   { apply = false, origin = "" } = {},
 ) {
-  identity(project, origin);
+  const destination = identity(project, origin);
   const manifest = await readManifest(directory);
-  if (project === manifest.project || origin === manifest.origin)
+  const source = identity(manifest.project, manifest.origin);
+  if (
+    project === manifest.project ||
+    origin === manifest.origin ||
+    (loopback.has(source.hostname) &&
+      loopback.has(destination.hostname) &&
+      source.protocol === destination.protocol &&
+      source.port === destination.port)
+  )
     fail("Restore requires a different explicitly selected project and API origin.");
   const target = await inventory(storage);
   for (const bucket of target.buckets) {
