@@ -20,7 +20,12 @@ function failure(error: unknown) {
         ? 403
         : 500;
   return NextResponse.json(
-    { error: status === 500 ? "Content calendar failed. Reload and retry." : message },
+    {
+      error:
+        status === 500
+          ? "Calendar result could not be confirmed. Keep this form open to retry the same change, or check the calendar before starting again."
+          : message,
+    },
     { status },
   );
 }

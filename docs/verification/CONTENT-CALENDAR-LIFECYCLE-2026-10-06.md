@@ -46,12 +46,15 @@ After an uncertain reply, retain the original request key and inspect the saved
 receipt/calendar before creating another item. After a stale refusal, reload and
 review a new preview. Deletion is permanent; recovery requires a new reviewed
 create. Calendar statuses never publish, send, unpublish or delete website content.
+An unconfirmed reply does not claim that nothing was saved. The editor tells the
+administrator to retain the form for the same retry or check the calendar first.
 
 ## Reproducible evidence
 
 - `npm run test:content-calendar-actions`: registered tool preview, authorized MCP
   proposal, canonical human approval, denial, expiry, changed payload, stale UI,
-  database failure receipt/retry and revoked membership. Real shared services and
+  database failure receipt/retry, lost reply after commit with receipt reconciliation,
+  and revoked membership. Real shared services and
   client transport with controlled database replies; no claim of hosted execution.
 - `npm run test:content-calendar-postgres`: owned native PostgreSQL, idempotent
   migration, real create/delete/reorder, two tenants/RLS, current membership/module,

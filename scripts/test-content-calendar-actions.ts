@@ -5,7 +5,7 @@ import {
   contentCalendarChangesSchema,
   previewContentCalendarUpdate,
 } from "@/lib/revenue-os/content-calendar";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { createAdminConfigurationFixture } from "./lib/admin-configuration-fixture";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { executeRegisteredRevenueTool } from "@/lib/revenue-os/ai-tools";
@@ -150,6 +150,7 @@ async function main() {
   const hostFetch = globalThis.fetch;
   let calls = 0;
   let fail = false;
+  let loseReply = false;
   globalThis.fetch = async (raw, init) => {
     const url = new URL(String(raw));
     if (!url.pathname.endsWith("/rpc/write_content_calendar_command")) return hostFetch(raw, init);
@@ -159,6 +160,22 @@ async function main() {
     assert.equal(args.p_actor, fixture.userId);
     assert.equal(args.p_actor_email, fixture.email);
     assert.equal(new Headers(init?.headers).get("x-tenant-id"), fixture.tenantId);
+    if (loseReply) {
+      fixture.mem.tables.audit_log ??= [];
+      fixture.mem.tables.audit_log.push({
+        tenant_id: fixture.tenantId,
+        entity_id: args.p_request_key,
+        action: "content_calendar.command",
+        metadata: {
+          inputDigest: args.p_input_digest,
+          result: { status: "success", operation: "delete", count: 1, published: false },
+        },
+      });
+      fixture.mem.tables.content_calendar = fixture.mem
+        .rows("content_calendar")
+        .filter((item) => item.id !== args.p_command.id);
+      throw new TypeError("Controlled reply lost after commit");
+    }
     return Response.json(
       fail
         ? { message: "Controlled database failure", code: "XX000" }
@@ -246,7 +263,7 @@ async function main() {
       const failed = await proposal();
       await assert.rejects(
         () => approveAndExecuteAction(fixture.db, failed.id, fixture.email),
-        /Nothing was saved/,
+        /result could not be confirmed/,
       );
       assert.equal(
         fixture.mem.rows("action_queue").find((item) => item.id === failed.id)!.status,
@@ -259,28 +276,34 @@ async function main() {
       const savedKey = randomUUID();
       const savedCommand = contentCalendarCommandSchema.parse({
         operation: "delete",
-        id: randomUUID(),
+        id: itemId,
       });
-      fixture.mem.tables.audit_log ??= [];
-      fixture.mem.tables.audit_log.push({
-        tenant_id: fixture.tenantId,
-        entity_id: savedKey,
-        action: "content_calendar.command",
-        metadata: {
-          inputDigest: createHash("sha256").update(JSON.stringify(savedCommand)).digest("hex"),
-          result: { status: "success", operation: "delete", count: 1, published: false },
-        },
-      });
+      loseReply = true;
+      await assert.rejects(
+        () =>
+          writeContentCalendarCommand(
+            fixture.db,
+            { requestKey: savedKey, command: savedCommand },
+            fixture.email,
+          ),
+        /result could not be confirmed/,
+      );
+      loseReply = false;
+      assert.equal(fixture.mem.rows("content_calendar").length, 0);
       const reconciled = await writeContentCalendarCommand(
         fixture.db,
         { requestKey: savedKey, command: savedCommand },
         fixture.email,
       );
       assert.equal(reconciled.replayed, true);
-      assert.equal(calls, 3);
+      assert.equal(calls, 4);
       await assert.rejects(
         () =>
-          writeContentCalendarCommand(fixture.db, { requestKey: savedKey, command }, fixture.email),
+          writeContentCalendarCommand(
+            fixture.db,
+            { requestKey: savedKey, command: { ...command, id: randomUUID() } },
+            fixture.email,
+          ),
         /request key/i,
       );
       fixture.mem.rows("tenant_memberships")[0]!.status = "revoked";

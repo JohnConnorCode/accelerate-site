@@ -204,7 +204,9 @@ export async function executeContentCalendarCommand(
       throw new Error("Content calendar changed. Reload, preview and approve again.");
     if (error.code === "42501")
       throw new Error("Workspace administrator or Content access is unavailable.");
-    throw new Error("Content calendar change failed. Nothing was saved. Reload and retry.");
+    throw new Error(
+      "Content calendar result could not be confirmed. Check the calendar before starting another change, or retry the same request.",
+    );
   }
   if (!data || data.status !== "success")
     throw new Error("Content calendar returned no successful receipt");
