@@ -129,9 +129,15 @@ import {
   listContentCalendarItems,
   previewContentCalendarUpdate,
   proposeContentCalendarUpdate,
+  previewContentCalendarCommand,
+  proposeContentCalendarCommand,
   contentCalendarPreviewSchema,
   contentCalendarProposalSchema,
 } from "./content-calendar";
+import {
+  contentCalendarCommandPreviewSchema,
+  contentCalendarCommandProposalSchema,
+} from "./content-calendar-contract";
 import { generateContentBrief, parseContentBriefInput } from "./content-brief";
 import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
 import {
@@ -961,6 +967,42 @@ const registry: AiToolRegistration[] = [
     impact: "read",
     confirmationRequired: false,
     execute: (context, input) => generateContentBrief(context.supabase, input),
+  },
+  {
+    name: "preview_content_calendar_change",
+    description:
+      "Preview an editorial calendar create, permanent delete or item reorder. Supply a stable requestKey UUID; create also needs a new item UUID and title/status values. Reorder uses exact existing IDs and current column_key statuses, at most ten items. Returns the exact normalized command, current item/status snapshots and digest. Does not save or publish anything.",
+    inputSchema: z.toJSONSchema(contentCalendarCommandPreviewSchema, { io: "input" }),
+    parseInput: (input) => contentCalendarCommandPreviewSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => {
+      const parsed = contentCalendarCommandPreviewSchema.parse(input);
+      if (parsed.command.operation === "reorder" && parsed.command.updates.length > 10)
+        throw new Error("Preview no more than ten content items at once");
+      return previewContentCalendarCommand(supabase, parsed);
+    },
+  },
+  {
+    name: "propose_content_calendar_change",
+    description:
+      "Stage the same requestKey, command and digest returned by preview_content_calendar_change for exact human review. Creates, permanently deletes or reorders calendar items only after approval. Deletion keeps receipts and website pages; calendar status never publishes a page. Changed inputs require another preview and review.",
+    inputSchema: z.toJSONSchema(contentCalendarCommandProposalSchema, { io: "input" }),
+    parseInput: (input) => contentCalendarCommandProposalSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) => {
+      const parsed = contentCalendarCommandProposalSchema.parse(input);
+      if (parsed.command.operation === "reorder" && parsed.command.updates.length > 10)
+        throw new Error("Propose no more than ten content items at once");
+      return proposeContentCalendarCommand(supabase, parsed, actorEmail);
+    },
   },
   {
     name: "read_site_editor",
@@ -3603,6 +3645,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_debate_milestone",
     "propose_debate_invitation",
     "generate_content_brief",
+    "preview_content_calendar_change",
+    "propose_content_calendar_change",
     "get_social_workspace",
     "prepare_social_week",
     "preview_social_change",
