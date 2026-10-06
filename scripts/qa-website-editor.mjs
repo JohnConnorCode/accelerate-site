@@ -377,6 +377,11 @@ try {
     assert.equal(await title.inputValue(), `Imported at ${width}`);
     await recovery.getByRole("button", { name: "Undo", exact: true }).click();
     assert.equal(await title.inputValue(), "Receipt retry preserves this title");
+    assert.equal(
+      await recovery.getByText("Imported into local edits.", { exact: false }).count(),
+      0,
+      "undo clears the obsolete import message",
+    );
     await recovery.screenshot({ path: `${output}/recovery-${width}-restored.png` });
     assert.equal(
       await recovery.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),

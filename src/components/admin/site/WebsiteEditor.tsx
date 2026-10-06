@@ -40,6 +40,7 @@ export function WebsiteEditor() {
     if (document) setPast((items) => [...items.slice(-19), document]);
     setFuture([]);
     setDocumentRaw(next);
+    setNotice("");
   };
   const [saved, setSaved] = useState("");
   const [selection, setSelection] = useState<Selection>("pages");
@@ -241,6 +242,7 @@ export function WebsiteEditor() {
             setFuture((items) => [document, ...items]);
             setDocumentRaw(past[past.length - 1]!);
             setPast((items) => items.slice(0, -1));
+            setNotice("");
           }}
         >
           Undo
@@ -254,6 +256,7 @@ export function WebsiteEditor() {
             setPast((items) => [...items, document]);
             setDocumentRaw(future[0]!);
             setFuture((items) => items.slice(1));
+            setNotice("");
           }}
         >
           Redo

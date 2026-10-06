@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "website-editor-operation-recovery",
     title: "Keep website edits safe during saves, reloads and imports",
     description:
-      "Website editing pauses while a save, reload or import finishes, so competing actions cannot overwrite local work. Failed reloads retain your edits and undo history, and initial loading failures offer a direct retry. Incomplete or mismatched confirmations keep the exact pending change for retry. Leaving the editor stops pending requests and ignores late responses.",
+      "Website editing pauses while a save, reload or import finishes, so competing actions cannot overwrite local work. Failed reloads retain your edits and undo history, and initial loading failures offer a direct retry. Incomplete or mismatched confirmations keep the exact pending change for retry. Leaving the editor stops pending requests and ignores late responses. Editing, Undo and Redo clear outdated success messages.",
     category: "fix",
     publishedAt: "2026-10-05",
   },

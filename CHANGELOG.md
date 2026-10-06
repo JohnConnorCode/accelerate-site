@@ -14,7 +14,7 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
-- Installation website save, reload and import now share a synchronous operation lock. Failed reloads retain local edits and undo, leaving ignores late responses, and success requires a matching version and publication receipt. Initial load failures offer a direct retry.
+- Installation website save, reload and import now share a synchronous operation lock. Failed reloads retain local edits and undo, leaving ignores late responses, and success requires a matching version and publication receipt. Initial load failures offer a direct retry; editing and Undo/Redo clear outdated success messages.
 
 - Private page drafts now reuse the validated iframe preview with real responsive viewports and public page styling. Links, including keyboard and middle-button activation, stay inside the preview; FAQ disclosure remains interactive.
 

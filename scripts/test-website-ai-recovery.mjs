@@ -598,6 +598,25 @@ for (const leave of [false, true]) {
     owner.close();
   }
 }
+const messageOwner = await readyOwner();
+messageOwner.edit(editedWebsite);
+button(messageOwner.render(), "Save draft").props.onClick();
+await messageOwner.reply({ receipt: receiptFor(messageOwner) });
+assert.match(messageOwner.life.state[12], /Private revision 1 saved/);
+messageOwner.edit(website);
+assert.equal(messageOwner.life.state[12], "", "new edits clear the prior success message");
+messageOwner.life.state[12] = "Imported into local edits.";
+button(messageOwner.render(), "Undo").props.onClick();
+assert.equal(
+  messageOwner.life.state[12],
+  "",
+  "undo cannot keep an import success message for the undone document",
+);
+messageOwner.life.state[12] = "Imported into local edits.";
+button(messageOwner.render(), "Redo").props.onClick();
+assert.equal(messageOwner.life.state[12], "", "redo clears messages from an earlier document");
+messageOwner.close();
+
 console.log(
   "Website recovery passed: AI cancellation and page identity; serialized save/reload/import; aborted and strict-mode late reads; verified publication receipts; exact retries; local edit and undo preservation.",
 );
