@@ -15,6 +15,7 @@ import { encryptTenantSecret, decryptTenantSecret } from "../src/lib/revenue-os/
 import { settleWorkItem, claimWorkItem, type WorkItem } from "../src/lib/revenue-os/work-items";
 import { reconcileWork } from "../src/lib/revenue-os/work-result";
 import { claimApprovedAction, retryPluginAction } from "../src/lib/revenue-os/actions";
+import { bindTenantDatabase } from "../src/lib/supabase/server";
 
 const safe = (text: string) =>
   text
@@ -176,12 +177,14 @@ async function main() {
     contactB = randomUUID(),
     workId = randomUUID(),
     actionId = randomUUID(),
+    foreignAction = randomUUID(),
     completedAction = randomUUID(),
     receiptId = randomUUID();
   let backupPoint = 0;
   let receipt: Record<string, unknown> | undefined;
   try {
     phase = "prior-source";
+    console.log("Native recovery: Prepare the owned source and prior application migrations.");
     const priorRoot = join(root, "prior");
     await mkdir(priorRoot, { mode: 0o700 });
     const archive = run("git", ["archive", prior, "scripts/lib", "migrations", "supabase"]);
@@ -236,7 +239,11 @@ INSERT INTO model_call_events(tenant_id,receipt_id,state,reason) VALUES('${a}','
 NOTIFY pgrst,'reload schema';`,
     );
     // Canonical work settlement must quarantine uncertainty before snapshotting.
-    const scopedSource = client(sourceApi.origin, sourceApi.serviceKey, a);
+    const scopedSource = bindTenantDatabase(
+      client(sourceApi.origin, sourceApi.serviceKey, a),
+      a,
+      true,
+    );
     const work = await scopedSource.from("work_items").select("*").eq("id", workId).single();
     assert.ok(!work.error && work.data, "Native work fixture must be visible");
     assert.deepEqual(
@@ -246,6 +253,10 @@ NOTIFY pgrst,'reload schema';`,
         reconcileWork("Provider receipt unknown; reconcile before retry"),
       ),
       [],
+    );
+    sql(
+      source,
+      `INSERT INTO action_queue(id,tenant_id,action_type,title,status,expires_at,updated_at) VALUES('${foreignAction}','${tenantB}','send_stripe_invoice','Second tenant interrupted work','executing',now()-interval '1 hour',now()-interval '1 day');`,
     );
     const paths = [`${a}/recovery.txt`, `${tenantB}/nested/recovery.txt`];
     for (const path of paths) {
@@ -266,6 +277,7 @@ NOTIFY pgrst,'reload schema';`,
       "AC01-native-records-auth-encrypted-provider-cursor-work-receipts-and-private-file-inventory",
     );
     phase = "backup";
+    console.log("Native recovery: Capture records, Auth identities and actual file bytes.");
     const copy = join(root, "files");
     const fileBackup = await backupStorage(sourceApi.service.storage, source.id, copy, {
       origin: sourceApi.origin,
@@ -296,6 +308,7 @@ NOTIFY pgrst,'reload schema';`,
     const postBackupWrite = Date.now();
     stop(source);
     phase = "restore";
+    console.log("Native recovery: Start the distinct empty target and restore its private copy.");
     const restoreStarted = Date.now();
     const target = projects[1]!;
     const targetApi = await start(target);
@@ -402,6 +415,9 @@ NOTIFY pgrst,'reload schema';`,
       "AC02-distinct-native-target-exact-record-auth-file-ciphertext-and-relationship-restoration",
     );
     phase = "upgrade-permissions";
+    console.log(
+      "Native recovery: Apply pending migrations and verify login, tenant access and integrity.",
+    );
     sql(target, migrationProgram(currentCatalog));
     sql(target, migrationProgram(currentCatalog));
     const upgraded = snapshot(target);
@@ -506,7 +522,14 @@ NOTIFY pgrst,'reload schema';`,
     nativeFailure("DELETE FROM model_call_events;", /immutable/i);
     checks.push("AC04-populated-prior-source-upgrade-replay-native-RLS-FK-and-immutable-evidence");
     phase = "pending-work";
-    const scopedTarget = client(targetApi.origin, targetApi.serviceKey, a);
+    console.log(
+      "Native recovery: Verify interrupted work, immutable receipts and safe retry boundaries.",
+    );
+    const scopedTarget = bindTenantDatabase(
+      client(targetApi.origin, targetApi.serviceKey, a),
+      a,
+      true,
+    );
     const workClaim = await claimWorkItem(scopedTarget, {
       kind: "recovery-uncertain",
       workItemId: workId,
@@ -527,6 +550,11 @@ NOTIFY pgrst,'reload schema';`,
       sql(target, `SELECT status FROM action_queue WHERE id='${actionId}';`),
       "failed",
       "Canonical stale-claim recovery closes the interrupted action without replay",
+    );
+    assert.equal(
+      sql(target, `SELECT status FROM action_queue WHERE id='${foreignAction}';`),
+      "executing",
+      "One tenant's recovery must not alter another tenant's interrupted action",
     );
     assert.equal(
       sql(target, `SELECT status FROM action_queue WHERE id='${completedAction}';`),
