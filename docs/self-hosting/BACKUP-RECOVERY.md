@@ -42,6 +42,8 @@ The destination must not exist. This command copies actual bytes from every buck
 
 The command handles files up to 100 MB and at most 25,000 inventory entries, including folders. Use the provider's authenticated S3 export for larger collections. Keep the local copy on protected storage and encrypt it before moving it off-host. A private filesystem mode is not encryption. Bucket and file access policies also need the matching database migrations or provider-supported schema restoration; copying bytes alone does not restore authorization.
 
+The copy restores bucket/path locations, bytes, content types and bucket settings. It does not preserve Storage object IDs, owner fields, versions or custom metadata. Accelerate's private-file policies use the tenant path and active membership, which the native drill verifies. If a fork's policies depend on other object fields, use its reviewed provider-specific restoration and verify that access separately.
+
 Export required environment values through your secret manager into an encrypted archive. Keep the decryption key separately accessible to the recovery owner. Without the original provider-encryption keys, restored encrypted connections cannot be read; reconnect them explicitly rather than replacing keys silently.
 
 Record external dependencies separately: Auth URL/SMTP/OAuth settings, encryption keys, hosting and domains, Storage policies, Cron/Vault configuration, provider webhooks and provider-side receipts. An enabled Social Marketing/Postiz installation has its own data volumes and provider configuration; use `deployment/README.md` for that package. Those components are not restored by the file command or the native core drill.

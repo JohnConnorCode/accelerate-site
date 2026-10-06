@@ -34,7 +34,7 @@ try {
     if (existsSync(".env.local")) process.loadEnvFile(resolve(".env.local"));
     const config = setupConfiguration(process.env);
     if (!config.ready || config.project !== flags[1])
-      throw new Error(
+      throw new RecoveryError(
         "Recovery configuration or exact project selection is invalid. Run npm run setup to inspect the configuration.",
       );
     const client = createClient(config.apiUrl, config.serviceKey, {

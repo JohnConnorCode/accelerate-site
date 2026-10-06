@@ -15,7 +15,7 @@ function store(initial = []) {
     allowed_mime_types: null,
   };
   const files = new Map(initial.map(([path, text]) => [path, Buffer.from(text)]));
-  const state = { writes: 0, reads: 0, failUpload: false, failList: false };
+  const state = { writes: 0, reads: 0, failUpload: false, failUploadAt: 0, failList: false };
   const storage = {
     async listBuckets() {
       state.reads++;
@@ -64,7 +64,7 @@ function store(initial = []) {
         },
         async upload(path, value, options) {
           assert.equal(options.upsert, false);
-          if (state.failUpload || files.has(path))
+          if (state.failUpload || state.writes + 1 === state.failUploadAt || files.has(path))
             return { error: new Error("conflict or unavailable") };
           state.writes++;
           files.set(path, Buffer.from(value));
@@ -187,6 +187,19 @@ test("same target and conflicting or concurrent files never overwrite", async ()
       /stopped/,
     );
     assert.equal(concurrent.state.writes, 0);
+    const partial = store();
+    partial.state.failUploadAt = 2;
+    await assert.rejects(
+      restoreStorage(partial.storage, "target", directory, { ...targetOptions, apply: true }),
+      /stopped/,
+    );
+    const resumePlan = await restoreStorage(partial.storage, "target", directory, targetOptions);
+    assert.equal(resumePlan.existing, 1);
+    assert.equal(resumePlan.pending, 1);
+    partial.state.failUploadAt = 0;
+    await restoreStorage(partial.storage, "target", directory, { ...targetOptions, apply: true });
+    assert.deepEqual(partial.files, source.files);
+    assert.equal(partial.state.writes, 2);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -3,7 +3,7 @@
  * routines/policies before a native data-only restore. This is not a hosted dump. */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -151,6 +151,7 @@ async function main() {
     "action_queue",
     "model_call_receipts",
     "model_call_events",
+    "knowledge_documents",
     "accelerate_schema_migrations",
   ];
   function snapshot(project: Project) {
@@ -178,6 +179,7 @@ async function main() {
     completedAction = randomUUID(),
     receiptId = randomUUID();
   let backupPoint = 0;
+  let receipt: Record<string, unknown> | undefined;
   try {
     phase = "prior-source";
     const priorRoot = join(root, "prior");
@@ -224,7 +226,7 @@ async function main() {
     sql(
       source,
       `INSERT INTO contacts(id,tenant_id,full_name,primary_email) VALUES('${contactA}','${a}','First recovery contact','shared@recovery.test'),('${contactB}','${tenantB}','Second recovery contact','shared@recovery.test');
-INSERT INTO opportunities(tenant_id,title,contact_id) VALUES('${a}','Saved recovery deal','${contactA}');
+INSERT INTO opportunities(tenant_id,name,contact_id) VALUES('${a}','Saved recovery deal','${contactA}');
 INSERT INTO tasks(tenant_id,title,status,contact_id) VALUES('${a}','Completed recovery task','completed','${contactA}');
 INSERT INTO integration_connections(tenant_id,provider,account_email,status,encrypted_credentials,settings,environment_fallback_allowed) VALUES('${a}','stripe','billing@recovery.test','connected',jsonb_build_object('api_key',${literal(envelope)}),'{"sync_cursor":"fictional-cursor"}',false);
 INSERT INTO work_items(id,tenant_id,kind,objective,reason,source,status,lease_owner,lease_expires_at,claimed_at,attempt_count) VALUES('${workId}','${a}','recovery-uncertain','Review uncertain outcome','Provider receipt not available','recovery-proof','in_progress','fixture-owner',now()+interval '1 hour',now(),1);
@@ -254,6 +256,11 @@ NOTIFY pgrst,'reload schema';`,
           upsert: false,
         });
       assert.equal(error, null, "Native Storage upload must succeed");
+      const hash = createHash("sha256").update(`Private fictional file ${path}`).digest("hex");
+      sql(
+        source,
+        `INSERT INTO knowledge_documents(tenant_id,title,mime_type,storage_path,content_hash,owner_email,status,extracted_text) VALUES(${literal(path.split("/")[0]!)},'Recovery knowledge','text/plain',${literal(path)},${literal(hash)},${literal(path.startsWith(a) ? owner : second)},'indexed','Private fictional recovery knowledge');`,
+      );
     }
     checks.push(
       "AC01-native-records-auth-encrypted-provider-cursor-work-receipts-and-private-file-inventory",
@@ -481,7 +488,7 @@ NOTIFY pgrst,'reload schema';`,
       assert.match(result.stderr, message);
     };
     nativeFailure(
-      `INSERT INTO opportunities(tenant_id,title,contact_id) VALUES('${a}','Foreign relation','${contactB}');`,
+      `INSERT INTO opportunities(tenant_id,name,contact_id) VALUES('${a}','Foreign relation','${contactB}');`,
       /foreign key/i,
     );
     nativeFailure("UPDATE model_call_events SET reason='Rewritten';", /immutable/i);
@@ -522,7 +529,7 @@ NOTIFY pgrst,'reload schema';`,
       "AC05-measured-recovery-point-and-time-provider-config-key-and-hosted-boundaries-explicit",
       "AC06-read-only-file-plan-safe-replay-and-owned-native-recovery-command",
     );
-    const receipt = {
+    receipt = {
       status: "passed",
       commit: run("git", ["rev-parse", "HEAD"]).toString().trim(),
       priorSourceCommit: prior,
@@ -556,12 +563,6 @@ NOTIFY pgrst,'reload schema';`,
         "stable tagged release, which is not yet published",
       ],
     };
-    await writeFile(join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n", {
-      mode: 0o600,
-    });
-    console.log(
-      `PASS: native recovery and prior-source upgrade (${checks.length} acceptance proofs, ${fileBackup.files} private files, ${recoveryMs} ms recovery). External effects remain disabled.`,
-    );
   } catch (error) {
     await writeFile(
       join(output, "failure.json"),
@@ -580,17 +581,41 @@ NOTIFY pgrst,'reload schema';`,
     );
     throw error;
   } finally {
+    let cleanupFailed = false;
     for (const project of projects) {
       try {
         stop(project);
       } catch {
+        cleanupFailed = true;
         console.error(
           `Owned ${project.id.endsWith("source") ? "source" : "target"} cleanup did not complete; no other project was stopped.`,
         );
       }
     }
     await rm(root, { recursive: true, force: true });
+    if (cleanupFailed) {
+      await writeFile(
+        join(output, "cleanup-failure.json"),
+        JSON.stringify({
+          status: "failed",
+          phase: "cleanup",
+          message:
+            "Owned native project cleanup did not complete; no successful receipt was issued.",
+        }),
+        { mode: 0o600 },
+      );
+      throw new Error("Owned native project cleanup did not complete");
+    }
   }
+  assert.ok(receipt, "Every acceptance proof must finish before the recovery receipt");
+  await writeFile(
+    join(output, "receipt.json"),
+    JSON.stringify({ ...receipt, ownedProjectsCleaned: true }, null, 2) + "\n",
+    { mode: 0o600 },
+  );
+  console.log(
+    `PASS: native recovery and prior-source upgrade (${checks.length} acceptance proofs). External effects remain disabled; owned fixtures are cleaned.`,
+  );
 }
 
 void main().catch((error) => {

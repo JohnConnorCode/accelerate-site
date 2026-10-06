@@ -97,7 +97,15 @@ async function bytes(storage, object) {
 export async function backupStorage(storage, project, directory, { origin = "" } = {}) {
   identity(project, origin);
   const root = resolve(directory);
-  await mkdir(root, { mode: 0o700 }); // Refuse an existing or partial snapshot.
+  try {
+    await mkdir(root, { mode: 0o700 }); // Refuse an existing or partial snapshot.
+  } catch (error) {
+    fail(
+      error.code === "EEXIST"
+        ? "Backup destination already exists. Retain the previous copy and select a new directory."
+        : "Cannot create the private backup directory. Check its parent directory and write permission.",
+    );
+  }
   await mkdir(join(root, "objects"), { mode: 0o700 });
   const capturedAt = new Date().toISOString();
   const before = await inventory(storage);
@@ -191,6 +199,7 @@ async function readManifest(directory) {
     if (
       !parent.isDirectory() ||
       parent.isSymbolicLink() ||
+      parent.mode & 0o077 ||
       !info.isFile() ||
       info.isSymbolicLink() ||
       info.mode & 0o077 ||
