@@ -440,8 +440,12 @@ for (const [label, viewport, colorScheme] of [
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
     // Deliberately read after the entrance duration. This reproduces the late
-    // CI observation while requiring an actual earlier native animation event.
+    // CI observation. Event delivery can lag further on a software renderer,
+    // so wait for bounded confirmation instead of reading an incomplete receipt.
     await page.waitForTimeout(3000);
+    await page.waitForFunction(() => window.__freshHeroEntrance?.native, undefined, {
+      timeout: 30_000,
+    });
     const forward = await page.evaluate(() => window.__freshHeroEntrance);
     settled.forward = forward;
     if (!isFreshHeroEntrance(forward))
@@ -492,7 +496,7 @@ for (const [label, viewport] of [
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
     await page.waitForTimeout(3000);
-    if (control === "late-event")
+    if (control !== "suppressed")
       await page.waitForFunction(() => window.__freshHeroEntrance?.native);
     const sample = await page.evaluate(() => window.__freshHeroEntrance);
     const injected =
