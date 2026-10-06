@@ -3,137 +3,125 @@ import { requireAdminForModule } from "@/lib/admin/module-guard";
 import {
   listContentCalendarItems,
   updateContentCalendarItem,
+  writeContentCalendarCommand,
 } from "@/lib/revenue-os/content-calendar";
 import { ZodError } from "zod";
+import { z } from "zod";
+
+function failure(error: unknown) {
+  if (error instanceof ZodError || error instanceof SyntaxError)
+    return NextResponse.json({ error: "Invalid content calendar input" }, { status: 400 });
+  const message = error instanceof Error ? error.message : "Content calendar failed";
+  const status = /not found/.test(message)
+    ? 404
+    : /changed|already exists|preview|request key/i.test(message)
+      ? 409
+      : /administrator|unavailable|revoked/i.test(message)
+        ? 403
+        : 500;
+  return NextResponse.json(
+    { error: status === 500 ? "Content calendar failed. Reload and retry." : message },
+    { status },
+  );
+}
 
 export async function GET() {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-
   try {
-    const result = await listContentCalendarItems(auth.database);
-    return NextResponse.json({ items: result.items });
+    return NextResponse.json(await listContentCalendarItems(auth.database));
   } catch (error) {
-    console.error("Content calendar read failed:", error);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+    return failure(error);
   }
 }
 
 export async function POST(request: NextRequest) {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-
-  const supabase = auth.database;
-  const body = await request.json();
-
-  const { data, error } = await supabase.from("content_calendar").insert(body).select().single();
-
-  if (error) {
-    console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+  if (!auth.user.email)
+    return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
+  try {
+    const { id, requestKey, ...values } = z
+      .record(z.string(), z.unknown())
+      .parse(await request.json());
+    const receipt = await writeContentCalendarCommand(
+      auth.database,
+      {
+        requestKey: z.uuid().parse(requestKey),
+        command: { operation: "create", id: z.uuid().parse(id), values },
+      },
+      auth.user.email,
+    );
+    return NextResponse.json({ receipt }, { status: 201 });
+  } catch (error) {
+    return failure(error);
   }
-
-  return NextResponse.json({ item: data });
 }
 
 export async function PATCH(request: NextRequest) {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-
-  const supabase = auth.database;
-  const body = await request.json();
-
-  if (Array.isArray(body.reorder)) {
-    if (!body.reorder.length || body.reorder.length > 250) {
-      return NextResponse.json({ error: "Invalid reorder payload" }, { status: 400 });
-    }
-    const { data: validColumns, error: columnsError } = await supabase
-      .from("kanban_columns")
-      .select("column_key")
-      .eq("board_key", "content")
-      .eq("tenant_id", auth.tenant.id);
-    if (columnsError) {
-      return NextResponse.json({ error: columnsError.message }, { status: 500 });
-    }
-    const validColumnKeys = new Set((validColumns ?? []).map((row) => row.column_key as string));
-    const updates = body.reorder.map((item: Record<string, unknown>) => ({
-      id: typeof item.id === "string" ? item.id : "",
-      column_key: typeof item.column_key === "string" ? item.column_key : "",
-      sort_order: Number(item.sort_order),
-    }));
-    if (
-      updates.some(
-        (item: { id: string; column_key: string; sort_order: number }) =>
-          !item.id || !validColumnKeys.has(item.column_key) || !Number.isFinite(item.sort_order),
-      )
-    ) {
-      return NextResponse.json(
-        { error: "Every reordered card needs a valid id, status, and order" },
-        { status: 400 },
-      );
-    }
-    const { data: affected, error } = await supabase.rpc("reorder_kanban_items", {
-      p_board_key: "content",
-      p_updates: updates,
-    });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    if (affected !== updates.length) {
-      return NextResponse.json(
-        { error: "One or more items could not be reordered. Refresh and try again." },
-        { status: 409 },
-      );
-    }
-    return NextResponse.json({ success: true, affected });
-  }
-
-  const { id, ...updateData } = body;
-
-  if (!id) {
-    return NextResponse.json({ error: "Missing item id" }, { status: 400 });
-  }
-  if (!auth.user.email) {
-    return NextResponse.json(
-      { error: "Authenticated administrator email is required" },
-      { status: 403 },
-    );
-  }
-
+  if (!auth.user.email)
+    return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
   try {
-    const item = await updateContentCalendarItem(supabase, id, updateData, auth.user.email);
+    const body = z.record(z.string(), z.unknown()).parse(await request.json());
+    if (Array.isArray(body.reorder)) {
+      const input = z
+        .object({
+          requestKey: z.uuid(),
+          reorder: z.array(z.unknown()).min(1).max(250),
+          expected: z
+            .array(z.object({ id: z.uuid(), revision: z.string().min(1) }).strict())
+            .min(1)
+            .max(250),
+        })
+        .strict()
+        .parse(body);
+      const receipt = await writeContentCalendarCommand(
+        auth.database,
+        {
+          requestKey: input.requestKey,
+          command: { operation: "reorder", updates: input.reorder },
+        },
+        auth.user.email,
+        input.expected,
+      );
+      return NextResponse.json({ success: true, affected: receipt.count, receipt });
+    }
+    const { id, expectedRevision, ...changes } = body;
+    const item = await updateContentCalendarItem(
+      auth.database,
+      z.uuid().parse(id),
+      changes,
+      auth.user.email,
+      z.string().min(1).parse(expectedRevision),
+    );
     return NextResponse.json({ item });
   } catch (error) {
-    if (error instanceof ZodError)
-      return NextResponse.json({ error: "Invalid content calendar update" }, { status: 400 });
-    const message = error instanceof Error ? error.message : "Content update failed";
-    if (message.includes("not found"))
-      return NextResponse.json({ error: message }, { status: 404 });
-    if (message.includes("changed in another session"))
-      return NextResponse.json({ error: message }, { status: 409 });
-    if (message.includes("module is unavailable"))
-      return NextResponse.json({ error: message }, { status: 403 });
-    console.error("Content calendar update failed:", error);
-    return NextResponse.json({ error: "Content calendar update failed" }, { status: 500 });
+    return failure(error);
   }
 }
 
 export async function DELETE(request: NextRequest) {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-
-  const supabase = auth.database;
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-
-  if (!id) {
-    return NextResponse.json({ error: "Missing item id" }, { status: 400 });
+  if (!auth.user.email)
+    return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
+  try {
+    const params = new URL(request.url).searchParams;
+    const id = z.uuid().parse(params.get("id"));
+    const revision = z.string().min(1).parse(params.get("expectedRevision"));
+    const receipt = await writeContentCalendarCommand(
+      auth.database,
+      {
+        requestKey: z.uuid().parse(params.get("requestKey")),
+        command: { operation: "delete", id },
+      },
+      auth.user.email,
+      [{ id, revision }],
+    );
+    return NextResponse.json({ success: true, receipt });
+  } catch (error) {
+    return failure(error);
   }
-
-  const { error } = await supabase.from("content_calendar").delete().eq("id", id);
-
-  if (error) {
-    console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
-  }
-
-  return NextResponse.json({ success: true });
 }

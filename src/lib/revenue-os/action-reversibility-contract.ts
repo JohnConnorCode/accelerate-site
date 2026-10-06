@@ -95,6 +95,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "Restore prior editorial values through a new reviewed update against the current item revision; no automatic inverse or publication is implied.",
   },
   {
+    actionType: "content_calendar_change",
+    impact: "internal_write",
+    reversibility: "irreversible",
+    rationale:
+      "Creation and reordering can be corrected by a new reviewed command. Deletion permanently removes the calendar item; approval and audit history remain. No website publication or automatic undo is implied.",
+  },
+  {
     actionType: "create_task_batch",
     impact: "internal_write",
     reversibility: "compensable",

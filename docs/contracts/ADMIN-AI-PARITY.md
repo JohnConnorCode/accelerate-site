@@ -211,10 +211,21 @@ digest for review, and wait for an administrator decision. Execution rechecks
 the active tenant admin, current module enablement and item revision before a
 tenant-scoped compare-and-set write. Approval does not publish content.
 
-Content calendar creation, deletion and column reordering are not yet part of
-this AI parity path. Creation/deletion and other domain write paths still need
-their own shared operation services and governance where appropriate, so the
-content domain is not complete parity.
+Content calendar creation, permanent item deletion and item reordering now use
+`preview_content_calendar_change` and `propose_content_calendar_change`. The
+strict versioned command binds a stable request key, normalized input, exact item
+revisions and current columns. Tools accept at most ten reordered items; direct
+admin controls accept at most 250. Approval rechecks current administrator access,
+module availability and every snapshot. The shared database function atomically
+writes the calendar and its audit receipt; replay cannot save a different command.
+Deletion preserves approvals/audit and does not delete or unpublish website pages.
+The fictional demo shares command validation and review UI, with session-local
+simulated effects. Its scripted assistant does not infer these calendar commands.
+
+Shared Kanban column creation/rename/deletion, assets and installation-wide website
+publication remain outside this slice. The parent `admin-ai-parity-content` card
+retains those gaps; the content domain is not complete parity. See the
+[operation matrix and verification](../verification/CONTENT-CALENDAR-LIFECYCLE-2026-10-06.md).
 
 ## Implemented plugin and module configuration path
 
