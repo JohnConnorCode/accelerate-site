@@ -701,7 +701,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["self-hosting", "recovery"],
         title: "Recover a failing workspace",
         description:
-          "Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims.",
+          "Repair sign-in, schema and stalled work, then restore saved records and private files with verified recovery steps.",
       },
       {
         slug: ["self-hosting", "installation"],

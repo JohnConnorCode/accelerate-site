@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import { migrationCatalog, migrationProgram } from "./lib/migration-ledger.mjs";
 import { bootstrapOwnerMembershipSql } from "./lib/bootstrap-owner-membership.mjs";
@@ -319,9 +320,8 @@ NOTIFY pgrst,'reload schema';`,
     ],
     dump,
   );
-  assert.deepEqual(
-    snapshot(target),
-    expected,
+  assert.ok(
+    isDeepStrictEqual(snapshot(target), expected),
     "Restored identities, ledger, relationships, ciphertext, cursor, work and immutable receipts must match",
   );
   const cli = spawnSync(
@@ -389,9 +389,11 @@ NOTIFY pgrst,'reload schema';`,
     currentCatalog.length > priorCatalog.length,
     "The pinned prior source must exercise pending migrations",
   );
-  assert.deepEqual(
-    { ...upgraded, accelerate_schema_migrations: expected.accelerate_schema_migrations },
-    expected,
+  assert.ok(
+    isDeepStrictEqual(
+      { ...upgraded, accelerate_schema_migrations: expected.accelerate_schema_migrations },
+      expected,
+    ),
     "Populated business data must survive upgrade and replay",
   );
   assert.equal(upgraded.accelerate_schema_migrations.length, currentCatalog.length);
