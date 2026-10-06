@@ -136,8 +136,9 @@ async function main() {
             await page
               .getByRole("heading", { name: "Keep your installation maintainable", exact: true })
               .scrollIntoViewIfNeeded();
-            const recovery = page.locator('main a[href="/docs/self-hosting/recovery"]');
+            const recovery = page.getByRole("link", { name: "recovery guide", exact: true });
             await expect(recovery).toBeVisible();
+            await expect(recovery).toHaveAttribute("href", "/docs/self-hosting/recovery");
             await expect(page.locator("main")).toContainText(
               "actual uploaded files and encryption configuration",
             );
