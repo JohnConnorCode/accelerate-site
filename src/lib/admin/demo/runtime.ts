@@ -1,3 +1,4 @@
+import { handleDemoContentCalendar } from "./content-calendar-runtime";
 import {
   demoAgentSnapshotSchema,
   demoAgentProposalSchema,
@@ -140,6 +141,8 @@ type DemoSubscriptionsState = {
   archivedPlanIds?: string[];
 };
 export type DemoState = {
+  contentSeedAt?: string;
+  contentCommandReceipts?: Record<string, { fingerprint: string; result: Record<string, unknown> }>;
   website?: DemoWebsiteState;
   todayViews?: TodayViews;
   todayViewReceipts?: Record<string, { fingerprint: string; result: unknown }>;
@@ -2208,11 +2211,13 @@ function contentItems(pack: DemoScenarioPack, state: DemoState) {
     seo_description: `A specific operating resource from ${pack.name}.`,
     word_count_target: 900 + index * 100,
     created_at: ago(240 + index * 24),
-    updated_at: ago(index * 5 + 1),
+    updated_at: new Date(
+      Date.parse(state.contentSeedAt!) - (index * 5 + 1) * 3_600_000,
+    ).toISOString(),
     ...(state.contentOverrides[`content-${index}`] ?? {}),
   }));
   const created = Object.entries(state.contentOverrides)
-    .filter(([id]) => id.startsWith("content-new-"))
+    .filter(([id]) => !seeded.some((item) => item.id === id))
     .map(([id, patch]) => ({ ...seeded[0]!, ...patch, id }));
   return [...seeded, ...created].filter((item) => !state.deletedContentIds.includes(item.id));
 }
@@ -2510,6 +2515,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
   activeRuntime?.restore();
   const pack = DEMO_SCENARIOS[scenarioId];
   const state = loadState(scenarioId);
+  state.contentSeedAt ??= new Date().toISOString();
   if (!state.business || state.business.version !== 1) {
     state.business = createDemoBusinessState(pack);
     saveState(scenarioId, state);
@@ -2594,6 +2600,22 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    const calendar = await handleDemoContentCalendar(
+      scenarioId,
+      state,
+      business,
+      contentItems(pack, state),
+      KANBAN_DEFAULT_COLUMNS.content,
+      path,
+      method,
+      body,
+      url.searchParams,
+      () => {
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+      },
+    );
+    if (calendar) return calendar;
     if (
       path === "/api/admin/revenue-os/actions" &&
       method === "GET" &&
@@ -3567,60 +3589,6 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse(clients(pack, state, url.searchParams));
     if (method === "GET" && path === "/api/admin/content")
       return jsonResponse({ items: contentItems(pack, state) });
-    if (path === "/api/admin/content" && method !== "GET") {
-      const rows = contentItems(pack, state);
-      const validStatuses = new Set(
-        KANBAN_DEFAULT_COLUMNS.content.map((column) => column.column_key),
-      );
-      if (Array.isArray(body.reorder)) {
-        const updates = body.reorder as Array<{
-          id: string;
-          column_key: string;
-          sort_order: number;
-        }>;
-        if (
-          !updates.length ||
-          updates.length > 250 ||
-          updates.some(
-            (u) =>
-              !rows.some((row) => row.id === u.id) ||
-              !validStatuses.has(u.column_key) ||
-              !Number.isFinite(u.sort_order),
-          )
-        )
-          return jsonResponse({ error: "Invalid content reorder" }, 400);
-        for (const update of updates)
-          state.contentOverrides[update.id] = {
-            ...state.contentOverrides[update.id],
-            status: update.column_key,
-            sort_order: update.sort_order,
-          };
-      } else if (method === "DELETE") {
-        const id = url.searchParams.get("id") ?? "";
-        if (!rows.some((row) => row.id === id))
-          return jsonResponse({ error: "Content not found" }, 404);
-        state.deletedContentIds.push(id);
-      } else {
-        const id = method === "POST" ? `content-new-${crypto.randomUUID()}` : String(body.id ?? "");
-        if (method !== "POST" && !rows.some((row) => row.id === id))
-          return jsonResponse({ error: "Content not found" }, 404);
-        if (
-          typeof body.title !== "string" ||
-          !body.title.trim() ||
-          !validStatuses.has(String(body.status))
-        )
-          return jsonResponse({ error: "A title and valid status are required" }, 400);
-        state.contentOverrides[id] = {
-          ...state.contentOverrides[id],
-          ...body,
-          id,
-          updated_at: new Date().toISOString(),
-        };
-      }
-      saveState(scenarioId, state);
-      window.dispatchEvent(new Event("admin:demo-state"));
-      return jsonResponse({ success: true, simulated: true });
-    }
     if (method === "GET" && path === "/api/admin/kanban/columns") {
       const board = url.searchParams.get("board_key");
       if (!isKanbanBoardKey(board)) return jsonResponse({ error: "Invalid board" }, 400);

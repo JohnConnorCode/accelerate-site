@@ -111,6 +111,7 @@ async function digest(value: unknown) {
     .map((x) => x.toString(16).padStart(2, "0"))
     .join("");
 }
+export { digest as demoBusinessDigest };
 export function createDemoBusinessState(pack: DemoScenarioPack): DemoBusinessState {
   const brand = resolveWorkspaceBrand({ brand: pack.tenant.brand }, pack.name);
   Object.assign(brand, {
