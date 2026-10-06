@@ -417,6 +417,15 @@ export function useAppNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const navigation = useNavigationRuntime();
+  const replaceSearch = useCallback((search: URLSearchParams) => {
+    // Next's native History API adapter updates search params without a route fetch.
+    // Keep our entry identity; Next adds its own framework state to this payload.
+    window.history.replaceState(
+      { [ENTRY_KEY]: currentHistoryState()[ENTRY_KEY] },
+      "",
+      `${window.location.pathname}${search.size ? `?${search}` : ""}${window.location.hash}`,
+    );
+  }, []);
 
   const navigate = (kind: "push" | "replace", href: string, scroll: NavigationScroll = "top") => {
     const destination = new URL(href, window.location.href);
@@ -429,5 +438,6 @@ export function useAppNavigation() {
   return {
     push: (href: string, scroll: NavigationScroll = "top") => navigate("push", href, scroll),
     replace: (href: string, scroll: NavigationScroll = "top") => navigate("replace", href, scroll),
+    replaceSearch,
   };
 }

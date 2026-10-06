@@ -323,7 +323,7 @@ export default function WorkPage() {
     if (requestedTask) {
       const next = new URLSearchParams(params.toString());
       next.delete("task");
-      router.replace(`/admin/work${next.size ? `?${next}` : ""}`, "preserve");
+      router.replaceSearch(next);
     }
   };
   const dismissTask = () => {
@@ -380,7 +380,7 @@ export default function WorkPage() {
     setError("");
     const next = new URLSearchParams(params.toString());
     next.set("task", row.id);
-    router.replace(`/admin/work?${next}`, "preserve");
+    router.replaceSearch(next);
   };
   const mutateTask = async (row: TaskRow, action: "edit" | "complete" | "snooze" = "edit") => {
     if (busy || taskOperation.current || (action === "snooze" && !snoozeDate)) return;

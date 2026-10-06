@@ -85,10 +85,23 @@ try {
       await firstTask.locator("[data-record-row]").getAttribute("data-selected"),
       "true",
     );
+    const historyEntry = await page.evaluate(() => {
+      window.__dailyWorkDocument = "original";
+      return history.state.__accelerateNavigationId;
+    });
     await page.keyboard.press("s");
     const taskDialog = page.getByRole("dialog", { name: "Task details" });
     await taskDialog.waitFor();
     assert.ok(await taskDialog.getByLabel("Snooze until").inputValue());
+    assert.deepEqual(
+      await page.evaluate(() => [
+        window.__dailyWorkDocument,
+        history.state.__accelerateNavigationId,
+      ]),
+      ["original", historyEntry],
+      "Task opening must retain the document and shared history entry",
+    );
+    assert.ok(new URL(page.url()).searchParams.get("task"));
     await page.waitForFunction(() => {
       const dialog = document.querySelector('[data-admin-overlay="dialog"]');
       return dialog && Number(getComputedStyle(dialog).opacity) >= 0.99;
@@ -96,6 +109,8 @@ try {
     await page.screenshot({ path: `${output}/work-${width}.png`, fullPage: false });
     await taskDialog.getByRole("button", { name: "Close task" }).click();
     await taskDialog.waitFor({ state: "hidden" });
+    assert.equal(await page.evaluate(() => window.__dailyWorkDocument), "original");
+    assert.equal(new URL(page.url()).searchParams.has("task"), false);
     await page.getByRole("link", { name: "Approvals", exact: true }).click();
     await page.locator('[data-source-type="approval"]').first().waitFor();
     await page.keyboard.press("j");
