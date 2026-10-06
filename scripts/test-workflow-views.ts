@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { taskSourceLink } from "../src/lib/admin/work-presentation";
 import {
   normalizeWorkflowPreference,
   readWorkflowPreference,
@@ -108,4 +109,30 @@ assert.deepEqual(
 
 console.log(
   "Workflow view contracts passed: safe preferences, date-only boundaries, local timestamps, and calendar grids.",
+);
+
+// Source navigation uses stored identifiers, never a display name or a guessed route.
+for (const [type, path] of [
+  ["contact", "contacts"],
+  ["client", "clients"],
+  ["opportunity", "pipeline"],
+]) {
+  assert.equal(
+    taskSourceLink({ related_type: type, related_id: "record/with space" })?.href,
+    `/admin/${path}/record%2Fwith%20space`,
+  );
+}
+assert.equal(
+  taskSourceLink({ opportunity_id: "opportunity-1" })?.href,
+  "/admin/pipeline/opportunity-1",
+);
+assert.equal(taskSourceLink({ related_type: "contact", related_id: null }), null);
+assert.equal(taskSourceLink({ related_type: "unknown", related_id: "record-1" }), null);
+assert.equal(
+  taskSourceLink({ related_type: "lead", related_id: "inquiry-1" })?.label,
+  "Open inquiries",
+);
+assert.equal(
+  taskSourceLink({ related_type: "partner", related_id: "partner-1" })?.href,
+  "/admin/partners",
 );

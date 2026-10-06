@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Work task selection now keeps its exact URL and independent read/retry lifecycle. Editable instructions reuse the existing task writer; pending edits lock the form, failed confirmations retain drafts, and late reads or saves cannot target the next inspector. Source links use stored identifiers in Work and legacy Today.
+
 - Client detail uses independently recoverable queries for the record, activity and follow-ups. Failed refreshes retain loaded data and local edits; native forms validate nonnegative cent values and lock pending submissions. Follow-up creation refreshes related history and Work/Today caches.
 
 - Installation website save, reload and import now share a synchronous operation lock. Failed reloads retain local edits and undo, leaving ignores late responses, and success requires a matching version and publication receipt. Initial load failures offer a direct retry; editing and Undo/Redo clear outdated success messages.

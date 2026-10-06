@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "task-inspector-context-recovery",
+    slug: "task-inspector-context-recovery",
+    title: "Keep task details attached to the right work",
+    description:
+      "Task links reopen the same inspector after reload, load independently and offer retry on read failures. Switching links cannot reuse another task’s fields or let a late save close the next task. Edit instructions beside title, date and priority, and open the related client, contact or opportunity. Pending changes lock the form and close control, failed edits retain the draft, and completed tasks remain available for reference. Legacy Today links use stored record identifiers.",
+    category: "fix",
+    publishedAt: "2026-10-06",
+  },
+  {
     id: "client-workspace-recovery",
     slug: "client-workspace-recovery",
     title: "Keep client records, activity and follow-ups connected",

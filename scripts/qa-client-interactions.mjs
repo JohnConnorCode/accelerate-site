@@ -16,6 +16,330 @@ async function settleRoute(page) {
     );
   });
 }
+async function checkTaskInspector(width) {
+  const context = await browser.newContext({
+    viewport: { width, height: 1000 },
+    reducedMotion: width === 390 ? "reduce" : "no-preference",
+  });
+  await context.addInitScript(() => {
+    window.__taskQA = {
+      failId: "",
+      holdId: "",
+      holdWrite: false,
+      failWrite: false,
+      wrongReceipt: false,
+      writes: [],
+      release: null,
+      completed: [],
+    };
+    let handler = window.fetch;
+    Object.defineProperty(window, "fetch", {
+      configurable: true,
+      set(value) {
+        handler = value;
+      },
+      get() {
+        const current = handler;
+        return async (input, init) => {
+          const url = new URL(input instanceof Request ? input.url : String(input), location.href),
+            state = window.__taskQA;
+          if (url.pathname === "/api/admin/tasks" && !init?.method && url.searchParams.has("id")) {
+            const id = url.searchParams.get("id");
+            if (id === state.holdId)
+              await new Promise((resolve) => {
+                state.release = resolve;
+              }); // Ignore abort deliberately: identity must still win.
+            state.completed.push(id);
+            if (id === state.failId)
+              return new Response(JSON.stringify({ error: "Controlled task read failure" }), {
+                status: 503,
+              });
+            if (id === "missing-task")
+              return new Response(JSON.stringify({ tasks: [] }), { status: 200 });
+          }
+          if (url.pathname === "/api/admin/tasks" && init?.method === "PATCH") {
+            const body = JSON.parse(init.body);
+            state.writes.push(body);
+            if (state.holdWrite)
+              await new Promise((resolve) => {
+                state.release = resolve;
+              });
+            if (state.failWrite)
+              return new Response(JSON.stringify({ error: "Controlled task save failure" }), {
+                status: 503,
+              });
+            if (state.wrongReceipt)
+              return new Response(JSON.stringify({ task: { ...body, id: "wrong-task" } }), {
+                status: 200,
+              });
+          }
+          return current(input, init);
+        };
+      },
+    });
+  });
+  const page = await context.newPage(),
+    errors = [];
+  page.setDefaultTimeout(20000);
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname.startsWith("/api/admin"))
+      errors.push("Protected API escaped demo runtime");
+  });
+  const select = (id) =>
+    page.evaluate((id) => {
+      history.pushState(
+        null,
+        "",
+        `/demo/command-center/northline-roofing/work?task=${encodeURIComponent(id)}`,
+      );
+    }, id);
+  const dialog = page.getByRole("dialog", { name: "Task details", exact: true });
+  try {
+    await page.goto(`${base}/demo/command-center/northline-roofing/work`);
+    await page.getByRole("heading", { name: "Work", exact: true }).waitFor();
+    const tasks = await page.evaluate(
+      async () => (await (await fetch("/api/admin/tasks?owner=team&status=all")).json()).tasks,
+    );
+    const [first, second] = tasks.filter((task) => task.status === "pending");
+    assert.ok(first && second);
+    await page.evaluate((id) => {
+      window.__taskQA.failId = id;
+    }, first.id);
+    await select(first.id);
+    await dialog.getByRole("button", { name: "Retry", exact: true }).waitFor();
+    assert.equal(
+      await dialog.getByRole("heading", { name: "Task not found", exact: true }).count(),
+      0,
+    );
+    await page.screenshot({ path: `${output}/task-read-error-${width}.png` });
+    await page.evaluate(() => {
+      window.__taskQA.failId = "";
+    });
+    await dialog.getByRole("button", { name: "Retry", exact: true }).click();
+    const title = dialog.getByRole("textbox", { name: "Title", exact: true });
+    await title.waitFor();
+    assert.equal(await title.inputValue(), first.title);
+    await page.evaluate((id) => {
+      window.__taskQA.holdId = id;
+    }, second.id);
+    await select(second.id);
+    await page.waitForFunction(() => Boolean(window.__taskQA.release));
+    assert.equal(await title.count(), 0, "A new task must never expose the previous task's fields");
+    await select(first.id);
+    await title.waitFor();
+    assert.equal(await title.inputValue(), first.title);
+    await page.evaluate(() => {
+      window.__taskQA.holdId = "";
+      window.__taskQA.release();
+      window.__taskQA.release = null;
+    });
+    await page.waitForFunction((id) => window.__taskQA.completed.includes(id), second.id);
+    assert.equal(
+      await title.inputValue(),
+      first.title,
+      "Late canceled read cannot change the current task",
+    );
+    await select(second.id);
+    await title.waitFor();
+    await page.waitForFunction(
+      (expected) => document.querySelector('[role="dialog"] input')?.value === expected,
+      second.title,
+    );
+    await select(first.id);
+    await title.waitFor();
+    await page.waitForFunction(
+      (expected) => document.querySelector('[role="dialog"] input')?.value === expected,
+      first.title,
+    );
+    const instructions = dialog.getByRole("textbox", { name: "Instructions", exact: true });
+    const revised = `Reviewed task ${width}`;
+    await title.fill(revised);
+    await instructions.fill("Confirm the owner and document the agreed result.");
+    await page.evaluate((id) => {
+      window.__taskQA.failId = id;
+      window.dispatchEvent(new Event("admin:priority-refresh"));
+    }, first.id);
+    await dialog.getByText("Showing previously loaded information", { exact: true }).waitFor();
+    assert.equal(await title.inputValue(), revised);
+    assert.equal(
+      await instructions.inputValue(),
+      "Confirm the owner and document the agreed result.",
+    );
+    await page.evaluate(() => {
+      window.__taskQA.failId = "";
+    });
+    await dialog.getByRole("button", { name: "Retry", exact: true }).click();
+    await dialog
+      .getByText("Showing previously loaded information", { exact: true })
+      .waitFor({ state: "hidden" });
+    assert.equal(await title.inputValue(), revised);
+    await page.evaluate(() => {
+      window.__taskQA.failWrite = true;
+    });
+    await dialog.getByRole("button", { name: "Save changes", exact: true }).click();
+    await dialog
+      .getByRole("alert")
+      .getByText("Controlled task save failure", { exact: true })
+      .waitFor();
+    assert.equal(await title.inputValue(), revised);
+    assert.equal(
+      await instructions.inputValue(),
+      "Confirm the owner and document the agreed result.",
+    );
+    await page.evaluate(() => {
+      window.__taskQA.failWrite = false;
+      window.__taskQA.wrongReceipt = true;
+    });
+    await dialog.getByRole("button", { name: "Save changes", exact: true }).click();
+    await dialog
+      .getByText("The task change could not be confirmed. Check the saved task before retrying.", {
+        exact: true,
+      })
+      .waitFor();
+    assert.equal(await title.inputValue(), revised);
+    await page.evaluate(() => {
+      window.__taskQA.wrongReceipt = false;
+      window.__taskQA.holdWrite = true;
+    });
+    const writes = await page.evaluate(() => window.__taskQA.writes.length);
+    await title.press("Enter");
+    await page.waitForFunction(() => Boolean(window.__taskQA.release));
+    assert.equal(await title.isDisabled(), true);
+    assert.equal(await instructions.isDisabled(), true);
+    assert.equal(
+      await dialog.getByRole("button", { name: "Close task", exact: true }).isDisabled(),
+      true,
+    );
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Escape");
+    assert.equal(await dialog.isVisible(), true);
+    assert.equal(await page.evaluate(() => window.__taskQA.writes.length), writes + 1);
+    await page.screenshot({ path: `${output}/task-saving-${width}.png` });
+    // Browser history can select another task while the old request is still pending.
+    await select(second.id);
+    await title.waitFor();
+    await page.waitForFunction(
+      (expected) => document.querySelector('[role="dialog"] input')?.value === expected,
+      second.title,
+    );
+    await page.evaluate(() => {
+      window.__taskQA.holdWrite = false;
+      window.__taskQA.release();
+      window.__taskQA.release = null;
+    });
+    await page.waitForFunction(
+      () =>
+        !document.querySelector('[role="dialog"] input')?.disabled &&
+        !document.querySelector('[role="dialog"] input')?.closest("fieldset")?.disabled,
+    );
+    assert.equal(await dialog.isVisible(), true);
+    assert.equal(
+      await title.inputValue(),
+      second.title,
+      "Late save must not close or overwrite another task",
+    );
+    const saved = await page.evaluate(
+      async (id) =>
+        (await (await fetch(`/api/admin/tasks?id=${encodeURIComponent(id)}`)).json()).tasks[0],
+      first.id,
+    );
+    assert.equal(saved.title, revised);
+    assert.equal(saved.description, "Confirm the owner and document the agreed result.");
+    await dialog.getByRole("link", { name: "Open related contact", exact: true }).waitFor();
+    assert.ok(
+      (
+        await dialog
+          .getByRole("link", { name: "Open related contact", exact: true })
+          .getAttribute("href")
+      ).endsWith(encodeURIComponent(second.related_id)),
+    );
+    const until = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
+    await dialog.getByLabel("Snooze until", { exact: true }).fill(until);
+    await dialog.getByRole("button", { name: "Snooze task", exact: true }).click();
+    await dialog.waitFor({ state: "hidden" });
+    await select(second.id);
+    await title.waitFor();
+    const snoozed = await page.evaluate(
+      async (id) =>
+        (await (await fetch(`/api/admin/tasks?id=${encodeURIComponent(id)}`)).json()).tasks[0],
+      second.id,
+    );
+    assert.equal(snoozed.status, "snoozed");
+    await dialog.getByRole("button", { name: "Close task", exact: true }).click();
+    await dialog.waitFor({ state: "hidden" });
+    await page.getByLabel("Ownership", { exact: true }).selectOption("team");
+    await page.getByLabel("Status", { exact: true }).selectOption("snoozed");
+    await page.getByRole("button", { name: `Complete ${second.title}`, exact: true }).click();
+    await page
+      .getByRole("button", { name: `Complete ${second.title}`, exact: true })
+      .waitFor({ state: "hidden" });
+    await select(second.id);
+    await dialog.getByText("Completed tasks are shown for reference.", { exact: true }).waitFor();
+    assert.equal(await title.isDisabled(), true);
+    assert.equal(await instructions.isDisabled(), true);
+    await page.screenshot({ path: `${output}/task-completed-${width}.png` });
+    await dialog.getByRole("button", { name: "Close task", exact: true }).click();
+    await dialog.waitFor({ state: "hidden" });
+    await select("missing-task");
+    await dialog.getByRole("heading", { name: "Task not found", exact: true }).waitFor();
+    assert.equal(await title.count(), 0);
+    assert.equal(
+      await dialog.getByRole("button", { name: "Save changes", exact: true }).isDisabled(),
+      true,
+    );
+    await dialog.getByRole("button", { name: "Close task", exact: true }).click();
+    await dialog.waitFor({ state: "hidden" });
+    await select(first.id);
+    await title.waitFor();
+    assert.equal(await title.inputValue(), revised);
+    await page.reload();
+    await title.waitFor();
+    assert.equal(await title.inputValue(), revised);
+    await instructions.waitFor();
+    assert.equal(
+      await instructions.inputValue(),
+      "Confirm the owner and document the agreed result.",
+    );
+    await page.screenshot({ path: `${output}/task-detail-${width}.png` });
+    await page.evaluate(() => {
+      window.__taskQA.holdWrite = true;
+    });
+    await title.fill(`Unmounted task edit ${width}`);
+    await dialog.getByRole("button", { name: "Save changes", exact: true }).click();
+    await page.waitForFunction(() => Boolean(window.__taskQA.release));
+    await dialog.getByRole("link", { name: "Open related contact", exact: true }).click();
+    await page.waitForURL((url) => url.pathname.includes("/contacts/"));
+    const contactURL = page.url();
+    await page.evaluate(() => {
+      window.__taskQA.holdWrite = false;
+      window.__taskQA.release();
+      window.__taskQA.release = null;
+    });
+    await page.waitForFunction(async (id) => {
+      const task = (await (await fetch(`/api/admin/tasks?id=${encodeURIComponent(id)}`)).json())
+        .tasks[0];
+      return task.title.startsWith("Unmounted task edit");
+    }, first.id);
+    assert.equal(page.url(), contactURL, "Leaving Work must fence late mutation navigation");
+
+    assert.deepEqual(errors, []);
+    results.push({
+      scenario: "northline-roofing",
+      width,
+      taskInspector: "passed",
+      runtimeErrors: errors,
+    });
+  } catch (error) {
+    await page.screenshot({ path: `${output}/task-failure-${width}.png` }).catch(() => {});
+    throw error;
+  } finally {
+    await context.close();
+  }
+}
 async function checkRecovery(width) {
   const context = await browser.newContext({
     viewport: { width, height: 1000 },
@@ -246,8 +570,10 @@ async function checkRecovery(width) {
   }
 }
 try {
-  for (const width of [1440, 390]) await checkRecovery(width);
-  if (!process.env.QA_CLIENT_RECOVERY_ONLY)
+  for (const width of [1440, 390]) await checkTaskInspector(width);
+  if (!process.env.QA_TASK_INSPECTOR_ONLY)
+    for (const width of [1440, 390]) await checkRecovery(width);
+  if (!process.env.QA_CLIENT_RECOVERY_ONLY && !process.env.QA_TASK_INSPECTOR_ONLY)
     for (const [scenario, width] of [
       ["northline-roofing", 1440],
       ["northline-roofing", 390],
@@ -345,6 +671,13 @@ try {
       await taskLink.click();
       const inspector = page.getByRole("dialog", { name: "Task details", exact: true });
       await inspector.waitFor();
+      assert.ok(
+        (
+          await inspector
+            .getByRole("link", { name: "Open related client", exact: true })
+            .getAttribute("href")
+        ).endsWith(first.id),
+      );
       assert.equal(
         await inspector.getByRole("textbox", { name: "Title", exact: true }).inputValue(),
         taskTitle,

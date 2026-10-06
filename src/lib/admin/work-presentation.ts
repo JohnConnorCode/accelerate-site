@@ -22,3 +22,27 @@ export function relativeTime(value: string | null) {
   if (absoluteHours < 24) return `Due in ${absoluteHours}h`;
   return `Due in ${Math.ceil(absoluteHours / 24)}d`;
 }
+
+/** Related names are display text; only stored identifiers resolve a record. */
+export function taskSourceLink(task: {
+  opportunity_id?: string | null;
+  related_type?: string | null;
+  related_id?: string | null;
+}): { href: string; label: string } | null {
+  if (task.opportunity_id)
+    return {
+      href: `/admin/pipeline/${encodeURIComponent(task.opportunity_id)}`,
+      label: "Open related opportunity",
+    };
+  if (!task.related_id) return null;
+  const id = encodeURIComponent(task.related_id);
+  if (task.related_type === "client")
+    return { href: `/admin/clients/${id}`, label: "Open related client" };
+  if (task.related_type === "contact")
+    return { href: `/admin/contacts/${id}`, label: "Open related contact" };
+  if (task.related_type === "opportunity")
+    return { href: `/admin/pipeline/${id}`, label: "Open related opportunity" };
+  if (task.related_type === "lead") return { href: "/admin/leads", label: "Open inquiries" };
+  if (task.related_type === "partner") return { href: "/admin/partners", label: "Open partners" };
+  return null;
+}

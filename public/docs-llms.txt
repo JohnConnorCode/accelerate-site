@@ -64,12 +64,12 @@ Combine features and plugins around a specific business outcome.
 ## Command Center
 One shared operating layer for the businesses that need it, and how to run the daily workspace.
 
-- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-27): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
+- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-10-06): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
 - [Setup, integrations, and health](https://www.acceleratewith.us/docs/command-center/setup) (updated 2026-09-27): Check which connections are ready, run a first sync, and recover a failed setup check.
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-27): Find supported capabilities, their business purpose and the setup or review each needs.
 - [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-30): Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.
 - [Triage new work in Intake review](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-27): Find new inquiries, handoffs, tasks and proposed actions, then open the record that needs attention.
-- [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-27): Review tasks, approvals and AI work, and save task views for your workspace.
+- [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-10-06): Review tasks, approvals and AI work, and save task views for your workspace.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-30): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-27): Trace a change back to who made it, what happened, and when.
 - [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-30): Ask a specific question, see the records it used to answer, and review anything it proposes.
@@ -117,7 +117,7 @@ Campaigns, email templates, and reactivation of past demand.
 Clients, bookings, content, and resources after the sale.
 
 - [Delivery](https://www.acceleratewith.us/docs/delivery/overview) (updated 2026-10-05): Coordinate client accounts, bookings, editorial work and resource-download follow-up.
-- [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-10-05): Find an account, check what it's worth, and open its delivery record.
+- [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-10-06): Find an account, check what it's worth, and open its delivery record.
 - [Review bookings](https://www.acceleratewith.us/docs/delivery/bookings) (updated 2026-09-27): Prep for the call, then record what happened once it's over.
 - [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-23): Track a brief from idea to published, and verify a review caught what mattered.
 - [Review resource downloads](https://www.acceleratewith.us/docs/delivery/resources) (updated 2026-09-27): Find who requested a resource, when, and whether that's worth a real follow-up.
