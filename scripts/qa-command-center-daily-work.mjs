@@ -32,7 +32,17 @@ try {
       await rail
         .locator("section[data-nav-section]")
         .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-nav-section"))),
-      ["Today", "Work", "Records", "Conversations", "Knowledge", "Coworkers", "Apps", "Settings"],
+      [
+        "Today",
+        "Work",
+        "Records",
+        "Invoices",
+        "Conversations",
+        "Knowledge",
+        "Coworkers",
+        "Apps",
+        "Settings",
+      ],
     );
     if (width === 390) {
       assert.deepEqual(
