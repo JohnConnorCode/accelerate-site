@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, basename, resolve } from "node:path";
+import { repositoryIdentity } from "../../src/lib/work-repository.mjs";
+export { repositoryIdentity } from "../../src/lib/work-repository.mjs";
 
 export function git(cwd, args, optional = false) {
   try {
@@ -14,19 +16,6 @@ export function git(cwd, args, optional = false) {
     throw new Error(
       `Git ${args[0]} failed. Inspect repository access and the approved base; no credentials are printed.`,
     );
-  }
-}
-
-export function repositoryIdentity(value) {
-  const input = String(value ?? "")
-    .trim()
-    .replace(/^git@([^:]+):/, "ssh://git@$1/");
-  try {
-    const url = new URL(input);
-    if (!["https:", "ssh:", "file:"].includes(url.protocol) || url.password) return null;
-    return `${url.hostname.toLowerCase()}${url.pathname.replace(/\.git\/?$/, "").replace(/\/$/, "")}`;
-  } catch {
-    return null;
   }
 }
 
@@ -60,12 +49,16 @@ export function prepareWorkspace(
       "Ticket needs an approved repository URL, branch and exact 40-character base commit. No work was claimed.",
     );
   const identity = repositoryIdentity(repo.url);
-  if (
-    !identity ||
-    identity !== repositoryIdentity(git(root, ["remote", "get-url", "origin"], true))
-  )
+  const key = card.seed_key ?? card.id;
+  const diagnosticKey = typeof key === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(key) ? key : "(invalid card key)";
+  // Never reflect the address: legacy cards may contain credentials or query tokens.
+  if (!identity)
     throw new Error(
-      "This checkout's origin does not match the ticket repository. Use the approved clone before claiming.",
+      `Card ${diagnosticKey}: invalid repository address. Have the maintainer save a credential-free HTTPS, SSH or absolute file URL through a revision-checked card edit. No work was claimed.`,
+    );
+  if (identity !== repositoryIdentity(git(root, ["remote", "get-url", "origin"], true)))
+    throw new Error(
+      `Card ${diagnosticKey}: this checkout's origin does not match the ticket repository. Use the approved clone before claiming.`,
     );
   const localRef = `refs/heads/${repo.baseBranch}`;
   const remoteRef = `refs/remotes/origin/${repo.baseBranch}`;
@@ -78,7 +71,6 @@ export function prepareWorkspace(
     throw new Error(
       "Approved base is unavailable or not an ancestor of its branch. Fetch the published branch; ask the maintainer to publish/reconcile it if missing. No work was claimed.",
     );
-  const key = card.seed_key ?? card.id;
   if (typeof key !== "string" || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(key))
     throw new Error(
       "Ticket key cannot safely name a worktree. Ask the maintainer to correct it; no work was claimed.",

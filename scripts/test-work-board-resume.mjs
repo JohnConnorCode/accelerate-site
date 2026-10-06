@@ -76,6 +76,8 @@ try {
       "20260906-universal-work-board.sql",
       "20260907-work-packet-quality.sql",
       ...migrations,
+      "20261006231324_work_repository_readiness.sql",
+      "20261006231324_work_repository_readiness.sql",
     ])
       run("psql", [...connection, "-f", `migrations/${migration}`]);
     const output = run("npx", ["tsx", "scripts/test-work-board-resume.ts"], {
@@ -87,6 +89,14 @@ try {
       },
     });
     console.log(`${database}: ${output.trim()}`);
+    const repositories = run("npx", ["tsx", "scripts/test-work-repository.ts"], {
+      env: {
+        ...process.env,
+        WORK_TEST_PG_PORT: String(port),
+        WORK_TEST_PG_DATABASE: database,
+      },
+    });
+    console.log(`${database}: ${repositories.trim()}`);
   }
 } catch (error) {
   if (!started) {
