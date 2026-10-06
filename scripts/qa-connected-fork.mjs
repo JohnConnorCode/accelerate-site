@@ -188,6 +188,9 @@ if (mode === "diagnose-native") {
         const taskTitle = `Call ${name} about trial`;
         await taskDialog.getByLabel("What needs to happen?").fill(taskTitle);
         await taskDialog.getByRole("button", { name: "Add task" }).click();
+        // The dialog closes only after the API confirms persistence. Reloading
+        // sooner can cancel the save rather than test a saved task.
+        await taskDialog.waitFor({ state: "hidden" });
         await page.reload();
         await page.locator("[data-contact-timeline-item]").getByText(taskTitle).waitFor();
         checks.push(`${label}-linked-task-persists`);
