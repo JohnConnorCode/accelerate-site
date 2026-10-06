@@ -96,7 +96,7 @@ claims like "the system learns over time."
   a tested automatic undo, 9 compensable, 7 permanently non-autonomous
   (sending an email, activating a campaign, and sending an invoice are in
   that last group by design, not by accident).
-- **53 capabilities in six categories** (`src/content/command-center.ts`),
+- **54 capabilities in six categories** (`src/content/command-center.ts`),
   each with an authored one-line promise. 9 of the 53 are gated.
 - **AI tool inventory and access** change with the registered runtime. Use the
   generated [AI tools guide](/docs/intelligence/tools) for current tool names,
