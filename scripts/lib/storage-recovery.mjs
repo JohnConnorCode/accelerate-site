@@ -32,6 +32,7 @@ async function inventory(storage) {
   if (error || !buckets)
     fail("Storage inventory failed. Check project access; no copy is complete.");
   const objects = [];
+  let entries = 0;
   for (const bucket of buckets) {
     const prefixes = [""];
     for (let index = 0; index < prefixes.length; index++) {
@@ -44,6 +45,8 @@ async function inventory(storage) {
         });
         if (error || !data) fail("Storage listing failed. Rerun after restoring provider access.");
         for (const entry of data) {
+          if (++entries > 25_000)
+            fail("Storage inventory exceeds the bounded recovery command. Use an S3 export.");
           const path = prefix ? `${prefix}/${entry.name}` : entry.name;
           if (!entry.id && !entry.metadata) {
             if (prefixes.includes(path) || path.split("/").length > 32)
@@ -63,8 +66,6 @@ async function inventory(storage) {
               updatedAt: entry.updated_at,
             });
           }
-          if (prefixes.length + objects.length > 25_000)
-            fail("Storage inventory exceeds the bounded recovery command. Use an S3 export.");
         }
         if (data.length < 100) break;
       }

@@ -209,7 +209,7 @@ test("same target and conflicting or concurrent files never overwrite", async ()
   }
 });
 
-test("provider failure leaves an incomplete backup and cannot claim success", async () => {
+test("provider failure and oversized inventory cannot claim a complete backup", async () => {
   const root = await mkdtemp(join(tmpdir(), "accelerate-files-unit-"));
   try {
     const source = store();
@@ -224,6 +224,36 @@ test("provider failure leaves an incomplete backup and cannot claim success", as
       restoreStorage(store().storage, "target", directory, targetOptions),
       /ENOENT/,
     );
+    // Each bucket is below the limit, but their combined nested inventory is not.
+    const oversized = store(
+      Array.from({ length: 1_000 }, (_, index) => [
+        `folder-${index}/${Array(13).fill("nested").join("/")}/file.txt`,
+        "",
+      ]),
+    );
+    oversized.storage.listBuckets = async () => ({
+      data: ["first", "second"].map((id) => ({ id, public: false })),
+      error: null,
+    });
+    let downloads = 0;
+    const from = oversized.storage.from;
+    oversized.storage.from = () => {
+      const bucket = from();
+      return {
+        ...bucket,
+        async download(path) {
+          downloads++;
+          return bucket.download(path);
+        },
+      };
+    };
+    const tooLarge = join(root, "oversized");
+    await assert.rejects(
+      backupStorage(oversized.storage, "source", tooLarge, sourceOptions),
+      /inventory exceeds the bounded recovery command/,
+    );
+    assert.equal(downloads, 0, "Oversized aggregate inventory stops before copying bytes");
+    await assert.rejects(readFile(join(tooLarge, "manifest.json")), /ENOENT/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
