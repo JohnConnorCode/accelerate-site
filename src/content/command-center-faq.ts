@@ -59,7 +59,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can Ask AI check the content calendar?",
     answer:
-      "Yes. With the Content module enabled, Ask AI can list the five most recently added calendar items by exact status or category and reports when more match. Ask AI and connected MCP clients can also propose an exact edit for administrator review in Approvals. It can prepare a grounded editorial brief from a title and optional keywords or category when an AI provider is configured. The brief is working copy; review it and add it to the calendar from Content.",
+      "Yes. With the Content module enabled, Ask AI can list the five most recently added calendar items by exact status or category and reports when more match. Ask AI and connected MCP clients can also preview and propose item creation, edits, permanent deletion, or moves between existing columns for administrator review in Approvals. A reorder includes up to ten named items. Calendar changes preserve website pages and publication history; check the publishing destination to confirm a page is live. It can prepare a grounded editorial brief from a title and optional keywords or category when an AI provider is configured. The brief is working copy; review it and add it to the calendar from Content.",
   },
   {
     question: "Can I edit my website from ChatGPT?",

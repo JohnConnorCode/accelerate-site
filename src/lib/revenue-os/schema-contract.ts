@@ -899,6 +899,10 @@ export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
     migration: "migrations/20261001-workspace-mcp-oauth.sql",
   },
   {
+    name: "public.write_content_calendar_command(uuid,uuid,text,uuid,text,text,jsonb,jsonb,jsonb)",
+    migration: "migrations/20261006200652_content_calendar_commands.sql",
+  },
+  {
     name: "public.consume_rate_limit(text,integer,integer)",
     migration: "migrations/20260929-shared-rate-limits.sql",
   },

@@ -2,6 +2,8 @@
 
 ## Conversational work and public inference
 
+Apply `migrations/20261006200652_content_calendar_commands.sql` through the ordered migration runner before using calendar lifecycle commands. It adds the host-only atomic calendar/audit function and retained replay receipts. Apply it only to a project you control; the native regression uses a disposable database and applies it twice.
+
 Apply `migrations/20260930190623_conversational_agent_runtime.sql` through the ordered migration runner before activating this source release. It adds member-bound ordered plans, atomic internal permission limits and private public-demo inference admission. The native regression applies it twice and verifies replay, concurrent limits and revocation against a controlled database.
 
 Ordered work requires an active work-engine scheduler and a finite `vendor_api_calls` budget. Every provider attempt reserves that allowance. Internal permission still requires exact human approval. The agent cannot approve itself or automate messages, publishing, billing, deletion or permissions through this path.

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "reviewed-content-calendar-lifecycle",
+    slug: "reviewed-content-calendar-lifecycle",
+    title: "Review calendar creation, deletion and moves from Ask AI",
+    description:
+      "Ask AI and connected workspace MCP assistants can preview and propose new calendar items, permanent item deletion and moves between existing columns. Approvals show the exact items and changes. Saving checks current access and refuses stale items or columns; calendar writes and audit receipts commit together. Retries reuse saved receipts. The editor now clears blank optional fields. Deleting a calendar item preserves approval history and website pages. These changes are included in this source release; production publication is separate.",
+    category: "improvement",
+    publishedAt: "2026-10-06",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

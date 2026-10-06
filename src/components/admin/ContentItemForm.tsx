@@ -20,8 +20,8 @@ import type {
 interface ContentItemFormProps {
   open: boolean;
   item?: ContentCalendarItem | null;
-  onSave: (data: Partial<ContentCalendarItem>) => void | Promise<void>;
-  onDelete?: (id: string) => void | Promise<void>;
+  onSave: (data: Partial<ContentCalendarItem> & { requestKey?: string }) => void | Promise<void>;
+  onDelete?: (id: string, requestKey: string) => void | Promise<void>;
   onClose: () => void;
   /** Board's current columns (admin-defined, renamable) as {value, label}
    * options. Falls back to the pre-kanban-unification defaults if the
@@ -69,6 +69,8 @@ export function ContentItemForm({
   onClose,
   statusOptions = DEFAULT_STATUS_OPTIONS,
 }: ContentItemFormProps) {
+  const [creationId] = useState(() => crypto.randomUUID());
+  const [deleteRequestKey] = useState(() => crypto.randomUUID());
   const [title, setTitle] = useState(item?.title || "");
   const [slug, setSlug] = useState(item?.slug || "");
   const [status, setStatus] = useState<ContentStatus>(item?.status || "idea");
@@ -132,24 +134,24 @@ export function ContentItemForm({
     setSaving(true);
     try {
       await onSave({
-        ...(item?.id ? { id: item.id } : {}),
+        ...(item?.id ? { id: item.id } : { id: creationId, requestKey: creationId }),
         title,
         slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
         status,
-        category: category || undefined,
-        pillar: (pillar as ArticlePillar) || undefined,
-        funnel_stage: (funnelStage as "awareness" | "consideration" | "decision") || undefined,
-        target_publish_date: targetPublishDate || undefined,
-        actual_publish_date: actualPublishDate || undefined,
-        author: author || undefined,
+        category: category || null,
+        pillar: (pillar as ArticlePillar) || null,
+        funnel_stage: (funnelStage as "awareness" | "consideration" | "decision") || null,
+        target_publish_date: targetPublishDate || null,
+        actual_publish_date: actualPublishDate || null,
+        author: author || null,
         target_keywords: keywords
           .split(",")
           .map((k) => k.trim())
           .filter(Boolean),
-        notes: notes || undefined,
-        seo_title: seoTitle || undefined,
-        seo_description: seoDescription || undefined,
-        word_count_target: parseInt(wordCountTarget) || undefined,
+        notes: notes || null,
+        seo_title: seoTitle || null,
+        seo_description: seoDescription || null,
+        word_count_target: parseInt(wordCountTarget) || null,
       });
       onClose();
     } catch (error) {
@@ -203,7 +205,7 @@ export function ContentItemForm({
     if (!item?.id || !onDelete || saving) return;
     setSaving(true);
     try {
-      await onDelete(item.id);
+      await onDelete(item.id, deleteRequestKey);
       onClose();
     } catch (error) {
       setToast({

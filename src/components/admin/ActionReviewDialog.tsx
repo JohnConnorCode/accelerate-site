@@ -1,4 +1,5 @@
 "use client";
+import { contentCalendarCommandApprovalSchema } from "@/lib/revenue-os/content-calendar-contract";
 import { useEffect, useRef } from "react";
 import { Check, ChevronDown, Loader2, TriangleAlert, X } from "lucide-react";
 import { AdminDialog } from "./AdminDialog";
@@ -36,6 +37,10 @@ function triageReason(triage: Record<string, unknown> | null | undefined): strin
  * before the button, not after.
  */
 const ACTION_CONSEQUENCE: Record<string, string> = {
+  content_calendar_change:
+    "Applies only the exact calendar command below after checking current records and statuses. Delete permanently removes the calendar item. Website pages and approval history remain; no website content is published.",
+  update_content_calendar_item:
+    "Saves these editorial values after checking the item revision. A calendar status or date does not publish a website page.",
   update_collection_policy:
     "Updates this collection case and its follow-up work after rechecking current invoice and recipient facts. No reminder is sent and no invoice is changed.",
   today_view_change:
@@ -103,7 +108,8 @@ const PAYLOAD_FIELD_ORDER = [
 const BODY_FIELDS = new Set(["body", "text", "message", "description"]);
 
 function payloadEntries(payload: Record<string, unknown> | null, actionType: string) {
-  if (!payload) return { fields: [] as Array<[string, string]>, body: null as string | null };
+  if (!payload || actionType === "content_calendar_change")
+    return { fields: [] as Array<[string, string]>, body: null as string | null };
   const fields: Array<[string, string]> = [];
   let body: string | null = null;
   const keys = Object.keys(payload).sort((a, b) => {
@@ -373,6 +379,9 @@ export function ActionReviewDialog({
                 </section>
               );
             })}
+          {action.action_type === "content_calendar_change" && (
+            <ContentCalendarReview payload={action.payload} />
+          )}
           {isToday && (
             <section className="grid gap-3 text-xs text-[var(--admin-ink)]">
               {todayPreview.isPending && <p>Loading the private exact preview…</p>}
@@ -687,4 +696,88 @@ function InlineReviewSurface({
       {children}
     </section>
   ) : null;
+}
+
+function ContentCalendarReview({ payload }: { payload: Record<string, unknown> | null }) {
+  const parsed = contentCalendarCommandApprovalSchema.safeParse(payload);
+  if (!parsed.success)
+    return (
+      <p role="alert">This calendar proposal is invalid. Request a new preview before approving.</p>
+    );
+  const { command, items, columns } = parsed.data;
+  const statusLabel = (key: string) => columns.find((column) => column.key === key)?.label ?? key;
+  const labels: Record<string, string> = {
+    title: "Title",
+    slug: "Slug",
+    status: "Editorial stage",
+    category: "Category",
+    target_keywords: "Keywords",
+    pillar: "Content pillar",
+    funnel_stage: "Funnel stage",
+    target_publish_date: "Target publication date",
+    actual_publish_date: "Recorded publication date",
+    author: "Author",
+    notes: "Notes",
+    seo_title: "SEO title",
+    seo_description: "SEO description",
+    word_count_target: "Target word count",
+  };
+  return (
+    <section
+      aria-label="Exact calendar changes"
+      className="grid gap-4 text-sm text-[var(--admin-ink)]"
+    >
+      <h3 className="font-semibold">
+        {command.operation === "create"
+          ? "New calendar item"
+          : command.operation === "delete"
+            ? "Item to delete permanently"
+            : `Move ${items.length} calendar ${items.length === 1 ? "item" : "items"}`}
+      </h3>
+      {command.operation === "create" ? (
+        <dl className="grid gap-3">
+          {Object.entries(command.values).map(([key, value]) => (
+            <div key={key} className="grid gap-1">
+              <dt className="text-xs text-[var(--admin-muted)]">{labels[key] ?? key}</dt>
+              <dd className="whitespace-pre-wrap break-words">
+                {value === null
+                  ? "Not set"
+                  : key === "status"
+                    ? statusLabel(String(value))
+                    : Array.isArray(value)
+                      ? value.join(", ")
+                      : String(value)}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        items.map((item) => {
+          const update =
+            command.operation === "reorder"
+              ? command.updates.find((row) => row.id === item.id)!
+              : null;
+          return (
+            <div
+              key={item.id}
+              className="grid gap-2 rounded-xl bg-[var(--admin-surface-subtle)] p-4"
+            >
+              <p className="font-medium">{item.title}</p>
+              <p className="text-xs">
+                {update
+                  ? `${statusLabel(item.status)} → ${statusLabel(update.column_key)}`
+                  : `Current stage: ${statusLabel(item.status)}`}
+              </p>
+              {update && (
+                <p className="text-xs tabular-nums">
+                  Position: {item.sortOrder} → {update.sort_order}
+                </p>
+              )}
+              <p className="break-all text-xs text-[var(--admin-muted)]">Item: {item.id}</p>
+            </div>
+          );
+        })
+      )}
+    </section>
+  );
 }

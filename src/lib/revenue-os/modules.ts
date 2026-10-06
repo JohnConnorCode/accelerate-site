@@ -399,6 +399,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "list_content_calendar",
       "preview_content_calendar_update",
       "propose_content_calendar_update",
+      "preview_content_calendar_change",
+      "propose_content_calendar_change",
     ],
     aiToolPacks: ["core"],
   },

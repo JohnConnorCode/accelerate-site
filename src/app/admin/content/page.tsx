@@ -46,22 +46,35 @@ export default function AdminContentPage() {
       await fetchJson("/api/admin/content", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reorder: updates }),
+        body: JSON.stringify({
+          reorder: updates,
+          requestKey: crypto.randomUUID(),
+          expected: updates.map((update) => ({
+            id: update.id,
+            revision: items.find((item) => item.id === update.id)?.updated_at,
+          })),
+        }),
       });
       await fetchItems();
     },
-    [fetchItems],
+    [fetchItems, items],
   );
-  const handleSave = async (data: Partial<ContentCalendarItem>) => {
+  const handleSave = async (data: Partial<ContentCalendarItem> & { requestKey?: string }) => {
     await fetchJson("/api/admin/content", {
-      method: data.id ? "PATCH" : "POST",
+      method: editingItem ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        ...(editingItem ? { expectedRevision: editingItem.updated_at } : {}),
+      }),
     });
     await refetch();
   };
-  const handleDelete = async (id: string) => {
-    await fetchJson(`/api/admin/content?id=${id}`, { method: "DELETE" });
+  const handleDelete = async (id: string, requestKey: string) => {
+    await fetchJson(
+      `/api/admin/content?${new URLSearchParams({ id, requestKey, expectedRevision: editingItem?.updated_at ?? "" })}`,
+      { method: "DELETE" },
+    );
     await refetch();
   };
 
