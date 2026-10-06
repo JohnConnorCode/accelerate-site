@@ -122,7 +122,19 @@ Configuration without that receipt stays **Action needed**. That is the truthful
 
 When an installation must be rebuilt, keep its database backup, uploaded files and encryption configuration together as a recorded recovery point. The database contains file metadata, so it cannot replace the bytes of an uploaded document. Before importing customer records, follow the repository's [backup and recovery guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/BACKUP-RECOVERY.md) and restore a controlled copy into a separate installation.
 
-With the reviewed source configuration, `npm run workspace:files -- backup --project YOUR_SOURCE_REF --directory /absolute/private/new-files-copy` writes a private file copy and checksum manifest. Encrypt that copy before moving it off-host. Select the target configuration and run `npm run workspace:files -- restore --project YOUR_TARGET_REF --directory /absolute/private/files-copy` to inspect a read-only plan. Add `--apply` only for the reviewed restore. Conflicting files or bucket settings are refused, and matching files remain intact if you repeat a stopped restore. The final plan should show no pending files.
+With the reviewed source configuration, create a private file copy and checksum manifest:
+
+```bash
+npm run workspace:files -- backup --project YOUR_SOURCE_REF --directory /absolute/private/new-files-copy
+```
+
+Encrypt that copy before moving it off-host. Select the target configuration and inspect the read-only restore plan:
+
+```bash
+npm run workspace:files -- restore --project YOUR_TARGET_REF --directory /absolute/private/files-copy
+```
+
+Add `--apply` only for the reviewed restore. Conflicting files or bucket settings are refused, and matching files remain intact if you repeat a stopped restore. Run the read-only plan again afterward; it should show no pending files.
 
 Keep provider connections and schedules disabled while you verify sign-in, saved records, memberships, document downloads and action receipts. Review the provider's own records for effects since the backup point before preparing retries, because an absent local receipt does not prove a send never happened. The Connected fork workflow's recovery receipt measures a controlled native restoration with real Auth and file APIs; hosted restoration, your Auth settings and a human recovery trial still require installation-specific verification.
 

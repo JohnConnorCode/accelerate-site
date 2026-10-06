@@ -109,6 +109,43 @@ async function main() {
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
           });
+          if (route === "/docs/self-hosting/recovery") {
+            const restore = page.getByRole("heading", {
+              name: "Restore saved records and uploaded files",
+              exact: true,
+            });
+            await restore.scrollIntoViewIfNeeded();
+            await expect(restore).toBeVisible();
+            await expect(page.locator("main")).toContainText("npm run workspace:files -- backup");
+            await expect(page.locator("main")).toContainText("npm run workspace:files -- restore");
+            await expect(page.locator("main")).toContainText("absent local receipt");
+            await page.screenshot({
+              path: `${output}/${viewport.width}-workspace-file-recovery.png`,
+            });
+            const plan = page
+              .locator("main pre")
+              .filter({ hasText: "npm run workspace:files -- restore" });
+            await plan.scrollIntoViewIfNeeded();
+            await expect(plan).toBeInViewport();
+            await page.screenshot({
+              path: `${output}/${viewport.width}-workspace-file-restore-plan.png`,
+            });
+            checks.push(`${viewport.width}: file recovery commands and receipt review render`);
+          }
+          if (route === "/docs/self-hosting/overview") {
+            await page
+              .getByRole("heading", { name: "Keep your installation maintainable", exact: true })
+              .scrollIntoViewIfNeeded();
+            const recovery = page.locator('main a[href="/docs/self-hosting/recovery"]');
+            await expect(recovery).toBeVisible();
+            await expect(page.locator("main")).toContainText(
+              "actual uploaded files and encryption configuration",
+            );
+            await page.screenshot({
+              path: `${output}/${viewport.width}-self-hosting-recovery-link.png`,
+            });
+            checks.push(`${viewport.width}: self-hosting recovery guidance and direct link render`);
+          }
           if (route === "/docs/sources/leads") {
             const recovery = page.getByRole("heading", {
               name: "Change a status and recover an incomplete update",

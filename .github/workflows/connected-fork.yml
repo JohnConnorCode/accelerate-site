@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - .github/workflows/connected-fork.yml
+      - package.json
+      - package-lock.json
       - scripts/qa-connected-fork.mjs
       - scripts/qa-native-workspace-mcp-oauth.ts
       - scripts/workspace-setup.mjs
@@ -17,6 +19,13 @@ on:
       - src/app/api/admin/contacts/**
       - src/lib/revenue-os/identity.ts
       - src/lib/revenue-os/tasks.ts
+      - src/lib/revenue-os/encryption.ts
+      - src/lib/revenue-os/work-items.ts
+      - src/lib/revenue-os/work-result.ts
+      - src/lib/revenue-os/actions.ts
+      - src/lib/supabase/server.ts
+      - scripts/lib/migration-ledger.mjs
+      - scripts/lib/bootstrap-owner-membership.mjs
       - src/lib/revenue-os/workspace-mcp-oauth.ts
       - src/app/api/public/*/mcp/**
       - migrations/**
