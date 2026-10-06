@@ -431,10 +431,20 @@ NOTIFY pgrst,'reload schema';`,
       currentCatalog.length > priorCatalog.length,
       "The pinned prior source must exercise pending migrations",
     );
+    // The conversational runtime migration adds these columns to older work.
+    // Existing fields must match; the new defaults must not invent an agent plan.
+    const expectedAfterUpgrade = {
+      ...expected,
+      work_items: expected.work_items.map((row: Record<string, unknown>) => ({
+        ...row,
+        agent_plan: null,
+        agent_plan_revision: 0,
+      })),
+    };
     assert.ok(
       isDeepStrictEqual(
         { ...upgraded, accelerate_schema_migrations: expected.accelerate_schema_migrations },
-        expected,
+        expectedAfterUpgrade,
       ),
       "Populated business data must survive upgrade and replay",
     );
@@ -587,6 +597,7 @@ NOTIFY pgrst,'reload schema';`,
     receipt = {
       status: "passed",
       commit: run("git", ["rev-parse", "HEAD"]).toString().trim(),
+      tree: run("git", ["rev-parse", "HEAD^{tree}"]).toString().trim(),
       priorSourceCommit: prior,
       checks,
       proof: "native-local-supabase",
