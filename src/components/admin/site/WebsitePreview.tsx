@@ -1,4 +1,5 @@
 "use client";
+import { websiteStateSchema } from "@/lib/site-studio/website-commands";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { websiteThemeStyle } from "@/lib/site-studio/website-theme";
@@ -61,13 +62,15 @@ export function WebsitePreview({ pageId }: { pageId?: string }) {
       .then(async (response) => {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error ?? "The private preview is unavailable.");
-        if (!result.website.draft)
-          throw new Error("Save a website draft before opening its preview.");
-        const next = parseWebsiteDocument(result.website.draft.document);
+        const parsed = websiteStateSchema.safeParse(result.website);
+        if (!parsed.success)
+          throw new Error("The saved preview could not be verified. Reload to try again.");
+        if (!parsed.data.draft) throw new Error("Save a website draft before opening its preview.");
+        const next = parseWebsiteDocument(parsed.data.draft.document);
         if (!cancelled) {
           setDocument(next);
           setMessage(
-            `Private preview of saved revision ${result.website.version}. This is not a publication.`,
+            `Private preview of saved revision ${parsed.data.version}. This is not a publication.`,
           );
         }
       })

@@ -3,11 +3,19 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { chromium } from "playwright";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3038";
-const output = "/tmp/accelerate-website-editor";
+const output = process.env.QA_WEBSITE_EDITOR_OUTPUT || "/tmp/accelerate-website-editor";
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const errors = [];
 const networkWrites = [];
+const protectedRequests = [];
+const trackRequest = (request) => {
+  const url = new URL(request.url());
+  if (request.method() !== "GET" && url.pathname.startsWith("/api/"))
+    networkWrites.push(request.url());
+  if (url.pathname.startsWith("/api/admin/site/") || /openrouter|supabase/.test(url.hostname))
+    protectedRequests.push(request.url());
+};
 const results = [];
 let activePage;
 const navigations = [];
@@ -25,10 +33,7 @@ try {
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
-  page.on("request", (request) => {
-    if (request.method() !== "GET" && new URL(request.url()).pathname.startsWith("/api/"))
-      networkWrites.push(request.url());
-  });
+  page.on("request", trackRequest);
   await page.goto(`${base}/demo/command-center/northline-roofing/site/website`);
   await page.getByText("Bundled website loaded.", { exact: false }).waitFor();
   const background = (element) => getComputedStyle(element).backgroundColor;
@@ -218,6 +223,10 @@ try {
   });
   const mobile = await mobileContext.newPage();
   mobile.on("pageerror", (error) => errors.push(error.message));
+  mobile.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  mobile.on("request", trackRequest);
   await mobile.goto(`${base}/demo/command-center/northline-roofing/site/website`);
   await mobile.getByText("Bundled website loaded.", { exact: false }).waitFor();
   await mobile
@@ -236,11 +245,163 @@ try {
   await mobile.keyboard.press("Enter");
   await mobile.getByText("Private revision 1 saved.", { exact: false }).waitFor();
   results.push("Mobile editor fits 390px; keyboard activation saves the fictional draft.");
+
+  for (const width of [1440, 390]) {
+    const recoveryContext = await browser.newContext({
+      viewport: { width, height: width === 390 ? 844 : 1000 },
+      reducedMotion: "reduce",
+    });
+    const recovery = await recoveryContext.newPage();
+    activePage = recovery;
+    recovery.on("pageerror", (error) => errors.push(error.message));
+    recovery.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
+    recovery.on("request", trackRequest);
+    await recovery.goto(`${base}/demo/command-center/northline-roofing/site/website`);
+    await recovery.getByText("Bundled website loaded.", { exact: false }).waitFor();
+    const title = recovery.getByRole("textbox", { name: "Title", exact: true });
+    await title.fill("Keep the requested title");
+    await recovery.getByRole("button", { name: "Website tools", exact: true }).click();
+    await recovery.getByRole("button", { name: "Reload saved draft", exact: true }).click();
+    await recovery.evaluate(() => {
+      const original = window.fetch;
+      window.__websiteCommands = [];
+      window.__websiteMode = "hold";
+      window.fetch = async (input, init) => {
+        const response = await original(input, init);
+        if (String(input) !== "/api/admin/site/website") return response;
+        if (init?.method === "POST") {
+          window.__websiteCommands.push(init.body);
+          if (window.__websiteMode === "hold")
+            await new Promise((resolve) => {
+              window.__releaseWebsite = resolve;
+            });
+          if (window.__websiteMode === "bad-receipt") {
+            window.__websiteMode = "normal";
+            const payload = await response.json();
+            payload.receipt.version += 7;
+            return new Response(JSON.stringify(payload), { status: 200 });
+          }
+        } else if (window.__websiteMode === "bad-read") {
+          window.__websiteMode = "normal";
+          const payload = await response.json();
+          payload.website.version = "not a version";
+          return new Response(JSON.stringify(payload), { status: 200 });
+        }
+        return response;
+      };
+    });
+    await recovery.getByRole("button", { name: "Save draft", exact: true }).focus();
+    await recovery.keyboard.press("Enter");
+    await recovery.waitForFunction(() => typeof window.__releaseWebsite === "function");
+    assert.equal(
+      await recovery.getByRole("button", { name: "Replace local edits", exact: true }).isDisabled(),
+      true,
+    );
+    assert.equal(
+      await recovery.getByRole("button", { name: "Keep editing", exact: true }).isDisabled(),
+      true,
+    );
+    assert.equal(await title.isDisabled(), true);
+    await recovery.screenshot({ path: `${output}/recovery-${width}-locked.png` });
+    await recovery.evaluate(() => {
+      window.__websiteMode = "normal";
+      window.__releaseWebsite();
+    });
+    await recovery.getByText("Private revision 1 saved.", { exact: false }).waitFor();
+    await recovery.getByRole("button", { name: "Keep editing", exact: true }).click();
+    await title.fill("Receipt retry preserves this title");
+    await recovery.evaluate(() => {
+      window.__websiteMode = "bad-receipt";
+    });
+    await recovery.getByRole("button", { name: "Save draft", exact: true }).click();
+    await recovery.getByRole("alert").filter({ hasText: "confirmation did not match" }).waitFor();
+    assert.equal(await title.inputValue(), "Receipt retry preserves this title");
+    assert.equal(await title.isDisabled(), true);
+    await recovery.getByRole("button", { name: "Retry same save", exact: true }).click();
+    await recovery.getByText("Private revision 2 saved.", { exact: false }).waitFor();
+    assert.equal(
+      await recovery.evaluate(() => window.__websiteCommands[1] === window.__websiteCommands[2]),
+      true,
+      "unverified reply retries the identical payload",
+    );
+    await title.fill("Retain this edit after a failed reload");
+    await recovery.evaluate(() => {
+      window.__websiteMode = "bad-read";
+    });
+    await recovery.getByRole("button", { name: "Website tools", exact: true }).click();
+    await recovery.getByRole("button", { name: "Reload saved draft", exact: true }).click();
+    await recovery.getByRole("button", { name: "Replace local edits", exact: true }).click();
+    await recovery
+      .getByRole("alert")
+      .filter({ hasText: "saved website could not be verified" })
+      .waitFor();
+    assert.equal(await title.inputValue(), "Retain this edit after a failed reload");
+    assert.equal(
+      await recovery.getByRole("button", { name: "Undo", exact: true }).isEnabled(),
+      true,
+    );
+    await recovery.getByRole("button", { name: "Replace local edits", exact: true }).click();
+    await recovery.getByText("Saved draft loaded.", { exact: false }).waitFor();
+    assert.equal(await title.inputValue(), "Receipt retry preserves this title");
+    const importDocument = structuredClone(downloaded);
+    importDocument.pages[0].metadata.title = `Imported at ${width}`;
+    await recovery.evaluate(() => {
+      const original = File.prototype.text;
+      File.prototype.text = async function () {
+        const contents = await original.call(this);
+        await new Promise((resolve) => {
+          window.__releaseImport = resolve;
+        });
+        return contents;
+      };
+    });
+    await recovery.getByLabel("Import website snapshot", { exact: true }).setInputFiles({
+      name: "delayed.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(importDocument)),
+    });
+    await recovery.waitForFunction(() => typeof window.__releaseImport === "function");
+    assert.equal(await title.isDisabled(), true);
+    assert.equal(
+      await recovery.getByRole("button", { name: "Working…", exact: true }).isDisabled(),
+      true,
+    );
+    assert.equal(
+      await recovery.getByRole("button", { name: "Undo", exact: true }).isDisabled(),
+      true,
+    );
+    await recovery.evaluate(() => window.__releaseImport());
+    await recovery.getByText("Imported into local edits.", { exact: false }).waitFor();
+    assert.equal(await title.inputValue(), `Imported at ${width}`);
+    await recovery.getByRole("button", { name: "Undo", exact: true }).click();
+    assert.equal(await title.inputValue(), "Receipt retry preserves this title");
+    await recovery.screenshot({ path: `${output}/recovery-${width}-restored.png` });
+    assert.equal(
+      await recovery.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+      true,
+    );
+    await recovery.goto(`${base}/docs/plugins/site-studio`);
+    await recovery
+      .getByRole("heading", { name: "Draft public pages with Site Studio", exact: true })
+      .waitFor();
+    await recovery.screenshot({ path: `${output}/guide-${width}.png`, fullPage: true });
+    results.push(
+      `${width}px: keyboard save locks reload and fields, mismatched receipt retries the exact command, invalid reload preserves edits and undo, delayed import locks then applies with undo, and the operator guide renders.`,
+    );
+    await recoveryContext.close();
+  }
   assert.deepEqual(errors, [], "no browser runtime errors");
   assert.deepEqual(networkWrites, [], "fictional website mutations never reach the network");
+  assert.deepEqual(
+    protectedRequests,
+    [],
+    "fictional website reads and provider calls remain local",
+  );
   await writeFile(
     `${output}/result.json`,
-    JSON.stringify({ results, errors, networkWrites }, null, 2),
+    JSON.stringify({ results, errors, networkWrites, protectedRequests }, null, 2),
   );
   console.log(JSON.stringify({ status: "passed", results, output }, null, 2));
 } catch (error) {

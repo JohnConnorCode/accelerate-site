@@ -7,12 +7,18 @@ import { WebsiteContentEditor } from "./WebsiteContentEditor";
 import { WebsitePublishing } from "./WebsitePublishing";
 import { WebsitePageTools } from "./WebsitePageTools";
 import { WebsiteLivePreview } from "./WebsiteLivePreview";
+import { ZodError } from "zod";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { parseWebsiteDocument, type WebsiteDocument } from "@/lib/site-studio/website-document";
-import { websiteReceiptSchema, type WebsiteCommand } from "@/lib/site-studio/website-commands";
+import {
+  parseWebsiteCommand,
+  websiteStateSchema,
+  websiteReceiptSchema,
+  type WebsiteCommand,
+} from "@/lib/site-studio/website-commands";
 import type { WebsiteState } from "@/lib/site-studio/website-store";
 import {
   WebsiteFields,
@@ -44,16 +50,30 @@ export function WebsiteEditor() {
   const [confirmReload, setConfirmReload] = useState(false);
   const [pending, setPending] = useState<WebsiteCommand | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
+  const operation = useRef<AbortController | null>(null);
   const dirty = !!document && JSON.stringify(document) !== saved;
   const load = useCallback(async () => {
+    if (operation.current) return;
+    const controller = new AbortController();
+    operation.current = controller;
     setBusy(true);
     setError("");
+    setNotice("");
     try {
-      const response = await fetch("/api/admin/site/website", { cache: "no-store" });
+      const response = await fetch("/api/admin/site/website", {
+        cache: "no-store",
+        signal: controller.signal,
+      });
       const result = await response.json();
+      if (controller.signal.aborted || operation.current !== controller) return;
       if (!response.ok) throw new Error(result.error ?? "Website unavailable");
-      const next = parseWebsiteDocument(result.website.draft?.document ?? result.bundled);
-      setState(result.website);
+      const parsed = websiteStateSchema.safeParse(result.website);
+      if (!parsed.success)
+        throw new Error(
+          "The saved website could not be verified. Retry loading it; your local edits are preserved.",
+        );
+      const next = parseWebsiteDocument(parsed.data.draft?.document ?? result.bundled);
+      setState(parsed.data);
       setDocumentRaw(next);
       setPast([]);
       setFuture([]);
@@ -61,19 +81,33 @@ export function WebsiteEditor() {
       setPageId(next.pages[0]?.id ?? "");
       setPending(null);
       setNotice(
-        result.website.draft
+        parsed.data.draft
           ? "Saved draft loaded."
           : "Bundled website loaded. Save to create your first private revision.",
       );
       setConfirmReload(false);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Website unavailable");
+      if (!controller.signal.aborted && operation.current === controller)
+        setError(
+          cause instanceof ZodError
+            ? "The saved website could not be verified. Retry loading it; your local edits are preserved."
+            : cause instanceof Error
+              ? cause.message
+              : "Website unavailable",
+        );
     } finally {
-      setBusy(false);
+      if (operation.current === controller) {
+        operation.current = null;
+        setBusy(false);
+      }
     }
   }, []);
   useEffect(() => {
     void load();
+    return () => {
+      operation.current?.abort();
+      operation.current = null;
+    };
   }, [load]);
   useEffect(() => {
     if (!dirty) return;
@@ -85,7 +119,9 @@ export function WebsiteEditor() {
   }, [dirty]);
 
   const save = async (requested?: WebsiteCommand) => {
-    if (!document || !state || busy) return;
+    if (!document || !state || busy || operation.current) return;
+    const controller = new AbortController();
+    operation.current = controller;
     setBusy(true);
     setError("");
     setNotice("");
@@ -93,28 +129,50 @@ export function WebsiteEditor() {
       const validated = parseWebsiteDocument(document);
       // Network failures retain the exact request, including its key. Retrying
       // cannot duplicate a revision or silently apply a different payload.
-      const command: WebsiteCommand = pending ??
-        requested ?? {
-          operation: "save",
-          requestKey: crypto.randomUUID(),
-          expectedVersion: state.version,
-          document: validated,
-        };
+      const command = parseWebsiteCommand(
+        pending ??
+          requested ?? {
+            operation: "save",
+            requestKey: crypto.randomUUID(),
+            expectedVersion: state.version,
+            document: validated,
+          },
+      );
       setPending(command);
       const response = await fetch("/api/admin/site/website", {
         method: "POST",
+        signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(command),
       });
       const result = await response.json();
+      if (controller.signal.aborted || operation.current !== controller) return;
       if (!response.ok) {
         if (response.status === 400 || response.status === 403 || response.status === 409)
           setPending(null);
         throw new Error(result.error ?? "Save could not be confirmed. Retry the same save.");
       }
-      const receipt = websiteReceiptSchema.parse(result.receipt);
-      if (receipt.requestKey !== command.requestKey || receipt.operation !== command.operation)
-        throw new Error("Save receipt did not match. Retry the same save.");
+      const parsedReceipt = websiteReceiptSchema.safeParse(result.receipt);
+      if (!parsedReceipt.success)
+        throw new Error("The website change could not be verified. Retry the same change.");
+      const receipt = parsedReceipt.data;
+      const publishedRevisionId =
+        command.operation === "save"
+          ? state.publishedRevisionId
+          : command.operation === "unpublish"
+            ? null
+            : command.revisionId;
+      if (
+        receipt.requestKey !== command.requestKey ||
+        receipt.operation !== command.operation ||
+        receipt.version !== command.expectedVersion + 1 ||
+        receipt.previousPublishedRevisionId !== state.publishedRevisionId ||
+        receipt.publishedRevisionId !== publishedRevisionId ||
+        (command.operation !== "save" && receipt.draftRevisionId !== state.draft?.id)
+      )
+        throw new Error(
+          "The website confirmation did not match this change. Retry the same change.",
+        );
       const applied = command.operation === "save" ? command.document : document;
       setState({
         version: receipt.version,
@@ -137,13 +195,19 @@ export function WebsiteEditor() {
             : `Website ${command.operation === "rollback" ? "rolled back" : "published"}. Revision ${receipt.version} confirmed.`,
       );
     } catch (cause) {
+      if (controller.signal.aborted || operation.current !== controller) return;
       setError(
-        cause instanceof Error
-          ? cause.message
-          : "Save could not be confirmed. Retry the same save.",
+        cause instanceof ZodError
+          ? `Check your website details before saving: ${[...new Set(cause.issues.map((issue) => issue.message))].slice(0, 3).join("; ")}`
+          : cause instanceof Error
+            ? cause.message
+            : "Save could not be confirmed. Retry the same save.",
       );
     } finally {
-      setBusy(false);
+      if (operation.current === controller) {
+        operation.current = null;
+        setBusy(false);
+      }
     }
   };
   const exportDraft = () => {
@@ -306,10 +370,17 @@ export function WebsiteEditor() {
           setToolsOpen(false);
           const file = event.target.files?.[0];
           event.target.value = "";
-          if (!file) return;
+          if (!file || operation.current || pending) return;
+          const controller = new AbortController();
+          operation.current = controller;
+          setBusy(true);
+          setError("");
+          setNotice("");
           try {
             if (file.size > 8_000_000) throw new Error("The website file exceeds 8 MB.");
-            const next = parseWebsiteDocument(JSON.parse(await file.text()));
+            const contents = await file.text();
+            if (controller.signal.aborted || operation.current !== controller) return;
+            const next = parseWebsiteDocument(JSON.parse(contents));
             setDocument(next);
             setPageId(next.pages[0]?.id ?? "");
             setError("");
@@ -317,9 +388,15 @@ export function WebsiteEditor() {
               "Imported into local edits. Save creates a private revision; import never publishes.",
             );
           } catch {
+            if (controller.signal.aborted || operation.current !== controller) return;
             setError(
               "Import rejected. Use a valid website snapshot under 8 MB; your edits have been preserved.",
             );
+          } finally {
+            if (operation.current === controller) {
+              operation.current = null;
+              setBusy(false);
+            }
           }
         }}
       />
@@ -343,6 +420,11 @@ export function WebsiteEditor() {
           {error}
         </p>
       )}
+      {error && !document && (
+        <button type="button" className={button} disabled={busy} onClick={() => void load()}>
+          Retry loading website
+        </button>
+      )}
       {confirmReload && (
         <AdminSurface>
           <p>
@@ -350,10 +432,15 @@ export function WebsiteEditor() {
             keep a copy.
           </p>
           <div className="mt-3 flex gap-2">
-            <button type="button" className={button} onClick={() => void load()}>
+            <button type="button" className={button} disabled={busy} onClick={() => void load()}>
               Replace local edits
             </button>
-            <button type="button" className={button} onClick={() => setConfirmReload(false)}>
+            <button
+              type="button"
+              className={button}
+              disabled={busy}
+              onClick={() => setConfirmReload(false)}
+            >
               Keep editing
             </button>
           </div>

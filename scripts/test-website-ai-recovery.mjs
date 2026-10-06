@@ -5,6 +5,7 @@ import React from "react";
 import ts from "typescript";
 import { fictionalWebsite } from "../src/lib/admin/demo/website-runtime.ts";
 import * as authoring from "../src/lib/site-studio/website-authoring.ts";
+import * as commands from "../src/lib/site-studio/website-commands.ts";
 import * as documents from "../src/lib/site-studio/website-document.ts";
 import * as modelExports from "../src/lib/site-studio/models.ts";
 import * as generated from "../src/lib/site-studio/generate.ts";
@@ -19,7 +20,7 @@ function compile(path, mocks = {}) {
   const output = ts.transpileModule(readFileSync(path, "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
-  new Function("require", "module", "exports", "fetch", output)(
+  new Function("require", "module", "exports", "fetch", "window", output)(
     (name) =>
       mocks[name] ??
       (name.startsWith(".") || name.startsWith("@/")
@@ -28,6 +29,7 @@ function compile(path, mocks = {}) {
     compiled,
     compiled.exports,
     (...args) => mocks.fetch(...args),
+    mocks.window,
   );
   return compiled.exports;
 }
@@ -41,13 +43,15 @@ const website = { ...original, pages: [...original.pages, page] };
 function hooks() {
   const state = [],
     refs = [],
-    cleanups = [];
+    cleanups = [],
+    effects = [];
   let stateIndex = 0,
     refIndex = 0,
     mounted = false;
   return {
     state,
     cleanups,
+    effects,
     begin() {
       stateIndex = 0;
       refIndex = 0;
@@ -72,7 +76,10 @@ function hooks() {
         return (refs[index] ??= { current: initial });
       },
       useEffect(callback) {
-        if (!mounted) cleanups.push(callback());
+        if (!mounted) {
+          effects.push(callback);
+          cleanups.push(callback());
+        }
       },
     },
   };
@@ -333,6 +340,264 @@ const request = new Request("http://fixture/api/admin/site/website/suggest", {
 });
 assert.equal((await route.POST(request)).status, 499);
 assert.equal(requestSignal, request.signal);
+// Exercise the actual website owner against deferred reads and writes.
+function ownerHarness() {
+  const life = hooks();
+  const requests = [];
+  const PageTools = () => null;
+  const Publishing = () => null;
+  const Editor = compile("src/components/admin/site/WebsiteEditor.tsx", {
+    react: { ...life.react, useCallback: (callback) => callback },
+    "@/lib/site-studio/website-document": documents,
+    "@/lib/site-studio/website-commands": commands,
+    "./WebsitePageTools": { WebsitePageTools: PageTools },
+    "./WebsitePublishing": { WebsitePublishing: Publishing },
+    window: { addEventListener() {}, removeEventListener() {} },
+    fetch: (url, options) =>
+      new Promise((resolve, reject) => requests.push({ url, options, resolve, reject })),
+  }).WebsiteEditor;
+  const owner = {
+    life,
+    requests,
+    render() {
+      life.begin();
+      const tree = Editor();
+      life.end();
+      return tree;
+    },
+    edit(next) {
+      find(owner.render(), (node) => node.type === PageTools).props.onChange(
+        next,
+        next.pages[0].id,
+      );
+    },
+    publish(command) {
+      find(owner.render(), (node) => node.type === Publishing).props.onCommand(command);
+    },
+    async reply(value, status = 200) {
+      const request = requests.shift();
+      assert.ok(request, "expected an owner request");
+      request.resolve(new Response(JSON.stringify(value), { status }));
+      await new Promise((resolve) => setImmediate(resolve));
+      return request;
+    },
+    close() {
+      life.cleanups.forEach((cleanup) => cleanup?.());
+    },
+  };
+  return owner;
+}
+const ownerState = { version: 0, draft: null, publishedRevisionId: null };
+const editedWebsite = {
+  ...website,
+  identity: { ...website.identity, tagline: "Retain this local edit" },
+};
+const overlap = ownerHarness();
+overlap.render();
+await overlap.reply({ website: ownerState, bundled: website });
+overlap.edit(editedWebsite);
+button(overlap.render(), "Reload saved draft").props.onClick();
+button(overlap.render(), "Save draft").props.onClick();
+assert.equal(
+  button(overlap.render(), "Replace local edits").props.disabled,
+  true,
+  "reload confirmation must lock during a pending save",
+);
+button(overlap.render(), "Replace local edits").props.onClick();
+assert.equal(overlap.requests.length, 1, "a reload cannot overlap the pending save");
+overlap.close();
+
+const tick = () => new Promise((resolve) => setImmediate(resolve));
+async function readyOwner(state = ownerState) {
+  const owner = ownerHarness();
+  owner.render();
+  await owner.reply({ website: state, bundled: website });
+  return owner;
+}
+function receiptFor(owner, overrides = {}) {
+  const command = JSON.parse(owner.requests[0].options.body);
+  const state = owner.life.state[0];
+  return {
+    requestKey: command.requestKey,
+    operation: command.operation,
+    version: command.expectedVersion + 1,
+    draftRevisionId: command.operation === "save" ? crypto.randomUUID() : state.draft.id,
+    publishedRevisionId:
+      command.operation === "save"
+        ? state.publishedRevisionId
+        : command.operation === "unpublish"
+          ? null
+          : command.revisionId,
+    previousPublishedRevisionId: state.publishedRevisionId,
+    createdAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
+const duplicate = await readyOwner();
+duplicate.edit(editedWebsite);
+const clickSave = button(duplicate.render(), "Save draft").props.onClick;
+clickSave();
+clickSave();
+assert.equal(duplicate.requests.length, 1, "rapid save clicks share a synchronous lock");
+assert.ok(duplicate.requests[0].options.signal instanceof AbortSignal);
+const frozenBody = duplicate.requests[0].options.body;
+await duplicate.reply({ receipt: receiptFor(duplicate, { version: 9 }) });
+assert.equal(duplicate.life.state[0].version, 0);
+assert.equal(duplicate.life.state[1].identity.tagline, editedWebsite.identity.tagline);
+assert.ok(duplicate.life.state[14], "unverified success retains the frozen command");
+assert.match(duplicate.life.state[11], /confirmation did not match/);
+button(duplicate.render(), "Retry same save").props.onClick();
+assert.equal(duplicate.requests[0].options.body, frozenBody);
+await duplicate.reply({ receipt: receiptFor(duplicate) });
+assert.equal(duplicate.life.state[0].version, 1);
+assert.equal(duplicate.life.state[14], null);
+duplicate.close();
+
+for (const mismatch of [
+  { requestKey: crypto.randomUUID() },
+  { operation: "unpublish" },
+  { publishedRevisionId: crypto.randomUUID() },
+  { previousPublishedRevisionId: crypto.randomUUID() },
+  { draftRevisionId: "invalid" },
+]) {
+  const owner = await readyOwner();
+  owner.edit(editedWebsite);
+  button(owner.render(), "Save draft").props.onClick();
+  await owner.reply({ receipt: receiptFor(owner, mismatch) });
+  assert.equal(owner.life.state[0].version, 0);
+  assert.ok(owner.life.state[14]);
+  assert.equal(owner.life.state[1].identity.tagline, editedWebsite.identity.tagline);
+  owner.close();
+}
+const revisionId = crypto.randomUUID();
+const savedState = {
+  version: 5,
+  draft: {
+    id: revisionId,
+    checksum: "demo-content-revision",
+    createdAt: new Date().toISOString(),
+    document: website,
+  },
+  publishedRevisionId: crypto.randomUUID(),
+};
+for (const kind of ["publish", "rollback", "unpublish"]) {
+  const owner = await readyOwner(savedState);
+  owner.publish({
+    operation: kind,
+    expectedVersion: 5,
+    requestKey: crypto.randomUUID(),
+    ...(kind === "unpublish"
+      ? {}
+      : { revisionId: kind === "publish" ? revisionId : crypto.randomUUID() }),
+  });
+  const exactBody = owner.requests[0].options.body;
+  await owner.reply({ receipt: receiptFor(owner, { draftRevisionId: crypto.randomUUID() }) });
+  assert.equal(owner.life.state[0].version, 5, `${kind} must preserve the current draft`);
+  button(owner.render(), `Retry same ${kind}`).props.onClick();
+  assert.equal(owner.requests[0].options.body, exactBody);
+  const receipt = receiptFor(owner);
+  await owner.reply({ receipt });
+  assert.equal(owner.life.state[0].version, 6);
+  assert.equal(owner.life.state[0].publishedRevisionId, receipt.publishedRevisionId);
+  assert.equal(owner.life.state[0].draft.id, revisionId);
+  assert.deepEqual(owner.life.state[1], website);
+  owner.close();
+}
+const invalidRead = ownerHarness();
+invalidRead.render();
+await invalidRead.reply({ website: { ...ownerState, version: "0" }, bundled: website });
+assert.equal(invalidRead.life.state[1], null);
+button(invalidRead.render(), "Retry loading website").props.onClick();
+await invalidRead.reply({ website: ownerState, bundled: website });
+invalidRead.edit(editedWebsite);
+button(invalidRead.render(), "Reload saved draft").props.onClick();
+button(invalidRead.render(), "Replace local edits").props.onClick();
+assert.equal(button(invalidRead.render(), "Keep editing").props.disabled, true);
+await invalidRead.reply({
+  website: { ...savedState, draft: { ...savedState.draft, id: "wrong" } },
+  bundled: website,
+});
+assert.equal(invalidRead.life.state[1].identity.tagline, editedWebsite.identity.tagline);
+assert.ok(invalidRead.life.state[2].length, "failed reload retains undo history");
+assert.ok(button(invalidRead.render(), "Replace local edits"));
+button(invalidRead.render(), "Replace local edits").props.onClick();
+await invalidRead.reply({ website: savedState, bundled: website });
+assert.deepEqual(invalidRead.life.state[1], website);
+assert.equal(invalidRead.life.state[13], false);
+invalidRead.close();
+
+const staleRead = ownerHarness();
+staleRead.render();
+const firstSignal = staleRead.requests[0].options.signal;
+staleRead.close();
+assert.equal(firstSignal.aborted, true);
+const secondCleanup = staleRead.life.effects[0]();
+await staleRead.reply({ website: savedState, bundled: website });
+assert.equal(
+  staleRead.life.state[1],
+  null,
+  "aborted strict-mode read cannot replace the newer read",
+);
+assert.equal(staleRead.life.state[10], true, "old finally cannot unlock the newer read");
+await staleRead.reply({ website: ownerState, bundled: website });
+assert.deepEqual(staleRead.life.state[1], website);
+secondCleanup();
+
+const lateSave = await readyOwner();
+lateSave.edit(editedWebsite);
+button(lateSave.render(), "Save draft").props.onClick();
+const lateReceipt = receiptFor(lateSave);
+lateSave.close();
+const leftState = JSON.stringify(lateSave.life.state);
+await lateSave.reply({ receipt: lateReceipt });
+assert.equal(
+  JSON.stringify(lateSave.life.state),
+  leftState,
+  "a departed editor ignores late save receipts",
+);
+
+for (const leave of [false, true]) {
+  const owner = await readyOwner();
+  owner.edit(editedWebsite);
+  let finishFile;
+  const input = find(owner.render(), (node) => node.type === "input" && node.props.type === "file");
+  const importTask = input.props.onChange({
+    target: {
+      value: "fixture.json",
+      files: [
+        {
+          size: 100,
+          text: () =>
+            new Promise((resolve) => {
+              finishFile = resolve;
+            }),
+        },
+      ],
+    },
+  });
+  assert.equal(find(owner.render(), (node) => node.type === "fieldset").props.disabled, true);
+  assert.equal(button(owner.render(), "Undo").props.disabled, true);
+  button(owner.render(), "Working…").props.onClick();
+  assert.equal(owner.requests.length, 0, "save cannot start during file reading");
+  if (leave) owner.close();
+  const prior = JSON.stringify(owner.life.state);
+  finishFile(JSON.stringify(website));
+  await importTask;
+  await tick();
+  if (leave)
+    assert.equal(
+      JSON.stringify(owner.life.state),
+      prior,
+      "late imports cannot alter a departed editor",
+    );
+  else {
+    assert.deepEqual(owner.life.state[1], website);
+    assert.equal(owner.life.state[2].at(-1).identity.tagline, editedWebsite.identity.tagline);
+    assert.match(owner.life.state[12], /Imported into local edits/);
+    assert.equal(owner.life.state[10], false);
+    owner.close();
+  }
+}
 console.log(
-  "Website AI recovery passed: custom addresses, section limit, page identity, cancellation/late replies, stale review, apply, unmount and gateway/route abort propagation.",
+  "Website recovery passed: AI cancellation and page identity; serialized save/reload/import; aborted and strict-mode late reads; verified publication receipts; exact retries; local edit and undo preservation.",
 );
