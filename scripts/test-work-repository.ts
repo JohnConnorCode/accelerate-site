@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { repositoryIdentity } from "../src/lib/work-repository.mjs";
 import { demoPacketProblems } from "../src/lib/work-packet";
 import { workSpecSchema } from "../src/lib/revenue-os/work-board";
+import { readinessSummary } from "./lib/agent-readiness.mjs";
 
 const valid = [
   "https://github.com/Example/repo.git",
@@ -90,6 +91,13 @@ assert.equal(repositoryIdentity(valid[0]), repositoryIdentity(valid[1]));
 assert.equal(repositoryIdentity(valid[12]), repositoryIdentity(valid[13]));
 assert.notEqual(repositoryIdentity(valid[6]), repositoryIdentity(valid[7]));
 assert.equal(repositoryIdentity(valid[6]), repositoryIdentity(valid[10]));
+const blocked = readinessSummary(Array.from({length: 20}, (_, index) => ({
+  id: randomUUID(), seed_key: `broken-${index}`, status: "planned", labels: ["milestone:now"],
+  readiness: ["invalid_repository_url"], work_spec: { repository: { url: invalid[8] } },
+})));
+assert.equal(blocked.repositoryProblems!.length, 10);
+assert.equal(blocked.reasons.invalid_repository_url, 20);
+assert.ok(!JSON.stringify(blocked).includes("fixture-secret"));
 console.log(`PASS: ${cases.length} shared address, mutation and fictional readiness cases; identity aliases and SSH port boundaries.`);
 
 const port = process.env.WORK_TEST_PG_PORT;

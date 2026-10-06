@@ -98,7 +98,7 @@ function runDispatch(profile: Profile | null) {
   if (child.status !== 0) {
     const message = (child.stderr || child.stdout || "Work-board pickup failed").trim();
     const noReady = /No ready Now\/Next ticket/i.test(message);
-    const repositoryProblem = /Card .*: (invalid repository address|this checkout's origin)/.test(message);
+    const repositoryProblem = /Card .*: (invalid repository address|this checkout's origin)|invalid_repository_url/.test(message);
     fail(
       message,
       noReady ? "NO_READY_WORK" : "PREFLIGHT_BLOCKED",

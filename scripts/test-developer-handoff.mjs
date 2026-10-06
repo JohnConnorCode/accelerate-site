@@ -171,6 +171,21 @@ test("CLI refuses missing bases before POST, claims with revision, returns pure 
     WORK_BOARD_TOKEN: "fixture-private-token",
   };
   try {
+    const url = f.card.work_spec.repository.url;
+    const state = git(f.clone, ["status", "--porcelain"]);
+    const worktrees = git(f.clone, ["worktree", "list", "--porcelain"]);
+    for (const invalid of ["local:Accelerate-agency/accelerate-site", "https://user:fixture-secret@example.test/repo"]) {
+      f.card.work_spec.repository.url = invalid;
+      const refused = await cli(f.clone, ["next", "--json"], env);
+      assert.equal(refused.code, 1);
+      assert.equal(posts, 0, "invalid repository must fail before any claim POST");
+      assert.match(refused.stderr, /Card fixture-ticket: invalid repository address/);
+      assert.match(refused.stderr, /revision-checked card edit/);
+      assert.ok(!refused.stderr.includes(invalid) && !refused.stderr.includes("fixture-secret"));
+      assert.equal(git(f.clone, ["status", "--porcelain"]), state);
+      assert.equal(git(f.clone, ["worktree", "list", "--porcelain"]), worktrees);
+    }
+    f.card.work_spec.repository.url = url;
     const base = f.card.work_spec.repository.baseCommit;
     f.card.work_spec.repository.baseCommit = "b".repeat(40);
     let result = await cli(f.clone, ["next", "--json"], env);
