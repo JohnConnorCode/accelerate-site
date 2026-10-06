@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Calendar, Flag } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/lib/admin/useToast";
@@ -21,6 +22,9 @@ export function TaskQuickAdd({
   onTaskCreated,
   compact,
 }: TaskQuickAddProps) {
+  const queryClient = useQueryClient();
+  const inFlight = useRef(false);
+  const [error, setError] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -28,8 +32,10 @@ export function TaskQuickAdd({
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async () => {
-    if (!title.trim() || saving) return;
+    if (!title.trim() || inFlight.current) return;
+    inFlight.current = true;
     setSaving(true);
+    setError("");
 
     try {
       const res = await fetch("/api/admin/tasks", {
@@ -52,10 +58,13 @@ export function TaskQuickAdd({
       setPriority("medium");
       setIsOpen(false);
       toast.success("Follow-up added");
+      void queryClient.invalidateQueries({ queryKey: ["work", "tasks"] });
+      void queryClient.invalidateQueries({ queryKey: ["today-workspace"] });
       onTaskCreated?.();
     } catch {
-      toast.error("Could not add the follow-up. Your draft is still here; try again.");
+      setError("Could not add the follow-up. Your draft is still here; try again.");
     } finally {
+      inFlight.current = false;
       setSaving(false);
     }
   };
@@ -74,59 +83,66 @@ export function TaskQuickAdd({
   }
 
   return (
-    <div
+    <form
+      aria-label="Add follow-up"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void handleSubmit();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !inFlight.current) setIsOpen(false);
+      }}
       className={`rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] p-3 ${compact ? "" : "mt-2"}`}
     >
-      <Input
-        aria-label="Follow-up title"
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="e.g., Call back Thursday, Send proposal..."
-        className="mb-2"
-        autoFocus
-        onKeyDown={(e) => {
-          if (e.key === "Enter") handleSubmit();
-          if (e.key === "Escape") setIsOpen(false);
-        }}
-      />
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="h-3.5 w-3.5 text-[var(--admin-muted)]" />
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            aria-label="Due date"
-            className="bg-transparent text-xs text-[var(--admin-ink)] border border-[var(--admin-border)] rounded px-2 py-1 focus-visible:outline-none focus-visible:border-[var(--admin-ink)] focus-visible:ring-1 focus-visible:ring-[var(--admin-ink)]/30"
-          />
+      <fieldset disabled={saving} className="min-w-0" aria-busy={saving}>
+        <Input
+          aria-label="Follow-up title"
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g., Call back Thursday, Send proposal..."
+          className="mb-2"
+          autoFocus
+          required
+        />
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 text-[var(--admin-muted)]" />
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              aria-label="Due date"
+              className="admin-field min-h-11 min-w-0 rounded-xl bg-[var(--admin-surface)] px-2 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+            />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Flag className="h-3.5 w-3.5 text-[var(--admin-muted)]" />
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              aria-label="Priority"
+              className="admin-field min-h-11 min-w-0 rounded-xl bg-[var(--admin-surface)] px-2 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+            >
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div className="flex-1" />
+          <Button type="button" variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" size="sm" type="submit" disabled={saving || !title.trim()}>
+            {saving ? "Adding..." : "Add"}
+          </Button>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Flag className="h-3.5 w-3.5 text-[var(--admin-muted)]" />
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            aria-label="Priority"
-            className="bg-transparent text-xs text-[var(--admin-ink)] border border-[var(--admin-border)] rounded px-2 py-1 focus-visible:outline-none focus-visible:border-[var(--admin-ink)] focus-visible:ring-1 focus-visible:ring-[var(--admin-ink)]/30"
-          >
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-        </div>
-        <div className="flex-1" />
-        <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleSubmit}
-          disabled={saving || !title.trim()}
-        >
-          {saving ? "Adding..." : "Add"}
-        </Button>
-      </div>
-    </div>
+      </fieldset>
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-[var(--admin-ink)]">
+          {error}
+        </p>
+      )}
+    </form>
   );
 }

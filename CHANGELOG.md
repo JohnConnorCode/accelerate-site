@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Client detail uses independently recoverable queries for the record, activity and follow-ups. Failed refreshes retain loaded data and local edits; native forms validate nonnegative cent values and lock pending submissions. Follow-up creation refreshes related history and Work/Today caches.
+
 - Installation website save, reload and import now share a synchronous operation lock. Failed reloads retain local edits and undo, leaving ignores late responses, and success requires a matching version and publication receipt. Initial load failures offer a direct retry; editing and Undo/Redo clear outdated success messages.
 
 - Private page drafts now reuse the validated iframe preview with real responsive viewports and public page styling. Links, including keyboard and middle-button activation, stay inside the preview; FAQ disclosure remains interactive.

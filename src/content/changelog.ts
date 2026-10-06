@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "client-workspace-recovery",
+    slug: "client-workspace-recovery",
+    title: "Keep client records, activity and follow-ups connected",
+    description:
+      "Client records, activity and follow-ups load independently and offer scoped retries. Failed refreshes retain loaded information and unsaved edits. Follow-ups sit beside activity and refresh Work and Today after creation. Pending submissions hold the draft fixed, failed submissions retain edits, and client values accept cents with nonnegative form validation.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "website-editor-operation-recovery",
     slug: "website-editor-operation-recovery",
     title: "Keep website edits safe during saves, reloads and imports",

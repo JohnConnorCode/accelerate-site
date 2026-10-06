@@ -94,7 +94,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I actually work with clients in the demo?",
     answer:
-      "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Work or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",
+      "Yes. Search or filter clients, open an account, save notes and add a follow-up. Follow-ups appear beside activity and refresh Work and Today after creation. Open a saved follow-up in Work or follow the timeline to its specific conversation or opportunity. Failed reads offer scoped retries, and failed saves keep your edits. Changes persist in that fictional business session and never contact customers.",
   },
   {
     question: "Can I try Command Center before setting it up?",
