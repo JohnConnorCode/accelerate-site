@@ -746,13 +746,6 @@ function ContentCalendarReview({ payload }: { payload: Record<string, unknown> |
       aria-label="Exact calendar changes"
       className="grid gap-4 text-sm text-[var(--admin-ink)]"
     >
-      <h3 className="font-semibold">
-        {command.operation === "create"
-          ? "New calendar item"
-          : command.operation === "delete"
-            ? "Item to delete permanently"
-            : `Move ${items.length} calendar ${items.length === 1 ? "item" : "items"}`}
-      </h3>
       {command.operation === "create" ? (
         <dl className="grid gap-3">
           {Object.entries(command.values).map(([key, value]) => (

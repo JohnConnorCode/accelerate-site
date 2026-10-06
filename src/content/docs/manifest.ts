@@ -378,7 +378,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["delivery", "content"],
         title: "Manage editorial work",
         description:
-          "Track a brief from idea to published, and verify a review caught what mattered.",
+          "Plan editorial work, review proposed calendar changes and recover from interrupted saves.",
       },
       {
         slug: ["delivery", "resources"],

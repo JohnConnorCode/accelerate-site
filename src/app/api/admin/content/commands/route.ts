@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   if (!auth.user.email)
     return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
   try {
-    const { action, ...input } = await request.json();
+    const { action, ...input } = z.record(z.string(), z.unknown()).parse(await request.json());
     const operation = z.enum(["preview", "propose"]).parse(action);
     return NextResponse.json(
       operation === "preview"
