@@ -272,7 +272,7 @@ async function checkTaskInspector(width) {
     await dialog.getByRole("button", { name: "Close task", exact: true }).click();
     await dialog.waitFor({ state: "hidden" });
     await page.getByLabel("Ownership", { exact: true }).selectOption("team");
-    await page.getByLabel("Status", { exact: true }).selectOption("snoozed");
+    await page.getByLabel("Task status", { exact: true }).selectOption("snoozed");
     await page.getByRole("button", { name: `Complete ${second.title}`, exact: true }).click();
     await page
       .getByRole("button", { name: `Complete ${second.title}`, exact: true })
