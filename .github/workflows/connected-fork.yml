@@ -9,6 +9,10 @@ on:
       - scripts/qa-native-workspace-mcp-oauth.ts
       - scripts/workspace-setup.mjs
       - scripts/lib/workspace-setup.mjs
+      - scripts/workspace-files.mjs
+      - scripts/lib/storage-recovery.mjs
+      - scripts/test-storage-recovery.mjs
+      - scripts/test-release-restore-upgrade-proof.ts
       - src/app/admin/contacts/**
       - src/app/api/admin/contacts/**
       - src/lib/revenue-os/identity.ts
@@ -21,6 +25,35 @@ permissions:
   contents: read
 
 jobs:
+  release-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.72.7
+      - name: Verify private file-copy failure boundaries
+        run: npm run resources:run -- npm run test:storage-recovery
+      - name: Restore native database, Auth and private files into a distinct project
+        env:
+          RECOVERY_PROOF_NATIVE: "1"
+        run: npm run resources:run -- npm run test:release-recovery
+      - name: Retain only safe fictional recovery evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-recovery-evidence
+          path: ${{ runner.temp }}/accelerate-release-recovery/
+          if-no-files-found: error
+          retention-days: 7
   connected-fork:
     runs-on: ubuntu-latest
     timeout-minutes: 45
