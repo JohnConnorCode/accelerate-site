@@ -6,16 +6,16 @@ content domain. Review, migration rollout, merge and deployment remain separate.
 
 ## Semantic operation matrix
 
-| Operation | Admin interface | AI / workspace MCP | Canonical owner and effect |
-| --- | --- | --- | --- |
-| Filter/read | Content GET | `list_content_calendar` | `content-calendar.ts`; assistant returns five concise records and total matching count |
-| Generate brief | New/Edit Content | `generate_content_brief` | Existing `content-brief.ts` provider service; working copy only |
-| Edit/clear fields | Edit Content, PATCH | Existing update preview/proposal tools | Existing validated update writer; expected item revision; nullable fields explicitly clear |
-| Create calendar item | New Content, POST | New command preview/proposal with `operation=create` | Shared strict command + host-only atomic calendar/audit function; new UUID and normalized title/details |
-| Permanently delete item | Edit Content confirmation, DELETE | New command preview/proposal with `operation=delete` | Same function; exact item snapshot; approvals, audit and website pages retained |
-| Move/reorder items | Content board, PATCH | New command preview/proposal with `operation=reorder` | Same function; exact IDs, current columns and item revisions; all-or-nothing update |
-| Column create/rename/delete/reassignment | Shared Kanban controls | Not covered by this slice | Existing shared Kanban owner; retained parent parity gap |
-| Website publication/assets/social delivery | Existing separate surfaces | Separate existing coverage/gaps | No authority added by calendar commands; retained parent scope |
+| Operation                                  | Admin interface                   | AI / workspace MCP                                    | Canonical owner and effect                                                                              |
+| ------------------------------------------ | --------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Filter/read                                | Content GET                       | `list_content_calendar`                               | `content-calendar.ts`; assistant returns five concise records and total matching count                  |
+| Generate brief                             | New/Edit Content                  | `generate_content_brief`                              | Existing `content-brief.ts` provider service; working copy only                                         |
+| Edit/clear fields                          | Edit Content, PATCH               | Existing update preview/proposal tools                | Existing validated update writer; expected item revision; nullable fields explicitly clear              |
+| Create calendar item                       | New Content, POST                 | New command preview/proposal with `operation=create`  | Shared strict command + host-only atomic calendar/audit function; new UUID and normalized title/details |
+| Permanently delete item                    | Edit Content confirmation, DELETE | New command preview/proposal with `operation=delete`  | Same function; exact item snapshot; approvals, audit and website pages retained                         |
+| Move/reorder items                         | Content board, PATCH              | New command preview/proposal with `operation=reorder` | Same function; exact IDs, current columns and item revisions; all-or-nothing update                     |
+| Column create/rename/delete/reassignment   | Shared Kanban controls            | Not covered by this slice                             | Existing shared Kanban owner; retained parent parity gap                                                |
+| Website publication/assets/social delivery | Existing separate surfaces        | Separate existing coverage/gaps                       | No authority added by calendar commands; retained parent scope                                          |
 
 The new tools are `preview_content_calendar_change` (read) and
 `propose_content_calendar_change` (staged internal write), owned by Content in
