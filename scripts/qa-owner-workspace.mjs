@@ -265,6 +265,17 @@ try {
         "none",
         "The settled result surface must release its temporary entrance transform",
       );
+      assert.ok(
+        !["both", "forwards"].includes(
+          await page
+            .getByText("Recorded task results", { exact: true })
+            .first()
+            .evaluate(
+              (element) => getComputedStyle(element.closest(".admin-surface")).animationFillMode,
+            ),
+        ),
+        "The completed entrance must not retain a paint layer over the recorded results",
+      );
       writeFileSync(
         `${output}/onboarding-result-${width}.json`,
         JSON.stringify(

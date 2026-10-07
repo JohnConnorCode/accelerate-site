@@ -24,6 +24,7 @@ for (const run of [
     window.__adminEntranceFrames = [];
     document.addEventListener("animationstart", (event) => {
       if (event.animationName !== "admin-route-section-in") return;
+      if (!event.target.closest("[data-admin-route-stage]")) return;
       const node = event.target;
       const sample = {
         path: location.pathname,
@@ -62,12 +63,12 @@ for (const run of [
     await page.route("**/*", async (route) => {
       const request = route.request();
       const isNavigationPayload = request.url().includes("_rsc=") || request.headers().rsc === "1";
-      const isPipelinePayload = isNavigationPayload && request.url().includes("/pipeline");
+      const isContactsPayload = isNavigationPayload && request.url().includes("/contacts");
       const isPrefetch =
         request.headers()["next-router-prefetch"] === "1" ||
         request.headers().purpose === "prefetch";
-      if (isPipelinePayload && isPrefetch && !navigationTriggered) return route.abort();
-      if (isPipelinePayload && navigationTriggered)
+      if (isContactsPayload && isPrefetch && !navigationTriggered) return route.abort();
+      if (isContactsPayload && navigationTriggered)
         await new Promise((resolve) => setTimeout(resolve, run.delay));
       await route.continue();
     });
@@ -127,22 +128,19 @@ for (const run of [
     null,
     { timeout: 5_000 },
   );
+  await page.waitForFunction(
+    () =>
+      window.__adminEntranceFrames.filter((entry) => entry.path === location.pathname).length >= 2,
+    null,
+    { timeout: 5_000 },
+  );
   const directEntrance = await page.evaluate(() => {
-    const stage = document.querySelector("[data-admin-route-stage]");
-    const animations = document
-      .getAnimations({ subtree: true })
-      .filter(
-        (animation) =>
-          animation instanceof CSSAnimation &&
-          animation.effect?.target instanceof Element &&
-          stage?.contains(animation.effect.target) &&
-          animation.animationName === "admin-route-section-in",
-      );
+    const entrances = window.__adminEntranceFrames.filter(
+      (entry) => entry.path === location.pathname,
+    );
     return {
-      count: animations.length,
-      delays: [
-        ...new Set(animations.map((animation) => Number(animation.effect?.getTiming().delay || 0))),
-      ],
+      count: entrances.length,
+      delays: [...new Set(entrances.map((entry) => entry.delay))],
     };
   });
   if (directEntrance.count < 2 || directEntrance.delays.length < 2) {
@@ -154,7 +152,7 @@ for (const run of [
   if (!run.delay) await page.waitForLoadState("networkidle");
   const target = page
     .locator(
-      `${run.name.startsWith("mobile") ? ".admin-mobile-dock " : "nav[aria-label='Admin navigation'] "}a[href="/demo/command-center/northline-roofing/pipeline"]:visible`,
+      `${run.name.startsWith("mobile") ? ".admin-mobile-dock " : "nav[aria-label='Admin navigation'] "}a[href="/demo/command-center/northline-roofing/contacts"]:visible`,
     )
     .first();
   await target.waitFor({ state: "visible", timeout: 15_000 });
@@ -194,7 +192,7 @@ for (const run of [
       .locator('.admin-mobile-dock-item[data-pending="true"]')
       .textContent()
       .catch(() => "");
-    if (!pendingLabel?.includes("Pipeline"))
+    if (!pendingLabel?.includes("Contacts"))
       failures.push(
         `${run.name}: destination intent was not acknowledged before the route committed`,
       );
@@ -252,7 +250,7 @@ for (const run of [
     }
   }
 
-  await page.waitForURL("**/northline-roofing/pipeline", { timeout: 15_000 });
+  await page.waitForURL("**/northline-roofing/contacts", { timeout: 15_000 });
   await page
     .locator("[data-admin-route-loading]")
     .waitFor({ state: "detached", timeout: 15_000 })
@@ -268,22 +266,19 @@ for (const run of [
     null,
     { timeout: 5_000 },
   );
+  await page.waitForFunction(
+    () =>
+      window.__adminEntranceFrames.filter((entry) => entry.path === location.pathname).length >= 2,
+    null,
+    { timeout: 5_000 },
+  );
   const committedAnimations = await page.evaluate(() => {
-    const stage = document.querySelector("[data-admin-route-stage]");
-    const animations = document
-      .getAnimations({ subtree: true })
-      .filter(
-        (animation) =>
-          animation instanceof CSSAnimation &&
-          animation.effect?.target instanceof Element &&
-          stage?.contains(animation.effect.target) &&
-          animation.animationName === "admin-route-section-in",
-      );
+    const entrances = window.__adminEntranceFrames.filter(
+      (entry) => entry.path === location.pathname,
+    );
     return {
-      count: animations.length,
-      delays: [
-        ...new Set(animations.map((animation) => Number(animation.effect?.getTiming().delay || 0))),
-      ],
+      count: entrances.length,
+      delays: [...new Set(entrances.map((entry) => entry.delay))],
     };
   });
   if (committedAnimations.count < 2 || committedAnimations.delays.length < 2)
@@ -304,8 +299,8 @@ for (const run of [
       failures.push(
         `${run.name}: the shared dock selection surface did not move between destinations`,
       );
-    if (activeDockLabel?.trim() !== "Pipeline")
-      failures.push(`${run.name}: Pipeline did not become the active mobile destination`);
+    if (activeDockLabel?.trim() !== "Contacts")
+      failures.push(`${run.name}: Contacts did not become the active mobile destination`);
   }
   await page.screenshot({ path: `${output}/${run.name}-committed.png` });
   await page.waitForTimeout(700);
@@ -321,7 +316,7 @@ for (const run of [
   if (state.y > 2) failures.push(`${run.name}: forward navigation landed at ${state.y}px`);
   const frames = await page.evaluate(() => window.__adminEntranceFrames);
   writeFileSync(`${output}/${run.name}-frames.json`, JSON.stringify(frames, null, 2));
-  for (const route of ["/today", "/pipeline"]) {
+  for (const route of ["/today", "/contacts"]) {
     const samples = frames.filter((sample) => sample.path.endsWith(route));
     if (!samples.some((sample) => sample.opacity.some((opacity) => opacity > 0 && opacity < 0.85)))
       failures.push(`${run.name}: ${route} never displayed a perceptible intermediate fade frame`);
@@ -341,7 +336,7 @@ for (const run of [
     reducedMotion: "no-preference",
   });
   const page = await context.newPage();
-  await page.goto(`${base}/demo/command-center/northline-roofing/pipeline`, {
+  await page.goto(`${base}/demo/command-center/northline-roofing/contacts`, {
     waitUntil: "networkidle",
   });
   await page.evaluate(() => {

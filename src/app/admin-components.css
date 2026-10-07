@@ -952,7 +952,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   /* Semantic markup receives the same entrance before hydration. Registration
      adds the bounded order and covers otherwise unmarked content groups. */
   .admin-route-stage {
-    --admin-route-entry: admin-route-section-in 280ms var(--admin-motion-ease) both;
+    /* Keep the concealed stagger, then release the completed paint layer. */
+    --admin-route-entry: admin-route-section-in 280ms var(--admin-motion-ease) backwards;
   }
 
   .admin-route-stage
