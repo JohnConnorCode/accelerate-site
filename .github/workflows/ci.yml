@@ -344,6 +344,7 @@ jobs:
             ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-
       # next build includes TypeScript validation. Never ignore build errors.
       - name: Build and typecheck
+        id: production_build
         run: npm run build
 
       # A public-only verification can supply a local production preview when
@@ -376,6 +377,7 @@ jobs:
         run: node scripts/check-plugin-host-package.mjs
 
       - name: Install browser for first-run verification
+        id: browser_install
         run: npx playwright install --with-deps chromium webkit
       - name: Verify native homepage and cached mobile motion
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
@@ -501,6 +503,9 @@ jobs:
             /tmp/accelerate-configuration-server.log
 
       - name: Verify credential-free first-run journey
+        # Collect independent journeys after another browser suite fails, while
+        # preserving that failure in the required overall CI result.
+        if: ${{ !cancelled() && steps.production_build.outcome == 'success' && steps.browser_install.outcome == 'success' }}
         env:
           # NextURL canonicalizes loopback IPs to localhost. Keep the server's
           # initURL on that same origin so demo rewrites never become self-proxies.
