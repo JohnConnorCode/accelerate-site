@@ -332,3 +332,13 @@ recovery, and `scripts/test-collection-policy.ts` for authority/freshness proof.
 Google checks and bounded sync reuse `google.ts` and durable job/source receipts. Partial work stops further sources, preserves completed records and fails the action with a progress receipt. The direct admin API reports incomplete work as an error. Credential entry, OAuth consent, ingest/MCP key creation and installation environment remain secure human handoffs; configuration tools cannot elevate access or return secrets.
 
 The fictional transport shares the same command and semantic preview contract, persists configuration and proposals in its existing session store and uses `ActionReviewDialog`. It simulates effects without calling providers or a model. See [operation matrix](../../../docs/verification/WORKSPACE-CONFIGURATION-2026-09-29.md) for boundaries and checks.
+
+## Private founder command context
+
+`platform-command-context.ts` owns fresh founder authentication and the private
+server scope over existing approvals, audits, traces and transcripts. The tenant
+database adapter annotates private inserts/upserts; additive restrictive RLS and
+invoker triggers enforce immutable ownership and parent visibility. Approval and
+rejection reuse the shared queue and avoid shared learning from private content.
+See [Platform command privacy](../../../docs/contracts/PLATFORM-COMMAND-PRIVACY.md)
+for verification, migration-first release and the remaining platform parity work.

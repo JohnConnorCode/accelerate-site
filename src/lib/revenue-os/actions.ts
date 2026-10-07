@@ -1,3 +1,7 @@
+import {
+  platformCommandScopeForDatabase,
+  withActionCommandContext,
+} from "./platform-command-context";
 import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -88,7 +92,8 @@ export interface ActionProposal {
  */
 export async function proposeAction(supabase: SupabaseClient, input: ActionProposal) {
   const workItemId = proposalWorkContext.getStore();
-  const explicit = input.explicit === true || !workItemId;
+  const explicit =
+    input.explicit === true || !workItemId || Boolean(platformCommandScopeForDatabase(supabase));
   let triage: Record<string, unknown> | undefined;
   if (!explicit) {
     let decision: TriageDecision | null = null;
@@ -290,6 +295,19 @@ export async function claimApprovedAction(
   actorEmail: string,
   mode: "approved" | "autonomous" = "approved",
 ) {
+  return withActionCommandContext(supabase, id, actorEmail, async (privateCommand) => {
+    if (privateCommand && mode === "autonomous")
+      throw new Error("Private commands require exact human approval");
+    return claimAction(supabase, id, actorEmail, mode);
+  });
+}
+
+async function claimAction(
+  supabase: SupabaseClient,
+  id: string,
+  actorEmail: string,
+  mode: "approved" | "autonomous" = "approved",
+) {
   await recoverStaleExecutingActions(supabase);
   const now = new Date().toISOString();
   const { data, error } = await supabase
@@ -313,7 +331,7 @@ export async function claimApprovedAction(
     after: { action_type: data.action_type, status: "executing" },
   });
 
-  if (mode === "autonomous") return data;
+  if (mode === "autonomous" || data.platform_owner_user_id) return data;
 
   // Approval trust signal: record as agent memory so the autonomy policy
   // trust ladder and future AI context can see that this action type was
@@ -375,7 +393,12 @@ export interface ActionDenial {
  * terminal `denied` status, the deny code, and an `action.denied` audit entry
  * carrying the policy reference. Requires the `denied` status migration.
  */
-export async function denyAction(supabase: SupabaseClient, id: string, denial: ActionDenial) {
+export async function denyAction(
+  supabase: SupabaseClient,
+  id: string,
+  denial: ActionDenial,
+  fromStatus: "executing" | "pending" = "executing",
+) {
   const { data, error } = await supabase
     .from("action_queue")
     .update({
@@ -384,7 +407,7 @@ export async function denyAction(supabase: SupabaseClient, id: string, denial: A
       result: { denied: true, code: denial.code, policy: denial.policy ?? {} },
     })
     .eq("id", id)
-    .eq("status", "executing")
+    .eq("status", fromStatus)
     .select("id,action_type")
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -421,10 +444,23 @@ export async function rejectAction(
   actorEmail: string,
   reason?: string,
 ) {
+  return withActionCommandContext(supabase, id, actorEmail, () =>
+    rejectPendingAction(supabase, id, actorEmail, reason),
+  );
+}
+
+async function rejectPendingAction(
+  supabase: SupabaseClient,
+  id: string,
+  actorEmail: string,
+  reason?: string,
+) {
   // Fetch the action details first to support learned policy creation.
   const { data: pending } = await supabase
     .from("action_queue")
-    .select("id, action_type, entity_type, entity_id, proposed_by, source_context")
+    .select(
+      "id, action_type, entity_type, entity_id, proposed_by, source_context, platform_owner_user_id",
+    )
     .eq("id", id)
     .eq("status", "pending")
     .maybeSingle();
@@ -455,7 +491,7 @@ export async function rejectAction(
   // This is how the system learns "don't do X" from real operational experience.
   // Future AI runs can surface these observations for review. Only structured
   // autonomy policies govern execution; this prose cannot change authority.
-  if (pending) {
+  if (pending && !pending.platform_owner_user_id) {
     const actionKey = pending.action_type;
     const coworkerId = pending.proposed_by?.startsWith("coworker:")
       ? pending.proposed_by.replace("coworker:", "")

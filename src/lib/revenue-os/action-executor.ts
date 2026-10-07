@@ -1,3 +1,4 @@
+import { withActionCommandContext } from "./platform-command-context";
 import { taskReviewStateSchema } from "./operator-task-patch";
 import { executeCollectionPolicy } from "./collection-policy";
 import { executeWorkspaceConfiguration } from "./workspace-configuration";
@@ -63,6 +64,29 @@ function stringValue(
 export const APPROVABLE_ACTIONS = ACTION_REVERSIBILITY.map((entry) => entry.actionType);
 
 export async function approveAndExecuteAction(
+  supabase: SupabaseClient,
+  id: string,
+  actorEmail: string,
+  options?: { mode?: "approved" | "autonomous"; requesterId?: string },
+) {
+  return withActionCommandContext(supabase, id, actorEmail, async (privateCommand) => {
+    if (privateCommand && options?.mode === "autonomous") {
+      await denyAction(
+        supabase,
+        id,
+        {
+          code: "private_command_requires_approval",
+          reason: "Private commands require exact human approval",
+        },
+        "pending",
+      );
+      throw new Error("Private commands require exact human approval");
+    }
+    return executeApprovedAction(supabase, id, actorEmail, options);
+  });
+}
+
+async function executeApprovedAction(
   supabase: SupabaseClient,
   id: string,
   actorEmail: string,
