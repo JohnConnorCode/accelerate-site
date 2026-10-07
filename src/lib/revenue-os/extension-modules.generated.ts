@@ -1515,10 +1515,10 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
   {
     moduleId: "site-studio",
     id: "site-studio",
-    label: "Site Studio",
+    label: "Website & pages",
     href: "/admin/site",
     icon: "Globe2",
-    description: "Create and publish website pages",
+    description: "Create page drafts, preview revisions and publish your website",
     moreGroup: "Delivery",
   },
   {

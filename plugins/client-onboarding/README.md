@@ -66,3 +66,5 @@ and returns cited revisions through `search_knowledge_base`. Corrections create
 reviewable proposals; they cannot grant permissions or execute workflow writes.
 See [the knowledge contract](../../extensions/README.md#shared-knowledge-and-learning-declarations)
 and run the connected-learning regression checks alongside this plugin's tests.
+
+The admin workspace groups this workflow under **Client work**. The [connected walkthroughs](/docs/start/daily-path) explain its starting situation, review controls, saved result and recovery.

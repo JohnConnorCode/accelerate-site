@@ -1,5 +1,6 @@
 import {
   Activity,
+  ReceiptText,
   Palette,
   BarChart3,
   Bot,
@@ -477,6 +478,137 @@ adminNavSections.splice(adminNavSections.indexOf(fallback), 0, {
   title: "Lead sources",
   links: sourceLinks,
 });
+
+/** Business destinations shared by the sidebar, search and page context.
+ * IDs retain existing disclosure state; extension section keys remain unchanged. */
+export const adminBusinessGroups = [
+  {
+    id: "today",
+    label: "Business overview",
+    description: "Review the business and decide what deserves attention.",
+    primaryId: "today",
+    icon: LayoutDashboard,
+    members: ["today", "analytics", "activity", "opportunity-radar"],
+  },
+  {
+    id: "work",
+    label: "Tasks & approvals",
+    description: "Assign next steps and review proposed actions.",
+    primaryId: "work",
+    icon: ListChecks,
+    members: ["work", "inbox"],
+  },
+  {
+    id: "records",
+    label: "Customers & sales",
+    description: "Understand each relationship and move opportunities forward.",
+    primaryId: "contacts",
+    icon: UsersRound,
+    members: [
+      "contacts",
+      "pipeline",
+      "proposals",
+      "recovery",
+      "leads",
+      "chat-leads",
+      "partners",
+      "website-grades",
+      "identity-review",
+    ],
+  },
+  {
+    id: "delivery",
+    label: "Client work",
+    description: "Keep delivery, appointments and handoffs on track.",
+    primaryId: "clients",
+    icon: BriefcaseBusiness,
+    members: [
+      "clients",
+      "bookings",
+      "client-onboarding",
+      "commitment-watch",
+      "meeting-commitments",
+      "meeting-prep",
+    ],
+  },
+  {
+    id: "invoices",
+    label: "Billing & payments",
+    description: "Prepare invoices and follow recorded payment status.",
+    primaryId: "stripe-invoicing",
+    icon: ReceiptText,
+    members: ["stripe-invoicing", "receivables-collections", "stripe-subscriptions", "revenue"],
+  },
+  {
+    id: "conversations",
+    label: "Messages & marketing",
+    description: "Reply to customers and manage scheduled outreach.",
+    primaryId: "conversations",
+    icon: MessageSquareText,
+    members: [
+      "conversations",
+      "emails",
+      "campaigns",
+      "delivery-runs",
+      "content",
+      "resources",
+      "subscribers",
+      "social-marketing",
+    ],
+  },
+  {
+    id: "knowledge",
+    label: "AI & knowledge",
+    description: "Give AI useful context and review its work and corrections.",
+    primaryId: "ai",
+    icon: Brain,
+    members: ["ai", "coworkers", "learning", "blueprints", "architect"],
+  },
+  {
+    id: "apps",
+    label: "Apps & connections",
+    description: "Connect services and open additional business tools.",
+    primaryId: "integrations",
+    icon: PlugZap,
+    members: ["integrations", "site-studio"],
+  },
+  {
+    id: "settings",
+    label: "Workspace settings",
+    description: "Manage access, branding and workspace readiness.",
+    primaryId: "settings",
+    icon: Settings,
+    members: ["settings", "branding", "tenants", "setup", "get-started", "features"],
+  },
+];
+
+export function groupAdminNavLinks(sections: AdminNavSection[]) {
+  const links = sections.flatMap((section) => section.links);
+  const assigned = new Set(adminBusinessGroups.flatMap((group) => group.members));
+  return adminBusinessGroups
+    .map((group) => {
+      const members = links.filter(
+        (link) =>
+          group.members.includes(link.id) || (group.id === "apps" && !assigned.has(link.id)),
+      );
+      const primary = members.find((link) => link.id === group.primaryId) ?? members[0];
+      return { ...group, primary, links: members.filter((link) => link.id !== primary?.id) };
+    })
+    .filter((group) => group.primary);
+}
+
+// Preserve previous product names as search aliases when labels become clearer.
+const destinationLabels: Record<string, string> = {
+  "site-studio": "Website & pages",
+  leads: "Website inquiries",
+};
+for (const link of adminNavSections.flatMap((section) => section.links)) {
+  const label = destinationLabels[link.id];
+  if (label) {
+    link.keywords = `${link.keywords ?? ""} ${link.label} ${link.id === "site-studio" ? "Site Studio" : "Leads"}`;
+    link.label = label;
+  }
+}
 
 export const adminNavLinks = adminNavSections.flatMap((section) => section.links);
 export const adminMobileLinks = adminNavLinks.filter((link) => link.mobilePrimary);

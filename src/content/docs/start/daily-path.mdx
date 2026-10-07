@@ -1,46 +1,93 @@
 ---
-title: "Your first workflow"
-description: "Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened."
-updated: "2026-09-27"
+title: "Three workflows to learn the workspace"
+description: "Answer an inquiry, start client work and prepare an invoice, then check the saved result and next step."
+updated: "2026-10-06"
 ---
 
-The fastest way to understand Command Center is to watch one decision move from a signal to a result. This walkthrough takes about five minutes, needs no account, and every action inside it is fictional: nothing you approve or reject here reaches a real customer.
+A customer is waiting for an answer, a newly won engagement needs a handoff, and an invoice is ready to prepare. These are three different jobs, but each follows the same useful path: understand the situation, make a decision, save the next step and inspect its result. Practicing that path makes the workspace easier to use with your own business.
 
-**You need:** a browser. Open the [Command Center demo](/demo/command-center), find **Northline Roofing & Exteriors**, and choose **Open this workspace**. The launcher also has three guided examples: answer an inquiry, start client work, and prepare an invoice. Choose **Try this workflow** to open the relevant screen, then follow the steps and check the saved result. Each business card lists more tasks to try. You can choose another fictional business at any time from the launcher.
-
-## 1. Find what needs you
-
-Open **Today**. It brings replies, due tasks, proposals, and pending approvals into one ranked queue, each with a reason attached, so you are never guessing why something is asking for your attention. Read that reason and the item's next action before you open it.
-
-The business snapshot opens approvals, follow-up work and your pipeline directly, while **Needs you** lists the records behind the attention count. Choose a saved view beside the heading, use **Customize** to arrange its modules, or open **More** to create, duplicate or delete a view.
+**You need:** a browser for the fictional examples below. Open [Today in Northline Roofing](/demo/command-center/northline-roofing/today), review **Business review**, and expand **How do I get work done?** to choose an example. The demo retains changes in that business’s browser session and labels provider actions as simulated.
 
 <DocsFigure
   src="/images/docs/command-center/today.png"
-  alt="Fictional roofing workspace showing Today, the priority queue, and approval Review buttons."
+  alt="Northline Roofing’s fictional business review with sales, customer follow-up, delivery and money findings."
   width={1440}
   height={1000}
-  caption="Today in the fictional Northline Roofing workspace: decisions and follow-up alongside supporting business context. All records and actions shown are fictional."
+  caption="Today in fictional Northline Roofing: Business review links findings to the records where work happens. The walkthrough selector sits above the review; all records are fictional."
 />
 
-## 2. Inspect a proposed action
+<h2 id="inquiry">Answer an inquiry</h2>
 
-Choose **Review** on an approval. Check who or what it affects, the exact proposed change, and the context behind it, for an email, that means reading the actual recipient and the actual message, not just noting that a draft exists. A proposed action being on your screen does not mean it has already happened; consequential actions wait for your decision. In a connected workspace, a current bounded internal permission can allow a covered internal change to run.
+A Northline homeowner has asked about an inspection. Before offering an appointment, read the request and the customer’s history so your answer addresses what they actually need. Start in [the fictional conversation workspace](/demo/command-center/northline-roofing/conversations).
 
-## 3. Make a decision
+<StepByStep>
+  <Step number={1} title="Read the customer’s situation">
+    Select a thread and read the latest request. Open the related contact or opportunity when you
+    need the property context, prior response or current next action before answering.
+  </Step>
+  <Step number={2} title="Review the reply you want to send">
+    Write the answer in the reply field, then choose **Review & Send**. Check the customer and exact
+    message in the confirmation. Choose **Edit** to revise it or **Confirm send** to proceed. Ask AI
+    can prepare a reply from the same context when the inference service is available.
+  </Step>
+  <Step number={3} title="Confirm the result and assign the follow-up">
+    Read the resulting message in the thread and check its recorded status. If somebody needs to
+    call back, open **Work** and create an owned task with a due date and the customer attached.
+    Return to Today and use **Refresh Today** to review the remaining follow-up.
+  </Step>
+</StepByStep>
 
-Approve an action you agree with. If the content needs work, edit it and review the revised version before you approve, rather than approving first and fixing later. Reject anything you do not want to run.
+**Saved result:** the reply stays in the conversation, while the callback remains an assigned task that the next teammate can open. Reload the thread and task to inspect them again. If a send fails or its outcome is unclear, read the original message result before trying again. Keep an unsent answer available until you know what happened.
 
-In this demo, a decision only changes fictional browser state. In a connected workspace, approving a send authorizes a real attempt to contact the named recipient, so read the confirmation carefully before you continue once you are working with your own data.
+<h2 id="onboarding">Start client work</h2>
 
-## 4. Check the result
+Ledgerstone Advisory has won an engagement, and the delivery team needs ownership, client access and a kickoff date. Start in [the fictional onboarding workspace](/demo/command-center/ledgerstone-advisory/client-onboarding), reached through **Client work → Client onboarding** when the App is enabled.
 
-Return to Today and see whether the item is still waiting on you. Open the action's result, or check [Activity](/docs/command-center/activity) for more context. A rejected proposal is not the same as a sent one, and neither is safe to assume without looking.
+<StepByStep>
+  <Step number={1} title="Choose the engagement">
+    Select the won opportunity and review the customer and agreed work. Prepare tasks for kickoff
+    and the information you need from the client, with an assignee and due date for each.
+  </Step>
+  <Step number={2} title="Review the exact checklist">
+    Choose **Review workflow**, inspect the source and assignments, then choose **Request
+    approval**. Select **Approve & create tasks** on the proposal below, or review it in **Work →
+    Approvals**. With configured AI, you can also prepare the checklist and review its proposals in
+    chat.
+  </Step>
+  <Step number={3} title="Inspect the handoff">
+    Read the execution result and open the created tasks in Work. Check the instructions, dates and
+    opportunity links, then return to Today to see the delivery commitments alongside other work.
+  </Step>
+</StepByStep>
 
-## Keep going
+**Saved result:** assigned tasks stay linked to the engagement. A teammate can reload the task link and see what they own. If an owner or source changed during review, correct it and preview again; if task creation is uncertain, inspect the original result before preparing a second checklist. [Client onboarding](/docs/plugins/client-onboarding) explains these controls and recovery in more detail.
 
-From here, use [Conversations](/docs/conversations/reply) to answer a customer, [Pipeline](/docs/pipeline/board) to move a deal, and [Intake review](/docs/command-center/inbox) to triage new intake. You can return to Today between any of them; nothing about this workflow is linear once you know the pieces.
+<h2 id="invoice">Prepare an invoice and follow payment</h2>
+
+SuperDebate needs to invoice a customer for agreed work. The decision is whether the recipient, line items and terms accurately represent that agreement. Open [the fictional invoice workspace](/demo/command-center/superdebate/invoicing) through **Billing & payments**.
+
+<StepByStep>
+  <Step number={1} title="Prepare the customer draft">
+    Choose **Create invoice** or **Use sample invoice** in the demo. Review the billing customer,
+    currency, quantities and terms, then choose **Prepare invoice** to inspect the exact preview.
+  </Step>
+  <Step number={2} title="Create and send the reviewed version">
+    Choose **Request draft approval**, review it and select **Approve & create draft**. Inspect the
+    creation result. When the invoice is ready, choose **Request sending approval**, review the
+    recipient and select **Approve & send invoice**.
+  </Step>
+  <Step number={3} title="Follow the recorded payment status">
+    Inspect the result and reopen the invoice from **All invoices**. Read the provider’s recorded
+    status and remaining amount. When Collections is enabled, open the customer case through
+    **Billing & payments → Collections** to inspect any overdue balance and available follow-up.
+  </Step>
+</StepByStep>
+
+**Saved result:** invoice creation and sending have separate recorded results, while payment status comes from the invoice source. Reload the invoice and check its status before telling the customer it is paid. If a provider attempt times out, inspect the original action and invoice before retrying. [Stripe invoicing](/docs/plugins/stripe-invoicing) covers the branded customer view; [Collections](/docs/plugins/receivables-collections) explains payment follow-up.
 
 ## What to check
 
-- If a real action's outcome is ever unclear, check its status before submitting a second attempt. [Receipts and audit](/docs/start/receipts) explains how to tell a confirmed result from unfinished work.
-- Before you connect real data, follow [Setup](/docs/workspace/setup). This demo shows you the workflow; it does not verify a single one of your own provider connections.
+- Check the source timestamp and any partial or unavailable warning before making a business decision. Refresh the review, or open the native record when its source needs investigation.
+- Every action in these demos is fictional. For real work, verify the required App, permissions and provider in [Setup](/docs/workspace/setup) before using a customer’s data.
+- AI availability is shown by the actual service response. Manual controls remain the starting path when an AI request cannot run.
+- Confirm the original result after an uncertain action. [Receipts and audit](/docs/start/receipts) explains what a saved, attempted or confirmed result means.

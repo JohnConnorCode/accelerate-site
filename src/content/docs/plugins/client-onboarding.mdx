@@ -1,7 +1,7 @@
 ---
 title: "Client onboarding"
 description: "Turn a won opportunity into a reviewed, assigned kickoff checklist."
-updated: "2026-09-20"
+updated: "2026-10-06"
 ---
 
 Winning the work is the beginning of delivery. This plugin helps a team carry the customer’s context into the tasks needed to start the project, without copying the deal into another system.
@@ -16,12 +16,12 @@ Winning the work is the beginning of delivery. This plugin helps a team carry th
 
 ## Complete your first checklist
 
-Enable **Client onboarding** in **Plugins**, then open `/admin/client-onboarding`. You need an authorized workspace, a won opportunity and valid task assignees. The plugin starts disabled and has no extra provider credentials or public settings.
+Enable **Client onboarding** in **Apps & connections**, then open **Client work → Client onboarding**. You need an authorized workspace, a won opportunity and valid task assignees. The plugin starts disabled and has no extra provider credentials or public settings.
 
 1. Select the won opportunity that the work belongs to.
 2. Enter one to ten tasks, each with a title, description, due date and assignee.
-3. Preview the plan and check the source, dates and owners. Submit that exact version for approval.
-4. Approve it through the shared action queue, then inspect the execution result and the created tasks.
+3. Choose **Review workflow** and check the source, dates and owners. Choose **Request approval** for that exact version.
+4. Choose **Approve & create tasks** on the proposal below, then inspect the execution result and open the created tasks in **Work**. The same proposal is also available in the shared approval queue.
 
 For a fictional example, prepare two tasks: confirm the kickoff meeting and request brand assets. After successful approval execution, expect two assigned tasks linked to the selected source. A preview or pending proposal has not created them yet. The [demo](/demo/command-center) uses the actual admin components with session-local fictional data.
 
@@ -41,7 +41,7 @@ The [workflow source](https://github.com/JohnConnorCode/accelerate-site/blob/mai
 
 Checklist preparation and task creation are both deterministic and make no paid model or provider request on their own. Hosting and database costs still apply as usual, and any AI chat you have around the workflow uses your workspace's configured model.
 
-Disabling the plugin in **Plugins** blocks any later execution, including approvals that are already pending, while existing tasks and receipts stay exactly where they are. Use the normal task controls to edit or complete whatever work was already created before you disabled it.
+Disabling the plugin in **Apps & connections** blocks any later execution, including approvals that are already pending, while existing tasks and receipts stay exactly where they are. Use the normal task controls to edit or complete whatever work was already created before you disabled it.
 
 If the source or an assignee is missing, correct the input and preview it again. When a result comes back uncertain, inspect the original receipt and reuse its request identity for a retry, rather than submitting a fresh request just to route around the uncertainty. A code or policy upgrade can invalidate an existing preview too, in which case it simply needs a fresh review.
 

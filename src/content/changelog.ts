@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "owner-business-workspace",
+    slug: "owner-business-workspace",
+    title: "Find the business question and follow it into work",
+    description:
+      "Nine sidebar groups explain where to manage the business. Core page headers show a starting instruction, with expanded steps and saved-result context. Today begins with sourced findings across sales, customer follow-up, delivery and money, links each finding to its record and prepares contextual AI questions. Connected walkthroughs teach answering an inquiry, starting client work and following an invoice through its recorded result. Existing custom views, permissions and business records remain intact.",
+    category: "improvement",
+    publishedAt: "2026-10-06",
+  },
+  {
     id: "task-inspector-context-recovery",
     slug: "task-inspector-context-recovery",
     title: "Keep task details attached to the right work",

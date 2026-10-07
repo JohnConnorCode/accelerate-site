@@ -65,11 +65,11 @@ async function openInvoices(page, mobile) {
   const documentId = await page.evaluate(() => window.__accelerateInvoiceNavigationDocument);
   if (mobile) await page.getByRole("button", { name: "Open More", exact: true }).click();
   const navigation = page.locator('nav[aria-label="Admin navigation"]:visible');
-  const invoices = navigation.getByRole("link", { name: "Invoices", exact: true });
+  const invoices = navigation.getByRole("link", { name: "Billing & payments", exact: true });
   assert.equal(
     await invoices.count(),
     1,
-    "Invoices must be a visible destination without expanding Records",
+    "Billing must be a visible destination without expanding Customers & sales",
   );
   const destination = new URL(await invoices.getAttribute("href"), page.url());
   assert.equal(

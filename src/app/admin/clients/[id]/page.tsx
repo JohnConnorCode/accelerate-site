@@ -4,6 +4,7 @@ import { use } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "@/components/admin/AdminLink";
 import { ArrowLeft, RefreshCw } from "lucide-react";
+import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
@@ -69,7 +70,19 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to Clients
       </Link>
-      <PageHeader title={client?.business_name || "Client"} subtitle={client?.contact_name} />
+      <PageHeader
+        title={client?.business_name || "Client"}
+        subtitle={
+          client?.contact_name
+            ? `Customer contact: ${client.contact_name}. Review delivery progress and the next commitment for this account.`
+            : "Review this client’s delivery progress, notes and outstanding commitments."
+        }
+        guidance={{
+          ...adminPageGuidance.clients!,
+          startHint:
+            "Review the account and existing follow-ups before saving notes or assigning new work.",
+        }}
+      />
       <AdminReadBody
         loading={record.isPending}
         hasData={record.data !== undefined}

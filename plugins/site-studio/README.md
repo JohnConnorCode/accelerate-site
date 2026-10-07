@@ -22,3 +22,5 @@ which restores service-only RPC execution. Verify owner website saves and tenant
 admin draft saves on each side of that change; preserve receipt and audit identity.
 The [installation upgrade instructions](../../docs/self-hosting/REVENUE-OS-SETUP.md#site-studio-write-boundary-upgrade)
 explain ordering. This implementation does not authorize or prove a live release.
+
+The admin destination is **Website & pages** under **Apps & connections**. Page drafts, the installation website editor and publication remain separate steps; the header explains where to begin and the saved result.

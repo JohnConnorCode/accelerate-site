@@ -8,6 +8,9 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Added
 
+- Owner-first admin navigation uses one business-group registry, with visible purpose descriptions and preserved destination IDs. Page guidance adds starting instructions, saved-result context and links to connected walkthroughs. Today reviews sourced sales, customer follow-up, delivery and payment work without inventing financial totals; custom views retain their arrangements.
+- Owner and daily guides now teach inquiry replies, client handoffs and invoicing through their saved results. Demo QA waits for the installed scenario runtime before reading protected API fixtures.
+
 - AI can now prepare exact Content Calendar item updates for administrator approval. The admin editor and approved-action executor share a tenant-scoped, revision-checked writer; approval does not publish content.
 
 - Shared themed fields now govern Clients, Analytics, Campaigns, Integrations and Proposals; compact custom themes retain usable targets. Setup readiness inherits readable theme colors, and contact relationship failures offer retry instead of appearing empty.

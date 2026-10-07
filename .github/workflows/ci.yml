@@ -527,6 +527,8 @@ jobs:
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
+            node scripts/qa-owner-workspace.mjs
+            node scripts/qa-command-center-daily-work.mjs
             npx tsx scripts/qa-site-studio.ts
             node scripts/qa-campaign-duplicate.mjs
             node scripts/qa-delivery-handoff.mjs
@@ -621,6 +623,8 @@ jobs:
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
             /tmp/accelerate-client-interactions/
+            /tmp/accelerate-owner-workspace/
+            /tmp/accelerate-daily-work-qa/
             /tmp/accelerate-admin-language/
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/

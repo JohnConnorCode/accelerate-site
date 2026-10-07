@@ -87,9 +87,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["start", "daily-path"],
-        title: "Your first workflow",
+        title: "Three workflows to learn the workspace",
         description:
-          "Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.",
+          "Answer an inquiry, start client work and prepare an invoice, then check the saved result and next step.",
       },
       {
         slug: ["start", "first-value"],

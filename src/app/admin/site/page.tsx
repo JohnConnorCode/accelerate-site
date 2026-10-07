@@ -157,7 +157,7 @@ function SiteStudioEditor() {
   return (
     <div className="space-y-7 pb-10">
       <PageHeader
-        title="Site Studio"
+        title="Website & pages"
         subtitle="Create private service-page drafts using a template or AI. Publish installation pages in the website editor."
       />
       {demo !== null && (

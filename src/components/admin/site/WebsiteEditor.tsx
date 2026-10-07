@@ -10,6 +10,7 @@ import { WebsiteLivePreview } from "./WebsiteLivePreview";
 import { ZodError } from "zod";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
+import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { parseWebsiteDocument, type WebsiteDocument } from "@/lib/site-studio/website-document";
@@ -230,6 +231,11 @@ export function WebsiteEditor() {
     <div className="space-y-6 pb-12">
       <PageHeader
         title="Website"
+        guidance={{
+          ...adminPageGuidance["site-studio"]!,
+          startHint:
+            "Choose a page, edit its blocks and Save draft. Open Preview before requesting publication.",
+        }}
         subtitle="Create pages, shape them with AI or manual controls, and review before publishing."
       />
       <div className="flex flex-wrap items-center gap-2">

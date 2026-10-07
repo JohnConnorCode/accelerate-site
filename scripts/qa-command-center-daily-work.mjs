@@ -33,15 +33,15 @@ try {
         .locator("section[data-nav-section]")
         .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-nav-section"))),
       [
-        "Today",
-        "Work",
-        "Records",
-        "Invoices",
-        "Conversations",
-        "Knowledge",
-        "Coworkers",
-        "Apps",
-        "Settings",
+        "Business overview",
+        "Tasks & approvals",
+        "Customers & sales",
+        "Client work",
+        "Billing & payments",
+        "Messages & marketing",
+        "AI & knowledge",
+        "Apps & connections",
+        "Workspace settings",
       ],
     );
     if (width === 390) {
@@ -52,18 +52,19 @@ try {
             .locator("a,button")
             .allTextContents()
         ).map((value) => value.trim()),
-        ["Today", "Work", "Records", "More"],
+        ["Today", "Work", "Contacts", "More"],
       );
       await page.getByRole("button", { name: "Close navigation" }).click();
       await page.waitForTimeout(350);
     }
     assert.equal(
       await page
-        .locator('[data-today-module="attention"]')
+        .locator('[data-today-module="brief"]')
         .evaluate((node) =>
           Boolean(
-            node.compareDocumentPosition(document.querySelector('[data-today-module="brief"]')) &
-            Node.DOCUMENT_POSITION_FOLLOWING,
+            node.compareDocumentPosition(
+              document.querySelector('[data-today-module="attention"]'),
+            ) & Node.DOCUMENT_POSITION_FOLLOWING,
           ),
         ),
       true,
@@ -140,12 +141,9 @@ try {
     const opportunityLink = page.locator('a[href*="/pipeline/"]').first();
     await opportunityLink.waitFor();
     if (width === 1440) {
-      const records = page.locator('section[data-nav-section="Records"]:visible');
-      const moreRecords = records.getByRole("button", { name: "More records" });
-      assert.equal(await moreRecords.getAttribute("aria-expanded"), "false");
-      await moreRecords.click();
-      await records.getByRole("link", { name: "Leads", exact: true }).waitFor();
-      await moreRecords.click();
+      const records = page.locator('section[data-nav-section="Customers & sales"]:visible');
+      await records.getByRole("link", { name: "Website inquiries", exact: true }).waitFor();
+      assert.ok((await records.innerText()).includes("Understand each relationship"));
     }
     await page.screenshot({ path: `${output}/contact-${width}.png`, fullPage: false });
     assert.equal(

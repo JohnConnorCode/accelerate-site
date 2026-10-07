@@ -101,6 +101,7 @@ async function checkTaskInspector(width) {
   try {
     await page.goto(`${base}/demo/command-center/northline-roofing/work`);
     await page.getByRole("heading", { name: "Work", exact: true }).waitFor();
+    await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
     const tasks = await page.evaluate(
       async () => (await (await fetch("/api/admin/tasks?owner=team&status=all")).json()).tasks,
     );
@@ -271,8 +272,7 @@ async function checkTaskInspector(width) {
     assert.equal(snoozed.status, "snoozed");
     await dialog.getByRole("button", { name: "Close task", exact: true }).click();
     await dialog.waitFor({ state: "hidden" });
-    if (width === 390)
-      await page.getByRole("button", { name: "Filters", exact: true }).click();
+    if (width === 390) await page.getByRole("button", { name: "Filters", exact: true }).click();
     await page.getByLabel("Ownership", { exact: true }).selectOption("team");
     await page.getByLabel("Task status", { exact: true }).selectOption("snoozed");
     await page.getByRole("button", { name: `Complete ${second.title}`, exact: true }).click();

@@ -60,7 +60,7 @@ export function PageHeader({
     guidance === false
       ? undefined
       : (guidance ?? (destination ? adminPageGuidance[destination.id] : undefined));
-  const description = subtitle ?? (isRoot ? help?.description : undefined);
+  const description = subtitle || (isRoot ? help?.description : undefined);
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [helpOpenPathname, setHelpOpenPathname] = useState(identityHref);
@@ -150,7 +150,7 @@ export function PageHeader({
                     onClick={toggleHelp}
                   >
                     <CircleHelp size={14} aria-hidden="true" />
-                    <span>Help</span>
+                    <span>How this works</span>
                     <ChevronDown
                       className="admin-help-chevron"
                       size={12}
@@ -188,6 +188,12 @@ export function PageHeader({
                               </li>
                             ))}
                           </ol>
+                          {help.savedOutcome && (
+                            <p className="admin-copy mt-3 text-sm leading-relaxed">
+                              <strong>Saved result: </strong>
+                              {help.savedOutcome}
+                            </p>
+                          )}
                           <Link
                             href={help.guideHref}
                             className="admin-help-guide"
@@ -195,6 +201,15 @@ export function PageHeader({
                           >
                             Read the guide <ArrowUpRight size={14} aria-hidden="true" />
                           </Link>
+                          {help.workflowId && (
+                            <Link
+                              href={`/docs/start/daily-path#${help.workflowId}`}
+                              className="admin-help-guide"
+                              onClick={() => closeHelp()}
+                            >
+                              Follow a worked example <ArrowUpRight size={14} aria-hidden="true" />
+                            </Link>
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -205,6 +220,12 @@ export function PageHeader({
           </div>
         )}
       </div>
+      {help?.startHint && (isRoot || guidance) && (
+        <p className="admin-copy mt-3 max-w-3xl text-sm leading-relaxed" data-page-start-hint>
+          <strong className="text-[var(--admin-ink)]">Start here: </strong>
+          {help.startHint}
+        </p>
+      )}
     </div>
   );
 }

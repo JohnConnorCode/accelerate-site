@@ -61,7 +61,8 @@ try {
       };
     });
     const heading = page.locator(".admin-page-introduction");
-    assert.equal(await heading.locator(".admin-eyebrow, .admin-copy").count(), 0);
+    assert.equal(await heading.locator("[data-page-start-hint]").count(), 1);
+    assert.equal(await page.locator("[data-business-review]").count(), 4);
     assert.equal(await heading.getByLabel("Today view", { exact: true }).count(), 1);
     if (width === 390) {
       assert(
@@ -77,15 +78,17 @@ try {
         "Default view name is clipped on mobile",
       );
     }
-    assert.equal(await page.locator("[data-today-module] article svg").count(), 0);
+    assert.equal(await page.locator("[data-business-review] h3").count(), 4);
     assert.equal(
       await page
         .locator('[data-today-module="brief"]')
         .evaluate((node) => getComputedStyle(node).backgroundImage),
       "none",
     );
-    assert.equal(await page.locator('[data-today-module="brief"] a').count(), 2);
-    assert.equal(await page.locator('[data-today-module="ai"]').count(), 0);
+    assert.ok(
+      (await page.locator('[data-today-module="brief"] a[href*="/pipeline"]').count()) >= 2,
+    );
+    assert.equal(await page.locator('[data-today-module="ai"]').count(), 1);
     assert.equal(await page.locator('[data-today-module="attention"] header svg').count(), 1);
     assert.equal(await heading.getByRole("button", { name: "Customize", exact: true }).count(), 0);
     await page.getByLabel("Today view", { exact: true }).focus();
@@ -235,20 +238,8 @@ try {
           .waitFor();
         assert.equal(await detail.getByText("Coworker not found.", { exact: true }).count(), 0);
         await detail.locator("summary").click();
-        if (width >= 1100) {
-          assert(
-            await page
-              .locator('[data-today-module="changes"]')
-              .evaluate((node) => node.getBoundingClientRect().bottom < 900),
-            "Reported alerts fall below the desktop viewport",
-          );
-          assert(
-            await page
-              .locator('[data-today-module="handling"]')
-              .evaluate((node) => node.getBoundingClientRect().top < 650),
-            "Automation is buried below the fold",
-          );
-        }
+        assert.equal(await page.locator('[data-business-review="delivery"]').count(), 1);
+        assert.equal(await page.locator('[data-today-module="handling"]').count(), 1);
       }
       if (content === "uneven") {
         assert.equal(
@@ -280,12 +271,13 @@ try {
         );
       } else {
         assert.deepEqual(flow.order, [
-          "attention",
-          "changes",
           "brief",
-          "upcoming",
+          "attention",
           "handling",
+          "changes",
+          "upcoming",
           ...(flow.order.includes("apps") ? ["apps"] : []),
+          "ai",
         ]);
       }
       results.push({ width, content, overflow });

@@ -3,6 +3,7 @@ import { use, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
+import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -228,6 +229,11 @@ function SiteDraftEditor({ id }: { id: string }) {
     <div className="space-y-7 pb-10">
       <PageHeader
         title={draft.title}
+        guidance={{
+          ...adminPageGuidance["site-studio"]!,
+          startHint:
+            "Edit and save this private draft. Use its preview to review the customer-facing layout.",
+        }}
         actions={
           <Link href="/admin/site" className="admin-button admin-button--secondary">
             All drafts
