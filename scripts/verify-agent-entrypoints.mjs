@@ -17,12 +17,14 @@ const required = [
   "src/content/docs/extend/first-change.mdx",
 ];
 const failures = [];
+const sources = new Map();
 for (const file of required) {
   if (!existsSync(file)) {
     failures.push(`${file} is missing`);
     continue;
   }
   const source = readFileSync(file, "utf8");
+  sources.set(file, source);
   if (
     !/pick up(?: work)?(?: from)?(?: the)? backlog|pick up the named card|take the next task|continue the board/i.test(
       source,
@@ -34,29 +36,38 @@ for (const file of required) {
   if (!/commit(?:ted)?|evidence submission|evidence/i.test(source))
     failures.push(`${file} does not describe the commit/evidence completion boundary`);
 }
-const agents = readFileSync("AGENTS.md", "utf8");
-if (!/agent-execution-trigger:/i.test(agents))
+const agents = sources.get("AGENTS.md");
+if (agents !== undefined && !/agent-execution-trigger:/i.test(agents))
   failures.push("AGENTS.md is missing the machine-readable trigger block");
-if (!/terminal_states: \[HANDOFF_SUBMITTED, BLOCKED_REQUIRES_OPERATOR\]/i.test(agents))
+if (
+  agents !== undefined &&
+  !/terminal_states: \[HANDOFF_SUBMITTED, BLOCKED_REQUIRES_OPERATOR\]/i.test(agents)
+)
   failures.push("AGENTS.md is missing terminal states for unattended execution");
-if (!/intent: explicit-backlog-pickup/i.test(agents) || !/take the next backlog task/i.test(agents))
+if (
+  agents !== undefined &&
+  (!/intent: explicit-backlog-pickup/i.test(agents) || !/take the next backlog task/i.test(agents))
+)
   failures.push("AGENTS.md must limit automatic pickup to explicit backlog requests");
-if (/phrases:.*finish and commit|phrases:.*follow protocol/i.test(agents))
+if (agents !== undefined && /phrases:.*finish and commit|phrases:.*follow protocol/i.test(agents))
   failures.push("AGENTS.md must not treat generic completion requests as backlog pickup");
-const claude = readFileSync("CLAUDE.md", "utf8").replace(/\s+/g, " ");
-if (!/only when the user explicitly asks for backlog work/i.test(claude))
+const claude = sources.get("CLAUDE.md")?.replace(/\s+/g, " ");
+if (claude !== undefined && !/only when the user explicitly asks for backlog work/i.test(claude))
   failures.push("CLAUDE.md must limit automatic pickup to explicit backlog requests");
 if (
+  claude !== undefined &&
   /When the user says[^.]+(?:finish and commit|follow protocol)[^.]*execution command/i.test(claude)
 )
   failures.push("CLAUDE.md must not treat generic completion requests as backlog pickup");
 for (const file of ["AGENTS.md", "CLAUDE.md", "docs/contributing/NATURAL-LANGUAGE-AGENT.md"]) {
-  const source = readFileSync(file, "utf8");
+  const source = sources.get(file);
+  if (source === undefined) continue;
   if (!/user's latest direct request always controls scope and priority/i.test(source))
     failures.push(`${file} does not preserve explicit user scope over recovered work`);
 }
 for (const file of ["AGENTS.md", "CLAUDE.md", "docs/contributing/NATURAL-LANGUAGE-AGENT.md"]) {
-  const source = readFileSync(file, "utf8");
+  const source = sources.get(file);
+  if (source === undefined) continue;
   if (!/Never ask the user to paste/i.test(source))
     failures.push(`${file} does not prohibit interactive credential requests`);
 }

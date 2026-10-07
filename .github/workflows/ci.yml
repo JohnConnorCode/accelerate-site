@@ -597,6 +597,7 @@ jobs:
             /tmp/accelerate-docs-takeover-qa/*-agent-workflow-review.png
             /tmp/accelerate-docs-takeover-qa/*-open-source-agent-start.png
             /tmp/accelerate-docs-takeover-qa/*-open-source-agent-assignment.png
+            /tmp/accelerate-docs-takeover-qa/*-open-source-clipboard-recovery.png
           if-no-files-found: ignore
           retention-days: 7
       - name: Retain first-run browser evidence

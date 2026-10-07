@@ -22,6 +22,8 @@ const valid = [
   "file:///tmp/fixture.git",
   "file://localhost/tmp/fixture.git",
   "file:///tmp/fixture%20space.git",
+  "ssh://git@git.example.test:22/team/repo.git",
+  "ssh://git@git.example.test:00022/team/repo.git",
 ];
 const invalid = [
   "local:Accelerate-agency/accelerate-site",
@@ -96,6 +98,8 @@ assert.equal(repositoryIdentity(valid[0]), repositoryIdentity(valid[1]));
 assert.equal(repositoryIdentity(valid[12]), repositoryIdentity(valid[13]));
 assert.notEqual(repositoryIdentity(valid[6]), repositoryIdentity(valid[7]));
 assert.equal(repositoryIdentity(valid[6]), repositoryIdentity(valid[10]));
+assert.equal(repositoryIdentity(valid[6]), repositoryIdentity(valid.at(-2)));
+assert.equal(repositoryIdentity(valid[6]), repositoryIdentity(valid.at(-1)));
 const blocked = readinessSummary(
   Array.from({ length: 20 }, (_, index) => ({
     id: randomUUID(),

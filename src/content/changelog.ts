@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "agent-first-setup-and-extensions",
     title: "Start and extend your workspace with a coding agent",
     description:
-      "Setup and extension guides now start with a business brief for Claude Code or Codex. The agent handles configuration, source changes, registration and checks while the owner reviews the working workflow. Examples explain how shared customer records and services reduce repeated setup and status chasing, with proposed Apps kept distinct from available features. Claude's entrypoint now keeps generic continuation requests on the current task and reserves backlog pickup for explicit requests.",
+      "Setup and extension guides now start with a business brief for Claude Code or Codex. The agent handles configuration, source changes, registration and checks while the owner reviews the working workflow. Examples explain how shared customer records and services reduce repeated setup and status chasing, with proposed Apps kept distinct from available features. Copy controls fit mobile and explain how to copy manually when clipboard access is unavailable. Claude's entrypoint keeps generic continuation requests on the current task and reserves backlog pickup for explicit requests.",
     category: "improvement",
     publishedAt: "2026-10-07",
   },
@@ -24,7 +24,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "contributor-repository-readiness",
     title: "Clearer recovery when contributor pickup cannot use a repository",
     description:
-      "Contributor pickup identifies the affected card and explains whether its repository address needs a maintainer edit or the checkout needs to use the approved clone. Unsafe addresses remain unclaimed, credentials stay hidden, and the approved branch, source commit and work history stay intact.",
+      "Contributor pickup identifies the affected card and explains whether its repository address needs a maintainer edit or the checkout needs to use the approved clone. Standard SSH addresses with explicit port 22 match their default-port aliases, while custom ports remain distinct. Unsafe addresses stay unclaimed, credentials stay hidden, and the approved branch, source commit and work history stay intact.",
     category: "fix",
     publishedAt: "2026-10-06",
   },

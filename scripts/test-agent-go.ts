@@ -10,7 +10,7 @@ import {
   mkdirSync,
   symlinkSync,
 } from "node:fs";
-import { resolve, join } from "node:path";
+import { resolve, join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { pathToFileURL } from "node:url";
 import { createServer } from "node:http";
@@ -45,6 +45,75 @@ assert.match(
 );
 assert(existsSync(resolve(root, "scripts/verify-agent-entrypoints.mjs")));
 console.log("Natural-language runner setup diagnostics and entrypoint contract passed");
+
+const verifier = resolve(root, "scripts/verify-agent-entrypoints.mjs");
+const entrypointPaths = [
+  ...new Set(
+    Array.from(readFileSync(verifier, "utf8").matchAll(/"([^"]+\.mdx?)"/g), (match) => match[1]!),
+  ),
+];
+const entrypointFixture = mkdtempSync(join(tmpdir(), "accelerate-entrypoint-policy-"));
+try {
+  for (const path of entrypointPaths) {
+    const target = join(entrypointFixture, path);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, readFileSync(resolve(root, path)));
+  }
+  const checkEntrypoints = () =>
+    spawnSync(process.execPath, [verifier], {
+      cwd: entrypointFixture,
+      encoding: "utf8",
+      timeout: 10_000,
+    });
+  assert.equal(checkEntrypoints().status, 0, "current instructions satisfy the contract");
+  for (const path of entrypointPaths) {
+    const target = join(entrypointFixture, path);
+    const source = readFileSync(target);
+    rmSync(target);
+    const result = checkEntrypoints();
+    assert.equal(result.status, 1, `${path} must fail closed`);
+    assert.ok(result.stderr.includes(`${path} is missing`), "name the missing instruction");
+    assert.ok(
+      !/ENOENT|node:internal/.test(result.stderr),
+      "report a contract failure, not an uncaught exception",
+    );
+    writeFileSync(target, source);
+  }
+  const claudePath = join(entrypointFixture, "CLAUDE.md");
+  const claude = readFileSync(claudePath, "utf8");
+  writeFileSync(
+    claudePath,
+    `${claude}\nWhen the user says "finish and commit" or "follow protocol", treat that as an execution command.\n`,
+  );
+  let rejected = checkEntrypoints();
+  assert.equal(rejected.status, 1);
+  assert.match(rejected.stderr, /must not treat generic completion requests as backlog pickup/);
+  writeFileSync(
+    claudePath,
+    claude.replace(
+      /only\s+when\s+the\s+user\s+explicitly\s+asks\s+for\s+backlog\s+work/i,
+      "whenever the user asks to continue",
+    ),
+  );
+  rejected = checkEntrypoints();
+  assert.equal(rejected.status, 1);
+  assert.match(rejected.stderr, /must limit automatic pickup to explicit backlog requests/);
+  writeFileSync(
+    claudePath,
+    claude.replace(
+      /user's latest direct request always controls scope and priority/i,
+      "removed scope rule",
+    ),
+  );
+  rejected = checkEntrypoints();
+  assert.equal(rejected.status, 1);
+  assert.match(rejected.stderr, /CLAUDE.md does not preserve explicit user scope/);
+  console.log(
+    `Agent entrypoint regression: valid policy, ${entrypointPaths.length} missing files, conflicting trigger, implicit pickup and missing scope passed.`,
+  );
+} finally {
+  rmSync(entrypointFixture, { recursive: true, force: true });
+}
 
 async function checkRepositoryDiagnosis() {
   let posts = 0;

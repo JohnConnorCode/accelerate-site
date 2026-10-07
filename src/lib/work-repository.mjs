@@ -43,6 +43,7 @@ export function repositoryIdentity(value) {
       }
       if (url.port && (Number(url.port) < 1 || Number(url.port) > 65535)) return null;
       if (url.port) url.port = String(Number(url.port));
+      if (url.protocol === "ssh:" && url.port === "22") url.port = "";
     }
     // Include non-default ports: repositories on different SSH services are distinct.
     return `${url.host.toLowerCase()}${url.pathname.replace(/\.git\/?$/, "").replace(/\/$/, "")}`;

@@ -385,6 +385,78 @@ async function main() {
             await page
               .getByRole("heading", { name: "Ask your agent to get it running.", exact: true })
               .scrollIntoViewIfNeeded();
+            const assignment = page
+              .getByText("Give Claude Code or Codex this assignment", { exact: true })
+              .locator("..")
+              .locator("..");
+            await page.waitForFunction(
+              (element) => {
+                if (!element) return false;
+                for (let owner: Element | null = element; owner; owner = owner.parentElement)
+                  if (owner.getAttribute("data-reveal-state") === "pending") return false;
+                return true;
+              },
+              await assignment.elementHandle(),
+            );
+            const copy = assignment.getByRole("button");
+            const target = await copy.boundingBox();
+            assert.ok(
+              target && target.width >= 44 && target.height >= 44,
+              "Copy needs a touch-sized target",
+            );
+            const prompt = await assignment.locator("pre code").textContent();
+            assert.ok(
+              prompt?.includes("Set up https://github.com/JohnConnorCode/accelerate-site.\n"),
+            );
+            let copiedText = "";
+            await page.exposeFunction("qaCaptureClipboard", (text: string) => {
+              copiedText = text;
+            });
+            for (const mode of ["success", "denied", "unavailable", "success"] as const) {
+              await page.evaluate((mode) => {
+                Object.defineProperty(navigator, "clipboard", {
+                  configurable: true,
+                  value:
+                    mode === "unavailable"
+                      ? undefined
+                      : {
+                          writeText: async (text: string) => {
+                            if (mode === "denied")
+                              throw new DOMException(
+                                "Controlled clipboard refusal",
+                                "NotAllowedError",
+                              );
+                            await (
+                              window as Window & {
+                                qaCaptureClipboard: (text: string) => Promise<void>;
+                              }
+                            ).qaCaptureClipboard(text);
+                          },
+                        },
+                });
+              }, mode);
+              await copy.focus();
+              await page.keyboard.press("Enter");
+              if (mode === "success") {
+                await expect(copy).toHaveText("Copied");
+                assert.equal(copiedText, prompt, "Copy preserves the exact brief and line breaks");
+                await expect(assignment.getByRole("status")).toHaveText("Copied to clipboard.");
+              } else {
+                await expect(assignment.getByRole("status")).toContainText(
+                  "Select the text above and copy it manually.",
+                );
+                await expect(copy).toHaveText("Copy");
+                await expect(assignment.locator("pre code")).toHaveText(prompt!);
+                if (mode === "denied") {
+                  await assignment.screenshot({
+                    path: `${output}/${width}-open-source-clipboard-recovery.png`,
+                    animations: "disabled",
+                  });
+                }
+              }
+              checks.push(`${width}: agent brief clipboard ${mode} has truthful keyboard feedback`);
+            }
+            await expect(copy).toHaveText("Copy");
             const setupCommands = page.locator("summary", {
               hasText: "Local setup commands for your agent",
             });
