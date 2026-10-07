@@ -1,7 +1,7 @@
 ---
 title: "Your first developer change"
 description: "Run the demo, learn where code lives, and make one small, safe extension change."
-updated: "2026-09-19"
+updated: "2026-10-06"
 ---
 
 The fastest way to get oriented in an unfamiliar codebase is a small change you can verify end to end, not a long read through the architecture docs first. This guide is that change: run the fictional demo, see where code lives, and edit the existing example module. Nothing in this first exercise adds a database table or sends anything externally.
@@ -107,6 +107,12 @@ command contract is in `AGENTS.md` and its linked developer handoff.
 Every feature change also updates the organized public guides, product changelog and Command Center descriptions in the same pull request. Keep planned capabilities clearly separate from available behavior. Report new gaps through the live board so the next contributor has a concrete task and verification criteria.
 
 **Next:** [Add a module](/docs/extend/modules). If something failed, use [Troubleshooting](/docs/start/troubleshooting).
+
+## Recover a repository setup refusal
+
+If pickup names an invalid repository address, read that card with `npm run agent:show -- --card <key>` and ask its maintainer to correct the address through a versioned edit. The card needs a credential-free HTTPS or SSH Git address, or an absolute file URL for a controlled local repository. Keep its approved branch and exact commit intact, because those identify the source you are authorized to change.
+
+The runner reports the affected card and stops before claiming work. Credentials belong in Git's secure authentication setup; remove passwords, tokens, query strings and fragments from the address. A checkout mismatch means you need the approved clone. Follow the named recovery instead of reconfiguring board access or bypassing the worktree check.
 
 ## Keep agent work within machine capacity
 
