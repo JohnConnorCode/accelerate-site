@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "dialog-decision-polish",
     title: "Make the confirmation choice clear",
     description:
-      "Delete, discard and archive confirmations use the shared danger appearance while the safer cancel choice receives initial keyboard focus. Keep editing returns to an unsaved card draft, and the action row wraps on small screens. Dialogs and backdrops open and close immediately under reduced motion, including nested confirmations, while normal motion keeps the existing soft transitions.",
+      "Delete, discard and archive confirmations use the shared danger appearance while the safer cancel choice receives initial keyboard focus. Keep editing returns to an unsaved card draft, and the action row wraps on small screens. Dialogs and backdrops open and close immediately under reduced motion, including nested confirmations, while normal motion keeps the existing soft transitions. Closing preserves focus already moved to another page control.",
     category: "improvement",
     publishedAt: "2026-10-07",
   },

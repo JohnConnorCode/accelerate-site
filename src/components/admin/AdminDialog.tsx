@@ -127,11 +127,20 @@ export function AdminDialog({
                   }
                 }}
                 onCloseAutoFocus={(event) => {
+                  event.preventDefault();
+                  // Navigation or the user may already have focused another surface.
+                  const active = document.activeElement;
+                  if (
+                    active instanceof HTMLElement &&
+                    active !== document.body &&
+                    active !== document.documentElement &&
+                    (!(event.target instanceof HTMLElement) || !event.target.contains(active))
+                  )
+                    return;
                   // This shared controlled dialog has no Radix Trigger. Restore the
                   // actual opener, including the previous dialog in a review stack.
                   const opener = returnFocus.current.find((element) => element.isConnected);
                   if (opener) {
-                    event.preventDefault();
                     opener.focus({ preventScroll: true });
                   }
                 }}

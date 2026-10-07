@@ -123,15 +123,22 @@ try {
     await confirmation.waitFor();
     const keepEditing = confirmation.getByRole("button", { name: "Keep editing", exact: true });
     const discard = confirmation.getByRole("button", { name: "Discard edits", exact: true });
-    for (const control of [keepEditing, discard]) {
-      const bounds = await control.boundingBox();
-      assert.ok(bounds.height >= 44 && bounds.width >= 44);
-    }
     await page.waitForFunction(() => {
       const dialogs = document.querySelectorAll('[role="dialog"]');
       const current = dialogs[dialogs.length - 1];
-      return current && getComputedStyle(current).opacity === "1";
+      return (
+        current &&
+        getComputedStyle(current).opacity === "1" &&
+        getComputedStyle(current).transform === "none"
+      );
     });
+    for (const control of [keepEditing, discard]) {
+      const bounds = await control.boundingBox();
+      assert.ok(
+        bounds.height >= 44 && bounds.width >= 44,
+        `Touch target: ${bounds.width} × ${bounds.height}`,
+      );
+    }
     const confirmationBounds = await confirmation.boundingBox();
     assert.ok(confirmationBounds.x >= 0 && confirmationBounds.x + confirmationBounds.width <= 391);
     assert.ok(confirmationBounds.y >= 0 && confirmationBounds.y + confirmationBounds.height <= 845);

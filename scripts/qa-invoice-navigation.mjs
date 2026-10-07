@@ -228,6 +228,8 @@ try {
     const dialog = await search(page, "create invoice");
     await dialog.getByPlaceholder("Search people, pages, or run a command…").press("Enter");
     await page.getByRole("heading", { name: "Connect your Stripe account", exact: true }).waitFor();
+    await dialog.waitFor({ state: "hidden" });
+    await settle(page);
     assert.equal(
       await page.getByRole("button", { name: "Prepare invoice", exact: true }).count(),
       0,

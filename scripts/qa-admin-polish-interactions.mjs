@@ -336,6 +336,23 @@ try {
     "Focus returns to card opener",
   );
   results.push("Card close/discard/reopen restores saved content and focus");
+  await edit.click();
+  await dialog.waitFor();
+  const handoff = await dialog.evaluate(async (node) => {
+    document.activeElement.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    await new Promise(requestAnimationFrame);
+    const next = document.querySelector(".admin-help-trigger");
+    next.focus({ preventScroll: true });
+    return { exiting: node.isConnected, focused: next === document.activeElement };
+  });
+  assert.ok(handoff.exiting && handoff.focused, "Focus moves while the panel exits");
+  await page.waitForFunction(() => !document.querySelector('[data-admin-overlay="dialog"]'));
+  assert.ok(
+    await page.locator(".admin-help-trigger").evaluate((node) => node === document.activeElement),
+  );
+  results.push("Closing a dialog preserves focus already moved to another page control");
   const clearFilters = page.getByRole("button", { name: "Clear filters", exact: true });
   if (await clearFilters.count()) await clearFilters.click();
   const featureColumns = page.locator(".kanban-scroller > section");
