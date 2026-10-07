@@ -102,12 +102,18 @@ function runDispatch(profile: Profile | null) {
       /Card .*: (invalid repository address|this checkout's origin)|invalid_repository_url/.test(
         message,
       );
+    const sourceProblem =
+      /Card [a-zA-Z0-9_-]+: (ticket needs an approved repository|cannot fetch approved branch|approved (commit|branch)|(?:retained worktree|existing ticket branch) does not contain approved commit)/.test(
+        message,
+      );
     fail(
       message,
       noReady ? "NO_READY_WORK" : "PREFLIGHT_BLOCKED",
       repositoryProblem
         ? "Read the named card with agent:show. Use its approved clone, or have the maintainer repair the repository address with a revision-checked edit while retaining its approved branch and exact base. No work was claimed."
-        : setupInstructions(),
+        : sourceProblem
+          ? "Read the named card with agent:show and follow the approved-source recovery in the error. Preserve its existing remote and retained work; have the maintainer reconcile unpublished or mismatched source through a revision-checked edit. No work was claimed."
+          : setupInstructions(),
     );
   }
   try {
