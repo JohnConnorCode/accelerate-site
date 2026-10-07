@@ -588,7 +588,9 @@ async function main() {
           await page.locator("main h1").scrollIntoViewIfNeeded();
         }
         if (route === "/command-center") {
-          await page.evaluate(() => document.fonts.ready);
+          await page.evaluate(async () => {
+            await window.document.fonts.ready;
+          });
           const reference = page
             .locator("summary")
             .filter({ hasText: "Browse and search the complete capability reference" });
