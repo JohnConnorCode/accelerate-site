@@ -1,5 +1,6 @@
 /** Bounded diagnosis; lifecycle readiness itself comes from the canonical service. */
 export function readinessSummary(cards, now = Date.now()) {
+  /** @type {Record<string, number>} */
   const reasons = {};
   const repositoryProblems = [];
   let active = 0,
