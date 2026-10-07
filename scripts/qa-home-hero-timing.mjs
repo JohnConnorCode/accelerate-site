@@ -366,6 +366,11 @@ for (const [label, viewport, colorScheme] of [
           playState: entrance?.playState,
           currentTime: entrance?.currentTime,
           endTime: entrance?.effect.getComputedTiming().endTime,
+          startTime: entrance?.startTime,
+          timelineTime: document.timeline.currentTime,
+          eventTime: event.timeStamp,
+          deliveredAt: performance.now(),
+          elapsedTime: event.elapsedTime,
           action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
         };
         document.removeEventListener("animationstart", capture);
