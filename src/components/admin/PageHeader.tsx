@@ -75,13 +75,8 @@ export function PageHeader({
   }
 
   const closeHelp = useCallback((restoreFocus = false) => {
+    if (restoreFocus) triggerRef.current?.focus({ preventScroll: true });
     setHelpOpen(false);
-    if (restoreFocus)
-      window.requestAnimationFrame(() => {
-        if (triggerRef.current?.getAttribute("aria-expanded") === "false") {
-          triggerRef.current.focus({ preventScroll: true });
-        }
-      });
   }, []);
 
   const toggleHelp = () => {
