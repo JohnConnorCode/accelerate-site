@@ -309,13 +309,19 @@ try {
     sql(
       `CREATE FUNCTION public.test_trigger() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END $$;`,
     );
+    sql(`CREATE SCHEMA privilege_probe;
+      GRANT USAGE ON SCHEMA privilege_probe TO anon, authenticated;
+      CREATE TABLE privilege_probe.anon_reference(id uuid);
+      ALTER TABLE privilege_probe.anon_reference OWNER TO anon;
+      CREATE TABLE privilege_probe.authenticated_reference(id uuid);
+      ALTER TABLE privilege_probe.authenticated_reference OWNER TO authenticated;`);
     for (const role of ["anon", "authenticated"]) {
       denied(role, a, owner, "TRUNCATE learning_proposals", `${role} TRUNCATE denied`);
       denied(
         role,
         a,
         owner,
-        "CREATE TEMP TABLE forbidden_reference(id uuid REFERENCES learning_proposals(id))",
+        `ALTER TABLE privilege_probe.${role}_reference ADD CONSTRAINT forbidden_reference FOREIGN KEY(id) REFERENCES public.learning_proposals(id)`,
         `${role} REFERENCES denied`,
       );
       denied(
