@@ -426,12 +426,13 @@ async function main() {
               Object.defineProperty(navigator, "clipboard", {
                 configurable: true,
                 value: {
-                  writeText: (text: string) =>
-                    (
+                  writeText(text: string) {
+                    return (
                       window as typeof window & {
                         qaCaptureClipboard: (text: string) => Promise<void>;
                       }
-                    ).qaCaptureClipboard(text),
+                    ).qaCaptureClipboard(text);
+                  },
                 },
               });
             });
@@ -465,7 +466,7 @@ async function main() {
                     mode === "unavailable"
                       ? undefined
                       : {
-                          writeText: async (text: string) => {
+                          async writeText(text: string) {
                             if (mode === "denied")
                               throw new DOMException(
                                 "Controlled clipboard refusal",
