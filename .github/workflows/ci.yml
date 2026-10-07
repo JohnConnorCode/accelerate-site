@@ -598,6 +598,7 @@ jobs:
           name: owner-workspace-browser-evidence
           path: |
             /tmp/accelerate-owner-workspace/
+            /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-daily-work-qa/
             /tmp/accelerate-today-workspace/
             /tmp/accelerate-docs-takeover-qa/

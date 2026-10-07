@@ -257,6 +257,14 @@ try {
         .first()
         .evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
       await stable(page);
+      assert.equal(
+        await page
+          .getByText("Recorded task results", { exact: true })
+          .first()
+          .evaluate((element) => getComputedStyle(element.closest(".admin-surface")).transform),
+        "none",
+        "The settled result surface must release its temporary entrance transform",
+      );
       writeFileSync(
         `${output}/onboarding-result-${width}.json`,
         JSON.stringify(

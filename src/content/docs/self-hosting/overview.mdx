@@ -1,7 +1,7 @@
 ---
 title: "Self-hosting quickstart"
 description: "Explore the real interface with zero credentials, then connect a workspace you control."
-updated: "2026-09-27"
+updated: "2026-10-06"
 ---
 
 You can run the real Command Center interface before you've connected a single database or provider, which is the fastest way to decide whether this is worth setting up for real. A connected installation, when you're ready for one, adds your own workspace, authentication, and provider configuration on top of that same interface.
@@ -25,7 +25,7 @@ The full repository defaults to a neutral Command Center homepage. You receive t
 
 Before a database is connected, **Open your workspace** shows a setup screen with links to the installation guide and fictional demo. Visiting `/admin/login` directly shows the same next steps. First-party analytics stays inactive on an unconfigured fork, so exploring the site does not require a database connection.
 
-After connecting your workspace, open Site Studio and choose **Edit installation website**. Update identity, theme, pages and navigation, connect published forms, then preview, save and publish. Website tools includes the setup sequence. Form responses use the existing review workflow, and private previews cannot submit. ChatGPT editing requires the owner-approved connection described in the [Site Studio guide](/docs/plugins/site-studio).
+After connecting your workspace, open **Apps & connections → Website & pages** and choose **Edit installation website**. Update identity, theme, pages and navigation, connect published forms, then preview, save and publish. Website tools includes the setup sequence. Form responses use the existing review workflow, and private previews cannot submit. ChatGPT editing requires the owner-approved connection described in the [Site Studio guide](/docs/plugins/site-studio).
 
 An optional reduced export is available with `node scripts/export-neutral-starter.mjs --output /absolute/new/workspace`. It physically omits protected media and replaces business-owned content. It is not required to fork the complete product. Follow `docs/self-hosting/NEUTRAL-DISTRIBUTION.md` for both profiles, asset rights, hosting configuration and verification steps. Provider connections remain yours to configure.
 

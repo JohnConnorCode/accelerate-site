@@ -1,6 +1,6 @@
 # Site Studio
 
-Site Studio ships enabled once the installation migrations have been applied; turn it off in Plugins to hide it. Open Site Studio → Edit installation website as the installation owner to create, clone and edit pages, review AI suggestions, preview responsive widths, and save and publish versioned website revisions. The [operator guide](/docs/plugins/site-studio) includes a bookkeeping-page example, model costs, permissions, retry, rollback and portable import/export.
+Site Studio ships enabled once the installation migrations have been applied; turn it off in Plugins to hide it. Open **Apps & connections → Website & pages → Edit installation website** as the installation owner to create, clone and edit pages, review AI suggestions, preview responsive widths, and save and publish versioned website revisions. The [operator guide](/docs/plugins/site-studio) includes a bookkeeping-page example, model costs, permissions, retry, rollback and portable import/export.
 
 DeepSeek V4.1 Flash is the default model. The picker refreshes the compatible OpenRouter catalogue and supports search, provider/cost filters and price/newest sorting. Current recommendations span free Nex, Mercury, DeepSeek, GPT-5.6 Luna, Gemini 3.8 Flash, Claude Sonnet 5, Opus 5, Fable 5.1 and GPT-6 Astra. A dated bundled snapshot supports offline/demo browsing; models are never silently replaced and price increases require review. Real calls use OpenRouter, the existing model registry and budget receipts, with selected-model price ceilings and no automatic fallback. Template creation and manual edits make no model request. AI prepares a reviewable candidate with text comparison and responsive preview before applying. Pending requests can be canceled; late replies and suggestions prepared before newer edits cannot replace those edits. Provider charges may still apply after cancellation. Adopting a suggestion only changes local edits. Saving and publication remain explicit canonical commands.
 
@@ -22,5 +22,3 @@ which restores service-only RPC execution. Verify owner website saves and tenant
 admin draft saves on each side of that change; preserve receipt and audit identity.
 The [installation upgrade instructions](../../docs/self-hosting/REVENUE-OS-SETUP.md#site-studio-write-boundary-upgrade)
 explain ordering. This implementation does not authorize or prove a live release.
-
-The admin destination is **Website & pages** under **Apps & connections**. Page drafts, the installation website editor and publication remain separate steps; the header explains where to begin and the saved result.

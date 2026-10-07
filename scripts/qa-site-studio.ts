@@ -588,11 +588,22 @@ async function main() {
           await page.locator("main h1").scrollIntoViewIfNeeded();
         }
         if (route === "/command-center") {
-          await page
-            .getByText("Browse and search the complete capability reference", { exact: true })
-            .click();
-          await page.getByLabel("Find a capability", { exact: true }).fill("Website pages");
+          await page.evaluate(() => document.fonts.ready);
+          const reference = page
+            .locator("summary")
+            .filter({ hasText: "Browse and search the complete capability reference" });
+          await reference.focus();
+          await page.keyboard.press("Enter");
+          const search = page.getByLabel("Find a capability", { exact: true });
+          await search.waitFor({ state: "visible" });
+          assert.equal(await reference.locator("..").getAttribute("open"), "");
+          await search.fill("Website pages");
           await page.getByText("Website pages", { exact: true }).click();
+          await reference.click();
+          await search.waitFor({ state: "hidden" });
+          await reference.click();
+          await search.waitFor({ state: "visible" });
+          assert.equal(await search.inputValue(), "Website pages");
         }
         assert.ok((await page.locator("main").innerText()).includes(expected), route);
         assert.ok(

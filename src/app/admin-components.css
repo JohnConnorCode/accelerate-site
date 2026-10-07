@@ -922,7 +922,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -933,7 +933,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    /* Release the entrance transform so scrolled, blurred surfaces paint normally. */
+    transform: none;
   }
 }
 

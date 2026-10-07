@@ -402,7 +402,7 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["sources", "leads"],
-        title: "Review leads and chat handoffs",
+        title: "Review website inquiries and chat handoffs",
         description:
           "Qualify a new inquiry, check whether it's someone you already know, and record what's next.",
       },
