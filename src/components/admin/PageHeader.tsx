@@ -119,7 +119,7 @@ export function PageHeader({
     }
     function onViewportChange(event: Event) {
       if (event.target instanceof Node && panelRef.current?.contains(event.target)) return;
-      closeHelp();
+      closeHelp(Boolean(panelRef.current?.contains(document.activeElement)));
     }
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("focusin", onFocusIn);

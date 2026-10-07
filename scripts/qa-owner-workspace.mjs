@@ -159,6 +159,21 @@ try {
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.activeElement?.matches(".admin-help-trigger"));
       assert.equal(await how.evaluate((element) => element === document.activeElement), true);
+      await page.setViewportSize({ width, height: 480 });
+      await how.click();
+      await guide.waitFor();
+      await panel.evaluate(async (node) => {
+        await Promise.all(node.getAnimations().map((animation) => animation.finished));
+      });
+      const shortBounds = await panel.boundingBox();
+      assert.ok(
+        shortBounds.y >= 0 && shortBounds.y + shortBounds.height <= 481,
+        "Help must remain usable on a short screen",
+      );
+      await page.screenshot({ path: `${output}/help-short-${width}.png` });
+      await page.setViewportSize({ width, height: 1000 });
+      await page.waitForFunction(() => document.activeElement?.matches(".admin-help-trigger"));
+      assert.equal(await how.getAttribute("aria-expanded"), "false");
       const walkthroughs = page
         .locator("details")
         .filter({ has: page.getByText("How do I get work done?", { exact: true }) });
