@@ -46,7 +46,16 @@ async function main() {
     ),
     "Generated tool names must be searchable",
   );
-  assert.equal(searchEntries(docs, "Your first workflow", 1)[0]?.href, "/docs/start/daily-path");
+  assert.equal(
+    searchEntries(docs, "Three workflows to learn the workspace", 1)[0]?.href,
+    "/docs/start/daily-path",
+  );
+  assert.ok(
+    searchEntries(docs, "Answer an inquiry", 5).some(
+      (entry) => entry.href === "/docs/start/daily-path",
+    ),
+    "Connected business examples must be searchable",
+  );
   assert.equal(searchEntries(docs, "zxq_nonexistent_reference", 5).length, 0);
   assert.ok(
     searchEntries(docs, "propose_send_email", 20).every((entry) =>

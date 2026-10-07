@@ -351,7 +351,7 @@ export const adminNavSections: AdminNavSection[] = [
     links: [
       {
         id: "leads",
-        label: "Leads",
+        label: "Website inquiries",
         href: "/admin/leads",
         icon: UserRound,
         description:
