@@ -485,7 +485,7 @@ export const capabilities: Capability[] = [
     promise:
       "A plain-language request is enough for a coding agent to pick up a task, prepare an isolated workspace, and carry it through verification and commit.",
     detail:
-      "The agent does not need a ticket key or a provider-specific command, and it never asks you to paste credentials. With recovery enabled, a replacement agent can resume an interrupted task from its saved state. Verification renews the active claim, and checkpoints include safe unfinished source while excluding credentials and generated output.",
+      "The agent does not need a ticket key or a provider-specific command, and it never asks you to paste credentials. If pickup cannot use the approved source, it names the blocked card and the recovery step before claiming. With recovery enabled, a replacement agent can resume an interrupted task from its saved state. Verification renews the active claim, and checkpoints include safe unfinished source while excluding credentials and generated output.",
   },
   {
     id: "audit",

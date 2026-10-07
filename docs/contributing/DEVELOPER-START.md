@@ -67,6 +67,15 @@ The board doctor makes only authenticated GET requests. It reports incompatible 
 
 Pickup checks the repository identity and exact approved base before claiming. If needed it fetches the declared branch from the existing matching `origin`; it never invents a branch, adopts a different repository or changes remote configuration. If the base exists only on the maintainer's machine, publish it first. A retained dirty or mismatched worktree needs inspection before reuse. `--no-worktree` is an explicit manual-preparation option, not automatic readiness proof.
 
+When that check stops pickup, the message names the card and separates the cause:
+
+- **Commit unavailable:** the exact approved commit is missing from this clone. If the declared branch was already fetched, ask the maintainer to publish that source or reconcile the card through a revision-checked edit.
+- **Branch unavailable:** the approved commit exists, but neither the local branch nor its remote-tracking branch is available. Fetch the declared branch and retry.
+- **Commit outside the branch history:** the commit exists but is not an ancestor of either approved branch ref. Ask the maintainer to reconcile the recorded base with the published source.
+- **Fetch failed:** check access to the existing `origin`, network connectivity and whether the maintainer published the declared branch, then retry.
+
+These refusals happen before the claim request. Keep retained source intact and use the card's approved source; do not substitute the current `main`, skip the blocked card or reset a worker checkout to force pickup.
+
 The JSON result contains `worktree`, `controlCheckout` and the complete execution packet. Change into that directory and install compatible dependencies if needed. Worktree locations are consistent regardless of which checkout ran the command. Keep the published control checkout for board commands. A ticket may intentionally use an older application base with older scripts; run `npm --prefix "$ACCELERATE_CONTROL" run agent:heartbeat -- --card <ticket-key>` (and the equivalent progress, release or complete command) from any directory to use the current protocol. The private claim session lives in the repository's common Git directory.
 
 ## Execute and hand off

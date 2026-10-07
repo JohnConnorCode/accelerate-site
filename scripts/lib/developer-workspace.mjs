@@ -38,6 +38,11 @@ export function prepareWorkspace(
   { fetchBase = false, preserveRetainedChanges = false } = {},
 ) {
   const { root, common } = repositoryContext(cwd);
+  const key = card.seed_key ?? card.id;
+  if (typeof key !== "string" || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(key))
+    throw new Error(
+      "Ticket key cannot safely name a worktree. Ask the maintainer to correct it; no work was claimed.",
+    );
   const repo = card.work_spec?.repository;
   if (
     !repo ||
@@ -46,38 +51,50 @@ export function prepareWorkspace(
     git(root, ["check-ref-format", `refs/heads/${repo.baseBranch}`], true) === null
   )
     throw new Error(
-      "Ticket needs an approved repository URL, branch and exact 40-character base commit. No work was claimed.",
+      `Card ${key}: ticket needs an approved repository URL, branch and exact 40-character base commit. No work was claimed.`,
     );
   const identity = repositoryIdentity(repo.url);
-  const key = card.seed_key ?? card.id;
-  const diagnosticKey =
-    typeof key === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(key)
-      ? key
-      : "(invalid card key)";
   // Never reflect the address: legacy cards may contain credentials or query tokens.
   if (!identity)
     throw new Error(
-      `Card ${diagnosticKey}: invalid repository address. Have the maintainer save a credential-free HTTPS, SSH or absolute file URL through a revision-checked card edit. No work was claimed.`,
+      `Card ${key}: invalid repository address. Have the maintainer save a credential-free HTTPS, SSH or absolute file URL through a revision-checked card edit. No work was claimed.`,
     );
   if (identity !== repositoryIdentity(git(root, ["remote", "get-url", "origin"], true)))
     throw new Error(
-      `Card ${diagnosticKey}: this checkout's origin does not match the ticket repository. Use the approved clone before claiming.`,
+      `Card ${key}: this checkout's origin does not match the ticket repository. Use the approved clone before claiming.`,
     );
   const localRef = `refs/heads/${repo.baseBranch}`;
   const remoteRef = `refs/remotes/origin/${repo.baseBranch}`;
   const contains = (ref) =>
     git(root, ["merge-base", "--is-ancestor", repo.baseCommit, ref], true) !== null;
   if (!contains(localRef) && !contains(remoteRef) && fetchBase) {
-    git(root, ["fetch", "--no-tags", "origin", `refs/heads/${repo.baseBranch}:${remoteRef}`]);
+    try {
+      git(root, ["fetch", "--no-tags", "origin", `refs/heads/${repo.baseBranch}:${remoteRef}`]);
+    } catch {
+      throw new Error(
+        `Card ${key}: cannot fetch approved branch "${repo.baseBranch}". Check origin access, network connectivity and branch publication, then retry. No work was claimed.`,
+      );
+    }
   }
-  if (!contains(localRef) && !contains(remoteRef))
+  if (!contains(localRef) && !contains(remoteRef)) {
+    const recovery = fetchBase
+      ? "Ask the maintainer to publish the approved source or reconcile the card through a revision-checked edit."
+      : `Fetch approved branch "${repo.baseBranch}" and retry. If the mismatch remains, ask the maintainer to reconcile the card through a revision-checked edit.`;
+    if (git(root, ["cat-file", "-e", `${repo.baseCommit}^{commit}`], true) === null)
+      throw new Error(
+        `Card ${key}: approved commit ${repo.baseCommit} is unavailable in this clone. ${recovery} No work was claimed.`,
+      );
+    if (
+      git(root, ["rev-parse", "--verify", `${localRef}^{commit}`], true) === null &&
+      git(root, ["rev-parse", "--verify", `${remoteRef}^{commit}`], true) === null
+    )
+      throw new Error(
+        `Card ${key}: approved branch "${repo.baseBranch}" is unavailable in this clone. ${recovery} No work was claimed.`,
+      );
     throw new Error(
-      "Approved base is unavailable or not an ancestor of its branch. Fetch the published branch; ask the maintainer to publish/reconcile it if missing. No work was claimed.",
+      `Card ${key}: approved commit ${repo.baseCommit} is not an ancestor of branch "${repo.baseBranch}". ${recovery} No work was claimed.`,
     );
-  if (typeof key !== "string" || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(key))
-    throw new Error(
-      "Ticket key cannot safely name a worktree. Ask the maintainer to correct it; no work was claimed.",
-    );
+  }
   const branch = `agent/${key}`;
   const entries = git(root, ["worktree", "list", "--porcelain"]).split("\n\n");
   const existing = entries.find((block) =>
@@ -104,14 +121,14 @@ export function prepareWorkspace(
       );
     if (git(path, ["merge-base", "--is-ancestor", repo.baseCommit, "HEAD"], true) === null)
       throw new Error(
-        "Retained worktree does not contain the approved base. Reconcile it before claiming.",
+        `Card ${key}: retained worktree does not contain approved commit ${repo.baseCommit}. Preserve its source and have the maintainer reconcile it before claiming.`,
       );
     return { root, path, branch, baseCommit: repo.baseCommit, mode: "reuse" };
   }
   const branchExists = git(root, ["rev-parse", "--verify", `refs/heads/${branch}`], true) !== null;
   if (branchExists && !contains(`refs/heads/${branch}`))
     throw new Error(
-      "Existing ticket branch does not contain the approved base. Reconcile it before claiming.",
+      `Card ${key}: existing ticket branch does not contain approved commit ${repo.baseCommit}. Preserve its source and have the maintainer reconcile it before claiming.`,
     );
   return {
     root,
