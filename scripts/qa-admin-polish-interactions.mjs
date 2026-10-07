@@ -286,7 +286,7 @@ try {
     .first()
     .getByRole("button", { name: /^Edit / });
   await edit.click();
-  const dialog = page.locator('[data-admin-overlay="dialog"]').last();
+  const dialog = page.getByRole("dialog", { name: "Feature details", includeHidden: true });
   await dialog.waitFor();
   assert.ok(
     await dialog.evaluate((e) => e.contains(document.activeElement)),
