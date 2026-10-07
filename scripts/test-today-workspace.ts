@@ -222,3 +222,16 @@ assert.equal(
 console.log(
   "Business review: exact source identities, missing Collections, partial and unavailable data passed.",
 );
+
+const proposalWithCustomer = { ...source[1]!, entityType: "contact", entityId: "customer-one" };
+const singleSourceReview = todayBusinessReview({
+  ...reviewSnapshot,
+  attention: region([proposalWithCustomer]),
+});
+assert.equal(
+  singleSourceReview.filter((domain) => domain.items.some((item) => item.sourceId === "two"))
+    .length,
+  1,
+  "Related customer context must not duplicate a proposal across business categories",
+);
+assert.equal(singleSourceReview.find((domain) => domain.id === "sales")?.items[0]?.sourceId, "two");

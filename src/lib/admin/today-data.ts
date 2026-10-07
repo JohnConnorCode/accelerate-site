@@ -180,14 +180,26 @@ export function todayBusinessReview(snapshot: TodaySnapshot) {
       paths: ["collections", "invoicing", "subscriptions"],
     },
   ];
+  // Native record identity wins over its related customer. A proposal or an
+  // invoice case should appear once, even when both also belong to a contact.
+  const classified = snapshot.attention.data.map((item) => ({
+    item,
+    domain:
+      domains.find((candidate) => candidate.sources.includes(item.sourceType)) ??
+      domains.find(
+        (candidate) =>
+          item.entityType !== undefined && candidate.entities.includes(item.entityType),
+      ) ??
+      domains.find((candidate) =>
+        candidate.paths.some((path) =>
+          (item.href.split("?")[0] ?? "").startsWith(`/admin/${path}`),
+        ),
+      ),
+  }));
   return domains.map((domain) => {
-    const items: TodayFact[] = snapshot.attention.data
-      .filter(
-        (item) =>
-          domain.sources.includes(item.sourceType) ||
-          (item.entityType !== undefined && domain.entities.includes(item.entityType)) ||
-          domain.paths.some((path) => (item.href.split("?")[0] ?? "").startsWith(`/admin/${path}`)),
-      )
+    const items: TodayFact[] = classified
+      .filter((entry) => entry.domain === domain)
+      .map(({ item }) => item)
       .map((item) => ({
         id: `${item.sourceType}:${item.sourceId}`,
         title: item.title,
