@@ -409,9 +409,52 @@ async function main() {
               prompt?.includes("Set up https://github.com/JohnConnorCode/accelerate-site.\n"),
             );
             let copiedText = "";
-            await page.exposeFunction("qaCaptureClipboard", (text: string) => {
-              copiedText = text;
+            let pendingWrites = 0;
+            let releaseCopy: () => void = () => {};
+            let holdCopy = true;
+            const pendingCopy = new Promise<void>((resolve) => {
+              releaseCopy = resolve;
             });
+            await page.exposeFunction("qaCaptureClipboard", async (text: string) => {
+              copiedText = text;
+              if (holdCopy) {
+                pendingWrites++;
+                await pendingCopy;
+              }
+            });
+            await page.evaluate(() => {
+              Object.defineProperty(navigator, "clipboard", {
+                configurable: true,
+                value: {
+                  writeText: (text: string) =>
+                    (
+                      window as Window & { qaCaptureClipboard: (text: string) => Promise<void> }
+                    ).qaCaptureClipboard(text),
+                },
+              });
+            });
+            try {
+              await copy.focus();
+              await page.keyboard.press("Enter");
+              await expect(copy).toBeDisabled();
+              await expect(copy).toHaveText("Copying");
+              await expect.poll(() => pendingWrites).toBe(1);
+              await page.keyboard.press("Enter");
+              assert.equal(
+                pendingWrites,
+                1,
+                "An unresolved copy cannot admit a second keyboard request",
+              );
+            } finally {
+              holdCopy = false;
+              releaseCopy();
+            }
+            await expect(copy).toHaveText("Copied");
+            await expect(copy).toBeEnabled();
+            assert.equal(copiedText, prompt);
+            checks.push(
+              `${width}: pending clipboard disables repeated requests and settles truthfully`,
+            );
             for (const mode of ["success", "denied", "unavailable", "success"] as const) {
               await page.evaluate((mode) => {
                 Object.defineProperty(navigator, "clipboard", {

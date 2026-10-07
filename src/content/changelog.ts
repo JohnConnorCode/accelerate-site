@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "agent-first-setup-and-extensions",
     title: "Start and extend your workspace with a coding agent",
     description:
-      "Setup and extension guides now start with a business brief for Claude Code or Codex. The agent handles configuration, source changes, registration and checks while the owner reviews the working workflow. Examples explain how shared customer records and services reduce repeated setup and status chasing, with proposed Apps kept distinct from available features. Copy controls fit mobile and explain how to copy manually when clipboard access is unavailable. Claude's entrypoint keeps generic continuation requests on the current task and reserves backlog pickup for explicit requests.",
+      "Setup and extension guides now start with a business brief for Claude Code or Codex. The agent handles configuration, source changes, registration and checks while the owner reviews the working workflow. Examples explain how shared customer records and services reduce repeated setup and status chasing, with proposed Apps kept distinct from available features. Copy controls fit mobile and show pending requests, successful copies and manual-copy recovery. Claude's entrypoint keeps generic continuation requests on the current task and reserves backlog pickup for explicit requests.",
     category: "improvement",
     publishedAt: "2026-10-07",
   },

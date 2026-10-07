@@ -10,27 +10,30 @@ interface CodeBlockProps {
 }
 
 export function CodeBlock({ children, language, title }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false);
-  const [copyFailed, setCopyFailed] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "copying" | "copied" | "unavailable">("idle");
+  const copied = copyState === "copied";
+  const copyFailed = copyState === "unavailable";
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mounted = useRef(true);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
       if (resetTimer.current !== null) clearTimeout(resetTimer.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   const handleCopy = async () => {
     if (resetTimer.current !== null) clearTimeout(resetTimer.current);
-    setCopied(false);
-    setCopyFailed(false);
+    setCopyState("copying");
     try {
       await navigator.clipboard.writeText(children);
-      setCopied(true);
-      resetTimer.current = setTimeout(() => setCopied(false), 2000);
+      if (!mounted.current) return;
+      setCopyState("copied");
+      resetTimer.current = setTimeout(() => setCopyState("idle"), 2000);
     } catch {
-      setCopyFailed(true);
+      if (mounted.current) setCopyState("unavailable");
     }
   };
 
@@ -42,6 +45,7 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
           <button
             type="button"
             onClick={handleCopy}
+            disabled={copyState === "copying"}
             className="flex min-h-11 min-w-11 items-center justify-center gap-1 text-xs text-white-muted hover:text-white-primary transition-colors"
           >
             {copied ? (
@@ -50,7 +54,7 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
               </>
             ) : (
               <>
-                <Copy className="h-3 w-3" /> Copy
+                <Copy className="h-3 w-3" /> {copyState === "copying" ? "Copying" : "Copy"}
               </>
             )}
           </button>
@@ -67,7 +71,9 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
           ? "Copy is unavailable. Select the text above and copy it manually."
           : copied
             ? "Copied to clipboard."
-            : ""}
+            : copyState === "copying"
+              ? "Copying to clipboard."
+              : ""}
       </p>
     </div>
   );
