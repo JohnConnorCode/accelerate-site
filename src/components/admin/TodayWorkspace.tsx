@@ -44,6 +44,7 @@ import {
 } from "@/lib/admin/today-workspace";
 import {
   todayBusinessReview,
+  todaySourceName,
   type TodaySnapshot,
   type TodayFact,
   type TodayRegion,
@@ -464,9 +465,7 @@ export function TodayWorkspace() {
                         )}
                       <span className={styles.rowMeta}>
                         {kind === "attention" && (
-                          <span className={styles.badge}>
-                            {item.sourceType.replaceAll("_", " ")}
-                          </span>
+                          <span className={styles.badge}>{todaySourceName(item.sourceType)}</span>
                         )}
                         {kind !== "attention" && (
                           <span
@@ -481,7 +480,7 @@ export function TodayWorkspace() {
                                 ? "Urgent"
                                 : item.attentionKind === "work"
                                   ? "Your work"
-                                  : item.sourceType.replaceAll("_", " ")}
+                                  : todaySourceName(item.sourceType)}
                           </span>
                         )}
                         {item.dueAt && <span>{dateLabel(item.dueAt)}</span>}
@@ -539,7 +538,13 @@ export function TodayWorkspace() {
           </div>
           <p className={styles.muted}>
             Use the inspected records to choose the next business action. Updated{" "}
-            {dateLabel(snapshot.generatedAt)}.
+            {dateLabel(snapshot.generatedAt, {
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+            .
           </p>
           <div className={styles.businessReview}>
             {todayBusinessReview(snapshot).map((domain) => (
@@ -576,7 +581,13 @@ export function TodayWorkspace() {
                       </button>
                     </div>
                     <span className={styles.reviewSource}>
-                      Source: {item.sourceType.replaceAll("_", " ")} · {dateLabel(item.observedAt)}
+                      Source: {todaySourceName(item.sourceType)} ·{" "}
+                      {dateLabel(item.observedAt, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
                 ))}
@@ -1139,7 +1150,7 @@ export function TodayWorkspace() {
           {selected && (
             <>
               <div className={styles.toolbarGroup}>
-                <span className={"admin-eyebrow"}>{selected.sourceType.replaceAll("_", " ")}</span>
+                <span className={"admin-eyebrow"}>{todaySourceName(selected.sourceType)}</span>
                 <button
                   type="button"
                   className={cn("admin-icon-button", "ml-auto")}
@@ -1337,7 +1348,7 @@ export function TodayWorkspace() {
               <h3>Next step</h3>
               <p>{fact.nextStep}</p>
               <div className={styles.sourceBox}>
-                {fact.sourceType.replaceAll("_", " ")} · observed {dateLabel(fact.observedAt)}
+                {todaySourceName(fact.sourceType)} · observed {dateLabel(fact.observedAt)}
                 <br />
                 <Link href={fact.href} className={styles.textLink}>
                   Inspect source <ArrowRight size={13} />

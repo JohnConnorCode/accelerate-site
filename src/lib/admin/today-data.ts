@@ -246,3 +246,19 @@ export function todayBusinessReview(snapshot: TodaySnapshot) {
     };
   });
 }
+
+const todaySourceNames: Record<string, string> = {
+  conversation: "Customer conversation",
+  task: "Assigned task",
+  proposal: "Customer proposal",
+  calendar_event: "Scheduled meeting",
+  campaign_member: "Campaign follow-up",
+  approval: "Proposed action",
+  collection_case: "Invoice follow-up",
+  radar_opportunity: "Public opportunity",
+  operational_health: "Connection check",
+  activity: "Recorded activity",
+};
+export function todaySourceName(type: string) {
+  return todaySourceNames[type] ?? type.replaceAll("_", " ");
+}
