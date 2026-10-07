@@ -882,7 +882,7 @@ export function TodayWorkspace() {
     >
       <PageHeader
         title="Today"
-        subtitle="Understand what needs attention across customers, delivery and money, then follow the source to act."
+        subtitle="Understand what needs attention across customers, delivery and money."
         eyebrow={false}
         compact
         utilityActions={
