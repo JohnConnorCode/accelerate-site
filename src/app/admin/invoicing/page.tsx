@@ -12,6 +12,7 @@ import { ChevronDown, Plus, ReceiptText, RefreshCw, Send, Trash2 } from "lucide-
 import { InvoicePageDesigner } from "@/components/admin/InvoicePageDesigner";
 import { InvoiceIndex } from "@/components/admin/InvoiceIndex";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { DemoBusinessNotice } from "@/components/admin/DemoBusinessNotice";
@@ -217,7 +218,19 @@ export default function InvoicingPage() {
       <div className="space-y-6 pb-10">
         <PageHeader
           title="Customer invoice"
-          subtitle="Fictional customer view · available only in this demo session"
+          subtitle="Preview the saved customer invoice. This view is fictional and available only in this demo session."
+          guidance={{
+            description: "Review the customer-facing invoice presentation.",
+            startHint:
+              "Check the recipient, line items, amount and terms, then use Back to invoices to return to the invoice tools.",
+            steps: [
+              "Read the saved customer presentation and its recorded invoice status.",
+              "Return to the invoice tools to review changes or publication actions.",
+            ],
+            savedOutcome:
+              "This preview renders the saved presentation associated with the fictional invoice.",
+            guideHref: "/docs/plugins/stripe-invoicing",
+          }}
           actions={
             <AdminLink className={button} href="/admin/invoicing">
               Back to invoices
@@ -242,6 +255,15 @@ export default function InvoicingPage() {
     <div ref={pageRef} className="space-y-6 pb-10">
       <PageHeader
         title={creating ? "Create invoice" : "Invoices"}
+        guidance={
+          creating
+            ? {
+                ...adminPageGuidance["stripe-invoicing"]!,
+                startHint:
+                  "Choose the billing customer, add line items and terms, then prepare the invoice preview below.",
+              }
+            : undefined
+        }
         subtitle={
           creating
             ? "Choose a customer, add line items, and review the draft before approving it."
