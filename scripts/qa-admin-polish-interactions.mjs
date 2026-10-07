@@ -161,7 +161,6 @@ try {
   );
   results.push("Cross-column stage and order save");
   await page.evaluate(() => (window.__qaFailure = "reorder"));
-  await page.clock.install();
   await move(
     page,
     page.locator(`[data-opportunity-id="${id}"]`),
@@ -177,18 +176,17 @@ try {
   assert.match(await page.locator(".admin-toast-region").innerText(), /Stage changed/);
   const feedback = page.locator(".admin-toast").filter({ hasText: "Stage changed;" });
   await feedback.hover();
-  await page.clock.fastForward(10000);
+  await page.waitForTimeout(7100);
   assert.equal(await feedback.isVisible(), true, "Reading feedback must pause its expiry");
   const dismissFeedback = feedback.getByRole("button", { name: /^Dismiss:/ });
   const dismissBounds = await dismissFeedback.boundingBox();
   assert.ok(dismissBounds.width >= 44 && dismissBounds.height >= 44);
   await dismissFeedback.focus();
   await page.mouse.move(0, 0);
-  await page.clock.fastForward(10000);
+  await page.waitForTimeout(7100);
   assert.equal(await feedback.isVisible(), true, "Keyboard focus must keep feedback available");
   await page.screenshot({ path: `${output}/feedback-desktop.png` });
   await page.locator(".admin-help-trigger").focus();
-  await page.clock.fastForward(7001);
   await feedback.waitFor({ state: "hidden" });
   results.push("Feedback pauses for reading and focus, then resumes its remaining time");
   results.push("Partial save reconciles committed stage after order failure");
