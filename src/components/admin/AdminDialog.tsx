@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import * as Dialog from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
@@ -62,15 +62,16 @@ export function AdminDialog({
   // confirmations do not pretend to be draggable bottom sheets on phones.
   const mobileDialog = align === "center";
   const returnFocus = useRef<HTMLElement[]>([]);
-  useEffect(() => {
-    if (!open) return;
+  // Hold workspace controls until the presence owner removes the layer.
+  const holdWorkspace = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
     openDialogCount += 1;
     document.body.classList.add("admin-dialog-open");
     return () => {
       openDialogCount = Math.max(0, openDialogCount - 1);
       if (openDialogCount === 0) document.body.classList.remove("admin-dialog-open");
     };
-  }, [open]);
+  }, []);
 
   return (
     <Dialog.Root
@@ -86,6 +87,7 @@ export function AdminDialog({
             <div
               className="pointer-events-none fixed inset-0 z-[210] isolate"
               data-admin-overlay="layer"
+              ref={holdWorkspace}
             >
               <Dialog.Overlay asChild forceMount>
                 <motion.div

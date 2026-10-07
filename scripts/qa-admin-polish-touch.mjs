@@ -164,6 +164,10 @@ try {
       1,
       "Only the editor layer remains after cancellation",
     );
+    assert.ok(
+      await page.evaluate(() => document.body.classList.contains("admin-dialog-open")),
+      "The editor keeps its workspace hold after a nested confirmation closes",
+    );
     assert.equal(await title.inputValue(), `${savedTitle} phone edit`);
     assert.ok(
       await title.evaluate((node) => {
@@ -219,8 +223,58 @@ try {
     await editor.waitFor({ state: "hidden" });
     await edit.tap();
     assert.equal(await page.getByLabel("Title", { exact: true }).inputValue(), savedTitle);
-    await page.getByRole("button", { name: "Close feature details" }).tap();
+    await page.waitForFunction(() => {
+      const dialog = document.querySelector('[data-admin-overlay="dialog"]');
+      return (
+        dialog &&
+        getComputedStyle(dialog).opacity === "1" &&
+        getComputedStyle(dialog).transform === "none"
+      );
+    });
+    const closing = await editor
+      .getByRole("button", { name: "Close feature details" })
+      .evaluate(async (button) => {
+        const layer = button.closest('[data-admin-overlay="layer"]');
+        const dialog = button.closest('[data-admin-overlay="dialog"]');
+        const dock = document.querySelector(".admin-mobile-dock");
+        const frames = [];
+        button.click();
+        const deadline = performance.now() + 5000;
+        while (layer.isConnected && performance.now() < deadline) {
+          await new Promise(requestAnimationFrame);
+          if (layer.isConnected)
+            frames.push({
+              opacity: Number(getComputedStyle(dialog).opacity),
+              held: document.body.classList.contains("admin-dialog-open"),
+              dock: getComputedStyle(dock).visibility,
+            });
+        }
+        return { frames, removed: !layer.isConnected };
+      });
+    exitSamples.push({ reducedMotion, ...closing });
+    assert.ok(closing.removed, "Closing removes the final dialog layer");
+    assert.ok(
+      closing.frames.every((frame) => frame.held && frame.dock === "hidden"),
+      "Workspace stays held in every retained exit frame",
+    );
+    if (reducedMotion === "no-preference") {
+      assert.ok(
+        closing.frames.some((frame) => frame.opacity > 0 && frame.opacity < 1),
+        "Normal motion retains intermediate exit frames",
+      );
+    }
     await page.waitForFunction(() => !document.querySelector('[data-admin-overlay="dialog"]'));
+    assert.ok(!(await page.evaluate(() => document.body.classList.contains("admin-dialog-open"))));
+    assert.equal(
+      await page
+        .locator(".admin-mobile-dock")
+        .evaluate((node) => getComputedStyle(node).visibility),
+      "visible",
+    );
+    await page.screenshot({ path: `${output}/dialog-closed-phone-${reducedMotion}.png` });
+    results.push(
+      `${reducedMotion}: phone navigation stays hidden through dialog exit and returns after removal`,
+    );
     assert.ok(await edit.evaluate((node) => node === document.activeElement));
     results.push(
       `${reducedMotion}: phone confirmation retains edits on cancel, discards only on confirmation and restores focus`,
@@ -228,6 +282,7 @@ try {
     assert.deepEqual(errors, []);
     await context.close();
   }
+  await writeFile(`${output}/dialog-exit-frames.json`, JSON.stringify(exitSamples, null, 2));
   await writeFile(`${output}/touch.json`, JSON.stringify(results, null, 2));
   console.log(results);
 } finally {

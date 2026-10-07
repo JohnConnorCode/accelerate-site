@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "dialog-exit-continuity",
+    slug: "dialog-exit-continuity",
+    title: "Keep the workspace steady while dialogs close",
+    description:
+      "The phone navigation dock and embedded previews stay hidden while a dialog fades out, and sidebar controls remain paused until the last dialog leaves the screen. Closing a nested confirmation keeps the editor's hold in place. Reduced motion releases the workspace as soon as the dialog is removed.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
     id: "nested-dialog-layering",
     slug: "nested-dialog-layering",
     title: "Keep nested confirmations in focus",

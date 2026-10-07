@@ -372,14 +372,22 @@ try {
     await new Promise(requestAnimationFrame);
     const next = document.querySelector(".admin-help-trigger");
     next.focus({ preventScroll: true });
-    return { exiting: node.isConnected, focused: next === document.activeElement };
+    return {
+      exiting: node.isConnected,
+      focused: next === document.activeElement,
+      held: document.body.classList.contains("admin-dialog-open"),
+    };
   });
   assert.ok(handoff.exiting && handoff.focused, "Focus moves while the panel exits");
+  assert.ok(handoff.held, "Workspace controls remain held during the dialog exit");
   await page.waitForFunction(() => !document.querySelector('[data-admin-overlay="dialog"]'));
   assert.ok(
     await page.locator(".admin-help-trigger").evaluate((node) => node === document.activeElement),
   );
-  results.push("Closing a dialog preserves focus already moved to another page control");
+  assert.ok(!(await page.evaluate(() => document.body.classList.contains("admin-dialog-open"))));
+  results.push(
+    "Closing a dialog holds workspace controls through exit and preserves focus already moved elsewhere",
+  );
   const clearFilters = page.getByRole("button", { name: "Clear filters", exact: true });
   if (await clearFilters.count()) await clearFilters.click();
   const featureColumns = page.locator(".kanban-scroller > section");
