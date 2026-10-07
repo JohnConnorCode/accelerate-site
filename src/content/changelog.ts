@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "contributor-repository-readiness",
+    slug: "contributor-repository-readiness",
+    title: "Clearer recovery when contributor pickup cannot use a repository",
+    description:
+      "Contributor pickup identifies the affected card and explains whether its repository address needs a maintainer edit or the checkout needs to use the approved clone. Unsafe addresses remain unclaimed, credentials stay hidden, and the approved branch, source commit and work history stay intact.",
+    category: "fix",
+    publishedAt: "2026-10-06",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",
