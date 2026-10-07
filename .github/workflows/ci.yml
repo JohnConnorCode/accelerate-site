@@ -319,8 +319,9 @@ jobs:
     needs: scope
     if: ${{ !inputs.admin_design_only && !inputs.cold_start_only }}
     runs-on: ubuntu-latest
-    # Full browser coverage can take 30 minutes before evidence and cache uploads.
-    timeout-minutes: 45
+    # Full browser coverage can take 30 minutes. Leave time for browser
+    # installation, the production build and evidence uploads as well.
+    timeout-minutes: 60
     env:
       # Preserve explicit coverage for the original agency installation.
       NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
@@ -586,6 +587,17 @@ jobs:
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
+      - name: Retain permissions guide browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: permissions-guide-browser-evidence
+          path: |
+            /tmp/accelerate-docs-takeover-qa/*-_docs_self-hosting_permissions.png
+            /tmp/accelerate-docs-takeover-qa/results.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
