@@ -428,7 +428,9 @@ async function main() {
                 value: {
                   writeText: (text: string) =>
                     (
-                      window as Window & { qaCaptureClipboard: (text: string) => Promise<void> }
+                      window as typeof window & {
+                        qaCaptureClipboard: (text: string) => Promise<void>;
+                      }
                     ).qaCaptureClipboard(text),
                 },
               });
@@ -470,7 +472,7 @@ async function main() {
                                 "NotAllowedError",
                               );
                             await (
-                              window as Window & {
+                              window as typeof window & {
                                 qaCaptureClipboard: (text: string) => Promise<void>;
                               }
                             ).qaCaptureClipboard(text);
