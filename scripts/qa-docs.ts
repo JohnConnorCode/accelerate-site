@@ -494,6 +494,20 @@ async function main() {
                 await expect(copy).toHaveText("Copy");
                 await expect(assignment.locator("pre code")).toHaveText(prompt!);
                 if (mode === "denied") {
+                  await assignment.evaluate((element) => {
+                    window.scrollBy({
+                      top: element.getBoundingClientRect().bottom - (innerHeight - 160),
+                      behavior: "instant",
+                    });
+                  });
+                  await expect(assignment.getByRole("status")).toBeVisible();
+                  const recovery = await assignment.getByRole("status").boundingBox();
+                  assert.ok(
+                    recovery &&
+                      recovery.y >= 0 &&
+                      recovery.y + recovery.height <= page.viewportSize()!.height - 159,
+                    "Manual-copy evidence must stay above floating controls",
+                  );
                   await assignment.screenshot({
                     path: `${output}/${width}-open-source-clipboard-recovery.png`,
                     animations: "disabled",
