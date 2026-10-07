@@ -16,21 +16,21 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
   {
     id: "self-hosted",
     eyebrow: "Path one",
-    title: "Run it yourself.",
+    title: "Build with your coding agent.",
     scope: "Free, MIT licensed",
     description:
-      "Start with the fictional demo, then connect a Supabase project you control. The same application runs our agency workspace. You own your deployment, data and AI provider account, and can change the source around your business.",
+      "Give Claude Code or Codex the repository and describe the workflow your team needs. The agent can set up the demo, connect your authorized services and build your version on the existing customer records and business rules. You own the deployment, data and provider accounts.",
     included: [
       "The complete source, MIT licensed, no seat limits or usage tiers",
       "CRM, pipeline, inbox, campaigns, proposals, and analytics in one application",
       "AI operations with approval gates and an audit trail, using your own OpenRouter key",
       "An MCP server for supported external assistants, using the workspace's permissions and action rules",
-      "Pluggable modules a workspace turns on and off, extendable from a manifest without forking",
+      "Extension patterns an agent can use to build custom screens, reports and workflows",
       "An ordered database migration catalog and full documentation for tenancy and security",
       "A public roadmap, with acceptance criteria written out for every planned change",
     ],
-    ctaText: "Read the self-hosting quickstart",
-    ctaHref: "/docs/self-hosting",
+    ctaText: "Give your agent a starting brief",
+    ctaHref: "/docs/extend/first-change",
   },
   {
     id: "managed",
@@ -94,7 +94,7 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "What does self-hosting actually require?",
     answer:
-      "The site and fictional demo run with Node.js and no provider keys. A connected workspace also needs a Supabase project you control and the documented setup. The README's Deploy with Vercel button starts the neutral site and demo first; follow the self-hosting guide to add sign-in and persisted records.",
+      "A coding agent can install and run the site and fictional demo without provider keys. For a connected workspace, you supply accounts and authorized access to a Supabase project and any required providers. The agent follows the installation guide, configures the source and verifies sign-in and saved records. You retain ownership of the accounts and review the result before using real customer data.",
   },
   {
     question: "Can I point Claude or ChatGPT at my own workspace?",
@@ -104,7 +104,7 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "Can I add my own features without forking?",
     answer:
-      "Yes. A module registers from a JSON manifest that declares its navigation, routes, and AI tools, and the build validates it. Your module inherits the approval queue, the audit ledger, and per-workspace enable and disable without any change to core. The contributing guide covers modules, integration adapters, and AI tools.",
+      "Yes. Describe the workflow to Claude Code or Codex, and the agent can implement its screens, records, connections and tools using the extension contracts. It registers a module for workspace enablement and reuses shared services for access, approvals and recorded results. For example, a client review queue could keep revisions and decisions beside the existing customer record. That example needs to be built and verified for your process.",
   },
   {
     question: "Can I self-host it now and bring you in later?",
@@ -119,7 +119,7 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "Why not just build this myself?",
     answer:
-      "You can. Contacts, pipeline, inbox, proposals, campaigns, and an AI layer with approval gates and an audit trail take real time to get right, and most of it looks the same no matter what business runs on it. This skips that part. Whatever makes your business different is what's worth spending that time on instead.",
+      "Start with customer records, pipeline, inbox, proposals and the services that govern AI actions already implemented. Your coding agent can reuse those foundations while building the part specific to your business. A new review screen can link to an existing customer instead of creating another customer database, so the team avoids maintaining duplicate records and the agent has less shared infrastructure to rebuild.",
   },
   {
     question: "How is this different from your other services?",
@@ -129,6 +129,6 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "Do I need to be a developer to use this?",
     answer:
-      "To self-host it, yes, someone on your team needs to be comfortable with a terminal and a database. The managed path exists for teams without that person.",
+      "You can use Claude Code or Codex to handle repository setup, configuration and extension development. Your job is to describe the business rules, provide authorized account access and review what works. The agent supplies the source changes and check results for technical review. A connected production installation still needs verified permissions, backups and recovery; our managed service can take responsibility for that work with you.",
   },
 ];

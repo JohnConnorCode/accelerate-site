@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "agent-first-setup-and-extensions",
+    slug: "agent-first-setup-and-extensions",
+    title: "Start and extend your workspace with a coding agent",
+    description:
+      "Setup and extension guides now start with a business brief for Claude Code or Codex. The agent handles configuration, source changes, registration and checks while the owner reviews the working workflow. Examples explain how shared customer records and services reduce repeated setup and status chasing, with proposed Apps kept distinct from available features.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
     id: "contributor-approved-source-recovery",
     slug: "contributor-approved-source-recovery",
     title: "Clearer recovery when contributor pickup cannot use its approved source",

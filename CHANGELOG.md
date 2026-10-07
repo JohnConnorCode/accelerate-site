@@ -3,6 +3,7 @@
 ## 2026-10-07
 
 - Integrate contributor repository validation and approved-source recovery. Preserve the matching recovery in the natural-language runner's next step instead of suggesting credential setup for missing or mismatched source.
+- Make setup and extension entry points agent-first. Owners give Claude Code or Codex a business brief and review the working result; agents handle configuration, implementation, registration and verification. Guides explain the work saved by shared records and services, distinguish proposed Apps from bundled features, and remove claims that registration automatically implements approvals or audit behavior.
 
 Notable changes to this repository — the codebase, tooling, and open-source infrastructure. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 

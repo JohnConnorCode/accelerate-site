@@ -1,14 +1,26 @@
 ---
-title: "Your first developer change"
-description: "Run the demo, learn where code lives, and make one small, safe extension change."
+title: "Your first agent-built change"
+description: "Describe one business workflow, have a coding agent build it, and review the working result."
 updated: "2026-10-07"
 ---
 
-The fastest way to get oriented in an unfamiliar codebase is a small change you can verify end to end, not a long read through the architecture docs first. This guide is that change: run the fictional demo, see where code lives, and edit the existing example module. Nothing in this first exercise adds a database table or sends anything externally.
+When your team keeps chasing the latest client revision through messages and spreadsheets, a dedicated review queue can put the work and its decision together. A coding agent can build that queue on the existing customer records and access rules, which saves rebuilding the shared foundation for every new workflow.
+
+You describe the business process and review the result. The agent handles repository setup, source changes, extension registration and verification. Start with one useful workflow so you can judge whether the screen actually removes work from your team's day.
+
+## Give an agent the first assignment
+
+Choose a repetitive task and describe who performs it, what information they need and what should happen when they finish. For example, a proposed client review queue could show the latest revision, its reviewer and the outstanding decision together, reducing repeated status checks across separate threads.
+
+Give your coding agent this starting instruction, then add your business rules:
+
+> Set up https://github.com/JohnConnorCode/accelerate-site. Read `docs/NORTHSTAR.md` and then `AGENTS.md`. Preserve existing unfinished work. Run the fictional demo, then build one client review workflow from my brief. Reuse the existing customer identity, workspace access and shared domain services. Implement the required interface, records and extension registration. Use fictional data to demonstrate the normal path, a stale revision and access from the wrong workspace. Run the required checks and show me the working screen on desktop and mobile, the exact tested source changes and any unfinished behavior. Keep publication as a separate handoff.
+
+For a shared Feature Board assignment, the agent follows its live execution packet, which records the approved source, scope and required evidence. For a local experiment, it starts from published main and reports the experiment as such. [Build Apps with a coding agent](/docs/extend/ai-authoring) provides a fuller business brief.
 
 ## Start the app
 
-You need Git, Node.js 22.16 or later, npm and an editor. Start from the published main branch for a local experiment.
+The following commands are the agent's setup reference. It needs Git, Node.js 22.16 or later and npm, and starts from the published main branch for a local experiment.
 
 ```bash
 node --version
@@ -29,9 +41,9 @@ npm run dev
 
 Run the remaining commands from the cloned repository, where `package.json` lives. `npm ci` installs the versions recorded in the lockfile. `npm run dev` starts the local development server; it does not publish the application.
 
-Open the URL printed by the terminal, then visit `/demo/command-center`. You should see a fictional business workspace. Follow [your first workflow](/docs/start/daily-path) to learn the behavior before changing code. Stop your own server with Control-C when finished.
+Have the agent open the URL printed by the terminal, then visit `/demo/command-center`. Explore a fictional business workspace together and follow [your first workflow](/docs/start/daily-path) to understand the existing behavior before extending it. The agent stops its own server when finished.
 
-## Find the right files
+## Where the agent implements the change
 
 | You want to change…                    | Start here                                    |
 | -------------------------------------- | --------------------------------------------- |
@@ -44,36 +56,29 @@ Open the URL printed by the terminal, then visit `/demo/command-center`. You sho
 
 Read `docs/NORTHSTAR.md` and then `AGENTS.md` before implementation. For coordinated repository work, follow the live Feature Board contract; a local experiment is not a claimed or completed board ticket.
 
-## Make one small change
+## Build on the existing extension patterns
 
-The repository includes an Inventory example. Its manifest registers a page and workspace toggle; it does not implement stock storage or automatic reordering.
+The Inventory example shows the agent how to register a page and a workspace toggle. Its source lives at `src/app/admin/example-inventory/page.tsx`, and `extensions/example-inventory.module.json` declares the page. The example ships with `defaultEnabled: false`, so an administrator chooses which test workspace enables it.
 
-1. Open `src/app/admin/example-inventory/page.tsx` in your editor.
-2. Find the heading “This page is registered by a manifest” and change it to “My first workspace extension”. Save the file.
-3. Read `extensions/example-inventory.module.json`. Its `routes` field names the page you edited. It ships with `defaultEnabled: false`; leave that setting unchanged for this exercise.
-4. In another terminal in the repository, run the checks below. These confirm registration consistency; they do not prove database permissions or a rendered page.
+For your workflow, the agent implements the business behavior and uses [the module reference](/docs/extend/modules) to register its screens and tools. It keeps business writes in the shared domain services so the interface, AI tools and integrations follow the same rules. External effects use the existing action policy, retry protection and recorded results.
+
+These registration checks are part of the agent's verification:
 
 ```bash
 npm run verify:extensions
 git diff --check
-git diff -- src/app/admin/example-inventory/page.tsx
+git diff
 ```
 
-The diff should contain only your intended text change. You do not need to regenerate module registration when only page text changes.
+The agent also runs checks for the implemented business rules, permissions and rendered interface, then submits the exact source it tested for review.
 
-## See the extension in a workspace
+## Review the workflow as its owner
 
 The public demo demonstrates selected fictional workflows. To inspect this admin extension, use a [connected local installation](/docs/self-hosting/installation) with an administrator account.
 
-Open `/admin/integrations`, enable the Inventory example for your test workspace, and visit `/admin/example-inventory`. Confirm your heading appears. Disable the module and confirm the route refuses access. This is a workspace feature check; it does not require enabling the example for other workspaces.
+Ask the agent to demonstrate the workflow with fictional records in a connected test workspace. Follow a record from intake to completion, check what the next person sees, and try an incomplete or outdated submission. For a review queue, you should be able to identify the current revision, its reviewer and the decision that still needs attention without searching another system.
 
-## Turn the example into a real feature
-
-[Add a module](/docs/extend/modules) covers a new manifest and route. A real feature also needs explicit business behavior, validation, authorization, storage if required, and meaningful tests. A manifest does not create those for you.
-
-Keep business writes in the shared domain services so the UI, AI tools, and integrations use the same rules. External effects need approval where required, idempotency, and a truthful result. Read the engineering and tenancy contracts linked from `AGENTS.md` before adding a write path.
-
-Run the affected checks and the repository's required verification before submitting application code. Use one heavy job at a time or CI; do not start parallel builds or copy dependency trees to work around resource limits.
+The agent demonstrates workspace enablement, disabling and access checks as part of its handoff. You review whether the result solves the business problem; the source diff and named check results let a technical reviewer verify how it was built.
 
 ## Keep developing through the backlog
 
@@ -126,4 +131,10 @@ The shared resource runner allows one heavy job at a time across worktrees. An o
 
 The supervisor can pause a registered producer without terminating it, preserve a paused session during recovery, and report unmanaged launch paths. It does not install hooks into every agent, reconstruct lost conversations, or provide OS-level isolation. Its guide explains configuration, recovery, and the tested limits.
 
-**Next:** [Add a module](/docs/extend/modules). If something failed, use [Troubleshooting](/docs/start/troubleshooting).
+## What to check
+
+The client review queue above is an example to commission from an agent; the Inventory starter registers a page and toggle, not stock storage or automatic reordering. Verify the implemented workflow against your brief before describing it as available.
+
+Use your own accounts for a connected installation and give the agent access through the documented setup. Keep credentials in secure configuration. Check permission tests, saved records, failure recovery and any external-action receipts before introducing real customer work. Submission, review, merge and deployment each need their own recorded result.
+
+For setup failures, use [Troubleshooting](/docs/start/troubleshooting). The module reference follows this guide for the agent implementing your extension.

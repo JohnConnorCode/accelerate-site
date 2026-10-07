@@ -13,6 +13,7 @@ const routes = [
   "/docs/start/business-owners",
   "/docs/start/agencies",
   "/docs/extend/first-change",
+  "/docs/extend/ai-authoring",
   "/docs/self-hosting/installation",
   "/docs/start/troubleshooting",
   "/docs/command-center",
@@ -108,6 +109,12 @@ async function main() {
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
           });
           if (route === "/docs/extend/first-change") {
+            await expect(page.locator("main")).toContainText("Give an agent the first assignment");
+            const brief = page.locator("[data-docs-content]").getByRole("link", {
+              name: "Build Apps with a coding agent",
+              exact: true,
+            });
+            await expect(brief).toHaveAttribute("href", "/docs/extend/ai-authoring");
             const recovery = page.getByRole("heading", {
               name: "Recover a repository setup refusal",
               exact: true,
@@ -115,6 +122,12 @@ async function main() {
             await recovery.scrollIntoViewIfNeeded();
             await page.screenshot({ path: `${output}/${viewport.width}-repository-recovery.png` });
             checks.push(`${viewport.width}: contributor repository recovery instructions render`);
+          }
+          if (route === "/docs/extend/ai-authoring") {
+            await expect(page.locator("main")).toContainText("Review what work it saves");
+            await expect(page.locator("main")).toContainText(
+              "Creative Review is a proposed extension",
+            );
           }
           if (route === "/docs/sources/leads") {
             const recovery = page.getByRole("heading", {
@@ -351,7 +364,7 @@ async function main() {
         await page.waitForURL("**/docs");
         for (const [route, label, destination] of [
           ["/command-center", "Build on the platform", "/docs/extend"],
-          ["/open-source", "Read the self-hosting docs", "/docs/self-hosting"],
+          ["/open-source", "Start with your coding agent", "/docs/extend/first-change"],
         ] as const) {
           await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
           await page.locator("main").getByRole("link", { name: label, exact: true }).click();

@@ -531,11 +531,11 @@ export const capabilities: Capability[] = [
   {
     id: "ownership",
     category: "govern",
-    title: "An open-source foundation",
+    title: "Build on an agent-first foundation",
     promise:
-      "Run and extend the MIT-licensed application with infrastructure and provider accounts you control.",
+      "Have a coding agent set up and extend the MIT-licensed workspace using accounts you control.",
     detail:
-      "Use the neutral starter and self-hosting guides for your own installation. Review the documented content exports, data ownership and support arrangements when planning a handoff.",
+      "Give Claude Code or Codex the business workflow and review its working result. The agent follows setup and extension contracts, reusing customer identity, permissions and business services so each custom screen needs less shared infrastructure. Review its exact source and checks before release, and keep account ownership and recovery responsibilities clear.",
   },
 ];
 

@@ -134,7 +134,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we build a completely different App or interface?",
     answer:
-      "Yes. The open-source platform can be extended with new record types, lifecycles, queues, integrations, AI tools, and working screens that reuse your existing customer identity, permissions, and history. Settings cover the supported configuration today, and deeper changes use code. The public customization and extension guides explain both paths.",
+      "Yes. Describe the business process to Claude Code or Codex and have the agent build its records, queues, integrations, AI tools and working screens. It can reuse existing customer identity, permissions and history, so the team avoids maintaining another set of customer records. The setup and extension guides give the agent its implementation contracts and give you a working result and verification evidence to review.",
   },
   {
     question: "Can AI create Apps inside Command Center?",

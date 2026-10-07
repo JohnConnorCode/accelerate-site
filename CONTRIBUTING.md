@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve Accelerate Revenue OS.
+Contributions follow an agent-first workflow. Give Claude Code or Codex a business brief or an assigned task, and have it handle setup, implementation, verification and evidence submission. The owner reviews the working behavior; technical review, integration and release keep their separate recorded responsibilities. Human contributors can use the same contracts and commands.
 
 ## Pick up work from a plain-language request
 

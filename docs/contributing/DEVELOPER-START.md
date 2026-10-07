@@ -1,5 +1,9 @@
 # Start development
 
+The normal contributor is a coding agent working from a business brief or an assigned task. The owner describes the repeated work, the records involved and the outcome to review. The agent handles setup, implementation, extension registration, checks and a source-backed handoff. Reusing the workspace's customer identity and business services reduces repeated setup when building the next workflow.
+
+Use the [App brief](../../src/content/docs/extend/ai-authoring.mdx) and [first agent-built change](../../src/content/docs/extend/first-change.mdx) for that entry path. The commands below are the agent's execution reference. Owners provide authorized accounts and required business decisions, then review the working result; technical review and release keep their recorded responsibilities.
+
 Read [the north star](../NORTHSTAR.md), then [AGENTS.md](../../AGENTS.md). The live Feature Board owns work, dependencies and acceptance. Repository templates and dated reports help with orientation; they do not authorize a claim or replace newer live instructions.
 
 ## Start with the right checkout

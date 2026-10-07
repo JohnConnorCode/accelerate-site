@@ -1,10 +1,12 @@
 ---
 title: "Add a module"
 description: "Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed."
-updated: "2026-09-19"
+updated: "2026-10-07"
 ---
 
-When a business needs another area of functionality, register a module so the workspace can discover it and control its availability. Add a manifest under `extensions/` and implement the routes it declares, keeping the existing core module definitions intact.
+When your team needs a dedicated review queue or report, ask a coding agent to build it around the records already in the workspace. Reusing customer identity and access services saves repeated setup, while module registration lets an administrator choose which workspaces use the new feature.
+
+Start with [a business brief](/docs/extend/ai-authoring). The reference below is for the agent implementing your request: it writes the manifest under `extensions/`, implements the declared screens and verifies their behavior. The manifest is a description of the feature's registration, so the business operations still need their own implementation.
 
 ## Manifest
 
@@ -65,4 +67,4 @@ It cannot execute code, override a core module, ship an icon component, or add a
 
 For module-owned API routes, use `requireAdminForModule("your-module-id")` in every handler and register the directories in `MODULE_API_DIRECTORIES` (`scripts/verify-module-route-guards.mjs`) so the verifier checks that boundary. Adding a directory to the verifier alone does not enforce runtime authorization.
 
-New to the repository? Start with [your first developer change](/docs/extend/first-change) before adding a write path.
+New to the repository? Start with [your first agent-built change](/docs/extend/first-change) before adding a write path.
