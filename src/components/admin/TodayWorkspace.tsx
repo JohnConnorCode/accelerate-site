@@ -580,16 +580,18 @@ export function TodayWorkspace() {
                     </span>
                   </div>
                 ))}
-                <p
-                  className={styles.muted}
-                  role={
-                    domain.state === "unavailable" || domain.state === "partial"
-                      ? "status"
-                      : undefined
-                  }
-                >
-                  {domain.message}
-                </p>
+                {domain.message !== "From the currently inspected records." && (
+                  <p
+                    className={styles.muted}
+                    role={
+                      domain.state === "unavailable" || domain.state === "partial"
+                        ? "status"
+                        : undefined
+                    }
+                  >
+                    {domain.message}
+                  </p>
+                )}
               </article>
             ))}
           </div>

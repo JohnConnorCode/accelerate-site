@@ -78,7 +78,10 @@ export default function SubscribersPage() {
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <PageHeader title={adminPageName("subscribers")} subtitle={`${total} total`} />
+      <PageHeader
+        title={adminPageName("subscribers")}
+        subtitle={`Review subscription preferences before including people in outreach. ${total} total`}
+      />
       <AdminReadBody
         loading={loading}
         hasData={!loading || subscribers.length > 0}

@@ -78,7 +78,7 @@ export default function ClientsPage() {
     <div>
       <PageHeader
         title={adminPageName("clients")}
-        subtitle={`${activeCount} active · $${totalMRR.toLocaleString()}/mo MRR`}
+        subtitle={`Review client accounts, delivery progress and assigned follow-ups. ${activeCount} active · $${totalMRR.toLocaleString()}/mo MRR`}
       />
       <AdminReadBody
         loading={loading}

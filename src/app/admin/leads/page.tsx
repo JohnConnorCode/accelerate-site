@@ -350,7 +350,7 @@ export default function AdminLeadsPage() {
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
         title={adminPageName("leads")}
-        subtitle={`${total} total`}
+        subtitle={`Review website inquiries and decide who needs follow-up. ${total} total`}
         actions={
           <Button variant="primary" size="sm" onClick={() => setShowAddLead(true)}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />

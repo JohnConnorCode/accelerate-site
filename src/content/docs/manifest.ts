@@ -77,7 +77,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["start", "business-owners"],
         title: "For business owners",
         description:
-          "Decide whether it fits, run a small pilot, and know what to check before you rely on it.",
+          "Review the business, assign the next step and verify the result before expanding a connected workspace.",
       },
       {
         slug: ["start", "agencies"],

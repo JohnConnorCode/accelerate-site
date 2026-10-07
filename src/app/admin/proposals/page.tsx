@@ -153,7 +153,7 @@ export default function ProposalsPage() {
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
         title={adminPageName("proposals")}
-        subtitle={`$${totalMonthly.toLocaleString()}/mo · $${totalOneTime.toLocaleString()} one-time`}
+        subtitle={`Prepare customer proposals and follow their progress from draft to decision. $${totalMonthly.toLocaleString()}/mo · $${totalOneTime.toLocaleString()} one-time`}
         actions={
           <div className="flex gap-2">
             <button
