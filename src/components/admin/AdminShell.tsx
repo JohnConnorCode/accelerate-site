@@ -1158,7 +1158,11 @@ function SidebarContent({
                   )}
                 >
                   <Icon className="size-4 shrink-0" aria-hidden="true" />
-                  {!collapsed && <span className="min-w-0 flex-1 truncate">{group.label}</span>}
+                  {!collapsed && (
+                    <span className="min-w-0 flex-1 py-1 leading-[18px] text-balance">
+                      {group.label}
+                    </span>
+                  )}
                   {group.id === "today" && priorityCount > 0 && (
                     <span
                       className={cn(

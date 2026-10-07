@@ -20,6 +20,17 @@ async function stable(page) {
         .map((animation) => animation.finished.catch(() => {})),
     );
   });
+  assert.equal(
+    await page.evaluate(() => {
+      const main = document.querySelector(".admin-main");
+      return (
+        document.documentElement.scrollWidth > innerWidth + 1 ||
+        main.scrollWidth > main.clientWidth + 1
+      );
+    }),
+    false,
+    "The current workspace must fit the viewport without horizontal overflow",
+  );
 }
 async function failNext(page, path) {
   await page.evaluate((path) => {
@@ -82,15 +93,25 @@ try {
         3,
       );
       await walkthroughs.locator("summary").click();
+      await walkthroughs.locator("summary").evaluate((element) => element.blur());
       await stable(page);
       await page.screenshot({ path: `${output}/today-${width}.png` });
       if (width === 1440) {
+        assert.equal(
+          await page
+            .locator("[data-nav-section] > div > a > span.flex-1")
+            .evaluateAll((labels) =>
+              labels.every((label) => label.scrollWidth <= label.clientWidth + 1),
+            ),
+          true,
+          "Sidebar group labels must remain fully readable",
+        );
         // Screenshot annotations are capture-only DOM labels, never product UI.
         await page.evaluate(() => {
           for (const [selector, text] of [
-            ["[data-page-start-hint]", "1 · First useful action"],
-            ['[data-today-module="brief"]', "2 · Business findings and their sources"],
-            ["details summary", "3 · Connected worked examples"],
+            ["[data-page-start-hint]", "1"],
+            ['[data-today-module="brief"]', "2"],
+            ["details:has(summary)", "3"],
           ]) {
             const target = document.querySelector(selector);
             if (!target) continue;
@@ -100,13 +121,16 @@ try {
             label.textContent = text;
             Object.assign(label.style, {
               position: "fixed",
-              top: `${Math.max(0, rect.top - 24)}px`,
-              left: `${rect.left}px`,
+              top: `${rect.top + 4}px`,
+              left: `${rect.left - 29}px`,
               background: "#1f4135",
               color: "white",
-              padding: "4px 8px",
-              borderRadius: "5px",
-              font: "600 11px system-ui",
+              width: "22px",
+              height: "22px",
+              display: "grid",
+              placeItems: "center",
+              borderRadius: "50%",
+              font: "600 12px system-ui",
               zIndex: "10000",
             });
             document.body.append(label);
@@ -224,9 +248,9 @@ try {
       );
 
       // Invoice preparation, creation and sending each have separate recorded outcomes.
-      await goto("superdebate", "invoicing");
+      await goto("superdebate", "invoicing?view=create");
       await page.getByRole("button", { name: "Use sample invoice", exact: true }).click();
-      await failNext(page, "/api/admin/invoicing");
+      await failNext(page, "/api/admin/plugins/workflow");
       await page.getByRole("button", { name: "Prepare invoice", exact: true }).click();
       await page.getByRole("alert").filter({ hasText: "Controlled workflow failure" }).waitFor();
       await page.getByRole("button", { name: "Prepare invoice", exact: true }).click();
