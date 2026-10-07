@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "page-help-interaction-polish",
+    slug: "page-help-interaction-polish",
+    title: "Read page guidance without losing your place",
+    description:
+      "How this works opens a compact panel with workflow steps, saved results and clearly separated guide actions. Open and close transitions reverse when you change your mind; reduced motion skips them. Keyboard focus enters the panel, while Close help and Escape return to the page controls. Guide links keep their position on hover and provide larger touch targets. Today and Contacts starting instructions now name the specific first action.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
     id: "owner-business-workspace",
     slug: "owner-business-workspace",
     title: "Find the business question and follow it into work",

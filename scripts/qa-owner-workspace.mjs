@@ -75,13 +75,89 @@ try {
       assert.equal(await page.locator("[data-business-review]").count(), 4);
       await page.locator("[data-page-start-hint]").waitFor();
       const how = page.getByRole("button", { name: "How this works", exact: true });
+      await stable(page);
+      const panel = page.locator(".admin-help-panel");
+      assert.equal(await panel.getAttribute("inert"), "");
+      assert.equal(await how.getAttribute("aria-controls"), await panel.getAttribute("id"));
       await how.focus();
       await page.keyboard.press("Enter");
       await page
         .getByRole("dialog", { name: "How Today works", exact: true })
         .getByText(/Saved result:/)
         .waitFor();
+      assert.equal(await panel.evaluate((node) => node === document.activeElement), true);
+      await page.keyboard.press("Tab");
+      const closeHelp = panel.getByRole("button", { name: "Close help", exact: true });
+      assert.equal(await closeHelp.evaluate((node) => node === document.activeElement), true);
+      await page.keyboard.press("Shift+Tab");
+      await page.waitForFunction(() => document.activeElement?.matches(".admin-help-trigger"));
+      assert.equal(await how.getAttribute("aria-expanded"), "false");
+      await how.click();
+      const guide = panel.getByRole("link", { name: "Read the guide", exact: true });
+      await guide.waitFor();
+      await panel.evaluate(async (node) => {
+        await Promise.all(node.getAnimations().map((animation) => animation.finished));
+      });
+      const bounds = await panel.boundingBox();
+      assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= width + 1);
+      assert.ok(bounds.y + bounds.height <= 1001, "Help must fit the viewport");
+      for (const control of [guide, closeHelp]) {
+        const hitArea = await control.boundingBox();
+        assert.ok(hitArea.height >= 40 && hitArea.width >= 40, "Help controls need usable targets");
+      }
+      const beforeHover = await guide.boundingBox();
+      await guide.hover();
+      assert.deepEqual(
+        await guide.boundingBox(),
+        beforeHover,
+        "Hover must not shift the guide link",
+      );
+      await page.screenshot({ path: `${output}/help-open-${width}.png` });
+      const closing = await page.evaluate(async () => {
+        const panel = document.querySelector(".admin-help-panel");
+        document.querySelector(".admin-help-close").click();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const animations = panel.getAnimations();
+        for (const animation of animations) {
+          animation.pause();
+          animation.currentTime = animation.effect.getComputedTiming().endTime / 2;
+        }
+        return {
+          mounted: panel.isConnected,
+          inert: panel.inert,
+          duration: getComputedStyle(panel).transitionDuration,
+          opacity: Number(getComputedStyle(panel).opacity),
+        };
+      });
+      assert.equal(closing.mounted, true, "Help must remain mounted during exit");
+      assert.equal(closing.inert, true, "Closing help must stop accepting interaction immediately");
+      if (width === 390) {
+        assert.equal(closing.duration, "0s", "Reduced motion must skip the transition");
+        assert.equal(closing.opacity, 0);
+      } else {
+        assert.ok(
+          closing.opacity > 0 && closing.opacity < 1,
+          "Normal-motion help must interpolate its exit",
+        );
+        await page.screenshot({ path: `${output}/help-exit-${width}.png` });
+      }
+      // Reverse the paused intermediate frame in the same browser task.
+      await page.evaluate(() => {
+        document
+          .querySelector(".admin-help-panel")
+          .getAnimations()
+          .forEach((animation) => animation.play());
+        document.querySelector(".admin-help-trigger").click();
+      });
+      await guide.waitFor();
+      assert.equal(await panel.getAttribute("inert"), null);
+      await guide.focus();
+      await page.keyboard.press("Tab");
+      await page.waitForFunction(() => document.activeElement?.matches(".admin-help-trigger"));
+      assert.equal(await how.getAttribute("aria-expanded"), "false");
+      await how.click();
       await page.keyboard.press("Escape");
+      await page.waitForFunction(() => document.activeElement?.matches(".admin-help-trigger"));
       assert.equal(await how.evaluate((element) => element === document.activeElement), true);
       const walkthroughs = page
         .locator("details")

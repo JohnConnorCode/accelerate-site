@@ -751,6 +751,14 @@ body.admin-mobile-nav-open .admin-mobile-dock {
      getBoundingClientRect (see PageHeader.tsx), so it can never be
      trapped inside an ancestor's stacking context. */
   position: fixed;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.96);
+  pointer-events: none;
+  transition:
+    opacity var(--admin-motion-fast) var(--admin-motion-ease),
+    transform var(--admin-motion-fast) var(--admin-motion-ease),
+    visibility 0s linear var(--admin-motion-fast);
   z-index: 80;
   transform-origin: top right;
   --admin-help-top: 1rem;
@@ -769,10 +777,42 @@ body.admin-mobile-nav-open .admin-mobile-dock {
     0 20px 40px -14px color-mix(in srgb, var(--admin-ink) 34%, transparent);
   color: var(--admin-muted);
 }
+.admin-help-panel[data-open="true"] {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+.admin-help-panel:focus {
+  outline: none;
+}
+.admin-help-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.admin-help-close {
+  display: grid;
+  min-width: max(40px, var(--admin-control-height));
+  min-height: max(40px, var(--admin-control-height));
+  place-items: center;
+  border-radius: var(--admin-control-radius);
+  color: var(--admin-muted);
+  cursor: pointer;
+  transition: background-color var(--admin-motion-fast) var(--admin-motion-ease);
+}
+.admin-help-close:hover {
+  background: var(--admin-surface-subtle);
+  color: var(--admin-ink);
+}
+.admin-help-close:focus-visible,
+.admin-help-guide:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+}
 .admin-help-title {
-  padding-bottom: 0.7rem;
-  margin-bottom: 0.15rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--admin-ink) 8%, transparent);
   color: var(--admin-ink);
   font-size: 0.88rem;
   font-weight: 700;
@@ -787,7 +827,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
-  font-size: 0.82rem;
+  font-size: var(--admin-text-body);
   line-height: 1.55;
 }
 .admin-help-step {
@@ -803,21 +843,37 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   font-size: 0.66rem;
   font-weight: 750;
 }
-.admin-help-guide {
-  display: inline-flex;
-  min-height: 36px;
-  align-items: center;
-  gap: 0.35rem;
+.admin-help-links {
+  display: grid;
+  gap: 0.25rem;
   margin-top: 1rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid color-mix(in srgb, var(--admin-ink) 8%, transparent);
+  padding-top: 0.75rem;
+  box-shadow: inset 0 1px color-mix(in srgb, var(--admin-ink) 8%, transparent);
+}
+.admin-help-guide {
+  display: flex;
+  min-height: max(40px, var(--admin-control-height));
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: var(--admin-control-radius);
   color: var(--admin-accent);
-  font-size: 0.8rem;
+  font-size: var(--admin-text-body);
   font-weight: 650;
-  transition: gap var(--admin-motion-fast) var(--admin-motion-ease);
+  transition: background-color var(--admin-motion-fast) var(--admin-motion-ease);
 }
 .admin-help-guide:hover {
-  gap: 0.5rem;
+  background: var(--admin-surface-subtle);
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-help-panel,
+  .admin-help-chevron {
+    transition: none;
+  }
+  .admin-help-panel {
+    transform: none;
+  }
 }
 .admin-error-details summary {
   cursor: pointer;

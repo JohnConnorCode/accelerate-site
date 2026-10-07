@@ -315,8 +315,7 @@ const taskContext: Record<
   Pick<AdminPageGuidance, "startHint" | "savedOutcome" | "workflowId">
 > = {
   today: {
-    startHint:
-      "Review the business findings, then open a supporting record or choose a workflow below.",
+    startHint: "Open the source behind a finding before choosing the next action.",
     savedOutcome:
       "Completed work remains with its source record; refresh Today to review the latest available evidence.",
   },
@@ -328,7 +327,7 @@ const taskContext: Record<
   },
   contacts: {
     startHint:
-      "Find a customer by name or email, then use their next step to open the related work.",
+      "Search by name or email. Open history to review messages, tasks and linked opportunities.",
     savedOutcome: "The customer history keeps linked messages, opportunities and tasks together.",
     workflowId: "inquiry",
   },
