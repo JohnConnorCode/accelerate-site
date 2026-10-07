@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "contributor-approved-source-recovery",
+    slug: "contributor-approved-source-recovery",
+    title: "Clearer recovery when contributor pickup cannot use its approved source",
+    description:
+      "Contributor pickup now names the blocked card and distinguishes a missing commit, unavailable branch, commit outside the approved branch history and failed fetch. Each message gives the relevant recovery step before ownership is claimed. Existing source, repository identity checks and revision-checked assignment remain in place. This source change still requires review and release before hosted activation.",
+    category: "fix",
+    publishedAt: "2026-10-06",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

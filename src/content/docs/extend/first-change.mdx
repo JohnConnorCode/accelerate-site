@@ -1,7 +1,7 @@
 ---
 title: "Your first developer change"
 description: "Run the demo, learn where code lives, and make one small, safe extension change."
-updated: "2026-09-19"
+updated: "2026-10-06"
 ---
 
 The fastest way to get oriented in an unfamiliar codebase is a small change you can verify end to end, not a long read through the architecture docs first. This guide is that change: run the fictional demo, see where code lives, and edit the existing example module. Nothing in this first exercise adds a database table or sends anything externally.
@@ -105,6 +105,14 @@ Submission, review, merge and deployment are separate recorded steps. The full
 command contract is in `AGENTS.md` and its linked developer handoff.
 
 Every feature change also updates the organized public guides, product changelog and Command Center descriptions in the same pull request. Keep planned capabilities clearly separate from available behavior. Report new gaps through the live board so the next contributor has a concrete task and verification criteria.
+
+### Resolve an approved-source mismatch
+
+Before a coding agent takes ownership, pickup checks the card's approved repository, branch and exact commit, which identifies the source it may change. A refusal names the card so you can find the assignment without searching every open task.
+
+If the approved commit is unavailable, fetch the declared branch; when that fetch succeeds but the commit is still missing, ask the maintainer to publish the source or correct the card through its recorded revision. If the branch is unavailable, fetch that branch and retry. If the commit is outside the branch history, the maintainer needs to reconcile the approved base with the published source before work starts.
+
+A failed fetch points you to repository access, network connectivity and branch publication. Keep the existing remote and retained source intact while resolving it. The refusal leaves the task unclaimed, so retry the same assignment after correcting the cause. The [developer handoff](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/DEVELOPER-START.md#connect-to-assigned-work) explains these messages and the approved recovery steps.
 
 **Next:** [Add a module](/docs/extend/modules). If something failed, use [Troubleshooting](/docs/start/troubleshooting).
 

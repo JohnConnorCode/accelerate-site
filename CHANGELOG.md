@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Contributor pickup identifies the blocked card and separates missing approved commits, unavailable branches, ancestry mismatches and fetch failures before claiming. Recovery guidance preserves the approved source and directs card corrections through revision-checked edits.
+
 - A newly connected workspace can add a contact directly from Contacts and create a follow-up from that contact's record. The task is linked to the contact timeline and refuses cross-workspace contact IDs. The fictional demo persists newly added contacts instead of claiming success without saving them.
 
 - The local cold-start PostgreSQL check now reports a clear version requirement before migrations; self-hosting and recovery guides specify PostgreSQL 15+ for this native test.
