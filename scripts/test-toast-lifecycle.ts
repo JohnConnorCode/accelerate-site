@@ -16,11 +16,14 @@ mock.method(globalThis, "clearTimeout", (handle: unknown) => cleared.push(handle
 const ids: string[] = [];
 try {
   ids.push(toast.success("Saved", 5000));
+  const firstTimer = scheduled[0];
+  assert.ok(firstTimer, "A new timed message must schedule its expiry");
   now = 2400;
   pauseToasts();
-  assert.equal(cleared.at(-1), scheduled[0].handle);
+  assert.equal(cleared.at(-1), firstTimer.handle);
   pauseToasts();
-  ids.push(toast.error("Read this while feedback is paused", 7000));
+  const warningId = toast.error("Read this while feedback is paused", 7000);
+  ids.push(warningId);
   assert.equal(scheduled.length, 1, "New feedback must also wait while the reader is interacting");
   now = 12000;
   resumeToasts();
@@ -32,7 +35,7 @@ try {
   assert.equal(scheduled.length, 3, "Resuming twice must not create duplicate expiry timers");
   now = 12500;
   pauseToasts();
-  dismiss(ids[1]);
+  dismiss(warningId);
   now = 20000;
   resumeToasts();
   assert.equal(
