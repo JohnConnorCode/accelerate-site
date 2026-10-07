@@ -14,6 +14,7 @@ const routes = [
   "/docs/start/agencies",
   "/docs/extend/first-change",
   "/docs/self-hosting/installation",
+  "/docs/self-hosting/permissions",
   "/docs/start/troubleshooting",
   "/docs/command-center",
   "/docs/contacts/import",
@@ -106,6 +107,7 @@ async function main() {
           }
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
+            fullPage: route === "/docs/self-hosting/permissions",
           });
           if (route === "/docs/sources/leads") {
             const recovery = page.getByRole("heading", {
