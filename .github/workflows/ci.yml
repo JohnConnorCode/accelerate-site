@@ -591,6 +591,18 @@ jobs:
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
+      - name: Retain owner workspace and guide evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: owner-workspace-browser-evidence
+          path: |
+            /tmp/accelerate-owner-workspace/
+            /tmp/accelerate-daily-work-qa/
+            /tmp/accelerate-today-workspace/
+            /tmp/accelerate-docs-takeover-qa/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

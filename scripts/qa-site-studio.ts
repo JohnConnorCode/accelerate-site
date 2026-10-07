@@ -408,7 +408,7 @@ async function main() {
       });
       page.setDefaultTimeout(20_000);
       await page.goto(`${base}/demo/command-center/superdebate/site`, { timeout: 60_000 });
-      await page.getByRole("heading", { name: "Site Studio", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Website & pages", exact: true }).waitFor();
       await page
         .getByPlaceholder("Bookkeeping automation", { exact: true })
         .fill("Roof inspection");
@@ -430,7 +430,7 @@ async function main() {
       await catalogue.focus();
       await page.keyboard.press("Enter");
       await page
-        .getByRole("heading", { name: "Site Studio", exact: true })
+        .getByRole("heading", { name: "Website & pages", exact: true })
         .scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${output}/${width}-create.png`, fullPage: true });
       await page.evaluate(() => Reflect.get(window, "__siteDraftQA").holdCreate());
@@ -538,7 +538,7 @@ async function main() {
           exact: true,
         })
         .click();
-      await page.getByRole("heading", { name: "Site Studio", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Website & pages", exact: true }).waitFor();
       await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
       await page
         .getByPlaceholder("Bookkeeping automation", { exact: true })

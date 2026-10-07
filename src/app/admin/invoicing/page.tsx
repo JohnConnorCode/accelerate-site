@@ -385,26 +385,30 @@ export default function InvoicingPage() {
           </AdminSurface>
         ) : (
           <>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="admin-copy text-sm">
-                {demo
-                  ? "Demo mode · All billing actions are simulated locally."
-                  : billing.data?.testMode
-                    ? "Test mode · Stripe invoice emails are not delivered."
-                    : billing.data
-                      ? "Live mode · Approved sending requests a real customer email."
-                      : "Loading billing workspace…"}
-              </p>
-              <button
-                type="button"
-                className={button}
-                disabled={busy || billing.isFetching}
-                onClick={() => void refresh()}
-              >
-                <RefreshCw className="size-4" aria-hidden="true" />
-                Refresh history
-              </button>
-            </div>
+            {(!creating || !demo) && (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {!demo && (
+                  <p className="admin-copy text-sm">
+                    {billing.data?.testMode
+                      ? "Test mode · Stripe invoice emails are not delivered."
+                      : billing.data
+                        ? "Live mode · Approved sending requests a real customer email."
+                        : "Loading billing workspace…"}
+                  </p>
+                )}
+                {!creating && (
+                  <button
+                    type="button"
+                    className={button}
+                    disabled={busy || billing.isFetching}
+                    onClick={() => void refresh()}
+                  >
+                    <RefreshCw className="size-4" aria-hidden="true" />
+                    Refresh history
+                  </button>
+                )}
+              </div>
+            )}
             {!demo && !creating && (
               <details className="group rounded-xl border border-[var(--admin-border)] px-4 py-2">
                 <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
@@ -482,8 +486,7 @@ export default function InvoicingPage() {
               <AdminSurface padding="lg">
                 <h2 className="text-lg font-semibold">New customer invoice</h2>
                 <p className="admin-copy mt-2 text-sm">
-                  Match a CRM contact to an existing Stripe billing customer. Prepare the draft
-                  before approving any external action.
+                  Keep the CRM contact linked to the existing Stripe billing customer.
                 </p>
                 <div className="mt-5 flex items-end gap-3">
                   <label className="min-w-0 flex-1 text-sm font-medium">
@@ -803,7 +806,20 @@ export default function InvoicingPage() {
               />
             )}
             <AdminSurface padding="lg" id="invoice-operations">
-              <h2 className="text-lg font-semibold">Invoice operations</h2>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-lg font-semibold">Invoice operations</h2>
+                {creating && (
+                  <button
+                    type="button"
+                    className={button}
+                    disabled={busy || billing.isFetching}
+                    onClick={() => void refresh()}
+                  >
+                    <RefreshCw className="size-4" aria-hidden="true" />
+                    Refresh history
+                  </button>
+                )}
+              </div>
               <p className="admin-copy mt-2 text-sm">
                 Approvals, provider results, and recoverable failures stay together.
               </p>

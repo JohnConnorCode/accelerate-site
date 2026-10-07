@@ -190,7 +190,25 @@ for (const [label, viewport, colorScheme] of [
                 : target.matches(".home-hero-index > span")
                   ? `index-${[...target.parentElement.children].indexOf(target)}`
                   : null;
-      if (phase) window.__heroEntrances.push({ phase, time: performance.now() });
+      if (phase) {
+        const animation = target
+          .getAnimations()
+          .find((animation) =>
+            /^home-hero-(word|label|detail|action)-enter$/.test(animation.animationName),
+          );
+        // Animation events can be delivered in one batch on a busy renderer.
+        // Compare the browser's native start/delay clocks; retain delivery time
+        // separately. The frame tests above verify the visible reveal itself.
+        window.__heroEntrances.push({
+          phase,
+          time:
+            typeof animation?.startTime === "number"
+              ? animation.startTime + Number(animation.effect.getTiming().delay)
+              : null,
+          deliveredAt: performance.now(),
+          elapsedTime: event.elapsedTime,
+        });
+      }
     });
   });
   const page = await context.newPage();
@@ -268,7 +286,9 @@ for (const [label, viewport, colorScheme] of [
   if (!settled.wordsComplete) failures.push(`${label}: word entrance did not settle`);
   if (!settled.entriesComplete) failures.push(`${label}: hero sequence did not settle`);
   if (
-    settled.phases.some((phase) => !phase) ||
+    settled.phases.some(
+      (phase) => !phase || typeof phase.time !== "number" || phase.elapsedTime !== 0,
+    ) ||
     settled.phases.some(
       (phase, index, phases) =>
         index > 0 && phase && phases[index - 1] && phase.time - phases[index - 1].time < 30,

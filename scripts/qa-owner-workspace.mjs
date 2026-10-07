@@ -144,6 +144,23 @@ try {
         await page.getByRole("link", { name: "Business overview", exact: true }).waitFor();
         await page.getByRole("button", { name: /Expand sidebar/ }).click();
       }
+      const salesSources = page.locator('[data-business-review="sales"] a');
+      assert.ok(
+        (await salesSources.count()) > 1,
+        "Sales must offer a source record as well as its workspace",
+      );
+      const recordHref = new URL(await salesSources.last().getAttribute("href"), page.url());
+      await salesSources.last().click();
+      await page.waitForURL(
+        (url) => url.pathname === recordHref.pathname && url.search === recordHref.search,
+      );
+      await page
+        .locator(".admin-main h1")
+        .filter({ hasText: /^(?!Today$).+/ })
+        .waitFor();
+      await page.goBack();
+      await ready(page, "northline-roofing");
+      await page.locator('[data-today-module="brief"]').waitFor();
       const source = page.locator('[data-business-review] a[href*="?task="]').first();
       if (await source.count()) {
         const sourceHref = await source.getAttribute("href");
@@ -158,6 +175,7 @@ try {
         await page.locator('[data-today-module="brief"]').waitFor();
       }
       const askFinding = page.locator("[data-business-review] button").first();
+      assert.equal(await askFinding.count(), 1, "A sourced finding must offer contextual AI");
       if (await askFinding.count()) {
         await askFinding.click();
         const panel = page.getByRole("dialog", { name: "Ask AI", exact: true });
