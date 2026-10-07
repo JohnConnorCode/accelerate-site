@@ -892,6 +892,8 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
     .slice(0, 20)
     .map((item, index) => ({
       id: `task:${item.id}`,
+      entityType: item.related_type || undefined,
+      entityId: item.related_id || undefined,
       kind: index % 2 === 0 ? "task" : "follow_up",
       title: item.title,
       summary: "Linked to the latest conversation and opportunity context.",

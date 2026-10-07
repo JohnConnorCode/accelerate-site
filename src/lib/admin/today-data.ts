@@ -149,6 +149,7 @@ export function todayBusinessReview(snapshot: TodaySnapshot) {
       href: "/admin/pipeline",
       why: "Review the next sales decision while the customer still has context.",
       sources: ["proposal"],
+      entities: ["opportunity", "proposal"],
       paths: ["pipeline", "proposals", "recovery"],
     },
     {
@@ -157,6 +158,7 @@ export function todayBusinessReview(snapshot: TodaySnapshot) {
       href: "/admin/conversations",
       why: "Give the customer a useful reply and keep the next teammate current.",
       sources: ["conversation", "campaign_member"],
+      entities: ["contact", "lead", "partner", "subscriber"],
       paths: ["conversations", "contacts", "leads", "chat-leads"],
     },
     {
@@ -164,7 +166,8 @@ export function todayBusinessReview(snapshot: TodaySnapshot) {
       title: "Delivery",
       href: "/admin/work",
       why: "Check ownership and timing so the next commitment is clear.",
-      sources: ["task", "calendar_event", "client_onboarding", "meeting_commitment"],
+      sources: ["calendar_event", "client_onboarding", "meeting_commitment"],
+      entities: ["client"],
       paths: ["clients", "client-onboarding", "bookings", "meeting-commitments"],
     },
     {
@@ -173,6 +176,7 @@ export function todayBusinessReview(snapshot: TodaySnapshot) {
       href: "/admin/invoicing",
       why: "Check the invoice source before deciding how to follow up on payment.",
       sources: ["collection_case", "stripe_invoice"],
+      entities: ["invoice", "collection_case"],
       paths: ["collections", "invoicing", "subscriptions"],
     },
   ];
@@ -181,6 +185,7 @@ export function todayBusinessReview(snapshot: TodaySnapshot) {
       .filter(
         (item) =>
           domain.sources.includes(item.sourceType) ||
+          (item.entityType !== undefined && domain.entities.includes(item.entityType)) ||
           domain.paths.some((path) => (item.href.split("?")[0] ?? "").startsWith(`/admin/${path}`)),
       )
       .map((item) => ({

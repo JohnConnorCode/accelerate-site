@@ -23,7 +23,9 @@ const now = new Date("2026-09-09T12:00:00Z");
 const source = projectOperatorAttention([
   {
     id: "task:one",
-    title: "Prepare proposal",
+    title: "Confirm customer kickoff",
+    entityType: "client",
+    entityId: "client-one",
     summary: "Review the request",
     kind: "task",
     urgency: "normal",
@@ -197,6 +199,25 @@ assert.equal(
   reviewSnapshot.attention.data[0]?.sourceId,
   "one",
   "Review projection never mutates source work",
+);
+const unlinked = {
+  ...source[0]!,
+  sourceId: "unlinked-task",
+  entityType: undefined,
+  entityId: undefined,
+};
+const unlinkedReview = todayBusinessReview({ ...reviewSnapshot, attention: region([unlinked]) });
+assert.equal(
+  unlinkedReview.some((domain) => domain.items.some((item) => item.sourceId === "unlinked-task")),
+  false,
+  "Unknown task relationships stay in Needs you instead of inventing a business category",
+);
+assert.equal(
+  todayBusinessReview({
+    ...reviewSnapshot,
+    attention: region([{ ...source[0]!, entityType: "contact" }]),
+  }).find((domain) => domain.id === "customers")?.items[0]?.sourceId,
+  "one",
 );
 console.log(
   "Business review: exact source identities, missing Collections, partial and unavailable data passed.",
