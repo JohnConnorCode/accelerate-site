@@ -107,6 +107,15 @@ async function main() {
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
           });
+          if (route === "/docs/extend/first-change") {
+            const recovery = page.getByRole("heading", {
+              name: "Recover a repository setup refusal",
+              exact: true,
+            });
+            await recovery.scrollIntoViewIfNeeded();
+            await page.screenshot({ path: `${output}/${viewport.width}-repository-recovery.png` });
+            checks.push(`${viewport.width}: contributor repository recovery instructions render`);
+          }
           if (route === "/docs/sources/leads") {
             const recovery = page.getByRole("heading", {
               name: "Change a status and recover an incomplete update",

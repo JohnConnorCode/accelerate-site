@@ -382,7 +382,7 @@
     "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
     "src/lib/revenue-os/types.ts": "7c2ef713990b2180acd4c76507e708431288fd46d98fab1072cc6451a15e44bd",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
-    "src/lib/revenue-os/work-board.ts": "5d7bd5f73b74ce4ae1b09a823a185e2c88e5bee252c28e52492b1193619aa004",
+    "src/lib/revenue-os/work-board.ts": "74115a62c8415c2a27d97ab68cfa8efaba3f471f009fb26a22f01844a77311e9",
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
     "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
