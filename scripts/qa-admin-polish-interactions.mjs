@@ -297,10 +297,33 @@ try {
   const originalTitle = await title.inputValue();
   await title.fill(originalTitle + " edited");
   await page.keyboard.press("Escape");
-  await page.getByRole("dialog", { name: "Discard card edits?" }).waitFor();
-  await page.getByRole("button", { name: "Cancel", exact: true }).last().click();
+  const confirmation = page.getByRole("dialog", { name: "Discard card edits?" });
+  await confirmation.waitFor();
+  const keepEditing = confirmation.getByRole("button", { name: "Keep editing", exact: true });
+  const discardEdits = confirmation.getByRole("button", { name: "Discard edits", exact: true });
+  assert.ok(await keepEditing.evaluate((node) => node === document.activeElement));
+  assert.notEqual(
+    await keepEditing.evaluate((node) => getComputedStyle(node).backgroundColor),
+    await discardEdits.evaluate((node) => getComputedStyle(node).backgroundColor),
+    "Destructive action is visually distinct from keeping the draft",
+  );
+  await page.waitForFunction(() => {
+    const dialogs = document.querySelectorAll('[role="dialog"]');
+    const current = dialogs[dialogs.length - 1];
+    return current && getComputedStyle(current).opacity === "1";
+  });
+  await page.screenshot({ path: `${output}/confirmation-desktop.png` });
+  await page.keyboard.press("Shift+Tab");
+  assert.ok(await discardEdits.evaluate((node) => node === document.activeElement));
+  await page.keyboard.press("Tab");
+  assert.ok(await keepEditing.evaluate((node) => node === document.activeElement));
+  await page.keyboard.press("Enter");
+  await confirmation.waitFor({ state: "hidden" });
   assert.equal(await title.inputValue(), originalTitle + " edited");
   results.push("Themed discard confirmation retains draft on cancel");
+  results.push(
+    "Confirmation distinguishes destructive action and keeps keyboard focus on the safe choice",
+  );
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Discard edits", exact: true }).click();
   await page.waitForFunction(() => !document.querySelector('[data-admin-overlay="dialog"]'));

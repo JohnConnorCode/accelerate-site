@@ -107,6 +107,91 @@ try {
     );
     results.push(`${reducedMotion}: stage control moves without dragging`);
     await page.screenshot({ path: `${output}/touch-board-${reducedMotion}.png` });
+    await page.goto(`${base}/demo/command-center/superdebate/features`);
+    const edit = page
+      .locator("[data-kanban-card]")
+      .first()
+      .getByRole("button", { name: /^Edit / });
+    await edit.waitFor();
+    await edit.tap();
+    const editor = page.getByRole("dialog", { name: "Feature details" });
+    const title = editor.getByLabel("Title", { exact: true });
+    const savedTitle = await title.inputValue();
+    await title.fill(`${savedTitle} phone edit`);
+    await editor.getByRole("button", { name: "Close feature details" }).tap();
+    const confirmation = page.getByRole("dialog", { name: "Discard card edits?" });
+    await confirmation.waitFor();
+    const keepEditing = confirmation.getByRole("button", { name: "Keep editing", exact: true });
+    const discard = confirmation.getByRole("button", { name: "Discard edits", exact: true });
+    for (const control of [keepEditing, discard]) {
+      const bounds = await control.boundingBox();
+      assert.ok(bounds.height >= 44 && bounds.width >= 44);
+    }
+    await page.waitForFunction(() => {
+      const dialogs = document.querySelectorAll('[role="dialog"]');
+      const current = dialogs[dialogs.length - 1];
+      return current && getComputedStyle(current).opacity === "1";
+    });
+    const confirmationBounds = await confirmation.boundingBox();
+    assert.ok(confirmationBounds.x >= 0 && confirmationBounds.x + confirmationBounds.width <= 391);
+    assert.ok(confirmationBounds.y >= 0 && confirmationBounds.y + confirmationBounds.height <= 845);
+    if (reducedMotion === "reduce") {
+      assert.equal(await confirmation.evaluate((node) => getComputedStyle(node).transform), "none");
+    }
+    await page.screenshot({ path: `${output}/confirmation-phone-${reducedMotion}.png` });
+    await keepEditing.tap();
+    await confirmation.waitFor({ state: "hidden" });
+    assert.equal(await title.inputValue(), `${savedTitle} phone edit`);
+    await editor.getByRole("button", { name: "Close feature details" }).tap();
+    await discard.waitFor();
+    if (reducedMotion === "reduce") {
+      const frames = await discard.evaluate(async (button) => {
+        const dialog = button.closest('[role="dialog"]');
+        const backdrops = document.querySelectorAll('[data-admin-overlay="backdrop"]');
+        const backdrop = backdrops[backdrops.length - 1];
+        const samples = [];
+        const sample = () => {
+          for (const node of [dialog, backdrop]) {
+            if (node) {
+              const style = node.isConnected ? getComputedStyle(node) : node.style;
+              samples.push({
+                opacity: Number(style.opacity),
+                transform: style.transform || "none",
+              });
+            }
+          }
+        };
+        const observer = new MutationObserver(sample);
+        for (const node of [dialog, backdrop]) {
+          if (node) observer.observe(node, { attributes: true, attributeFilter: ["style"] });
+        }
+        button.click();
+        const deadline = performance.now() + 5000;
+        while (dialog.isConnected && performance.now() < deadline) {
+          await new Promise(requestAnimationFrame);
+          sample();
+        }
+        observer.disconnect();
+        return { samples, removed: !dialog.isConnected };
+      });
+      assert.ok(frames.removed, "Reduced-motion dialog exits completely");
+      assert.ok(
+        frames.samples.every(
+          (frame) => [0, 1].includes(frame.opacity) && frame.transform === "none",
+        ),
+      );
+    } else {
+      await discard.tap();
+    }
+    await editor.waitFor({ state: "hidden" });
+    await edit.tap();
+    assert.equal(await page.getByLabel("Title", { exact: true }).inputValue(), savedTitle);
+    await page.getByRole("button", { name: "Close feature details" }).tap();
+    await page.waitForFunction(() => !document.querySelector('[data-admin-overlay="dialog"]'));
+    assert.ok(await edit.evaluate((node) => node === document.activeElement));
+    results.push(
+      `${reducedMotion}: phone confirmation retains edits on cancel, discards only on confirmation and restores focus`,
+    );
     assert.deepEqual(errors, []);
     await context.close();
   }

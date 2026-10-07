@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import * as Dialog from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 import { adminDialogTransition } from "@/lib/admin/motion";
@@ -55,6 +55,8 @@ export function AdminDialog({
   maxWidth = "md",
   align = "center",
 }: AdminDialogProps) {
+  const reducedMotion = useReducedMotion();
+  const transition = reducedMotion ? { duration: 0 } : adminDialogTransition;
   // A centered dialog remains a dialog at every width. Side editors and the
   // command palette opt into their own deliberate layouts below; ordinary
   // confirmations do not pretend to be draggable bottom sheets on phones.
@@ -84,10 +86,10 @@ export function AdminDialog({
               <motion.div
                 className="admin-overlay-token-scope admin-overlay-backdrop fixed inset-0 z-[200]"
                 data-admin-overlay="backdrop"
-                initial={{ opacity: 0 }}
+                initial={reducedMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={adminDialogTransition}
+                transition={transition}
               />
             </Dialog.Overlay>
             <div
@@ -146,15 +148,27 @@ export function AdminDialog({
                   data-admin-overlay="dialog"
                   data-admin-overlay-align={align}
                   initial={
-                    align === "right" ? { opacity: 0, x: 20 } : { opacity: 0, y: 8, scale: 0.985 }
+                    reducedMotion
+                      ? false
+                      : align === "right"
+                        ? { opacity: 0, x: 20 }
+                        : { opacity: 0, y: 8, scale: 0.985 }
                   }
                   animate={
-                    align === "right" ? { opacity: 1, x: 0 } : { opacity: 1, y: 0, scale: 1 }
+                    reducedMotion
+                      ? { opacity: 1 }
+                      : align === "right"
+                        ? { opacity: 1, x: 0 }
+                        : { opacity: 1, y: 0, scale: 1 }
                   }
                   exit={
-                    align === "right" ? { opacity: 0, x: 12 } : { opacity: 0, y: 4, scale: 0.99 }
+                    reducedMotion
+                      ? { opacity: 0 }
+                      : align === "right"
+                        ? { opacity: 0, x: 12 }
+                        : { opacity: 0, y: 4, scale: 0.99 }
                   }
-                  transition={adminDialogTransition}
+                  transition={transition}
                 >
                   <Dialog.Title asChild>
                     <span className="sr-only">{title}</span>
