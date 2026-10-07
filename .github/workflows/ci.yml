@@ -318,8 +318,9 @@ jobs:
     needs: scope
     if: ${{ !inputs.admin_design_only && !inputs.cold_start_only }}
     runs-on: ubuntu-latest
-    # Full browser coverage can take 30 minutes before evidence and cache uploads.
-    timeout-minutes: 45
+    # Full browser coverage includes owner workflows and isolated navigation
+    # checks; leave time to retain their evidence and compiler cache.
+    timeout-minutes: 60
     env:
       # Preserve explicit coverage for the original agency installation.
       NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
@@ -587,6 +588,8 @@ jobs:
             if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
           fi
           if [ "$PUBLIC_PAGES_ONLY" != "true" ] && [ "$DOCS_ONLY" != "true" ]; then
+            if ! node scripts/qa-navigation-runtime.mjs; then browser_status=1; fi
+            if ! node scripts/qa-navigation-filmstrip.mjs; then browser_status=1; fi
             if ! node scripts/qa-contact-import-source-review.mjs; then browser_status=1; fi
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
@@ -602,6 +605,8 @@ jobs:
             /tmp/accelerate-daily-work-qa/
             /tmp/accelerate-today-workspace/
             /tmp/accelerate-docs-takeover-qa/
+            /tmp/accelerate-navigation-runtime/
+            /tmp/accelerate-navigation-filmstrip/
           retention-days: 7
           if-no-files-found: ignore
       - name: Retain first-run browser evidence
