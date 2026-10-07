@@ -52,6 +52,28 @@ try {
     await page.waitForTimeout(240);
     assert.equal(await cards.last().getAttribute("data-opportunity-id"), id);
     results.push(`${reducedMotion}: touch reorder saved`);
+    const feedback = page.locator(".admin-toast").last();
+    await feedback.waitFor();
+    const dismissFeedback = feedback.getByRole("button", { name: /^Dismiss:/ });
+    const dismissBounds = await dismissFeedback.boundingBox();
+    const feedbackBounds = await feedback.boundingBox();
+    const dockBounds = await page.locator(".admin-mobile-dock").boundingBox();
+    assert.ok(dismissBounds.width >= 44 && dismissBounds.height >= 44);
+    assert.ok(feedbackBounds.x >= 0 && feedbackBounds.x + feedbackBounds.width <= 391);
+    assert.ok(feedbackBounds.y + feedbackBounds.height <= dockBounds.y);
+    if (reducedMotion === "reduce") {
+      assert.equal(await feedback.evaluate((node) => getComputedStyle(node).transform), "none");
+      assert.match(
+        await feedback.evaluate((node) => getComputedStyle(node).filter),
+        /^(none|blur\(0px\))$/,
+      );
+    }
+    await page.screenshot({ path: `${output}/feedback-phone-${reducedMotion}.png` });
+    await dismissFeedback.tap();
+    await feedback.waitFor({ state: "hidden" });
+    results.push(
+      `${reducedMotion}: readable feedback clears through a 44px touch target above the dock`,
+    );
     const first = cards.first();
     const body = await first.boundingBox();
     const before = await page.locator(".kanban-scroller").evaluate((e) => e.scrollLeft);

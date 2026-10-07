@@ -185,6 +185,26 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   border-color: var(--admin-border);
   box-shadow: var(--admin-shadow);
 }
+.admin-toast-dismiss {
+  display: grid;
+  flex-shrink: 0;
+  min-width: max(44px, var(--admin-control-height, 44px));
+  min-height: max(44px, var(--admin-control-height, 44px));
+  place-items: center;
+  margin: -0.75rem -0.25rem -0.75rem 0;
+  border-radius: var(--admin-control-radius);
+  color: var(--admin-muted);
+  cursor: pointer;
+  transition: background-color var(--admin-motion-fast) var(--admin-motion-ease);
+}
+.admin-toast-dismiss:hover {
+  background: var(--admin-surface-subtle);
+  color: var(--admin-ink);
+}
+.admin-toast-dismiss:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+}
 @media (max-width: 1023px) {
   .admin-toast-region {
     bottom: max(5.25rem, calc(env(safe-area-inset-bottom) + 4.75rem));

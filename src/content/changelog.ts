@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "action-feedback-polish",
+    slug: "action-feedback-polish",
+    title: "Read action feedback at your own pace",
+    description:
+      "Brief confirmations and warnings pause while you hover over them or focus their dismiss control, then resume with their remaining reading time. Larger dismiss targets and visible keyboard focus make messages easier to clear. Stacked messages settle smoothly when one disappears; reduced motion shows and clears feedback without animation.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
     id: "page-help-interaction-polish",
     slug: "page-help-interaction-polish",
     title: "Read page guidance without losing your place",
