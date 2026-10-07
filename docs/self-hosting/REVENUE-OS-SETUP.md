@@ -308,6 +308,16 @@ For local Command Center verification, run `npm run test:admin-recovery`, `npm r
 
 ## Developer work board
 
+Apply `20261006231324_work_repository_readiness.sql` through the ordered catalog
+with this source release. It validates repository addresses for feature and bug
+readiness and claims without rewriting existing cards, claims or receipts. An
+invalid legacy address remains visible as `invalid_repository_url`; a maintainer
+repairs it through the canonical revision-checked edit. Rollback preserves the
+migration and recorded work; use a compatible client rather than weakening the
+repository or claim checks. Native PostgreSQL proof covers fresh and retained
+protocol upgrade paths and migration replay. Source verification does not activate
+an older hosted deployment.
+
 Clean installs include `20260906-universal-work-board.sql` and `20260907-work-packet-quality.sql` in the ordered catalog. The latter supplies packet validation and ordered card reads. Applying schema alone does not activate an older deployment: release compatible adapters, verify canonical writes and then check `npm run dev:doctor -- --board` with an issued worker credential. See [developer start](../contributing/DEVELOPER-START.md).
 
 ## Site Studio write-boundary upgrade

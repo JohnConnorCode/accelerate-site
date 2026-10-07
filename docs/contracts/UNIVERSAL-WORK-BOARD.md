@@ -49,6 +49,21 @@ versioned definition. Dependencies are UUID edges. Renaming titles cannot sever 
 edge. Self/cyclic/cross-project edges are rejected atomically. Legacy unresolved
 references block readiness and must be resolved explicitly.
 
+Repository addresses use credential-free HTTPS, SSH (including `git@host:path`),
+or an absolute `file:///` URL for controlled local repositories. Keep credentials
+in Git's secure authentication configuration. Query strings, fragments, passwords,
+legacy `local:` aliases and malformed addresses are invalid. Encode spaces in a
+file path; use a concrete repository path without `.` or `..` segments.
+
+Feature and bug readiness reports `invalid_repository_url` for an unusable
+address, and canonical claims refuse it without changing the card or its history.
+Local Git preflight still checks repository identity, non-default ports and the
+approved base. The runner identifies the affected card without printing its
+address, even when an older board incorrectly reports it ready. A maintainer
+repairs the address through a revision-checked edit after inspecting the live
+packet, retaining the approved branch and commit. Never rewrite the base, change
+the clone's origin or use `--no-worktree` to bypass a mismatch.
+
 Backlog and planned cards with an outcome, acceptance, no explicit blocker and all
 prerequisites verified are claimable. Initiative roll-ups are never executable.
 Readiness is computed in SQL for both lists and claims. Work volume is advisory,
