@@ -50,7 +50,10 @@ export function prepareWorkspace(
     );
   const identity = repositoryIdentity(repo.url);
   const key = card.seed_key ?? card.id;
-  const diagnosticKey = typeof key === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(key) ? key : "(invalid card key)";
+  const diagnosticKey =
+    typeof key === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(key)
+      ? key
+      : "(invalid card key)";
   // Never reflect the address: legacy cards may contain credentials or query tokens.
   if (!identity)
     throw new Error(
