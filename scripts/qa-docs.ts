@@ -112,22 +112,28 @@ async function main() {
             const link = figure.locator("a").first();
             const href = await link.getAttribute("href");
             if (!href?.startsWith("/images/docs/")) continue;
-            let revision = figureVersions.get(href);
+            const fullSize = new URL(href, base);
+            let revision = figureVersions.get(fullSize.pathname);
             if (!revision) {
-              const source = await page.request.get(new URL(href, base).href);
+              const source = await page.request.get(new URL(fullSize.pathname, base).href);
               assert.equal(source.status(), 200);
               revision = createHash("sha256")
                 .update(await source.body())
                 .digest("hex")
                 .slice(0, 12);
-              figureVersions.set(href, revision);
+              figureVersions.set(fullSize.pathname, revision);
             }
             const image = figure.locator("img");
             const imageSrc = await image.getAttribute("src");
             assert.ok(imageSrc);
             const optimized = new URL(imageSrc, base);
             const original = new URL(optimized.searchParams.get("url") ?? imageSrc, base);
-            assert.equal(original.pathname, href);
+            assert.equal(original.pathname, fullSize.pathname);
+            assert.equal(
+              fullSize.searchParams.get("v"),
+              revision,
+              `${route}: stale full-size figure`,
+            );
             assert.equal(
               original.searchParams.get("v"),
               revision,

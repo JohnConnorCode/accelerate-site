@@ -1,3 +1,5 @@
+import assert from "node:assert/strict";
+import { build } from "esbuild";
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
 
@@ -401,6 +403,76 @@ for (const run of [
     .waitFor({ state: "attached", timeout: 15_000 });
   await page.screenshot({ path: `${output}/mobile-local-data-ready.png` });
   await context.close();
+}
+
+// Exercise the shared component with real React commits, including the first
+// synchronous frame of a retry. Timer-only checks miss that stale-state flash.
+const fixture = await build({
+  stdin: {
+    contents: `
+      import React from "react";
+      import { createRoot } from "react-dom/client";
+      import { flushSync } from "react-dom";
+      import { AdminAsyncRegion } from "./src/components/admin/AdminAsyncRegion";
+      const root = createRoot(document.getElementById("root"));
+      window.setRegion = (loading, hasData) => {
+        flushSync(() => root.render(
+          <AdminAsyncRegion loading={loading} hasData={hasData} delayMs={500}
+            loadingFallback={<p>Loading evidence</p>}>
+            {hasData ? <p>Saved evidence</p> : <button>Try again</button>}
+          </AdminAsyncRegion>
+        ));
+        const fallback = document.querySelector('[data-admin-async-state="loading"]');
+        return fallback?.getAttribute("data-admin-async-visible") ?? null;
+      };
+      window.unmountRegion = () => flushSync(() => root.unmount());
+    `,
+    loader: "tsx",
+    resolveDir: process.cwd(),
+  },
+  bundle: true,
+  write: false,
+  platform: "browser",
+  define: { "process.env.NODE_ENV": '"production"' },
+});
+for (const width of [1440, 390]) {
+  const context = await browser.newContext({ viewport: { width, height: 900 } });
+  try {
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.setContent('<div id="root"></div>');
+    await page.addScriptTag({ content: fixture.outputFiles[0].text });
+    assert.equal(await page.evaluate(() => window.setRegion(true, false)), "false");
+    await page.waitForFunction(() => document.querySelector('[data-admin-async-visible="true"]'));
+    await page.evaluate(() => window.setRegion(false, false));
+    assert.equal(await page.getByRole("button", { name: "Try again" }).isVisible(), true);
+    await page.getByRole("button", { name: "Try again" }).focus();
+    assert.equal(
+      await page
+        .getByRole("button", { name: "Try again" })
+        .evaluate((node) => document.activeElement === node),
+      true,
+    );
+    assert.equal(
+      await page.evaluate(() => window.setRegion(true, false)),
+      "false",
+      "A retry must hide its placeholder on the first commit",
+    );
+    await page.evaluate(() => window.setRegion(false, true));
+    await page.waitForTimeout(550);
+    assert.equal(await page.getByText("Saved evidence").isVisible(), true);
+    await page.evaluate(() => window.setRegion(true, true));
+    assert.equal(await page.getByText("Saved evidence").isVisible(), true);
+    assert.equal(await page.locator('[data-admin-async-state="loading"]').count(), 0);
+    assert.equal(await page.locator('[aria-busy="true"]').count(), 1);
+    assert.equal(await page.evaluate(() => window.setRegion(true, false)), "false");
+    await page.evaluate(() => window.unmountRegion());
+    await page.waitForTimeout(550);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
 }
 
 await browser.close();

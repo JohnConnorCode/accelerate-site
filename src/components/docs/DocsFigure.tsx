@@ -23,7 +23,7 @@ export function DocsFigure({
   return (
     <figure className="not-prose my-8">
       <a
-        href={src}
+        href={imageSrc}
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`${alt} Open full-size image in a new tab.`}
