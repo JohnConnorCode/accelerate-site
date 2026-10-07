@@ -65,6 +65,7 @@ const nextConfig: NextConfig = {
   // Image optimization
   images: {
     formats: ["image/avif", "image/webp"],
+    localPatterns: [{ pathname: "/**", search: "" }, { pathname: "/images/docs/**" }],
   },
 
   // The live Collections decision isolate loads its inspectable source at runtime.

@@ -79,3 +79,24 @@ checkpoint. Workflow validation also passes all 17
 `test:verification-workflow` cases. Fresh CI remains required for this final CI
 and image follow-up; the prior successful run proves the retained application,
 not these later files. No merge or production action was taken.
+
+## Screenshot cache compatibility follow-up
+
+The concurrent `e906de2d` revision extends the published follow-up with
+screenshot-byte cache keys and rendered-figure assertions. Its production build
+identified a real Next.js compatibility failure: versioned local screenshot
+URLs were rejected by `images.localPatterns` during guide prerendering.
+
+The isolated final-review checkout preserves that revision and allows query
+strings specifically under `/images/docs/`. All other local image paths keep
+their query-free rule. The existing guide test suite now exercises the actual
+Next.js matcher against the application configuration, including refusal of
+versioned unrelated paths. Guide content, full-size links and external image
+rules retain their existing behavior.
+
+The final-review tree initially matched the remote revision's
+`8b092f42de89e7dd9c42ce26c892df142d37f065` tree exactly. Local heavy testing
+was refused at 4.3 GiB available disk against the required 5 GiB starting floor;
+that refusal is retained separately from the confirmed remote build failure.
+The compatibility correction requires a new exact-source remote build and guide
+browser checks. It does not reuse the earlier application's build as proof.

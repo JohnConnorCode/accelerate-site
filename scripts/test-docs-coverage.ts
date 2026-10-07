@@ -8,6 +8,17 @@ import { inspectDocs, type DocsInspectionInput } from "./verify-docs";
 import { hasLiveAppRoute } from "./lib/prerender-routes.mjs";
 import type { DocsSection } from "../src/content/docs/manifest";
 import { docsFigureSource } from "../src/lib/docs";
+import nextConfig from "../next.config";
+import { hasLocalMatch } from "next/dist/shared/lib/match-local-pattern";
+
+test("image optimization accepts versioned guide images and preserves other local restrictions", () => {
+  const patterns = nextConfig.images?.localPatterns;
+  assert.equal(hasLocalMatch(patterns, "/images/docs/current.png?v=abc123"), true);
+  assert.equal(hasLocalMatch(patterns, "/images/docs/current.png"), true);
+  assert.equal(hasLocalMatch(patterns, "/images/logo.png"), true);
+  assert.equal(hasLocalMatch(patterns, "/images/logo.png?v=abc123"), false);
+  assert.equal(hasLocalMatch(patterns, "/other/current.png?v=abc123"), false);
+});
 
 test("replacing a guide screenshot changes its optimizer key while preserving explicit sources", (t) => {
   const root = mkdtempSync(path.join(tmpdir(), "docs-image-version-"));
