@@ -535,6 +535,12 @@ export async function checkpointActionResult(
 /** Re-review the same immutable plugin operation, preserving its idempotency
  * identity and checkpoint. Expired operations require provider reconciliation. */
 export async function retryPluginAction(supabase: SupabaseClient, id: string, actorEmail: string) {
+  return withActionCommandContext(supabase, id, actorEmail, () =>
+    retryFailedPluginAction(supabase, id, actorEmail),
+  );
+}
+
+async function retryFailedPluginAction(supabase: SupabaseClient, id: string, actorEmail: string) {
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("action_queue")

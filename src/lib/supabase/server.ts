@@ -63,8 +63,13 @@ export function bindTenantDatabase(
                 );
               };
             }
+            const actor = getTenantRequestContext();
+            const delegatedPrivateTable =
+              PRIVATE_COMMAND_TABLES.has(table) &&
+              actor?.kind === "actor" &&
+              Boolean(actor.workspaceMcpProof);
             if (
-              enforceFilters &&
+              (enforceFilters || delegatedPrivateTable) &&
               ["select", "update", "delete"].includes(String(builderProperty))
             ) {
               return (...args: unknown[]) => {

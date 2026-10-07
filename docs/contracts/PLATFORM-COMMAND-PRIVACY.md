@@ -19,7 +19,8 @@ and upserts on `action_queue`, `audit_log`, `agent_runs`, `agent_run_events`,
 `ai_conversations` and `ai_messages` within that scope. Batch writes use the same
 boundary. Explicit owner input without a matching verified scope refuses.
 Private commands cannot silently write through another database or workspace.
-Tenant-bound service clients exclude private rows from reads, exact counts,
+Tenant-bound service clients and delegated workspace MCP sessions exclude private
+rows from reads, exact counts,
 updates and deletes outside the scope. Raw platform service clients remain
 privileged server infrastructure and must never reach tools or plugins.
 
@@ -48,7 +49,7 @@ email against fresh Auth before executing effects.
 
 ## Existing approval path
 
-Private actions use the existing queue, claim, executor, rejection and terminal
+Private actions use the existing queue, claim, executor, rejection, retry and terminal
 receipt owners. Approval authenticates again, checks the exact owner and current
 membership, then retains normal expiry, single-shot claim, payload validation,
 autonomy checks and execution receipts. An authenticated founder's autonomous

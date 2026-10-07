@@ -131,6 +131,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260929211535_contact_import_review_atomic.sql",
   "migrations/20260930004129_workspace_configuration_commands.sql",
   "migrations/20260930190623_conversational_agent_runtime.sql",
+  "migrations/20261007181105_platform_private_command_context.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

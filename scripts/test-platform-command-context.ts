@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
@@ -8,7 +9,13 @@ import {
   runWithPlatformCommandContext,
 } from "../src/lib/revenue-os/platform-command-context";
 import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
-import { claimApprovedAction, proposeAction, rejectAction } from "../src/lib/revenue-os/actions";
+import {
+  claimApprovedAction,
+  proposeAction,
+  rejectAction,
+  retryPluginAction,
+  withProposalWorkContext,
+} from "../src/lib/revenue-os/actions";
 
 const oldEmail = process.env.ADMIN_EMAIL;
 process.env.ADMIN_EMAIL = "founder@example.test";
@@ -33,7 +40,7 @@ function fixture() {
     reads: 0,
   };
   const raw = {
-    ...mem.client,
+    ...(mem.client as SupabaseClient),
     auth: {
       getUser: async () => {
         auth.reads++;
@@ -154,6 +161,25 @@ async function main() {
     assert.ok(f.mem.rows("action_queue").some((r) => r.platform_owner_user_id === f.userId));
     checks++;
 
+    await runWithTenantRequestContext(
+      {
+        ...f.actor,
+        workspaceMcpProof: { grantId: "g", clientId: "c", sessionId: "s", resource: "r" },
+      },
+      async () => {
+        const rows = await f.db.from("action_queue").select("*", { count: "exact" });
+        assert.equal(
+          rows.count,
+          1,
+          "Founder-delegated workspace MCP must not read private founder records",
+        );
+        assert.equal(rows.data?.[0]?.id, "shared");
+        await f.db.from("action_queue").delete().eq("platform_owner_user_id", f.userId);
+        assert.ok(f.mem.rows("action_queue").some((r) => r.platform_owner_user_id === f.userId));
+        checks++;
+      },
+    );
+
     const approved = fixture(),
       id = await proposal(approved);
     await runWithTenantRequestContext(approved.actor, () =>
@@ -224,6 +250,36 @@ async function main() {
     assert.equal(rejected.mem.rows("action_queue")[0]!.status, "rejected");
     assert.equal(rejected.mem.rows("agent_memories").length, 0);
     assert.equal(rejected.mem.rows("learned_policies").length, 0);
+    checks++;
+    const retried = fixture();
+    const retryId = randomUUID();
+    await retried.command(async () => {
+      await retried.db.from("action_queue").insert({
+        id: retryId,
+        action_type: "create_task_batch",
+        status: "failed",
+        expires_at: new Date(Date.now() + 60000).toISOString(),
+      });
+    });
+    await refusal(() => retryPluginAction(retried.db, retryId, retried.email));
+    assert.equal(retried.mem.rows("action_queue")[0]!.status, "failed");
+    await runWithTenantRequestContext(retried.actor, () =>
+      retryPluginAction(retried.db, retryId, retried.email),
+    );
+    assert.equal(retried.mem.rows("action_queue")[0]!.status, "pending");
+    assert.equal(retried.mem.rows("action_queue")[0]!.platform_owner_user_id, retried.userId);
+    assert.ok(
+      retried.mem.rows("audit_log").every((r) => r.platform_owner_user_id === retried.userId),
+    );
+    checks++;
+    const explicit = fixture();
+    await withProposalWorkContext("shared-work-item", () => proposal(explicit));
+    assert.equal(explicit.mem.rows("action_queue")[0]!.platform_owner_user_id, explicit.userId);
+    assert.equal(
+      explicit.mem.rows("activities").length,
+      0,
+      "Private commands must not enter shared triage learning",
+    );
     checks++;
     const missing = fixture();
     missing.mem.fail("action_queue", { code: "42703", message: "Missing privacy column" });

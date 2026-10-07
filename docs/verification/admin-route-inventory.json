@@ -307,9 +307,9 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "16ab060272509bd090ca9d4625ff76e254249a366ab1f6ff5871ce820987820d",
-    "src/lib/revenue-os/action-executor.ts": "11c9c370dbe11e3776d9a38635c73492060100b2fb1494b80c18d760b5ef787f",
-    "src/lib/revenue-os/actions.ts": "95635bbe32710683f6c74b609daac3cdd98595821d41b92e984d0f9adf96372f",
+    "src/lib/revenue-os/README.md": "5b4d070eebd03681eddfd1b36f22349acc68d464ad37c0591d8fe2455f630d9c",
+    "src/lib/revenue-os/action-executor.ts": "6775b4426eb139f01e693a15542c96b298e5bbbd4f73d244e130eb53e3f5febf",
+    "src/lib/revenue-os/actions.ts": "85c625d7a9f7b4e5572b2c2063dc8a98f146d4a85ced41e72f9506ff99e5b867",
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
@@ -694,7 +694,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared task workflow services own proposals and task execution; task adapter reads canonical tasks, opportunities and memberships. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode.",
+      "boundary": "Shared task workflow services own proposals and task execution; task adapter reads canonical tasks, opportunities and memberships. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -802,7 +802,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Existing policy fields share exact AI/MCP preview and proposal, current recipient/invoice facts, authenticated human approval, transactional case receipts and revision checks. Policy approval never sends a reminder. Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Confirmed message receipts remain the cooldown authority; database timestamps are normalized to UTC before isolated workflow evaluation.",
+      "boundary": "Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Existing policy fields share exact AI/MCP preview and proposal, current recipient/invoice facts, authenticated human approval, transactional case receipts and revision checks. Policy approval never sends a reminder. Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Confirmed message receipts remain the cooldown authority; database timestamps are normalized to UTC before isolated workflow evaluation. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1143,7 +1143,7 @@
           "directTables": ["tasks"]
         }
       ],
-      "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count. Approval opens the exact action in Work for review; only rejection is decided directly from Inbox.",
+      "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count. Approval opens the exact action in Work for review; only rejection is decided directly from Inbox. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
@@ -1239,7 +1239,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice.",
+      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1323,7 +1323,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared task workflow services own proposals and task execution; source meeting IDs must remain linked to created work. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode.",
+      "boundary": "Shared task workflow services own proposals and task execution; source meeting IDs must remain linked to created work. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1718,7 +1718,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared overview, task and action services; layout changes are configuration.",
+      "boundary": "Shared overview, task and action services; layout changes are configuration. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1784,7 +1784,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1815,7 +1815,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1846,7 +1846,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1877,7 +1877,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1908,7 +1908,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute.",
+      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
