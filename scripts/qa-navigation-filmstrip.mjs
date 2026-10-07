@@ -8,6 +8,39 @@ mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const failures = [];
 
+async function readColdFallback(page) {
+  return page.evaluate(() => {
+    const region = document.querySelector('[data-admin-async-state="loading"]');
+    if (!region) return null;
+    const reveal = region
+      .getAnimations()
+      .find((animation) => animation.animationName === "admin-async-placeholder-show");
+    return {
+      visible: region.getAttribute("data-admin-async-visible"),
+      opacity:
+        getComputedStyle(region).visibility === "hidden"
+          ? 0
+          : Number(getComputedStyle(region).opacity),
+      revealDelayMs: reveal?.effect?.getTiming().delay ?? null,
+      revealElapsedMs: typeof reveal?.currentTime === "number" ? reveal.currentTime : null,
+    };
+  });
+}
+
+function checkColdFallback(state, name) {
+  if (!state || state.visible !== "false") return;
+  if (state.revealDelayMs !== 120) {
+    failures.push(
+      `${name}: cold-load fallback lost its shared 120ms reveal delay (${JSON.stringify(state)})`,
+    );
+  }
+  // DOMContentLoaded, screenshots and throttled automation can arrive after the
+  // first-paint delay. Measure the CSS animation's clock, not the test's wait.
+  if (state.opacity > 0.05 && (state.revealElapsedMs === null || state.revealElapsedMs < 120)) {
+    failures.push(`${name}: cold-load fallback flashed before 120ms (${JSON.stringify(state)})`);
+  }
+}
+
 for (const run of [
   { name: "desktop-fast", viewport: { width: 1440, height: 900 }, delay: 0 },
   { name: "desktop-slow", viewport: { width: 1440, height: 900 }, delay: 650 },
@@ -77,42 +110,16 @@ for (const run of [
   await page.goto(`${base}/demo/command-center/northline-roofing/today`, {
     waitUntil: "domcontentloaded",
   });
-  const initialAsyncState = await page.evaluate(() => {
-    const region = document.querySelector('[data-admin-async-state="loading"]');
-    return region
-      ? {
-          visible: region.getAttribute("data-admin-async-visible"),
-          opacity:
-            getComputedStyle(region).visibility === "hidden"
-              ? 0
-              : Number(getComputedStyle(region).opacity),
-        }
-      : null;
-  });
-  if (initialAsyncState && initialAsyncState.opacity > 0.05) {
-    failures.push(
-      `${run.name}: cold-load fallback flashed before the shared ${120}ms reveal threshold (${JSON.stringify(initialAsyncState)})`,
-    );
-  }
+  const initialAsyncState = await readColdFallback(page);
+  checkColdFallback(initialAsyncState, `${run.name} initial`);
   await page.screenshot({ path: `${output}/${run.name}-direct-000.png` });
   await page.waitForTimeout(90);
-  const earlyAsyncState = await page.evaluate(() => {
-    const region = document.querySelector('[data-admin-async-state="loading"]');
-    return region
-      ? {
-          visible: region.getAttribute("data-admin-async-visible"),
-          opacity:
-            getComputedStyle(region).visibility === "hidden"
-              ? 0
-              : Number(getComputedStyle(region).opacity),
-        }
-      : null;
-  });
-  if (earlyAsyncState && earlyAsyncState.opacity > 0.05) {
-    failures.push(
-      `${run.name}: cold-load fallback became visible before 120ms (${JSON.stringify(earlyAsyncState)})`,
-    );
-  }
+  const earlyAsyncState = await readColdFallback(page);
+  checkColdFallback(earlyAsyncState, `${run.name} early`);
+  writeFileSync(
+    `${output}/${run.name}-cold-load.json`,
+    JSON.stringify({ initial: initialAsyncState, early: earlyAsyncState }, null, 2),
+  );
   await page.screenshot({ path: `${output}/${run.name}-direct-090.png` });
   await page.locator("[data-admin-route-stage]").waitFor({ state: "attached", timeout: 15_000 });
   await page.waitForFunction(

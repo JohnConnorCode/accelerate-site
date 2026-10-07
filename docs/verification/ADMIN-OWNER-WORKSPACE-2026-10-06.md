@@ -1,5 +1,23 @@
 # Owner workspace and guides continuation
 
+## Final filmstrip timing follow-up
+
+The `dbb70fa3` CI run passed build, contracts, forks, owner workflows, Site Studio
+recovery and 104 documentation browser checks. Its filmstrip cold-load assertions
+failed because they assumed DOMContentLoaded and a later screenshot wait occurred
+within 120 ms of first paint. The existing CSS intentionally reveals a still-pending
+fallback after that first-paint delay, including before hydration.
+
+The filmstrip now reads the actual CSS animation clock and requires its unchanged
+120 ms delay. Visible fallbacks before that threshold still fail; samples taken
+after the threshold do not. Initial and early timing samples are retained beside
+the screenshots. The controlled local-data threshold, transition, focus, overflow,
+stagger and throttled-loading assertions remain intact. Product source is unchanged.
+Navigation contracts, script syntax and formatting pass locally; fresh browser CI
+is required for the measurement correction. Opened exact-revision desktop and phone
+guide figures confirm the updated Site Studio capture is served; the Frost task
+result visibly renders its controls and dates. No merge or deployment occurred.
+
 Continued the retained `fix/admin-owner-workspace-20261006` checkout at
 `82f2af339b37c578502991f24fd4aba94e264a93`. The existing admin and guide work
 remains intact. This continuation completes its unfinished CI wiring; it does
