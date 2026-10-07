@@ -114,7 +114,8 @@ try {
       .getByRole("button", { name: /^Edit / });
     await edit.waitFor();
     await edit.tap();
-    const editor = page.getByRole("dialog", { name: "Feature details" });
+    // Inspect the covered editor while Radix hides it from assistive technology.
+    const editor = page.getByRole("dialog", { name: "Feature details", includeHidden: true });
     const title = editor.getByLabel("Title", { exact: true });
     const savedTitle = await title.inputValue();
     await title.fill(`${savedTitle} phone edit`);
