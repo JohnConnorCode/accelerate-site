@@ -139,6 +139,23 @@ try {
     id,
   );
   results.push("Same-column mouse reorder");
+  const firstReceipt = page.locator(".admin-toast").last();
+  await firstReceipt.waitFor();
+  await page.mouse.move(0, 0);
+  await page.evaluate(() => {
+    // Model a browser that does not notify React when a focused control is removed.
+    window.__qaToastFocusout = (event) => {
+      if (event.target.matches(".admin-toast-dismiss")) event.stopImmediatePropagation();
+    };
+    document.addEventListener("focusout", window.__qaToastFocusout, true);
+  });
+  await firstReceipt.getByRole("button", { name: /^Dismiss:/ }).focus();
+  await page.keyboard.press("Enter");
+  await firstReceipt.waitFor({ state: "hidden" });
+  await page.evaluate(() => {
+    document.removeEventListener("focusout", window.__qaToastFocusout, true);
+    delete window.__qaToastFocusout;
+  });
   const writes = await page.evaluate(() => window.__qaWrites.length);
   await move(
     page,
@@ -160,6 +177,10 @@ try {
     "column-contacted",
   );
   results.push("Cross-column stage and order save");
+  const nextReceipt = page.locator(".admin-toast").last();
+  await nextReceipt.waitFor();
+  await nextReceipt.waitFor({ state: "hidden" });
+  results.push("Keyboard dismissal without a blur event does not leave later feedback paused");
   await page.evaluate(() => (window.__qaFailure = "reorder"));
   await move(
     page,

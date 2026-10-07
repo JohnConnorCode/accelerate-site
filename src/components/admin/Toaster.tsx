@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
 import {
@@ -22,10 +22,12 @@ const KIND_STYLES: Record<ToastKind, { bar: string; icon: typeof CheckCircle2 }>
 export function Toaster() {
   const toasts = useToasts();
   const reducedMotion = useReducedMotion();
+  const regionRef = useRef<HTMLDivElement>(null);
   useEffect(() => () => resumeToasts(), []);
 
   return (
     <div
+      ref={regionRef}
       className="admin-toast-region pointer-events-none fixed inset-x-4 z-[300] flex w-auto max-w-sm flex-col gap-2 sm:left-auto sm:w-full"
       aria-live="polite"
       aria-atomic="false"
@@ -42,7 +44,19 @@ export function Toaster() {
           resumeToasts();
       }}
     >
-      <AnimatePresence initial={false}>
+      <AnimatePresence
+        initial={false}
+        onExitComplete={() => {
+          // Removing a focused control need not emit blur in every browser.
+          const region = regionRef.current;
+          if (
+            region &&
+            (toasts.length === 0 ||
+              (!region.contains(document.activeElement) && !region.matches(":hover")))
+          )
+            resumeToasts();
+        }}
+      >
         {toasts.map((t) => {
           const styles = KIND_STYLES[t.kind];
           const Icon = styles.icon;
