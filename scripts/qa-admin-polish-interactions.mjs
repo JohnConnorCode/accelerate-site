@@ -312,6 +312,16 @@ try {
     const current = dialogs[dialogs.length - 1];
     return current && getComputedStyle(current).opacity === "1";
   });
+  const coveredTitle = await title.evaluate((node) => {
+    const bounds = node.getBoundingClientRect();
+    const hit = document.elementFromPoint(
+      bounds.x + bounds.width / 2,
+      bounds.y + bounds.height / 2,
+    );
+    const layers = document.querySelectorAll('[data-admin-overlay="layer"]');
+    return hit === layers[layers.length - 1]?.querySelector('[data-admin-overlay="backdrop"]');
+  });
+  assert.ok(coveredTitle, "Confirmation backdrop covers the editor and blocks pointer access");
   await page.screenshot({ path: `${output}/confirmation-desktop.png` });
   await page.keyboard.press("Shift+Tab");
   assert.ok(await discardEdits.evaluate((node) => node === document.activeElement));
@@ -319,8 +329,25 @@ try {
   assert.ok(await keepEditing.evaluate((node) => node === document.activeElement));
   await page.keyboard.press("Enter");
   await confirmation.waitFor({ state: "hidden" });
+  assert.equal(
+    await page.locator('[data-admin-overlay="layer"]').count(),
+    1,
+    "Only the editor layer remains after cancellation",
+  );
   assert.equal(await title.inputValue(), originalTitle + " edited");
-  results.push("Themed discard confirmation retains draft on cancel");
+  assert.ok(
+    await title.evaluate((node) => {
+      const bounds = node.getBoundingClientRect();
+      return (
+        document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2) ===
+        node
+      );
+    }),
+    "Closing the confirmation reveals the editable draft again",
+  );
+  results.push(
+    "Nested confirmation dims and blocks the editor, then reveals the retained draft on cancel",
+  );
   results.push(
     "Confirmation distinguishes destructive action and keeps keyboard focus on the safe choice",
   );

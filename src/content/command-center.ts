@@ -466,7 +466,7 @@ export const capabilities: Capability[] = [
     promise:
       "Choose one of nine appearances or preview a custom palette, typography, and corner style, then save it for the workspace.",
     detail:
-      "Text contrast is checked before a theme saves, density is adjustable independently, and a theme follows the same permissions and revision checks as other branding. Delete, discard and archive confirmations use the theme's danger appearance. Dialogs open and close immediately under reduced motion. Demo choices stay separate from the live workspace.",
+      "Text contrast is checked before a theme saves, density is adjustable independently, and a theme follows the same permissions and revision checks as other branding. Delete, discard and archive confirmations use the theme's danger appearance. Nested confirmations dim the editor beneath them and reveal it again when closed. Dialogs open and close immediately under reduced motion. Demo choices stay separate from the live workspace.",
   },
 
   // ── Govern: control and the record ────────────────────────────────────

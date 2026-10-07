@@ -145,10 +145,35 @@ try {
     if (reducedMotion === "reduce") {
       assert.equal(await confirmation.evaluate((node) => getComputedStyle(node).transform), "none");
     }
+    const coveredTitle = await title.evaluate((node) => {
+      const bounds = node.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        bounds.x + bounds.width / 2,
+        bounds.y + bounds.height / 2,
+      );
+      const layers = document.querySelectorAll('[data-admin-overlay="layer"]');
+      return hit === layers[layers.length - 1]?.querySelector('[data-admin-overlay="backdrop"]');
+    });
+    assert.ok(coveredTitle, "Confirmation backdrop covers the editor and blocks pointer access");
     await page.screenshot({ path: `${output}/confirmation-phone-${reducedMotion}.png` });
     await keepEditing.tap();
     await confirmation.waitFor({ state: "hidden" });
+    assert.equal(
+      await page.locator('[data-admin-overlay="layer"]').count(),
+      1,
+      "Only the editor layer remains after cancellation",
+    );
     assert.equal(await title.inputValue(), `${savedTitle} phone edit`);
+    assert.ok(
+      await title.evaluate((node) => {
+        const bounds = node.getBoundingClientRect();
+        return (
+          document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2) ===
+          node
+        );
+      }),
+      "Closing the confirmation reveals the editable draft again",
+    );
     await editor.getByRole("button", { name: "Close feature details" }).tap();
     await discard.waitFor();
     if (reducedMotion === "reduce") {

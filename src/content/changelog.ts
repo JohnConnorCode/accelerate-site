@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "nested-dialog-layering",
+    slug: "nested-dialog-layering",
+    title: "Keep nested confirmations in focus",
+    description:
+      "A confirmation now dims and blocks the editor beneath it. Each dialog keeps its panel and backdrop together through entry and exit, so closing a confirmation reveals the retained draft with the same soft transition or immediate reduced-motion response.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
     id: "dialog-decision-polish",
     slug: "dialog-decision-polish",
     title: "Make the confirmation choice clear",

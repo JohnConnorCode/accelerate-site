@@ -188,7 +188,7 @@
     "src/components/admin/AdminDemoBoundary.tsx": "d98b0fa181be2d7b9abe8e908f5de1ffad127542816faf74509f98846ea2c126",
     "src/components/admin/AdminDensityControl.tsx": "f57410fbe25fae548a806878ff866ebce7b905147dd6d08eee260a0696c6e622",
     "src/components/admin/AdminDesignPreview.tsx": "b253e6b1a04bad3692b012f37530e5e457dd497af57cb5a86fc0358929a5cbf5",
-    "src/components/admin/AdminDialog.tsx": "43555f1cd7f2132626f9a9401b99ca6d6cd88092ca1fa58de725b77c7191aefb",
+    "src/components/admin/AdminDialog.tsx": "66c8288783ea4efcb78989ba2308a2d739f6d2778b00e224ad1567fe5522e951",
     "src/components/admin/AdminErrorBoundary.tsx": "b394d8434ccfe4def165e7cd532bf99edbc66c1cd65f4fe5077295f29f33057a",
     "src/components/admin/AdminFounderNoteModal.tsx": "01cc9a604ff0b1ef48ca43e59924ab8895d6f8a493a6c2bcd4e00bf6f3939b5a",
     "src/components/admin/AdminLink.tsx": "df61e471a2fdd830e8f6986d42e2bd59597eae1d18f24f5783d4831c1af5d176",
