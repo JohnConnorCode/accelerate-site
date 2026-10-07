@@ -279,7 +279,18 @@ for (const [label, viewport, colorScheme] of [
                 : target.matches(".home-hero-index > span")
                   ? `index-${[...target.parentElement.children].indexOf(target)}`
                   : null;
-      if (phase) window.__heroEntrances.push({ phase, time: performance.now() });
+      if (phase) {
+        const animation = target
+          .getAnimations()
+          .find((value) => value.animationName === event.animationName);
+        window.__heroEntrances.push({
+          phase,
+          time: event.timeStamp,
+          deliveredAt: performance.now(),
+          animationStart: animation?.startTime ?? null,
+          animationDelay: animation?.effect?.getTiming().delay ?? null,
+        });
+      }
     });
   });
   const page = await context.newPage();
@@ -357,7 +368,7 @@ for (const [label, viewport, colorScheme] of [
   if (!settled.wordsComplete) failures.push(`${label}: word entrance did not settle`);
   if (!settled.entriesComplete) failures.push(`${label}: hero sequence did not settle`);
   if (
-    settled.phases.some((phase) => !phase) ||
+    settled.phases.some((phase) => !phase || !Number.isFinite(phase.time)) ||
     settled.phases.some(
       (phase, index, phases) =>
         index > 0 && phase && phases[index - 1] && phase.time - phases[index - 1].time < 30,
