@@ -374,7 +374,14 @@ async function main() {
         ] as const) {
           await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
           if (route === "/open-source") {
-            await page.screenshot({ path: `${output}/${width}-open-source-agent-start.png` });
+            await expect(page.locator(".public-hero-entrance")).toHaveAttribute(
+              "data-reveal-state",
+              "visible",
+            );
+            await page.screenshot({
+              path: `${output}/${width}-open-source-agent-start.png`,
+              animations: "disabled",
+            });
             await page
               .getByRole("heading", { name: "Ask your agent to get it running.", exact: true })
               .scrollIntoViewIfNeeded();
@@ -384,12 +391,22 @@ async function main() {
             await setupCommands.focus();
             await page.keyboard.press("Enter");
             await expect(setupCommands.locator("..")).toHaveAttribute("open", "");
+            await page.waitForFunction(() => {
+              const summary = document.querySelector("main details[open] summary");
+              if (!summary) return false;
+              for (let element: Element | null = summary; element; element = element.parentElement)
+                if (element.getAttribute("data-reveal-state") === "pending") return false;
+              return true;
+            });
             assert.equal(
               await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
               false,
               `Agent assignment overflows at ${width}`,
             );
-            await page.screenshot({ path: `${output}/${width}-open-source-agent-assignment.png` });
+            await page.screenshot({
+              path: `${output}/${width}-open-source-agent-assignment.png`,
+              animations: "disabled",
+            });
             await page.keyboard.press("Enter");
           }
           await page.locator("main").getByRole("link", { name: label, exact: true }).click();

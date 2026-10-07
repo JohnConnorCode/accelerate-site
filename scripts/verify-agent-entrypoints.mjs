@@ -43,7 +43,14 @@ if (!/intent: explicit-backlog-pickup/i.test(agents) || !/take the next backlog 
   failures.push("AGENTS.md must limit automatic pickup to explicit backlog requests");
 if (/phrases:.*finish and commit|phrases:.*follow protocol/i.test(agents))
   failures.push("AGENTS.md must not treat generic completion requests as backlog pickup");
-for (const file of ["AGENTS.md", "docs/contributing/NATURAL-LANGUAGE-AGENT.md"]) {
+const claude = readFileSync("CLAUDE.md", "utf8").replace(/\s+/g, " ");
+if (!/only when the user explicitly asks for backlog work/i.test(claude))
+  failures.push("CLAUDE.md must limit automatic pickup to explicit backlog requests");
+if (
+  /When the user says[^.]+(?:finish and commit|follow protocol)[^.]*execution command/i.test(claude)
+)
+  failures.push("CLAUDE.md must not treat generic completion requests as backlog pickup");
+for (const file of ["AGENTS.md", "CLAUDE.md", "docs/contributing/NATURAL-LANGUAGE-AGENT.md"]) {
   const source = readFileSync(file, "utf8");
   if (!/user's latest direct request always controls scope and priority/i.test(source))
     failures.push(`${file} does not preserve explicit user scope over recovered work`);

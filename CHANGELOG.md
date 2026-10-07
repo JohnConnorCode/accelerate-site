@@ -5,6 +5,7 @@
 - Integrate contributor repository validation and approved-source recovery. Preserve the matching recovery in the natural-language runner's next step instead of suggesting credential setup for missing or mismatched source.
 - Make setup and extension entry points agent-first. Owners give Claude Code or Codex a business brief and review the working result; agents handle configuration, implementation, registration and verification. Guides explain the work saved by shared records and services, distinguish proposed Apps from bundled features, and remove claims that registration automatically implements approvals or audit behavior.
 - Retain a focused contributor-guide screenshot artifact alongside the complete browser evidence, so reviewers can inspect agent setup and extension guidance without downloading unrelated journeys.
+- Align Claude's entrypoint with the canonical explicit-backlog rule and verify that it preserves the user's latest scope. Generic completion requests continue the current task. Contributor review captures wait for reveal readiness and finish finite animations before saving readable desktop evidence.
 
 Notable changes to this repository — the codebase, tooling, and open-source infrastructure. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 

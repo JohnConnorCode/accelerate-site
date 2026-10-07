@@ -38,8 +38,8 @@ export const docsTracks: DocsTrack[] = [
   },
   {
     id: "builder",
-    title: "Build and run it yourself",
-    description: "For a developer or coding assistant: plugins, extension points, self-hosting.",
+    title: "Build with your agent",
+    description: "Give a coding agent the business brief, setup reference and extension contracts.",
   },
 ];
 
