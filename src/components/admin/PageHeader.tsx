@@ -238,6 +238,7 @@ export function PageHeader({
                       <div className="admin-help-links">
                         <Link
                           href={help.guideHref}
+                          prefetch={helpOpen ? null : false}
                           className="admin-help-guide"
                           onClick={() => closeHelp()}
                         >
@@ -246,6 +247,7 @@ export function PageHeader({
                         {help.workflowId && (
                           <Link
                             href={`/docs/start/daily-path#${help.workflowId}`}
+                            prefetch={helpOpen ? null : false}
                             className="admin-help-guide"
                             onClick={() => closeHelp()}
                           >
