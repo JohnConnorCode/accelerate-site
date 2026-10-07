@@ -675,8 +675,8 @@
   }
   .viewSelect {
     max-width: none;
-    flex: 1 1 0;
-    min-width: 0;
+    flex: 1 1 180px;
+    min-width: min(180px, 100%);
     padding-inline: 10px 8px;
     font-size: 12px;
   }

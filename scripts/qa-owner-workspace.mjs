@@ -177,9 +177,14 @@ try {
 
       // Answer an inquiry using the real shared composer, with a retained failed draft.
       await goto("northline-roofing", "conversations");
+      await page
+        .getByRole("button", { name: /Lena Walsh/ })
+        .first()
+        .click();
       const reply = page.getByPlaceholder("Write a reply, then review the recipient and message.");
       await reply.waitFor();
-      const text = `Owner workflow reply ${width}: We can review the inspection request and confirm the next available appointment.`;
+      const text =
+        "Thanks for the details. We can inspect the roof this week; I’ll confirm the next available appointment.";
       await reply.fill(text);
       await page.getByRole("button", { name: "Review & Send", exact: true }).click();
       await failNext(page, "/api/admin/revenue-os/conversations/reply");
@@ -196,15 +201,22 @@ try {
       assert.equal(await reply.inputValue(), "");
       await page.reload();
       await ready(page, "northline-roofing");
+      await page
+        .getByRole("button", { name: /Lena Walsh/ })
+        .first()
+        .click();
       await page.getByText(text, { exact: true }).first().waitFor();
       await stable(page);
       await page.screenshot({ path: `${output}/inquiry-${width}.png` });
+      await page.getByText(text, { exact: true }).first().scrollIntoViewIfNeeded();
+      await stable(page);
+      await page.screenshot({ path: `${output}/inquiry-result-${width}.png` });
       console.log(`Inquiry ${width}: failed send retained draft, confirmed result survived reload`);
 
       // Start client work from a won engagement through its native approval and exact task.
       await goto("ledgerstone-advisory", "client-onboarding");
       await page.getByRole("combobox", { name: "Won opportunity" }).selectOption({ index: 1 });
-      const taskTitle = `Owner kickoff handoff ${width}`;
+      const taskTitle = "Confirm Castillo’s year-end kickoff";
       await page.getByLabel("Task 1", { exact: true }).fill(taskTitle);
       await failNext(page, "/api/admin/plugins/workflow");
       await page.getByRole("button", { name: "Review workflow", exact: true }).click();
@@ -222,6 +234,39 @@ try {
       });
       await stable(page);
       await page.screenshot({ path: `${output}/onboarding-${width}.png` });
+      await page
+        .getByText("Recorded task results", { exact: true })
+        .first()
+        .evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
+      await stable(page);
+      writeFileSync(
+        `${output}/onboarding-result-${width}.json`,
+        JSON.stringify(
+          await page
+            .getByText("Recorded task results", { exact: true })
+            .first()
+            .evaluate((element) => {
+              const ancestors = [];
+              for (let current = element; current; current = current.parentElement) {
+                const style = getComputedStyle(current);
+                const rect = current.getBoundingClientRect();
+                ancestors.push({
+                  tag: current.tagName,
+                  className: current.className,
+                  top: rect.top,
+                  bottom: rect.bottom,
+                  opacity: style.opacity,
+                  visibility: style.visibility,
+                  transform: style.transform,
+                });
+              }
+              return ancestors;
+            }),
+          null,
+          2,
+        ),
+      );
+      await page.screenshot({ path: `${output}/onboarding-result-${width}.png` });
       const tasks = await page.evaluate(
         async () => (await (await fetch("/api/admin/tasks?owner=team&status=all")).json()).tasks,
       );
@@ -289,6 +334,9 @@ try {
       assert.notEqual(invoice.status, "paid", "Sending cannot imply payment");
       await stable(page);
       await page.screenshot({ path: `${output}/invoice-${width}.png` });
+      await page.locator(`[data-action-id="${actionId}"]`).scrollIntoViewIfNeeded();
+      await stable(page);
+      await page.screenshot({ path: `${output}/invoice-result-${width}.png` });
       await goto("superdebate", "today");
       await page.locator('[data-business-review="money"]').waitFor();
       await page.getByRole("button", { name: "Refresh Today", exact: true }).click();

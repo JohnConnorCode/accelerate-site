@@ -266,7 +266,7 @@ export default function InvoicingPage() {
         }
         subtitle={
           creating
-            ? "Choose a customer, add line items, and review the draft before approving it."
+            ? "Draft creation and sending require separate approvals."
             : "Find customer invoices, track payments, and create a new invoice."
         }
         actions={

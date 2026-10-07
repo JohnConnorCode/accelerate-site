@@ -107,7 +107,7 @@ try {
       if (!mobile) {
         await page.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
         assert.equal(
-          await page.locator('[data-admin-sidebar] a[aria-label="Invoices"]').count(),
+          await page.locator('[data-admin-sidebar] a[aria-label="Billing & payments"]').count(),
           1,
         );
         await page.getByRole("button", { name: "Expand sidebar", exact: true }).click();
