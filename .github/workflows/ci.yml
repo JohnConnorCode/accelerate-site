@@ -236,6 +236,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning
+          PATH="$(pg_config --bindir):$PATH" npm run test:learning-proposals:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:ai-readiness
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace

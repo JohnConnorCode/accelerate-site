@@ -1,7 +1,7 @@
 ---
 title: "Founder authority and tenant membership"
 description: "Platform administration is the ADMIN_EMAIL identity; tenant operators need an active membership in an active workspace."
-updated: "2026-09-27"
+updated: "2026-10-07"
 ---
 
 **You need:** a connected workspace from [Install a connected workspace](/docs/self-hosting). This page is about who can do what after sign-in. It does not grant extra access.
@@ -48,6 +48,10 @@ Founder actions on an active workspace: **Enter workspace** (opens `/t/\{slug\}/
 Suspending the bootstrap `accelerate` workspace is blocked on the page. Archiving retains rows; it does not delete receipts.
 
 ## Typical failures
+
+When upgrading a connected installation, have your coding agent run the reviewed migration catalog with `npm run db:migrate:all` before releasing application changes. The Learning Inbox privilege repair (`20261007200138_learning_proposals_least_privilege.sql`) removes anonymous access and unused table-management powers, while signed-in members keep their proposal actions within their workspace. Existing proposal history and trusted server operations remain intact.
+
+Your agent can run `npm run test:learning-proposals:postgres` to check the repair in disposable local PostgreSQL. The test creates its own database and verifies normal member actions, blocked access and preserved records on PostgreSQL 15 or later. Keep hosted migration application and application deployment as separate, reviewed steps; resolve the sign-in failures below through configuration and membership rather than broad database grants.
 
 - Sign-in works, every admin API returns 403 **Explicit tenant context required**: the request has no workspace slug. Use **Enter workspace** from Tenant operations, or sign in again so the login response can set `x-workspace-path`.
 - 403 **Tenant access forbidden**: the workspace is not `active`, or your membership is missing, invited, or revoked. A founder activates the workspace and invites the admin email.
