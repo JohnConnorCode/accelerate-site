@@ -7,6 +7,28 @@ import test, { type TestContext } from "node:test";
 import { inspectDocs, type DocsInspectionInput } from "./verify-docs";
 import { hasLiveAppRoute } from "./lib/prerender-routes.mjs";
 import type { DocsSection } from "../src/content/docs/manifest";
+import { docsFigureSource } from "../src/lib/docs";
+
+test("replacing a guide screenshot changes its optimizer key while preserving explicit sources", (t) => {
+  const root = mkdtempSync(path.join(tmpdir(), "docs-image-version-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(path.join(root, "images/docs"), { recursive: true });
+  const file = path.join(root, "images/docs/current.png");
+  const src = "/images/docs/current.png";
+  writeFileSync(file, "previous workspace capture");
+  const previous = docsFigureSource(src, root);
+  assert.equal(docsFigureSource(src, root), previous);
+  writeFileSync(file, "updated workspace capture");
+  const updated = docsFigureSource(src, root);
+  assert.notEqual(updated, previous);
+  assert.equal(new URL(updated, "https://docs.example").pathname, src);
+  for (const explicit of [
+    "https://images.example/capture.png",
+    `${src}?v=explicit`,
+    "/images/logo.png",
+  ])
+    assert.equal(docsFigureSource(explicit, root), explicit);
+});
 
 function fixture(t: TestContext) {
   const docsDir = mkdtempSync(path.join(tmpdir(), "docs-coverage-"));

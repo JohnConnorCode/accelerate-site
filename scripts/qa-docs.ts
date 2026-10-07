@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { expect } from "playwright/test";
@@ -6,6 +7,7 @@ import { navItems, footerLinks } from "../src/content/navigation";
 
 const base = process.env.DOCS_QA_URL ?? "http://localhost:3025";
 const output = process.env.DOCS_QA_OUTPUT ?? "/tmp/accelerate-docs-takeover-qa";
+const figureVersions = new Map<string, string>();
 const routes = [
   "/docs",
   "/docs/recipes",
@@ -104,6 +106,44 @@ async function main() {
           if (route === "/docs/delivery/resources") {
             await expect(page.locator("main")).toContainText("loaded page of downloads");
           }
+          for (const [figureIndex, figure] of (
+            await page.locator('main figure:has(a[href^="/images/docs/"])').all()
+          ).entries()) {
+            const link = figure.locator("a").first();
+            const href = await link.getAttribute("href");
+            if (!href?.startsWith("/images/docs/")) continue;
+            let revision = figureVersions.get(href);
+            if (!revision) {
+              const source = await page.request.get(new URL(href, base).href);
+              assert.equal(source.status(), 200);
+              revision = createHash("sha256")
+                .update(await source.body())
+                .digest("hex")
+                .slice(0, 12);
+              figureVersions.set(href, revision);
+            }
+            const image = figure.locator("img");
+            const imageSrc = await image.getAttribute("src");
+            assert.ok(imageSrc);
+            const optimized = new URL(imageSrc, base);
+            const original = new URL(optimized.searchParams.get("url") ?? imageSrc, base);
+            assert.equal(original.pathname, href);
+            assert.equal(
+              original.searchParams.get("v"),
+              revision,
+              `${route}: stale figure cache key`,
+            );
+            await figure.scrollIntoViewIfNeeded();
+            await page.waitForFunction(
+              (image) =>
+                image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+              await image.elementHandle(),
+            );
+            await page.screenshot({
+              path: `${output}/${viewport.width}-figure-${route.replaceAll("/", "_")}-${figureIndex}.png`,
+            });
+          }
+          await page.locator("main h1").scrollIntoViewIfNeeded();
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
           });
