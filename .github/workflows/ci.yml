@@ -585,6 +585,20 @@ jobs:
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
+      - name: Retain focused contributor guide evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: contributor-guide-evidence
+          path: |
+            /tmp/accelerate-docs-takeover-qa/*-_docs_extend_first-change.png
+            /tmp/accelerate-docs-takeover-qa/*-_docs_extend_ai-authoring.png
+            /tmp/accelerate-docs-takeover-qa/*-repository-recovery.png
+            /tmp/accelerate-docs-takeover-qa/*-agent-workflow-review.png
+            /tmp/accelerate-docs-takeover-qa/*-open-source-agent-start.png
+            /tmp/accelerate-docs-takeover-qa/*-open-source-agent-assignment.png
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

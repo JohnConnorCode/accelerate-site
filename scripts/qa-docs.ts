@@ -128,6 +128,12 @@ async function main() {
             await expect(page.locator("main")).toContainText(
               "Creative Review is a proposed extension",
             );
+            await page
+              .getByRole("heading", { name: "Review what work it saves", exact: true })
+              .scrollIntoViewIfNeeded();
+            await page.screenshot({
+              path: `${output}/${viewport.width}-agent-workflow-review.png`,
+            });
           }
           if (route === "/docs/sources/leads") {
             const recovery = page.getByRole("heading", {
@@ -367,6 +373,25 @@ async function main() {
           ["/open-source", "Start with your coding agent", "/docs/extend/first-change"],
         ] as const) {
           await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
+          if (route === "/open-source") {
+            await page.screenshot({ path: `${output}/${width}-open-source-agent-start.png` });
+            await page
+              .getByRole("heading", { name: "Ask your agent to get it running.", exact: true })
+              .scrollIntoViewIfNeeded();
+            const setupCommands = page.locator("summary", {
+              hasText: "Local setup commands for your agent",
+            });
+            await setupCommands.focus();
+            await page.keyboard.press("Enter");
+            await expect(setupCommands.locator("..")).toHaveAttribute("open", "");
+            assert.equal(
+              await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+              false,
+              `Agent assignment overflows at ${width}`,
+            );
+            await page.screenshot({ path: `${output}/${width}-open-source-agent-assignment.png` });
+            await page.keyboard.press("Enter");
+          }
           await page.locator("main").getByRole("link", { name: label, exact: true }).click();
           await page.waitForURL(`**${destination}`);
         }
