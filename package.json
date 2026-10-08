@@ -363,7 +363,10 @@
     "test:conversational-agent": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-conversational-agent.ts && node scripts/test-conversational-agent-postgres.mjs",
     "test:conversational-agent:unit": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-conversational-agent.ts",
     "test:conversational-agent:postgres": "node scripts/test-conversational-agent-postgres.mjs",
-    "qa:conversational-agent": "node scripts/qa-conversational-agent.mjs"
+    "qa:conversational-agent": "node scripts/qa-conversational-agent.mjs",
+    "test:workspace-operations": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-workspace-architect-generated-operations.ts",
+    "test:workspace-operations-postgres": "node scripts/test-workspace-operations-postgres.mjs",
+    "qa:workspace-operations": "node scripts/qa-workspace-operations.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -63,6 +63,8 @@ export const TENANT_SCOPED_TABLES = [
   "workspace_blueprints",
   "workspace_blueprint_versions",
   "workspace_blueprint_applies",
+  "workspace_generated_operations",
+  "workspace_generated_operation_requests",
   "workspace_capabilities",
   "coworkers",
   "claims",
@@ -566,6 +568,23 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["tenant_id", "id", "blueprint_id", "version", "request_key", "receipt", "created_at"],
   },
   {
+    table: "workspace_generated_operations",
+    columns: [
+      "tenant_id",
+      "id",
+      "blueprint_id",
+      "version",
+      "request_key",
+      "receipt",
+      "created_at",
+      "audit_id",
+    ],
+  },
+  {
+    table: "workspace_generated_operation_requests",
+    columns: ["tenant_id", "request_key", "operation_id"],
+  },
+  {
     table: "ai_conversation_sources",
     columns: [
       "id",
@@ -870,6 +889,10 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_workspace_blueprint_versions_history",
   "idx_workspace_blueprint_applies_replay",
   "idx_workspace_blueprint_applies_blueprint",
+  "idx_workspace_generated_operations_replay",
+  "idx_workspace_generated_operations_version",
+  "workspace_generation_requests_operation_idx",
+  "workspace_generation_audit_idx",
   "idx_ai_messages_tenant_client_replay",
   "idx_ai_messages_conversation_order",
   "idx_agent_runs_conversation",
@@ -890,6 +913,10 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
+  {
+    name: "public.generate_workspace_operations(uuid,uuid,integer,text,text,jsonb,jsonb)",
+    migration: "migrations/20261008183625_workspace_operations_atomic.sql",
+  },
   {
     name: "public.manage_workspace_mcp_delegation(text,uuid,text,text,text,uuid)",
     migration: "migrations/20261001-workspace-mcp-oauth.sql",

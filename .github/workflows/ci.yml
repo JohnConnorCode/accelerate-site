@@ -235,6 +235,8 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
+          npm run test:workspace-operations
+          PATH="$(pg_config --bindir):$PATH" npm run test:workspace-operations-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning
           PATH="$(pg_config --bindir):$PATH" npm run test:ai-readiness
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
@@ -265,7 +267,7 @@ jobs:
 
       - name: Upload reference journey evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reference-business-journeys
           path: /tmp/accelerate-reference-journeys-*/
@@ -528,6 +530,7 @@ jobs:
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
             npx tsx scripts/qa-site-studio.ts
+            npm run qa:workspace-operations
             node scripts/qa-campaign-duplicate.mjs
             node scripts/qa-delivery-handoff.mjs
             node scripts/qa-leads-bulk.mjs
@@ -625,6 +628,15 @@ jobs:
             /tmp/accelerate-theme-persistence/
             /tmp/accelerate-import-source-review/
             /tmp/accelerate-policy-browser/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Retain operating setup browser evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: workspace-operations-evidence
+          path: /tmp/accelerate-workspace-operations-qa/
           if-no-files-found: ignore
           retention-days: 7
 

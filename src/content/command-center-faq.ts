@@ -137,6 +137,11 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes. The open-source platform can be extended with new record types, lifecycles, queues, integrations, AI tools, and working screens that reuse your existing customer identity, permissions, and history. Settings cover the supported configuration today, and deeper changes use code. The public customization and extension guides explain both paths.",
   },
   {
+    question: "How can an agent help set up my business workflow?",
+    answer:
+      "Use Architect to describe the work and Blueprints to review its proposed setup. Save an approved version to add available Pipeline or Content columns and retain the remaining navigation, view, workflow and Coworker recommendations. Missing capabilities become custom development briefs. Claude Code, Codex or another coding agent can use those briefs and the extension guide to build on your existing records, permissions and review process, saving your team from specifying the same workflow again for each screen. The in-app save records recommendations; enabling their execution follows the existing configuration or development path.",
+  },
+  {
     question: "Can AI create Apps inside Command Center?",
     answer:
       "That is a planned capability. The intended flow is to describe an App, preview an isolated draft, inspect its code and requested access, verify it, and publish a version that can be updated or rolled back. Today a coding assistant can build source changes through the repository's development and review workflow; the general-purpose in-app builder and development terminal are not yet available.",
@@ -207,6 +212,7 @@ export const productFaqs = commandCenterFaqs.filter((faq) =>
     "Can Ask AI check the content calendar?",
     "Can we build a completely different App or interface?",
     "Can AI create Apps inside Command Center?",
+    "How can an agent help set up my business workflow?",
     "Where does our data live?",
     "How do we control what AI can do?",
     "What does it cost, and how long does it take?",

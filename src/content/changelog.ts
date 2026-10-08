@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "blueprint-operating-setup",
+    slug: "blueprint-operating-setup",
+    title: "Save a reviewed Blueprint's operating setup",
+    description:
+      "Blueprint review now brings available board columns and the remaining setup recommendations together. Save an approved version to add columns to Pipeline or Content, while navigation, views, workflows and Coworkers stay recorded recommendations for review. The saved result includes its audit record, retries reuse the same result, and earlier unverified saves show a maintainer recovery step. Claude Code, Codex or another coding agent can use the custom development briefs with the extension guide to build the remaining capabilities.",
+    category: "improvement",
+    publishedAt: "2026-10-08",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

@@ -179,7 +179,10 @@ export function CommandCenterPageContent() {
             </div>
             <p className={styles.lede}>
               See which features and plugins work together, what to configure and how to check the
-              result. Each recipe includes an adaptation path for builders.
+              result. Each recipe includes an adaptation path for your coding agent. Architect turns
+              a business description into a Blueprint you can review, with available board columns
+              and saved recommendations for the remaining setup. Claude Code, Codex or another
+              coding agent can build its custom development briefs on the existing platform.
             </p>
           </div>
           <RecipeCards

@@ -64,6 +64,8 @@ import {
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
 import { DEMO_BLUEPRINT_DETAIL } from "./blueprint-fixture";
+import type { GeneratedOperationsReceipt } from "@/lib/revenue-os/workspace-architect-generated-operations";
+import type { KanbanColumnRecord } from "@/lib/kanban/types";
 import {
   REVENUE_OS_MODULES,
   isAiToolModuleEnabled,
@@ -140,6 +142,10 @@ type DemoSubscriptionsState = {
   archivedPlanIds?: string[];
 };
 export type DemoState = {
+  blueprintApprovedVersion?: number;
+  blueprintGenerations?: Record<string, GeneratedOperationsReceipt>;
+  blueprintGenerationRequests?: Record<string, number>;
+  generatedKanbanColumns?: Record<string, KanbanColumnRecord[]>;
   website?: DemoWebsiteState;
   todayViews?: TodayViews;
   todayViewReceipts?: Record<string, { fingerprint: string; result: unknown }>;
@@ -3625,14 +3631,17 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const board = url.searchParams.get("board_key");
       if (!isKanbanBoardKey(board)) return jsonResponse({ error: "Invalid board" }, 400);
       return jsonResponse({
-        columns: KANBAN_DEFAULT_COLUMNS[board].map((column, index) => ({
-          ...column,
-          id: `demo-column-${board}-${index}`,
-          board_key: board,
-          tenant_id: null,
-          created_at: ago(1),
-          updated_at: ago(1),
-        })),
+        columns: [
+          ...KANBAN_DEFAULT_COLUMNS[board].map((column, index) => ({
+            ...column,
+            id: `demo-column-${board}-${index}`,
+            board_key: board,
+            tenant_id: null,
+            created_at: ago(1),
+            updated_at: ago(1),
+          })),
+          ...(state.generatedKanbanColumns?.[board] ?? []),
+        ],
       });
     }
     if (path === "/api/admin/blueprints") {
@@ -3707,14 +3716,111 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         approvals: [],
         blocked: [],
       };
-      return jsonResponse(seed);
+      seed.status = state.blueprintApprovedVersion === seed.version ? "approved" : "draft";
+      const receipt = state.blueprintGenerations?.[String(seed.version)] ?? null;
+      return jsonResponse({
+        ...seed,
+        generation: { state: receipt ? "saved" : "not_generated", receipt },
+      });
     }
     const blueprintApprove = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/approve$/i);
     if (method === "POST" && blueprintApprove) {
       if (blueprintApprove[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
         return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
       }
+      const input = body as { version?: unknown };
+      if (input.version !== (state.blueprintEdits?.version ?? DEMO_BLUEPRINT_DETAIL.version)) {
+        return jsonResponse({ error: "Blueprint version changed. Reload before approving." }, 409);
+      }
+      state.blueprintApprovedVersion = input.version as number;
+      saveState(scenarioId, state);
       return jsonResponse({ status: "approved", simulated: true });
+    }
+    const blueprintGenerate = path.match(
+      /^\/api\/admin\/blueprints\/([0-9a-f-]+)\/generate-operations$/i,
+    );
+    if (method === "POST" && blueprintGenerate) {
+      if (blueprintGenerate[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
+        return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
+      }
+      const input = body as { version?: unknown; requestKey?: unknown };
+      const version = state.blueprintEdits?.version ?? DEMO_BLUEPRINT_DETAIL.version;
+      if (input.version !== version || state.blueprintApprovedVersion !== version) {
+        return jsonResponse(
+          { error: "The approved Blueprint changed. Reload and review its current version." },
+          409,
+        );
+      }
+      if (
+        typeof input.requestKey !== "string" ||
+        !input.requestKey.trim() ||
+        input.requestKey.length > 180
+      ) {
+        return jsonResponse({ error: "A valid request key is required" }, 400);
+      }
+      const boundVersion = state.blueprintGenerationRequests?.[input.requestKey];
+      if (boundVersion !== undefined && boundVersion !== version) {
+        return jsonResponse(
+          { error: "This request belongs to a different Blueprint version." },
+          409,
+        );
+      }
+      state.blueprintGenerations ??= {};
+      state.blueprintGenerationRequests ??= {};
+      const existing = state.blueprintGenerations[String(version)];
+      const operations = DEMO_BLUEPRINT_DETAIL.operations!;
+      const receipt: GeneratedOperationsReceipt = existing ?? {
+        auditId: crypto.randomUUID(),
+        blueprintId: DEMO_BLUEPRINT_DETAIL.blueprintId,
+        version,
+        navigation: operations.navigation,
+        views: operations.views,
+        customAppBriefs: operations.customAppBriefs,
+        boards: operations.boards.map((board) => ({ ...board, columnsCreated: [] })),
+        workflows: operations.workflows.map((workflow) => ({ ...workflow, actionId: null })),
+        coworkers: operations.coworkers.map((coworker) => ({ ...coworker, actionId: null })),
+      };
+      state.generatedKanbanColumns ??= {};
+      for (const board of operations.boards) {
+        if (existing || board.status !== "ready" || !board.targetBoardKey) continue;
+        const columns = state.generatedKanbanColumns[board.targetBoardKey] ?? [];
+        const defaults = KANBAN_DEFAULT_COLUMNS[board.targetBoardKey];
+        const created: string[] = [];
+        let sortOrder = Math.max(
+          0,
+          ...defaults.map((column) => column.sort_order),
+          ...columns.map((column) => column.sort_order),
+        );
+        for (const column of board.columns) {
+          if ([...defaults, ...columns].some((row) => row.column_key === column.columnKey))
+            continue;
+          sortOrder += 1000;
+          const now = new Date().toISOString();
+          columns.push({
+            id: crypto.randomUUID(),
+            board_key: board.targetBoardKey,
+            tenant_id: null,
+            column_key: column.columnKey,
+            label: column.label,
+            color: null,
+            sort_order: sortOrder,
+            is_default: false,
+            metadata: {
+              generatedFrom: "workspace_blueprint",
+              lifecycleStates: column.lifecycleStates,
+            },
+            created_at: now,
+            updated_at: now,
+          });
+          created.push(column.columnKey);
+        }
+        state.generatedKanbanColumns[board.targetBoardKey] = columns;
+        receipt.boards.find((item) => item.ref === board.ref)!.columnsCreated = created;
+      }
+      state.blueprintGenerations[String(version)] = receipt;
+      state.blueprintGenerationRequests[input.requestKey] = version;
+      saveState(scenarioId, state);
+      return jsonResponse({ replayed: Boolean(existing), receipt, simulated: true });
     }
     const blueprintApply = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/apply$/i);
     if (method === "POST" && blueprintApply) {
