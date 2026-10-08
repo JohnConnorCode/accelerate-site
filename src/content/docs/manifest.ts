@@ -630,15 +630,15 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["extend", "first-change"],
-        title: "Your first developer change",
+        title: "Your first agent-built change",
         description:
-          "Run the demo, learn where code lives, and make one small, safe extension change.",
+          "Ask a coding assistant to set up the repository, change the example module and show verified results.",
       },
       {
         slug: ["extend", "modules"],
         title: "Add a module",
         description:
-          "Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed.",
+          "Register a workspace feature with its pages, operator guide and shared availability controls.",
       },
       {
         slug: ["extend", "adapters"],

@@ -177,9 +177,9 @@ For coding agents and humans: add a module, an integration adapter, a plugin, or
 - [Build an App around your business process](https://www.acceleratewith.us/docs/extend/apps) (updated 2026-09-09): Choose shared primitives, custom domain work, or a dedicated workspace, without duplicating state.
 - [Design custom work without duplicate state](https://www.acceleratewith.us/docs/extend/work-primitives) (updated 2026-09-19): Give an App its own lifecycle, and link tasks, decisions, and history back to the real record.
 - [Build a custom operating screen](https://www.acceleratewith.us/docs/extend/custom-ui) (updated 2026-09-09): Build the exact screen your business needs, while keeping the shared services underneath it.
-- [Build Apps with a coding assistant](https://www.acceleratewith.us/docs/extend/ai-authoring) (updated 2026-09-09): A concrete brief to hand a coding assistant today, plus where the in-app builder is headed.
-- [Your first developer change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-09-19): Run the demo, learn where code lives, and make one small, safe extension change.
-- [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-09-19): Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed.
+- [Build Apps with a coding assistant](https://www.acceleratewith.us/docs/extend/ai-authoring) (updated 2026-10-07): A concrete brief to hand a coding assistant today, plus where the in-app builder is headed.
+- [Your first agent-built change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-10-07): Ask a coding assistant to set up the repository, change the example module and show verified results.
+- [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-10-07): Register a workspace feature with its pages, operator guide and shared availability controls.
 - [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-19): Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records.
 - [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-19): Register a plugin manifest with tools and triggers that still route through real governance.
 - [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-19): Register a schema, an impact tier, and a service boundary; a mutating tool always proposes.

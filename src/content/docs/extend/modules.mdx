@@ -1,10 +1,12 @@
 ---
 title: "Add a module"
-description: "Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed."
-updated: "2026-09-19"
+description: "Register a workspace feature with its pages, operator guide and shared availability controls."
+updated: "2026-10-07"
 ---
 
-When a business needs another area of functionality, register a module so the workspace can discover it and control its availability. Add a manifest under `extensions/` and implement the routes it declares, keeping the existing core module definitions intact.
+When your team needs an equipment register or a specialist review queue, a module gives that work a place in the workspace. Its manifest, a file describing the feature, connects navigation, pages and availability controls so your coding agent can reuse the existing workspace structure.
+
+Give Codex or Claude Code the [business brief](/docs/extend/ai-authoring) and ask it to follow the registration steps below. Start with the [Inventory example](/docs/plugins/example-inventory) when learning the pattern, then add the behavior your business needs through the shared services.
 
 ## Manifest
 
@@ -17,7 +19,7 @@ Create `extensions/<your-module>.module.json`:
   "name": "Inventory",
   "description": "Stock levels, reorder points, and supplier lead times.",
   "category": "delivery",
-  "defaultEnabled": true,
+  "defaultEnabled": false,
   "navLinks": [
     {
       "id": "acme-inventory",
@@ -30,11 +32,33 @@ Create `extensions/<your-module>.module.json`:
   ],
   "routes": ["/admin/acme-inventory"],
   "aiToolNames": [],
-  "docsUrl": "/docs/delivery"
+  "docsUrl": "/docs/plugins/acme-inventory"
 }
 ```
 
-Then create `src/app/admin/acme-inventory/page.tsx`, run `npm run build:extensions`, and commit both the manifest and `src/lib/revenue-os/extension-modules.generated.ts`.
+This example names a proposed module. To deliver it, the agent creates its page at `src/app/admin/acme-inventory/page.tsx` and implements the requested behavior using existing business services.
+
+## Include the operator's first task
+
+Create `plugins/acme-inventory/README.md` with a worked example, required access, settings, costs, permissions, recovery and source references. The [plugin documentation contract](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contracts/PLUGIN-DOCUMENTATION.md) explains the required delivery so another person can use and extend the result.
+
+Add the public task guide at `src/content/docs/plugins/acme-inventory.mdx` and register its matching title, description and route in `src/content/docs/manifest.ts`. The example's `docsUrl` then opens this module's guide, so a workspace owner can find its instructions from the module itself.
+
+## Generate and verify registration
+
+Run these checks after adding the source and guides:
+
+```bash
+npm run build:extensions
+npm run verify:extensions
+npm run verify:module-contract
+npm run docs:llms
+npm run verify:docs
+npm run docs:llms:check
+git diff --check
+```
+
+The builder validates the manifest and generates the shared module registry. Commit the implementation, manifest, guides, generated docs index and `src/lib/revenue-os/extension-modules.generated.ts` together, with the feature's required behavior checks.
 
 ## Contribute existing App records to Today
 
@@ -59,10 +83,10 @@ execute arbitrary code, fetch providers or define a new lifecycle by itself.
 - `docsUrl` is a `/docs/...` path or an `https://` URL. Core and optional first-party modules must resolve to a live guide.
 - `settings` cannot look like secrets. Credentials go through an [adapter](/docs/extend/adapters).
 
-## What a manifest cannot do
+## What to check
 
-It cannot execute code, override a core module, ship an icon component, or add a schema change. Schema changes are ordered files in `migrations/`. Nothing in `extensions/` is executed. That is why an operator can read exactly what a module can reach before enabling it.
+Keep business implementation in source files and ordered schema changes in `migrations/`. A manifest describes registration; it does not create stock storage, reorder automation or new access rights. Leave a new module disabled by default until its behavior and permission checks pass in an isolated test workspace.
 
 For module-owned API routes, use `requireAdminForModule("your-module-id")` in every handler and register the directories in `MODULE_API_DIRECTORIES` (`scripts/verify-module-route-guards.mjs`) so the verifier checks that boundary. Adding a directory to the verifier alone does not enforce runtime authorization.
 
-New to the repository? Start with [your first developer change](/docs/extend/first-change) before adding a write path.
+New to the repository? Start with [your first agent-built change](/docs/extend/first-change) before adding a write path.
