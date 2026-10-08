@@ -17,7 +17,7 @@ specified in [the northstar](../NORTHSTAR.md#29-ai-generated-extensions).
 ## Start from a business brief
 
 Codex or Claude Code can set up the repository and implement an extension from
-the [coding-assistant brief](/docs/extend/ai-authoring). Supply the business
+the [coding-assistant brief](https://www.acceleratewith.us/docs/extend/ai-authoring). Supply the business
 process, example inputs, expected saved result and who may perform each action.
 Ask the agent to read `docs/NORTHSTAR.md`, `AGENTS.md`, this guide and
 `docs/contracts/PLUGIN-DOCUMENTATION.md`, then reuse the existing services.
