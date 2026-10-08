@@ -61,6 +61,10 @@ try {
             .getByRole("heading", { name: destination.label, exact: true })
             .first()
             .waitFor();
+          await page.waitForFunction(
+            (title) => document.title.startsWith(title),
+            destination.label,
+          );
           assert(
             (await page.title()).startsWith(destination.label),
             "document title differs from root heading",
