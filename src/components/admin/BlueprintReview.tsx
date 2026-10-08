@@ -242,7 +242,7 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
       setNotice(
         result.replayed
           ? "Operating setup for this version is already saved."
-          : `Operating setup saved. Added ${result.receipt.boards.reduce((count, board) => count + board.columnsCreated.length, 0)} board columns.`,
+          : `Operating setup saved. Board columns added: ${result.receipt.boards.reduce((count, board) => count + board.columnsCreated.length, 0)}.`,
       );
       await cache.invalidateQueries({ queryKey: ["admin", "blueprint", blueprintId] });
     } catch (generateError) {
@@ -270,6 +270,14 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
   const detail = query.data;
   const gates = detail.review.gates;
   const operations = detail.generation?.receipt ?? detail.operations;
+  const customAppBriefs = [
+    ...new Map(
+      (operations?.customAppBriefs ?? []).map((brief) => [
+        JSON.stringify([brief.title, brief.missingKey, brief.why, brief.boundary]),
+        brief,
+      ]),
+    ).values(),
+  ];
 
   return (
     <div>
@@ -390,12 +398,12 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
           </p>
           {detail.generation?.state === "saved" && (
             <p role="status" className="mb-3 text-xs">
-              Setup saved with an audit record.{" "}
+              Setup saved with an audit record. Board columns added:{" "}
               {detail.generation.receipt?.boards.reduce(
                 (count, board) => count + board.columnsCreated.length,
                 0,
-              )}{" "}
-              columns were added when this version was saved.
+              )}
+              .
             </p>
           )}
           {detail.generation?.state === "reconciliation_required" && (
@@ -451,13 +459,13 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
               </li>
             ))}
           </ul>
-          {operations.customAppBriefs.length > 0 && (
+          {customAppBriefs.length > 0 && (
             <div className="mt-3">
               <h3 className="mb-2 text-xs font-semibold">
                 Custom App Briefs (unsupported requirements)
               </h3>
               <ul className="space-y-2 text-xs">
-                {operations.customAppBriefs.map((brief) => (
+                {customAppBriefs.map((brief) => (
                   <li key={brief.id}>
                     {brief.title} — {brief.why}
                   </li>

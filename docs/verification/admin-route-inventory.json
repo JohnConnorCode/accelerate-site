@@ -212,7 +212,7 @@
     "src/components/admin/ArchitectEvidencePanel.tsx": "5d3763ebfc64b6e5a0c301d88c96979d0bf66be387b292382fbf5bcea0ea300e",
     "src/components/admin/ArchitectUnderstandingPanel.tsx": "3cc664230ebb00d1d31554bb537d8db12a83969cdd2df1f53c95d97db0d17366",
     "src/components/admin/AttentionList.tsx": "ed7468bc4c78b694e8a333db014b3ff5981d405db7879bf868e1ac18f50e843a",
-    "src/components/admin/BlueprintReview.tsx": "9d5ef229e6adbd5c50b0e53229a484749e58491eb1d95386eb8f614819d9a51e",
+    "src/components/admin/BlueprintReview.tsx": "11e76ce7b08a36e38b0df7b9060970d89c583f1326293352aa8f3aed06bf698a",
     "src/components/admin/BlueprintsWorkspace.tsx": "253c805e70938cf8b5c0bcdbeb58776b9e894175531baf66c0fa94c3824f2179",
     "src/components/admin/CanonicalSourceLink.tsx": "edc89be4aaafce6a7777ac6212687311ca14c15d0e784c9087bd46643875c04a",
     "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
