@@ -22,8 +22,14 @@ export async function verifyAIReading({ browser, base, output }) {
           `${base}/demo/command-center/superdebate/${mode === "page" ? "ai" : "today"}`,
           { timeout: 120000 },
         );
-        if (mode === "panel")
-          await page.evaluate(() => window.dispatchEvent(new Event("admin:open-ai")));
+        if (mode === "panel") {
+          await page.locator("[data-today-workspace]").waitFor();
+          await page.getByRole("button", { name: "Open More", exact: true }).click();
+          await page
+            .getByRole("dialog", { name: "Admin navigation", exact: true })
+            .getByRole("button", { name: "Ask AI", exact: true })
+            .click();
+        }
         const root =
           mode === "panel"
             ? page.getByRole("dialog", { name: "Ask AI", exact: true })
