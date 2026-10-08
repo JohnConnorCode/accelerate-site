@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
 import {
   Archive,
+  ArrowDown,
   Bot,
   Check,
   CircleAlert,
@@ -233,10 +234,54 @@ function MessageActions({ message, onRetry }: { message: AdminAIMessage; onRetry
 export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
   const ai = useAdminAI();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const followingRef = useRef(true);
+  const lastUserRef = useRef<string | undefined>(undefined);
+  const latestUserId = ai.messages.filter((message) => message.role === "user").at(-1)?.id;
+  const readingKey = `${ai.activeConversationId ?? "new"}:${latestUserId ?? "empty"}`;
+  const [readingPosition, setReadingPosition] = useState({ key: readingKey, away: false });
+  const awayFromLatest = readingPosition.key === readingKey && readingPosition.away;
+
   useEffect(() => {
-    if (!ai.messages.length && !ai.tools.length && !ai.running) return;
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [ai.messages, ai.tools, ai.running]);
+    followingRef.current = true;
+  }, [ai.activeConversationId, ai.loadingHistory]);
+
+  useEffect(() => {
+    if (latestUserId !== lastUserRef.current) {
+      lastUserRef.current = latestUserId;
+      followingRef.current = true;
+    }
+    if (followingRef.current && scrollRef.current)
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [
+    ai.messages,
+    ai.tools,
+    ai.running,
+    ai.proposals,
+    ai.workProgress,
+    ai.loadingHistory,
+    latestUserId,
+  ]);
+
+  useEffect(() => {
+    const scroll = scrollRef.current;
+    const content = contentRef.current;
+    if (!scroll || !content) return;
+    const observer = new ResizeObserver(() => {
+      if (followingRef.current) scroll.scrollTop = scroll.scrollHeight;
+    });
+    observer.observe(scroll);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const composer = composerRef.current;
+    if (!composer) return;
+    composer.style.height = "0px";
+    composer.style.height = `${Math.min(composer.scrollHeight, 128)}px`;
+  }, [ai.draft]);
   const submit = (event: FormEvent) => {
     event.preventDefault();
     void ai.send();
@@ -377,250 +422,282 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
       {ai.purpose === "architect" && <ArchitectEvidencePanel />}
       {ai.purpose === "architect" && <ArchitectUnderstandingPanel />}
       {mobileConversationBar}
-      <div
-        ref={scrollRef}
-        className={cn(
-          "flex-1 overflow-y-auto",
-          mode === "page" ? "min-h-0 px-3 py-4 sm:px-6" : "min-h-0 px-4 py-4",
-        )}
-        role="log"
-        aria-label="AI conversation"
-      >
-        {ai.loadingHistory && (
-          <div className="grid min-h-48 place-items-center text-xs text-[var(--admin-muted)]">
-            <Loader2 className="mb-2 size-5 animate-spin" />
-            Loading conversation
-          </div>
-        )}
-        {!ai.loadingHistory && ai.messages.length === 0 && (
-          <div className="mx-auto flex min-h-full max-w-xl flex-col items-center justify-center py-8 text-center">
-            <span className="grid size-12 place-items-center rounded-2xl bg-[var(--admin-ink)] text-[var(--admin-surface)]">
-              {ai.purpose === "architect" ? (
-                <NotebookPen className="size-5" />
-              ) : (
-                <Bot className="size-5" />
-              )}
-            </span>
-            <h2 className="mt-4 text-xl font-semibold tracking-[-0.035em] text-[var(--admin-ink)]">
-              {ai.purpose === "architect" ? "Teach the workspace" : "Ask the operating system"}
-            </h2>
-            <p className="admin-copy mt-2 max-w-md text-sm">
-              {ai.purpose === "architect"
-                ? "This session keeps chat, attachments and scoped sources together. Reloading restores the same evidence. Sources stay inspectable and are never run as instructions."
-                : "It reads bounded live records, shows its work, and stages consequential changes for your approval."}
-            </p>
-            <div className="mt-5 grid w-full gap-2 sm:grid-cols-3">
-              {(ai.purpose === "architect" ? architectStarters : starters).map((starter) => (
-                <button
-                  key={starter.label}
-                  type="button"
-                  disabled={ai.schemaReady === false}
-                  onClick={() => void ai.send(starter.prompt)}
-                  className="min-h-12 rounded-xl px-3 py-2 text-left shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-40"
-                >
-                  <span className="block text-[10px] font-semibold uppercase tracking-[0.09em] text-[var(--admin-muted)]">
-                    {starter.label}
-                  </span>
-                  <span className="mt-0.5 block text-xs font-medium text-[var(--admin-ink)]">
-                    {starter.prompt}
-                  </span>
-                </button>
-              ))}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <div
+          ref={scrollRef}
+          tabIndex={0}
+          onScroll={(event) => {
+            const scroll = event.currentTarget;
+            const nearBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight <= 48;
+            followingRef.current = nearBottom;
+            setReadingPosition({ key: readingKey, away: !nearBottom });
+          }}
+          style={{ overflowAnchor: "none" }}
+          className={cn(
+            "flex-1 overflow-y-auto",
+            mode === "page" ? "min-h-0 px-3 py-4 sm:px-6" : "min-h-0 px-4 py-4",
+          )}
+          role="log"
+          aria-label="AI conversation"
+        >
+          {ai.loadingHistory && (
+            <div className="grid min-h-48 place-items-center text-xs text-[var(--admin-muted)]">
+              <Loader2 className="mb-2 size-5 animate-spin" />
+              Loading conversation
             </div>
-          </div>
-        )}
-        <div className="space-y-5">
-          {ai.messages.map((message, index) => {
-            const isLatestAssistant =
-              message.role === "assistant" &&
-              !ai.messages.slice(index + 1).some((item) => item.role === "assistant");
-            return (
-              <article
-                key={message.id}
-                className={cn(
-                  "text-sm leading-6",
-                  message.role === "user"
-                    ? "ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[var(--admin-ink)] px-4 py-3 text-[var(--admin-surface)] shadow-[var(--admin-shadow-border)]"
-                    : "max-w-3xl border-l-2 border-[var(--admin-border)] py-1 pl-4 text-[var(--admin-ink)]",
-                )}
-              >
-                {message.role === "assistant" && !message.content && ai.running ? (
-                  <span className="inline-flex items-center gap-2 text-xs text-[var(--admin-muted)]">
-                    <Loader2 className="size-3.5 animate-spin" />
-                    Reading live data
-                  </span>
-                ) : message.role === "assistant" ? (
-                  <StructuredAnswer value={message.content} />
+          )}
+          {!ai.loadingHistory && ai.messages.length === 0 && (
+            <div className="mx-auto flex min-h-full max-w-xl flex-col items-center justify-center py-8 text-center">
+              <span className="grid size-12 place-items-center rounded-2xl bg-[var(--admin-ink)] text-[var(--admin-surface)]">
+                {ai.purpose === "architect" ? (
+                  <NotebookPen className="size-5" />
                 ) : (
-                  <p className="whitespace-pre-wrap text-pretty">{message.content}</p>
+                  <Bot className="size-5" />
                 )}
-                {isLatestAssistant && (ai.tools.length > 0 || ai.model) && (
-                  <div className="mt-3 rounded-xl bg-black/[0.025] p-3 shadow-[var(--admin-shadow-border)] dark:bg-white/[0.035]">
-                    <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                      <Wrench className="size-3.5" />
-                      {ai.running ? "Working" : "Run evidence"}
-                      {ai.model && (
-                        <span
-                          className="ml-auto max-w-[55%] truncate normal-case tracking-normal"
-                          title={ai.model}
-                        >
-                          {ai.pack || "core"} · {ai.model}
-                        </span>
-                      )}
-                    </div>
-                    <ol className="mt-2 space-y-1">
-                      {ai.tools.map((tool) => (
-                        <li
-                          key={`${tool.index}-${tool.name}`}
-                          className="flex items-start gap-2 rounded-lg px-2 py-1.5 text-xs"
-                        >
-                          <span className="mt-0.5 text-[var(--admin-muted)]">
-                            {tool.status === "running" ? (
-                              <Loader2 className="size-3 animate-spin" aria-hidden="true" />
-                            ) : tool.status === "failed" ? (
-                              <CircleAlert className="size-3 text-rose-600" aria-hidden="true" />
-                            ) : (
-                              <Check className="size-3 text-emerald-600" aria-hidden="true" />
-                            )}
+              </span>
+              <h2 className="mt-4 text-xl font-semibold tracking-[-0.035em] text-[var(--admin-ink)]">
+                {ai.purpose === "architect"
+                  ? "Teach the workspace"
+                  : "What would you like to work on?"}
+              </h2>
+              <p className="admin-copy mt-2 max-w-md text-sm">
+                {ai.purpose === "architect"
+                  ? "This session keeps chat, attachments and scoped sources together. Reloading restores the same evidence. Sources stay inspectable and are never run as instructions."
+                  : "Choose a starting question or name a customer, record, or result you need."}
+              </p>
+              <div className="mt-5 grid w-full gap-2 sm:grid-cols-3">
+                {(ai.purpose === "architect" ? architectStarters : starters).map((starter) => (
+                  <button
+                    key={starter.label}
+                    type="button"
+                    disabled={ai.schemaReady === false}
+                    onClick={() => void ai.send(starter.prompt)}
+                    className="min-h-12 rounded-xl px-3 py-2 text-left shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-40"
+                  >
+                    <span className="block text-[10px] font-semibold uppercase tracking-[0.09em] text-[var(--admin-muted)]">
+                      {starter.label}
+                    </span>
+                    <span className="mt-0.5 block text-xs font-medium text-[var(--admin-ink)]">
+                      {starter.prompt}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div ref={contentRef} className="space-y-5">
+            {ai.messages.map((message, index) => {
+              const isLatestAssistant =
+                message.role === "assistant" &&
+                !ai.messages.slice(index + 1).some((item) => item.role === "assistant");
+              return (
+                <article
+                  key={message.id}
+                  className={cn(
+                    "text-sm leading-6",
+                    message.role === "user"
+                      ? "ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[var(--admin-ink)] px-4 py-3 text-[var(--admin-surface)] shadow-[var(--admin-shadow-border)]"
+                      : "max-w-3xl border-l-2 border-[var(--admin-border)] py-1 pl-4 text-[var(--admin-ink)]",
+                  )}
+                >
+                  {message.role === "assistant" && !message.content && ai.running ? (
+                    <span className="inline-flex items-center gap-2 text-xs text-[var(--admin-muted)]">
+                      <Loader2 className="size-3.5 animate-spin" />
+                      Reading live data
+                    </span>
+                  ) : message.role === "assistant" ? (
+                    <StructuredAnswer value={message.content} />
+                  ) : (
+                    <p className="whitespace-pre-wrap text-pretty">{message.content}</p>
+                  )}
+                  {isLatestAssistant && (ai.tools.length > 0 || ai.model) && (
+                    <div className="mt-3 rounded-xl bg-black/[0.025] p-3 shadow-[var(--admin-shadow-border)] dark:bg-white/[0.035]">
+                      <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                        <Wrench className="size-3.5" />
+                        {ai.running ? "Working" : "Run evidence"}
+                        {ai.model && (
+                          <span
+                            className="ml-auto max-w-[55%] truncate normal-case tracking-normal"
+                            title={ai.model}
+                          >
+                            {ai.pack || "core"} · {ai.model}
                           </span>
-                          <span className="min-w-0">
-                            <span className="font-semibold capitalize text-[var(--admin-ink)]">
-                              {toolLabel(tool.name)}
-                            </span>
-                            {tool.summary && (
-                              <span className="ml-2 text-[var(--admin-muted)]">{tool.summary}</span>
-                            )}
-                          </span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-                {isLatestAssistant &&
-                  ai.workProgress.map((work) => (
-                    <section
-                      key={work.workItemId}
-                      className="mt-3 rounded-xl bg-[var(--admin-surface)] p-3 shadow-[var(--admin-shadow-border)]"
-                      aria-label="Delegated work progress"
-                    >
-                      <h3 className="text-sm font-semibold">
-                        {work.plan?.objective ?? "Your delegated work"}
-                      </h3>
-                      <p className="mt-1 text-xs text-[var(--admin-muted)]">
-                        {work.status.replaceAll("_", " ")}
-                        {work.plan?.control === "paused" ? " · paused" : ""}
-                      </p>
-                      {work.plan && (
-                        <ol className="mt-2 space-y-2 text-xs">
-                          {work.plan.steps.map((step, index) => (
-                            <li key={index}>
-                              <strong>
-                                {index + 1}. {step.title}
-                              </strong>{" "}
-                              · {step.status.replaceAll("_", " ")}
-                              {step.receipt && (
-                                <p className="mt-1 whitespace-pre-wrap text-[var(--admin-muted)]">
-                                  {step.receipt}
-                                </p>
-                              )}
-                            </li>
-                          ))}
-                        </ol>
-                      )}
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          className="admin-button"
-                          onClick={() => void ai.readWorkProgress(work.workItemId)}
-                        >
-                          Read current progress
-                        </button>
-                        {work.plan &&
-                          !["completed", "failed", "cancelled"].includes(work.status) && (
-                            <>
-                              <button
-                                type="button"
-                                className="admin-button"
-                                onClick={() =>
-                                  void ai.controlWork(
-                                    work.workItemId,
-                                    work.plan!.control === "paused" ? "resume" : "pause",
-                                    work.revision,
-                                  )
-                                }
-                              >
-                                {work.plan.control === "paused" ? "Resume" : "Pause"}
-                              </button>
-                              <button
-                                type="button"
-                                className="admin-button"
-                                onClick={() =>
-                                  void ai.controlWork(work.workItemId, "cancel", work.revision)
-                                }
-                              >
-                                Cancel future steps
-                              </button>
-                            </>
-                          )}
+                        )}
                       </div>
-                    </section>
-                  ))}
-                {isLatestAssistant && ai.proposals.length > 0 && (
-                  <div className="mt-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-3">
-                    <p className="text-xs font-semibold text-[var(--admin-ink)]">
-                      {ai.proposals.length} change{ai.proposals.length === 1 ? "" : "s"} staged.
-                      Review each exact change below.
-                    </p>
-                    <ul className="mt-2 space-y-1">
-                      {ai.proposals.map((proposal) => (
-                        <li
-                          key={proposal.id}
-                          className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-[var(--admin-surface)] px-3 py-2 text-xs shadow-[var(--admin-shadow-border)]"
-                        >
+                      <ol className="mt-2 space-y-1">
+                        {ai.tools.map((tool) => (
+                          <li
+                            key={`${tool.index}-${tool.name}`}
+                            className="flex items-start gap-2 rounded-lg px-2 py-1.5 text-xs"
+                          >
+                            <span className="mt-0.5 text-[var(--admin-muted)]">
+                              {tool.status === "running" ? (
+                                <Loader2 className="size-3 animate-spin" aria-hidden="true" />
+                              ) : tool.status === "failed" ? (
+                                <CircleAlert className="size-3 text-rose-600" aria-hidden="true" />
+                              ) : (
+                                <Check className="size-3 text-emerald-600" aria-hidden="true" />
+                              )}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="font-semibold capitalize text-[var(--admin-ink)]">
+                                {toolLabel(tool.name)}
+                              </span>
+                              {tool.summary && (
+                                <span className="ml-2 text-[var(--admin-muted)]">
+                                  {tool.summary}
+                                </span>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                  {isLatestAssistant &&
+                    ai.workProgress.map((work) => (
+                      <section
+                        key={work.workItemId}
+                        className="mt-3 rounded-xl bg-[var(--admin-surface)] p-3 shadow-[var(--admin-shadow-border)]"
+                        aria-label="Delegated work progress"
+                      >
+                        <h3 className="text-sm font-semibold">
+                          {work.plan?.objective ?? "Your delegated work"}
+                        </h3>
+                        <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                          {work.status.replaceAll("_", " ")}
+                          {work.plan?.control === "paused" ? " · paused" : ""}
+                        </p>
+                        {work.plan && (
+                          <ol className="mt-2 space-y-2 text-xs">
+                            {work.plan.steps.map((step, index) => (
+                              <li key={index}>
+                                <strong>
+                                  {index + 1}. {step.title}
+                                </strong>{" "}
+                                · {step.status.replaceAll("_", " ")}
+                                {step.receipt && (
+                                  <p className="mt-1 whitespace-pre-wrap text-[var(--admin-muted)]">
+                                    {step.receipt}
+                                  </p>
+                                )}
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                        <div className="mt-3 flex flex-wrap gap-2">
                           <button
                             type="button"
-                            className="min-h-10 text-left font-semibold underline underline-offset-4"
-                            onClick={() => void ai.reviewProposal(proposal.id)}
+                            className="admin-button"
+                            onClick={() => void ai.readWorkProgress(work.workItemId)}
                           >
-                            Review: {proposal.title}
+                            Read current progress
                           </button>
-                          <span className="text-[10px] uppercase tracking-[0.07em] text-[var(--admin-muted)]">
-                            {proposal.impact.replace(/_/g, " ")}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    <ActionReviewDialog
-                      inline
-                      open={Boolean(ai.reviewedAction)}
-                      action={ai.reviewedAction}
-                      busy={ai.reviewing}
-                      error={ai.error}
-                      onClose={() => void ai.reviewProposal(null)}
-                      onApprove={() => void ai.decideProposal("approve")}
-                      onReject={() => void ai.decideProposal("reject")}
-                    />
-                    {ai.reviewedAction && (
-                      <p className="mt-2 text-xs text-[var(--admin-muted)]">
-                        You can also type “approve” or “reject” for this exact proposal.
+                          {work.plan &&
+                            !["completed", "failed", "cancelled"].includes(work.status) && (
+                              <>
+                                <button
+                                  type="button"
+                                  className="admin-button"
+                                  onClick={() =>
+                                    void ai.controlWork(
+                                      work.workItemId,
+                                      work.plan!.control === "paused" ? "resume" : "pause",
+                                      work.revision,
+                                    )
+                                  }
+                                >
+                                  {work.plan.control === "paused" ? "Resume" : "Pause"}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="admin-button"
+                                  onClick={() =>
+                                    void ai.controlWork(work.workItemId, "cancel", work.revision)
+                                  }
+                                >
+                                  Cancel future steps
+                                </button>
+                              </>
+                            )}
+                        </div>
+                      </section>
+                    ))}
+                  {isLatestAssistant && ai.proposals.length > 0 && (
+                    <div className="mt-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-3">
+                      <p className="text-xs font-semibold text-[var(--admin-ink)]">
+                        {ai.proposals.length} change{ai.proposals.length === 1 ? "" : "s"} staged.
+                        Review each exact change below.
                       </p>
-                    )}
-                  </div>
-                )}
-                {message.role === "assistant" && message.content && (
-                  <MessageActions
-                    message={message}
-                    onRetry={
-                      !ai.running && ai.messages[index - 1]?.role === "user"
-                        ? () => void ai.send(ai.messages[index - 1]!.content)
-                        : undefined
-                    }
-                  />
-                )}
-              </article>
-            );
-          })}
+                      <ul className="mt-2 space-y-1">
+                        {ai.proposals.map((proposal) => (
+                          <li
+                            key={proposal.id}
+                            className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-[var(--admin-surface)] px-3 py-2 text-xs shadow-[var(--admin-shadow-border)]"
+                          >
+                            <button
+                              type="button"
+                              className="min-h-10 text-left font-semibold underline underline-offset-4"
+                              onClick={() => void ai.reviewProposal(proposal.id)}
+                            >
+                              Review: {proposal.title}
+                            </button>
+                            <span className="text-[10px] uppercase tracking-[0.07em] text-[var(--admin-muted)]">
+                              {proposal.impact.replace(/_/g, " ")}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <ActionReviewDialog
+                        inline
+                        open={Boolean(ai.reviewedAction)}
+                        action={ai.reviewedAction}
+                        busy={ai.reviewing}
+                        error={ai.error}
+                        onClose={() => void ai.reviewProposal(null)}
+                        onApprove={() => void ai.decideProposal("approve")}
+                        onReject={() => void ai.decideProposal("reject")}
+                      />
+                      {ai.reviewedAction && (
+                        <p className="mt-2 text-xs text-[var(--admin-muted)]">
+                          You can also type “approve” or “reject” for this exact proposal.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {message.role === "assistant" && message.content && (
+                    <MessageActions
+                      message={message}
+                      onRetry={
+                        !ai.running && ai.messages[index - 1]?.role === "user"
+                          ? () => void ai.send(ai.messages[index - 1]!.content)
+                          : undefined
+                      }
+                    />
+                  )}
+                </article>
+              );
+            })}
+          </div>
         </div>
+        {awayFromLatest && (
+          <button
+            type="button"
+            onClick={() => {
+              followingRef.current = true;
+              setReadingPosition({ key: readingKey, away: false });
+              const scroll = scrollRef.current;
+              if (scroll) {
+                scroll.scrollTop = scroll.scrollHeight;
+                scroll.focus({ preventScroll: true });
+              }
+            }}
+            className="absolute bottom-3 left-1/2 inline-flex min-h-11 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-[var(--admin-surface)] px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow)] transition-[color,box-shadow] hover:text-[var(--admin-action)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-action)]"
+          >
+            <ArrowDown className="size-4" aria-hidden="true" />
+            Jump to latest
+          </button>
+        )}
       </div>
 
       <form onSubmit={submit} className="border-t border-[var(--admin-border)] p-3 sm:p-4">
@@ -648,11 +725,17 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             </label>
           )}
           <textarea
+            ref={composerRef}
             aria-label={ai.purpose === "architect" ? "Teach the workspace" : "Ask the business"}
             value={ai.draft}
             onChange={(event) => ai.setDraft(event.target.value.slice(0, 8000))}
             onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
+              if (
+                event.key === "Enter" &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing &&
+                event.nativeEvent.keyCode !== 229
+              ) {
                 event.preventDefault();
                 event.currentTarget.form?.requestSubmit();
               }

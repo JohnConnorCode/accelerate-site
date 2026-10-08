@@ -1,5 +1,6 @@
 /* eslint no-undef: "error" */
 import assert from "node:assert/strict";
+import { verifyAIReading } from "./qa-admin-ai-reading.mjs";
 import { chromium } from "playwright";
 import { readFile, writeFile } from "node:fs/promises";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3045",
@@ -476,6 +477,7 @@ try {
       await writeFile(`${output}/board-states.json`, JSON.stringify(states, null, 2));
     }
   }
+  results.push(...(await verifyAIReading({ browser, base, output })));
   await writeFile(`${output}/navigation.json`, JSON.stringify(results, null, 2));
   console.log(results);
 } finally {

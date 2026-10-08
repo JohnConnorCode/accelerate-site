@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "ai-reading-continuity",
+    slug: "ai-reading-continuity",
+    title: "Read AI answers at your own pace",
+    description:
+      "Ask AI keeps your place when you scroll up during a response. Jump to latest resumes following new text, and another question or a conversation change returns to the latest message. The composer grows for multiline questions and waits for input-method composition to finish before Enter can send. Starting guidance now explains what to ask without repeating the evidence and approval summary.",
+    category: "fix",
+    publishedAt: "2026-10-08",
+  },
+  {
     id: "mobile-navigation-handoffs",
     slug: "mobile-navigation-handoffs",
     title: "Keep phone navigation and tool handoffs steady",
