@@ -13,6 +13,8 @@ const routes = [
   "/docs/start/business-owners",
   "/docs/start/agencies",
   "/docs/extend/first-change",
+  "/docs/extend/ai-authoring",
+  "/docs/extend/modules",
   "/docs/self-hosting/installation",
   "/docs/start/troubleshooting",
   "/docs/command-center",
@@ -107,6 +109,35 @@ async function main() {
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
           });
+          if (
+            [
+              "/docs/extend/first-change",
+              "/docs/extend/ai-authoring",
+              "/docs/extend/modules",
+            ].includes(route)
+          ) {
+            await expect(page.locator("main")).toContainText("Codex");
+            await expect(page.locator("main")).toContainText("Claude Code");
+            if (route === "/docs/extend/modules") {
+              const manifest = JSON.parse(await page.locator("main pre").first().innerText());
+              assert.equal(manifest.docsUrl, "/docs/plugins/acme-inventory");
+              assert.equal(manifest.defaultEnabled, false);
+              await expect(page.locator("main")).toContainText("plugins/acme-inventory/README.md");
+              await page
+                .locator("main pre")
+                .first()
+                .screenshot({
+                  path: `${output}/${viewport.width}-agent-module-manifest.png`,
+                });
+            } else {
+              const brief = page.locator("main blockquote").first();
+              await expect(brief).toContainText("docs/NORTHSTAR.md");
+              await brief.screenshot({
+                path: `${output}/${viewport.width}-agent-brief-${route.split("/").at(-1)}.png`,
+              });
+            }
+            checks.push(`${viewport.width} ${route}: agent brief and delivery instructions render`);
+          }
           if (route === "/docs/sources/leads") {
             const recovery = page.getByRole("heading", {
               name: "Change a status and recover an incomplete update",
