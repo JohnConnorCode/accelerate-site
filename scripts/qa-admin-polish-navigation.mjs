@@ -170,13 +170,19 @@ try {
                 inert: main.inert && dock.inert,
                 focusInside: node.contains(document.activeElement),
                 otherDialog: Boolean(
-                  document.querySelector('[role="dialog"]:not([aria-label="Admin navigation"])'),
+                  document.querySelector(
+                    '[role="dialog"][aria-label="Admin command palette"], [role="dialog"][aria-label="Ask AI"]',
+                  ),
                 ),
               });
           }
           return { frames, removed: !node.isConnected };
         });
       drawerSamples.push({ reducedMotion, action, ...closing });
+      await writeFile(
+        `${output}/mobile-navigation-exit-frames.json`,
+        JSON.stringify(drawerSamples, null, 2),
+      );
       assert.ok(closing.removed, "More finishes closing");
       assert.ok(
         closing.frames.every(
@@ -188,7 +194,7 @@ try {
             frame.focusInside &&
             !frame.otherDialog,
         ),
-        "More retains exclusive workspace ownership through every exit frame",
+        `More retains exclusive workspace ownership through every exit frame: ${JSON.stringify({ reducedMotion, action, ...closing })}`,
       );
       if (reducedMotion === "no-preference")
         assert.ok(
