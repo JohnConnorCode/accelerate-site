@@ -502,7 +502,7 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-source-authority-server.log; exit 1; fi
-          npm run resources:run -- node scripts/qa-source-authority.mjs
+          npm run resources:run -- npm run qa:source-authority
 
       - name: Retain source-authority browser evidence
         if: ${{ always() && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
