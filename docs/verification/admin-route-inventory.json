@@ -249,7 +249,7 @@
     "src/components/admin/MRRChart.tsx": "3024a09c9dfc49db70361472189b2d4098494779efcafaf1295904f79a31d104",
     "src/components/admin/ModuleDisabledNotice.tsx": "2c33a3e845a64efd7187388b61184aafc4725afab2c227585aaec42c85c73d17",
     "src/components/admin/ModuleSettingsForm.tsx": "07ba6bb965cf8bacb40be797e3b4d967c6db19bd7f4b03a134c9f3b8d02b2077",
-    "src/components/admin/NotificationBell.tsx": "05cac06d0c88f2b359968e40822d9d2a1d9602d876ae656b3ca5981b47b9ccd9",
+    "src/components/admin/NotificationBell.tsx": "d2f0c34f9c3a711ed188c18a297a1c4098bf0960edaa42c74275990287790deb",
     "src/components/admin/PageHeader.tsx": "0de2ff9a261860f8012c2a811b97cccf24c90d4a7bedbc8dccd7cc93d2efda52",
     "src/components/admin/Pagination.tsx": "016836958a375d173f0a43a8b4ca24522c66e3eec2efdfaa02858f2d682f56b6",
     "src/components/admin/PlausibleWidget.tsx": "250f81a9de33b8432d902c626757002def6ea084e88c26dfa0c933f6e54ebeed",

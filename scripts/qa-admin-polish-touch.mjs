@@ -7,6 +7,112 @@ const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3045",
 const browser = await chromium.launch(),
   results = [];
 const exitSamples = [];
+const alertSamples = [];
+async function verifyAlerts(page, placement, reducedMotion) {
+  const trigger = page.getByRole("button", { name: /Open command center alerts/ });
+  const panel = page.locator(`.admin-notification-panel[data-placement="${placement}"]`);
+  await trigger.click();
+  await page.waitForFunction(() => {
+    const node = document.querySelector(".admin-notification-panel");
+    return (
+      node && getComputedStyle(node).opacity === "1" && getComputedStyle(node).transform === "none"
+    );
+  });
+  assert.ok(await panel.evaluate((node) => node.contains(document.activeElement)));
+  if (placement === "mobile") {
+    const close = panel.getByRole("button", { name: "Close notifications" });
+    await close.focus();
+    await page.keyboard.press("Shift+Tab");
+    assert.ok(await panel.evaluate((node) => node.contains(document.activeElement)));
+  }
+  await page.screenshot({ path: `${output}/alerts-${placement}-${reducedMotion}.png` });
+  const closing = await panel
+    .getByRole("button", { name: "Close notifications" })
+    .evaluate(async (button) => {
+      const node = button.closest(".admin-notification-panel");
+      const dock = document.querySelector(".admin-mobile-dock");
+      const frames = [];
+      button.click();
+      const deadline = performance.now() + 5000;
+      while (node.isConnected && performance.now() < deadline) {
+        await new Promise(requestAnimationFrame);
+        if (node.isConnected)
+          frames.push({
+            opacity: Number(getComputedStyle(node).opacity),
+            transform: getComputedStyle(node).transform,
+            held: document.body.classList.contains("admin-notifications-open"),
+            dock: dock ? getComputedStyle(dock).pointerEvents : null,
+            focusInside: node.contains(document.activeElement),
+          });
+      }
+      return { frames, removed: !node.isConnected };
+    });
+  alertSamples.push({ placement, reducedMotion, ...closing });
+  assert.ok(closing.removed, "Alerts finish closing");
+  if (placement === "mobile")
+    assert.ok(
+      closing.frames.every((frame) => frame.held && frame.dock === "none"),
+      "Dock stays held through alert exit",
+    );
+  assert.ok(
+    closing.frames.every((frame) => frame.focusInside),
+    "Focus stays in alerts until removal",
+  );
+  if (reducedMotion === "no-preference")
+    assert.ok(
+      closing.frames.some((frame) => frame.opacity > 0 && frame.opacity < 1),
+      "Normal alert exit fades",
+    );
+  else
+    assert.ok(
+      closing.frames.every(
+        (frame) => frame.transform === "none" && (frame.opacity === 0 || frame.opacity === 1),
+      ),
+      "Reduced motion has no intermediate alert animation",
+    );
+  assert.ok(
+    await trigger.evaluate((node) => node === document.activeElement),
+    "Dismissal restores alert trigger focus",
+  );
+  assert.ok(
+    !(await page.evaluate(() => document.body.classList.contains("admin-notifications-open"))),
+  );
+  // A second open during exit cancels closing without releasing the retained sheet.
+  await trigger.click();
+  await panel.waitFor();
+  await panel.getByRole("button", { name: "Close notifications" }).evaluate(async (button) => {
+    const bell = document.querySelector('.admin-notification-trigger[aria-expanded="true"]');
+    button.click();
+    await new Promise(requestAnimationFrame);
+    bell.click();
+  });
+  await page.waitForFunction(() => {
+    const node = document.querySelector(".admin-notification-panel");
+    return node && getComputedStyle(node).opacity === "1";
+  });
+  await page.keyboard.press("Escape");
+  await panel.waitFor({ state: "detached" });
+  assert.ok(await trigger.evaluate((node) => node === document.activeElement));
+  if (placement === "sidebar") {
+    await trigger.click();
+    await panel.waitFor();
+    await page.waitForFunction(() => document.activeElement?.closest(".admin-notification-panel"));
+    await panel.getByRole("button", { name: "Close notifications" }).evaluate((button) => {
+      button.click();
+      document.querySelector('.admin-nav-link[aria-current="page"]').focus();
+    });
+    await panel.waitFor({ state: "detached" });
+    assert.ok(
+      await page
+        .locator('.admin-nav-link[aria-current="page"]')
+        .evaluate((node) => node === document.activeElement),
+      "Alert closing preserves focus deliberately moved outside",
+    );
+  }
+  results.push(
+    `${placement} ${reducedMotion}: alerts retain the dock and focus through exit, reopen and dismiss cleanly`,
+  );
+}
 try {
   for (const reducedMotion of ["no-preference", "reduce"]) {
     const context = await browser.newContext({
@@ -20,6 +126,7 @@ try {
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(`${base}/demo/command-center/superdebate/pipeline`, { timeout: 120000 });
     await page.locator("[data-opportunity-id]").first().waitFor();
+    await verifyAlerts(page, "mobile", reducedMotion);
     await page.locator(".kanban-scroller").evaluate((e) => {
       document.querySelector(".admin-main").scrollTop += e.getBoundingClientRect().top - 120;
     });
@@ -283,7 +390,20 @@ try {
     );
     assert.deepEqual(errors, []);
     await context.close();
+    const desktop = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      reducedMotion,
+    });
+    const desktopPage = await desktop.newPage();
+    const desktopErrors = [];
+    desktopPage.on("pageerror", (error) => desktopErrors.push(error.message));
+    await desktopPage.goto(`${base}/demo/command-center/superdebate/today`, { timeout: 120000 });
+    await desktopPage.locator("[data-today-workspace]").waitFor();
+    await verifyAlerts(desktopPage, "sidebar", reducedMotion);
+    assert.deepEqual(desktopErrors, []);
+    await desktop.close();
   }
+  await writeFile(`${output}/alert-exit-frames.json`, JSON.stringify(alertSamples, null, 2));
   await writeFile(`${output}/dialog-exit-frames.json`, JSON.stringify(exitSamples, null, 2));
   await writeFile(`${output}/touch.json`, JSON.stringify(results, null, 2));
   console.log(results);

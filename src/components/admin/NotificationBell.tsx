@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
 import {
   ArrowRight,
@@ -81,6 +81,28 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
   const dropdownRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const restoreFocusRef = useRef(false);
+  const reducedMotion = useReducedMotion();
+  const attachPanel = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node) return;
+      panelRef.current = node;
+      restoreFocusRef.current = false;
+      if (placement === "mobile") document.body.classList.add("admin-notifications-open");
+      return () => {
+        if (placement === "mobile") document.body.classList.remove("admin-notifications-open");
+        panelRef.current = null;
+        const active = document.activeElement;
+        if (
+          restoreFocusRef.current &&
+          (!active || active === document.body || node.contains(active))
+        ) {
+          triggerRef.current?.focus({ preventScroll: true });
+        }
+      };
+    },
+    [placement],
+  );
   // Placement is fixed by the persistent shell, so a semantic id is both
   // unique and hydration-stable across the public demo rewrite.
   const panelId = `admin-notifications-${placement}`;
@@ -177,8 +199,8 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
   }, []);
 
   const closePanel = useCallback((restoreFocus = true) => {
+    restoreFocusRef.current = restoreFocus;
     setIsOpen(false);
-    if (restoreFocus) window.requestAnimationFrame(() => triggerRef.current?.focus());
   }, []);
 
   // Desktop is a contextual popover. Mobile is modal and keeps keyboard focus
@@ -225,6 +247,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
   }, [isOpen]);
 
   const togglePanel = () => {
+    restoreFocusRef.current = isOpen;
     if (!isOpen && placement === "sidebar" && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       const panelWidth = Math.min(360, window.innerWidth - 24);
@@ -235,15 +258,6 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
     }
     setIsOpen((current) => !current);
   };
-
-  // Mobile alerts and the dock share the bottom edge. Give the sheet exclusive
-  // ownership of that interaction layer while it is open, then restore the
-  // dock when focus returns to the trigger.
-  useEffect(() => {
-    if (placement !== "mobile" || !isOpen) return;
-    document.body.classList.add("admin-notifications-open");
-    return () => document.body.classList.remove("admin-notifications-open");
-  }, [isOpen, placement]);
 
   const handleMarkAllRead = async () => {
     try {
@@ -331,14 +345,14 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
                   aria-label="Dismiss notifications"
                   onClick={() => closePanel()}
                   className="fixed inset-0 z-[59] bg-black/35 backdrop-blur-[2px]"
-                  initial={{ opacity: 0 }}
+                  initial={reducedMotion ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.18 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.18 }}
                 />
               )}
               <motion.div
-                ref={panelRef}
+                ref={attachPanel}
                 id={panelId}
                 data-admin-mobile-alerts={placement === "mobile" ? "" : undefined}
                 data-placement={placement}
@@ -347,19 +361,23 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
                 aria-label="Notifications"
                 tabIndex={-1}
                 initial={
-                  placement === "mobile"
-                    ? { opacity: 0, y: 18 }
-                    : { opacity: 0, y: -4, scale: 0.95 }
+                  reducedMotion
+                    ? false
+                    : placement === "mobile"
+                      ? { opacity: 0, y: 18 }
+                      : { opacity: 0, y: -4, scale: 0.95 }
                 }
                 animate={
                   placement === "mobile" ? { opacity: 1, y: 0 } : { opacity: 1, y: 0, scale: 1 }
                 }
                 exit={
-                  placement === "mobile"
-                    ? { opacity: 0, y: 10 }
-                    : { opacity: 0, y: -4, scale: 0.95 }
+                  reducedMotion
+                    ? { opacity: 0 }
+                    : placement === "mobile"
+                      ? { opacity: 0, y: 10 }
+                      : { opacity: 0, y: -4, scale: 0.95 }
                 }
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: reducedMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
                 className="admin-notification-panel admin-overlay-token-scope z-[60] overflow-hidden bg-[var(--admin-surface,#fbfbfa)] text-[var(--admin-ink,#0b0b0b)]"
                 style={placement === "sidebar" && desktopPosition ? desktopPosition : undefined}
               >

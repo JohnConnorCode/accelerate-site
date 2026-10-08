@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "notification-close-continuity",
+    slug: "notification-close-continuity",
+    title: "Close notifications without losing your place",
+    description:
+      "The phone dock stays paused until the notification sheet finishes closing. Dismissal returns focus to the bell after the panel leaves, while notification links keep focus with their destination. Desktop and phone panels skip animation under reduced motion.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
     id: "dialog-exit-continuity",
     slug: "dialog-exit-continuity",
     title: "Keep the workspace steady while dialogs close",

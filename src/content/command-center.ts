@@ -406,7 +406,7 @@ export const capabilities: Capability[] = [
     promise:
       "Today connects sourced business findings to the next action; the same tasks and approvals stay editable in Work.",
     detail:
-      "Nine business groups explain where to review the operation, manage customers, deliver client work, follow billing, communicate, use AI, connect Apps and adjust settings. Personal and shared Today arrangements keep view tools under More, wide desktop layouts keep independent columns, and Search and Ask AI stay available while you scroll. The mobile dock keeps the three daily destinations within reach.",
+      "Nine business groups explain where to review the operation, manage customers, deliver client work, follow billing, communicate, use AI, connect Apps and adjust settings. Personal and shared Today arrangements keep view tools under More, wide desktop layouts keep independent columns, and Search and Ask AI stay available while you scroll. The mobile dock keeps the three daily destinations within reach and waits for notifications to finish closing before returning. Dismissing notifications returns focus to the bell; following a notification keeps focus with the destination. Notification panels skip animation under reduced motion.",
   },
   {
     id: "chat",
