@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "mobile-navigation-handoffs",
+    slug: "mobile-navigation-handoffs",
+    title: "Keep phone navigation and tool handoffs steady",
+    description:
+      "More keeps scrolling and background controls paused until its menu finishes closing. Search, Ask AI and the search shortcut wait for that removal before opening their panel. Dismissal returns focus to More, while navigation focuses the destination heading once the workspace is available. Reduced motion opens and closes the menu immediately.",
+    category: "fix",
+    publishedAt: "2026-10-08",
+  },
+  {
     id: "notification-close-continuity",
     slug: "notification-close-continuity",
     title: "Close notifications without losing your place",

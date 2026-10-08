@@ -51,6 +51,12 @@ routing or creating surface-specific history systems.
 
 ## Motion, loading, and focus
 
+- Route focus waits while the registered page viewport is inert. Its existing
+  destination observer follows removal of that attribute, so a closing modal
+  can release the page before its heading receives focus. The mobile More menu
+  retains scroll, keyboard and background protection through its exit; Search
+  and Ask AI handoffs run after removal instead of using a fixed delay.
+
 - A valid admin navigation intent must produce visible feedback in the same
   frame as activation. The destination may show a pending state, but
   `aria-current` continues to describe only the committed route.

@@ -311,6 +311,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       const root = isAdminPath(pathname)
         ? adminScroller.current
         : document.getElementById("main-content");
+      if (root?.inert) return false;
       if (root?.querySelector("[data-admin-route-loading]")) return false;
       const heading = root?.querySelector<HTMLElement>("h1, [data-route-heading]");
       // Client admin pages may commit a local data placeholder before their
@@ -356,7 +357,12 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
             if (focusedTarget && document.contains(focusedTarget)) return;
             focusDestination();
           });
-          focusObserver.observe(root, { childList: true, subtree: true });
+          focusObserver.observe(root, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["inert"],
+          });
         }
         focusDestination();
       });

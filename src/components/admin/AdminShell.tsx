@@ -17,7 +17,7 @@ import { resolveAdminPathname } from "@/lib/admin/navigation-paths";
 import { AdminConfirmationProvider } from "@/components/admin/AdminConfirmationProvider";
 import { AdminThemeProvider } from "@/components/admin/AdminThemeProvider";
 import type { AdminThemeDefinition } from "@/lib/admin/theme-definition";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight,
   Bot,
@@ -186,6 +186,9 @@ export default function AdminShell({
   const { pendingHref, registerAdminScroller } = useNavigationRuntime();
   const isAuthRoute = pathname === "/admin/login" || pathname === "/admin/update-password";
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileMounted, setMobileMounted] = useState(false);
+  const mobileHeld = mobileOpen || mobileMounted;
+  const reducedMotion = useReducedMotion();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchPeople, setSearchPeople] = useState<SearchPerson[]>([]);
@@ -199,17 +202,35 @@ export default function AdminShell({
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileDrawerRef = useRef<HTMLElement>(null);
   const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileRestoreFocusRef = useRef(true);
+  const mobileActionRef = useRef<(() => void) | null>(null);
+  const attachMobileDrawer = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    mobileDrawerRef.current = node;
+    mobileRestoreFocusRef.current = true;
+    setMobileMounted(true);
+    return () => {
+      mobileDrawerRef.current = null;
+      setMobileMounted(false);
+    };
+  }, []);
   const mainRef = useRef<HTMLElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const searchAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (!mobileMounted) {
+      const action = mobileActionRef.current;
+      mobileActionRef.current = null;
+      action?.();
+      return;
+    }
     const previousOverflow = document.body.style.overflow;
     const mainNode = mainRef.current;
     const previousMainOverflow = mainNode?.style.overflowY || "";
     const returnFocus = mobileMenuButtonRef.current;
-    const focusTimer = window.setTimeout(() => mobileCloseButtonRef.current?.focus(), 40);
+    const drawerNode = mobileDrawerRef.current;
+    const focusFrame = window.requestAnimationFrame(() => mobileCloseButtonRef.current?.focus());
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -241,14 +262,19 @@ export default function AdminShell({
     if (mainNode) mainNode.style.overflowY = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
-      window.clearTimeout(focusTimer);
+      window.cancelAnimationFrame(focusFrame);
       document.body.style.overflow = previousOverflow;
       document.body.classList.remove("admin-mobile-nav-open");
       if (mainNode) mainNode.style.overflowY = previousMainOverflow;
       window.removeEventListener("keydown", onKeyDown);
-      window.requestAnimationFrame(() => returnFocus?.focus());
+      const active = document.activeElement;
+      if (
+        mobileRestoreFocusRef.current &&
+        (!active || active === document.body || drawerNode?.contains(active))
+      )
+        returnFocus?.focus({ preventScroll: true });
     };
-  }, [mobileOpen]);
+  }, [mobileMounted]);
 
   useEffect(() => {
     document.documentElement.classList.add("admin-app-open");
@@ -300,7 +326,12 @@ export default function AdminShell({
     const handler = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setSearchOpen((current) => !current);
+        if (mobileDrawerRef.current) {
+          mobileActionRef.current = () => setSearchOpen(true);
+          setMobileOpen(false);
+        } else {
+          setSearchOpen((current) => !current);
+        }
         setSearchQuery("");
         setSearchPeople([]);
         return;
@@ -366,7 +397,10 @@ export default function AdminShell({
     [],
   );
 
-  useEffect(() => setMobileOpen(false), [effectivePathname]);
+  useEffect(() => {
+    mobileRestoreFocusRef.current = false;
+    setMobileOpen(false);
+  }, [effectivePathname]);
 
   useEffect(() => {
     if (scenarioId || isAuthRoute) return;
@@ -653,7 +687,7 @@ export default function AdminShell({
                   Skip to content
                 </a>
                 <aside
-                  inert={mobileOpen}
+                  inert={mobileHeld}
                   className={cn(
                     "admin-sidebar hidden shrink-0 lg:block",
                     sidebarCollapsed ? "w-[80px]" : "w-[272px]",
@@ -680,7 +714,7 @@ export default function AdminShell({
                 </aside>
 
                 <header
-                  inert={mobileOpen}
+                  inert={mobileHeld}
                   className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex min-h-16 items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)] lg:hidden"
                 >
                   {scenarioId ? (
@@ -727,40 +761,46 @@ export default function AdminShell({
                         type="button"
                         aria-label="Dismiss navigation"
                         className="admin-overlay-backdrop absolute inset-0"
-                        initial={{ opacity: 0 }}
+                        initial={reducedMotion ? false : { opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        transition={{ duration: reducedMotion ? 0 : 0.2 }}
                         onClick={() => setMobileOpen(false)}
                       />
                       <motion.aside
-                        ref={mobileDrawerRef}
+                        ref={attachMobileDrawer}
                         id="admin-mobile-navigation"
                         role="dialog"
                         aria-modal="true"
                         aria-label="Admin navigation"
                         className="admin-mobile-sheet admin-sidebar absolute bottom-2 right-2 top-2 flex w-[min(22rem,calc(100vw-1rem))] flex-col rounded-[var(--admin-surface-radius)] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
-                        initial={{ opacity: 0, x: 30, scale: 0.985 }}
+                        initial={reducedMotion ? false : { opacity: 0, x: 30, scale: 0.985 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: 22, scale: 0.99 }}
-                        transition={{ type: "spring", duration: 0.34, bounce: 0 }}
+                        exit={reducedMotion ? { opacity: 0 } : { opacity: 0, x: 22, scale: 0.99 }}
+                        transition={{
+                          type: "spring",
+                          duration: reducedMotion ? 0 : 0.34,
+                          bounce: 0,
+                        }}
                       >
                         <SidebarContent
                           idPrefix="admin-mobile"
                           isActive={isActive}
                           onSignOut={handleSignOut}
-                          onNavigate={() => setMobileOpen(false)}
+                          onNavigate={() => {
+                            mobileRestoreFocusRef.current = false;
+                            setMobileOpen(false);
+                          }}
                           onClose={() => setMobileOpen(false)}
                           closeButtonRef={mobileCloseButtonRef}
                           onOpenSearch={() => {
+                            mobileActionRef.current = () => setSearchOpen(true);
                             setMobileOpen(false);
-                            window.setTimeout(() => setSearchOpen(true), 220);
                           }}
                           onOpenAI={() => {
+                            mobileActionRef.current = () =>
+                              window.dispatchEvent(new CustomEvent("admin:open-ai"));
                             setMobileOpen(false);
-                            window.setTimeout(
-                              () => window.dispatchEvent(new CustomEvent("admin:open-ai")),
-                              220,
-                            );
                           }}
                           priorityCount={priorityCount}
                           demoScenarioId={scenarioId}
@@ -803,7 +843,7 @@ export default function AdminShell({
                   id="main-content"
                   ref={mainRef}
                   tabIndex={-1}
-                  inert={mobileOpen}
+                  inert={mobileHeld}
                   className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-0 xl:px-10"
                 >
                   <div
@@ -878,7 +918,7 @@ export default function AdminShell({
                 </main>
 
                 <nav
-                  inert={mobileOpen}
+                  inert={mobileHeld}
                   style={{ "--admin-mobile-dock-index": mobileDockIndex } as CSSProperties}
                   className="admin-mobile-dock fixed inset-x-4 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-4 items-stretch rounded-[var(--admin-surface-radius)] p-1 lg:hidden"
                   aria-label="Primary navigation"
