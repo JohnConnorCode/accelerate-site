@@ -1,3 +1,4 @@
+/* eslint no-undef: "error" */
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { writeFile } from "node:fs/promises";
@@ -5,6 +6,7 @@ const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3045",
   output = process.env.QA_OUTPUT || "/tmp/admin-polish-qa";
 const browser = await chromium.launch(),
   results = [];
+const exitSamples = [];
 try {
   for (const reducedMotion of ["no-preference", "reduce"]) {
     const context = await browser.newContext({
