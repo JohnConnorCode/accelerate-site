@@ -23,6 +23,7 @@ try {
         await context.addInitScript(() => {
           let failed = false;
           window.__generationRequests = [];
+          window.__loseGenerationResponse = false;
           const wrap = (next) => async (input, init) => {
             const raw =
               typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
@@ -33,13 +34,24 @@ try {
                 failed = true;
                 return new Response(
                   JSON.stringify({
-                    error: "Operating setup was not saved. Check the connection, then retry.",
+                    error:
+                      "Operating setup could not be confirmed. Reload the review, or retry this save.",
                   }),
                   { status: 503, headers: { "content-type": "application/json" } },
                 );
               }
             }
             const response = await next(input, init);
+            if (url.pathname.endsWith("/generate-operations") && window.__loseGenerationResponse) {
+              window.__loseGenerationResponse = false;
+              return new Response(
+                JSON.stringify({
+                  error:
+                    "Operating setup could not be confirmed. Reload the review, or retry this save.",
+                }),
+                { status: 503, headers: { "content-type": "application/json" } },
+              );
+            }
             if (
               /\/api\/admin\/blueprints\/[0-9a-f-]+$/.test(url.pathname) &&
               sessionStorage.getItem("qa:legacy-generation") === "true"
@@ -93,10 +105,13 @@ try {
             (button) => button.textContent?.trim() === "Save operating setup" && !button.disabled,
           ),
         );
+        await page.evaluate(() => {
+          window.__loseGenerationResponse = true;
+        });
         await save.click();
         await page
           .getByRole("alert")
-          .filter({ hasText: "Operating setup was not saved" })
+          .filter({ hasText: "Operating setup could not be confirmed" })
           .waitFor();
         const read = () =>
           page.evaluate(async (id) => {
@@ -113,9 +128,10 @@ try {
         assert.equal(failed.generation.state, "not_generated");
         await save.focus();
         await page.keyboard.press("Enter");
+        await page.waitForFunction(() => window.__loseGenerationResponse === false);
         await page
-          .getByRole("status")
-          .filter({ hasText: "Setup saved with an audit record" })
+          .getByRole("alert")
+          .filter({ hasText: "Operating setup could not be confirmed" })
           .waitFor();
         const saved = await read();
         assert.equal(saved.generation.state, "saved");
@@ -134,6 +150,11 @@ try {
           requests[1].requestKey,
           "transport retry reuses its request identity",
         );
+        await page.reload();
+        await page
+          .getByRole("status")
+          .filter({ hasText: "Setup saved with an audit record" })
+          .waitFor();
         const panel = page
           .getByRole("heading", { name: "Operating setup", exact: true })
           .locator("..");
@@ -152,7 +173,7 @@ try {
         await save.click();
         await page
           .getByRole("alert")
-          .filter({ hasText: "Operating setup was not saved" })
+          .filter({ hasText: "Operating setup could not be confirmed" })
           .waitFor();
         await save.click();
         await page.getByRole("status").filter({ hasText: "already saved" }).waitFor();
@@ -210,7 +231,7 @@ try {
         assert.deepEqual(errors, []);
         assert.deepEqual(escaped, []);
         checks.push(
-          `${scenario} ${width}: explicit approval, forced failure without saved setup, same-key keyboard retry, durable receipt, fresh-key replay, controlled legacy recovery, fresh-version approval, stale refusal, overflow and no escaped API/provider request`,
+          `${scenario} ${width}: explicit approval, forced failure before save, same-key keyboard retry with lost response after save, reload recovers audited receipt, fresh-key replay, controlled legacy recovery, fresh-version approval, stale refusal, overflow and no escaped API/provider request`,
         );
       } finally {
         await context.close();

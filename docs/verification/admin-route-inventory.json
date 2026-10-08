@@ -385,7 +385,7 @@
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
     "src/lib/revenue-os/work-board.ts": "5d7bd5f73b74ce4ae1b09a823a185e2c88e5bee252c28e52492b1193619aa004",
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
-    "src/lib/revenue-os/workspace-architect-generated-operations.ts": "22932067b6e0251779ec83d8c3c9b8f47bdd72472ccfb9eb143e08fc53dc030b",
+    "src/lib/revenue-os/workspace-architect-generated-operations.ts": "5bcd1d5261a62dd41cd544c1261fa40b92a1dec6f2eedb6889fba5e8dff06de5",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
     "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
     "src/lib/revenue-os/workspace-configuration.ts": "f293e0d1481a964a5e6e761e3d4e114b06c5ddaba1b266cdfb287c54ff9081d4",

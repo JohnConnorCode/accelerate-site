@@ -566,9 +566,25 @@ async function main() {
     (error: Error) => {
       assert.equal(
         error.message,
-        "Operating setup was not saved. Check the connection, then retry.",
+        "Operating setup could not be confirmed. Reload the review, or retry this save.",
       );
       assert.ok(!error.message.includes("private"));
+      return true;
+    },
+  );
+  const lostResponseClient = Object.assign(db, {
+    rpc: async () => {
+      throw new Error("private lost response");
+    },
+  }) as unknown as SupabaseClient;
+  await assert.rejects(
+    generateWorkspaceOperations(lostResponseClient, input, adapters),
+    (error: Error & { code?: string }) => {
+      assert.equal(error.code, "generation_save_failed");
+      assert.equal(
+        error.message,
+        "Operating setup could not be confirmed. Reload the review, or retry this save.",
+      );
       return true;
     },
   );

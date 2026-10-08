@@ -343,6 +343,9 @@ export interface GenerateOperationsAdapters {
   collectContext?: (supabase: SupabaseClient, tenantId: string) => Promise<BlueprintLiveContext>;
 }
 
+const GENERATION_UNCONFIRMED =
+  "Operating setup could not be confirmed. Reload the review, or retry this save.";
+
 export class WorkspaceOperationsError extends Error {
   constructor(
     public readonly code: string,
@@ -453,15 +456,21 @@ export async function generateWorkspaceOperations(
 
   // The database rechecks approval under lock and commits columns, receipt,
   // request bindings and audit together. No application-side write can escape it.
-  const { data, error } = await supabase.rpc("generate_workspace_operations", {
-    p_tenant_id: tenantId,
-    p_blueprint_id: blueprintId,
-    p_version: input.version,
-    p_request_key: requestKey,
-    p_actor_email: input.actorEmail,
-    p_document: document,
-    p_plan: plan,
-  });
+  let result;
+  try {
+    result = await supabase.rpc("generate_workspace_operations", {
+      p_tenant_id: tenantId,
+      p_blueprint_id: blueprintId,
+      p_version: input.version,
+      p_request_key: requestKey,
+      p_actor_email: input.actorEmail,
+      p_document: document,
+      p_plan: plan,
+    });
+  } catch {
+    throw new WorkspaceOperationsError("generation_save_failed", GENERATION_UNCONFIRMED);
+  }
+  const { data, error } = result;
   if (error) {
     const known = (
       [
@@ -485,7 +494,7 @@ export async function generateWorkspaceOperations(
     ).find(([code]) => error.message.includes(code));
     throw new WorkspaceOperationsError(
       known?.[0] ?? "generation_save_failed",
-      known?.[1] ?? "Operating setup was not saved. Check the connection, then retry.",
+      known?.[1] ?? GENERATION_UNCONFIRMED,
     );
   }
   if (!data?.receipt?.auditId)

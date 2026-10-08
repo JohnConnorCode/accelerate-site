@@ -107,8 +107,10 @@ records and permissions through the repository's development and review workflow
 
 ## What to check
 
-- If **Operating setup was not saved** appears, check the connection and retry the
-  same save. A failed transaction leaves its columns, saved result and audit unchanged.
+- If **Operating setup could not be confirmed** appears, reload the review to check
+  its saved result or retry the same save. A dropped connection can hide a completed
+  save; retrying returns that version's original result. A rejected database transaction
+  rolls its columns, saved result and audit back together.
 - If an earlier save needs maintainer reconciliation, ask the installation maintainer
   to inspect its saved result and audit. Keep the existing columns while the maintainer
   establishes what happened; that version stays unavailable for another setup save.
