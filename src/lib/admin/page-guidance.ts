@@ -32,6 +32,15 @@ export const adminPageGuidance: Record<string, AdminPageGuidance> = {
     ],
     guideHref: "/docs/intelligence/workspace",
   },
+  "source-authority": {
+    description:
+      "Review who verified a source, which facts it covers, and when that verification expires before relying on an agent answer.",
+    steps: [
+      "Register verified systems with an owner, tier, truth domains and expiry.",
+      "Review stale evidence and potential conflicts; retry an interrupted save to confirm its original receipt.",
+    ],
+    guideHref: "/docs/intelligence/source-authority",
+  },
   learning: {
     description: "Review reusable corrections before sharing them with future work.",
     steps: [

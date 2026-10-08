@@ -25,6 +25,15 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
+  if (request.headers.get("x-source-authority-tenant-id") !== auth.tenant.id) {
+    return NextResponse.json(
+      {
+        error:
+          "The active workspace changed. Return to the original workspace to confirm an interrupted save, or reload before starting a new change.",
+      },
+      { status: 409 },
+    );
+  }
   try {
     const body = await request.json();
     const command = prepareSourceAuthorityCommand(body);

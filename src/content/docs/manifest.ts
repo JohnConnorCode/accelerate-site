@@ -441,9 +441,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["intelligence", "source-authority"],
-        title: "Tell the model what to believe",
+        title: "Source authority",
         description:
-          "Register each connected system against the facts it owns, then let retrieval order, flag and stale-mark knowledge by that authority.",
+          "Give agents verified evidence and reduce time spent correcting outdated or conflicting answers.",
       },
       {
         slug: ["intelligence", "workspace"],

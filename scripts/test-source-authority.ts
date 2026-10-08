@@ -62,7 +62,7 @@ async function main() {
   const mem = new MemorySupabase({
     tenants: [{ id: tenant, status: "active" }],
     tenant_memberships: [{ tenant_id: tenant, user_id: tenant, role: "admin", status: "active" }],
-    source_authority_registry: [entry],
+    source_authority_registry: [{ ...entry }],
     companies: [{ id: tenant, name: "Fixture", domain: "fixture.test" }],
     contacts: [],
     opportunities: [],

@@ -46,8 +46,10 @@ export default function SourceAuthorityPage() {
   const [entityTypes, setEntityTypes] = useState("");
   const [coworkerIds, setCoworkerIds] = useState("");
   const tenantId = useRef("");
+  const pendingTenantId = useRef("");
   const pending = useRef<Record<string, unknown> | null>(null);
-  const storageKey = () => `accelerate:source-authority:${tenantId.current}`;
+  const storageKey = () =>
+    `accelerate:source-authority:${pendingTenantId.current || tenantId.current}`;
   const fetchEntries = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/source-authority");
@@ -61,6 +63,7 @@ export default function SourceAuthorityPage() {
       if (stored && !pending.current) {
         const command = JSON.parse(stored);
         pending.current = command;
+        pendingTenantId.current = data.tenantId;
         setSystemKey(command.systemKey);
         setDisplayName(command.displayName);
         setTruthDomains(command.truthDomains.join(", "));
@@ -97,6 +100,7 @@ export default function SourceAuthorityPage() {
           ...(entityTypes.trim() ? { entityTypes: split(entityTypes) } : {}),
           ...(coworkerIds.trim() ? { coworkerIds: split(coworkerIds) } : {}),
         };
+        pendingTenantId.current = tenantId.current;
         pending.current = {
           systemKey,
           displayName,
@@ -115,7 +119,10 @@ export default function SourceAuthorityPage() {
       }
       const res = await fetch("/api/admin/source-authority", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-source-authority-tenant-id": pendingTenantId.current,
+        },
         body: JSON.stringify(pending.current),
       });
       const data = await res.json();
@@ -130,6 +137,7 @@ export default function SourceAuthorityPage() {
         if ([400, 403, 409].includes(res.status)) {
           pending.current = null;
           sessionStorage.removeItem(storageKey());
+          pendingTenantId.current = "";
           setUncertain(false);
           setToast({
             message: data.error || "Review the source settings and retry.",
@@ -144,6 +152,7 @@ export default function SourceAuthorityPage() {
         throw new Error("Missing save receipt");
       pending.current = null;
       sessionStorage.removeItem(storageKey());
+      pendingTenantId.current = "";
       setUncertain(false);
       setToast({
         message: data.replayed ? "Earlier save confirmed" : "Source saved",

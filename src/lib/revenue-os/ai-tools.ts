@@ -327,14 +327,30 @@ const TIMELINE_OUTPUT_SCHEMA = {
 };
 const KNOWLEDGE_OUTPUT_SCHEMA = {
   type: "object",
-  required: ["contract", "found", "query", "chunks", "generatedAt"],
+  required: ["contract", "found", "query", "chunks", "conflicts", "generatedAt"],
   properties: {
     contract: { type: "string" },
     found: { type: "boolean" },
     query: { type: "string" },
-    entitySummary: { type: "object" },
-    chunks: { type: "array" },
-    refusalReason: { type: "string" },
+    entitySummary: { type: ["object", "null"] },
+    chunks: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          systemKey: { type: "string" },
+          authorityTier: { type: "string", enum: ["official", "approved", "working", "low"] },
+          authorityOwner: { type: ["string", "null"] },
+          lastVerifiedAt: { type: ["string", "null"] },
+          current: { type: "boolean" },
+          stale: { type: "boolean" },
+          conflict: { type: ["string", "null"] },
+        },
+      },
+    },
+    conflicts: { type: "array", items: { type: "object" } },
+    missing: { type: "array", items: { type: "string" } },
+    refusalReason: { type: ["string", "null"] },
     generatedAt: { type: "string" },
   },
 };
@@ -1932,7 +1948,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "search_knowledge_base",
     description:
-      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, conversations, private uploaded references, authorized Drive documents, and activity timeline. Prefer entityType and entityId for known records. Returns tagged chunks with confidence and recency or refuses cleanly.",
+      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, conversations, private uploaded references, authorized Drive documents, and activity timeline. Prefer entityType and entityId for known records. Returns cited chunks with explicit authorityTier, owner, verification date, current/stale flags, potential conflicts and missing-source warnings. Check those fields before using a claim; unregistered sources are low and unverified. Conflicts require review, never a silently chosen winner.",
     inputSchema: {
       type: "object",
       properties: {
