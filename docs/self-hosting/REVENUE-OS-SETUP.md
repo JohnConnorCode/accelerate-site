@@ -1,5 +1,7 @@
 # Accelerate Revenue OS setup
 
+Source authority requires `20260925-source-authority-registry.sql` and `20261008230447_source_authority_atomic_receipts.sql` from the ordered migration catalog before activating this source release. The latter revokes direct registry writes and installs the verified host command, version checks, immutable receipts and exact audit links. Existing registry rows and audit history remain; reverify historical entries with a new request to obtain a trustworthy receipt. A missing or unverifiable receipt stays unconfirmed rather than being repaired by inventing an audit.
+
 ## Conversational work and public inference
 
 Apply `migrations/20260930190623_conversational_agent_runtime.sql` through the ordered migration runner before activating this source release. It adds member-bound ordered plans, atomic internal permission limits and private public-demo inference admission. The native regression applies it twice and verifies replay, concurrent limits and revocation against a controlled database.

@@ -153,6 +153,13 @@ async function main() {
       ),
       /source changed/,
     );
+    errorCode = "55000";
+    await assert.rejects(
+      runWithTenantRequestContext(actor, () =>
+        registerSourceAuthority(database, { ...base, actorEmail: base.ownerEmail }),
+      ),
+      /audit history/,
+    );
     const before = calls;
     await assert.rejects(
       runWithTenantRequestContext(actor, () =>

@@ -169,6 +169,11 @@ export async function registerSourceAuthority(
         "This request conflicts with an earlier command or contains invalid source settings. Reload before starting a new request.",
         409,
       );
+    if (code === "55000")
+      throw new SourceAuthorityCommandError(
+        "The earlier save receipt could not be verified. Keep this request and review the audit history before retrying.",
+        503,
+      );
     if (code === "42501")
       throw new SourceAuthorityCommandError(
         "Current workspace administrator access is required.",

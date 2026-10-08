@@ -146,6 +146,10 @@ export default function SourceAuthorityPage() {
           if (res.status === 409) await fetchEntries();
           return;
         }
+        setToast({
+          message: data.error || "Save is unconfirmed. Retry the same request.",
+          type: "error",
+        });
         throw new Error("Unconfirmed response");
       }
       if (data.requestKey !== pending.current.requestKey || !data.auditId || !data.entry?.id)
