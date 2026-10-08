@@ -87,6 +87,11 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes. Scroll across the columns, or press Tab to a column button and press Enter. The board itself takes keyboard focus for arrow-key scrolling, and reduced motion makes the column jumps instant. Refreshing or closing an editor keeps your place, and browser Back returns you to the pipeline board.",
   },
   {
+    question: "How do I keep agent answers grounded in verified sources?",
+    answer:
+      "Use Source authority to record the systems your team has verified, their scope, owner and verification expiry. Grounded knowledge searches carry those tags and flag differing evidence for review. Unregistered sources stay low and unverified. Your agent can propose registry changes for approval; the admin form uses the same writer and can recover an interrupted save. Registering a source does not connect a provider or prove that its claims are true.",
+  },
+  {
     question: "Can I actually work with clients in the demo?",
     answer:
       "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Work or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",

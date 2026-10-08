@@ -245,6 +245,7 @@ export async function approveAndExecuteAction(
       case "bootstrap_coworker":
       case "store_agent_memory":
       case "record_learned_policy":
+      case "register_source_authority":
       case "approve_learning": {
         if (mode !== "approved")
           throw new Error("Runtime configuration and memory changes require human approval");

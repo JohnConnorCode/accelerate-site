@@ -117,6 +117,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260919210534_site_editor_delegation.sql",
   "migrations/20260919211809_form_review_commands.sql",
   "migrations/20260920-connected-learning.sql",
+  "migrations/20260925-source-authority-registry.sql",
   "migrations/20260927-knowledge-documents.sql",
   "migrations/20260928-learning-signals.sql",
   "migrations/20260920201517_ai_readiness_atomic_reports.sql",
@@ -131,6 +132,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260929211535_contact_import_review_atomic.sql",
   "migrations/20260930004129_workspace_configuration_commands.sql",
   "migrations/20260930190623_conversational_agent_runtime.sql",
+  "migrations/20261008230447_source_authority_atomic_receipts.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

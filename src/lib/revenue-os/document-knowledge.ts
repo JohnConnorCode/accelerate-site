@@ -107,6 +107,8 @@ export async function searchDocumentKnowledge(db: SupabaseClient, query: string,
     .map((row) => ({
       id: row.id,
       source: row.kind === "conversation" ? "conversation" : "document",
+      systemKey:
+        row.kind === "drive" ? "drive" : row.kind === "upload" ? "uploads" : "conversations",
       entityType: row.kind === "conversation" ? "conversation" : "document",
       entityId: row.id,
       title: row.title,

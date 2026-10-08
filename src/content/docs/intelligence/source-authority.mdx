@@ -1,0 +1,43 @@
+---
+title: "Source authority"
+description: "Give agents verified evidence and reduce time spent correcting outdated or conflicting answers."
+updated: "2026-10-08"
+---
+
+Agents can search your workspace faster than a person can reconcile every record. Source authority tells those searches which systems your team has verified, who owns each source, and when verification expires. It helps you review the evidence behind an answer before using it in a customer conversation or business decision.
+
+Authority is an explicit configuration, not a proof that a statement is true. Recent activity and a large volume of records never promote a source automatically.
+
+## Set up with your agent
+
+Ask Claude Code, Codex, or your connected Command Center assistant to list source authorities, then propose the sources your team has verified. The `list_source_authorities` tool returns the current registry and versions. The `register_source_authority` tool creates an approval proposal; it cannot silently change trust settings. Approval uses the same transactional owner as the admin form.
+
+Include a system key, display name, truth domains, tier, owner email, last-verified timestamp, and verification lapse in days. Use the current `expectedVersion` from the list when updating a source, or `0` for a new one. Optional `appliesTo.entityTypes` and `appliesTo.coworkerIds` restrict where that authority applies. A source stays low when a search lacks matching scope, including a coworker identity.
+
+| Retrieved evidence                              | Registry system key |
+| ----------------------------------------------- | ------------------- |
+| Canonical companies, contacts and opportunities | `canonical_crm`     |
+| Founder notes                                   | `founder_notes`     |
+| Activity timeline                               | `activity_ledger`   |
+| Conversations                                   | `conversations`     |
+| Verified Drive document results                 | `drive`             |
+| Uploaded documents                              | `uploads`           |
+| Generic plugin results                          | `plugin`            |
+
+Registering a source does not connect a provider or grant access to its data. Drive results still require live access and revision checks. A generic plugin registration covers results marked `plugin`; leave it unregistered unless that shared scope matches your review.
+
+## Review and update by hand
+
+Open **Source authority** in Command Center. Each row shows its tier, owner, domains, scope, and verification date. **Register source** also updates an existing system key. The form uses its loaded version; if someone changes that source first, reload and review the new version before saving.
+
+Official outranks approved, then working, then low. Grounded search results carry the configured `authorityTier`, owner, verification date, and current/stale flags. Unregistered or unavailable authority is low and unverified. Overdue sources remain visible as stale evidence, never marked current.
+
+Different evidence about the same entity and an overlapping truth domain is flagged as a **potential conflict**. A differing excerpt does not prove a contradiction. Review both sources; the system does not silently choose a winner. These tags govern grounded knowledge searches, not every external provider or all future coworker activity.
+
+## Confirm an interrupted save
+
+A source change, its exact audit record, and its immutable receipt commit together. If the response is lost, the form keeps the original request, including after a reload in the same browser tab. Choose **Retry same save** to recover the receipt. Fields stay fixed while the outcome is unconfirmed.
+
+Agent proposals also retain their normalized request key. Retrying that exact command returns its original receipt even after a later source update; it does not overwrite the newer state. A changed payload on the same request key is refused. Current administrator membership and workspace lifecycle are checked again on retries.
+
+Historical registry entries remain available. An old registration without a trustworthy receipt requires a new verification command; the system never invents a missing historical audit. A confirmed save may still need **Reload sources** if refreshing the list fails.
