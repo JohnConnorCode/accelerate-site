@@ -1,5 +1,6 @@
 import { chromium, webkit } from "playwright";
 import { mkdir, writeFile } from "node:fs/promises";
+import { installHeroMotionObserver, hasFreshHeroEntrance } from "./lib/hero-motion-observer.mjs";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-mobile-motion";
@@ -44,6 +45,10 @@ for (const [engine, launcher] of Object.entries(engines)) {
     isMobile: true,
     hasTouch: true,
     recordVideo: { dir: `${output}/video`, size: { width: 390, height: 844 } },
+  });
+  await context.addInitScript(installHeroMotionObserver);
+  await context.addInitScript({
+    content: `window.__heroForwardOnEntry = () => { window.__heroForwardFrames = (${sampleFrames.toString()})(2200); };`,
   });
   await context.addInitScript(() => {
     window.__documentId = Math.random();
@@ -178,26 +183,30 @@ for (const [engine, launcher] of Object.entries(engines)) {
         failures.push(`${engine}: hero artwork kept moving behind the open menu`);
       await page.locator('#mobile-site-navigation a[href="/services"]').first().click();
       await page.waitForURL(`${base}/services`);
+      await page.evaluate(() => {
+        window.__heroForward = null;
+        window.__heroForwardFrames = null;
+        window.__heroForwardArmedAt = performance.now();
+      });
       await page.locator('header .logo-link[href="/"]').click();
       await page.waitForURL(`${base}/`);
       await page.waitForFunction(() =>
         document.querySelector(".home-hero")?.classList.contains("in"),
       );
+      await page
+        .waitForFunction(() => window.__heroForward, undefined, { timeout: 5000 })
+        .catch(() => {});
       const fresh = await page.evaluate(() => ({
         documentId: window.__documentId,
-        runningWords: document
-          .querySelector(".home-hero")
-          .getAnimations({ subtree: true })
-          .filter(
-            (animation) =>
-              animation.animationName === "home-hero-word-enter" &&
-              animation.playState === "running",
-          ).length,
-        action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
+        entrance: window.__heroForward,
       }));
-      if (fresh.documentId !== composition.documentId || !fresh.runningWords || fresh.action > 0.1)
+      if (
+        fresh.documentId !== composition.documentId ||
+        !hasFreshHeroEntrance(fresh.entrance) ||
+        fresh.entrance.action > 0.1
+      )
         failures.push(`${engine}: warm visit ${visit} skipped or exposed its entrance`);
-      const frames = await page.evaluate(sampleFrames, 2200);
+      const frames = await page.evaluate(() => window.__heroForwardFrames);
       // Chromium's 4× CPU budget and native Mac WebKit share the 50ms limit.
       // Linux headless WebKit's raster path has different pacing; retain its
       // measurements and enforce the same 200ms stall ceiling on every engine.

@@ -1,5 +1,10 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { chromium, webkit } from "playwright";
+import {
+  installHeroMotionObserver,
+  hasPerceptibleHeroSequence,
+  hasFreshHeroEntrance,
+} from "./lib/hero-motion-observer.mjs";
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-home-hero-timing";
@@ -172,27 +177,7 @@ for (const [label, viewport, colorScheme] of [
       : {}),
   });
   await context.addInitScript((theme) => localStorage.setItem("theme", theme), colorScheme);
-  await context.addInitScript(() => {
-    window.__heroEntrances = [];
-    document.addEventListener("animationstart", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement) || !target.closest(".home-hero")) return;
-      const phase = target.matches(".home-hero-eyebrow")
-        ? "eyebrow"
-        : target.matches(".home-hero-lead .home-hero-word")
-          ? "lead"
-          : target.matches(".home-hero-heading em .home-hero-word")
-            ? "outcome"
-            : target.matches(".home-hero-support")
-              ? "support"
-              : target.matches(".home-hero-actions")
-                ? "action"
-                : target.matches(".home-hero-index > span")
-                  ? `index-${[...target.parentElement.children].indexOf(target)}`
-                  : null;
-      if (phase) window.__heroEntrances.push({ phase, time: performance.now() });
-    });
-  });
+  await context.addInitScript(installHeroMotionObserver);
   const page = await context.newPage();
   page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
   page.on("console", (message) => {
@@ -267,13 +252,7 @@ for (const [label, viewport, colorScheme] of [
   if (settled.cta !== "1") failures.push(`${label}: CTA is not visible`);
   if (!settled.wordsComplete) failures.push(`${label}: word entrance did not settle`);
   if (!settled.entriesComplete) failures.push(`${label}: hero sequence did not settle`);
-  if (
-    settled.phases.some((phase) => !phase) ||
-    settled.phases.some(
-      (phase, index, phases) =>
-        index > 0 && phase && phases[index - 1] && phase.time - phases[index - 1].time < 30,
-    )
-  )
+  if (!hasPerceptibleHeroSequence(settled.phases))
     failures.push(`${label}: hero phases did not enter in a perceptible sequence`);
   await page.waitForFunction(
     () => document.querySelector(".home-hero").dataset.heroActive === "true",
@@ -344,37 +323,24 @@ for (const [label, viewport, colorScheme] of [
     const homeLink = page.locator('header .logo-link[href="/"]');
     await homeLink.hover();
     await page.waitForTimeout(350);
+    await page.evaluate(() => {
+      window.__heroForward = null;
+      window.__heroForwardArmedAt = performance.now();
+    });
     await homeLink.click();
     await page.waitForURL(`${baseUrl}/`);
     await page.waitForFunction(() =>
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
-    const forward = await page.evaluate(() => {
-      const hero = document.querySelector(".home-hero");
-      const word = hero.querySelector(".home-hero-word");
-      const entrance = word
-        .getAnimations()
-        .find((animation) => animation.animationName === "home-hero-word-enter");
-      return {
-        kind: document.documentElement.dataset.navigationKind,
-        animated: getComputedStyle(word).animationName,
-        immediate: hero.classList.contains("reveal-immediate"),
-        playState: entrance?.playState,
-        currentTime: entrance?.currentTime,
-        endTime: entrance?.effect.getComputedTiming().endTime,
-        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
-      };
-    });
+    // Wait for a captured entry, never poll the current animation until green.
+    // A missing entry still fails; an already completed navigation cannot erase
+    // the running clock observed inside the browser when the entrance began.
+    await page
+      .waitForFunction(() => window.__heroForward, undefined, { timeout: 5000 })
+      .catch(() => {});
+    const forward = await page.evaluate(() => window.__heroForward);
     settled.forward = forward;
-    // A client commit can be observed partway through its entrance. Require
-    // a live, fresh animation clock; concealed opening frames are tested above.
-    if (
-      forward.kind !== "fresh" ||
-      forward.animated !== "home-hero-word-enter" ||
-      forward.immediate ||
-      forward.playState !== "running" ||
-      forward.currentTime >= forward.endTime
-    )
+    if (!hasFreshHeroEntrance(forward))
       failures.push(
         `${label}: prefetched forward navigation skipped the fresh entrance: ${JSON.stringify(forward)}`,
       );
