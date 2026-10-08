@@ -88,6 +88,8 @@ Setup for each client is in [docs/self-hosting/MCP-SETUP.md](docs/self-hosting/M
 
 ## Extend it without forking it
 
+Tell Codex or Claude Code what your business needs, with an example input and the result you want to review. The agent can set up the local repository, reuse its customer records and business services, implement the extension, and run its checks. You review the changed behavior and evidence. Start with [your first agent-built change](https://www.acceleratewith.us/docs/extend/first-change), then use the [App brief](https://www.acceleratewith.us/docs/extend/ai-authoring) for a real workflow. This saves rebuilding identity, permissions and execution history for each new screen.
+
 Modules are the unit a workspace turns on and off. A third party registers one from a JSON manifest in [`extensions/`](extensions/README.md) that declares its navigation, routes, AI tools, and Setup Center checks. The build validates every manifest and compiles it into a typed constant, so nothing in that directory is ever executed.
 
 A registered module inherits the approval queue, the audit ledger, module gating, and MCP exposure without asking for any of them. Disable it and its navigation disappears, its routes fail closed, and its AI tools report unavailable to the agent and to MCP alike.

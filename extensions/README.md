@@ -12,15 +12,28 @@ what a module can reach before installing it.
 
 ## Adding a module
 
+Ask Codex or Claude Code to implement the module from a business brief, following
+`docs/NORTHSTAR.md`, `AGENTS.md` and `docs/contributing/EXTENDING.md`.
+The [assistant guide](https://www.acceleratewith.us/docs/extend/ai-authoring)
+explains the inputs and reviewable result. The steps below describe what the
+agent must deliver, including the actual behavior behind the registration.
+
 1. Write `extensions/<your-module>.module.json`. See
    `extensions/example-inventory.module.json` for a complete, working example
    and `docs/contributing/EXTENDING.md` for the full field reference.
 2. Create the pages your manifest declares, at the paths it declares. Next.js
    file-based routing picks them up; the manifest is what makes them appear in
    navigation and the modules console.
-3. Run `npm run build:extensions`. This validates every manifest and regenerates
+3. Write `plugins/<your-module>/README.md` with a complete operator task, costs,
+   permissions, recovery and source references. Create its public guide under
+   `src/content/docs/plugins/`, register that page in `src/content/docs/manifest.ts`,
+   and set `docsUrl` to its `/docs/plugins/<your-module>` route. Follow the
+   [plugin documentation contract](../docs/contracts/PLUGIN-DOCUMENTATION.md).
+4. Run `npm run build:extensions`. This validates every manifest and regenerates
    `src/lib/revenue-os/extension-modules.generated.ts`, which is committed.
-4. Commit both the manifest and the regenerated file. CI fails if they drift.
+5. Run `npm run verify:extensions` and `npm run verify:module-contract`, plus the
+   feature's required checks. Commit the source, manifest, guides and regenerated
+   registration together. CI fails if registration drifts.
 
 ## What a module inherits for free
 

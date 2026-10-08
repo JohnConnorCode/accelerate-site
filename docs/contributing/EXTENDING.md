@@ -14,6 +14,18 @@ changes require application code and an additive migration; a JSON manifest by
 itself does not implement them. The future in-app AI authoring direction is
 specified in [the northstar](../NORTHSTAR.md#29-ai-generated-extensions).
 
+## Start from a business brief
+
+Codex or Claude Code can set up the repository and implement an extension from
+the [coding-assistant brief](/docs/extend/ai-authoring). Supply the business
+process, example inputs, expected saved result and who may perform each action.
+Ask the agent to read `docs/NORTHSTAR.md`, `AGENTS.md`, this guide and
+`docs/contracts/PLUGIN-DOCUMENTATION.md`, then reuse the existing services.
+For assigned work, the live Feature Board packet owns scope, dependencies and
+acceptance. For a personal fork experiment, use a separate branch and fictional
+data. Review the exact changes, checks and remaining connected-workspace proof
+before integration; production publication is a separate owner decision.
+
 What every extension inherits automatically:
 
 - **The approval queue.** An AI tool that mutates anything can only stage a
@@ -38,8 +50,10 @@ What every extension inherits automatically:
 
 ## 1. Add a module
 
-A module is the unit a workspace turns on and off. Registering one takes a JSON
-manifest and the pages it names. You do not edit any core array.
+A module is the unit a workspace turns on and off. Its registration names the
+pages, navigation and operator guide; its source implements the actual business
+behavior. Start from the existing Inventory example and keep core definitions
+intact.
 
 Create `extensions/<your-module>.module.json`:
 
@@ -50,7 +64,7 @@ Create `extensions/<your-module>.module.json`:
   "name": "Inventory",
   "description": "Stock levels, reorder points, and supplier lead times.",
   "category": "delivery",
-  "defaultEnabled": true,
+  "defaultEnabled": false,
   "navLinks": [
     {
       "id": "acme-inventory",
@@ -63,13 +77,25 @@ Create `extensions/<your-module>.module.json`:
   ],
   "routes": ["/admin/acme-inventory"],
   "aiToolNames": [],
-  "setupChecks": []
+  "setupChecks": [],
+  "docsUrl": "/docs/plugins/acme-inventory"
 }
 ```
 
-Then create `src/app/admin/acme-inventory/page.tsx`, run
-`npm run build:extensions`, and commit both the manifest and the regenerated
-`src/lib/revenue-os/extension-modules.generated.ts`.
+This illustrates registration for a new module; stock storage and reorder
+behavior need their own implementation and tests. Before running the builder:
+
+1. Create `src/app/admin/acme-inventory/page.tsx` with the behavior the brief
+   requests, using the shared domain services for reads and writes.
+2. Write `plugins/acme-inventory/README.md` with a worked operator task, access,
+   costs, permissions, recovery and source references. Follow
+   [the plugin documentation contract](../contracts/PLUGIN-DOCUMENTATION.md).
+3. Create `src/content/docs/plugins/acme-inventory.mdx` and add its matching
+   title, description and slug to `src/content/docs/manifest.ts`. The example's
+   `docsUrl` must lead to this module's public task guide.
+4. Run `npm run build:extensions` and the checks below. Commit the implementation,
+   manifest, guides and regenerated `src/lib/revenue-os/extension-modules.generated.ts`
+   together. Run `npm run docs:llms` after changing public docs.
 
 ### Field reference
 

@@ -1,14 +1,22 @@
 ---
-title: "Your first developer change"
-description: "Run the demo, learn where code lives, and make one small, safe extension change."
-updated: "2026-09-19"
+title: "Your first agent-built change"
+description: "Ask a coding assistant to set up the repository, change the example module and show verified results."
+updated: "2026-10-07"
 ---
 
-The fastest way to get oriented in an unfamiliar codebase is a small change you can verify end to end, not a long read through the architecture docs first. This guide is that change: run the fictional demo, see where code lives, and edit the existing example module. Nothing in this first exercise adds a database table or sends anything externally.
+When you have a business idea for a new screen, you need to see how a coding agent turns it into a change you can review. Start with the existing Inventory registration example: Codex or Claude Code can prepare local setup, change one heading and show its checks. You learn the extension path while keeping the first change small enough to inspect.
+
+## Give the agent the first task
+
+Open this repository in Codex or Claude Code and use this brief. The agent prepares the change; you review the result and any setup it still needs.
+
+> Read docs/NORTHSTAR.md, AGENTS.md and docs/contributing/EXTENDING.md. For my local fork experiment, preserve existing work and use a separate branch from published main. Check Git, Node 22.16+ and npm, install the locked dependencies if needed, and start the fictional demo. In src/app/admin/example-inventory/page.tsx, change “This page is registered by a manifest” to “My first workspace extension”. Keep the module disabled by default. Run npm run verify:extensions and git diff --check, then show the exact diff and results. Identify the connected test workspace needed to verify the admin page; keep its setup separate from the credential-free demo. Close servers you start when finished. Follow the repository's required verification before submitting application source. Report implementation, verification, review, merge and deployment as separate facts.
+
+For assigned repository work, ask the agent to use the approved base and isolated worker checkout in the live Feature Board packet instead. The commands below explain local setup and help you interpret what the agent reports.
 
 ## Start the app
 
-You need Git, Node.js 22.16 or later, npm and an editor. Start from the published main branch for a local experiment.
+The agent needs Git, Node.js 22.16 or later and npm. Start from the published main branch for a local experiment.
 
 ```bash
 node --version
@@ -48,10 +56,9 @@ Read `docs/NORTHSTAR.md` and then `AGENTS.md` before implementation. For coordin
 
 The repository includes an Inventory example. Its manifest registers a page and workspace toggle; it does not implement stock storage or automatic reordering.
 
-1. Open `src/app/admin/example-inventory/page.tsx` in your editor.
-2. Find the heading “This page is registered by a manifest” and change it to “My first workspace extension”. Save the file.
-3. Read `extensions/example-inventory.module.json`. Its `routes` field names the page you edited. It ships with `defaultEnabled: false`; leave that setting unchanged for this exercise.
-4. In another terminal in the repository, run the checks below. These confirm registration consistency; they do not prove database permissions or a rendered page.
+The agent changes the heading in `src/app/admin/example-inventory/page.tsx` and reads `extensions/example-inventory.module.json` to confirm the owned route. Its `defaultEnabled: false` setting stays unchanged, so the experiment remains opt-in.
+
+The first checks confirm registration consistency and show the intended source edit:
 
 ```bash
 npm run verify:extensions
@@ -59,13 +66,21 @@ git diff --check
 git diff -- src/app/admin/example-inventory/page.tsx
 ```
 
-The diff should contain only your intended text change. You do not need to regenerate module registration when only page text changes.
+Review a diff containing only the intended heading change. Module registration stays unchanged when only page text changes; the repository's required application checks still apply before a submitted handoff.
 
 ## See the extension in a workspace
 
 The public demo demonstrates selected fictional workflows. To inspect this admin extension, use a [connected local installation](/docs/self-hosting/installation) with an administrator account.
 
 Open `/admin/integrations`, enable the Inventory example for your test workspace, and visit `/admin/example-inventory`. Confirm your heading appears. Disable the module and confirm the route refuses access. This is a workspace feature check; it does not require enabling the example for other workspaces.
+
+<DocsFigure
+  src="/images/docs/plugins/example-inventory.png"
+  alt="The Inventory registration example in the fictional Northline Roofing workspace, showing its explanatory page before the heading change."
+  width={1440}
+  height={1000}
+  caption="The starting Inventory example in a fictional Northline Roofing workspace. Ask the agent to show this page with your changed heading in a connected test workspace."
+/>
 
 ## Turn the example into a real feature
 
@@ -113,3 +128,7 @@ Every feature change also updates the organized public guides, product changelog
 The shared resource runner allows one heavy job at a time across worktrees. An optional [local machine supervisor](https://github.com/JohnConnorCode/accelerate-site/blob/main/scripts/supervisor/README.md) adds a queue and process identity checks for registered agent sessions. It starts off and requires no service credentials. It is separate from Feature Board assignment: continue using the ordinary backlog runner to claim and complete work.
 
 The supervisor can pause a registered producer without terminating it, preserve a paused session during recovery, and report unmanaged launch paths. It does not install hooks into every agent, reconstruct lost conversations, or provide OS-level isolation. Its guide explains configuration, recovery, and the tested limits.
+
+## What to check
+
+If dependencies or registration checks fail, ask the agent to report the failed command and repair the cause before continuing. For an unavailable admin page, check the connected test workspace, administrator access and module enablement. Keep fictional-demo exploration, rendered admin verification and production publication distinct in the handoff.
