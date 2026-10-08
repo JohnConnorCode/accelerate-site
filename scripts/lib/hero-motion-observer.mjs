@@ -3,6 +3,50 @@
 export function installHeroMotionObserver() {
   window.__heroEntrances = [];
   window.__heroForward = null;
+  let pendingArm;
+  const captureFresh = () => {
+    const armedAt = window.__heroForwardArmedAt;
+    if (
+      armedAt == null ||
+      pendingArm === armedAt ||
+      window.__heroForward ||
+      location.pathname !== "/"
+    )
+      return;
+    const hero = document.querySelector(".home-hero.in");
+    const word = hero?.querySelector(".home-hero-lead .home-hero-word");
+    const animation = word
+      ?.getAnimations()
+      .find((animation) => animation.animationName === "home-hero-word-enter");
+    if (!animation) return;
+    pendingArm = armedAt;
+    // Readiness is resolved when the browser assigns the animation clock,
+    // before animationstart event delivery. A queued event can arrive after
+    // that clock has finished; retain this first observation instead.
+    void animation.ready.then(() => {
+      if (window.__heroForwardArmedAt !== armedAt || window.__heroForward) return;
+      window.__heroForward = {
+        kind: document.documentElement.dataset.navigationKind,
+        animated: getComputedStyle(word).animationName,
+        immediate: hero.classList.contains("reveal-immediate"),
+        playState: animation.playState,
+        currentTime: animation.currentTime,
+        endTime: animation.effect.getComputedTiming().endTime,
+        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
+        startTime: animation.startTime,
+        armedAt,
+        observedAt: performance.now(),
+      };
+      window.__heroForwardOnEntry?.();
+    });
+  };
+  const changes = new MutationObserver(captureFresh);
+  changes.observe(document, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ["class", "data-reveal-state"],
+  });
   document.addEventListener("animationstart", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
@@ -34,26 +78,6 @@ export function installHeroMotionObserver() {
         : null;
     const observedAt = performance.now();
     window.__heroEntrances.push({ phase, time, observedAt });
-    if (
-      phase === "lead" &&
-      window.__heroForwardArmedAt != null &&
-      !window.__heroForward &&
-      location.pathname === "/"
-    ) {
-      window.__heroForward = {
-        kind: document.documentElement.dataset.navigationKind,
-        animated: getComputedStyle(target).animationName,
-        immediate: hero.classList.contains("reveal-immediate"),
-        playState: animation?.playState,
-        currentTime: animation?.currentTime,
-        endTime: timing?.endTime,
-        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
-        startTime: animation?.startTime,
-        armedAt: window.__heroForwardArmedAt,
-        observedAt,
-      };
-      window.__heroForwardOnEntry?.();
-    }
   });
 }
 

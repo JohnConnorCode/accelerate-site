@@ -35,8 +35,9 @@ try {
     const delayDelivery = () => {
       document.addEventListener("animationstart", (event) => {
         if (window.__blockHeroDelivery && event.target.matches(".home-hero-eyebrow")) {
+          const blockedFor = window.__blockHeroDelivery;
           window.__blockHeroDelivery = false;
-          const until = performance.now() + 240;
+          const until = performance.now() + blockedFor;
           while (performance.now() < until) {
             /* Fixture-only delayed event delivery. */
           }
@@ -53,6 +54,7 @@ try {
     for (const mode of [
       "delayed-read",
       "delayed-delivery",
+      "delayed-delivery-finished",
       "collapsed",
       "misordered",
       "missing",
@@ -61,8 +63,9 @@ try {
     ]) {
       await page.goto(`${base}/services`);
       await page.evaluate((mode) => {
-        window.__blockHeroDelivery = mode === "delayed-delivery";
-        window.__heroForwardArmedAt = performance.now();
+        window.__blockHeroDelivery =
+          mode === "delayed-delivery-finished" ? 700 : mode === "delayed-delivery" ? 240 : 0;
+        if (mode !== "stale") window.__heroForwardArmedAt = performance.now();
         document.querySelector("#home").onclick = () => {
           history.pushState({}, "", "/");
           document.querySelector("main").innerHTML =
@@ -78,7 +81,10 @@ try {
           // Resolve real CSS animation clocks before arranging observer delay.
           const animations = hero.getAnimations({ subtree: true });
           Promise.all(animations.map((animation) => animation.ready)).then(() => {
-            if (mode === "stale") window.__heroForwardArmedAt = performance.now();
+            if (mode === "stale") {
+              window.__heroForwardArmedAt = performance.now();
+              hero.dataset.revealState = "visible";
+            }
           });
         };
       }, mode);
@@ -102,7 +108,7 @@ try {
       }));
       const sequence = hasPerceptibleHeroSequence(observation.phases);
       const fresh = hasFreshHeroEntrance(observation.entrance);
-      if (["delayed-read", "delayed-delivery"].includes(mode)) {
+      if (["delayed-read", "delayed-delivery", "delayed-delivery-finished"].includes(mode)) {
         assert(sequence, `${label}/${mode}: actual stagger was lost`);
         assert(fresh, `${label}/${mode}: captured fresh entrance was lost`);
         assert.equal(
@@ -110,7 +116,7 @@ try {
           "finished",
           "Fixture must reproduce a late settled read",
         );
-        if (mode === "delayed-delivery") {
+        if (mode.startsWith("delayed-delivery")) {
           const gap = observation.phases[1].observedAt - observation.phases[0].observedAt;
           assert(gap < 30, `Fixture must reproduce bunched event delivery, got ${gap}ms`);
         }
