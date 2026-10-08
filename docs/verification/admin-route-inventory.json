@@ -385,7 +385,7 @@
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
     "src/lib/revenue-os/work-board.ts": "5d7bd5f73b74ce4ae1b09a823a185e2c88e5bee252c28e52492b1193619aa004",
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
-    "src/lib/revenue-os/workspace-architect-generated-operations.ts": "5bcd1d5261a62dd41cd544c1261fa40b92a1dec6f2eedb6889fba5e8dff06de5",
+    "src/lib/revenue-os/workspace-architect-generated-operations.ts": "052b53334e27e1c888b42e881d3a42fd9927a495d61e11733408129c528b5a28",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
     "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
     "src/lib/revenue-os/workspace-configuration.ts": "f293e0d1481a964a5e6e761e3d4e114b06c5ddaba1b266cdfb287c54ff9081d4",
@@ -557,7 +557,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Review uses the latest version and live capabilities. Explicitly saving approved operating setup calls one tenant-authorized transaction for available Kanban columns, request bindings, receipt and linked audit. Navigation, views, workflows and Coworkers remain saved recommendations. The original saved receipt stays visible after replay; historical unaudited saves require reconciliation. Member-agent/MCP save parity is tracked as missing.",
+      "boundary": "Review uses the latest version and live capabilities. Workflow readiness includes required capabilities and integrations. Explicitly saving approved operating setup calls one tenant-authorized transaction for available Kanban columns, request bindings, receipt and linked audit. Navigation, views, workflows and Coworkers remain saved recommendations. The original saved receipt stays visible after replay; historical unaudited saves require reconciliation. Member-agent/MCP save parity is tracked as missing.",
       "followUp": {
         "key": "blueprint-operating-setup-agent-parity",
         "id": "67d48fa2-a9ed-4c5c-8d80-bd8e784c03f4"

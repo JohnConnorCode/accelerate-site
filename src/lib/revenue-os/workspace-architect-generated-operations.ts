@@ -140,6 +140,10 @@ function statusFromRef(
 ): { status: GeneratedItemStatus; reason: string | null } {
   const blocked = compiled.blocked.find((item) => item.ref === ref);
   if (blocked) return { status: "blocked", reason: blocked.reason };
+  const unsupported = compiled.customAppBriefs.find((brief) =>
+    brief.id.startsWith(`brief:${ref}:`),
+  );
+  if (unsupported) return { status: "blocked", reason: unsupported.why };
   return { status: "ready", reason: null };
 }
 
@@ -275,7 +279,8 @@ export function planWorkspaceOperations(
       triggerRef: workflow.trigger.ref,
       steps,
       approvalRequired,
-      status: blockedSteps > 0 ? "blocked" : "ready",
+      status:
+        blockedSteps > 0 ? "blocked" : statusFromRef(`workflow:${workflow.key}`, compiled).status,
       dedupeKey: `generate-ops:workflow:${workflow.key}`,
     };
   });

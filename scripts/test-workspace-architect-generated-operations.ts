@@ -433,6 +433,27 @@ async function main() {
     ["email.draft", "email.send"],
   );
 
+  const unknownStep = structuredClone(blueprint);
+  unknownStep.workflows[0]!.steps[0]!.capabilityKey = "sms.send";
+  const unknownStepPlan = planWorkspaceOperations(unknownStep, liveContext());
+  assert.equal(unknownStepPlan.workflows[0]!.status, "blocked");
+  assert.equal(unknownStepPlan.workflows[0]!.steps[0]!.status, "blocked");
+  assert.ok(unknownStepPlan.customAppBriefs.some((brief) => brief.missingKey === "sms.send"));
+
+  const missingIntegration = structuredClone(blueprint);
+  missingIntegration.workflows[0]!.requiredIntegrations = ["drive"];
+  const missingIntegrationPlan = planWorkspaceOperations(missingIntegration, liveContext());
+  assert.equal(missingIntegrationPlan.workflows[0]!.status, "blocked");
+  assert.ok(missingIntegrationPlan.customAppBriefs.some((brief) => brief.missingKey === "drive"));
+
+  const unavailableIntegrationPlan = planWorkspaceOperations(
+    missingIntegration,
+    liveContext({
+      capabilities: [...liveContext().capabilities, { key: "drive", available: false }],
+    }),
+  );
+  assert.equal(unavailableIntegrationPlan.workflows[0]!.status, "blocked");
+
   const salesCoworker = plan.coworkers.find((c) => c.key === "sales_coworker")!;
   assert.equal(salesCoworker.status, "ready");
   assert.equal(salesCoworker.missingCapabilities.length, 0);
