@@ -17,6 +17,7 @@ async function navigate(page, suffix) {
   await link.click();
 }
 try {
+  results.push(...(await verifyAIReading({ browser, base, output })));
   for (const reducedMotion of ["no-preference", "reduce"]) {
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
@@ -477,7 +478,6 @@ try {
       await writeFile(`${output}/board-states.json`, JSON.stringify(states, null, 2));
     }
   }
-  results.push(...(await verifyAIReading({ browser, base, output })));
   await writeFile(`${output}/navigation.json`, JSON.stringify(results, null, 2));
   console.log(results);
 } finally {

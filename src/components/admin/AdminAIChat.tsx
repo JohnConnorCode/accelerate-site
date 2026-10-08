@@ -430,7 +430,11 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             const scroll = event.currentTarget;
             const nearBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight <= 48;
             followingRef.current = nearBottom;
-            setReadingPosition({ key: readingKey, away: !nearBottom });
+            setReadingPosition((current) =>
+              current.key === readingKey && current.away === !nearBottom
+                ? current
+                : { key: readingKey, away: !nearBottom },
+            );
           }}
           style={{ overflowAnchor: "none" }}
           className={cn(
