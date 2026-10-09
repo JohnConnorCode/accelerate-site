@@ -64,7 +64,9 @@ with `SIGTRAP` after `bootstrap_check_in` reported macOS Mach-port error 141.
 Search interaction, keyboard focus, retry and responsive layout therefore remain
 unverified in a browser. The check is retained as `qa-ai-capabilities.mjs`, available
 through `QA_FOCUS=capabilities npm run qa:admin-polish`. No native browser fallback
-or repeated launcher attempt was used.
+or repeated launcher attempt was used. The same capability journey is also
+wired into the existing Linux production browser job, with screenshots retained
+for independent review. Its result must be checked on the current PR head.
 
 ## Remaining approved plan
 

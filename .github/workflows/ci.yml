@@ -434,7 +434,7 @@ jobs:
           path: /tmp/accelerate-leads-write-recovery/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Verify Revenue reporting and recovery
+      - name: Verify reporting and AI capability recovery
         if: ${{ !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
@@ -453,12 +453,15 @@ jobs:
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-revenue-server.log; exit 1; fi
           npm run qa:revenue
+          node scripts/qa-ai-capabilities.mjs
       - name: Retain Revenue browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
           name: revenue-browser-evidence
-          path: /tmp/accelerate-revenue-qa/
+          path: |
+            /tmp/accelerate-revenue-qa/
+            /tmp/admin-ai-capabilities-qa/
           if-no-files-found: ignore
           retention-days: 7
       - name: Verify industry and Chicago release pages

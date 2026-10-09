@@ -59,7 +59,9 @@ try {
       };
     });
     await page.getByRole("button", { name: /Run history/ }).click();
+    await page.waitForURL((url) => url.searchParams.get("view") === "runs");
     await page.getByRole("button", { name: /Capabilities/ }).click();
+    await page.waitForURL((url) => url.searchParams.get("view") === "capabilities");
     await page.getByText("Capabilities could not be loaded", { exact: true }).waitFor();
     await page.screenshot({ path: `${output}/capabilities-recovery-${width}.png` });
     await page.evaluate(() => {
