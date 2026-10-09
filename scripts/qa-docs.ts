@@ -265,6 +265,12 @@ async function main() {
         const page = await context.newPage();
         page.on("pageerror", (error) => failures.push(error.message));
         await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+        // The header enables its mobile controls after hydration at every viewport width.
+        await page.waitForFunction(
+          () =>
+            document.querySelector<HTMLButtonElement>('button[aria-label="Open navigation menu"]')
+              ?.disabled === false,
+        );
         if (width >= 1280) {
           const nav = page.getByRole("navigation", { name: "Primary", exact: true });
           const product = nav.getByRole("button", { name: "Command Center", exact: true });
