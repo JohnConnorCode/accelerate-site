@@ -792,7 +792,12 @@ export async function readAnalyticsReport(database: SupabaseClient, raw: unknown
     filters,
     definitions:
       "Creation-window opportunity cohort. Forecasts are estimates; recorded won value is not cash collected. History-derived metrics may use disclosed fallbacks. Website and communication sources are separate.",
-    source: { service: "revenue-os.analytics", adminPath: "/admin/analytics", complete: true },
+    source: {
+      service: "revenue-os.analytics",
+      adminPath: "/admin/analytics",
+      complete: !degraded,
+      primaryComplete: true,
+    },
     quality: {
       stageHistory: quality.stageHistory.inputStatus,
       communication: communication.status,

@@ -303,6 +303,15 @@ async function main() {
       "repliedConversations" in communication,
   );
   assert.equal(communication.status, "degraded");
+  assert.equal(
+    quality.source.complete,
+    false,
+    "auxiliary failure prevents claiming the whole report is complete",
+  );
+  assert.ok(
+    "primaryComplete" in quality.source && quality.source.primaryComplete,
+    "recorded opportunity totals remain complete",
+  );
   assert.equal(communication.inboundConversations, null);
   assert.equal(communication.repliedConversations, null);
   fixture.recover("conversations");
