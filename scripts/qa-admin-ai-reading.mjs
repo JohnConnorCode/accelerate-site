@@ -137,6 +137,17 @@ export async function verifyAIReading({ browser, base, output }) {
           Math.abs((await log.evaluate((node) => node.scrollTop)) - before) <= 1,
           "Streaming preserves the reader's position",
         );
+        const viewport = page.viewportSize();
+        await page.setViewportSize({ ...viewport, height: viewport.height - 80 });
+        assert.ok(
+          Math.abs((await log.evaluate((node) => node.scrollTop)) - before) <= 1,
+          "Viewport resize preserves paused reading",
+        );
+        await page.setViewportSize(viewport);
+        assert.ok(
+          Math.abs((await log.evaluate((node) => node.scrollTop)) - before) <= 1,
+          "Restoring the viewport preserves paused reading",
+        );
         await page.screenshot({ path: `${output}/ai-reading-paused-${mode}-${reducedMotion}.png` });
         await jump.focus();
         await jump.press("Enter");
@@ -152,6 +163,20 @@ export async function verifyAIReading({ browser, base, output }) {
           ),
         );
         await log.getByText(/Another streamed detail:/).waitFor();
+        await page.waitForFunction(() => {
+          const node = [...document.querySelectorAll('[role="log"]')].find(
+            (node) => node.getClientRects().length,
+          );
+          return node.scrollHeight - node.clientHeight - node.scrollTop < 2;
+        });
+        await page.setViewportSize({ ...viewport, height: viewport.height - 80 });
+        await page.waitForFunction(() => {
+          const node = [...document.querySelectorAll('[role="log"]')].find(
+            (node) => node.getClientRects().length,
+          );
+          return node.scrollHeight - node.clientHeight - node.scrollTop < 2;
+        });
+        await page.setViewportSize(viewport);
         await page.waitForFunction(() => {
           const node = [...document.querySelectorAll('[role="log"]')].find(
             (node) => node.getClientRects().length,
@@ -174,6 +199,13 @@ export async function verifyAIReading({ browser, base, output }) {
               ?.getBoundingClientRect().height > 80,
         );
         const multilineHeight = await input.evaluate((node) => node.getBoundingClientRect().height);
+        await page.waitForFunction(() => {
+          const node = [...document.querySelectorAll('[role="log"]')].find(
+            (node) => node.getClientRects().length,
+          );
+          return node.scrollHeight - node.clientHeight - node.scrollTop < 2;
+        });
+        await jump.waitFor({ state: "hidden" });
         assert.ok(
           multilineHeight > singleHeight && multilineHeight <= 128,
           "Multiline input grows within its cap",
@@ -243,6 +275,8 @@ export async function verifyAIReading({ browser, base, output }) {
             "reading position retained",
             "keyboard jump",
             "multiline growth",
+            "viewport resize preserves following and paused reading",
+            "composer resize preserves following",
             "IME composition",
             "new question resumes",
             "history resumes",

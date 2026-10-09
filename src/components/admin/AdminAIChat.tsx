@@ -237,6 +237,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const followingRef = useRef(true);
+  const scrollSizeRef = useRef({ viewport: 0, content: 0 });
   const lastUserRef = useRef<string | undefined>(undefined);
   const latestUserId = ai.messages.filter((message) => message.role === "user").at(-1)?.id;
   const readingKey = `${ai.activeConversationId ?? "new"}:${latestUserId ?? "empty"}`;
@@ -252,8 +253,11 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
       lastUserRef.current = latestUserId;
       followingRef.current = true;
     }
-    if (followingRef.current && scrollRef.current)
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (followingRef.current && scrollRef.current) {
+      const scroll = scrollRef.current;
+      scroll.scrollTop = scroll.scrollHeight;
+      scrollSizeRef.current = { viewport: scroll.clientHeight, content: scroll.scrollHeight };
+    }
   }, [
     ai.messages,
     ai.tools,
@@ -270,6 +274,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
     if (!scroll || !content) return;
     const observer = new ResizeObserver(() => {
       if (followingRef.current) scroll.scrollTop = scroll.scrollHeight;
+      scrollSizeRef.current = { viewport: scroll.clientHeight, content: scroll.scrollHeight };
     });
     observer.observe(scroll);
     observer.observe(content);
@@ -428,6 +433,15 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           tabIndex={0}
           onScroll={(event) => {
             const scroll = event.currentTarget;
+            // A resize can dispatch scroll before ResizeObserver. Keep following
+            // through layout changes without treating them as a reader scrolling up.
+            if (
+              followingRef.current &&
+              (scroll.clientHeight !== scrollSizeRef.current.viewport ||
+                scroll.scrollHeight !== scrollSizeRef.current.content)
+            )
+              scroll.scrollTop = scroll.scrollHeight;
+            scrollSizeRef.current = { viewport: scroll.clientHeight, content: scroll.scrollHeight };
             const nearBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight <= 48;
             followingRef.current = nearBottom;
             setReadingPosition((current) =>
