@@ -248,6 +248,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "core-system",
+    aiToolPacks: ["core"],
     docsUrl: "/docs/workspace",
     name: "System Settings & Tenancy",
     description: "Tenant workspace provisioning, setup verification, and operating preferences.",

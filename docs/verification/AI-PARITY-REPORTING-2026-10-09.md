@@ -49,7 +49,10 @@ as completed work.
   AI-operations, OAuth and documentation checks were also run separately.
 - Type checking, lint, house-style copy, open-source statistics, agent contract,
   documentation source coverage and inventory freshness passed. The final production
-  build passed compilation, TypeScript and page generation.
+  build passed compilation, TypeScript and page generation. CI then exposed the
+  second route inventory, tracked-source statistics and a missing runtime pack
+  declaration. Those were corrected, with module, discovery and both inventory
+  checks passing locally. Formatting was refreshed for the reviewed documentation.
 
 These are local controlled tests, not live provider, production or installed-client
 proof. No production data, OAuth grants or release state were changed.
