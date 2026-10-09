@@ -59,8 +59,8 @@ async function bundle(ref) {
               {route.endsWith('invoicing') && <><label htmlFor="stripe-key">Stripe API key</label><input id="stripe-key" value={value} onChange={e => setValue(e.target.value)} /></>}
             </main>
             <AdminDialog open={palette} onClose={() => setPalette(false)} title="Admin command palette"><input aria-label="Search commands" data-admin-autofocus="true" /><button onClick={() => window.__qa.navigate()}>Create invoice</button></AdminDialog>
-            <AdminDialog open={parent} onClose={() => setParent(false)} title="Editor"><input aria-label="Editor name" data-admin-autofocus="true" /><button id="child-opener" onClick={() => setChild(true)}>Review</button></AdminDialog>
-            <AdminDialog open={child} onClose={() => setChild(false)} title="Review"><input aria-label="Review note" data-admin-autofocus="true" /></AdminDialog>
+            <AdminDialog open={parent} onClose={() => setParent(false)} title="Editor"><input aria-label="Editor name" data-admin-autofocus="true" /><button id="child-opener" onClick={() => setChild(true)}>Review</button><button onClick={() => setParent(false)}>Close editor</button></AdminDialog>
+            <AdminDialog open={child} onClose={() => setChild(false)} title="Review"><input aria-label="Review note" data-admin-autofocus="true" /><button onClick={() => setChild(false)}>Close review</button></AdminDialog>
           </>;
         }
         createRoot(document.getElementById('root')).render(<MotionConfig reducedMotion="user"><NavigationRuntime><Workspace /></NavigationRuntime></MotionConfig>);
@@ -225,12 +225,14 @@ try {
             await page.getByRole("textbox", { name: "Editor name" }).waitFor();
             await page.getByRole("button", { name: "Review", exact: true }).click();
             await page.getByRole("textbox", { name: "Review note" }).waitFor();
-            await page.keyboard.press("Escape");
+            await page.getByRole("button", { name: "Close review", exact: true }).focus();
+            await page.keyboard.press("Enter");
             await page
               .getByRole("dialog", { name: "Review", exact: true })
               .waitFor({ state: "detached" });
             await page.waitForFunction(() => document.activeElement?.id === "child-opener");
-            await page.keyboard.press("Escape");
+            await page.getByRole("button", { name: "Close editor", exact: true }).focus();
+            await page.keyboard.press("Enter");
             await page.getByRole("dialog").waitFor({ state: "detached" });
             await page.waitForFunction(() => document.activeElement?.id === "parent-opener");
             ok = true;

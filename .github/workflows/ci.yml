@@ -644,6 +644,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Retain invoice keyboard evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: invoice-keyboard-evidence
+          path: /tmp/accelerate-invoice-navigation/
+          if-no-files-found: ignore
+          retention-days: 7
+
   full-product-fork:
     needs: scope
     if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
