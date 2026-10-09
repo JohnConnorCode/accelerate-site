@@ -284,8 +284,11 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
   useEffect(() => {
     const composer = composerRef.current;
     if (!composer) return;
+    const previousScroll = composer.scrollTop;
     composer.style.height = "0px";
     composer.style.height = `${Math.min(composer.scrollHeight, 128)}px`;
+    composer.scrollTop =
+      composer.selectionStart === ai.draft.length ? composer.scrollHeight : previousScroll;
   }, [ai.draft]);
   const submit = (event: FormEvent) => {
     event.preventDefault();

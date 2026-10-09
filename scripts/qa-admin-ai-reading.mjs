@@ -198,7 +198,14 @@ export async function verifyAIReading({ browser, base, output }) {
               .querySelector('textarea[aria-label="Ask the business"]')
               ?.getBoundingClientRect().height > 80,
         );
+        await input.pressSequentially("Last line of my question");
         const multilineHeight = await input.evaluate((node) => node.getBoundingClientRect().height);
+        await page.waitForFunction(() => {
+          const node = document.querySelector('textarea[aria-label="Ask the business"]');
+          return (
+            node && node.scrollTop > 0 && node.scrollHeight - node.clientHeight - node.scrollTop < 2
+          );
+        });
         await page.waitForFunction(() => {
           const node = [...document.querySelectorAll('[role="log"]')].find(
             (node) => node.getClientRects().length,
@@ -277,6 +284,7 @@ export async function verifyAIReading({ browser, base, output }) {
             "multiline growth",
             "viewport resize preserves following and paused reading",
             "composer resize preserves following",
+            "capped input keeps the final line visible",
             "IME composition",
             "new question resumes",
             "history resumes",
