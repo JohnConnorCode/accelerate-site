@@ -410,6 +410,11 @@ async function main() {
 
   // A model may describe a proposal as a completed external effect. The
   // founder must see the actual approval state, regardless of that wording.
+  const incomplete = finalizeStagedAnswer("Everything was completed.", 2, 1, 1);
+  assert.match(incomplete, /incomplete execution receipts/);
+  assert.match(incomplete, /2 proposal\(s\) still await your approval/);
+  assert.doesNotMatch(incomplete, /Nothing has been sent or changed|Everything was completed/);
+  assert.match(finalizeStagedAnswer("All done.", 0, 0, 1), /incomplete execution receipts/);
   assert.match(finalizeStagedAnswer("I emailed Dana.", 1), /Nothing has been sent or changed/);
   assert.match(finalizeStagedAnswer("The email was sent.", 1), /staged.*approval/);
   assert.equal(

@@ -8,11 +8,17 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Added
 
+- Revenue and Analytics report tools and JSON/CSV exports share dashboard services. Reviewed operation mappings are generated from the tool registry; new unreviewed handlers or tools fail the inventory gate. Existing coverage gaps stay explicit.
+
 - AI can now prepare exact Content Calendar item updates for administrator approval. The admin editor and approved-action executor share a tenant-scoped, revision-checked writer; approval does not publish content.
 
 - Shared themed fields now govern Clients, Analytics, Campaigns, Integrations and Proposals; compact custom themes retain usable targets. Setup readiness inherits readable theme colors, and contact relationship failures offer retry instead of appearing empty.
 
 ### Fixed
+
+- Standing-permission execution preserves partial service outcomes in the tool response instead of labeling every admitted action executed. Human-review and record-permission checks remain required.
+
+- Analytics refuses incomplete primary datasets and discloses degraded auxiliary sources. Website capture freshness uses the latest event timestamp. AI capability search distinguishes registered tools from execution readiness and offers retry after loading failure.
 
 - A newly connected workspace can add a contact directly from Contacts and create a follow-up from that contact's record. The task is linked to the contact timeline and refuses cross-workspace contact IDs. The fictional demo persists newly added contacts instead of claiming success without saving them.
 

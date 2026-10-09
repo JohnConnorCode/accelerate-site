@@ -35,6 +35,7 @@ try {
   process.env.PLAYWRIGHT_BASE_URL = `http://localhost:${port}`;
   const focus = process.env.QA_FOCUS;
   for (const [name, file] of [
+    ["capabilities", "./qa-ai-capabilities.mjs"],
     ["themes", "./qa-admin-polish.mjs"],
     ["controls", "./qa-shared-workspace-controls.mjs"],
     ["workspace", "./qa-workspace-layout.mjs"],

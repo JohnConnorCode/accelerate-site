@@ -13,6 +13,14 @@ import {
   internalPermissionProposalSchema,
 } from "./internal-permission-contract";
 import { getTenantRequestContext } from "@/lib/tenancy/context";
+import { readRevenueReport, readAnalyticsReport, exportReportingResult } from "./analytics";
+import {
+  revenueReportInputSchema,
+  analyticsReportInputSchema,
+  reportExportInputSchema,
+  REVENUE_REPORT_OPERATION,
+  ANALYTICS_REPORT_OPERATION,
+} from "./reporting-contract";
 import { prepareOperatorTaskPatch, taskReviewState } from "./operator-task-patch";
 import { previewCollectionPolicy, proposeCollectionPolicy } from "./collection-policy";
 import {
@@ -140,7 +148,7 @@ import {
   brandPreviewInputSchema,
   brandProposalInputSchema,
 } from "./branding-actions-contract";
-import type { AiToolConnectionRequirement } from "./ai-tool-contract";
+import type { AiToolConnectionRequirement, AiAdminOperation } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
@@ -274,6 +282,7 @@ type AiToolRegistration = {
   impact: AiToolImpact;
   confirmationRequired: boolean;
   executionPolicy?: "site-studio-delegation" | "agent-work";
+  operation?: AiAdminOperation;
   execute: (context: AiToolContext, input: Record<string, unknown>) => Promise<unknown>;
 };
 
@@ -287,6 +296,8 @@ export interface RevenueAiCapabilityDescriptor {
   connectionRequirement: AiToolConnectionRequirement;
   available: boolean;
   availabilityReason: string;
+  /** Missing bindings remain visible as unreviewed coverage, never inferred parity. */
+  operation: AiAdminOperation | null;
 }
 
 const ACTION_OUTPUT_SCHEMA = {
@@ -622,7 +633,99 @@ const PLUGIN_TOOL_EXECUTORS = {
   ) => Promise<unknown>
 >;
 
+const adminCoverageInputSchema = z
+  .object({
+    query: z.string().trim().max(160).optional(),
+    offset: z.number().int().min(0).max(10000).default(0),
+    limit: z.number().int().min(1).max(5).default(5),
+  })
+  .strict();
+
 const registry: AiToolRegistration[] = [
+  {
+    name: "get_admin_operation_coverage",
+    description:
+      "Inspect the actual registered tool coverage and reviewed admin-operation mappings. Use a query and offset for focused pages. Unreviewed bindings are documentation/verification gaps, not proof that a tool is missing or broken. Universal coverage remains incomplete; never equate tool counts with all business operations.",
+    inputSchema: z.toJSONSchema(adminCoverageInputSchema),
+    parseInput: (i) => adminCoverageInputSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.tool-discovery",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "command-center.read-operation-coverage",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        { path: "/api/admin/revenue-os/ai/capabilities", method: "GET", variant: "coverage" },
+      ],
+      verification: ["scripts/test-ai-tool-discovery.ts", "scripts/test-admin-ai-inventory.mjs"],
+    },
+    execute: async (c, i) => getRevenueAiCoverage(c, i),
+  },
+  {
+    name: "get_revenue_report",
+    description:
+      "Read the Revenue dashboard's exact current contract and opportunity values. Request summary, client drilldown, industries, timeline or definitions. Paged sections return at most five rows and nextOffset. Contract and won values are not collected payments; never infer cash or currency conversion.",
+    inputSchema: z.toJSONSchema(revenueReportInputSchema),
+    parseInput: (i) => revenueReportInputSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.analytics",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: REVENUE_REPORT_OPERATION,
+    execute: (c, i) => readRevenueReport(c.supabase, i),
+  },
+  {
+    name: "get_revenue_analytics",
+    description:
+      "Read the Analytics dashboard's exact funnel, forecasts, data quality, source attribution or website metrics. Filter the creation cohort by days (7–365), source, owner, campaign and stage. Summary is compact; use named sections and continuation offsets for details. Disclose missing or degraded evidence rather than calculating complete totals from a partial page.",
+    inputSchema: z.toJSONSchema(analyticsReportInputSchema),
+    parseInput: (i) => analyticsReportInputSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.analytics",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: ANALYTICS_REPORT_OPERATION,
+    execute: (c, i) => readAnalyticsReport(c.supabase, i),
+  },
+  {
+    name: "export_revenue_report",
+    description:
+      "Export a Revenue report section or bounded drilldown page as JSON or CSV. Returns file contents for the client to save, including definitions and continuation metadata; does not publish or email a file. Follow nextOffset for additional pages.",
+    inputSchema: z.toJSONSchema(revenueReportInputSchema.extend(reportExportInputSchema.shape)),
+    parseInput: (i) => revenueReportInputSchema.extend(reportExportInputSchema.shape).parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.analytics",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: { ...REVENUE_REPORT_OPERATION, id: "revenue.export-report", entrypoints: [] },
+    execute: async (c, i) => {
+      const { format, ...filters } = i;
+      return exportReportingResult(await readRevenueReport(c.supabase, filters), { format });
+    },
+  },
+  {
+    name: "export_revenue_analytics",
+    description:
+      "Export the exact filtered Analytics report section/page as JSON or CSV, with source-quality and continuation metadata. Returns contents for the client to save; does not send or publish. Incomplete primary reporting sources fail rather than producing misleading totals.",
+    inputSchema: z.toJSONSchema(analyticsReportInputSchema.extend(reportExportInputSchema.shape)),
+    parseInput: (i) => analyticsReportInputSchema.extend(reportExportInputSchema.shape).parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.analytics",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: { ...ANALYTICS_REPORT_OPERATION, id: "analytics.export-report", entrypoints: [] },
+    execute: async (c, i) => {
+      const { format, ...filters } = i;
+      return exportReportingResult(await readAnalyticsReport(c.supabase, filters), { format });
+    },
+  },
   {
     name: "preview_agent_work",
     description:
@@ -3784,8 +3887,47 @@ export function listRevenueAiCapabilities(
       connectionRequirement: tool.connectionRequirement,
       available: availability.available,
       availabilityReason: availability.reason,
+      operation: tool.operation ?? null,
     };
   });
+}
+
+/** Registry truth shared by the capabilities UI, internal AI and MCP. Counts are not parity percentages. */
+export function getRevenueAiCoverage(
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+  input: { query?: unknown; offset?: unknown; limit?: unknown } = {},
+) {
+  const all = listRevenueAiCapabilities(context);
+  const parsed = adminCoverageInputSchema.parse(input);
+  const query = (parsed.query ?? "").toLowerCase();
+  const { offset, limit } = parsed;
+  const matched = all.filter((tool) =>
+    `${tool.name} ${tool.description} ${tool.operation?.id ?? ""}`.toLowerCase().includes(query),
+  );
+  return {
+    registryVersion: TOOL_REGISTRY_VERSION,
+    universalCoverage: false as const,
+    registeredTools: all.length,
+    availableTools: all.filter((tool) => tool.available).length,
+    reviewedOperationMappings: new Set(
+      all.flatMap((tool) => (tool.operation ? [tool.operation.id] : [])),
+    ).size,
+    unreviewedToolBindings: all.filter((tool) => !tool.operation).length,
+    meaning:
+      "A registered tool can be used subject to its runtime authority. An unreviewed admin binding needs mapping/verification; it is not a missing-tool verdict. Missing business operations remain separate coverage gaps.",
+    totalMatches: matched.length,
+    nextOffset: offset + limit < matched.length ? offset + limit : null,
+    tools: matched.slice(offset, offset + limit).map((tool) => ({
+      name: tool.name,
+      available: tool.available,
+      impact: tool.impact,
+      confirmationRequired: tool.confirmationRequired,
+      operationId: tool.operation?.id ?? null,
+      scope: tool.operation?.scope ?? "workspace",
+      mapping: tool.operation ? "reviewed" : "unreviewed",
+      reason: tool.availabilityReason,
+    })),
+  };
 }
 export function toOpenRouterTools(
   pack?: RevenueToolPackId,

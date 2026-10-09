@@ -425,6 +425,10 @@
       "module": "core-intelligence"
     },
     {
+      "tool": "get_admin_operation_coverage",
+      "module": "core-system"
+    },
+    {
       "tool": "discover_tool_bundles",
       "module": "core-system"
     },
@@ -525,6 +529,14 @@
       "module": "campaigns"
     },
     {
+      "tool": "get_revenue_report",
+      "module": "revenue"
+    },
+    {
+      "tool": "export_revenue_report",
+      "module": "revenue"
+    },
+    {
       "tool": "get_debate_production",
       "module": "bookings"
     },
@@ -551,6 +563,14 @@
     {
       "tool": "propose_content_calendar_update",
       "module": "content"
+    },
+    {
+      "tool": "get_revenue_analytics",
+      "module": "analytics"
+    },
+    {
+      "tool": "export_revenue_analytics",
+      "module": "analytics"
     },
     {
       "tool": "run_business_pulse",

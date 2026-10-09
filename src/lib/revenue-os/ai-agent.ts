@@ -49,7 +49,10 @@ export function finalizeStagedAnswer(
   answer: string,
   stagedCount: number,
   executedCount = 0,
+  incompleteCount = 0,
 ): string {
+  if (incompleteCount)
+    return `${incompleteCount} internal action${incompleteCount === 1 ? "" : "s"} returned incomplete execution receipts. Inspect the recorded outcomes before retrying. ${executedCount ? `${executedCount} other internal action(s) have completed execution receipts. ` : ""}${stagedCount ? `${stagedCount} proposal(s) still await your approval.` : ""}`.trim();
   if (!stagedCount) return answer;
   if (
     /\b(?:sent|emailed|delivered|published|charged|paid|executed|applied|scheduled|updated|created|deleted|completed)\b/i.test(
@@ -160,6 +163,8 @@ function toolSummary(output: unknown): string {
   if (Array.isArray(output)) return `${output.length} result${output.length === 1 ? "" : "s"}`;
   if (!output || typeof output !== "object") return String(output ?? "No result").slice(0, 180);
   const row = output as Record<string, unknown>;
+  if (typeof row.action_type === "string" && row.status === "partial")
+    return `Incomplete ${row.action_type.replace(/_/g, " ")} result; inspect the receipt`;
   if (typeof row.action_type === "string" && row.status === "executed")
     return `Recorded ${row.action_type.replace(/_/g, " ")} result`;
   if (typeof row.action_type === "string")
@@ -176,7 +181,8 @@ function toolSummary(output: unknown): string {
 function proposalSummary(output: unknown, impact: string): AgentProposalSummary | null {
   if (!output || typeof output !== "object") return null;
   const row = output as Record<string, unknown>;
-  if (typeof row.id !== "string" || typeof row.action_type !== "string") return null;
+  if (typeof row.id !== "string" || typeof row.action_type !== "string" || row.execution)
+    return null;
   return {
     id: row.id,
     actionType: row.action_type,
@@ -220,6 +226,7 @@ export async function runRevenueCommandAgent(
   const stagedToolNames = new Set<string>();
   const stagedActionIds = new Set<string>();
   let executedCount = 0;
+  let incompleteCount = 0;
   let toolFailures = 0;
   let activeBundleId =
     typeof options.activeToolBundleId === "string" && options.activeToolBundleId.length <= 160
@@ -333,7 +340,7 @@ export async function runRevenueCommandAgent(
         ? await openRouterChatStream(request, (delta) => {
             // Once an action is staged, hold model wording until its approval
             // status is checked. A false completion claim must never flash onscreen.
-            if (!stagedToolNames.size) {
+            if (!stagedToolNames.size && !incompleteCount) {
               streamedAnswer = true;
               options.onAssistantDelta?.(delta);
             }
@@ -388,7 +395,12 @@ export async function runRevenueCommandAgent(
             activeToolBundleId: activeBundleId,
           };
         }
-        const safeText = finalizeStagedAnswer(text, stagedActionIds.size, executedCount);
+        const safeText = finalizeStagedAnswer(
+          text,
+          stagedActionIds.size,
+          executedCount,
+          incompleteCount,
+        );
         if (streamedAnswer && safeText !== text) options.onAssistantReset?.();
         if (options.onAssistantDelta && (!streamedAnswer || safeText !== text))
           options.onAssistantDelta(safeText);
@@ -456,21 +468,23 @@ export async function runRevenueCommandAgent(
             tool_call_id: use.id,
             content: boundToolResult(name, output),
           };
-          options.onToolCompleted?.({
-            name,
-            index: toolIndex,
-            summary: toolSummary(output),
-            failed: false,
-          });
           const result = output as {
             status?: string;
             execution?: { actionId: string; status: string; result: unknown };
             workItemId?: string;
             revision?: number;
           };
+          options.onToolCompleted?.({
+            name,
+            index: toolIndex,
+            summary: toolSummary(output),
+            failed: !!result.execution && result.execution.status !== "executed",
+          });
           if (result.execution) {
-            if (result.execution.status !== "executed") toolFailures++;
-            executedCount++;
+            if (result.execution.status !== "executed") {
+              toolFailures++;
+              incompleteCount++;
+            } else executedCount++;
             await options.onActionReceipt?.(result.execution);
           }
           if (result.workItemId)
