@@ -284,11 +284,22 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
   useEffect(() => {
     const composer = composerRef.current;
     if (!composer) return;
+    const conversation = scrollRef.current;
+    const conversationTop = conversation?.scrollTop ?? 0;
     const previousScroll = composer.scrollTop;
     composer.style.height = "0px";
     composer.style.height = `${Math.min(composer.scrollHeight, 128)}px`;
     composer.scrollTop =
       composer.selectionStart === ai.draft.length ? composer.scrollHeight : previousScroll;
+    // Measuring the input temporarily enlarges the conversation viewport.
+    // Restore its position after sizing, including when the final height is unchanged.
+    if (conversation) {
+      conversation.scrollTop = followingRef.current ? conversation.scrollHeight : conversationTop;
+      scrollSizeRef.current = {
+        viewport: conversation.clientHeight,
+        content: conversation.scrollHeight,
+      };
+    }
   }, [ai.draft]);
   const submit = (event: FormEvent) => {
     event.preventDefault();

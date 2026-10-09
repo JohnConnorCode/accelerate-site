@@ -175,7 +175,7 @@
     "src/components/admin/AIRunHistory.tsx": "b3aa372fb87a449cb0a895c9d0e15ea0060e2d27c522043952cb2eb0837accdc",
     "src/components/admin/ActionReviewDialog.tsx": "0291df53e5df3331c07b42bf2633f162340e29fabad19656ba02b7eb8254fe91",
     "src/components/admin/AddLeadModal.tsx": "57e3653a3cd765a8788b50135ac98140c417c8b9369bccc43b0f1b6159c5a30b",
-    "src/components/admin/AdminAIChat.tsx": "a9347accb29157736e61c06b9b78f7552cb5db9094341ca83821233a681788ec",
+    "src/components/admin/AdminAIChat.tsx": "d41d4425493ab2c98533b85fb83c291d78ae7514b8881762054f6ea06dfdce88",
     "src/components/admin/AdminAIPanel.tsx": "ea2a8a85786ffc2e8290757b98b4969c427a165afadebb8d4a4d07c3963eb7e2",
     "src/components/admin/AdminAIProvider.tsx": "af41848e65d561ec3ee0887ea81ce590e1c71e27fa6bfe17715eb9451b675be2",
     "src/components/admin/AdminAIWorkspace.tsx": "cb613eda4a0de12c4247dd2389123be574fdb7f162da6cdd336ee4c38d5e2f06",
