@@ -15,6 +15,22 @@ try {
     const context = await browser.newContext({ viewport, timezoneId: "America/Chicago" });
     try {
       const page = await context.newPage();
+      const screenshot = async (name) => {
+        // Visibility can precede an entrance animation's readable final frame.
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll('[role="alert"], [role="status"], h2')].every((node) => {
+            for (let element = node; element; element = element.parentElement)
+              if (Number(getComputedStyle(element).opacity) < 0.99) return false;
+            return true;
+          }),
+        );
+        assert.equal(
+          await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2),
+          false,
+          `${name}: no horizontal overflow`,
+        );
+        await page.screenshot({ path: `${output}/${name}.png`, fullPage: true });
+      };
       page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
       page.on("request", (request) => {
         if (new URL(request.url()).pathname.startsWith("/api/admin"))
@@ -30,7 +46,11 @@ try {
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2),
         false,
       );
-      await page.screenshot({ path: `${output}/${label}-registry.png`, fullPage: true });
+      await screenshot(`${label}-registry`);
+      if (label === "mobile") {
+        await page.getByText("Slack asides", { exact: true }).scrollIntoViewIfNeeded();
+        await screenshot("mobile-stale");
+      }
       await page.getByRole("button", { name: "Register source", exact: true }).click();
       await page.getByLabel("System key", { exact: true }).fill("reviewed_uploads");
       await page.getByLabel("Display name", { exact: true }).fill("Reviewed uploads");
@@ -70,7 +90,7 @@ try {
         await page.getByRole("button", { name: "Cancel", exact: true }).isDisabled(),
         true,
       );
-      await page.screenshot({ path: `${output}/${label}-unconfirmed.png`, fullPage: true });
+      await screenshot(`${label}-unconfirmed`);
       const pending = await page.evaluate(() =>
         sessionStorage.getItem("accelerate:source-authority:demo:northline-roofing"),
       );
@@ -90,7 +110,8 @@ try {
         ),
         null,
       );
-      await page.screenshot({ path: `${output}/${label}-recovered.png`, fullPage: true });
+      await page.getByText("Reviewed uploads", { exact: true }).scrollIntoViewIfNeeded();
+      await screenshot(`${label}-recovered`);
       const saved = await page.evaluate(async () =>
         (await (await fetch("/api/admin/source-authority")).json()).entries.filter(
           (entry) => entry.system_key === "reviewed_uploads",
@@ -162,7 +183,7 @@ try {
       await page.getByRole("button", { name: "Save source", exact: true }).click();
       await page.getByRole("button", { name: "Reload sources", exact: true }).waitFor();
       assert.equal(await page.getByText("No sources registered.", { exact: false }).count(), 0);
-      await page.screenshot({ path: `${output}/${label}-refresh-failed.png`, fullPage: true });
+      await screenshot(`${label}-refresh-failed`);
       checks.push(`${label}: confirmed save with explicit list-refresh failure`);
     } finally {
       await context.close();
