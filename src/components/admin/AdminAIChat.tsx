@@ -716,7 +716,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             })}
           </div>
         </div>
-        {awayFromLatest && (
+        {awayFromLatest && !ai.reviewedAction && (
           <button
             type="button"
             onClick={() => {
