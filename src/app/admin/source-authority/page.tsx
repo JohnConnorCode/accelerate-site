@@ -27,6 +27,10 @@ function isStale(entry: SourceAuthorityEntry, now = Date.now()): boolean {
   return verified + entry.verification_lapse_days * 86_400_000 < now;
 }
 
+function localDate(value = new Date()): string {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+}
+
 export default function SourceAuthorityPage() {
   const [entries, setEntries] = useState<SourceAuthorityEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +40,7 @@ export default function SourceAuthorityPage() {
   const [truthDomains, setTruthDomains] = useState("contact_identity, pipeline_stage");
   const [tier, setTier] = useState<SourceAuthorityTier>("working");
   const [ownerEmail, setOwnerEmail] = useState("");
-  const [lastVerifiedAt, setLastVerifiedAt] = useState(new Date().toISOString().slice(0, 10));
+  const [lastVerifiedAt, setLastVerifiedAt] = useState(localDate);
   const [lapseDays, setLapseDays] = useState("90");
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -69,7 +73,7 @@ export default function SourceAuthorityPage() {
         setTruthDomains(command.truthDomains.join(", "));
         setTier(command.authorityTier);
         setOwnerEmail(command.ownerEmail);
-        setLastVerifiedAt(command.lastVerifiedAt.slice(0, 10));
+        setLastVerifiedAt(localDate(new Date(command.lastVerifiedAt)));
         setLapseDays(String(command.verificationLapseDays));
         setEntityTypes(command.appliesTo?.entityTypes?.join(", ") ?? "");
         setCoworkerIds(command.appliesTo?.coworkerIds?.join(", ") ?? "");
@@ -107,7 +111,7 @@ export default function SourceAuthorityPage() {
           truthDomains: split(truthDomains),
           authorityTier: tier,
           ownerEmail,
-          lastVerifiedAt: new Date(lastVerifiedAt).toISOString(),
+          lastVerifiedAt: new Date(`${lastVerifiedAt}T00:00:00`).toISOString(),
           verificationLapseDays: Number(lapseDays),
           appliesTo: Object.keys(scope).length ? scope : null,
           expectedVersion:
@@ -307,7 +311,7 @@ export default function SourceAuthorityPage() {
                     <Input
                       type="date"
                       required
-                      max={new Date().toISOString().slice(0, 10)}
+                      max={localDate()}
                       value={lastVerifiedAt}
                       onChange={(event) => setLastVerifiedAt(event.target.value)}
                       className="mt-1"

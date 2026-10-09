@@ -12,7 +12,7 @@ try {
     ["desktop", { width: 1440, height: 1000 }],
     ["mobile", { width: 390, height: 844 }],
   ]) {
-    const context = await browser.newContext({ viewport });
+    const context = await browser.newContext({ viewport, timezoneId: "America/Chicago" });
     try {
       const page = await context.newPage();
       page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
@@ -36,6 +36,7 @@ try {
       await page.getByLabel("Display name", { exact: true }).fill("Reviewed uploads");
       await page.getByLabel("Owner", { exact: true }).fill("reviewer@example.test");
       await page.getByLabel("Entity scope (optional)", { exact: true }).fill("document");
+      const expectedDate = await page.getByLabel("Last verified", { exact: true }).inputValue();
       await page.getByLabel("Display name", { exact: true }).focus();
       await page.keyboard.press("Tab");
       assert.equal(
@@ -97,6 +98,14 @@ try {
       );
       assert.equal(saved.length, 1);
       assert.equal(saved[0].version, 1);
+      assert.equal(
+        await page.evaluate((value) => {
+          const date = new Date(value);
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        }, saved[0].last_verified_at),
+        expectedDate,
+        "Verification date retains the user's local calendar day",
+      );
       assert.deepEqual(saved[0].applies_to, { entityTypes: ["document"] });
       checks.push(
         `${label}: registry, stale evidence, keyboard, lost-response recovery after reload, one save and no overflow`,
