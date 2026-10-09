@@ -670,7 +670,11 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
                             <button
                               type="button"
                               className="min-h-10 text-left font-semibold underline underline-offset-4"
-                              onClick={() => void ai.reviewProposal(proposal.id)}
+                              onClick={() => {
+                                // Exact-change review owns the reading position until the reader resumes.
+                                followingRef.current = false;
+                                void ai.reviewProposal(proposal.id);
+                              }}
                             >
                               Review: {proposal.title}
                             </button>
