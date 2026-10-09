@@ -107,6 +107,43 @@ try {
         "Verification date retains the user's local calendar day",
       );
       assert.deepEqual(saved[0].applies_to, { entityTypes: ["document"] });
+      const replayAfterUpdate = await page.evaluate(async (original) => {
+        const headers = {
+          "Content-Type": "application/json",
+          "x-source-authority-tenant-id": "demo:northline-roofing",
+        };
+        const later = await (
+          await fetch("/api/admin/source-authority", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              ...original,
+              authorityTier: "approved",
+              expectedVersion: 1,
+              requestKey: crypto.randomUUID(),
+            }),
+          })
+        ).json();
+        const earlier = await (
+          await fetch("/api/admin/source-authority", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(original),
+          })
+        ).json();
+        const current = (await (await fetch("/api/admin/source-authority")).json()).entries.find(
+          (entry) => entry.system_key === original.systemKey,
+        );
+        return { later, earlier, current };
+      }, JSON.parse(pending));
+      assert.equal(replayAfterUpdate.later.entry.version, 2);
+      assert.equal(replayAfterUpdate.earlier.entry.version, 1);
+      assert.equal(replayAfterUpdate.earlier.replayed, true);
+      assert.equal(
+        replayAfterUpdate.current.version,
+        2,
+        "An older replay must never overwrite a later save",
+      );
       checks.push(
         `${label}: registry, stale evidence, keyboard, lost-response recovery after reload, one save and no overflow`,
       );

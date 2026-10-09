@@ -465,7 +465,7 @@ export function validateToolOutput(
   }
   const record = output as Record<string, unknown>;
   const required = Array.isArray(schema.required) ? (schema.required as string[]) : [];
-  const properties = (schema.properties ?? {}) as Record<string, { type?: string }>;
+  const properties = (schema.properties ?? {}) as Record<string, { type?: string | string[] }>;
   for (const key of required) {
     if (record[key] === undefined || record[key] === null) {
       throw new Error(`${toolName} returned an invalid output: missing "${key}".`);
@@ -474,12 +474,18 @@ export function validateToolOutput(
   for (const [key, spec] of Object.entries(properties)) {
     const result = record[key];
     if (result === undefined || result === null || !spec.type) continue;
-    if (spec.type === "array" && !Array.isArray(result))
-      throw new Error(`${toolName} returned an invalid output: "${key}" must be an array.`);
-    if (spec.type === "number" && (typeof result !== "number" || !Number.isFinite(result)))
-      throw new Error(`${toolName} returned an invalid output: "${key}" must be a finite number.`);
-    if (spec.type !== "array" && spec.type !== "number" && typeof result !== spec.type)
-      throw new Error(`${toolName} returned an invalid output: "${key}" must be a ${spec.type}.`);
+    const types = Array.isArray(spec.type) ? spec.type : [spec.type];
+    const matches = types.some((type) => {
+      if (type === "array") return Array.isArray(result);
+      if (type === "number") return typeof result === "number" && Number.isFinite(result);
+      if (type === "integer") return typeof result === "number" && Number.isInteger(result);
+      if (type === "object") return typeof result === "object" && !Array.isArray(result);
+      return typeof result === type;
+    });
+    if (!matches)
+      throw new Error(
+        `${toolName} returned an invalid output: "${key}" must be a ${types.map((type) => (type === "number" ? "finite number" : type)).join(" or ")}.`,
+      );
   }
 }
 

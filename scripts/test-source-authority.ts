@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
+import { installAdminDemoRuntime } from "../src/lib/admin/demo/runtime";
 import { MemorySupabase } from "./lib/memory-supabase";
-import { getRevenueAiTools } from "../src/lib/revenue-os/ai-tools";
+import { getRevenueAiTools, validateToolOutput } from "../src/lib/revenue-os/ai-tools";
 import {
   applySourceAuthority,
   listSourceAuthorities,
@@ -39,7 +40,106 @@ const entry: SourceAuthorityEntry = {
   created_at: base.lastVerifiedAt,
   updated_at: base.lastVerifiedAt,
 };
+async function verifyDemoRecovery() {
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "sessionStorage");
+  Object.defineProperty(globalThis, "sessionStorage", { value: storage, configurable: true });
+  Object.defineProperty(globalThis, "window", {
+    value: {
+      location: { origin: "https://demo.example" },
+      open() {},
+      fetch() {
+        throw new Error("Protected network request escaped the demo");
+      },
+    },
+    configurable: true,
+  });
+  let runtime = installAdminDemoRuntime("northline-roofing");
+  const command = { ...base, systemKey: "reviewed_uploads", requestKey: "lost-response" };
+  const post = (payload: Record<string, unknown> = command) =>
+    window.fetch("/api/admin/source-authority", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  try {
+    const response = await post();
+    assert.equal(response.status, 200);
+    const first = await response.json();
+    assert.equal(first.entry.version, 1, "Use the source owner, never a generic demo receipt");
+    // The caller loses this reply and reloads the fictional runtime.
+    runtime.restore();
+    runtime = installAdminDemoRuntime("northline-roofing");
+    const recovered = await (await post()).json();
+    assert.equal(recovered.replayed, true);
+    assert.equal(recovered.auditId, first.auditId);
+    assert.equal(recovered.entry.version, 1);
+    const later = await (
+      await post({
+        ...command,
+        authorityTier: "approved",
+        expectedVersion: 1,
+        requestKey: "later-save",
+      })
+    ).json();
+    assert.equal(later.entry.version, 2);
+    const earlier = await (await post()).json();
+    assert.equal(earlier.entry.version, 1, "A later update cannot mutate the earlier receipt");
+    assert.equal(earlier.replayed, true);
+    const list = await (await window.fetch("/api/admin/source-authority")).json();
+    assert.equal(
+      list.entries.filter((item: SourceAuthorityEntry) => item.system_key === command.systemKey)
+        .length,
+      1,
+    );
+    assert.equal(
+      list.entries.find((item: SourceAuthorityEntry) => item.system_key === command.systemKey)
+        .version,
+      2,
+    );
+    assert.equal((await post({ ...command, displayName: "Conflicting request" })).status, 409);
+    assert.equal((await post({ ...command, requestKey: "stale-version" })).status, 409);
+  } finally {
+    runtime.restore();
+    if (originalWindow) Object.defineProperty(globalThis, "window", originalWindow);
+    else Reflect.deleteProperty(globalThis, "window");
+    if (originalStorage) Object.defineProperty(globalThis, "sessionStorage", originalStorage);
+    else Reflect.deleteProperty(globalThis, "sessionStorage");
+  }
+}
 async function main() {
+  await verifyDemoRecovery();
+  const querySchema = getRevenueAiTools().find(
+    (tool) => tool.name === "search_knowledge_base",
+  )!.outputSchema;
+  validateToolOutput("search_knowledge_base", querySchema, {
+    contract: "fixture",
+    found: false,
+    query: "fixture",
+    chunks: [],
+    conflicts: [],
+    generatedAt: base.lastVerifiedAt,
+    entitySummary: null,
+    refusalReason: "No matching evidence",
+  });
+  assert.throws(
+    () =>
+      validateToolOutput("search_knowledge_base", querySchema, {
+        contract: "fixture",
+        found: true,
+        query: "fixture",
+        chunks: [],
+        conflicts: [],
+        generatedAt: base.lastVerifiedAt,
+        entitySummary: "invalid",
+      }),
+    /entitySummary/,
+  );
   const normalized = prepareSourceAuthorityCommand({
     ...base,
     systemKey: "Canonical_CRM",
@@ -254,7 +354,7 @@ async function main() {
     JSON.stringify({
       result: "passed",
       checks:
-        "normalization, verified host boundary, redacted failures, scopes, stale and conflicting retrieval, grounded search and agent proposal discovery",
+        "demo routing and immutable recovery after reload, normalization, verified host boundary, redacted failures, scopes, stale and conflicting retrieval, grounded search and agent proposal discovery",
     }),
   );
 }

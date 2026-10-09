@@ -4427,7 +4427,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       saveState(scenarioId, state);
       return jsonResponse({ success: true, readAt: input.read ? new Date().toISOString() : null });
     }
-    if (method !== "GET") {
+    if (method !== "GET" && path !== "/api/admin/source-authority") {
       if (path === "/api/admin/contacts/directory" && method === "POST") {
         const name = typeof body.name === "string" ? body.name.trim() : "";
         const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -5254,7 +5254,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         if (existing) Object.assign(existing, entry);
         else state.sourceAuthority.push(entry);
         const receipt = {
-          entry,
+          entry: structuredClone(entry),
           requestKey,
           auditId: `demo-audit-${requestKey}`,
           replayed: false,
