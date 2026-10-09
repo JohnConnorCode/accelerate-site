@@ -78,10 +78,10 @@ try {
       await page.getByRole("button", { name: "Approve this change", exact: true }).click();
       await page.getByRole("button", { name: /Workshop preparation draft/ }).waitFor();
       const draftOpener = page.getByRole("button", { name: /Workshop preparation draft/ });
-      await draftOpener.click();
-      await page.getByRole("dialog", { name: "Workshop preparation draft", exact: true }).waitFor();
       const opener = await draftOpener.elementHandle();
       assert.ok(opener, "Draft opener remains available");
+      await draftOpener.click();
+      await page.getByRole("dialog", { name: "Workshop preparation draft", exact: true }).waitFor();
       await page.keyboard.press("Escape");
       await page.getByRole("dialog").waitFor({ state: "hidden" });
       // Radix restores focus after removal; test the completed lifecycle and exact opener.
