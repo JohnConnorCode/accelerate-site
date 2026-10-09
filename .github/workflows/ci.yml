@@ -326,6 +326,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
@@ -340,6 +342,22 @@ jobs:
           key: ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-
+      - name: Install browser for first-run verification
+        run: npx playwright install --with-deps chromium webkit
+      - name: Verify shared focus handoff and baseline comparison
+        if: ${{ needs.scope.outputs.docs_only != 'true' }}
+        env:
+          QA_FOCUS_BASELINE_REF: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/qa-admin-focus-handoff.mjs
+      - name: Retain shared focus handoff evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: admin-focus-handoff-evidence
+          path: /tmp/accelerate-admin-focus-handoff/
+          if-no-files-found: error
+          retention-days: 7
+
       # next build includes TypeScript validation. Never ignore build errors.
       - name: Build and typecheck
         run: npm run build
@@ -373,8 +391,6 @@ jobs:
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         run: node scripts/check-plugin-host-package.mjs
 
-      - name: Install browser for first-run verification
-        run: npx playwright install --with-deps chromium webkit
       - name: Verify native homepage and cached mobile motion
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         env:

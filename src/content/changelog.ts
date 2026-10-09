@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-destination-focus",
+    slug: "command-destination-focus",
+    title: "Keep typing when a command opens setup",
+    description:
+      "Opening a page from Search preserves focus when you start entering a field. Closing dialogs and delayed page content respect the control you are using, while ordinary dismissal still returns to the previous control. Invoice setup keeps the Stripe key field ready for keyboard input on desktop and mobile, including reduced motion.",
+    category: "fix",
+    publishedAt: "2026-10-09",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

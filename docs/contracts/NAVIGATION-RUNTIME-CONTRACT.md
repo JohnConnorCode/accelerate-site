@@ -132,6 +132,9 @@ routing or creating surface-specific history systems.
 - After forward navigation, focus moves without additional scrolling to the
   destination heading or main region and the route title is announced politely.
   History traversal restores reading position without stealing focus.
+- Deferred route focus yields when the operator has already entered a destination
+  control or opened another dialog. A closing overlay restores its opener only
+  while it still owns focus; its exit must preserve a newer field or dialog focus.
 
 ## Release and cache continuity
 
@@ -197,6 +200,14 @@ profile control. It must fail on stale disk-cached RSC responses, service-worker
 control, repeated document navigation, mixed deployment identities, URL/route
 disagreement, runtime errors, or a material persistent-versus-fresh regression.
 Physical Android Chrome evidence follows `docs/internal/ANDROID-CHROME-CACHE-INCIDENT.md`.
+
+`node scripts/qa-admin-focus-handoff.mjs` exercises the actual shared route and
+dialog owners with a controlled router and deferred-frame boundary. It covers
+early field interaction, heading replacement, ordinary dismissal and stacked
+dialogs at desktop/mobile widths with normal/reduced motion. An optional
+`QA_FOCUS_BASELINE_REF` records the same cases against earlier Git source.
+`node scripts/qa-invoice-navigation.mjs` separately proves the full compiled
+invoice command and disconnected Stripe field retain focus and typed input.
 
 ## Public static-page continuity
 
