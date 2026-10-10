@@ -78,3 +78,10 @@ browser check also exposed missing supported-agent names in the newer business-f
 guides. Their commissioning steps now name Codex and Claude Code without restoring
 older engineering-heavy introductions. Source documentation checks pass; final
 compiled browser acceptance remains required on the updated head.
+
+The following run reached AI run history on desktop and mobile. The Capabilities
+selector still included an old description despite the shared view switcher now
+providing an explicit accessible name. The journey now selects the exact
+`Capabilities` button inside `AI workspace views` and the current `Reads and
+reports` heading. Its navigation, simulated action, workspace isolation, appearance,
+refresh and reset assertions remain intact.

@@ -812,9 +812,10 @@ for (const scenario of scenarios) {
       await page.screenshot({ path: `${output}/ai-run-history-mobile.png`, fullPage: true });
       await page.setViewportSize(viewport);
       await page
-        .getByRole("button", { name: /Capabilities Understand tools and safeguards/ })
+        .getByRole("group", { name: "AI workspace views", exact: true })
+        .getByRole("button", { name: "Capabilities", exact: true })
         .click();
-      await page.getByRole("heading", { name: "Read capabilities", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Reads and reports", exact: true }).waitFor();
       if (!page.url().includes("/demo/command-center/northline-roofing/ai?view=capabilities"))
         failures.push("AI workspace: tab navigation escaped the public demo URL");
       const mutation = await page.evaluate(async () => {
