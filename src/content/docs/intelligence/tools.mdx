@@ -1,7 +1,7 @@
 ---
 title: "AI tool reference"
 description: "Every registered tool, generated straight from the registry: what it needs and what it does."
-updated: "2026-09-30"
+updated: "2026-10-09"
 ---
 
 When an assistant needs to answer a question or prepare a change, its registered tools define the operations it can request. This catalog is generated from the current registry and includes each tool’s description and input schema, so a builder can inspect the contract behind a request.
@@ -16,6 +16,16 @@ Availability depends on workspace access, enabled modules, connected providers a
 </Callout>
 
 For task changes, `propose_task_update` prepares completion, reopening, snoozing, or edits to the title, description, priority and due date. An empty description or due date clears that value. The proposal records the current task details so execution can refuse intervening edits. Follow [the task review steps](/docs/command-center/work#updating-a-task-with-ask-ai) to inspect and approve the change.
+
+## Reports and exports
+
+Ask “Show our recorded revenue by client” or “Compare the funnel for website leads over the last 30 days.” `get_revenue_report` and `get_revenue_analytics` use the same reporting services as Revenue and Analytics. Revenue sections include the summary, clients, industries, timeline and definitions. Analytics sections include the summary, funnel, forecast, source breakdown, quality, filter options and website activity.
+
+Analytics accepts a creation window from 7 to 365 days and named source, owner, campaign and stage filters. Opportunity filters describe the opportunity cohort; website activity accepts the day window only and refuses opportunity filters. Drilldowns return up to five rows per page, with a total and `nextOffset` for continuation. A missing or incomplete source is disclosed rather than presented as a complete total.
+
+`export_revenue_report` and `export_revenue_analytics` return the requested section or page as JSON or field/value CSV, including its filters and quality information. An export is not an entire database dump, a published file or an email attachment. An external client can save the returned content. Recorded contracts, accepted proposals, won opportunity value and forecasts have different meanings; none establish cash collected, and reporting does not convert currencies.
+
+`get_admin_operation_coverage` searches the current tool catalogue and shows reviewed operation mappings. These mappings connect tools to their shared service and verification evidence. Tool counts and route counts do not establish universal access. The capability screen also separates module registration from the permissions and connections checked when a tool runs.
 
 ## Workspace configuration
 

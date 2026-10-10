@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
 import {
   Check,
@@ -15,6 +15,7 @@ import {
 import type { AiCapabilitiesPayload, AiCapability } from "@/lib/revenue-os/ai-operations-contract";
 import { AdminSurface } from "./AdminSurface";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { AdminButton } from "./AdminButton";
 
 function CapabilityCard({ item }: { item: AiCapability }) {
   const readOnly = item.impact === "read";
@@ -31,8 +32,10 @@ function CapabilityCard({ item }: { item: AiCapability }) {
         <span className="rounded-full bg-[var(--admin-surface)] px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
           {item.state === "available"
             ? readOnly
-              ? "Ready to read"
-              : "Approval gated"
+              ? "Registered read"
+              : item.confirmationRequired
+                ? "Review required"
+                : "Scoped execution"
             : "Unavailable"}
         </span>
       </div>
@@ -62,19 +65,40 @@ function CapabilityCard({ item }: { item: AiCapability }) {
 export function AICapabilities() {
   const [data, setData] = useState<AiCapabilitiesPayload | null>(null);
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [reload, setReload] = useState(0);
+  const searchField = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    void fetchJson<AiCapabilitiesPayload>("/api/admin/revenue-os/ai/capabilities")
-      .then(setData)
-      .catch((issue) =>
-        setError(issue instanceof Error ? issue.message : "Capabilities are unavailable."),
-      );
-  }, []);
+    const controller = new AbortController();
+    void fetchJson<AiCapabilitiesPayload>("/api/admin/revenue-os/ai/capabilities", {
+      signal: controller.signal,
+    })
+      .then((payload) => {
+        if (!controller.signal.aborted) setData(payload);
+      })
+      .catch((issue) => {
+        if (!controller.signal.aborted)
+          setError(issue instanceof Error ? issue.message : "Capabilities are unavailable.");
+      });
+    return () => controller.abort();
+  }, [reload]);
+  const matched = useMemo(() => {
+    const search = query.trim().toLowerCase().replaceAll("_", " ");
+    return (
+      data?.capabilities.filter((item) =>
+        `${item.name} ${item.label} ${item.description}`
+          .toLowerCase()
+          .replaceAll("_", " ")
+          .includes(search),
+      ) ?? []
+    );
+  }, [data, query]);
   const groups = useMemo(
     () => ({
-      reads: data?.capabilities.filter((item) => item.impact === "read") ?? [],
-      gated: data?.capabilities.filter((item) => item.impact !== "read") ?? [],
+      reads: matched.filter((item) => item.impact === "read"),
+      gated: matched.filter((item) => item.impact !== "read"),
     }),
-    [data],
+    [matched],
   );
   if (!data && !error)
     return (
@@ -89,11 +113,21 @@ export function AICapabilities() {
         <CircleAlert className="size-5 text-rose-600" />
         <p className="mt-3 text-sm font-semibold">Capabilities could not be loaded</p>
         <p className="admin-copy mt-1 text-xs">{error}</p>
+        <AdminButton
+          className="mt-4"
+          onClick={() => {
+            setError("");
+            setData(null);
+            setReload((value) => value + 1);
+          }}
+        >
+          Retry
+        </AdminButton>
       </AdminSurface>
     );
   const policies = [
     { label: "Bounded reads may execute directly", good: data!.safety.readsMayExecuteDirectly },
-    { label: "Writes require approval", good: data!.safety.writesRequireApproval },
+    { label: "Routine work uses scoped permission", good: true },
     {
       label: "External actions require approval",
       good: data!.safety.externalActionsRequireApproval,
@@ -107,15 +141,21 @@ export function AICapabilities() {
           <div>
             <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
               <ShieldCheck className="size-4" />
-              <p className="admin-eyebrow text-current">Runtime registry</p>
+              <p className="admin-eyebrow text-current">Workspace capabilities</p>
             </div>
             <h2 className="mt-2 text-balance text-xl font-semibold tracking-[-0.035em] text-[var(--admin-ink)]">
-              Useful by default. Controlled where it matters.
+              Find what AI can do for your business
             </h2>
             <p className="admin-copy mt-2 max-w-2xl text-sm">
-              Availability is evaluated against the current registered service boundary. These tools
-              can safely read or stage approval requests without calling a provider directly.
+              Tools follow the enabled modules in this workspace. Connections, permissions and
+              current records are checked when an operation runs.
             </p>
+            {data?.coverage?.universalCoverage === false && (
+              <p className="admin-copy mt-3 max-w-2xl text-xs">
+                Some admin operations still need an AI equivalent. Search for the exact action here
+                before planning a workflow around it.
+              </p>
+            )}
           </div>
           <div className="grid gap-2 text-xs sm:grid-cols-2 lg:w-[340px]">
             {policies.map(({ label, good }) => (
@@ -134,31 +174,67 @@ export function AICapabilities() {
           </div>
         </div>
       </AdminSurface>
-      <section>
-        <div className="mb-3 flex items-end justify-between gap-3">
-          <div>
-            <p className="admin-eyebrow">Runtime registry</p>
-            <h2 className="mt-1 text-lg font-semibold text-[var(--admin-ink)]">
-              Read capabilities
-            </h2>
+      <div className="space-y-2">
+        <label
+          htmlFor="ai-capability-search"
+          className="text-sm font-medium text-[var(--admin-ink)]"
+        >
+          Find a capability
+        </label>
+        <input
+          id="ai-capability-search"
+          ref={searchField}
+          type="search"
+          className="admin-field w-full"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Reports, contacts, tasks…"
+        />
+        <p className="admin-copy text-xs tabular-nums" role="status">
+          {matched.length} of {data?.capabilities.length ?? 0} registered tools
+        </p>
+      </div>
+      {matched.length === 0 && (
+        <AdminSurface tone="subtle">
+          <p className="text-sm font-medium text-[var(--admin-ink)]">No matching capabilities</p>
+          <p className="admin-copy mt-1 text-xs">
+            Try a business term or a tool name. A missing operation needs a supported service before
+            AI can use it.
+          </p>
+          <AdminButton
+            className="mt-3"
+            onClick={() => {
+              setQuery("");
+              searchField.current?.focus({ preventScroll: true });
+            }}
+          >
+            Clear search
+          </AdminButton>
+        </AdminSurface>
+      )}
+      {groups.reads.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <h2 className="mt-1 text-lg font-semibold text-[var(--admin-ink)]">
+                Reads and reports
+              </h2>
+            </div>
+            <span className="font-mono text-[10px] text-[var(--admin-muted)]">
+              Registry {data?.registryVersion}
+            </span>
           </div>
-          <span className="font-mono text-[10px] text-[var(--admin-muted)]">
-            Registry {data?.registryVersion}
-          </span>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {groups.reads.map((item) => (
-            <CapabilityCard key={item.name} item={item} />
-          ))}
-        </div>
-      </section>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {groups.reads.map((item) => (
+              <CapabilityCard key={item.name} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
       {groups.gated.length > 0 && (
         <section>
           <div className="mb-3">
-            <p className="admin-eyebrow">Founder controlled</p>
-            <h2 className="mt-1 text-lg font-semibold text-[var(--admin-ink)]">
-              Proposals and actions
-            </h2>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--admin-ink)]">Work and changes</h2>
           </div>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {groups.gated.map((item) => (

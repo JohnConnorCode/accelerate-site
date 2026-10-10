@@ -250,6 +250,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "core-system",
+    aiToolPacks: ["core"],
     docsUrl: "/docs/workspace",
     name: "System Settings & Tenancy",
     description: "Tenant workspace provisioning, setup verification, and operating preferences.",
@@ -275,6 +276,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "/admin/coworkers",
     ],
     aiToolNames: [
+      "get_admin_operation_coverage",
       "discover_tool_bundles",
       "activate_tool_bundle",
       "get_workspace_configuration",
@@ -360,6 +362,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["revenue"],
     routes: ["/admin/revenue"],
+    aiToolNames: ["get_revenue_report", "export_revenue_report"],
+    aiToolPacks: ["core"],
   },
   {
     id: "bookings",
@@ -471,6 +475,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["analytics"],
     routes: ["/admin/analytics"],
+    aiToolNames: ["get_revenue_analytics", "export_revenue_analytics"],
+    aiToolPacks: ["core"],
   },
   {
     id: "integrations",

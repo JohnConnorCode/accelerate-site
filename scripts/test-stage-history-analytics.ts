@@ -348,7 +348,7 @@ async function verifyBoundedHistoryRead() {
         q.then = (resolve: (x: unknown) => unknown) =>
           resolve(
             table === "opportunities"
-              ? { data: opportunities, error: null }
+              ? { data: opportunities, error: null, count: opportunities.length }
               : table === "stage_events"
                 ? {
                     data: [],
@@ -357,6 +357,7 @@ async function verifyBoundedHistoryRead() {
                   }
                 : table === "kanban_columns"
                   ? {
+                      count: stages.stageKeys.length,
                       data: stages.stageKeys.map((column_key) => ({
                         column_key,
                         label: column_key,
@@ -364,7 +365,7 @@ async function verifyBoundedHistoryRead() {
                       })),
                       error: null,
                     }
-                  : { data: [], error: null },
+                  : { data: [], error: null, count: 0 },
           );
         return q;
       },

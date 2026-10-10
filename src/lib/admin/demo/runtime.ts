@@ -1883,7 +1883,7 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
         ? ("available" as const)
         : ("unavailable" as const),
       operationalReadiness: isAiToolModuleEnabled(name, tenantConfig).enabled
-        ? ("ready" as const)
+        ? ("not_evaluated" as const)
         : ("unavailable" as const),
       availabilityReason:
         isAiToolModuleEnabled(name, tenantConfig).reason ??
@@ -1893,7 +1893,7 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
   return {
     registryVersion: AI_TOOL_REGISTRY_VERSION,
     scope: "runtime_registry",
-    readinessEvaluated: true,
+    readinessEvaluated: false,
     capabilities,
     safety: {
       registeredReads: capabilities.filter((c) => c.impact === "read").length,

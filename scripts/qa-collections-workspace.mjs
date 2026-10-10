@@ -103,9 +103,9 @@ try {
           await page.goto(root + "/ai?view=capabilities");
           await page.getByText(`Registry ${registryVersion}`, { exact: true }).waitFor();
           for (const [label, ready, connection] of [
-            ["Read collection cases", "Ready to read", "No provider connection required"],
-            ["preview collection reminder", "Ready to read", "Connection required"],
-            ["Stage collection reminder", "Approval gated", "Connection required"],
+            ["Read collection cases", "Registered read", "No provider connection required"],
+            ["preview collection reminder", "Registered read", "Connection required"],
+            ["Stage collection reminder", "Review required", "Connection required"],
           ]) {
             const heading = page.getByRole("heading", { name: label, exact: true });
             await heading.waitFor();

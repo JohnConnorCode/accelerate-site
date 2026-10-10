@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "shared-ai-reporting",
+    slug: "shared-ai-reporting",
+    title: "Dashboard reports through Ask AI and MCP",
+    description:
+      "Revenue and Analytics tools use the dashboard reporting services, with named sections, bounded drilldowns and JSON/CSV exports. Incomplete data stays visible, and recorded revenue remains distinct from forecasts and collected payments. Capability search helps operators find supported actions and recover from a failed read. Reviewed operation mappings are generated from the tool registry; universal administrative coverage remains in progress.",
+    category: "feature",
+    publishedAt: "2026-10-09",
+  },
+  {
     id: "source-authority",
     slug: "source-authority",
     title: "Verified sources for agent answers",

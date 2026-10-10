@@ -1,7 +1,7 @@
 ---
 title: "Connect an MCP client"
 description: "Point an external assistant at the right workspace, and verify a read before trusting it."
-updated: "2026-09-30"
+updated: "2026-10-09"
 ---
 
 The recommended way to connect a workspace is the tenant HTTP endpoint, authenticated with the MCP key issued specifically for that workspace. The stdio bridge can use that same HTTP endpoint and workspace key. Its separate local database mode is reserved for installation administrators.
@@ -40,7 +40,7 @@ Profiles change what the client loads initially. They do not grant permissions o
 
 ## Understand what the connection permits
 
-Available tools depend on module and connection requirements. Read tools return bounded workspace context. Mutating tools stage proposals for [approval](/docs/command-center/approvals); the client cannot approve its own proposal through MCP.
+Available tools depend on module and connection requirements. Read tools return bounded workspace context. Integration-key connections can stage supported changes for [approval](/docs/command-center/approvals). An authenticated member OAuth connection may execute a covered routine internal change under a current standing permission on named records, allowed fields, daily limits and expiry. The client cannot approve its own proposal or permission change through MCP.
 
 A confirmation shown by the external assistant does not replace the Command Center's approval decision.
 
@@ -79,3 +79,13 @@ For example, an assistant saying “I prepared the update” means you should lo
 An authenticated member connection, including workspace OAuth, can preview and start ordered work, read its progress and control future steps through the same tools as Ask AI. A workspace bearer key represents an integration, not a requesting member, so it cannot start member-owned delegation or grant internal permission.
 
 A pending proposal returns a focused, authenticated review link for its tenant and exact action. Open it to make the human decision. An external agent cannot approve its own proposal. After approval, read the actual receipt; permission, membership and freshness checks still apply at execution.
+
+## Report reads and exports
+
+Ask for a Revenue or Analytics summary, then choose a narrower section or follow `nextOffset` for additional drilldown rows. Report tools share the dashboard services and disclose incomplete sources. JSON and CSV exports return the requested section or page, with filters and quality information; the client can save that content. Recorded won value and forecasts do not establish collected cash.
+
+Use `get_admin_operation_coverage` to find an exact supported tool and inspect its reviewed mapping. Universal administration, including separately scoped founder operations, remains in progress. A registered tool still checks permissions, module state, source availability and relevant providers when it runs.
+
+## What to check
+
+Confirm the workspace identity with a read, then inspect the exact proposal or current standing permission for a change. Keep pending, partial and unavailable outcomes visible, and rely on the saved service receipt for what actually happened. Verify installation-level access separately from workspace access.

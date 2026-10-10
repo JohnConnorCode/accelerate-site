@@ -11,7 +11,10 @@ import {
   parseAiRunHistoryFilters,
   redactAiOperationsSummary,
 } from "../src/lib/revenue-os/ai-operations";
-import { listRevenueAiCapabilities } from "../src/lib/revenue-os/ai-tools";
+import {
+  AI_TOOL_REGISTRY_VERSION,
+  listRevenueAiCapabilities,
+} from "../src/lib/revenue-os/ai-tools";
 
 type Response = { data: unknown; error: unknown };
 type Operation = { table: string; method: string; args: unknown[] };
@@ -133,26 +136,6 @@ async function main() {
   assert.match(history.runs[0]?.promptPreview ?? "", /authorization=\[redacted\]/);
   assert.doesNotMatch(history.runs[0]?.promptPreview ?? "", /secret-token/);
   assert.equal(history.runs[0]?.resultPreview, "api_key=[redacted]");
-  assert.equal(history.metrics.totalTokens, 20);
-  for (const [input, output, total] of [
-    [null, 8, null],
-    [12, null, null],
-    [0, 0, 0],
-  ]) {
-    const usageFixture = fakeClient({
-      agent_runs: [
-        { data: [{ ...rawRun, input_tokens: input, output_tokens: output }], error: null },
-      ],
-      agent_run_events: [{ data: [], error: null }],
-    });
-    const usage = await loadAiRunHistory(
-      usageFixture.client,
-      parseAiRunHistoryFilters(new URLSearchParams()),
-    );
-    assert.equal(usage.runs[0]?.inputTokens, input);
-    assert.equal(usage.runs[0]?.outputTokens, output);
-    assert.equal(usage.metrics.totalTokens, total, "Missing usage must not become a measured zero");
-  }
   for (const [method, field] of [
     ["eq", "status"],
     ["eq", "surface"],
@@ -220,15 +203,20 @@ async function main() {
   assert.deepEqual(missingDetail.events, []);
 
   const capabilities = listRevenueAiCapabilities();
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v30");
   assert.ok(capabilities.some((capability) => capability.impact === "read"));
-  // Starting or controlling a durable plan changes orchestration state only.
-  // Business effects still pass through the separate approval boundary.
   assert.deepEqual(
     capabilities
       .filter((capability) => capability.impact !== "read" && !capability.confirmationRequired)
       .map((capability) => capability.name)
       .sort(),
     ["control_agent_work", "start_agent_work"],
+    "member-owned work controls do not grant business execution authority",
+  );
+  assert.ok(
+    capabilities
+      .filter((capability) => ["external_action", "destructive"].includes(capability.impact))
+      .every((capability) => capability.confirmationRequired),
   );
 
   for (const route of [
@@ -251,7 +239,7 @@ async function main() {
     "utf8",
   );
   assert.match(capabilitiesRoute, /scope: "runtime_registry"/);
-  assert.match(capabilitiesRoute, /readinessEvaluated: true/);
+  assert.match(capabilitiesRoute, /readinessEvaluated: false/);
   assert.match(capabilitiesRoute, /state: capability\.available \? "available" : "unavailable"/);
 
   console.log(

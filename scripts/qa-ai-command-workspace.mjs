@@ -367,7 +367,9 @@ await desktop.page.getByText("Trace ledger").waitFor();
 await desktop.page.getByText("Ordered trace").waitFor();
 await desktop.page.screenshot({ path: `${outDir}/run-history-desktop.png`, fullPage: true });
 await desktop.page.getByRole("button", { name: /Capabilities/ }).click();
-await desktop.page.getByText("Useful by default. Controlled where it matters.").waitFor();
+await desktop.page
+  .getByRole("heading", { name: "Find what AI can do for your business", exact: true })
+  .waitFor();
 await desktop.page.screenshot({ path: `${outDir}/capabilities-desktop.png`, fullPage: true });
 await assertNoOverflow(desktop.page, "desktop capabilities");
 await desktop.page.keyboard.press("Meta+J");
@@ -404,7 +406,9 @@ await mobile.page.getByText("Ordered trace").waitFor();
 await mobile.page.screenshot({ path: `${outDir}/run-history-mobile.png`, fullPage: true });
 await assertNoOverflow(mobile.page, "mobile run history");
 await mobile.page.getByRole("button", { name: /Capabilities/ }).click();
-await mobile.page.getByText("Useful by default. Controlled where it matters.").waitFor();
+await mobile.page
+  .getByRole("heading", { name: "Find what AI can do for your business", exact: true })
+  .waitFor();
 await mobile.page.screenshot({ path: `${outDir}/capabilities-mobile.png`, fullPage: true });
 await assertNoOverflow(mobile.page, "mobile capabilities");
 await mobile.context.close();
@@ -419,7 +423,9 @@ await dark.page.waitForTimeout(300);
 await dark.page.screenshot({ path: `${outDir}/workspace-dark.png`, fullPage: true });
 await assertNoOverflow(dark.page, "dark workspace");
 await dark.page.getByRole("button", { name: /Capabilities/ }).click();
-await dark.page.getByText("Useful by default. Controlled where it matters.").waitFor();
+await dark.page
+  .getByRole("heading", { name: "Find what AI can do for your business", exact: true })
+  .waitFor();
 await dark.page.screenshot({ path: `${outDir}/capabilities-dark.png`, fullPage: true });
 await assertNoOverflow(dark.page, "dark capabilities");
 await dark.context.close();

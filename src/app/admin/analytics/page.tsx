@@ -50,8 +50,8 @@ type Data = {
   communication: {
     status: "ready" | "degraded";
     reason?: string;
-    inboundConversations: number;
-    repliedConversations: number;
+    inboundConversations: number | null;
+    repliedConversations: number | null;
     replyRate: number | null;
     medianResponseHours: number | null;
   };
@@ -462,12 +462,12 @@ export default function AnalyticsPage() {
                       <div className="admin-grid admin-grid--metrics">
                         <Metric
                           label="Inbound conversations"
-                          value={data.communication.inboundConversations}
+                          value={data.communication.inboundConversations ?? "N/A"}
                           icon={MessageCircleReply}
                         />
                         <Metric
                           label="Replied"
-                          value={data.communication.repliedConversations}
+                          value={data.communication.repliedConversations ?? "N/A"}
                           icon={MessageCircleReply}
                         />
                         <Metric

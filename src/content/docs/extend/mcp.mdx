@@ -1,7 +1,7 @@
 ---
 title: "MCP concepts"
 description: "Bounded reads, staged writes, and tenant isolation, using the exact same registry the UI uses."
-updated: "2026-09-19"
+updated: "2026-10-09"
 ---
 
 When your team prefers an external assistant, Model Context Protocol (MCP) gives that client a defined way to read workspace context and prepare supported actions. The platform offers a tenant-scoped Streamable HTTP endpoint and a separate local stdio adapter; use the connection guide that matches your installation.
@@ -9,16 +9,27 @@ When your team prefers an external assistant, Model Context Protocol (MCP) gives
 ## Invariants
 
 1. **Bounded reads.** Tools like `get_today_snapshot`, `search_pipeline`, `get_record_timeline`, and `search_knowledge_base` return capped windows. Credentials and tokens are scrubbed.
-2. **Staged writes.** Mutating tools insert into `action_queue`. There is no MCP tool that approves a proposal. Approval happens from an authenticated admin session on [Today](/docs/command-center/today).
-3. **Tenant isolation.** External HTTP requests authenticate with a per-tenant MCP Bearer key from [Integrations](/docs/workspace/integrations), or a founder session. Do not share one key across workspaces.
+2. **Governed changes.** Supported changes use the shared proposal and action services. There is no MCP tool that approves its own proposal. A human reviews consequential changes in [Work](/docs/command-center/work); an authenticated member may execute a covered routine internal change under a current, bounded standing permission. Connecting a client grants no additional business permission.
+3. **Tenant isolation.** External HTTP requests use a per-tenant MCP Bearer key from [Integrations](/docs/workspace/integrations) or an approved workspace OAuth connection. Integration keys support reads and proposals; they do not become a member identity or inherit that member’s standing permissions. Do not share one key across workspaces.
 
 The tool list is the same registry the UI uses. Adding a tool in `ai-tools.ts` and claiming it on a module is what makes it appear over MCP. You do not maintain a second list.
 
 ## Endpoints
 
-- Platform: `/api/mcp`
-- Tenant: `/api/public/<tenantSlug>/mcp`
+- Installation bootstrap workspace: `/api/mcp` (this does not expose universal founder administration)
+- Tenant integration key: `/api/public/<tenantSlug>/mcp`
+- Tenant member OAuth: `/api/public/<tenantSlug>/mcp/oauth`
 
 A `GET` on the tenant endpoint returns a small ok payload you can use to check DNS and deploy before debugging auth.
 
 Client setup is on [Connect an MCP client](/docs/extend/mcp-clients).
+
+## Reports and operation coverage
+
+Report reads and JSON/CSV exports use the dashboard services through the same tool registry. Choose a section and use its continuation metadata for additional rows. The result distinguishes source availability, recorded revenue and forecasts; it does not infer collected payments. See the [AI tool reference](/docs/intelligence/tools) for filters and schemas.
+
+Universal conversational administration remains in progress. `get_admin_operation_coverage` identifies reviewed mappings and existing unreviewed tool bindings; it is not a coverage percentage or a grant of authority. Installation-level tenant management remains separately authorized and is not available through tenant MCP.
+
+## What to check
+
+Confirm the client is connected to the intended workspace and that the relevant module and provider are available. For a change, inspect the exact proposal, current standing permission where applicable, and execution receipt. A pending proposal, partial result or unavailable source should remain visible in your workflow until resolved.
