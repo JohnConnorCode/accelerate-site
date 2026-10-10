@@ -18,7 +18,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run build:qa
       - name: Exercise the corrected release admin journey
         env:
@@ -36,7 +36,7 @@ jobs:
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-full-admin-demo/server.log; exit 1; fi
           qa_status=0
-          for qa in qa-invoice-navigation qa-proposal-editor-recovery; do
+          for qa in test-hero-motion-observer qa-home-hero-timing; do
             if ! node "scripts/$qa.mjs" 2>&1 | tee "/tmp/accelerate-full-admin-demo/$qa.log"; then qa_status=1; fi
           done
           exit "$qa_status"
