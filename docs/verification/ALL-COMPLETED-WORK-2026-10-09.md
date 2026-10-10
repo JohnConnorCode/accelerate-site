@@ -68,3 +68,13 @@ alongside its evidence. Native recovery from the pinned prior source must expect
 `platform_owner_user_id: null` on older action rows after the new privacy migration,
 while preserving every existing field. The strict populated-data comparison remains.
 Final combined CI and native recovery must pass on the corrected head.
+
+The next combined run passed all non-browser jobs and the actual homepage,
+Chromium/WebKit mobile, public-loading and core-discovery browser checks. Its
+broader admin-demo journey still selected the former `Work` navigation group;
+the test now exercises the current `Tasks & approvals` disclosure with the same
+open/close/reopen, active-link and browser-history assertions. The contributor
+browser check also exposed missing supported-agent names in the newer business-first
+guides. Their commissioning steps now name Codex and Claude Code without restoring
+older engineering-heavy introductions. Source documentation checks pass; final
+compiled browser acceptance remains required on the updated head.

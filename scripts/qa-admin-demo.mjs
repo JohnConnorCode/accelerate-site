@@ -625,7 +625,7 @@ for (const scenario of scenarios) {
 
         if (scenario === "northline-roofing") {
           const workToggle = controlsScope.getByRole("button", {
-            name: /^(Expand|Collapse) Work links$/,
+            name: /^(Expand|Collapse) Tasks & approvals links$/,
           });
           const workPanelId = await workToggle.getAttribute("aria-controls");
           const workPanel = controlsScope.locator(`[id="${workPanelId}"]`);
@@ -633,13 +633,17 @@ for (const scenario of scenarios) {
           await workToggle.click();
           await workPanel.waitFor();
           if ((await workPanel.getAttribute("aria-hidden")) !== "false")
-            failures.push(`${scenario} ${label}: Work disclosure did not expose its links`);
+            failures.push(
+              `${scenario} ${label}: Tasks & approvals disclosure did not expose its links`,
+            );
           await workToggle.click();
           if ((await workPanel.getAttribute("aria-hidden")) !== "true")
-            failures.push(`${scenario} ${label}: Work disclosure did not hide its links`);
+            failures.push(
+              `${scenario} ${label}: Tasks & approvals disclosure did not hide its links`,
+            );
           await workToggle.click();
           if ((await workPanel.getAttribute("aria-hidden")) !== "false")
-            failures.push(`${scenario} ${label}: Work disclosure did not reopen`);
+            failures.push(`${scenario} ${label}: Tasks & approvals disclosure did not reopen`);
 
           const inboxHref = `/demo/command-center/${scenario}/inbox`;
           const todayHref = `/demo/command-center/${scenario}/today`;
