@@ -113,48 +113,50 @@ export default function AdminContentPage() {
           <KanbanViewSwitcher value={view} onChange={setView} />
         </div>
 
-        {view === "board" ? (
-          <ContentKanban
-            columns={columns}
-            items={items}
-            onReorder={commitReorder}
-            onEdit={handleEdit}
-            onReconcile={fetchItems}
-            onAddColumn={createColumn}
-            onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
-            onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
-          />
-        ) : (
-          <KanbanListView<ContentCalendarItem>
-            columns={columns}
-            items={items}
-            getItemId={(item) => item.id}
-            getItemColumnKey={(item) => item.status}
-            getItemSortOrder={(item) => Number(item.sort_order)}
-            setItemPosition={(item, columnKey, sortOrder) => ({
-              ...item,
-              status: columnKey,
-              sort_order: sortOrder,
-            })}
-            renderTitle={(item) => item.title}
-            onOpenItem={handleEdit}
-            onReorder={commitReorder}
-            extraColumns={[
-              {
-                key: "category",
-                header: "Category",
-                sortValue: (item) => item.category ?? "",
-                render: (item) => (item.category ? item.category.replace(/-/g, " ") : "—"),
-              },
-              {
-                key: "word_count_target",
-                header: "Words",
-                sortValue: (item) => item.word_count_target ?? 0,
-                render: (item) => item.word_count_target ?? "—",
-              },
-            ]}
-          />
-        )}
+        <div key={view} data-admin-view-panel={view}>
+          {view === "board" ? (
+            <ContentKanban
+              columns={columns}
+              items={items}
+              onReorder={commitReorder}
+              onEdit={handleEdit}
+              onReconcile={fetchItems}
+              onAddColumn={createColumn}
+              onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
+              onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
+            />
+          ) : (
+            <KanbanListView<ContentCalendarItem>
+              columns={columns}
+              items={items}
+              getItemId={(item) => item.id}
+              getItemColumnKey={(item) => item.status}
+              getItemSortOrder={(item) => Number(item.sort_order)}
+              setItemPosition={(item, columnKey, sortOrder) => ({
+                ...item,
+                status: columnKey,
+                sort_order: sortOrder,
+              })}
+              renderTitle={(item) => item.title}
+              onOpenItem={handleEdit}
+              onReorder={commitReorder}
+              extraColumns={[
+                {
+                  key: "category",
+                  header: "Category",
+                  sortValue: (item) => item.category ?? "",
+                  render: (item) => (item.category ? item.category.replace(/-/g, " ") : "—"),
+                },
+                {
+                  key: "word_count_target",
+                  header: "Words",
+                  sortValue: (item) => item.word_count_target ?? 0,
+                  render: (item) => item.word_count_target ?? "—",
+                },
+              ]}
+            />
+          )}
+        </div>
       </AdminReadBody>
       <ContentItemForm
         key={`${editingItem?.id ?? "new"}:${formSession}`}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Columns3, List } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AdminViewSwitcher } from "@/components/admin/AdminViewSwitcher";
 
 export type KanbanView = "board" | "list";
 
@@ -45,26 +45,14 @@ export function KanbanViewSwitcher({
   onChange: (view: KanbanView) => void;
 }) {
   return (
-    <div className="inline-flex items-center gap-0.5 rounded-lg bg-black/[0.045] p-0.5 dark:bg-white/[0.06]">
-      {[
-        { view: "board" as const, label: "Board", Icon: Columns3 },
-        { view: "list" as const, label: "List", Icon: List },
-      ].map(({ view, label, Icon }) => (
-        <button
-          key={view}
-          type="button"
-          aria-pressed={value === view}
-          onClick={() => onChange(view)}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors duration-150",
-            value === view
-              ? "bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
-              : "text-[var(--admin-muted)] hover:text-[var(--admin-ink)]",
-          )}
-        >
-          <Icon className="size-3.5" /> {label}
-        </button>
-      ))}
-    </div>
+    <AdminViewSwitcher
+      label="Board view"
+      value={value}
+      onChange={onChange}
+      options={[
+        { id: "board", label: "Board", icon: Columns3 },
+        { id: "list", label: "List", icon: List },
+      ]}
+    />
   );
 }

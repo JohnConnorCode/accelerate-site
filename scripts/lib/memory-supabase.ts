@@ -14,6 +14,25 @@
 export type Row = Record<string, unknown>;
 export type QueryFailure = { code?: string; message: string };
 
+/** Model SQL LIKE, including escaped literal underscores and percent signs. */
+function likeRegex(value: string): RegExp {
+  let pattern = "";
+  for (let index = 0; index < value.length; index++) {
+    const character = value[index]!;
+    if (character === "\\" && index + 1 < value.length) {
+      pattern += value[++index]!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    } else {
+      pattern +=
+        character === "%"
+          ? ".*"
+          : character === "_"
+            ? "."
+            : character.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+  }
+  return new RegExp(`^${pattern}$`, "i");
+}
+
 /** Parse the `or()` filter string form, e.g. `expires_at.is.null,expires_at.gt.2026-01-01`. */
 function orPredicate(expression: string): (row: Row) => boolean {
   const clauses = expression.split(",").map((clause) => {
@@ -23,17 +42,7 @@ function orPredicate(expression: string): (row: Row) => boolean {
       const actual = row[column ?? ""];
       switch (op) {
         case "ilike": {
-          const pattern = value
-            .split("")
-            .map((char) =>
-              char === "%"
-                ? ".*"
-                : char === "_"
-                  ? "."
-                  : char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-            )
-            .join("");
-          return actual != null && new RegExp(`^${pattern}$`, "i").test(String(actual));
+          return actual != null && likeRegex(value).test(String(actual));
         }
         case "is":
           return value === "null" ? actual === null || actual === undefined : actual === value;
@@ -192,13 +201,7 @@ export class MemorySupabase {
       return self;
     };
     self.ilike = (column: string, value: string) => {
-      const pattern = value
-        .split("")
-        .map((char) =>
-          char === "%" ? ".*" : char === "_" ? "." : char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-        )
-        .join("");
-      const matches = new RegExp(`^${pattern}$`, "i");
+      const matches = likeRegex(value);
       filters.push((row) => row[column] != null && matches.test(String(row[column])));
       return self;
     };

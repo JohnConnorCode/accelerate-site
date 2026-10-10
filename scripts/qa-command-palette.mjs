@@ -121,7 +121,7 @@ async function openPalette(page, viaKeyboard) {
 }
 
 function paletteInput(page) {
-  return page.getByPlaceholder("Search people, pages, or run a command…");
+  return page.getByPlaceholder("Search records, pages, or run a command…");
 }
 
 async function runJourney() {
@@ -131,7 +131,7 @@ async function runJourney() {
     const paletteSetup = page.getByRole("dialog", { name: "Admin command palette" });
     await openPalette(page, true);
     await paletteInput(page).fill("setup");
-    await paletteSetup.getByRole("button", { name: /Open setup/ }).click();
+    await paletteSetup.getByRole("option", { name: /Open setup/ }).click();
     await page.waitForURL("**/admin/setup", { timeout: 30_000 });
     await page.screenshot({ path: `${outDir}/setup-desktop.png` });
     await context.close();
@@ -143,7 +143,7 @@ async function runJourney() {
     const paletteLead = page.getByRole("dialog", { name: "Admin command palette" });
     await openPalette(page, true);
     await paletteInput(page).fill("new lead");
-    await paletteLead.getByRole("button", { name: /New lead/ }).click();
+    await paletteLead.getByRole("option", { name: /New lead/ }).click();
     await page.waitForURL("**/admin/leads?create=1", { timeout: 30_000 });
     await page.getByRole("dialog", { name: "Add new lead" }).waitFor({ timeout: 15_000 });
     await page.screenshot({ path: `${outDir}/lead-modal-desktop.png` });
@@ -182,7 +182,7 @@ async function runJourney() {
     const palette = page.getByRole("dialog", { name: "Admin command palette" });
     await openPalette(page, true);
     await paletteInput(page).fill("pipeline risk");
-    await palette.getByRole("button", { name: /Show pipeline risk/ }).click();
+    await palette.getByRole("option", { name: /Show pipeline risk/ }).click();
     await page.getByLabel("Ask AI").waitFor({ timeout: 15_000 });
     await page.screenshot({ path: `${outDir}/ai-dark.png` });
     await context.close();
@@ -194,7 +194,7 @@ async function runJourney() {
     const paletteRecovery = page.getByRole("dialog", { name: "Admin command palette" });
     await openPalette(page, false);
     await paletteInput(page).fill("recovery");
-    await paletteRecovery.getByRole("button", { name: /Open recovery/ }).click();
+    await paletteRecovery.getByRole("option", { name: /Open recovery/ }).click();
     await page.waitForURL("**/admin/recovery", { timeout: 30_000 });
     await page.screenshot({ path: `${outDir}/recovery-mobile.png` });
     await context.close();

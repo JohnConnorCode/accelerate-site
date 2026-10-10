@@ -3008,9 +3008,11 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/admin/workspace-search",
+        "@/lib/revenue-os/modules",
         "next/server"
       ],
-      "sourceSha256": "24e2a8ca883dc636b2650d2019bfc5845a51723cd49727e6a52737d090540f6d"
+      "sourceSha256": "a7fd22ebdda774de0d270add813928633495a09741cfb2fc2ac6013356182ee9"
     },
     {
       "source": "src/app/api/admin/send-email/route.ts",

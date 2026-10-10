@@ -225,7 +225,7 @@ try {
         await page.keyboard.press("Control+k");
         const palette = page.getByRole("dialog", { name: "Admin command palette", exact: true });
         await palette.waitFor();
-        await palette.getByRole("textbox").fill(name);
+        await palette.getByRole("combobox", { name: "Search workspace" }).fill(name);
         return palette;
       }
       async function setCampaigns(enabled) {
@@ -247,7 +247,7 @@ try {
         await assertIdentity("Email Sequences", "Messages & marketing");
         const palette = await search("Architect");
         const result = palette
-          .getByRole("button")
+          .getByRole("option")
           .filter({ has: page.getByText("Architect", { exact: true }) });
         await result.focus();
         await page.keyboard.press("Enter");

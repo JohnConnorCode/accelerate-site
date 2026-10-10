@@ -984,6 +984,50 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   margin-left: 2px;
 }
 
+.admin-view-switcher {
+  border-radius: calc(var(--admin-control-radius) + 4px);
+  background: var(--admin-surface-subtle);
+  box-shadow: var(--admin-shadow-border);
+}
+
+.admin-view-switch {
+  border-radius: var(--admin-control-radius);
+  color: var(--admin-muted);
+  transition:
+    color 150ms var(--admin-motion-ease),
+    background-color 150ms var(--admin-motion-ease),
+    transform 150ms var(--admin-motion-ease);
+}
+
+.admin-view-switch:is(:hover, [aria-pressed="true"]) {
+  color: var(--admin-ink);
+}
+
+.admin-view-switch:active {
+  transform: scale(0.96);
+}
+
+.admin-view-switch:focus-visible {
+  outline: 2px solid var(--admin-action);
+  outline-offset: 2px;
+}
+
+.admin-view-selection {
+  border-radius: inherit;
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-view-switch {
+    transition-duration: 0s;
+  }
+
+  .admin-view-switch:active {
+    transform: none;
+  }
+}
+
 .admin-route-frame {
   width: 100%;
   max-width: var(--admin-page-width);
@@ -1033,8 +1077,25 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   }
 
   .admin-route-stage
-    :where(.admin-page-introduction, .admin-surface, section, table, form, [role="tabpanel"]):not(
-      :where(.admin-page-introduction, .admin-surface, section, table, form, [role="tabpanel"]) *
+    :where(
+      .admin-page-introduction,
+      .admin-surface,
+      section,
+      table,
+      form,
+      [role="tabpanel"],
+      [data-admin-view-panel]
+    ):not(
+      :where(
+          .admin-page-introduction,
+          .admin-surface,
+          section,
+          table,
+          form,
+          [role="tabpanel"],
+          [data-admin-view-panel]
+        )
+        *
     ) {
     animation: var(--admin-route-entry);
   }

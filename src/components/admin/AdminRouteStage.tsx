@@ -3,7 +3,8 @@
 import { useId, useLayoutEffect, useRef } from "react";
 import { adminPageComposition } from "@/lib/admin/page-composition";
 
-const boundary = ".admin-page-introduction, .admin-surface, section, table, form, [role=tabpanel]";
+const boundary =
+  ".admin-page-introduction, .admin-surface, section, table, form, [role=tabpanel], [data-admin-view-panel]";
 const excluded =
   "script, style, template, [hidden], [role=dialog], [data-admin-overlay], .admin-route-loading, [data-admin-async-state=loading]";
 

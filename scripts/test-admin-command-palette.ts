@@ -19,6 +19,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { normalizeSearchQuery } from "../src/lib/admin/workspace-search";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const shellSrc = readFileSync(join(ROOT, "src/components/admin/AdminShell.tsx"), "utf8");
@@ -93,9 +94,10 @@ assert.ok(
   searchSrc.includes("canonicalRes"),
   "admin search must prefer canonical contacts over legacy rows",
 );
-assert.ok(
-  searchSrc.includes('.replace(/[,()\\\\"]/g, "")'),
-  "admin search must sanitize PostgREST-significant characters",
+assert.equal(
+  normalizeSearchQuery(' a,b)(c"d%* '),
+  "abcd",
+  "admin search must sanitize PostgREST-significant characters and wildcards",
 );
 
 // ---- Live: authorization gates (no session, read-only/rejected only) -------

@@ -704,6 +704,8 @@ jobs:
               if ! node "scripts/${polish_suite}.mjs"; then polish_status=1; fi
             done
             if [ "$polish_status" -ne 0 ]; then exit "$polish_status"; fi
+            node scripts/qa-command-center-interactions.mjs
+            node scripts/qa-proposal-editor-recovery.mjs
             node scripts/qa-contact-review-copy.mjs
             node scripts/qa-demo-marketing.mjs
             node scripts/qa-theme-persistence.mjs
@@ -766,6 +768,22 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Retain Command Center interaction evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: command-center-interaction-evidence
+          path: /tmp/accelerate-command-interactions/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain proposal editor recovery evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: proposal-editor-recovery-evidence
+          path: /tmp/accelerate-proposal-editor-recovery/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

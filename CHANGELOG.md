@@ -19,6 +19,7 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 - Owner-first admin navigation uses one business-group registry, with visible purpose descriptions and preserved destination IDs. Page guidance adds starting instructions, saved-result context and links to connected walkthroughs. Today reviews sourced sales, customer follow-up, delivery and payment work without inventing financial totals; custom views retain their arrangements.
 - Owner and daily guides now teach inquiry replies, client handoffs and invoicing through their saved results. Demo QA waits for the installed scenario runtime before reading protected API fixtures.
 - Revenue and Analytics report tools and JSON/CSV exports share dashboard services. Reviewed operation mappings are generated from the tool registry; new unreviewed handlers or tools fail the inventory gate. Existing coverage gaps stay explicit.
+- The Command Center search palette now opens tasks, opportunities, clients and proposals alongside people, pages and commands. Tenant-bound reads respect module configuration; grouped results include status context, keyboard selection stays visible, sequential task links cannot bind the previous task’s cached details, and proposal links resolve outside the current list filter.
 
 - AI can now prepare exact Content Calendar item updates for administrator approval. The admin editor and approved-action executor share a tenant-scoped, revision-checked writer; approval does not publish content.
 
@@ -41,6 +42,7 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 - Standing-permission execution preserves partial service outcomes in the tool response instead of labeling every admitted action executed. Human-review and record-permission checks remain required.
 
 - Analytics refuses incomplete primary datasets and discloses degraded auxiliary sources. Website capture freshness uses the latest event timestamp. AI capability search distinguishes registered tools from execution readiness and offers retry after loading failure.
+- Proposal forms reset when opening another record, rejected saves retain the draft for retry, and sent/viewed edits open the returned successor draft. Late completions preserve the current record. Saved changes and failed list refreshes receive separate feedback; clipboard success waits for confirmation and failed copying selects the link for manual copying.
 
 - A newly connected workspace can add a contact directly from Contacts and create a follow-up from that contact's record. The task is linked to the contact timeline and refuses cross-workspace contact IDs. The fictional demo persists newly added contacts instead of claiming success without saving them.
 

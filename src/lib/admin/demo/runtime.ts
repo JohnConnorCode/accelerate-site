@@ -4,6 +4,8 @@ import {
   handleDemoSiteDrafts,
   type DemoSiteDraftState,
 } from "./site-draft-runtime";
+import { isModuleEnabled } from "@/lib/revenue-os/modules";
+import { formatSearchRecords, normalizeSearchQuery } from "@/lib/admin/workspace-search";
 import {
   demoAgentSnapshotSchema,
   demoAgentProposalSchema,
@@ -3677,7 +3679,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse(snapshot);
     }
     if (method === "GET" && path === "/api/admin/proposals") {
-      const rows = proposals(pack);
+      const status = url.searchParams.get("status");
+      const rows = proposals(pack).filter(
+        (item) => !status || status === "all" || item.status === status,
+      );
       const requested = url.searchParams.get("id");
       return jsonResponse(
         requested
@@ -4820,19 +4825,36 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/revenue-os/priority") return jsonResponse(priority(pack, state));
     if (path === "/api/admin/notifications") return jsonResponse(notifications(pack, state));
-    if (path === "/api/admin/search")
+    if (path === "/api/admin/search") {
+      const q = normalizeSearchQuery(url.searchParams.get("q") || "").toLowerCase();
+      if (q.length < 3) return jsonResponse({ results: [], records: [] });
+      const matches = (...values: (string | null | undefined)[]) =>
+        values.some((value) => value?.toLowerCase().includes(q));
+      const config = { modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } };
       return jsonResponse({
         results: pack.people
-          .filter(
-            (item) =>
-              !url.searchParams.get("q") ||
-              `${item.name} ${item.email} ${item.company}`
-                .toLowerCase()
-                .includes(url.searchParams.get("q")!.toLowerCase()),
-          )
+          .filter((item) => matches(item.name, item.email))
           .slice(0, 10)
           .map((item) => ({ name: item.name, email: item.email, type: item.role })),
+        records:
+          url.searchParams.get("scope") === "people"
+            ? []
+            : formatSearchRecords({
+                tasks: demoTaskRows(pack, state).filter((item) =>
+                  matches(item.title, item.related_name),
+                ),
+                opportunities: opportunityRows(pack, state).filter((item) => matches(item.name)),
+                clients: isModuleEnabled("clients", config)
+                  ? clientRows(pack, state).filter((item) =>
+                      matches(item.business_name, item.contact_name, item.contact_email),
+                    )
+                  : [],
+                proposals: isModuleEnabled("proposals", config)
+                  ? proposals(pack).filter((item) => matches(item.title, item.client_name))
+                  : [],
+              }),
       });
+    }
     if (path === "/api/admin/revenue-os/overview") {
       const rows = opportunityRows(pack, state);
       const open = rows.filter((item) => !["won", "lost"].includes(item.canonical_stage));

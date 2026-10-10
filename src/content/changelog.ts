@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "proposal-editor-recovery",
+    slug: "proposal-editor-recovery",
+    title: "Keep proposal edits with the right record",
+    description:
+      "Opening another proposal loads its own fields. Failed saves retain your draft for retry, and edits to sent or viewed proposals open the new draft version. A save that finishes later leaves the record you opened in place. Saved changes and a failed list refresh show separate feedback. Copy confirms the clipboard result and selects the link for manual copying if access fails.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "workspace-record-search",
+    slug: "workspace-record-search",
+    title: "Find workspace records from one search",
+    description:
+      "Search now opens tasks, opportunities, clients and proposals alongside people, pages and commands. Grouped results include status and relationship context, arrow-key selection stays in view, and proposal links work outside the current list filter. Disabled modules stay out of results. Failed reads offer Retry search while local pages and commands remain available.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "command-center-view-and-recovery",
+    slug: "command-center-view-and-recovery",
+    title: "Smoother workspace views and clearer recovery",
+    description:
+      "Work, Pipeline, Content, Features, and the AI workspace share animated view selection with keyboard access and reduced-motion support. AI and Content view changes use the shared section entrance. People search shows failed reads and retry separately from no matches, while local commands remain available. Client detail and activity retain loaded information after refresh failures and offer independent retry. Unavailable records no longer appear as missing clients or empty history.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "shared-ai-reporting",
     slug: "shared-ai-reporting",
     title: "Dashboard reports through Ask AI and MCP",
