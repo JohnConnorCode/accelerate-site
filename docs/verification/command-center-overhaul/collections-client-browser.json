@@ -1,0 +1,13 @@
+{
+  "result": "passed",
+  "checks": [
+    {
+      "command": "node scripts/qa-collections-workspace.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-client-interactions.mjs",
+      "result": "passed"
+    }
+  ]
+}

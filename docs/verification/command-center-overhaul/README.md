@@ -52,6 +52,15 @@ and checks that current agreement values remain distinct from collected cash.
 The definitions live in the operating guide rather than the product page's buying
 questions. The mobile guide screenshot was opened and reviewed.
 
+Collections passes across its five applicable demos at both widths, including
+saved-state recovery, module toggles, stale approval refusal and fictional send
+receipts. The registry check opens the technical disclosure with the keyboard.
+The client interaction suite passes seven journeys covering task editing,
+independent read and write failures, retained drafts, follow-up creation and
+reload. Returning to Work uses the expanded Daily work group on desktop and the
+primary navigation on mobile. These acceptance updates follow the new hierarchy
+without changing the underlying business assertions.
+
 Repeating the conversational journey exposed an existing automatic-scroll race:
 a pending or open exact-change review could jump to the latest message and hide
 its consequence. The shared chat now suspends automatic following during review.

@@ -97,6 +97,21 @@
       "scenarios": 6,
       "keyboardGuidePath": "/docs/billing -> /docs/pipeline/revenue",
       "transport": "fictional business adapter"
+    },
+    {
+      "command": "node scripts/qa-collections-workspace.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "scenarios": 5,
+      "keyboardTechnicalDisclosure": true,
+      "transport": "fictional business adapter"
+    },
+    {
+      "command": "node scripts/qa-client-interactions.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "journeys": 7,
+      "transport": "fictional business adapter"
     }
   ],
   "initialApplicationCommit": "2d65ca51d0e67bdf8c3d72eb562185de77a87ed8",

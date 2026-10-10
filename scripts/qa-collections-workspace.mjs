@@ -101,6 +101,9 @@ try {
         }
         const verifyCollectionCapabilities = async (enabled) => {
           await page.goto(root + "/ai?view=capabilities");
+          await page
+            .getByText("Search all registered operations and technical details", { exact: true })
+            .press("Enter");
           await page.getByText(`Registry ${registryVersion}`, { exact: true }).waitFor();
           for (const [label, ready, connection] of [
             ["Read collection cases", "Registered read", "No provider connection required"],
