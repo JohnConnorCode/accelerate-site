@@ -407,12 +407,29 @@ jobs:
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-mobile-motion-server.log; exit 1; fi
           hero_status=0
+          observer_status=0
           mobile_status=0
           loading_status=0
+          node scripts/test-hero-motion-observer.mjs || observer_status=$?
           node scripts/qa-home-hero-timing.mjs || hero_status=$?
           node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
           node scripts/qa-public-loading.mjs || loading_status=$?
-          test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
+          test "$observer_status" -eq 0 && test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
+      - name: Retain focused homepage motion diagnostics
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: homepage-motion-diagnostics
+          path: |
+            /tmp/accelerate-hero-motion-observer/results.json
+            /tmp/accelerate-home-hero-timing/results.json
+            /tmp/accelerate-home-hero-timing/desktop-frame-*.png
+            /tmp/accelerate-home-hero-timing/mobile-frame-*.png
+            /tmp/accelerate-home-hero-timing/desktop-settled.png
+            /tmp/accelerate-home-hero-timing/mobile-settled.png
+            /tmp/accelerate-mobile-motion/results.json
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain native mobile motion evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
         uses: actions/upload-artifact@v7
