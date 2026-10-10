@@ -11,7 +11,7 @@ import {
 const [command = "check", ...args] = process.argv.slice(2);
 const options = {};
 for (let i = 0; i < args.length; i += 2) {
-  if (!args[i]?.startsWith("--") || !args[i + 1] || args[i + 1].startsWith("--"))
+  if (!args[i]?.startsWith("--") || args[i + 1] === undefined || args[i + 1].startsWith("--"))
     throw new Error("Use named options with values");
   options[args[i].slice(2)] = args[i + 1];
 }
