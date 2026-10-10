@@ -20,6 +20,7 @@ const routes = [
   "/docs/self-hosting/installation",
   "/docs/self-hosting/recovery",
   "/docs/self-hosting/overview",
+  "/docs/self-hosting/permissions",
   "/docs/start/troubleshooting",
   "/docs/command-center",
   "/docs/contacts/import",
@@ -156,6 +157,7 @@ async function main() {
           await page.locator("main h1").scrollIntoViewIfNeeded();
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
+            fullPage: route === "/docs/self-hosting/permissions",
           });
           if (route === "/docs/extend/first-change") {
             await expect(page.locator("main")).toContainText("Give an agent the first assignment");

@@ -252,6 +252,7 @@ jobs:
           npm run test:content-calendar-actions
           PATH="$(pg_config --bindir):$PATH" npm run test:content-calendar-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning
+          PATH="$(pg_config --bindir):$PATH" npm run test:learning-proposals:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:ai-readiness
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
@@ -680,6 +681,17 @@ jobs:
             /tmp/accelerate-docs-takeover-qa/*-open-source-clipboard-recovery.png
           if-no-files-found: ignore
           retention-days: 7
+      - name: Retain permissions guide browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: permissions-guide-browser-evidence
+          path: |
+            /tmp/accelerate-docs-takeover-qa/*-_docs_self-hosting_permissions.png
+            /tmp/accelerate-docs-takeover-qa/results.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

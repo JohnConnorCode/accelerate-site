@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "learning-proposal-privileges",
+    slug: "learning-proposal-privileges",
+    title: "Tighter database permissions for Learning Inbox proposals",
+    description:
+      "A catalogued upgrade removes anonymous access and unused table-management powers from learning proposals. Signed-in workspace members retain their proposal actions under tenant isolation, and existing records and approval history stay intact. Coding agents can run the documented migration and disposable database checks instead of maintaining manual grant changes. Apply the migration before releasing the repair to a connected installation.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
     id: "reviewed-content-calendar-lifecycle",
     slug: "reviewed-content-calendar-lifecycle",
     title: "Review calendar creation, deletion and moves from Ask AI",

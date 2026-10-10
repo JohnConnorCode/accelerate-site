@@ -136,6 +136,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20261005154158_repair_legacy_native_capability_seeds.sql",
   "migrations/20261006200652_content_calendar_commands.sql",
   "migrations/20261007181105_platform_private_command_context.sql",
+  "migrations/20261007200138_learning_proposals_least_privilege.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

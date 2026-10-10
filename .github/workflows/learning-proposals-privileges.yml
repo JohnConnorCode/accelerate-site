@@ -1,0 +1,52 @@
+name: Learning proposal privileges
+
+on:
+  pull_request:
+    paths:
+      - "migrations/**"
+      - "scripts/test-learning-proposals-privileges-postgres.mjs"
+      - ".github/workflows/learning-proposals-privileges.yml"
+  push:
+    branches: [main]
+    paths:
+      - "migrations/**"
+      - "scripts/test-learning-proposals-privileges-postgres.mjs"
+      - ".github/workflows/learning-proposals-privileges.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  privileges:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: [15, 17]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install the selected PostgreSQL version
+        env:
+          POSTGRES_VERSION: ${{ matrix.postgres }}
+        run: |
+          if ! grep -Rq 'apt.postgresql.org/pub/repos/apt' /etc/apt/sources.list.d; then
+            sudo apt-get install -y postgresql-common ca-certificates
+            sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y "postgresql-$POSTGRES_VERSION"
+          echo "/usr/lib/postgresql/$POSTGRES_VERSION/bin" >> "$GITHUB_PATH"
+      - name: Verify fresh and populated grants with real roles
+        run: npm run test:learning-proposals:postgres
+      - name: Retain role and migration proof
+        uses: actions/upload-artifact@v7
+        with:
+          name: learning-proposal-privileges-pg${{ matrix.postgres }}
+          path: /tmp/accelerate-learning-proposals-grants-postgres.json
+          if-no-files-found: error
+          retention-days: 7
