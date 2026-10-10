@@ -64,3 +64,4 @@ scripts/smoothcap.mjs
 
 # Isolated agent checkouts are not application source.
 .agent-worktrees/
+.tmp-probe/

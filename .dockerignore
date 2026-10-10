@@ -1,8 +1,16 @@
 .git
 .agent-worktrees
+.accelerate
+.tmp-probe
 node_modules
 .next*
 .vercel
+out
+build
+coverage
+test-results
+playwright-report
+*.tsbuildinfo
 .env*
 **/.env*
 plugins/social-marketing/deployment/upstream
