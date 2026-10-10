@@ -10,6 +10,7 @@ privacy filters require these columns; a missing migration leaves that access
 unavailable. Keep the migration and private rows when rolling application code
 back. See [Platform command privacy](../contracts/PLATFORM-COMMAND-PRIVACY.md) for
 controlled verification, refusal behavior and separate release requirements.
+Source authority requires `20260925-source-authority-registry.sql` and `20261008230447_source_authority_atomic_receipts.sql` from the ordered migration catalog before activating this source release. The latter revokes direct registry writes and installs the verified host command, version checks, immutable receipts and exact audit links. Existing registry rows and audit history remain; reverify historical entries with a new request to obtain a trustworthy receipt. A missing or unverifiable receipt stays unconfirmed rather than being repaired by inventing an audit.
 
 ## Conversational work and public inference
 

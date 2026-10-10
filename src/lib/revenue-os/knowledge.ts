@@ -5,6 +5,13 @@ import { searchDocumentKnowledge } from "./document-knowledge";
 import { loadFounderKnowledgeNotes } from "./notes";
 import { loadActivityTimeline } from "./activities";
 
+import {
+  applySourceAuthority,
+  loadSourceAuthorityIndex,
+  type SourceAuthorityConflict,
+  type SourceAuthorityTier,
+} from "./source-authority";
+
 export const SECOND_BRAIN_KNOWLEDGE_CONTRACT = "revenue-os-knowledge.v1";
 
 export type KnowledgeSource =
@@ -29,9 +36,16 @@ export interface KnowledgeChunk {
   confidence: number;
   author: string | null;
   discrepancy?: string | null;
+  systemKey?: string;
+  authorityTier?: SourceAuthorityTier;
+  authorityOwner?: string | null;
+  lastVerifiedAt?: string | null;
+  stale?: boolean;
+  current?: boolean;
+  conflict?: string | null;
   revision?: string;
   sourceLocation?: string;
-  authority?: "official" | "approved" | "working" | "historical";
+  authority?: "official" | "approved" | "working" | "low" | "historical";
 }
 
 export interface KnowledgeQueryInput {
@@ -57,6 +71,7 @@ export interface KnowledgeSearchResult {
     estimatedValue?: number | null;
   } | null;
   chunks: KnowledgeChunk[];
+  conflicts: SourceAuthorityConflict[];
   refusalReason: string | null;
   generatedAt: string;
   missing?: string[];
@@ -84,7 +99,7 @@ export interface KnowledgeSearchResult {
 async function retrieveCanonicalKnowledge(
   supabase: SupabaseClient,
   input: KnowledgeQueryInput,
-): Promise<KnowledgeSearchResult> {
+): Promise<Omit<KnowledgeSearchResult, "conflicts">> {
   const queryStr = (
     input.entityName ||
     input.email ||
@@ -307,9 +322,9 @@ async function retrieveCanonicalKnowledge(
       if (matchedOpp) {
         const lowerBody = note.body.toLowerCase();
         if (lowerBody.includes("closed won") && matchedOpp.stage !== "won") {
-          discrepancy = `Note mentions 'closed won', but canonical opportunity record is currently in stage '${matchedOpp.stage}'. Canonical record governs.`;
+          discrepancy = `Note mentions 'closed won', but canonical opportunity record is currently in stage '${matchedOpp.stage}'. Review both sources; this discrepancy is not automatically resolved.`;
         } else if (lowerBody.includes("lost deal") && matchedOpp.stage !== "lost") {
-          discrepancy = `Note mentions 'lost deal', but canonical opportunity record is currently in stage '${matchedOpp.stage}'. Canonical record governs.`;
+          discrepancy = `Note mentions 'lost deal', but canonical opportunity record is currently in stage '${matchedOpp.stage}'. Review both sources; this discrepancy is not automatically resolved.`;
         }
       }
 
@@ -376,10 +391,10 @@ async function retrieveCanonicalKnowledge(
 
 /** Canonical records retain precedence. Documents are cited evidence, never
  * instructions, and search failures are explicit context gaps. */
-export async function retrieveKnowledge(
+async function retrieveKnowledgeSources(
   db: SupabaseClient,
   input: KnowledgeQueryInput,
-): Promise<KnowledgeSearchResult> {
+): Promise<Omit<KnowledgeSearchResult, "conflicts">> {
   if (input.pluginId) {
     const result = await retrievePluginKnowledge(db, input.pluginId, input.pluginInput);
     return {
@@ -445,4 +460,32 @@ export async function retrieveKnowledge(
       ],
     };
   }
+}
+
+/** Apply explicit authority to every readable source after its access checks. */
+export async function retrieveKnowledge(
+  db: SupabaseClient,
+  input: KnowledgeQueryInput,
+): Promise<KnowledgeSearchResult> {
+  const result = await retrieveKnowledgeSources(db, input);
+  let index;
+  try {
+    index = await loadSourceAuthorityIndex(db);
+  } catch {
+    index = new Map();
+    result.missing = [
+      ...(result.missing ?? []),
+      "Source authority is unavailable; results are low authority and unverified. Retry before treating them as current.",
+    ];
+  }
+  const tagged = applySourceAuthority(result.chunks, index);
+  return {
+    ...result,
+    chunks: tagged.chunks.map((chunk) => ({
+      ...chunk,
+      authority: chunk.authority === "historical" ? ("historical" as const) : chunk.authorityTier,
+      current: chunk.authority === "historical" ? false : chunk.current,
+    })),
+    conflicts: tagged.conflicts,
+  };
 }

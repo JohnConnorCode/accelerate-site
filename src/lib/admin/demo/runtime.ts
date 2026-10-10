@@ -274,6 +274,26 @@ export type DemoState = {
   workReceipts?: Record<string, { fingerprint: string; card: unknown }>;
   moduleOverrides: Partial<Record<string, boolean>>;
   moduleSettings: Record<string, Record<string, unknown>>;
+  sourceAuthorityReceipts?: Record<
+    string,
+    { fingerprint: string; receipt: Record<string, unknown> }
+  >;
+  sourceAuthority?: Array<{
+    version: number;
+    id: string;
+    tenant_id: string;
+    system_key: string;
+    display_name: string;
+    truth_domains: string[];
+    authority_tier: "official" | "approved" | "working" | "low";
+    owner_email: string;
+    last_verified_at: string;
+    verification_lapse_days: number;
+    applies_to: Record<string, unknown> | null;
+    request_key: string;
+    created_at: string;
+    updated_at: string;
+  }>;
 };
 export const initialState = (): DemoState => ({
   business: null,
@@ -4561,7 +4581,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       saveState(scenarioId, state);
       return jsonResponse({ success: true, readAt: input.read ? new Date().toISOString() : null });
     }
-    if (method !== "GET") {
+    if (method !== "GET" && path !== "/api/admin/source-authority") {
       if (path === "/api/admin/contacts/directory" && method === "POST") {
         const name = typeof body.name === "string" ? body.name.trim() : "";
         const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -5255,6 +5275,150 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse(demoSubscriptions(pack, state));
     }
     if (path === "/api/admin/google/sync") return jsonResponse({ success: true, simulated: true });
+    if (path === "/api/admin/source-authority") {
+      const owner = pack.tenant.founder.email;
+      const now = new Date().toISOString();
+      if (!state.sourceAuthority) {
+        state.sourceAuthority = [
+          {
+            version: 1,
+            id: "src-crm",
+            tenant_id: "demo",
+            system_key: "canonical_crm",
+            display_name: "Canonical CRM",
+            truth_domains: ["contact_identity", "company_profile", "pipeline_stage"],
+            authority_tier: "official",
+            owner_email: owner,
+            last_verified_at: now,
+            verification_lapse_days: 90,
+            applies_to: null,
+            request_key: "demo-crm",
+            created_at: now,
+            updated_at: now,
+          },
+          {
+            version: 1,
+            id: "src-notes",
+            tenant_id: "demo",
+            system_key: "founder_notes",
+            display_name: "Founder notes",
+            truth_domains: ["intent", "commitments"],
+            authority_tier: "approved",
+            owner_email: owner,
+            last_verified_at: now,
+            verification_lapse_days: 90,
+            applies_to: null,
+            request_key: "demo-notes",
+            created_at: now,
+            updated_at: now,
+          },
+          {
+            version: 1,
+            id: "src-activity",
+            tenant_id: "demo",
+            system_key: "activity_ledger",
+            display_name: "Activity ledger",
+            truth_domains: ["communications"],
+            authority_tier: "working",
+            owner_email: owner,
+            last_verified_at: now,
+            verification_lapse_days: 90,
+            applies_to: null,
+            request_key: "demo-activity",
+            created_at: now,
+            updated_at: now,
+          },
+          {
+            version: 1,
+            id: "src-slack",
+            tenant_id: "demo",
+            system_key: "slack",
+            display_name: "Slack asides",
+            truth_domains: ["informal_notes"],
+            authority_tier: "low",
+            owner_email: owner,
+            last_verified_at: new Date(Date.now() - 200 * 86_400_000).toISOString(),
+            verification_lapse_days: 30,
+            applies_to: null,
+            request_key: "demo-slack",
+            created_at: now,
+            updated_at: now,
+          },
+        ];
+        saveState(scenarioId, state);
+      }
+      if (method === "GET")
+        return jsonResponse({ entries: state.sourceAuthority, tenantId: `demo:${scenarioId}` });
+      if (method === "POST") {
+        const systemKey =
+          typeof body.systemKey === "string" ? body.systemKey.trim().toLowerCase() : "";
+        const displayName = typeof body.displayName === "string" ? body.displayName.trim() : "";
+        const ownerEmail = typeof body.ownerEmail === "string" ? body.ownerEmail.trim() : "";
+        const domains = Array.isArray(body.truthDomains)
+          ? body.truthDomains.filter((domain): domain is string => typeof domain === "string")
+          : [];
+        const tier = body.authorityTier;
+        if (
+          !systemKey ||
+          !displayName ||
+          !ownerEmail ||
+          !domains.length ||
+          !["official", "approved", "working", "low"].includes(String(tier))
+        ) {
+          return jsonResponse(
+            {
+              error:
+                "systemKey, displayName, truthDomains, authorityTier and ownerEmail are required",
+            },
+            400,
+          );
+        }
+        const requestKey = String(body.requestKey ?? "");
+        const fingerprint = JSON.stringify(body);
+        state.sourceAuthorityReceipts ??= {};
+        const saved = state.sourceAuthorityReceipts[requestKey];
+        if (saved) {
+          if (saved.fingerprint !== fingerprint)
+            return jsonResponse({ error: "Request conflicts with an earlier command" }, 409);
+          return jsonResponse({ ...saved.receipt, replayed: true });
+        }
+        const existing = state.sourceAuthority.find((entry) => entry.system_key === systemKey);
+        if (body.expectedVersion !== (existing?.version ?? 0))
+          return jsonResponse({ error: "This source changed. Reload its current version." }, 409);
+        const entry = {
+          version: (existing?.version ?? 0) + 1,
+          id: existing?.id ?? `src-${systemKey}`,
+          tenant_id: "demo",
+          system_key: systemKey,
+          display_name: displayName,
+          truth_domains: domains,
+          authority_tier: tier as "official" | "approved" | "working" | "low",
+          owner_email: ownerEmail,
+          last_verified_at: typeof body.lastVerifiedAt === "string" ? body.lastVerifiedAt : now,
+          verification_lapse_days:
+            typeof body.verificationLapseDays === "number" ? body.verificationLapseDays : 90,
+          applies_to:
+            body.appliesTo && typeof body.appliesTo === "object"
+              ? (body.appliesTo as Record<string, unknown>)
+              : null,
+          request_key: requestKey,
+          created_at: existing?.created_at ?? now,
+          updated_at: now,
+        };
+        if (existing) Object.assign(existing, entry);
+        else state.sourceAuthority.push(entry);
+        const receipt = {
+          entry: structuredClone(entry),
+          requestKey,
+          auditId: `demo-audit-${requestKey}`,
+          replayed: false,
+          simulated: true,
+        };
+        state.sourceAuthorityReceipts[requestKey] = { fingerprint, receipt };
+        saveState(scenarioId, state);
+        return jsonResponse(receipt);
+      }
+    }
     return jsonResponse(
       { error: "This fictional workspace has no handler for this request.", simulated: true },
       404,

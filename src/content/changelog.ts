@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "source-authority",
+    slug: "source-authority",
+    title: "Verified sources for agent answers",
+    description:
+      "Help agents answer from sources your team has verified. The registry tracks ownership, trust, scope and verification expiry; grounded searches mark stale evidence and potential conflicts. Source changes, audit records and replay receipts now commit together, and interrupted saves can be confirmed without overwriting a later change. Claude Code, Codex and connected assistants can propose the same settings for human approval.",
+    category: "feature",
+    publishedAt: "2026-10-08",
+  },
+  {
     id: "blueprint-operating-setup",
     slug: "blueprint-operating-setup",
     title: "Save a reviewed Blueprint's operating setup",

@@ -333,6 +333,14 @@ export const capabilities: Capability[] = [
 
   // ── Learn: decisions become rules ─────────────────────────────────────
   {
+    id: "source-authority",
+    category: "learn",
+    title: "Source authority",
+    promise: "Reduce time spent reconciling conflicting answers and outdated instructions.",
+    detail:
+      "Each connected system is registered against the facts it owns, with a tier, an owner and a last-verified date. Grounded searches carry that authority, flag differing evidence for review, and mark overdue sources as stale.",
+  },
+  {
     id: "edits",
     category: "learn",
     title: "Reusable corrections",

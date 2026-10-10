@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-01.2";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-08.1";
 
 export const TENANT_SCOPED_TABLES = [
   "internal_action_reservations",
@@ -74,6 +74,8 @@ export const TENANT_SCOPED_TABLES = [
   "agent_memory",
   "learned_policies",
   "learning_proposals",
+  "source_authority_registry",
+  "source_authority_receipts",
   "budget_limits",
   "budget_usage",
   "budget_receipts",
@@ -787,6 +789,37 @@ export const REVENUE_SCHEMA_TABLES = [
   {
     table: "form_submission_commands",
     columns: ["tenant_id", "request_id", "request_hash", "result", "created_at"],
+  },
+  {
+    table: "source_authority_registry",
+    columns: [
+      "id",
+      "version",
+      "tenant_id",
+      "system_key",
+      "display_name",
+      "truth_domains",
+      "authority_tier",
+      "owner_email",
+      "last_verified_at",
+      "verification_lapse_days",
+      "applies_to",
+      "request_key",
+      "created_at",
+      "updated_at",
+    ],
+  },
+  {
+    table: "source_authority_receipts",
+    columns: [
+      "tenant_id",
+      "request_key",
+      "request_hash",
+      "registry_id",
+      "audit_id",
+      "receipt",
+      "created_at",
+    ],
   },
   {
     table: "tenants",

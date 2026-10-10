@@ -333,14 +333,30 @@ const TIMELINE_OUTPUT_SCHEMA = {
 };
 const KNOWLEDGE_OUTPUT_SCHEMA = {
   type: "object",
-  required: ["contract", "found", "query", "chunks", "generatedAt"],
+  required: ["contract", "found", "query", "chunks", "conflicts", "generatedAt"],
   properties: {
     contract: { type: "string" },
     found: { type: "boolean" },
     query: { type: "string" },
-    entitySummary: { type: "object" },
-    chunks: { type: "array" },
-    refusalReason: { type: "string" },
+    entitySummary: { type: ["object", "null"] },
+    chunks: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          systemKey: { type: "string" },
+          authorityTier: { type: "string", enum: ["official", "approved", "working", "low"] },
+          authorityOwner: { type: ["string", "null"] },
+          lastVerifiedAt: { type: ["string", "null"] },
+          current: { type: "boolean" },
+          stale: { type: "boolean" },
+          conflict: { type: ["string", "null"] },
+        },
+      },
+    },
+    conflicts: { type: "array", items: { type: "object" } },
+    missing: { type: "array", items: { type: "string" } },
+    refusalReason: { type: ["string", "null"] },
     generatedAt: { type: "string" },
   },
 };
@@ -455,7 +471,7 @@ export function validateToolOutput(
   }
   const record = output as Record<string, unknown>;
   const required = Array.isArray(schema.required) ? (schema.required as string[]) : [];
-  const properties = (schema.properties ?? {}) as Record<string, { type?: string }>;
+  const properties = (schema.properties ?? {}) as Record<string, { type?: string | string[] }>;
   for (const key of required) {
     if (record[key] === undefined || record[key] === null) {
       throw new Error(`${toolName} returned an invalid output: missing "${key}".`);
@@ -464,12 +480,18 @@ export function validateToolOutput(
   for (const [key, spec] of Object.entries(properties)) {
     const result = record[key];
     if (result === undefined || result === null || !spec.type) continue;
-    if (spec.type === "array" && !Array.isArray(result))
-      throw new Error(`${toolName} returned an invalid output: "${key}" must be an array.`);
-    if (spec.type === "number" && (typeof result !== "number" || !Number.isFinite(result)))
-      throw new Error(`${toolName} returned an invalid output: "${key}" must be a finite number.`);
-    if (spec.type !== "array" && spec.type !== "number" && typeof result !== spec.type)
-      throw new Error(`${toolName} returned an invalid output: "${key}" must be a ${spec.type}.`);
+    const types = Array.isArray(spec.type) ? spec.type : [spec.type];
+    const matches = types.some((type) => {
+      if (type === "array") return Array.isArray(result);
+      if (type === "number") return typeof result === "number" && Number.isFinite(result);
+      if (type === "integer") return typeof result === "number" && Number.isInteger(result);
+      if (type === "object") return typeof result === "object" && !Array.isArray(result);
+      return typeof result === type;
+    });
+    if (!matches)
+      throw new Error(
+        `${toolName} returned an invalid output: "${key}" must be a ${types.map((type) => (type === "number" ? "finite number" : type)).join(" or ")}.`,
+      );
   }
 }
 
@@ -1974,7 +1996,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "search_knowledge_base",
     description:
-      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, conversations, private uploaded references, authorized Drive documents, and activity timeline. Prefer entityType and entityId for known records. Returns tagged chunks with confidence and recency or refuses cleanly.",
+      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, conversations, private uploaded references, authorized Drive documents, and activity timeline. Prefer entityType and entityId for known records. Returns cited chunks with explicit authorityTier, owner, verification date, current/stale flags, potential conflicts and missing-source warnings. Check those fields before using a claim; unregistered sources are low and unverified. Conflicts require review, never a silently chosen winner.",
     inputSchema: {
       type: "object",
       properties: {
@@ -3386,6 +3408,81 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "list_source_authorities",
+    description:
+      "List the source authority registry: which connected systems own which truth domains, with tier, owner and last-verified date. Unregistered sources stay at the lowest trust. Use this before trusting retrieved knowledge.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.knowledge-retrieval",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }) => {
+      const { listSourceAuthorities } = await import("./source-authority");
+      return listSourceAuthorities(supabase, { limit: 100 });
+    },
+  },
+  {
+    name: "register_source_authority",
+    description:
+      "Propose a source-authority registry change for human review: map a connected system to the truth domains it owns, with an explicit tier, owner and last-verified date. Authority is never inferred from volume or recency. Approval writes through the same domain service as the admin registry.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        systemKey: { type: "string" },
+        displayName: { type: "string" },
+        truthDomains: { type: "array", items: { type: "string" } },
+        authorityTier: { type: "string", enum: ["official", "approved", "working", "low"] },
+        ownerEmail: { type: "string" },
+        lastVerifiedAt: { type: "string" },
+        verificationLapseDays: { type: "integer", minimum: 1, maximum: 3650 },
+        expectedVersion: {
+          type: "integer",
+          minimum: 0,
+          description: "Version from list_source_authorities; use 0 for a new source.",
+        },
+        requestKey: { type: "string", maxLength: 128 },
+        appliesTo: {
+          type: "object",
+          properties: {
+            entityTypes: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 32 },
+            coworkerIds: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 16 },
+          },
+          additionalProperties: false,
+        },
+      },
+      required: [
+        "systemKey",
+        "displayName",
+        "truthDomains",
+        "authorityTier",
+        "ownerEmail",
+        "lastVerifiedAt",
+      ],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-write",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const { prepareSourceAuthorityCommand } = await import("./source-authority");
+      const command = prepareSourceAuthorityCommand(input);
+      return proposeAction(supabase, {
+        actionType: "register_source_authority",
+        title: "Register source authority",
+        payload: command,
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      });
+    },
+  },
+  {
     name: "check_budgets",
     description:
       "Check whether a coworker has remaining budget for work execution. Shows current usage vs limits for model spend, API calls, emails, research depth, retries, and runtime. Budgets are per-day by default.",
@@ -3717,6 +3814,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "record_learned_policy",
     "list_learning_proposals",
     "propose_learning",
+    "list_source_authorities",
+    "register_source_authority",
     "check_budgets",
     "get_budget_limits",
     "propose_task",

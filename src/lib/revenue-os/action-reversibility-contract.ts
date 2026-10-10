@@ -121,6 +121,7 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     "bootstrap_coworker",
     "store_agent_memory",
     "record_learned_policy",
+    "register_source_authority",
     "approve_learning",
     "knowledge_document_change",
   ].map((actionType) => ({

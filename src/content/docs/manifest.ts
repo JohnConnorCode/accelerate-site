@@ -440,6 +440,12 @@ export const docsManifest: DocsSection[] = [
           "Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work.",
       },
       {
+        slug: ["intelligence", "source-authority"],
+        title: "Source authority",
+        description:
+          "Give agents verified evidence and reduce time spent correcting outdated or conflicting answers.",
+      },
+      {
         slug: ["intelligence", "workspace"],
         title: "Use the AI Workspace",
         description:

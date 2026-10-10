@@ -113,7 +113,8 @@ async function runTests() {
     const result = await retrieveKnowledge(db, { topic: "Acme" });
     assert.equal(result.found, false);
     assert.match(result.refusalReason!, /incomplete/);
-    assert.equal(result.missing?.length, 2);
+    assert.equal(result.missing?.length, 3);
+    assert.ok(result.missing?.some((item) => item.includes("Source authority is unavailable")));
     assert(!JSON.stringify(result).includes("private diagnostic"));
   }
   // Missing secondary records remain explicit even when a canonical fact exists.
@@ -124,7 +125,8 @@ async function runTests() {
     });
     const result = await retrieveKnowledge(db, { topic: "Acme" });
     assert.equal(result.found, true);
-    assert.equal(result.missing?.length, 2);
+    assert.equal(result.missing?.length, 3);
+    assert.ok(result.missing?.some((item) => item.includes("Source authority is unavailable")));
   }
   // Busy canonical records cannot starve documents; limits apply to every path.
   {
@@ -246,9 +248,10 @@ async function runTests() {
     assert.equal(companyChunk?.source, "canonical_record");
     assert.equal(companyChunk?.confidence, 1.0);
 
-    const noteChunk = result.chunks.find((c) => c.entityType === "note");
+    const noteChunk = result.chunks.find((c) => c.title === "Pricing alignment note");
     assert.ok(noteChunk);
     assert.equal(noteChunk?.source, "founder_note");
+    assert.equal(noteChunk?.entityType, "note");
     assert.equal(noteChunk?.confidence, 0.95);
     assert.equal(noteChunk?.occurredAt, "2026-08-15T12:00:00.000Z");
   }
@@ -283,7 +286,7 @@ async function runTests() {
     assert.equal(result.found, true);
     const noteChunk = result.chunks.find((c) => c.entityType === "note");
     assert.ok(noteChunk);
-    assert.ok(noteChunk?.discrepancy?.includes("Canonical record governs"));
+    assert.ok(noteChunk?.discrepancy?.includes("not automatically resolved"));
     assert.ok(noteChunk?.discrepancy?.includes("discovery"));
   }
 

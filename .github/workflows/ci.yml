@@ -238,6 +238,22 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:agent-loop
 
+      - name: Verify source-authority atomicity and retrieval
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          npm run test:source-authority
+          NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-knowledge.ts
+          PATH="$(pg_config --bindir):$PATH" npm run test:source-authority-postgres
+
+      - name: Retain source-authority PostgreSQL evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-authority-postgres-evidence
+          path: /tmp/accelerate-source-authority-postgres.json
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Verify runtime PostgreSQL concurrency and migrations
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: |
@@ -435,6 +451,32 @@ jobs:
             /tmp/accelerate-workspace-operations-qa/
             /tmp/accelerate-workspace-operations-server.log
           if-no-files-found: ignore
+      - name: Verify source-authority browser recovery
+        if: ${{ !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
+        run: |
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-source-authority-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/demo/command-center" > /dev/null; then ready=true; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then cat /tmp/accelerate-source-authority-server.log; exit 1; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-source-authority-server.log; exit 1; fi
+          npm run resources:run -- npm run qa:source-authority
+
+      - name: Retain source-authority browser evidence
+        if: ${{ always() && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-authority-browser-evidence
+          path: |
+            /tmp/accelerate-source-authority/
+            /tmp/accelerate-source-authority-server.log
+          if-no-files-found: warn
           retention-days: 7
 
       - name: Verify native homepage and cached mobile motion

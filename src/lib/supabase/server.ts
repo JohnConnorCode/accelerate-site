@@ -352,6 +352,20 @@ export async function callDebateProductionHostRpc(
   });
 }
 
+/** Source trust is an administrator decision, never a model-supplied identity. */
+export async function callSourceAuthorityRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+) {
+  const context = getTenantRequestContext();
+  if (context?.kind !== "actor" || args.p_actor_email !== context.user.email)
+    throw new Error("Verified source-authority administrator required");
+  return callVerifiedHostRpc(database, "register_source_authority", {
+    ...args,
+    p_actor_id: context.user.id,
+  });
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

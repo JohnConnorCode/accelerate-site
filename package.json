@@ -385,7 +385,10 @@
     "test:platform-command-context:postgres": "node scripts/test-platform-command-context-postgres.mjs",
     "test:workspace-operations": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-workspace-architect-generated-operations.ts",
     "test:workspace-operations-postgres": "node scripts/test-workspace-operations-postgres.mjs",
-    "qa:workspace-operations": "node scripts/qa-workspace-operations.mjs"
+    "qa:workspace-operations": "node scripts/qa-workspace-operations.mjs",
+    "test:source-authority": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-source-authority.ts",
+    "test:source-authority-postgres": "node scripts/test-source-authority-postgres.mjs",
+    "qa:source-authority": "node scripts/qa-source-authority.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
