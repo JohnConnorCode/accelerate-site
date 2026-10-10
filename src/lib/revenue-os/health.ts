@@ -218,13 +218,13 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     supabase
       .from("work_items")
       .select("id", { count: "exact", head: true })
-      .in("status", ["pending", "waiting", "running"]),
+      .in("status", ["pending", "waiting", "claimed", "in_progress"]),
     supabase.from("work_items").select("id", { count: "exact", head: true }).eq("status", "failed"),
     supabase
       .from("messages")
       .select("id", { count: "exact", head: true })
       .eq("direction", "outbound")
-      .in("status", ["processing", "failed"]),
+      .in("status", ["processing", "failed", "uncertain"]),
   ]);
   const firstError = [
     integrationResult.error,
@@ -346,7 +346,7 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     concerns.push({
       kind: "job",
       key: "unreconciled-work",
-      detail: `${processingBacklog.failedWork} failed work items and ${processingBacklog.unresolvedMessages} failed or processing outbound messages require receipt review. Pending work: ${processingBacklog.pendingWork}.`,
+      detail: `${processingBacklog.failedWork} failed work items and ${processingBacklog.unresolvedMessages} failed, processing, or uncertain outbound messages require receipt review. Open work: ${processingBacklog.pendingWork}.`,
       observedAt: null,
     });
   const integrationFreshnessMs = INTEGRATION_FRESHNESS_HOURS * 3_600_000;

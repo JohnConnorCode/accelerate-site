@@ -59,8 +59,8 @@ function fixture() {
       {
         id: "10000000-0000-4000-8000-000000000002",
         tenant_id: tenant,
-        email: "fixture@example.test",
-        first_name: "Fixture",
+        primary_email: "fixture@example.test",
+        full_name: "Fixture",
       },
     ],
     opportunities: [
@@ -69,7 +69,7 @@ function fixture() {
         tenant_id: tenant,
         contact_id: "10000000-0000-4000-8000-000000000002",
         stage: "new",
-        company_name: "Fictional company",
+        name: "Fictional opportunity",
         created_at: new Date().toISOString(),
       },
     ],

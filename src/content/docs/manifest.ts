@@ -340,7 +340,7 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["outreach", "email-studio"],
-        title: "Email Studio",
+        title: "Email Templates",
         description:
           "Edit the actual live copy, check what really sent, and write a direct one-off follow-up.",
       },

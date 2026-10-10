@@ -294,6 +294,59 @@ async function main() {
       assert.equal(f.mem.rows("job_runs").at(-1)!.status, "partial");
       assert.equal(driveRequests, 0);
       assert.ok(!JSON.stringify(partialAction).includes("private-calendar-detail"));
+
+      // Drive is optional. A new connection can sync Gmail and Calendar before
+      // selecting folders, while an explicit Drive-only request still refuses.
+      rows[0]!.settings.drive_folder_ids = [];
+      await assert.rejects(
+        () =>
+          previewWorkspaceConfiguration(f.db, {
+            change: { operation: "sync_google", source: "drive" },
+          }),
+        /Select Drive folders/,
+      );
+      let gmailRequests = 0,
+        calendarRequests = 0;
+      globalThis.fetch = async (raw, init) => {
+        assert.equal(init?.method ?? "GET", "GET", "Sync must not send messages or invitations");
+        const url = new URL(String(raw));
+        if (url.hostname === "gmail.googleapis.com") {
+          gmailRequests++;
+          return Response.json(
+            url.pathname.endsWith("/profile")
+              ? { historyId: "new-history" }
+              : { threads: [], history: [] },
+          );
+        }
+        if (url.hostname === "www.googleapis.com" && url.pathname.startsWith("/calendar/")) {
+          calendarRequests++;
+          return Response.json({ items: [] });
+        }
+        driveRequests++;
+        throw new Error("Unconfigured Drive must not issue a provider request");
+      };
+      const withoutDrive = await stage({ operation: "sync_google", source: "all" });
+      await approveAndExecuteAction(f.db, withoutDrive.action.id, f.email);
+      const syncedAction = f.mem
+        .rows("action_queue")
+        .find((row) => row.id === withoutDrive.action.id)!;
+      assert.equal(syncedAction.status, "executed");
+      assert.equal(f.mem.rows("job_runs").at(-1)!.status, "success");
+      assert.ok(gmailRequests > 0);
+      assert.ok(calendarRequests > 0);
+      assert.equal(driveRequests, 0);
+      assert.equal(
+        f.mem
+          .rows("source_runs")
+          .filter((row) => row.source_key === "google_drive")
+          .at(-1)!.status,
+        "not_configured",
+      );
+      assert.equal(
+        (syncedAction.result as { result: { sources: { drive: { status: string } } } }).result
+          .sources.drive.status,
+        "not_configured",
+      );
       const registry = await executeRegisteredRevenueTool(context, "get_workspace_configuration", {
         provider: "google",
       });

@@ -29,8 +29,22 @@ async function main() {
     ],
     source_runs: [],
     job_runs: [],
-    work_items: [{ status: "failed" }, { status: "pending" }],
-    messages: [{ direction: "outbound", status: "processing" }],
+    work_items: [
+      { status: "failed" },
+      { status: "pending" },
+      { status: "waiting" },
+      { status: "claimed" },
+      { status: "in_progress" },
+      { status: "completed" },
+      { status: "cancelled" },
+    ],
+    messages: [
+      { direction: "outbound", status: "processing" },
+      { direction: "outbound", status: "failed" },
+      { direction: "outbound", status: "uncertain" },
+      { direction: "outbound", status: "sent" },
+      { direction: "inbound", status: "uncertain" },
+    ],
   });
   const health = await loadOperationalHealth(mem.client);
   assert.equal(health.status, "attention");
@@ -40,11 +54,29 @@ async function main() {
     "not_configured",
   );
   assert.deepEqual(health.processingBacklog, {
-    pendingWork: 1,
+    pendingWork: 4,
     failedWork: 1,
-    unresolvedMessages: 1,
+    unresolvedMessages: 3,
   });
   assert.ok(health.concerns.some((c) => c.key === "unreconciled-work"));
+  const uncertainOnly = new MemorySupabase({
+    job_runs: [
+      {
+        job_key: "system-health-snapshot",
+        status: "success",
+        claimed_at: new Date().toISOString(),
+        finished_at: new Date().toISOString(),
+      },
+    ],
+    messages: [{ direction: "outbound", status: "uncertain" }],
+  });
+  const uncertainHealth = await loadOperationalHealth(uncertainOnly.client);
+  assert.equal(uncertainHealth.status, "attention", "an uncertain outcome must never appear ready");
+  assert.equal(uncertainHealth.processingBacklog?.unresolvedMessages, 1);
+  assert.match(
+    uncertainHealth.concerns.find((c) => c.key === "unreconciled-work")?.detail ?? "",
+    /uncertain.*receipt review/,
+  );
   const successfulAt = new Date(Date.now() - 120000).toISOString();
   mem.tables.source_runs = [
     {

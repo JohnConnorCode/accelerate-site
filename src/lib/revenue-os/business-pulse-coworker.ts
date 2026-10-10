@@ -52,6 +52,20 @@ export async function bootstrapBusinessPulseCoworker(
   supabase: SupabaseClient,
   actorEmail?: string | null,
 ): Promise<{ coworker: Coworker; capabilityGaps: string[]; readyToWork: boolean }> {
+  // Register the tenant-owned identity before its scoped policies.
+  const coworker = await registerCoworker(supabase, {
+    id: BUSINESS_PULSE_COWORKER_ID,
+    name: "Business Pulse",
+    role: "Monitors pipeline health, detects anomalies, and produces daily business digests",
+    description:
+      "Continuously watches the pipeline for stale deals, stage bottlenecks, and velocity changes. Produces daily digest summaries and surfaces anomalies that need attention.",
+    toolPack: "core",
+    requiredCapabilities: [...BUSINESS_PULSE_REQUIRED_CAPABILITIES],
+    workKinds: [...BUSINESS_PULSE_WORK_KINDS],
+    actorEmail,
+    seedOnly: true,
+  });
+
   for (const capKey of BUSINESS_PULSE_REQUIRED_CAPABILITIES) {
     await registerRequiredCapability(supabase, capKey);
   }
@@ -64,20 +78,8 @@ export async function bootstrapBusinessPulseCoworker(
       coworkerId: BUSINESS_PULSE_COWORKER_ID,
       source: "coworker_bootstrap",
       actorEmail,
-    }).catch(() => {});
+    });
   }
-
-  const coworker = await registerCoworker(supabase, {
-    id: BUSINESS_PULSE_COWORKER_ID,
-    name: "Business Pulse",
-    role: "Monitors pipeline health, detects anomalies, and produces daily business digests",
-    description:
-      "Continuously watches the pipeline for stale deals, stage bottlenecks, and velocity changes. Produces daily digest summaries and surfaces anomalies that need attention.",
-    toolPack: "core",
-    requiredCapabilities: [...BUSINESS_PULSE_REQUIRED_CAPABILITIES],
-    workKinds: [...BUSINESS_PULSE_WORK_KINDS],
-    actorEmail,
-  });
 
   const manifest = await getCoworkerManifest(supabase, BUSINESS_PULSE_COWORKER_ID);
 
@@ -182,13 +184,14 @@ const dailyDigestHandler: WorkKindHandler = async (supabase, wi, signal) => {
 
 const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
   const staleThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { data: stale } = await supabase
+  const { data: stale, error: staleError } = await supabase
     .from("opportunities")
-    .select("id, stage, company_name, updated_at")
+    .select("id, stage, name, updated_at")
     .not("stage", "in", '("won","lost","nurture")')
     .lt("updated_at", staleThreshold)
     .order("updated_at", { ascending: true })
     .limit(20);
+  if (staleError) throw new Error(staleError.message);
 
   const count = stale?.length ?? 0;
   if (count === 0) {
@@ -202,7 +205,7 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
   }
 
   const summary = (stale ?? [])
-    .map((s) => `${s.company_name} (${s.stage}, last update ${s.updated_at.slice(0, 10)})`)
+    .map((s) => `${s.name} (${s.stage}, last update ${s.updated_at.slice(0, 10)})`)
     .join("; ");
 
   await recordAudit(supabase, {
@@ -213,7 +216,7 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
     source: "automation",
     after: {
       count,
-      deals: stale?.map((s) => ({ id: s.id, company: s.company_name, stage: s.stage })),
+      deals: stale?.map((s) => ({ id: s.id, opportunity: s.name, stage: s.stage })),
     },
   });
 
@@ -229,10 +232,11 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
 };
 
 const detectStageBottleneckHandler: WorkKindHandler = async (supabase) => {
-  const { data: opportunities } = await supabase
+  const { data: opportunities, error: opportunitiesError } = await supabase
     .from("opportunities")
     .select("stage")
     .not("stage", "in", '("won","lost")');
+  if (opportunitiesError) throw new Error(opportunitiesError.message);
 
   const byStage: Record<string, number> = {};
   for (const opp of opportunities ?? []) {
@@ -288,16 +292,18 @@ const detectVelocityChangeHandler: WorkKindHandler = async (supabase) => {
   const lastWeekStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
   const lastWeekEnd = thisWeekStart;
 
-  const { count: thisWeek } = await supabase
+  const { count: thisWeek, error: thisWeekError } = await supabase
     .from("opportunities")
     .select("*", { count: "exact", head: true })
     .gte("created_at", thisWeekStart);
+  if (thisWeekError) throw new Error(thisWeekError.message);
 
-  const { count: lastWeek } = await supabase
+  const { count: lastWeek, error: lastWeekError } = await supabase
     .from("opportunities")
     .select("*", { count: "exact", head: true })
     .gte("created_at", lastWeekStart)
     .lt("created_at", lastWeekEnd);
+  if (lastWeekError) throw new Error(lastWeekError.message);
 
   const tw = thisWeek ?? 0;
   const lw = lastWeek ?? 0;

@@ -226,21 +226,9 @@ export async function registerAutonomyPolicy(
 
   if (error) throw new Error(error.message);
 
-  const policyId = data as string;
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail || "system",
-    action: "autonomy_policy.registered",
-    entityType: "autonomy_policy",
-    entityId: policyId,
-    source: "automation",
-    after: {
-      action_key: input.actionKey,
-      level: input.level ?? "always_ask",
-      is_hard_floor: input.isHardFloor ?? false,
-    },
-  });
-
-  return policyId;
+  // The atomic RPC audits actual changes. Setup can retain an existing policy,
+  // so its requested defaults must never be reported as the saved state.
+  return data as string;
 }
 
 // ---------------------------------------------------------------------------

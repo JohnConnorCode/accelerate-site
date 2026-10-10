@@ -2,6 +2,51 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "operational-read-and-eligibility-repairs",
+    slug: "operational-read-and-eligibility-repairs",
+    title: "Restore Intake review, email evidence and meeting scheduling",
+    description:
+      "Intake review reads canonical action fields and the existing coworker task bridge, avoids duplicate bridge entries, opens exact approvals and reports failed reads. Email history uses recorded send times and provider IDs, warns when incomplete and fails clearly when both sources are unavailable. Approved email checks canonical contact eligibility; automated first replies recognize existing clients and decline when eligibility or send limits cannot be verified. Meeting briefs use the actual calendar start time, skip cancelled meetings and report repeated work as skipped.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "google-sync-optional-drive",
+    slug: "google-sync-optional-drive",
+    title: "Sync Gmail and Calendar before selecting Drive folders",
+    description:
+      "Workspace sync now reads Gmail and Calendar when no Drive folders are selected, records Drive as not configured and performs no Drive file requests. Drive-only sync still requires selected folders. Setup distinguishes an already-running sync from completed work. The Google readiness check follows the current bounded folder validation and allowlist rules.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "coworker-setup-and-evidence",
+    slug: "coworker-setup-and-evidence",
+    title: "Configure coworkers without resetting saved settings",
+    description:
+      "Coworker setup preserves saved settings, connected accounts and existing permissions, creates the coworker before its scoped policies, and reports policy failures. It repairs untouched native CRM placeholders left by older setup. Worker reports use canonical contact, opportunity and execution fields, and fail clearly when business evidence cannot be read. Meeting work keeps unresolved CRM changes waiting for review. Today refreshes recent workspace activity, Today and booking reads load consistently after a restart, and AI run details fit the mobile screen.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "demo-ai-recorded-traces",
+    slug: "demo-ai-recorded-traces",
+    title: "Inspect demo answers without invented evidence",
+    description:
+      "Demo Run history opens answers that used no tools and preserves recorded tool successes, failures and prepared proposals across reloads. Unknown token usage displays as not recorded. Older saved runs disclose missing trace evidence. The inspector no longer invents a completed tool call or links an unrelated opportunity.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "operational-health-unresolved-outcomes",
+    slug: "operational-health-unresolved-outcomes",
+    title: "Keep uncertain outcomes visible in operational health",
+    description:
+      "Setup and Today flag uncertain outbound message outcomes for receipt review, alongside failed and processing messages. Open work counts include claimed and in-progress items, so work does not disappear from the count while a worker handles it. Check the provider receipt before retrying an uncertain action.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "agent-first-setup-and-extensions",
     slug: "agent-first-setup-and-extensions",
     title: "Start and extend your workspace with a coding agent",

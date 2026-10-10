@@ -301,13 +301,12 @@ export async function approveAndExecuteAction(
         if (contactId) {
           const { data: contact, error: contactError } = await supabase
             .from("contacts")
-            .select("id,unsubscribed")
+            .select("id,communication_status")
             .eq("id", contactId)
             .maybeSingle();
           if (contactError) throw new Error(contactError.message);
-          if (contact && contact.unsubscribed) {
-            throw new Error("Cannot send email: contact has unsubscribed");
-          }
+          if (!contact || contact.communication_status !== "active")
+            throw new Error("Cannot send email: contact is unavailable or suppressed");
         }
         result = await sendRecordedEmail(supabase, {
           to: stringValue(payload, "to")!,

@@ -350,7 +350,7 @@
         "@/lib/admin/module-guard",
         "next/server"
       ],
-      "sourceSha256": "7e0d48ee096aaa52047b23e748570e89da1a7b46c0729e37fb9e1e0ee5c7a02c"
+      "sourceSha256": "e32b181321a859caa4f2d56e473ec07b5b9990c34a9f0eaea678dbcaec3d3078"
     },
     {
       "source": "src/app/api/admin/emails/preview/route.ts",
@@ -565,7 +565,7 @@
         "@/lib/revenue-os/legacy-adapter",
         "next/server"
       ],
-      "sourceSha256": "cccb2726c649b723803094a08b45459d2f95c01299c7170a92ffa52e7a2667cf"
+      "sourceSha256": "5792e238abbe5610624ff3cd932f33618c2571aee9b11fd8b2f9e7b8b0c5638b"
     },
     {
       "source": "src/app/api/admin/integrations/route.ts",

@@ -11,7 +11,8 @@
  *     created it again.
  */
 import assert from "node:assert/strict";
-import { scheduleDailyWork } from "../src/lib/revenue-os/work-scheduler";
+import { scheduleDailyWork, scheduleMeetingBriefs } from "../src/lib/revenue-os/work-scheduler";
+import { MemorySupabase } from "./lib/memory-supabase";
 import { createWorkItem } from "../src/lib/revenue-os/work-items";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
@@ -85,6 +86,56 @@ function memoryDatabase(seed: Record<string, Row[]>) {
 }
 
 async function main() {
+  const future = new Date(Date.now() + 3_600_000).toISOString();
+  const meetings = new MemorySupabase({
+    calendar_events: [
+      {
+        id: "meeting",
+        tenant_id: ACCELERATE_TENANT_ID,
+        contact_id: "contact-1",
+        start_at: future,
+        status: "confirmed",
+      },
+      {
+        id: "cancelled",
+        tenant_id: ACCELERATE_TENANT_ID,
+        contact_id: "contact-2",
+        start_at: future,
+        status: "cancelled",
+      },
+    ],
+    contacts: [
+      {
+        id: "contact-1",
+        tenant_id: ACCELERATE_TENANT_ID,
+        full_name: "Fixture attendee",
+        primary_email: "attendee@example.test",
+        communication_status: "active",
+      },
+    ],
+    work_items: [],
+    tasks: [],
+    activities: [],
+    audit_log: [],
+  });
+  const meetingDb = bindTenantDatabaseForTest(meetings.client, ACCELERATE_TENANT_ID);
+  const active = new Set(["meeting-intel"]);
+  const firstBrief = await scheduleMeetingBriefs(meetingDb, active);
+  assert.deepEqual(firstBrief, { created: 1, skipped: 0, errors: [] });
+  assert.equal(meetings.rows("work_items")[0]!.due_at, future);
+  const repeatedBrief = await scheduleMeetingBriefs(meetingDb, active);
+  assert.deepEqual(repeatedBrief, { created: 0, skipped: 1, errors: [] });
+  assert.equal(meetings.rows("work_items").length, 1);
+  assert.equal(
+    meetings.rows("tasks").length,
+    1,
+    "The meeting brief retains its durable Inbox task bridge",
+  );
+  meetings.fail("calendar_events", { message: "controlled calendar read failure" });
+  const failedBrief = await scheduleMeetingBriefs(meetingDb, active);
+  assert.equal(failedBrief.created, 0);
+  assert.equal(failedBrief.errors.length, 1);
+
   // ---- No coworkers bootstrapped: only non-coworker work is queued ---------
   const empty = memoryDatabase({ coworkers: [], work_items: [] });
   const summary = await scheduleDailyWork(empty.client);
@@ -180,6 +231,8 @@ async function main() {
           "active-coworker-scheduled",
           "period-dedupe-across-statuses",
           "event-dedupe-open-only",
+          "meeting-canonical-time-cancelled-and-dedupe",
+          "calendar-read-failure-not-success",
         ],
       },
       null,

@@ -35,63 +35,88 @@ export async function GET(request: NextRequest) {
   const today = now.toISOString().split("T")[0]!;
   const stalledBefore = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [leads, contacts, chats, partners, tasks, proposals, coworkerWork, pendingActions] =
-    await Promise.all([
-      supabase
-        .from("solution_requests")
-        .select(
-          "id, contact_name, contact_email, contact_phone, business_name, industry, lead_status, created_at, ai_plan, intake_data, view_count",
-        )
-        .eq("lead_status", "new")
-        .order("created_at", { ascending: false })
-        .limit(30),
-      supabase
-        .from("contact_submissions")
-        .select("id, name, email, phone, business_type, message, created_at, read_at")
-        .is("read_at", null)
-        .order("created_at", { ascending: false })
-        .limit(30),
-      supabase
-        .from("chat_leads")
-        .select("id, name, email, conversation, created_at")
-        .order("created_at", { ascending: false })
-        .limit(20),
-      supabase
-        .from("partner_applications")
-        .select("id, name, email, company, partner_type, message, created_at")
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
-        .limit(20),
-      supabase
-        .from("tasks")
-        .select(
-          "id, title, description, due_date, due_time, priority, related_type, related_id, related_name, created_at",
-        )
-        .eq("status", "pending")
-        .order("due_date", { ascending: true, nullsFirst: false })
-        .limit(50),
-      supabase
-        .from("proposals")
-        .select("id, title, client_name, status, sent_at, created_at")
-        .in("status", ["sent", "viewed"])
-        .is("responded_at", null)
-        .lt("sent_at", stalledBefore)
-        .order("sent_at", { ascending: true })
-        .limit(25),
-      supabase
+  const [leads, contacts, chats, partners, tasks, proposals, pendingActions] = await Promise.all([
+    supabase
+      .from("solution_requests")
+      .select(
+        "id, contact_name, contact_email, contact_phone, business_name, industry, lead_status, created_at, ai_plan, intake_data, view_count",
+      )
+      .eq("lead_status", "new")
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("contact_submissions")
+      .select("id, name, email, phone, business_type, message, created_at, read_at")
+      .is("read_at", null)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("chat_leads")
+      .select("id, name, email, conversation, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("partner_applications")
+      .select("id, name, email, company, partner_type, message, created_at")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("tasks")
+      .select(
+        "id, title, description, due_date, due_time, priority, related_type, related_id, related_name, created_at, source, dedupe_key",
+      )
+      .eq("status", "pending")
+      .order("due_date", { ascending: true, nullsFirst: false })
+      .limit(50),
+    supabase
+      .from("proposals")
+      .select("id, title, client_name, status, sent_at, created_at")
+      .in("status", ["sent", "viewed"])
+      .is("responded_at", null)
+      .lt("sent_at", stalledBefore)
+      .order("sent_at", { ascending: true })
+      .limit(25),
+    supabase
+      .from("action_queue")
+      .select(
+        "id, action_type, title, description, reasoning, proposed_by, urgency, status, created_at",
+      )
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(30),
+  ]);
+
+  if (
+    [leads, contacts, chats, partners, tasks, proposals, pendingActions].some(
+      (result) => result.error,
+    )
+  )
+    return NextResponse.json(
+      { error: "Intake review could not be read. Retry before relying on its counts." },
+      { status: 503 },
+    );
+  // surfaceInInbox creates a durable task bridge, not a work_items column.
+  const workIds = (tasks.data ?? [])
+    .filter(
+      (task) => task.source === "work_engine" && task.dedupe_key?.startsWith("work-item-inbox:"),
+    )
+    .map((task) => task.dedupe_key.slice("work-item-inbox:".length));
+  const coworkerWork = workIds.length
+    ? await supabase
         .from("work_items")
         .select("id, kind, objective, reason, coworker_id, status, priority, created_at")
-        .eq("surface_in_inbox", true)
+        .in("id", workIds)
         .in("status", ["pending", "claimed", "in_progress", "waiting", "completed"])
         .order("created_at", { ascending: false })
-        .limit(30),
-      supabase
-        .from("action_queue")
-        .select("id, action_key, label, summary, coworker_id, status, created_at, metadata")
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
-        .limit(30),
-    ]);
+        .limit(30)
+    : { data: [], error: null };
+  if (coworkerWork.error)
+    return NextResponse.json(
+      { error: "Coworker work could not be read. Retry before relying on Intake review." },
+      { status: 503 },
+    );
+  const surfacedWorkIds = new Set((coworkerWork.data ?? []).map((work) => work.id));
 
   const items: AdminInboxItem[] = [];
 
@@ -183,6 +208,11 @@ export async function GET(request: NextRequest) {
   }
 
   for (const task of tasks.data || []) {
+    if (
+      task.source === "work_engine" &&
+      surfacedWorkIds.has(task.dedupe_key?.slice("work-item-inbox:".length))
+    )
+      continue;
     const overdue = Boolean(task.due_date && task.due_date < today);
     items.push({
       id: task.id,
@@ -262,7 +292,7 @@ export async function GET(request: NextRequest) {
       priority:
         wi.priority === "high" ? "urgent" : wi.priority === "medium" ? "important" : "normal",
       createdAt: wi.created_at,
-      href: isCompleted ? `/admin/ai/runs` : `/admin/ai`,
+      href: isCompleted ? `/admin/ai/runs` : `/admin/work`,
       meta: `${wi.status.replace(/_/g, " ")} · ${label}`,
     });
   }
@@ -272,12 +302,15 @@ export async function GET(request: NextRequest) {
     items.push({
       id: action.id,
       kind: "action",
-      title: action.label || action.action_key || "Action proposal",
-      summary: cleanSummary(action.summary, "Coworker action proposal needs your approval."),
-      priority: "important",
+      title: action.title || action.action_type || "Action proposal",
+      summary: cleanSummary(
+        action.description || action.reasoning,
+        "Coworker action proposal needs your approval.",
+      ),
+      priority: action.urgency === "urgent" ? "urgent" : "important",
       createdAt: action.created_at,
-      href: "/admin/ai",
-      meta: action.coworker_id ? `Coworker: ${action.coworker_id}` : "Pending approval",
+      href: `/admin/work?tab=approvals&action=${encodeURIComponent(action.id)}`,
+      meta: action.proposed_by ? `Proposed by: ${action.proposed_by}` : "Pending approval",
     });
   }
 

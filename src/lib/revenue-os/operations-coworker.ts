@@ -44,6 +44,20 @@ export async function bootstrapOperationsCoworker(
   supabase: SupabaseClient,
   actorEmail?: string | null,
 ): Promise<{ coworker: Coworker; capabilityGaps: string[]; readyToWork: boolean }> {
+  // Register the tenant-owned identity before its scoped policies.
+  const coworker = await registerCoworker(supabase, {
+    id: OPERATIONS_COWORKER_ID,
+    name: "Operations Coworker",
+    role: "Monitors system health, integration status, data quality, and operational anomalies",
+    description:
+      "The meta-coworker that watches the platform itself. Checks integration health, detects stale syncs, scans for data quality issues (missing fields, orphaned records), and produces daily operational health reports.",
+    toolPack: "core",
+    requiredCapabilities: [...OPERATIONS_REQUIRED_CAPABILITIES],
+    workKinds: [...OPERATIONS_WORK_KINDS],
+    actorEmail,
+    seedOnly: true,
+  });
+
   for (const capKey of OPERATIONS_REQUIRED_CAPABILITIES) {
     await registerRequiredCapability(supabase, capKey);
   }
@@ -56,20 +70,8 @@ export async function bootstrapOperationsCoworker(
       coworkerId: OPERATIONS_COWORKER_ID,
       source: "coworker_bootstrap",
       actorEmail,
-    }).catch(() => {});
+    });
   }
-
-  const coworker = await registerCoworker(supabase, {
-    id: OPERATIONS_COWORKER_ID,
-    name: "Operations Coworker",
-    role: "Monitors system health, integration status, data quality, and operational anomalies",
-    description:
-      "The meta-coworker that watches the platform itself. Checks integration health, detects stale syncs, scans for data quality issues (missing fields, orphaned records), and produces daily operational health reports.",
-    toolPack: "core",
-    requiredCapabilities: [...OPERATIONS_REQUIRED_CAPABILITIES],
-    workKinds: [...OPERATIONS_WORK_KINDS],
-    actorEmail,
-  });
 
   const manifest = await getCoworkerManifest(supabase, OPERATIONS_COWORKER_ID);
 
@@ -152,31 +154,37 @@ export async function createDataQualityScanWork(
 const dailyHealthCheckHandler: WorkKindHandler = async (supabase) => {
   // Count failed job runs in the last 24 hours.
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { count: failedJobs } = await supabase
+  const { count: failedJobs, error: failedJobsError } = await supabase
     .from("job_runs")
     .select("*", { count: "exact", head: true })
     .eq("status", "failed")
-    .gte("created_at", dayAgo);
+    .gte("claimed_at", dayAgo);
+  if (failedJobsError) throw new Error(failedJobsError.message);
 
   // Count stale work items (claimed but past lease).
   const now = new Date().toISOString();
-  const { count: staleClaims } = await supabase
+  const { count: staleClaims, error: staleClaimsError } = await supabase
     .from("work_items")
     .select("*", { count: "exact", head: true })
     .in("status", ["claimed", "in_progress"])
     .not("lease_expires_at", "is", null)
     .lt("lease_expires_at", now);
+  if (staleClaimsError) throw new Error(staleClaimsError.message);
 
   // Count pending actions past expiry.
-  const { count: expiredActions } = await supabase
+  const { count: expiredActions, error: expiredActionsError } = await supabase
     .from("action_queue")
     .select("*", { count: "exact", head: true })
     .eq("status", "pending")
     .not("expires_at", "is", null)
     .lt("expires_at", now);
+  if (expiredActionsError) throw new Error(expiredActionsError.message);
 
   // Count total work items by status.
-  const { data: workStatusCounts } = await supabase.from("work_items").select("status");
+  const { data: workStatusCounts, error: workStatusCountsError } = await supabase
+    .from("work_items")
+    .select("status");
+  if (workStatusCountsError) throw new Error(workStatusCountsError.message);
 
   const byStatus: Record<string, number> = {};
   for (const wi of workStatusCounts ?? []) {
@@ -220,12 +228,13 @@ const dailyHealthCheckHandler: WorkKindHandler = async (supabase) => {
 const integrationStatusAuditHandler: WorkKindHandler = async (supabase) => {
   // Check source_runs for recent failures.
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data: recentSourceRuns } = await supabase
+  const { data: recentSourceRuns, error: recentSourceRunsError } = await supabase
     .from("source_runs")
     .select("source_key, status, error")
     .gte("finished_at", dayAgo)
     .order("finished_at", { ascending: false })
     .limit(20);
+  if (recentSourceRunsError) throw new Error(recentSourceRunsError.message);
 
   const failed = (recentSourceRuns ?? []).filter((r) => r.status === "failed");
   const notConfigured = (recentSourceRuns ?? []).filter((r) => r.status === "not_configured");
@@ -234,7 +243,7 @@ const integrationStatusAuditHandler: WorkKindHandler = async (supabase) => {
     return {
       status: "completed",
       outcome:
-        "All integrations healthy — no failed or unconfigured source runs in the last 24 hours",
+        "No failed or unconfigured source runs were recorded in the last 24 hours. Check Setup for connection readiness.",
     };
   }
 
@@ -273,27 +282,30 @@ const integrationStatusAuditHandler: WorkKindHandler = async (supabase) => {
 
 const dataQualityScanHandler: WorkKindHandler = async (supabase) => {
   // Check for contacts without email.
-  const { count: noEmail } = await supabase
+  const { count: noEmail, error: noEmailError } = await supabase
     .from("contacts")
     .select("*", { count: "exact", head: true })
-    .or("email.is.null,email.eq.");
+    .or("primary_email.is.null,primary_email.eq.");
+  if (noEmailError) throw new Error(noEmailError.message);
 
-  // Check for opportunities without a company name.
-  const { count: noCompany } = await supabase
+  // Check for opportunities without a record title.
+  const { count: noName, error: noNameError } = await supabase
     .from("opportunities")
     .select("*", { count: "exact", head: true })
-    .or("company_name.is.null,company_name.eq.");
+    .or("name.is.null,name.eq.");
+  if (noNameError) throw new Error(noNameError.message);
 
   // Check for opportunities without next_action that are in active stages.
-  const { count: noNextAction } = await supabase
+  const { count: noNextAction, error: noNextActionError } = await supabase
     .from("opportunities")
     .select("*", { count: "exact", head: true })
     .not("stage", "in", '("won","lost","nurture")')
     .or("next_action.is.null,next_action.eq.");
+  if (noNextActionError) throw new Error(noNextActionError.message);
 
   const issues: string[] = [];
   if ((noEmail ?? 0) > 0) issues.push(`${noEmail} contacts without email`);
-  if ((noCompany ?? 0) > 0) issues.push(`${noCompany} opportunities without company name`);
+  if ((noName ?? 0) > 0) issues.push(`${noName} opportunities without a record title`);
   if ((noNextAction ?? 0) > 0)
     issues.push(`${noNextAction} active opportunities without next action`);
 
@@ -310,7 +322,7 @@ const dataQualityScanHandler: WorkKindHandler = async (supabase) => {
     entityType: "work_engine",
     entityId: "data_quality",
     source: "automation",
-    after: { noEmail, noCompany, noNextAction },
+    after: { noEmail, noName, noNextAction },
   });
 
   const outcome = `Data quality issues: ${issues.join("; ")}`;

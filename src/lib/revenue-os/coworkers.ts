@@ -52,6 +52,8 @@ export async function registerCoworker(
     autonomyOverrides?: Record<string, unknown>;
     config?: Record<string, unknown>;
     actorEmail?: string | null;
+    /** Setup seeds defaults; explicit registration can still update metadata. */
+    seedOnly?: boolean;
   },
 ): Promise<Coworker> {
   const id = input.id.trim();
@@ -63,28 +65,35 @@ export async function registerCoworker(
   if (!role) throw new Error("role is required");
 
   // Upsert: insert or update
-  const { data: existing } = await supabase
+  const { data: existing, error: readError } = await supabase
     .from("coworkers")
-    .select("id")
+    .select("*")
     .eq("id", id)
     .maybeSingle();
+  if (readError) throw new Error(readError.message);
+
+  if (existing && input.seedOnly) return existing as Coworker;
 
   if (existing) {
     const { data, error } = await supabase
       .from("coworkers")
-      .update({
-        name,
-        role,
-        description: input.description ?? null,
-        status: input.status ?? "active",
-        model: input.model ?? null,
-        tool_pack: input.toolPack ?? "core",
-        required_capabilities: input.requiredCapabilities ?? [],
-        work_kinds: input.workKinds ?? [],
-        autonomy_overrides: input.autonomyOverrides ?? {},
-        config: input.config ?? {},
-        updated_at: new Date().toISOString(),
-      })
+      .update(
+        Object.fromEntries(
+          Object.entries({
+            name,
+            role,
+            description: input.description,
+            status: input.status,
+            model: input.model,
+            tool_pack: input.toolPack,
+            required_capabilities: input.requiredCapabilities,
+            work_kinds: input.workKinds,
+            autonomy_overrides: input.autonomyOverrides,
+            config: input.config,
+            updated_at: new Date().toISOString(),
+          }).filter(([, value]) => value !== undefined),
+        ),
+      )
       .eq("id", id)
       .select("*")
       .single();

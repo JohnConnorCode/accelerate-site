@@ -132,6 +132,8 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260930004129_workspace_configuration_commands.sql",
   "migrations/20260930190623_conversational_agent_runtime.sql",
   "migrations/20261006231324_work_repository_readiness.sql",
+  "migrations/20261005141858_coworker_setup_preserves_workspace_state.sql",
+  "migrations/20261005154158_repair_legacy_native_capability_seeds.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

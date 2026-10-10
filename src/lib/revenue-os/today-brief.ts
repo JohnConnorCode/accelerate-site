@@ -16,7 +16,11 @@ export async function generateTodayBrief(db: SupabaseClient, work: WorkItem, sig
     sourceEvidence: todayEvidence(facts),
     interpretations: [],
   };
-  if (!facts.length || snapshot.facts.state === "unavailable") return fallback;
+  if (snapshot.facts.state === "unavailable")
+    throw new Error(
+      "Daily digest evidence could not be refreshed; inspect Today sources before retrying",
+    );
+  if (!facts.length) return fallback;
   const result = await tryCoworkerAgentTask(
     db,
     {

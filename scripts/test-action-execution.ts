@@ -490,7 +490,7 @@ async function main() {
         id: "cont-unsub",
         full_name: "Unsubscribed User",
         primary_email: "unsub@example.com",
-        unsubscribed: true,
+        communication_status: "unsubscribed",
       },
     ],
     audit_log: [],
@@ -503,7 +503,7 @@ async function main() {
         "action-email-unsub",
         "john@acceleratewith.us",
       ),
-    "contact has unsubscribed",
+    "contact is unavailable or suppressed",
     "unsubscribed contacts must not be emailed on approval",
   );
 

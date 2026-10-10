@@ -10,19 +10,24 @@ export async function GET(request: NextRequest) {
     supabase
       .from("sent_emails")
       .select(
-        "id, to_email, to_name, subject, body, template_used, created_at, related_type, related_id",
+        "id, to_email, to_name, subject, body, template_used, sent_at, related_type, related_id",
       )
-      .order("created_at", { ascending: false })
+      .order("sent_at", { ascending: false })
       .limit(limit),
     supabase
       .from("messages")
       .select(
-        "id, recipient_emails, subject, body_text, status, provider_message_id, sent_at, created_at, metadata",
+        "id, recipient_emails, subject, body_text, status, provider_id, sent_at, created_at, metadata",
       )
       .eq("direction", "outbound")
       .order("created_at", { ascending: false })
       .limit(limit),
   ]);
+  if (legacy.error && canonical.error)
+    return NextResponse.json(
+      { error: "Email history could not be read. Retry before treating it as empty." },
+      { status: 503 },
+    );
   const rows = [
     ...(legacy.data || []).map((item) => ({
       id: `legacy:${item.id}`,
@@ -33,7 +38,7 @@ export async function GET(request: NextRequest) {
       status: "sent",
       providerId: null,
       template: item.template_used,
-      sentAt: item.created_at,
+      sentAt: item.sent_at,
       relatedType: item.related_type,
       relatedId: item.related_id,
       source: "operator",
@@ -45,8 +50,8 @@ export async function GET(request: NextRequest) {
       subject: item.subject,
       body: item.body_text,
       status: item.status,
-      providerId: item.provider_message_id,
-      template: item.metadata?.template_key || null,
+      providerId: item.provider_id,
+      template: item.metadata?.template || item.metadata?.template_key || null,
       sentAt: item.sent_at || item.created_at,
       relatedType: "conversation",
       relatedId: null,

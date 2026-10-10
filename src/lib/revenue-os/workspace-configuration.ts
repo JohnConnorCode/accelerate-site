@@ -268,10 +268,15 @@ export async function applyWorkspaceConfigurationAsAdmin(
                       : await syncDrive(db, preview.before.folderIds as string[]);
                 const row = result as Record<string, unknown>;
                 const indexing = row.indexing as Record<string, unknown> | undefined;
+                const driveNotConfigured =
+                  source === "drive" &&
+                  change.source === "all" &&
+                  !(preview.before.folderIds as string[]).length &&
+                  row.notConfigured === true;
                 const incomplete = Boolean(
                   row.failed ||
                   row.deferred ||
-                  row.notConfigured ||
+                  (row.notConfigured && !driveNotConfigured) ||
                   indexing?.failed ||
                   indexing?.inaccessible ||
                   (indexing?.errors as unknown[] | undefined)?.length,
@@ -279,7 +284,11 @@ export async function applyWorkspaceConfigurationAsAdmin(
                 summary[source] = {
                   stored: Number(row.stored ?? 0),
                   failed: Number(row.failed ?? indexing?.failed ?? 0),
-                  status: incomplete ? "partial" : "success",
+                  status: incomplete
+                    ? "partial"
+                    : driveNotConfigured
+                      ? "not_configured"
+                      : "success",
                 };
                 if (incomplete) {
                   status = "partial";

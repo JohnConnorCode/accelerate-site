@@ -54,6 +54,8 @@ import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
+import type { AiCommandStreamEvent } from "@/lib/revenue-os/ai-stream-contract";
+import type { AiRunEventSummary } from "@/lib/revenue-os/ai-operations-contract";
 import { COLLECTION_AGENT_TOOLS } from "@/lib/revenue-os/collection-agent-contract";
 import { demoPacketProblems } from "../../work-packet";
 import { KANBAN_DEFAULT_COLUMNS } from "@/lib/kanban/defaults";
@@ -103,6 +105,7 @@ type DemoGeneratedAiRun = {
   startedAt: string;
   finishedAt: string;
   feedback: null;
+  traceEvents?: AiRunEventSummary[];
 };
 type DemoEmailStudioDetail = {
   schemaReady: true;
@@ -1613,38 +1616,14 @@ function aiRunDetail(pack: DemoScenarioPack, state: DemoState, runId: string) {
       eventsTruncated: false,
       affectedRecords: [],
     };
-  const parsedIndex = Number(run.id.split("-").at(-1));
-  const opportunity =
-    pack.opportunities[
-      (Number.isFinite(parsedIndex) ? parsedIndex : 0) % pack.opportunities.length
-    ]!;
   return {
     schemaReady: true,
-    degraded: false,
-    degradationReasons: [],
+    degraded: run.traceEvents === undefined,
+    degradationReasons:
+      run.traceEvents === undefined ? ["This saved demo run has no recorded tool trace."] : [],
     run,
     events: [
-      {
-        id: `${run.id}-context`,
-        type: "context_loaded",
-        label: "Business context",
-        summary: "Loaded a bounded fictional priority and pipeline snapshot.",
-        toolName: null,
-        status: "recorded",
-        createdAt: run.startedAt,
-      },
-      {
-        id: `${run.id}-tool`,
-        type: run.status === "failed" ? "tool_error" : "tool_result",
-        label: run.toolNames[0]!.replace(/_/g, " "),
-        summary:
-          run.status === "failed"
-            ? "The simulated provider timed out without changing data."
-            : "Completed with bounded fictional evidence.",
-        toolName: run.toolNames[0],
-        status: run.status === "failed" ? "failed" : "completed",
-        createdAt: run.finishedAt || run.startedAt,
-      },
+      ...(run.traceEvents ?? []),
       {
         id: `${run.id}-response`,
         type: "model_response",
@@ -1656,9 +1635,7 @@ function aiRunDetail(pack: DemoScenarioPack, state: DemoState, runId: string) {
       },
     ],
     eventsTruncated: false,
-    affectedRecords: [
-      { type: "opportunity", id: opportunity.id, href: `/admin/pipeline/${opportunity.id}` },
-    ],
+    affectedRecords: [],
   };
 }
 
@@ -2931,7 +2908,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         resolvedIds.set(item.id, row.id);
         item.id = row.id;
       }
-      const events = result.events.map((event: { type: string; proposal?: { id: string } }) =>
+      const events: AiCommandStreamEvent[] = result.events.map((event: AiCommandStreamEvent) =>
         event.type === "proposal_staged" && event.proposal
           ? {
               ...event,
@@ -2980,6 +2957,45 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         startedAt: at,
         finishedAt: at,
         feedback: null,
+        traceEvents: events.flatMap((event, index): AiRunEventSummary[] => {
+          const recorded = { id: `${result.runId}-${index}`, createdAt: at };
+          if (event.type === "tool_started" || event.type === "tool_completed")
+            return [
+              {
+                ...recorded,
+                type:
+                  event.type === "tool_started"
+                    ? "tool_started"
+                    : event.failed
+                      ? "tool_error"
+                      : "tool_result",
+                label: event.name.replace(/_/g, " "),
+                summary:
+                  event.type === "tool_started"
+                    ? "Requested a fictional sandbox tool."
+                    : event.summary,
+                toolName: event.name,
+                status:
+                  event.type === "tool_started"
+                    ? "recorded"
+                    : event.failed
+                      ? "failed"
+                      : "completed",
+              },
+            ];
+          if (event.type === "proposal_staged")
+            return [
+              {
+                ...recorded,
+                type: event.type,
+                label: "Proposal prepared",
+                summary: "Prepared a fictional change for human review.",
+                toolName: null,
+                status: "recorded",
+              },
+            ];
+          return [];
+        }),
       });
       saveState(scenarioId, state);
       return eventStreamResponse([
