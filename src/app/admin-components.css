@@ -1605,12 +1605,6 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   cursor: not-allowed;
   transform: none;
 }
-.admin-button:focus-visible,
-.admin-field:focus-visible {
-  outline: 2px solid var(--admin-action);
-  outline-offset: 3px;
-  box-shadow: var(--admin-focus-ring);
-}
 .admin-density-control {
   margin: var(--admin-space-3) var(--admin-space-2);
 }
@@ -1815,13 +1809,6 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 }
 
 /* Expression is data; the same recipes serve presets and portable themes. */
-.admin-eyebrow,
-.admin-table thead,
-.admin-field-label {
-  font-family: var(--admin-label-font);
-  letter-spacing: var(--admin-label-tracking, 0.01em);
-  text-transform: var(--admin-label-transform, none);
-}
 .admin-button svg,
 .admin-action-control svg,
 .admin-secondary-control svg {
