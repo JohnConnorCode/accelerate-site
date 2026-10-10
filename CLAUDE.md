@@ -4,14 +4,20 @@ Read `AGENTS.md` before changing this repository. It is the canonical engineerin
 
 ## Natural-language backlog command
 
-When the user says to pick up backlog work, take the next task, continue the
-board, finish and commit, or follow protocol, treat that wording as an
-execution command. Do not ask for a ticket key or stop at repository
-orientation. After reading `AGENTS.md`, run the internal `npm run agent:go`
+Use this workflow only when the user explicitly asks for backlog work, such as
+asking to pick up backlog work, take the next backlog task, or continue the
+board. Other completion or continuation requests keep the current task's scope.
+Do not ask for a ticket key or stop at repository orientation. After reading
+`AGENTS.md`, run the internal `npm run agent:go`
 runner and continue until the exact commit and evidence are submitted for
 review, or a precise operator-required block is reached. The user does not
 need to know this command; it is the repository implementation of the
 natural-language request. Read [the full trigger contract](docs/contributing/NATURAL-LANGUAGE-AGENT.md).
+
+The user's latest direct request always controls scope and priority. Preserve
+unrelated recovered work and continue the requested task, following the scope
+rules in `AGENTS.md`.
+
 Never ask the user to paste credentials or choose an unclaimed-work path. The
 runner resolves the private remote or explicitly authorized local-operator
 profile from the Git common directory. If no private transport is available,

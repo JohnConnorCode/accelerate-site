@@ -1,4 +1,6 @@
 import "server-only";
+import { buildPageUserPrompt, type PageBrief } from "./brief";
+export { buildPageUserPrompt, type PageBrief } from "./brief";
 import { z } from "zod";
 import { strictSiteOutputSchema, omitProviderNullFields } from "./structured-output";
 import {
@@ -17,13 +19,6 @@ import { assertCatalogAsset, describeCatalogForPrompt } from "./assets";
 /** AI page generation v1. Prompt construction and output validation are pure
  * and fully tested. Model transport is injected so tests never touch a
  * provider; the repository adapter lives in openrouter-adapter.ts. */
-
-export interface PageBrief {
-  serviceName: string;
-  audience: string;
-  outcome: string;
-  extra?: string;
-}
 
 const HOUSE_RULES = [
   "Never invent form tokens. Forms are connected separately by the owner from their published form list.",
@@ -53,17 +48,6 @@ export function buildPageSystemPrompt(): string {
     "Approved image catalog (id: description):",
     describeCatalogForPrompt(),
   ].join("\n");
-}
-
-export function buildPageUserPrompt(brief: PageBrief): string {
-  return [
-    `Service: ${brief.serviceName}`,
-    `Audience: ${brief.audience}`,
-    `Outcome: ${brief.outcome}`,
-    brief.extra?.trim() ? `Additional direction: ${brief.extra.trim()}` : null,
-  ]
-    .filter(Boolean)
-    .join("\n");
 }
 
 /** Model output shape: metadata plus the section tree. The envelope is added

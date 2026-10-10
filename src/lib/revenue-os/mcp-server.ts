@@ -334,6 +334,7 @@ export async function handleMcpRequest(
             impact: tool.impact,
             confirmationRequired: tool.confirmationRequired,
             connectionRequirement: tool.connectionRequirement,
+            ...(tool.operation ? { operation: tool.operation } : {}),
             annotations: {
               readOnlyHint: tool.impact === "read" && !tool.confirmationRequired,
               destructiveHint: tool.name === "execute_site_change" || tool.impact === "destructive",

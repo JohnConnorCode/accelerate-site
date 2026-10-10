@@ -99,12 +99,22 @@ interaction frame. The default sales demo represents a
 configured, healthy operating system and does not show setup warnings unless a
 scenario explicitly demonstrates setup or recovery.
 
-On mobile, Today begins with a compact two-by-two operating summary followed by
-the priority queue. Duplicate desktop rails and the full operational ledger are
+On mobile, the standard Today view begins with a sourced business review followed by
+the priority queue. Sales, customer follow-up, delivery and money remain distinct,
+with explicit partial or unavailable sources and no inferred payment totals. Duplicate desktop rails and the full operational ledger are
 not part of the primary mobile reading order. Search is one responsive command
 surface: centered on desktop and a safe-area-aware full-height sheet on mobile.
 Local destinations and commands are immediate; remote people results enhance
-rather than block the surface.
+rather than block the surface. Failed record searches show a retry state,
+never a successful empty result; a changed query or closed palette invalidates
+older requests. Client and activity reads distinguish unavailable, empty, and
+missing results, retain same-record snapshots during refresh, and retry independently.
+
+Local view controls share `AdminViewSwitcher` across Work, Pipeline, Content,
+Features, and the AI workspace. Its moving selection honors reduced motion and
+retains native button keyboard access. Changed AI and Content panels use the
+existing route-stage section entrance; old view content unmounts immediately.
+AI drafts remain in the existing shared conversation provider.
 
 Every enabled route must load populated, internally consistent data and expose
 its primary safe interactions. Today, Pipeline, Conversations, record timelines,

@@ -46,22 +46,35 @@ export default function AdminContentPage() {
       await fetchJson("/api/admin/content", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reorder: updates }),
+        body: JSON.stringify({
+          reorder: updates,
+          requestKey: crypto.randomUUID(),
+          expected: updates.map((update) => ({
+            id: update.id,
+            revision: items.find((item) => item.id === update.id)?.updated_at,
+          })),
+        }),
       });
       await fetchItems();
     },
-    [fetchItems],
+    [fetchItems, items],
   );
-  const handleSave = async (data: Partial<ContentCalendarItem>) => {
+  const handleSave = async (data: Partial<ContentCalendarItem> & { requestKey?: string }) => {
     await fetchJson("/api/admin/content", {
-      method: data.id ? "PATCH" : "POST",
+      method: editingItem ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        ...(editingItem ? { expectedRevision: editingItem.updated_at } : {}),
+      }),
     });
     await refetch();
   };
-  const handleDelete = async (id: string) => {
-    await fetchJson(`/api/admin/content?id=${id}`, { method: "DELETE" });
+  const handleDelete = async (id: string, requestKey: string) => {
+    await fetchJson(
+      `/api/admin/content?${new URLSearchParams({ id, requestKey, expectedRevision: editingItem?.updated_at ?? "" })}`,
+      { method: "DELETE" },
+    );
     await refetch();
   };
 
@@ -100,48 +113,50 @@ export default function AdminContentPage() {
           <KanbanViewSwitcher value={view} onChange={setView} />
         </div>
 
-        {view === "board" ? (
-          <ContentKanban
-            columns={columns}
-            items={items}
-            onReorder={commitReorder}
-            onEdit={handleEdit}
-            onReconcile={fetchItems}
-            onAddColumn={createColumn}
-            onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
-            onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
-          />
-        ) : (
-          <KanbanListView<ContentCalendarItem>
-            columns={columns}
-            items={items}
-            getItemId={(item) => item.id}
-            getItemColumnKey={(item) => item.status}
-            getItemSortOrder={(item) => Number(item.sort_order)}
-            setItemPosition={(item, columnKey, sortOrder) => ({
-              ...item,
-              status: columnKey,
-              sort_order: sortOrder,
-            })}
-            renderTitle={(item) => item.title}
-            onOpenItem={handleEdit}
-            onReorder={commitReorder}
-            extraColumns={[
-              {
-                key: "category",
-                header: "Category",
-                sortValue: (item) => item.category ?? "",
-                render: (item) => (item.category ? item.category.replace(/-/g, " ") : "—"),
-              },
-              {
-                key: "word_count_target",
-                header: "Words",
-                sortValue: (item) => item.word_count_target ?? 0,
-                render: (item) => item.word_count_target ?? "—",
-              },
-            ]}
-          />
-        )}
+        <div key={view} data-admin-view-panel={view}>
+          {view === "board" ? (
+            <ContentKanban
+              columns={columns}
+              items={items}
+              onReorder={commitReorder}
+              onEdit={handleEdit}
+              onReconcile={fetchItems}
+              onAddColumn={createColumn}
+              onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
+              onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
+            />
+          ) : (
+            <KanbanListView<ContentCalendarItem>
+              columns={columns}
+              items={items}
+              getItemId={(item) => item.id}
+              getItemColumnKey={(item) => item.status}
+              getItemSortOrder={(item) => Number(item.sort_order)}
+              setItemPosition={(item, columnKey, sortOrder) => ({
+                ...item,
+                status: columnKey,
+                sort_order: sortOrder,
+              })}
+              renderTitle={(item) => item.title}
+              onOpenItem={handleEdit}
+              onReorder={commitReorder}
+              extraColumns={[
+                {
+                  key: "category",
+                  header: "Category",
+                  sortValue: (item) => item.category ?? "",
+                  render: (item) => (item.category ? item.category.replace(/-/g, " ") : "—"),
+                },
+                {
+                  key: "word_count_target",
+                  header: "Words",
+                  sortValue: (item) => item.word_count_target ?? 0,
+                  render: (item) => item.word_count_target ?? "—",
+                },
+              ]}
+            />
+          )}
+        </div>
       </AdminReadBody>
       <ContentItemForm
         key={`${editingItem?.id ?? "new"}:${formSession}`}

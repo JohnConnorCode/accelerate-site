@@ -98,7 +98,7 @@ export default function EmailsPage() {
     ["admin", "emails"],
     "/api/admin/emails/preview",
   );
-  const historyQuery = useAdminQuery<{ history: HistoryItem[] }>(
+  const historyQuery = useAdminQuery<{ history: HistoryItem[]; partial?: boolean }>(
     ["admin", "emails-history"],
     "/api/admin/emails/history",
   );
@@ -276,6 +276,14 @@ export default function EmailsPage() {
         loadingFallback={<LoadingSkeleton variant="detail" />}
         label="Loading Email Studio"
       >
+        {tab === "history" && historyQuery.data?.partial && (
+          <AdminSurface tone="attention" className="flex items-center gap-3" role="status">
+            <TriangleAlert className="size-5 shrink-0 text-[var(--admin-warning)]" />
+            <p className="text-sm text-[var(--admin-ink)]">
+              Some email history could not be read. Refresh before treating this list as complete.
+            </p>
+          </AdminSurface>
+        )}
         {actionError && (
           <AdminSurface tone="attention" className="flex items-center gap-3">
             <TriangleAlert className="size-5 shrink-0 text-rose-600" />
@@ -440,7 +448,7 @@ export default function EmailsPage() {
                     >
                       <ArrowLeft className="size-4" />
                     </button>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 basis-3/4 sm:basis-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-balance text-lg font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
                           {detail.name}
@@ -460,7 +468,7 @@ export default function EmailsPage() {
                       </div>
                       <p className="admin-copy mt-1 text-xs">{detail.description}</p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="ml-auto flex flex-wrap items-center gap-2">
                       <button
                         type="button"
                         onClick={compose}

@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-01.2";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-08.1";
 
 export const TENANT_SCOPED_TABLES = [
   "internal_action_reservations",
@@ -63,6 +63,8 @@ export const TENANT_SCOPED_TABLES = [
   "workspace_blueprints",
   "workspace_blueprint_versions",
   "workspace_blueprint_applies",
+  "workspace_generated_operations",
+  "workspace_generated_operation_requests",
   "workspace_capabilities",
   "coworkers",
   "claims",
@@ -72,6 +74,8 @@ export const TENANT_SCOPED_TABLES = [
   "agent_memory",
   "learned_policies",
   "learning_proposals",
+  "source_authority_registry",
+  "source_authority_receipts",
   "budget_limits",
   "budget_usage",
   "budget_receipts",
@@ -566,6 +570,23 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["tenant_id", "id", "blueprint_id", "version", "request_key", "receipt", "created_at"],
   },
   {
+    table: "workspace_generated_operations",
+    columns: [
+      "tenant_id",
+      "id",
+      "blueprint_id",
+      "version",
+      "request_key",
+      "receipt",
+      "created_at",
+      "audit_id",
+    ],
+  },
+  {
+    table: "workspace_generated_operation_requests",
+    columns: ["tenant_id", "request_key", "operation_id"],
+  },
+  {
     table: "ai_conversation_sources",
     columns: [
       "id",
@@ -770,6 +791,37 @@ export const REVENUE_SCHEMA_TABLES = [
     columns: ["tenant_id", "request_id", "request_hash", "result", "created_at"],
   },
   {
+    table: "source_authority_registry",
+    columns: [
+      "id",
+      "version",
+      "tenant_id",
+      "system_key",
+      "display_name",
+      "truth_domains",
+      "authority_tier",
+      "owner_email",
+      "last_verified_at",
+      "verification_lapse_days",
+      "applies_to",
+      "request_key",
+      "created_at",
+      "updated_at",
+    ],
+  },
+  {
+    table: "source_authority_receipts",
+    columns: [
+      "tenant_id",
+      "request_key",
+      "request_hash",
+      "registry_id",
+      "audit_id",
+      "receipt",
+      "created_at",
+    ],
+  },
+  {
     table: "tenants",
     columns: [
       "id",
@@ -870,6 +922,10 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_workspace_blueprint_versions_history",
   "idx_workspace_blueprint_applies_replay",
   "idx_workspace_blueprint_applies_blueprint",
+  "idx_workspace_generated_operations_replay",
+  "idx_workspace_generated_operations_version",
+  "workspace_generation_requests_operation_idx",
+  "workspace_generation_audit_idx",
   "idx_ai_messages_tenant_client_replay",
   "idx_ai_messages_conversation_order",
   "idx_agent_runs_conversation",
@@ -891,12 +947,20 @@ export const REVENUE_SCHEMA_INDEXES = [
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
   {
+    name: "public.generate_workspace_operations(uuid,uuid,integer,text,text,jsonb,jsonb)",
+    migration: "migrations/20261008183625_workspace_operations_atomic.sql",
+  },
+  {
     name: "public.manage_workspace_mcp_delegation(text,uuid,text,text,text,uuid)",
     migration: "migrations/20261001-workspace-mcp-oauth.sql",
   },
   {
     name: "public.authorize_workspace_mcp_delegation(uuid,uuid,text,uuid,text)",
     migration: "migrations/20261001-workspace-mcp-oauth.sql",
+  },
+  {
+    name: "public.write_content_calendar_command(uuid,uuid,text,uuid,text,text,jsonb,jsonb,jsonb)",
+    migration: "migrations/20261006200652_content_calendar_commands.sql",
   },
   {
     name: "public.consume_rate_limit(text,integer,integer)",

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies, headers } from "next/headers";
 import { isConfiguredAdmin } from "./access";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
 import {
   ACCELERATE_TENANT_SLUG,
   enterTenantRequestContext,
@@ -16,6 +17,17 @@ function authorizationError(error: string, status: number) {
 }
 
 export async function requireAdmin(): Promise<AdminAuthorization | NextResponse> {
+  if (
+    !isSupabasePublicConfigured(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    )
+  ) {
+    return authorizationError(
+      "Workspace sign-in is not configured. Follow /docs/self-hosting/installation to connect Supabase, then retry.",
+      503,
+    );
+  }
   const supabase = await createServerSupabaseClient();
 
   const {

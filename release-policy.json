@@ -1,0 +1,7 @@
+{
+  "upstream": "JohnConnorCode/accelerate-site",
+  "extensionContract": 1,
+  "postgresMinimum": "15.0.0",
+  "npmMinimum": "10.0.0",
+  "requiredWorkflows": ["ci.yml", "connected-fork.yml"]
+}

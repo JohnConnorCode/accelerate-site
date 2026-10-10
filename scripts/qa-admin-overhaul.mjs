@@ -61,6 +61,10 @@ try {
             .getByRole("heading", { name: destination.label, exact: true })
             .first()
             .waitFor();
+          await page.waitForFunction(
+            (title) => document.title.startsWith(title),
+            destination.label,
+          );
           assert(
             (await page.title()).startsWith(destination.label),
             "document title differs from root heading",
@@ -86,7 +90,16 @@ try {
             await Promise.all(node.getAnimations().map((animation) => animation.finished));
           });
           assert((await panel.locator("li").count()) >= 2, "workflow steps absent");
-          assert.equal(await panel.locator('a[href*="/docs/"]').count(), 1);
+          assert.equal(
+            await panel.getByRole("link", { name: "Read the guide", exact: true }).count(),
+            1,
+          );
+          const example = panel.getByRole("link", { name: "Follow a worked example", exact: true });
+          if (await example.count())
+            assert.match(
+              await example.getAttribute("href"),
+              /\/docs\/start\/daily-path#(inquiry|onboarding|invoice)$/,
+            );
           const box = await panel.boundingBox();
           assert(
             box &&
@@ -212,7 +225,7 @@ try {
         await page.keyboard.press("Control+k");
         const palette = page.getByRole("dialog", { name: "Admin command palette", exact: true });
         await palette.waitFor();
-        await palette.getByRole("textbox").fill(name);
+        await palette.getByRole("combobox", { name: "Search workspace" }).fill(name);
         return palette;
       }
       async function setCampaigns(enabled) {
@@ -231,10 +244,10 @@ try {
           waitUntil: "networkidle",
           timeout: 60000,
         });
-        await assertIdentity("Email Sequences", "Conversations");
+        await assertIdentity("Email Sequences", "Messages & marketing");
         const palette = await search("Architect");
         const result = palette
-          .getByRole("button")
+          .getByRole("option")
           .filter({ has: page.getByText("Architect", { exact: true }) });
         await result.focus();
         await page.keyboard.press("Enter");
@@ -242,10 +255,10 @@ try {
           (url) =>
             url.pathname === `${prefix}/ai` && url.searchParams.get("purpose") === "architect",
         );
-        await assertIdentity("Architect", "Knowledge");
+        await assertIdentity("Architect", "AI & knowledge");
         await page.screenshot({ path: `${output}/${label}-architect.png` });
         await page.goBack({ waitUntil: "networkidle" });
-        await assertIdentity("Email Sequences", "Conversations");
+        await assertIdentity("Email Sequences", "Messages & marketing");
         await setCampaigns(false);
         await page.waitForFunction(
           () => !document.querySelector('a.admin-nav-link[href$="/email-sequences"]'),
@@ -259,7 +272,7 @@ try {
         await disabledPalette.waitFor({ state: "detached" });
         await setCampaigns(true);
         await page.reload({ waitUntil: "networkidle" });
-        await assertIdentity("Email Sequences", "Conversations");
+        await assertIdentity("Email Sequences", "Messages & marketing");
         const restoredPalette = await search("Email Sequences");
         await restoredPalette.getByText("Email Sequences", { exact: true }).waitFor();
         await page.keyboard.press("Escape");

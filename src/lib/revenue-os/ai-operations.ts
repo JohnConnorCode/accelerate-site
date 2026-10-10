@@ -164,8 +164,8 @@ function toSummary(run: RawRun, feedback: AiRunSummary["feedback"]): AiRunSummar
     conversationId: run.conversation_id,
     status,
     toolNames: Array.isArray(run.tool_names) ? run.tool_names : [],
-    inputTokens: Number(run.input_tokens || 0),
-    outputTokens: Number(run.output_tokens || 0),
+    inputTokens: run.input_tokens == null ? null : Number(run.input_tokens),
+    outputTokens: run.output_tokens == null ? null : Number(run.output_tokens),
     durationMs: run.duration_ms === null ? null : Number(run.duration_ms),
     promptPreview: redactAiOperationsSummary(run.prompt_preview),
     resultPreview: redactAiOperationsSummary(run.result_preview, 1_000),
@@ -327,7 +327,9 @@ export async function loadAiRunHistory(
       failed: filtered.filter((run) => run.status === "failed").length,
       cancelled: filtered.filter((run) => run.status === "cancelled").length,
       successRate: terminal.length ? Math.round((completed / terminal.length) * 100) : null,
-      totalTokens: filtered.reduce((sum, run) => sum + run.inputTokens + run.outputTokens, 0),
+      totalTokens: filtered.some((run) => run.inputTokens === null || run.outputTokens === null)
+        ? null
+        : filtered.reduce((sum, run) => sum + (run.inputTokens ?? 0) + (run.outputTokens ?? 0), 0),
       medianDurationMs: median(
         filtered.flatMap((run) => (run.durationMs === null ? [] : [run.durationMs])),
       ),

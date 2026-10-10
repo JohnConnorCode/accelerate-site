@@ -101,6 +101,13 @@ chapter traversal, layout stability and reduced motion. Pass `-- --webkit` for
 the same Safari engine journey alongside Chromium. Chromium uses 4× CPU
 throttling; these checks establish browser emulation, not physical-device speed.
 The 50ms p95 frame budget applies to throttled Chromium and native Mac WebKit.
+Timing QA retains the browser animation start clock separately from event-handler
+delivery time. Fresh-navigation evidence is captured inside the browser before
+automation returns, with the existing running-clock and concealment requirements.
+Warm mobile frame samples begin at that captured entrance, even when the caller
+returns after the animation has settled.
+`node scripts/test-hero-motion-observer.mjs` covers late reads, bunched event
+delivery, and missing, collapsed, misordered, immediate and stale entrances.
 Linux headless WebKit retains its pacing measurements and the shared 200ms
 stall ceiling. Expected same-origin RSC prefetch discards are diagnostics only
 while an explicit document navigation is in progress; other errors fail.

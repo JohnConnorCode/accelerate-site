@@ -8,11 +8,11 @@ The repository supports a prebuilt Vercel release path, but every fork must link
 
 ## Fork preview
 
-A fork must create its own Vercel project. Do not link, deploy to, or copy the original Accelerate project IDs in the table below. Those identify the reference installation only. Use `deployment-target.example.json` and `node scripts/generate-fork-hosting.mjs`, or the Deploy with Vercel button in README.md, then `npm run deploy:check` on a project you control. Set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` so entry identity follows the configured business. Forks deploy automatically on Git pushes with the default configuration; keep Vercel’s Automatically expose System Environment Variables setting enabled. Production deployment of the original installation remains a separate maintainer action.
+A fork must create its own Vercel project. Do not link, deploy to, or copy the original Accelerate project IDs in the table below. Those identify the reference installation only. Run `node scripts/generate-fork-hosting.mjs --project prj_your_id --team team_your_id --name your-app --url https://your-business.example` to create `deployment-target.local.json`, or the Deploy with Vercel button in README.md, then `npm run deploy:check` on a project you control. Set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` so entry identity follows the configured business. Forks deploy automatically on Git pushes with the default configuration; keep Vercel’s Automatically expose System Environment Variables setting enabled. Production deployment of the original installation remains a separate maintainer action.
 
 ## Account and project preflight
 
-Read `deployment-target.json` before any hosting diagnosis. The Accelerate installation expects:
+Read `deployment-target.local.json` when present, otherwise `deployment-target.json`, before any hosting diagnosis. The Accelerate installation expects:
 
 | Setting       | Expected value                     |
 | ------------- | ---------------------------------- |
@@ -21,7 +21,7 @@ Read `deployment-target.json` before any hosting diagnosis. The Accelerate insta
 | Team ID       | `team_aoXdtupaCmY2LDwBtCd4d7If`    |
 | Canonical URL | `https://www.acceleratewith.us`    |
 
-These are nonsecret installation identifiers. Fork maintainers must replace them with their own reviewed target; never change them merely to make an unexpected login pass.
+These are nonsecret installation identifiers. Fork maintainers keep their own reviewed target in ignored `deployment-target.local.json`; never change them merely to make an unexpected login pass.
 
 Run `vercel whoami` and `vercel teams ls` first. Confirm access to the expected team ID, then inspect the exact project:
 

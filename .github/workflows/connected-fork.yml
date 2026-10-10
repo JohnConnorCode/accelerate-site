@@ -5,14 +5,35 @@ on:
   pull_request:
     paths:
       - .github/workflows/connected-fork.yml
+      - package.json
+      - package-lock.json
       - scripts/qa-connected-fork.mjs
+      - scripts/qa-password-recovery.mjs
+      - scripts/test-password-recovery.mjs
       - scripts/qa-native-workspace-mcp-oauth.ts
       - scripts/workspace-setup.mjs
       - scripts/lib/workspace-setup.mjs
+      - scripts/workspace-files.mjs
+      - scripts/lib/storage-recovery.mjs
+      - scripts/test-storage-recovery.mjs
+      - scripts/test-release-restore-upgrade-proof.ts
       - src/app/admin/contacts/**
+      - src/app/admin/login/**
+      - src/app/admin/update-password/**
+      - src/app/auth/callback/**
+      - src/app/api/admin/password-reset/**
       - src/app/api/admin/contacts/**
       - src/lib/revenue-os/identity.ts
       - src/lib/revenue-os/tasks.ts
+      - src/lib/admin/auth.ts
+      - src/lib/supabase/configuration.mjs
+      - src/lib/revenue-os/encryption.ts
+      - src/lib/revenue-os/work-items.ts
+      - src/lib/revenue-os/work-result.ts
+      - src/lib/revenue-os/actions.ts
+      - src/lib/supabase/server.ts
+      - scripts/lib/migration-ledger.mjs
+      - scripts/lib/bootstrap-owner-membership.mjs
       - src/lib/revenue-os/workspace-mcp-oauth.ts
       - src/app/api/public/*/mcp/**
       - migrations/**
@@ -21,6 +42,36 @@ permissions:
   contents: read
 
 jobs:
+  release-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.72.7
+      - name: Verify private file-copy failure boundaries
+        run: npm run resources:run -- npm run test:storage-recovery
+      - name: Restore native database, Auth and private files into a distinct project
+        env:
+          RECOVERY_PROOF_NATIVE: "1"
+        run: npm run resources:run -- npm run test:release-recovery
+      - name: Retain only safe fictional recovery evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-recovery-evidence
+          path: ${{ runner.temp }}/accelerate-release-recovery/
+          if-no-files-found: error
+          retention-days: 7
   connected-fork:
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -31,6 +82,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run test:password-recovery
       - uses: supabase/setup-cli@v3
         with:
           version: 2.72.7
@@ -57,7 +109,16 @@ jobs:
         run: |
           npm run build
           npx playwright install --with-deps chromium
+          npm run resources:run -- node scripts/qa-password-recovery.mjs
           node scripts/qa-connected-fork.mjs run
+      - name: Retain controlled password recovery evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: password-recovery-browser-evidence
+          path: ${{ runner.temp }}/accelerate-password-recovery/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain fictional connected-fork evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

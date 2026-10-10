@@ -1,36 +1,19 @@
 "use client";
 
-import { useEffect, useState, useCallback, use } from "react";
+import { use } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "@/components/admin/AdminLink";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
+import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
-import { ClientDetail } from "@/components/admin/ClientDetail";
+import { ClientDetail, type Client } from "@/components/admin/ClientDetail";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { fetchJson } from "@/lib/admin/fetchJson";
-import { toast } from "@/lib/admin/useToast";
-
-interface Client {
-  id: string;
-  lead_id: string | null;
-  business_name: string;
-  contact_name: string;
-  contact_email: string;
-  contact_phone: string | null;
-  industry: string | null;
-  status: string;
-  monthly_value: number;
-  one_time_value: number;
-  contract_start: string | null;
-  contract_end: string | null;
-  services: string[];
-  onboarding_checklist: { label: string; done: boolean }[];
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { TaskQuickAdd } from "@/components/admin/TaskQuickAdd";
+import { AdminRequestError, fetchJson } from "@/lib/admin/fetchJson";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
 interface TimelineItem {
   type: string;
@@ -43,127 +26,177 @@ interface TimelineItem {
 
 export default function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [client, setClient] = useState<Client | null>(null);
-  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const clientKey = ["admin", "client", id];
+  const record = useAdminQuery<{ client: Client | null }>(
+    clientKey,
+    `/api/admin/clients?id=${encodeURIComponent(id)}`,
+    { placeholderData: undefined },
+  );
+  const client = record.data?.client;
+  const missingClient =
+    !client &&
+    (record.data?.client === null ||
+      (record.error instanceof AdminRequestError && record.error.status === 404));
+  const email = client?.contact_email || "";
+  const history = useAdminQuery<{ timeline: TimelineItem[] }>(
+    ["admin", "contact-relationship", email],
+    `/api/admin/contacts/timeline?email=${encodeURIComponent(email)}`,
+    { enabled: Boolean(email), placeholderData: undefined },
+  );
+  const followups = useAdminQuery<{ tasks: Array<{ id: string; title: string; status: string }> }>(
+    ["admin", "client-followups", id],
+    `/api/admin/tasks?related_type=client&related_id=${encodeURIComponent(id)}`,
+    { enabled: Boolean(client), placeholderData: undefined },
+  );
 
-  const fetchClient = useCallback(async () => {
-    try {
-      const data = await fetchJson<{ client?: Client | null }>(
-        `/api/admin/clients?id=${encodeURIComponent(id)}`,
-      );
-      setClient(data.client || null);
-
-      // Fetch timeline for this client's email
-      if (data.client?.contact_email) {
-        try {
-          const timelineData = await fetchJson<{ timeline?: TimelineItem[] }>(
-            `/api/admin/contacts/timeline?email=${encodeURIComponent(data.client.contact_email)}`,
-          );
-          setTimeline(timelineData.timeline || []);
-        } catch {
-          setTimeline([]);
-          toast.error("Client loaded, but activity could not load. Reload to try again.");
-        }
-      }
-    } catch (error) {
-      setClient(null);
-      toast.error(error instanceof Error ? error.message : "Failed to load client");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    setLoading(true);
-    void fetchClient();
-  }, [fetchClient]);
-
+  const refreshRelated = () => {
+    void followups.refetch();
+    if (email) void history.refetch();
+  };
   const handleUpdate = async (data: Record<string, unknown>) => {
-    await fetchJson("/api/admin/clients", {
+    const saved = await fetchJson<{ client: Client }>("/api/admin/clients", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    await fetchClient();
+    if (saved.client?.id !== id) throw new Error("The server did not confirm this client update.");
+    await queryClient.cancelQueries({ queryKey: clientKey, exact: true });
+    queryClient.setQueryData(clientKey, saved);
+    refreshRelated();
   };
-
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Client" />
-        <AdminReadBody
-          loading
-          hasData={false}
-          onRetry={() => void fetchClient()}
-          loadingFallback={<LoadingSkeleton variant="page" />}
-          label="Loading client"
-        >
-          <span />
-        </AdminReadBody>
-      </div>
-    );
-  }
-
-  if (!client) {
-    return (
-      <div className="space-y-4">
-        <PageHeader title="Client Not Found" />
-        <AdminSurface tone="subtle">
-          <p className="text-sm text-[var(--admin-muted)]">
-            This client does not exist or is outside the current workspace.
-          </p>
-        </AdminSurface>
-        <Link
-          href="/admin/clients"
-          className="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--admin-ink)]"
-        >
-          Back to Clients
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <div>
-      <div className="mb-4">
-        <Link
-          href="/admin/clients"
-          className="inline-flex min-h-10 items-center gap-1.5 text-xs font-semibold text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Clients
-        </Link>
-      </div>
-
-      <PageHeader title={client.business_name} subtitle={client.contact_name} />
+      <Link
+        href="/admin/clients"
+        className="mb-4 inline-flex min-h-11 items-center gap-1.5 text-xs font-semibold text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to Clients
+      </Link>
+      <PageHeader
+        title={client?.business_name || "Client"}
+        subtitle={
+          client?.contact_name
+            ? `Customer contact: ${client.contact_name}. Review delivery progress and the next commitment for this account.`
+            : "Review this client’s delivery progress, notes and outstanding commitments."
+        }
+        guidance={{
+          ...adminPageGuidance.clients!,
+          startHint:
+            "Review the account and existing follow-ups before saving notes or assigning new work.",
+        }}
+      />
       <AdminReadBody
-        loading={loading}
-        hasData={Boolean(client)}
-        onRetry={() => void fetchClient()}
+        loading={record.isPending}
+        hasData={record.data !== undefined || missingClient}
+        error={missingClient ? undefined : record.error?.message}
+        refreshing={record.isFetching}
+        onRetry={() => void record.refetch()}
         loadingFallback={<LoadingSkeleton variant="page" />}
         label="Loading client"
       >
-        <Link
-          href={`/admin/contacts/${encodeURIComponent(client.contact_email)}`}
-          className="mb-5 inline-flex min-h-11 items-center text-sm font-medium text-[var(--admin-ink)] underline underline-offset-4"
-        >
-          Open {client.contact_name}&apos;s contact history
-        </Link>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <ClientDetail client={client} onUpdate={handleUpdate} />
-          </div>
-          <div>
-            <AdminSurface padding="md">
-              <h4 className="mb-4 text-sm font-semibold text-[var(--admin-ink)]">
-                Activity Timeline
-              </h4>
-              <ContactTimeline items={timeline} />
+        {client ? (
+          <>
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+              {email && (
+                <Link
+                  href={`/admin/contacts/${encodeURIComponent(email)}`}
+                  className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--admin-ink)] underline underline-offset-4"
+                >
+                  Open {client.contact_name}&apos;s contact history
+                </Link>
+              )}
+              <button
+                type="button"
+                disabled={record.isFetching}
+                onClick={() => {
+                  void record.refetch();
+                  refreshRelated();
+                }}
+                className="admin-button admin-button--secondary"
+              >
+                <RefreshCw className={record.isFetching ? "size-3.5 animate-spin" : "size-3.5"} />{" "}
+                Refresh client
+              </button>
+            </div>
+            <div className="grid items-start gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <ClientDetail key={client.id} client={client} onUpdate={handleUpdate} />
+              </div>
+              <div className="min-w-0 space-y-6">
+                <AdminSurface padding="md" role="region" aria-label="Client follow-ups">
+                  <h2 className="mb-3 text-sm font-semibold text-[var(--admin-ink)]">Follow-ups</h2>
+                  <AdminReadBody
+                    loading={followups.isPending}
+                    hasData={followups.data !== undefined}
+                    error={followups.error?.message}
+                    refreshing={followups.isFetching}
+                    onRetry={() => void followups.refetch()}
+                    loadingFallback={<LoadingSkeleton variant="table" rows={2} />}
+                    label="Loading follow-ups"
+                  >
+                    {followups.data?.tasks.length ? (
+                      <ul className="divide-y divide-[var(--admin-border)]">
+                        {followups.data.tasks.map((task) => (
+                          <li key={task.id}>
+                            <Link
+                              href={`/admin/work?task=${encodeURIComponent(task.id)}`}
+                              className="flex min-h-11 items-center justify-between gap-3 py-2 text-sm text-[var(--admin-ink)] hover:underline"
+                            >
+                              <span className="min-w-0 break-words">{task.title}</span>
+                              <span className="shrink-0 text-xs capitalize text-[var(--admin-muted)]">
+                                {task.status}
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-[var(--admin-muted)]">No follow-ups yet.</p>
+                    )}
+                  </AdminReadBody>
+                  <TaskQuickAdd
+                    key={client.id}
+                    relatedType="client"
+                    relatedId={client.id}
+                    relatedName={client.contact_name}
+                    onTaskCreated={refreshRelated}
+                  />
+                </AdminSurface>
+                <AdminSurface padding="md" role="region" aria-label="Client activity">
+                  <h2 className="mb-4 text-sm font-semibold text-[var(--admin-ink)]">Activity</h2>
+                  {email ? (
+                    <AdminReadBody
+                      loading={history.isPending}
+                      hasData={history.data !== undefined}
+                      error={history.error?.message}
+                      refreshing={history.isFetching}
+                      onRetry={() => void history.refetch()}
+                      loadingFallback={<LoadingSkeleton variant="table" rows={2} />}
+                      label="Loading client activity"
+                    >
+                      <ContactTimeline items={history.data?.timeline || []} />
+                    </AdminReadBody>
+                  ) : (
+                    <p className="text-sm text-[var(--admin-muted)]">
+                      Add a contact email to connect this client’s activity.
+                    </p>
+                  )}
+                </AdminSurface>
+              </div>
+            </div>
+          </>
+        ) : (
+          missingClient && (
+            <AdminSurface tone="subtle">
+              <h2 className="text-sm font-semibold text-[var(--admin-ink)]">Client not found</h2>
+              <p className="mt-1 text-sm text-[var(--admin-muted)]">
+                This client does not exist in the current workspace.
+              </p>
             </AdminSurface>
-          </div>
-        </div>
+          )
+        )}
       </AdminReadBody>
     </div>
   );

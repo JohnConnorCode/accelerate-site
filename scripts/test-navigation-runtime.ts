@@ -303,8 +303,8 @@ assert.match(
 );
 assert.match(
   asyncRegion,
-  /requestAnimationFrame\(\(\) => setShowFallback\(false\)\)/,
-  "A later load must reset the fallback without a synchronous effect cascade",
+  /function AdminLoadingFallback/,
+  "Each data-less read must mount a fresh fallback delay",
 );
 assert.match(
   asyncRegion,

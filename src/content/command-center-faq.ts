@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I preview an AI page change before applying it?",
+    answer:
+      "Yes. In Site Studio, choose Ask AI, prepare a suggestion and use Preview suggestion to inspect phone, tablet and desktop layouts. Review changes shows the text comparison. Apply to draft updates your local draft; saving and publishing are separate steps. Cancel suggestion stops a pending request and preserves your edits, though provider charges may still apply. If the page changes after preparation, prepare a fresh suggestion before applying.",
+  },
+  {
     question: "Can I run work by talking to an agent?",
     answer:
       "Yes. Ask AI and authenticated member MCP connections can read records, prepare exact changes and start an ordered job with saved progress. Review proposals inside chat, or open the focused review link from an external agent. Background work needs an active scheduler and a finite AI call budget. You can pause, resume or cancel future steps. Interrupted work keeps its receipts for reconciliation instead of replaying effects.",
@@ -24,7 +29,12 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Where do I find invoices and create a new one?",
     answer:
-      "With Stripe invoicing enabled, open Invoices directly from the sidebar or the mobile Menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Choose an existing customer, enter line items and review the draft before requesting approval.",
+      "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Choose an existing customer, enter line items and review the draft before requesting approval.",
+  },
+  {
+    question: "Can AI redesign a customer invoice?",
+    answer:
+      "Yes. For a workspace-created invoice, choose Design customer page in Invoice operations. Describe changes to the current design, then Apply AI changes. Try a style starter, check the Phone preview, and use Undo changes or Redo changes; layout, typography, spacing, color and wording are also directly editable. Stripe supplies the amounts and payment state. Preview the final design before requesting publication approval. The approved customer page gets a new link; Stripe’s hosted payment form and PDF keep their own design settings.",
   },
   {
     question: "What should I do when an inquiry update needs attention?",
@@ -59,7 +69,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can Ask AI check the content calendar?",
     answer:
-      "Yes. With the Content module enabled, Ask AI can list the five most recently added calendar items by exact status or category and reports when more match. Ask AI and connected MCP clients can also propose an exact edit for administrator review in Approvals. It can prepare a grounded editorial brief from a title and optional keywords or category when an AI provider is configured. The brief is working copy; review it and add it to the calendar from Content.",
+      "Yes. With the Content module enabled, Ask AI can list the five most recently added calendar items by exact status or category and reports when more match. Ask AI and connected MCP clients can also preview and propose item creation, edits, permanent deletion, or moves between existing columns for administrator review in Approvals. A reorder includes up to ten named items. Calendar changes preserve website pages and publication history; check the publishing destination to confirm a page is live. It can prepare a grounded editorial brief from a title and optional keywords or category when an AI provider is configured. The brief is working copy; review it and add it to the calendar from Content.",
   },
   {
     question: "Can I edit my website from ChatGPT?",
@@ -67,9 +77,14 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes, after your installer configures and verifies the owner-only Site Studio OAuth connection. Check OpenAI’s current connection instructions for account eligibility and client support. It can read and edit website content, prepare an exact preview, save drafts, publish and restore revisions through the same editor services. Access lasts 30 days and can be revoked in Site Studio. A separate workspace OAuth connection exposes registered workspace tools, with business changes staged for approval. Workspace MCP keys cannot be pasted into ChatGPT.",
   },
   {
+    question: "How do I check for updates to my own installation?",
+    answer:
+      "The installation owner can select Check stable releases in Setup, or run npm run release:check from the repository. The check verifies published upstream metadata and reports the recorded core version separately from your fork commit. A supported path lists required bridge releases. An unversioned checkout needs to adopt an actual published release first; an unavailable result means no update was verified. Your maintainer still reviews backups, runtime requirements and local changes before applying or deploying an upgrade.",
+  },
+  {
     question: "Can I run the workspace for my own business?",
     answer:
-      "Yes. Fork the complete repository: it starts with a neutral Command Center homepage, the full workspace, and fictional demos. Explore without credentials, then follow guided setup to connect your own Supabase project and owner account. Save a contact and task before connecting optional email or AI providers. Fork deployments include no scheduled jobs by default. Edit or replace the homepage in Site Studio. Agency content remains in the source and is disabled unless you explicitly enable the branded profile. A separate export remains available when you want to omit protected agency assets entirely. The self-hosting guide explains setup and recovery.",
+      "Yes. Fork the complete repository: it starts with a neutral Command Center homepage, the full workspace, and fictional demos. Explore without credentials, then follow guided setup to connect your own Supabase project and owner account. Save a contact and task before connecting optional email or AI providers. Fork deployments include no scheduled jobs by default. Edit or replace the homepage in Site Studio. Agency content remains in the source and is disabled unless you explicitly enable the branded profile. A separate export remains available when you want to omit protected agency assets entirely. Before importing customer records, use the self-hosting recovery guide to preserve the database, uploaded bytes and encryption configuration, verify an isolated restore and review action receipts before reconnecting providers.",
   },
   {
     question: "If I change what it is allowed to do, do I have to approve it again?",
@@ -87,9 +102,14 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes. Scroll across the columns, or press Tab to a column button and press Enter. The board itself takes keyboard focus for arrow-key scrolling, and reduced motion makes the column jumps instant. Refreshing or closing an editor keeps your place, and browser Back returns you to the pipeline board.",
   },
   {
+    question: "How do I keep agent answers grounded in verified sources?",
+    answer:
+      "Use Source authority to record the systems your team has verified, their scope, owner and verification expiry. Grounded knowledge searches carry those tags and flag differing evidence for review. Unregistered sources stay low and unverified. Your agent can propose registry changes for approval; the admin form uses the same writer and can recover an interrupted save. Registering a source does not connect a provider or prove that its claims are true.",
+  },
+  {
     question: "Can I actually work with clients in the demo?",
     answer:
-      "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Work or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",
+      "Yes. Search or filter clients, open an account, save notes and add a follow-up. Follow-ups appear beside activity and refresh Work and Today after creation. Open a saved follow-up in Work or follow the timeline to its specific conversation or opportunity. Failed reads offer scoped retries, and failed saves keep your edits. Changes persist in that fictional business session and never contact customers.",
   },
   {
     question: "Can I try Command Center before setting it up?",
@@ -104,7 +124,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we create our own workspace theme?",
     answer:
-      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Nine built-in appearances have distinct palettes, typography, corners and depth, including matte Material, silver macOS and the Capy-inspired graphite-and-seafoam theme. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing, touch controls stay easy to reach, and transitions respect reduced motion. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
+      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Nine built-in appearances have distinct palettes, typography, corners and depth, including matte Material, silver macOS and the Capy-inspired graphite-and-seafoam theme. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing and touch controls stay easy to reach. Delete, discard and archive confirmations distinguish the action from the safer cancel choice. Nested confirmations dim the editor beneath them and reveal it again when closed. Phone navigation returns after the last dialog finishes closing. Dialogs, notification panels and the phone More menu open and close immediately under reduced motion. More keeps the page paused until its menu closes, then hands focus to Search, Ask AI or the selected destination. The phone dock stays paused until notifications finish closing, and dismissal returns focus to the bell without overriding focus moved to another control. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
   },
   {
     question: "How does the whole system fit together?",
@@ -119,7 +139,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can the AI change my live website without me?",
     answer:
-      "No. Creating a draft, applying an AI suggestion, and saving all keep the work private, and an installation owner reviews and publishes a saved revision separately. You can preview the copy at phone and desktop widths, choose a model by provider and price, and roll back from history. Private drafts stay separate from the published site.",
+      "No. Creating a draft, applying an AI suggestion, and saving all keep the work private, and an installation owner reviews and publishes a saved revision separately. You can preview the copy at phone, tablet and desktop widths, choose a model by provider and price, and roll back from history. The installation editor pauses competing actions during save, reload and import. Failed reloads retain your edits and undo history; an uncertain confirmation keeps the original retry. Private drafts stay separate from the published site. Their previews keep the selected page width even on a small screen, use public page styling, and disable links and form submissions while keeping FAQ answers interactive. If a private draft save or discard cannot be confirmed, load its latest copy and review before retrying; your typed title is retained. After uncertain creation, refresh the draft list to find a saved copy before creating another. In the fictional demo, private drafts stay in each business’s browser session. You can create, rename and discard them; AI example mode uses a template without a provider call.",
   },
   {
     question: "What does a completed delivery handoff actually mean?",
@@ -129,12 +149,17 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do Today and Work fit together?",
     answer:
-      "Today puts sourced decisions and follow-up first, then business changes and operational alerts. Pipeline facts, upcoming commitments and automation are supporting context. Automation details and completed results expand on demand. More contains view customization, creation, duplication, deletion and the classic-view recovery option. Search and Ask AI stay available in the desktop workspace toolbar. Work opens on your open tasks, with team work one filter away; saved views sit behind Save view. It provides task editing, dated snooze and the same approvals, with list, board and calendar layouts over the same saved tasks. The list supports j/k movement and keyboard review. Ask AI can also prepare task reopening and description edits; review the proposal in Approvals, then check its recorded result. Layout, fields and filters stay in this browser and are separated by workspace and signed-in member. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
+      "Today starts with a Business review of Sales, Customer follow-up, Delivery and Money from inspected sources. Each finding opens its source and next action, with a contextual Ask AI prompt. Missing or partial sources stay visible, and pipeline estimates remain separate from payment status. Needs you, upcoming commitments and recorded automation results follow. Automation details and completed results expand on demand. More contains view customization, creation, duplication, deletion and the classic-view recovery option. Search and Ask AI stay available in the desktop workspace toolbar. Work opens on your open tasks, with team work one filter away; saved views sit behind Save view. Its task inspector edits instructions, retains its link after reload, opens related records and offers scoped retries. It provides task editing, dated snooze and the same approvals, with list, board and calendar layouts over the same saved tasks. The list supports j/k movement and keyboard review. Ask AI can also prepare task reopening and description edits; review the proposal in Approvals, then check its recorded result. Layout, fields and filters stay in this browser and are separated by workspace and signed-in member. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change. Start here explains the first action on core pages. How this works opens the steps, saved result and guide actions in a keyboard-accessible panel; Close help or Escape returns to the page controls. The three connected walkthroughs teach an inquiry, a client handoff and an invoice from situation to saved result.",
   },
   {
     question: "Can we build a completely different App or interface?",
     answer:
-      "Yes. The open-source platform can be extended with new record types, lifecycles, queues, integrations, AI tools, and working screens that reuse your existing customer identity, permissions, and history. Settings cover the supported configuration today, and deeper changes use code. The public customization and extension guides explain both paths.",
+      "Yes. Describe the business process to Claude Code or Codex and have the agent build its records, queues, integrations, AI tools and working screens. It can reuse existing customer identity, permissions and history, so the team avoids maintaining another set of customer records. The setup and extension guides give the agent its implementation contracts and give you a working result and verification evidence to review.",
+  },
+  {
+    question: "How can an agent help set up my business workflow?",
+    answer:
+      "Use Architect to describe the work and Blueprints to review its proposed setup. Save an approved version to add available Pipeline or Content columns and retain the remaining navigation, view, workflow and Coworker recommendations. Missing capabilities become custom development briefs. Claude Code, Codex or another coding agent can use those briefs and the extension guide to build on your existing records, permissions and review process, saving your team from specifying the same workflow again for each screen. The in-app save records recommendations; enabling their execution follows the existing configuration or development path.",
   },
   {
     question: "Can AI create Apps inside Command Center?",
@@ -144,7 +169,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I point any coding agent at the backlog?",
     answer:
-      "Yes. A plain request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” is enough. The agent picks one eligible task, prepares its own isolated copy of the code, and carries it through verification, commit, and evidence submission without a ticket key or a provider-specific command. It never asks you to paste credentials, and an interrupted run can be resumed from its saved state.",
+      "Yes. A plain request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” is enough. The agent picks one eligible task, prepares its own isolated copy of the code, and carries it through verification, commit, and evidence submission without a ticket key or a provider-specific command. If its approved source is missing or mismatched, pickup names the card and explains how to recover before claiming. It never asks you to paste credentials, and an interrupted run can be resumed from its saved state.",
   },
   {
     question: "Where can I explore the bundled plugins?",
@@ -177,6 +202,11 @@ export const commandCenterFaqs: FAQ[] = [
       "Usually the tool was fine and there was no rule about when to use it. This one gives you one place to go each morning and a short list of decisions sitting there. If that is not going to change anything for you, we would rather work that out on the session than after you have paid for a build.",
   },
   {
+    question: "Can we keep our customization when core updates arrive?",
+    answer:
+      "Saved branding, appearance and website revisions belong to your installation, alongside your business records and provider settings. Fork hosting uses a local configuration file. The repository's fork:check command inspects a fetched source update without applying it and reports conflicts, unfinished work and legacy configuration edits. Custom modules use their own source paths and regenerated registrations. Back up and verify migrations, plugins and providers before deploying; a reduced export with independent Git history follows the manual adoption guide.",
+  },
+  {
     question: "Where does our data live?",
     answer:
       "A managed Command Center uses tenant-scoped records, active membership and an audit trail to separate business workspaces. A self-hosted installation uses the database and provider accounts you control. For a managed implementation, agree on export, backup and handoff responsibilities in the written scope.",
@@ -207,6 +237,7 @@ export const productFaqs = commandCenterFaqs.filter((faq) =>
     "Can Ask AI check the content calendar?",
     "Can we build a completely different App or interface?",
     "Can AI create Apps inside Command Center?",
+    "How can an agent help set up my business workflow?",
     "Where does our data live?",
     "How do we control what AI can do?",
     "What does it cost, and how long does it take?",

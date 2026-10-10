@@ -157,7 +157,7 @@ export async function tryExecuteInternalProposal(
       : "executed";
   return {
     ...row,
-    status: "executed",
+    status,
     execution: { status, actionId: row.id, result, policyIds: admission.policyIds },
   };
 }

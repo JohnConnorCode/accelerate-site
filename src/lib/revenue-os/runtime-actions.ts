@@ -7,6 +7,7 @@ import {
   type AgentMemoryEntry,
   type LearnedPolicyEntry,
 } from "./memory";
+import { registerSourceAuthority, prepareSourceAuthorityCommand } from "./source-authority";
 
 function text(
   input: Record<string, unknown>,
@@ -111,5 +112,8 @@ export async function executeRuntimeAction(
       scopeEntityId: text(input, "scopeEntityId"),
       actorEmail,
     });
+  if (actionType === "register_source_authority") {
+    return registerSourceAuthority(db, { ...prepareSourceAuthorityCommand(input), actorEmail });
+  }
   throw new Error("Unknown runtime action");
 }

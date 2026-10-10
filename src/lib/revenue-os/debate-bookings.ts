@@ -10,11 +10,12 @@ import {
 import { proposeAction } from "./actions";
 import { verifyDebateCalendarEvent } from "./google";
 import {
-  DEBATE_MILESTONES,
+  debateMilestoneSchema,
   nextDebateAction,
   type DebateMilestone,
   type DebateMilestoneStatus,
 } from "./debate-booking-contract";
+export { debateMilestoneSchema } from "./debate-booking-contract";
 
 const createSchema = z.object({
   requestKey: z.string().trim().min(8).max(180),
@@ -24,23 +25,6 @@ const createSchema = z.object({
   conversationId: z.uuid().nullable().optional(),
   targetAt: z.iso.datetime({ offset: true }).nullable().optional(),
 });
-export const debateMilestoneSchema = z.object({
-  productionId: z.uuid(),
-  milestone: z.enum(DEBATE_MILESTONES),
-  status: z.enum(["proposed", "verified", "declined", "cancelled"]),
-  value: z.string().trim().min(1).max(4000),
-  sourceType: z.enum([
-    "gmail_message",
-    "calendar_event",
-    "founder_note",
-    "drive_document",
-    "uploaded_document",
-    "founder_confirmation",
-  ]),
-  sourceId: z.string().trim().min(1).max(240),
-  observedAt: z.iso.datetime({ offset: true }),
-});
-
 export async function createDebateProduction(db: SupabaseClient, raw: unknown, actorEmail: string) {
   const input = createSchema.parse(raw);
   const { data, error } = await callDebateProductionHostRpc(db, "create", input, actorEmail);

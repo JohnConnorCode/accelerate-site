@@ -22,7 +22,7 @@ async function search(page, query) {
       .getByRole("button", { name: /^Search/ })
       .click();
   const dialog = page.getByRole("dialog", { name: "Admin command palette" });
-  await dialog.getByPlaceholder("Search people, pages, or run a command…").fill(query);
+  await dialog.getByRole("combobox", { name: "Search workspace", exact: true }).fill(query);
   return dialog;
 }
 
@@ -65,13 +65,14 @@ async function openInvoices(page, mobile) {
   const documentId = await page.evaluate(() => window.__accelerateInvoiceNavigationDocument);
   if (mobile) await page.getByRole("button", { name: "Open More", exact: true }).click();
   const navigation = page.locator('nav[aria-label="Admin navigation"]:visible');
-  const invoices = navigation.getByRole("link", { name: "Invoices", exact: true });
+  const invoices = navigation.getByRole("link", { name: "Billing & payments", exact: true });
   assert.equal(
     await invoices.count(),
     1,
-    "Invoices must be a visible destination without expanding Records",
+    "Invoices must be reachable through Billing & payments without expanding Customers & sales",
   );
   const destination = new URL(await invoices.getAttribute("href"), page.url());
+  assert.equal(destination.pathname, new URL("./invoicing", page.url()).pathname);
   assert.equal(
     destination.origin,
     new URL(page.url()).origin,
@@ -107,7 +108,7 @@ try {
       if (!mobile) {
         await page.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
         assert.equal(
-          await page.locator('[data-admin-sidebar] a[aria-label="Invoices"]').count(),
+          await page.locator('[data-admin-sidebar] a[aria-label="Billing & payments"]').count(),
           1,
         );
         await page.getByRole("button", { name: "Expand sidebar", exact: true }).click();
@@ -163,8 +164,8 @@ try {
 
       // The palette must find creation and retain the current demo workspace.
       const dialog = await search(page, "create invoice");
-      await dialog.getByRole("button", { name: /Create invoice/ }).waitFor();
-      await dialog.getByPlaceholder("Search people, pages, or run a command…").press("Enter");
+      await dialog.getByRole("option", { name: /Create invoice/ }).waitFor();
+      await dialog.getByRole("combobox", { name: "Search workspace", exact: true }).press("Enter");
       await page.getByRole("heading", { level: 1, name: "Create invoice", exact: true }).waitFor();
       assert.ok(page.url().startsWith(root + "/invoicing?view=create"));
 
@@ -173,13 +174,13 @@ try {
       await plugin.getByRole("button", { name: /^Disable / }).click();
       await plugin.getByRole("button", { name: /^Enable / }).click({ trial: true });
       const disabledSearch = await search(page, "invoice");
-      await disabledSearch.getByRole("button", { name: /Set up invoicing/ }).waitFor();
+      await disabledSearch.getByRole("option", { name: /Set up invoicing/ }).waitFor();
       assert.equal(
-        await disabledSearch.getByRole("button", { name: /^Create invoice/ }).count(),
+        await disabledSearch.getByRole("option", { name: /^Create invoice/ }).count(),
         0,
       );
       await disabledSearch
-        .getByPlaceholder("Search people, pages, or run a command…")
+        .getByRole("combobox", { name: "Search workspace", exact: true })
         .press("Enter");
       await page.getByText("Stripe invoicing is turned off", { exact: true }).waitFor();
       await page.getByRole("link", { name: "Go to Integrations & Modules", exact: true }).click();
@@ -205,58 +206,84 @@ try {
     }
 
     // A controlled disconnected-provider response exercises setup through the same page.
-    const context = await browser.newContext({
-      viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 },
-    });
-    const page = await context.newPage();
-    activePage = page;
-    await observeDemo(page);
-    await page.goto(base + "/demo/command-center/northline-roofing/today");
-    await page.getByRole("heading", { level: 1, name: "Today", exact: true }).waitFor();
-    // Change the fictional provider through its existing runtime. Replacing
-    // window.fetch can be undone when a navigation commits a new demo boundary.
-    await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
-    const disconnected = await page.evaluate(async () => {
-      const response = await fetch("/api/admin/tenant/providers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "disconnect", provider: "stripe" }),
+    for (const reducedMotion of ["no-preference", "reduce"]) {
+      const context = await browser.newContext({
+        viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 },
+        reducedMotion,
       });
-      return { ok: response.ok, body: await response.json() };
-    });
-    assert.ok(disconnected.ok && disconnected.body.simulated && disconnected.body.success);
-    const dialog = await search(page, "create invoice");
-    await dialog.getByPlaceholder("Search people, pages, or run a command…").press("Enter");
-    await page.getByRole("heading", { name: "Connect your Stripe account", exact: true }).waitFor();
-    assert.equal(
-      await page.getByRole("button", { name: "Prepare invoice", exact: true }).count(),
-      0,
-    );
-    await page.getByLabel("Stripe API key", { exact: true }).focus();
-    assert.ok(
+      const page = await context.newPage();
+      activePage = page;
+      await observeDemo(page);
+      await page.goto(base + "/demo/command-center/northline-roofing/today");
+      await page.getByRole("heading", { level: 1, name: "Today", exact: true }).waitFor();
+      // Change the fictional provider through its existing runtime. Replacing
+      // window.fetch can be undone when a navigation commits a new demo boundary.
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
+      const disconnected = await page.evaluate(async () => {
+        const response = await fetch("/api/admin/tenant/providers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "disconnect", provider: "stripe" }),
+        });
+        return { ok: response.ok, body: await response.json() };
+      });
+      assert.ok(disconnected.ok && disconnected.body.simulated && disconnected.body.success);
+      const dialog = await search(page, "create invoice");
+      await dialog.getByRole("combobox", { name: "Search workspace", exact: true }).press("Enter");
       await page
-        .getByLabel("Stripe API key", { exact: true })
-        .evaluate((node) => node === document.activeElement),
-    );
-    await settle(page);
-    await page.screenshot({ path: `${output}/disconnected-${mobile ? "mobile" : "desktop"}.png` });
-    results.push({
-      viewport: mobile ? "mobile" : "desktop",
-      fixture: "disconnected Stripe",
-      passed: true,
-    });
-    await page.goto(base + "/docs/plugins/stripe-invoicing");
-    await page.getByRole("heading", { level: 1, name: "Stripe invoicing", exact: true }).waitFor();
-    const guide = await page.locator("main").innerText();
-    assert.ok(guide.includes("Create invoice") && guide.includes("/admin/invoicing?view=create"));
-    await settle(page);
-    await page.screenshot({ path: `${output}/guide-${mobile ? "mobile" : "desktop"}.png` });
-    results.push({
-      viewport: mobile ? "mobile" : "desktop",
-      fixture: "public invoice guide",
-      passed: true,
-    });
-    await context.close();
+        .getByRole("heading", { name: "Connect your Stripe account", exact: true })
+        .waitFor();
+      assert.equal(
+        await page.getByRole("button", { name: "Prepare invoice", exact: true }).count(),
+        0,
+      );
+      await page.getByLabel("Stripe API key", { exact: true }).focus();
+      assert.ok(
+        await page
+          .getByLabel("Stripe API key", { exact: true })
+          .evaluate((node) => node === document.activeElement),
+      );
+      await page.keyboard.type("fictional-input");
+      await dialog.waitFor({ state: "detached" });
+      await settle(page);
+      await page.evaluate(
+        () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+      );
+      assert.ok(
+        await page
+          .getByLabel("Stripe API key", { exact: true })
+          .evaluate((node) => node === document.activeElement),
+        "Closing search and deferred route focus must preserve the destination field",
+      );
+      assert.equal(
+        await page.getByLabel("Stripe API key", { exact: true }).inputValue(),
+        "fictional-input",
+      );
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+      await page.screenshot({
+        path: `${output}/disconnected-${mobile ? "mobile" : "desktop"}-${reducedMotion}.png`,
+      });
+      results.push({
+        viewport: mobile ? "mobile" : "desktop",
+        fixture: "disconnected Stripe",
+        reducedMotion,
+        passed: true,
+      });
+      await page.goto(base + "/docs/plugins/stripe-invoicing");
+      await page
+        .getByRole("heading", { level: 1, name: "Stripe invoicing", exact: true })
+        .waitFor();
+      const guide = await page.locator("main").innerText();
+      assert.ok(guide.includes("Create invoice") && guide.includes("/admin/invoicing?view=create"));
+      await settle(page);
+      await page.screenshot({ path: `${output}/guide-${mobile ? "mobile" : "desktop"}.png` });
+      results.push({
+        viewport: mobile ? "mobile" : "desktop",
+        fixture: "public invoice guide",
+        passed: true,
+      });
+      await context.close();
+    }
   }
   assert.deepEqual(escaped, [], "No demo API or provider request may escape to the server");
   assert.deepEqual(errors, [], "The invoice journey must not produce browser errors");

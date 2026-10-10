@@ -10,7 +10,7 @@ import {
 } from "@/lib/admin/today-data";
 import { loadOperatorQueue } from "./queue";
 import { projectOperatorAttention } from "./operator-attention";
-import { loadActivityTimeline } from "./activities";
+import { loadRecentActivities } from "./activities";
 import { getActiveModules } from "./modules";
 import { loadPipelineStages } from "./pipeline-stage-resolver";
 import { readCollectionWorkspace } from "./collection-workspace";
@@ -101,7 +101,7 @@ export async function loadTodaySnapshot(
     ),
     region(
       async () =>
-        (await loadActivityTimeline(db, { limit: 20 })).map((row) => ({
+        (await loadRecentActivities(db, { limit: 20 })).map((row) => ({
           id: row.id,
           title: row.title,
           summary: row.summary,

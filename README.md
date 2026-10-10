@@ -3,13 +3,15 @@
 [![CI](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml/badge.svg)](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Accelerate is an **open-source workspace for customer work**. When an inquiry arrives, its conversation, customer record and next action can stay together. Your team sees what needs attention, and AI can use the same context to prepare supported work.
+Accelerate is an **agent-first, open-source starting point for business software**. Give Claude Code or Codex the repository, describe what your team needs, and have the agent set it up, extend it and verify the result. Customer records, conversations, next actions and governed AI services give it a shared foundation to build on.
 
 Open the record behind a suggestion, review the proposed change when its policy requires it, and check the recorded result. Build your own screens, reports and workflows on the same identity, permissions and action services.
 
 Try six fictional businesses without an account or provider keys. When you are ready for your own team, connect a Supabase project and provider accounts you control. The application source is MIT licensed; hosting and provider usage have their normal costs.
 
-**See what you can build:** [ten plugin examples](https://www.acceleratewith.us/docs/plugins), from Business Pulse reports and onboarding checklists to Stripe invoicing, Collections and Opportunity Radar. Each guide explains what works today, how to try it and how to adapt the pattern. You can use a coding assistant to develop extensions against those examples and the shared contracts.
+**Have an agent build your workflow:** describe the repeated work, the records it uses and the result your team needs. A coding agent can handle setup, source changes, extension registration and checks while you review the working result. Reusing customer identity, permissions and business services saves rebuilding that foundation for every custom screen. Start with [an agent-ready business brief](https://www.acceleratewith.us/docs/extend/ai-authoring).
+
+**Explore available examples:** [ten plugin guides](https://www.acceleratewith.us/docs/plugins) cover reports, onboarding checklists, invoicing, Collections and Opportunity Radar. Each explains what works today, how to try it and how an agent can adapt the pattern.
 
 [Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [How it works](https://www.acceleratewith.us/docs/start/how-it-works) · [Architecture](docs/self-hosting/ARCHITECTURE.md) · [Self-hosting](docs/self-hosting/SELF-HOSTING.md) · [Developer start](docs/contributing/DEVELOPER-START.md) · [All docs](docs/README.md) · [Roadmap](#roadmap)
 
@@ -19,11 +21,27 @@ Try six fictional businesses without an account or provider keys. When you are r
 
 ## Quick start
 
+Give Claude Code or Codex this assignment:
+
+```text
+Set up https://github.com/JohnConnorCode/accelerate-site.
+Read docs/NORTHSTAR.md, then AGENTS.md. Preserve existing unfinished work.
+Install dependencies, run the fictional demo and show me what works.
+Then build the business workflow I describe using the existing services.
+Run the required checks and show the exact tested source changes.
+Hand off deployment separately.
+```
+
+The agent handles the commands below. You provide the business rules, authorized account access for connected services and feedback on the working result. [Your first agent-built change](https://www.acceleratewith.us/docs/extend/first-change) explains the handoff.
+For version identity and upgrade planning, see [Core releases and fork upgrades](docs/self-hosting/RELEASES.md). Run `npm run release:check` to inspect verified stable metadata; applying an upgrade remains maintainer work.
+
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJohnConnorCode%2Faccelerate-site&project-name=my-revenue-os&repository-name=my-revenue-os&demo-title=Accelerate%20Revenue%20OS&demo-description=Self-hosted%20revenue%20operations%2C%20CRM%2C%20and%20AI%20workspace&demo-url=https%3A%2F%2Fwww.acceleratewith.us%2Fdemo%2Fcommand-center)
 
 The full repository starts with a neutral Command Center homepage and the fictional demo, with no environment variables required. Accelerate agency pages and assets are off by default. Admin routes show a clearly labeled setup screen until you connect your own Supabase project. Follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md) to create your workspace.
 
-In Site Studio, edit the starter's identity, theme, navigation and pages, connect published forms, then preview and publish. The same website document and approval flow support UI editing, AI and owner-authorized ChatGPT MCP. See [Website setup and profiles](docs/self-hosting/NEUTRAL-DISTRIBUTION.md) and [ChatGPT setup](docs/self-hosting/SITE-STUDIO-CHATGPT.md). The optional reduced export is not required to fork the complete product.
+In Site Studio, edit the starter's identity, theme, navigation and pages, connect published forms, then preview and publish. The same website document and approval flow support UI editing, AI and owner-authorized ChatGPT MCP. See [Website setup and profiles](docs/self-hosting/NEUTRAL-DISTRIBUTION.md) and [ChatGPT setup](docs/self-hosting/SITE-STUDIO-CHATGPT.md). The optional reduced export is not required to fork the complete product. The fictional demo also supports private page drafts: create, rename, reload and discard a browser-session copy. Private previews use real phone, tablet and desktop viewports with public page styling and inactive links and forms. AI example mode uses a template without a provider call. The installation editor preserves edits through failed reloads, pauses competing save/import actions, and retries the same change when its confirmation cannot be verified.
+
+Client records connect editable agreement details with activity and follow-ups. Each section loads and retries independently, refreshes retain unsaved edits, and new follow-ups refresh Work and Today. See [the Clients guide](src/content/docs/delivery/clients.mdx) for the workflow. Work task links reopen the same inspector after reload, with editable instructions, related-record links and recovery for failed reads or saves.
 
 This is one codebase and one complete product, including our own installation. `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` turns the bundled agency presentation off; `branded` turns it on. Unset defaults to off. Choose the same value at build and runtime, then rebuild and deploy; this is not a live admin toggle. Both profiles retain the full workspace, editor, AI/MCP, plugins and governed business services. Changing profiles does not delete saved website revisions. Hosting ownership is verified separately in [Deployment](DEPLOY.md).
 
@@ -88,11 +106,11 @@ Setup for each client is in [docs/self-hosting/MCP-SETUP.md](docs/self-hosting/M
 
 ## Extend it without forking it
 
-Modules are the unit a workspace turns on and off. A third party registers one from a JSON manifest in [`extensions/`](extensions/README.md) that declares its navigation, routes, AI tools, and Setup Center checks. The build validates every manifest and compiles it into a typed constant, so nothing in that directory is ever executed.
+For example, an agent can build a client review queue around your existing customer records so the team can find the latest revision and outstanding decision together. That queue is an example to build, rather than a bundled feature. Give the agent the review rules and ask it to demonstrate the complete workflow with fictional records.
 
-A registered module inherits the approval queue, the audit ledger, module gating, and MCP exposure without asking for any of them. Disable it and its navigation disappears, its routes fail closed, and its AI tools report unavailable to the agent and to MCP alike.
+The agent implements the business behavior and registers a module, the unit a workspace turns on and off. Its JSON manifest in [`extensions/`](extensions/README.md) declares navigation, routes, AI tools and Setup Center checks. The build validates the manifest as data. The implementation must use shared domain and action services for authorization, approvals and recorded results; registration alone does not implement those operations.
 
-[docs/contributing/EXTENDING.md](docs/contributing/EXTENDING.md) covers all three extension points: modules, integration adapters, and AI tools. `extensions/example-inventory.module.json` is a complete working example.
+[docs/contributing/EXTENDING.md](docs/contributing/EXTENDING.md) gives the agent the module, integration adapter and AI tool contracts. `extensions/example-inventory.module.json` demonstrates page registration and workspace enablement. Start with [your first agent-built change](https://www.acceleratewith.us/docs/extend/first-change), then review the source and verification evidence before release.
 
 ## Technology
 

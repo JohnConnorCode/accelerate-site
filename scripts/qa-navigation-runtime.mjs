@@ -20,6 +20,14 @@ for (const config of [
   await context.addInitScript(() => {
     const count = Number(sessionStorage.getItem("accelerate:qa-document-count") || "0") + 1;
     sessionStorage.setItem("accelerate:qa-document-count", String(count));
+    window.__adminRouteEntrances = [];
+    document.addEventListener("animationstart", (event) => {
+      if (
+        event.animationName === "admin-route-section-in" &&
+        event.target.closest("[data-admin-route-stage]")
+      )
+        window.__adminRouteEntrances.push({ path: location.pathname });
+    });
   });
   const page = await context.newPage();
   const errors = [];
@@ -107,15 +115,15 @@ for (const config of [
   });
   await page.waitForTimeout(30);
   const adminOrigin = await page.evaluate(() => document.querySelector(".admin-main").scrollTop);
-  const pipeline = page
-    .locator('a[href="/demo/command-center/northline-roofing/pipeline"]:visible')
+  const contacts = page
+    .locator('a[href="/demo/command-center/northline-roofing/contacts"]:visible')
     .first();
-  if (!(await pipeline.count()))
-    failures.push(`${config.label}: scenario-aware Pipeline link is missing`);
-  else await pipeline.evaluate((node) => node.click());
-  await page.waitForURL("**/northline-roofing/pipeline");
+  if (!(await contacts.count()))
+    failures.push(`${config.label}: scenario-aware Contacts link is missing`);
+  else await contacts.evaluate((node) => node.click());
+  await page.waitForURL("**/northline-roofing/contacts");
   await page.waitForFunction(
-    () => document.title === "Pipeline | Northline Roofing & Exteriors Demo",
+    () => document.title === "Contacts | Northline Roofing & Exteriors Demo",
     undefined,
     { timeout: 15_000 },
   );
@@ -133,17 +141,15 @@ for (const config of [
     .locator("[data-admin-route-loading]")
     .waitFor({ state: "detached", timeout: 15_000 })
     .catch(() => {});
+  if (config.reducedMotion === "no-preference")
+    await page.waitForFunction(() =>
+      window.__adminRouteEntrances.some((entry) => entry.path === location.pathname),
+    );
   const adminEntrance = await page.evaluate(() => ({
     fallback: document.querySelectorAll("[data-admin-route-loading]").length,
-    contentAnimations: document
-      .getAnimations()
-      .filter(
-        (animation) =>
-          animation instanceof CSSAnimation &&
-          animation.animationName === "admin-route-section-in" &&
-          animation.effect?.target instanceof Element &&
-          document.querySelector("[data-admin-route-stage]")?.contains(animation.effect.target),
-      ).length,
+    contentAnimations: window.__adminRouteEntrances.filter(
+      (entry) => entry.path === location.pathname,
+    ).length,
   }));
   if (adminEntrance.fallback)
     failures.push(`${config.label}: admin route fallback did not resolve`);
@@ -170,7 +176,7 @@ for (const config of [
     );
   if (config.reducedMotion === "reduce" && adminEntrance.contentAnimations)
     failures.push("reduced: admin route entrance remained animated");
-  if (adminForward.title !== "Pipeline | Northline Roofing & Exteriors Demo")
+  if (adminForward.title !== "Contacts | Northline Roofing & Exteriors Demo")
     failures.push(`${config.label}: demo title is not contextual (${adminForward.title})`);
   if (!adminForward.focused)
     failures.push(

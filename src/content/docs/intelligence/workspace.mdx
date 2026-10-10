@@ -1,7 +1,7 @@
 ---
 title: "Use the AI Workspace"
 description: "Ask a specific question, check the sources behind the answer, then inspect what ran."
-updated: "2026-09-30"
+updated: "2026-10-08"
 ---
 
 A question about the business often needs both an answer and a way to inspect its evidence. Open **AI Workspace** to ask, review record links and see the tools and results in run history. Use [Ask AI](/docs/command-center/ask) when you want to stay on your current screen.
@@ -70,3 +70,52 @@ Choose **Blueprints** to review saved proposals, their versions and validation
 results. Compare the proposed changes with your actual business before approving
 an exact version. Approval and application are separate steps; a saved proposal
 does not mean the workspace has changed.
+
+### Save the operating setup
+
+A new workflow often needs the same decisions repeated across several screens.
+The Blueprint review collects those decisions in one proposal, so you can keep
+available board columns and the remaining implementation work together.
+
+<StepByStep>
+  <Step number={1} title="Review the current version">
+    Open **Blueprints**, choose the saved proposal and read **Operating setup**. Each board
+    identifies its existing destination, while workflows and Coworkers name the capabilities they
+    require. Resolve business assumptions with your team.
+  </Step>
+  <Step number={2} title="Approve the proposal">
+    Choose **Approve** for the version you reviewed. If you edit the business summary, save it as a
+    new version and review that version before approving again.
+  </Step>
+  <Step number={3} title="Save operating setup">
+    Choose **Save operating setup** to add available columns to the existing Pipeline or Content
+    board. The saved result keeps navigation, views, workflows and Coworkers as recommendations for
+    review, alongside any custom development briefs.
+  </Step>
+  <Step number={4} title="Check the saved result">
+    Read the number of columns added, then reload the review and check **Setup saved with an audit
+    record**. Repeating the save returns the same version's result, including when its columns
+    already existed.
+  </Step>
+</StepByStep>
+
+For example, the fictional manufacturing Blueprint reuses Pipeline for sales,
+while its production-order lifecycle becomes a **Custom App Brief**, a description
+of the extension still needed. Give that brief and the [extension guide](/docs/extend)
+to Claude Code, Codex or your team's coding agent, so it can build on the existing
+records and permissions through the repository's development and review workflow.
+
+## What to check
+
+- If **Operating setup could not be confirmed** appears, reload the review to check
+  its saved result or retry the same save. A dropped connection can hide a completed
+  save; retrying returns that version's original result. A rejected database transaction
+  rolls its columns, saved result and audit back together.
+- If an earlier save needs maintainer reconciliation, ask the installation maintainer
+  to inspect its saved result and audit. Keep the existing columns while the maintainer
+  establishes what happened; that version stays unavailable for another setup save.
+- Read navigation, view, workflow and Coworker entries as recommendations. Review and
+  implement each supported change through its existing configuration or extension path.
+  An email workflow still needs a configured provider and its required action approval.
+- If setup is unavailable after an upgrade, ask the maintainer to apply the release's
+  migrations and run [schema verification](/docs/workspace/setup) before retrying.

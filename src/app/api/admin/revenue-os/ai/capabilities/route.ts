@@ -4,6 +4,7 @@ import {
   AI_TOOL_REGISTRY_VERSION,
   listRevenueAiCapabilities,
   listRevenueAiCapabilitiesForProfile,
+  getRevenueAiCoverage,
 } from "@/lib/revenue-os/ai-tools";
 import { parseTaskToolProfile } from "@/lib/revenue-os/tool-profiles";
 import type { AiCapabilitiesPayload } from "@/lib/revenue-os/ai-operations-contract";
@@ -30,13 +31,14 @@ export async function GET(request: NextRequest) {
     registryVersion: AI_TOOL_REGISTRY_VERSION,
     scope: "runtime_registry",
     profile,
-    readinessEvaluated: true,
+    readinessEvaluated: false,
     capabilities: capabilities.map((capability) => ({
       ...capability,
       label: label(capability.name),
       state: capability.available ? "available" : "unavailable",
-      operationalReadiness: capability.available ? "ready" : "unavailable",
+      operationalReadiness: capability.available ? "not_evaluated" : "unavailable",
     })),
+    coverage: getRevenueAiCoverage({ tenantConfig: auth.tenant.config }),
     safety: {
       registeredReads: capabilities.filter((capability) => capability.impact === "read").length,
       registeredInternalWrites: capabilities.filter(

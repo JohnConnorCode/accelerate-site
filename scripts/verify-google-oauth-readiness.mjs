@@ -61,8 +61,11 @@ export function evaluateSource(source) {
     ),
     check(
       "source.drive_boundary",
-      source.google.includes("slice(0, 10)") &&
-        source.syncRoute.includes("driveFolderIds.length > 10"),
+      /MAX_DRIVE_FOLDERS\s*=\s*10\s*;/.test(source.drivePlan) &&
+        source.drivePlan.includes("ids.length >= MAX_DRIVE_FOLDERS") &&
+        source.google.includes("normalizeDriveFolderIds(settings.drive_folder_ids") &&
+        source.google.includes("isWithinAllowlist(file.parents, [folderId])") &&
+        /driveFolderIds:\s*z\.array\(z\.string\(\)\.max\(256\)\)\.max\(10\)/.test(source.syncRoute),
       "Drive selection and execution remain bounded to ten explicit folder IDs.",
     ),
   ];
@@ -75,6 +78,7 @@ export function readSourceState() {
     authorize: read("src/app/api/admin/google/authorize/route.ts"),
     callback: read("src/app/api/admin/google/callback/route.ts"),
     syncRoute: read("src/app/api/admin/google/sync/route.ts"),
+    drivePlan: read("src/lib/revenue-os/drive-sync-plan.ts"),
   };
 }
 

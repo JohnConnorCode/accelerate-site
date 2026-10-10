@@ -1,3 +1,11 @@
+import { handleDemoContentCalendar } from "./content-calendar-runtime";
+import {
+  createDemoSiteDraftState,
+  handleDemoSiteDrafts,
+  type DemoSiteDraftState,
+} from "./site-draft-runtime";
+import { isModuleEnabled } from "@/lib/revenue-os/modules";
+import { formatSearchRecords, normalizeSearchQuery } from "@/lib/admin/workspace-search";
 import {
   demoAgentSnapshotSchema,
   demoAgentProposalSchema,
@@ -49,6 +57,8 @@ import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
+import type { AiCommandStreamEvent } from "@/lib/revenue-os/ai-stream-contract";
+import type { AiRunEventSummary } from "@/lib/revenue-os/ai-operations-contract";
 import { COLLECTION_AGENT_TOOLS } from "@/lib/revenue-os/collection-agent-contract";
 import { demoPacketProblems } from "../../work-packet";
 import { KANBAN_DEFAULT_COLUMNS } from "@/lib/kanban/defaults";
@@ -64,6 +74,8 @@ import {
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
 import { DEMO_BLUEPRINT_DETAIL } from "./blueprint-fixture";
+import type { GeneratedOperationsReceipt } from "@/lib/revenue-os/workspace-architect-generated-operations";
+import type { KanbanColumnRecord } from "@/lib/kanban/types";
 import {
   REVENUE_OS_MODULES,
   isAiToolModuleEnabled,
@@ -98,6 +110,7 @@ type DemoGeneratedAiRun = {
   startedAt: string;
   finishedAt: string;
   feedback: null;
+  traceEvents?: AiRunEventSummary[];
 };
 type DemoEmailStudioDetail = {
   schemaReady: true;
@@ -140,7 +153,14 @@ type DemoSubscriptionsState = {
   archivedPlanIds?: string[];
 };
 export type DemoState = {
+  contentSeedAt?: string;
+  contentCommandReceipts?: Record<string, { fingerprint: string; result: Record<string, unknown> }>;
+  blueprintApprovedVersion?: number;
+  blueprintGenerations?: Record<string, GeneratedOperationsReceipt>;
+  blueprintGenerationRequests?: Record<string, number>;
+  generatedKanbanColumns?: Record<string, KanbanColumnRecord[]>;
   website?: DemoWebsiteState;
+  siteDrafts?: DemoSiteDraftState;
   todayViews?: TodayViews;
   todayViewReceipts?: Record<string, { fingerprint: string; result: unknown }>;
   deliveryHandoffs?: Record<
@@ -256,6 +276,26 @@ export type DemoState = {
   workReceipts?: Record<string, { fingerprint: string; card: unknown }>;
   moduleOverrides: Partial<Record<string, boolean>>;
   moduleSettings: Record<string, Record<string, unknown>>;
+  sourceAuthorityReceipts?: Record<
+    string,
+    { fingerprint: string; receipt: Record<string, unknown> }
+  >;
+  sourceAuthority?: Array<{
+    version: number;
+    id: string;
+    tenant_id: string;
+    system_key: string;
+    display_name: string;
+    truth_domains: string[];
+    authority_tier: "official" | "approved" | "working" | "low";
+    owner_email: string;
+    last_verified_at: string;
+    verification_lapse_days: number;
+    applies_to: Record<string, unknown> | null;
+    request_key: string;
+    created_at: string;
+    updated_at: string;
+  }>;
 };
 export const initialState = (): DemoState => ({
   business: null,
@@ -674,6 +714,7 @@ export function auditHistory(
   pack: DemoScenarioPack,
   params: URLSearchParams,
   business?: DemoBusinessState,
+  siteDrafts?: DemoSiteDraftState,
 ) {
   const founder = pack.tenant.founder.email;
   const system = pack.tenant.founder.systemActorEmail;
@@ -762,6 +803,20 @@ export function auditHistory(
       before: null,
       after: { operation: receipt.operation },
       metadata: { simulated: true, sourceType: receipt.sourceType, sourceId: receipt.sourceId },
+      createdAt: receipt.at,
+    })),
+  );
+  entries.unshift(
+    ...(siteDrafts?.receipts ?? []).map((receipt) => ({
+      id: receipt.id,
+      actorEmail: founder,
+      action: "demo.simulated",
+      entityType: "site_draft",
+      entityId: receipt.draftId,
+      source: "demo",
+      before: null,
+      after: { operation: `site.draft.${receipt.operation}` },
+      metadata: { simulated: true, sourceType: "site_draft", sourceId: receipt.draftId },
       createdAt: receipt.at,
     })),
   );
@@ -871,6 +926,8 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
     .slice(0, 20)
     .map((item, index) => ({
       id: `task:${item.id}`,
+      entityType: item.related_type || undefined,
+      entityId: item.related_id || undefined,
       kind: index % 2 === 0 ? "task" : "follow_up",
       title: item.title,
       summary: "Linked to the latest conversation and opportunity context.",
@@ -1590,38 +1647,14 @@ function aiRunDetail(pack: DemoScenarioPack, state: DemoState, runId: string) {
       eventsTruncated: false,
       affectedRecords: [],
     };
-  const parsedIndex = Number(run.id.split("-").at(-1));
-  const opportunity =
-    pack.opportunities[
-      (Number.isFinite(parsedIndex) ? parsedIndex : 0) % pack.opportunities.length
-    ]!;
   return {
     schemaReady: true,
-    degraded: false,
-    degradationReasons: [],
+    degraded: run.traceEvents === undefined,
+    degradationReasons:
+      run.traceEvents === undefined ? ["This saved demo run has no recorded tool trace."] : [],
     run,
     events: [
-      {
-        id: `${run.id}-context`,
-        type: "context_loaded",
-        label: "Business context",
-        summary: "Loaded a bounded fictional priority and pipeline snapshot.",
-        toolName: null,
-        status: "recorded",
-        createdAt: run.startedAt,
-      },
-      {
-        id: `${run.id}-tool`,
-        type: run.status === "failed" ? "tool_error" : "tool_result",
-        label: run.toolNames[0]!.replace(/_/g, " "),
-        summary:
-          run.status === "failed"
-            ? "The simulated provider timed out without changing data."
-            : "Completed with bounded fictional evidence.",
-        toolName: run.toolNames[0],
-        status: run.status === "failed" ? "failed" : "completed",
-        createdAt: run.finishedAt || run.startedAt,
-      },
+      ...(run.traceEvents ?? []),
       {
         id: `${run.id}-response`,
         type: "model_response",
@@ -1633,9 +1666,7 @@ function aiRunDetail(pack: DemoScenarioPack, state: DemoState, runId: string) {
       },
     ],
     eventsTruncated: false,
-    affectedRecords: [
-      { type: "opportunity", id: opportunity.id, href: `/admin/pipeline/${opportunity.id}` },
-    ],
+    affectedRecords: [],
   };
 }
 
@@ -1854,7 +1885,7 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
         ? ("available" as const)
         : ("unavailable" as const),
       operationalReadiness: isAiToolModuleEnabled(name, tenantConfig).enabled
-        ? ("ready" as const)
+        ? ("not_evaluated" as const)
         : ("unavailable" as const),
       availabilityReason:
         isAiToolModuleEnabled(name, tenantConfig).reason ??
@@ -1864,7 +1895,7 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
   return {
     registryVersion: AI_TOOL_REGISTRY_VERSION,
     scope: "runtime_registry",
-    readinessEvaluated: true,
+    readinessEvaluated: false,
     capabilities,
     safety: {
       registeredReads: capabilities.filter((c) => c.impact === "read").length,
@@ -2208,11 +2239,13 @@ function contentItems(pack: DemoScenarioPack, state: DemoState) {
     seo_description: `A specific operating resource from ${pack.name}.`,
     word_count_target: 900 + index * 100,
     created_at: ago(240 + index * 24),
-    updated_at: ago(index * 5 + 1),
+    updated_at: new Date(
+      Date.parse(state.contentSeedAt!) - (index * 5 + 1) * 3_600_000,
+    ).toISOString(),
     ...(state.contentOverrides[`content-${index}`] ?? {}),
   }));
   const created = Object.entries(state.contentOverrides)
-    .filter(([id]) => id.startsWith("content-new-"))
+    .filter(([id]) => !seeded.some((item) => item.id === id))
     .map(([id, patch]) => ({ ...seeded[0]!, ...patch, id }));
   return [...seeded, ...created].filter((item) => !state.deletedContentIds.includes(item.id));
 }
@@ -2510,6 +2543,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
   activeRuntime?.restore();
   const pack = DEMO_SCENARIOS[scenarioId];
   const state = loadState(scenarioId);
+  if (!state.contentSeedAt) {
+    state.contentSeedAt = new Date().toISOString();
+    saveState(scenarioId, state);
+  }
   if (!state.business || state.business.version !== 1) {
     state.business = createDemoBusinessState(pack);
     saveState(scenarioId, state);
@@ -2590,10 +2627,54 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         return jsonResponse({ error: "Blocked by the fictional demo runtime" }, 403);
       return nativeFetch(input, init);
     }
+    if (path === "/api/admin/site/drafts" || /^\/api\/admin\/site\/drafts\/[^/]+$/.test(path)) {
+      if (state.moduleOverrides["site-studio"] === false)
+        return jsonResponse(
+          { error: "Site Studio is disabled for this fictional workspace." },
+          403,
+        );
+      let body: unknown = {};
+      try {
+        if (typeof init?.body === "string") body = JSON.parse(init.body);
+        else if (input instanceof Request && !["GET", "DELETE"].includes(method))
+          body = await input.clone().json();
+      } catch {
+        return jsonResponse({ error: "Request body must be JSON", simulated: true }, 400);
+      }
+      state.siteDrafts ??= createDemoSiteDraftState();
+      const headers = new Headers(
+        init?.headers ?? (input instanceof Request ? input.headers : undefined),
+      );
+      const response = await handleDemoSiteDrafts(
+        state.siteDrafts,
+        method,
+        body,
+        path === "/api/admin/site/drafts" ? undefined : path.split("/").at(-1),
+        headers.get("If-Match"),
+      );
+      if (method !== "GET" && response.ok) saveState(scenarioId, state);
+      return response;
+    }
     const body =
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    const calendar = await handleDemoContentCalendar(
+      scenarioId,
+      state,
+      business,
+      contentItems(pack, state),
+      KANBAN_DEFAULT_COLUMNS.content,
+      path,
+      method,
+      body,
+      url.searchParams,
+      () => {
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+      },
+    );
+    if (calendar) return calendar;
     if (
       path === "/api/admin/revenue-os/actions" &&
       method === "GET" &&
@@ -2880,7 +2961,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         resolvedIds.set(item.id, row.id);
         item.id = row.id;
       }
-      const events = result.events.map((event: { type: string; proposal?: { id: string } }) =>
+      const events: AiCommandStreamEvent[] = result.events.map((event: AiCommandStreamEvent) =>
         event.type === "proposal_staged" && event.proposal
           ? {
               ...event,
@@ -2929,6 +3010,45 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         startedAt: at,
         finishedAt: at,
         feedback: null,
+        traceEvents: events.flatMap((event, index): AiRunEventSummary[] => {
+          const recorded = { id: `${result.runId}-${index}`, createdAt: at };
+          if (event.type === "tool_started" || event.type === "tool_completed")
+            return [
+              {
+                ...recorded,
+                type:
+                  event.type === "tool_started"
+                    ? "tool_started"
+                    : event.failed
+                      ? "tool_error"
+                      : "tool_result",
+                label: event.name.replace(/_/g, " "),
+                summary:
+                  event.type === "tool_started"
+                    ? "Requested a fictional sandbox tool."
+                    : event.summary,
+                toolName: event.name,
+                status:
+                  event.type === "tool_started"
+                    ? "recorded"
+                    : event.failed
+                      ? "failed"
+                      : "completed",
+              },
+            ];
+          if (event.type === "proposal_staged")
+            return [
+              {
+                ...recorded,
+                type: event.type,
+                label: "Proposal prepared",
+                summary: "Prepared a fictional change for human review.",
+                toolName: null,
+                status: "recorded",
+              },
+            ];
+          return [];
+        }),
       });
       saveState(scenarioId, state);
       return eventStreamResponse([
@@ -2972,7 +3092,6 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         source: "bundled",
       });
     }
-    if (path === "/api/admin/site/drafts" && method === "GET") return jsonResponse({ drafts: [] });
     if (path === "/api/admin/site/website" || path === "/api/admin/site/website/suggest") {
       if (state.moduleOverrides["site-studio"] === false)
         return jsonResponse(
@@ -3023,7 +3142,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       // The fixture is intentionally shaped like the canonical queue. Keep the
       // boundary explicit so fixture literals do not widen its discriminants.
       const attention = projectOperatorAttention(queue(pack, state) as OperatorQueueItem[]);
-      const history = auditHistory(pack, new URLSearchParams(), business).entries;
+      const history = auditHistory(pack, new URLSearchParams(), business, state.siteDrafts).entries;
       const activity = history.slice(0, 12).map((row) => ({
         id: row.id,
         title: row.action.replaceAll(".", " ").replaceAll("_", " "),
@@ -3517,6 +3636,17 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       catalog.summary.attention = catalog.summary.degraded + catalog.summary.action;
       return jsonResponse(catalog);
     }
+    if (method === "GET" && path === "/api/admin/setup/release") {
+      return jsonResponse({
+        status: "unknown",
+        message:
+          "This fictional workspace has no installed core release. Check releases from your own connected installation.",
+        checkedAt: new Date().toISOString(),
+        installed: { coreVersion: null, coreCommit: null, forkCommit: null, customized: null },
+        path: [],
+        target: null,
+      });
+    }
     if (method === "GET" && path === "/api/admin/setup") {
       const snapshot = setup(pack);
       const google = business.configuration?.providers.find(
@@ -3549,7 +3679,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse(snapshot);
     }
     if (method === "GET" && path === "/api/admin/proposals") {
-      const rows = proposals(pack);
+      const status = url.searchParams.get("status");
+      const rows = proposals(pack).filter(
+        (item) => !status || status === "all" || item.status === status,
+      );
       const requested = url.searchParams.get("id");
       return jsonResponse(
         requested
@@ -3567,72 +3700,21 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse(clients(pack, state, url.searchParams));
     if (method === "GET" && path === "/api/admin/content")
       return jsonResponse({ items: contentItems(pack, state) });
-    if (path === "/api/admin/content" && method !== "GET") {
-      const rows = contentItems(pack, state);
-      const validStatuses = new Set(
-        KANBAN_DEFAULT_COLUMNS.content.map((column) => column.column_key),
-      );
-      if (Array.isArray(body.reorder)) {
-        const updates = body.reorder as Array<{
-          id: string;
-          column_key: string;
-          sort_order: number;
-        }>;
-        if (
-          !updates.length ||
-          updates.length > 250 ||
-          updates.some(
-            (u) =>
-              !rows.some((row) => row.id === u.id) ||
-              !validStatuses.has(u.column_key) ||
-              !Number.isFinite(u.sort_order),
-          )
-        )
-          return jsonResponse({ error: "Invalid content reorder" }, 400);
-        for (const update of updates)
-          state.contentOverrides[update.id] = {
-            ...state.contentOverrides[update.id],
-            status: update.column_key,
-            sort_order: update.sort_order,
-          };
-      } else if (method === "DELETE") {
-        const id = url.searchParams.get("id") ?? "";
-        if (!rows.some((row) => row.id === id))
-          return jsonResponse({ error: "Content not found" }, 404);
-        state.deletedContentIds.push(id);
-      } else {
-        const id = method === "POST" ? `content-new-${crypto.randomUUID()}` : String(body.id ?? "");
-        if (method !== "POST" && !rows.some((row) => row.id === id))
-          return jsonResponse({ error: "Content not found" }, 404);
-        if (
-          typeof body.title !== "string" ||
-          !body.title.trim() ||
-          !validStatuses.has(String(body.status))
-        )
-          return jsonResponse({ error: "A title and valid status are required" }, 400);
-        state.contentOverrides[id] = {
-          ...state.contentOverrides[id],
-          ...body,
-          id,
-          updated_at: new Date().toISOString(),
-        };
-      }
-      saveState(scenarioId, state);
-      window.dispatchEvent(new Event("admin:demo-state"));
-      return jsonResponse({ success: true, simulated: true });
-    }
     if (method === "GET" && path === "/api/admin/kanban/columns") {
       const board = url.searchParams.get("board_key");
       if (!isKanbanBoardKey(board)) return jsonResponse({ error: "Invalid board" }, 400);
       return jsonResponse({
-        columns: KANBAN_DEFAULT_COLUMNS[board].map((column, index) => ({
-          ...column,
-          id: `demo-column-${board}-${index}`,
-          board_key: board,
-          tenant_id: null,
-          created_at: ago(1),
-          updated_at: ago(1),
-        })),
+        columns: [
+          ...KANBAN_DEFAULT_COLUMNS[board].map((column, index) => ({
+            ...column,
+            id: `demo-column-${board}-${index}`,
+            board_key: board,
+            tenant_id: null,
+            created_at: ago(1),
+            updated_at: ago(1),
+          })),
+          ...(state.generatedKanbanColumns?.[board] ?? []),
+        ],
       });
     }
     if (path === "/api/admin/blueprints") {
@@ -3707,14 +3789,111 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         approvals: [],
         blocked: [],
       };
-      return jsonResponse(seed);
+      seed.status = state.blueprintApprovedVersion === seed.version ? "approved" : "draft";
+      const receipt = state.blueprintGenerations?.[String(seed.version)] ?? null;
+      return jsonResponse({
+        ...seed,
+        generation: { state: receipt ? "saved" : "not_generated", receipt },
+      });
     }
     const blueprintApprove = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/approve$/i);
     if (method === "POST" && blueprintApprove) {
       if (blueprintApprove[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
         return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
       }
+      const input = body as { version?: unknown };
+      if (input.version !== (state.blueprintEdits?.version ?? DEMO_BLUEPRINT_DETAIL.version)) {
+        return jsonResponse({ error: "Blueprint version changed. Reload before approving." }, 409);
+      }
+      state.blueprintApprovedVersion = input.version as number;
+      saveState(scenarioId, state);
       return jsonResponse({ status: "approved", simulated: true });
+    }
+    const blueprintGenerate = path.match(
+      /^\/api\/admin\/blueprints\/([0-9a-f-]+)\/generate-operations$/i,
+    );
+    if (method === "POST" && blueprintGenerate) {
+      if (blueprintGenerate[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
+        return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
+      }
+      const input = body as { version?: unknown; requestKey?: unknown };
+      const version = state.blueprintEdits?.version ?? DEMO_BLUEPRINT_DETAIL.version;
+      if (input.version !== version || state.blueprintApprovedVersion !== version) {
+        return jsonResponse(
+          { error: "The approved Blueprint changed. Reload and review its current version." },
+          409,
+        );
+      }
+      if (
+        typeof input.requestKey !== "string" ||
+        !input.requestKey.trim() ||
+        input.requestKey.length > 180
+      ) {
+        return jsonResponse({ error: "A valid request key is required" }, 400);
+      }
+      const boundVersion = state.blueprintGenerationRequests?.[input.requestKey];
+      if (boundVersion !== undefined && boundVersion !== version) {
+        return jsonResponse(
+          { error: "This request belongs to a different Blueprint version." },
+          409,
+        );
+      }
+      state.blueprintGenerations ??= {};
+      state.blueprintGenerationRequests ??= {};
+      const existing = state.blueprintGenerations[String(version)];
+      const operations = DEMO_BLUEPRINT_DETAIL.operations!;
+      const receipt: GeneratedOperationsReceipt = existing ?? {
+        auditId: crypto.randomUUID(),
+        blueprintId: DEMO_BLUEPRINT_DETAIL.blueprintId,
+        version,
+        navigation: operations.navigation,
+        views: operations.views,
+        customAppBriefs: operations.customAppBriefs,
+        boards: operations.boards.map((board) => ({ ...board, columnsCreated: [] })),
+        workflows: operations.workflows.map((workflow) => ({ ...workflow, actionId: null })),
+        coworkers: operations.coworkers.map((coworker) => ({ ...coworker, actionId: null })),
+      };
+      state.generatedKanbanColumns ??= {};
+      for (const board of operations.boards) {
+        if (existing || board.status !== "ready" || !board.targetBoardKey) continue;
+        const columns = state.generatedKanbanColumns[board.targetBoardKey] ?? [];
+        const defaults = KANBAN_DEFAULT_COLUMNS[board.targetBoardKey];
+        const created: string[] = [];
+        let sortOrder = Math.max(
+          0,
+          ...defaults.map((column) => column.sort_order),
+          ...columns.map((column) => column.sort_order),
+        );
+        for (const column of board.columns) {
+          if ([...defaults, ...columns].some((row) => row.column_key === column.columnKey))
+            continue;
+          sortOrder += 1000;
+          const now = new Date().toISOString();
+          columns.push({
+            id: crypto.randomUUID(),
+            board_key: board.targetBoardKey,
+            tenant_id: null,
+            column_key: column.columnKey,
+            label: column.label,
+            color: null,
+            sort_order: sortOrder,
+            is_default: false,
+            metadata: {
+              generatedFrom: "workspace_blueprint",
+              lifecycleStates: column.lifecycleStates,
+            },
+            created_at: now,
+            updated_at: now,
+          });
+          created.push(column.columnKey);
+        }
+        state.generatedKanbanColumns[board.targetBoardKey] = columns;
+        receipt.boards.find((item) => item.ref === board.ref)!.columnsCreated = created;
+      }
+      state.blueprintGenerations[String(version)] = receipt;
+      state.blueprintGenerationRequests[input.requestKey] = version;
+      saveState(scenarioId, state);
+      return jsonResponse({ replayed: Boolean(existing), receipt, simulated: true });
     }
     const blueprintApply = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/apply$/i);
     if (method === "POST" && blueprintApply) {
@@ -4407,7 +4586,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       saveState(scenarioId, state);
       return jsonResponse({ success: true, readAt: input.read ? new Date().toISOString() : null });
     }
-    if (method !== "GET") {
+    if (method !== "GET" && path !== "/api/admin/source-authority") {
       if (path === "/api/admin/contacts/directory" && method === "POST") {
         const name = typeof body.name === "string" ? body.name.trim() : "";
         const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -4646,19 +4825,36 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/revenue-os/priority") return jsonResponse(priority(pack, state));
     if (path === "/api/admin/notifications") return jsonResponse(notifications(pack, state));
-    if (path === "/api/admin/search")
+    if (path === "/api/admin/search") {
+      const q = normalizeSearchQuery(url.searchParams.get("q") || "").toLowerCase();
+      if (q.length < 3) return jsonResponse({ results: [], records: [] });
+      const matches = (...values: (string | null | undefined)[]) =>
+        values.some((value) => value?.toLowerCase().includes(q));
+      const config = { modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } };
       return jsonResponse({
         results: pack.people
-          .filter(
-            (item) =>
-              !url.searchParams.get("q") ||
-              `${item.name} ${item.email} ${item.company}`
-                .toLowerCase()
-                .includes(url.searchParams.get("q")!.toLowerCase()),
-          )
+          .filter((item) => matches(item.name, item.email))
           .slice(0, 10)
           .map((item) => ({ name: item.name, email: item.email, type: item.role })),
+        records:
+          url.searchParams.get("scope") === "people"
+            ? []
+            : formatSearchRecords({
+                tasks: demoTaskRows(pack, state).filter((item) =>
+                  matches(item.title, item.related_name),
+                ),
+                opportunities: opportunityRows(pack, state).filter((item) => matches(item.name)),
+                clients: isModuleEnabled("clients", config)
+                  ? clientRows(pack, state).filter((item) =>
+                      matches(item.business_name, item.contact_name, item.contact_email),
+                    )
+                  : [],
+                proposals: isModuleEnabled("proposals", config)
+                  ? proposals(pack).filter((item) => matches(item.title, item.client_name))
+                  : [],
+              }),
       });
+    }
     if (path === "/api/admin/revenue-os/overview") {
       const rows = opportunityRows(pack, state);
       const open = rows.filter((item) => !["won", "lost"].includes(item.canonical_stage));
@@ -4967,7 +5163,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       });
     }
     if (path === "/api/admin/activity") {
-      const history = auditHistory(pack, url.searchParams, business);
+      const history = auditHistory(pack, url.searchParams, business, state.siteDrafts);
       return jsonResponse({
         ...history,
         canonical: {
@@ -5101,6 +5297,150 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse(demoSubscriptions(pack, state));
     }
     if (path === "/api/admin/google/sync") return jsonResponse({ success: true, simulated: true });
+    if (path === "/api/admin/source-authority") {
+      const owner = pack.tenant.founder.email;
+      const now = new Date().toISOString();
+      if (!state.sourceAuthority) {
+        state.sourceAuthority = [
+          {
+            version: 1,
+            id: "src-crm",
+            tenant_id: "demo",
+            system_key: "canonical_crm",
+            display_name: "Canonical CRM",
+            truth_domains: ["contact_identity", "company_profile", "pipeline_stage"],
+            authority_tier: "official",
+            owner_email: owner,
+            last_verified_at: now,
+            verification_lapse_days: 90,
+            applies_to: null,
+            request_key: "demo-crm",
+            created_at: now,
+            updated_at: now,
+          },
+          {
+            version: 1,
+            id: "src-notes",
+            tenant_id: "demo",
+            system_key: "founder_notes",
+            display_name: "Founder notes",
+            truth_domains: ["intent", "commitments"],
+            authority_tier: "approved",
+            owner_email: owner,
+            last_verified_at: now,
+            verification_lapse_days: 90,
+            applies_to: null,
+            request_key: "demo-notes",
+            created_at: now,
+            updated_at: now,
+          },
+          {
+            version: 1,
+            id: "src-activity",
+            tenant_id: "demo",
+            system_key: "activity_ledger",
+            display_name: "Activity ledger",
+            truth_domains: ["communications"],
+            authority_tier: "working",
+            owner_email: owner,
+            last_verified_at: now,
+            verification_lapse_days: 90,
+            applies_to: null,
+            request_key: "demo-activity",
+            created_at: now,
+            updated_at: now,
+          },
+          {
+            version: 1,
+            id: "src-slack",
+            tenant_id: "demo",
+            system_key: "slack",
+            display_name: "Slack asides",
+            truth_domains: ["informal_notes"],
+            authority_tier: "low",
+            owner_email: owner,
+            last_verified_at: new Date(Date.now() - 200 * 86_400_000).toISOString(),
+            verification_lapse_days: 30,
+            applies_to: null,
+            request_key: "demo-slack",
+            created_at: now,
+            updated_at: now,
+          },
+        ];
+        saveState(scenarioId, state);
+      }
+      if (method === "GET")
+        return jsonResponse({ entries: state.sourceAuthority, tenantId: `demo:${scenarioId}` });
+      if (method === "POST") {
+        const systemKey =
+          typeof body.systemKey === "string" ? body.systemKey.trim().toLowerCase() : "";
+        const displayName = typeof body.displayName === "string" ? body.displayName.trim() : "";
+        const ownerEmail = typeof body.ownerEmail === "string" ? body.ownerEmail.trim() : "";
+        const domains = Array.isArray(body.truthDomains)
+          ? body.truthDomains.filter((domain): domain is string => typeof domain === "string")
+          : [];
+        const tier = body.authorityTier;
+        if (
+          !systemKey ||
+          !displayName ||
+          !ownerEmail ||
+          !domains.length ||
+          !["official", "approved", "working", "low"].includes(String(tier))
+        ) {
+          return jsonResponse(
+            {
+              error:
+                "systemKey, displayName, truthDomains, authorityTier and ownerEmail are required",
+            },
+            400,
+          );
+        }
+        const requestKey = String(body.requestKey ?? "");
+        const fingerprint = JSON.stringify(body);
+        state.sourceAuthorityReceipts ??= {};
+        const saved = state.sourceAuthorityReceipts[requestKey];
+        if (saved) {
+          if (saved.fingerprint !== fingerprint)
+            return jsonResponse({ error: "Request conflicts with an earlier command" }, 409);
+          return jsonResponse({ ...saved.receipt, replayed: true });
+        }
+        const existing = state.sourceAuthority.find((entry) => entry.system_key === systemKey);
+        if (body.expectedVersion !== (existing?.version ?? 0))
+          return jsonResponse({ error: "This source changed. Reload its current version." }, 409);
+        const entry = {
+          version: (existing?.version ?? 0) + 1,
+          id: existing?.id ?? `src-${systemKey}`,
+          tenant_id: "demo",
+          system_key: systemKey,
+          display_name: displayName,
+          truth_domains: domains,
+          authority_tier: tier as "official" | "approved" | "working" | "low",
+          owner_email: ownerEmail,
+          last_verified_at: typeof body.lastVerifiedAt === "string" ? body.lastVerifiedAt : now,
+          verification_lapse_days:
+            typeof body.verificationLapseDays === "number" ? body.verificationLapseDays : 90,
+          applies_to:
+            body.appliesTo && typeof body.appliesTo === "object"
+              ? (body.appliesTo as Record<string, unknown>)
+              : null,
+          request_key: requestKey,
+          created_at: existing?.created_at ?? now,
+          updated_at: now,
+        };
+        if (existing) Object.assign(existing, entry);
+        else state.sourceAuthority.push(entry);
+        const receipt = {
+          entry: structuredClone(entry),
+          requestKey,
+          auditId: `demo-audit-${requestKey}`,
+          replayed: false,
+          simulated: true,
+        };
+        state.sourceAuthorityReceipts[requestKey] = { fingerprint, receipt };
+        saveState(scenarioId, state);
+        return jsonResponse(receipt);
+      }
+    }
     return jsonResponse(
       { error: "This fictional workspace has no handler for this request.", simulated: true },
       404,

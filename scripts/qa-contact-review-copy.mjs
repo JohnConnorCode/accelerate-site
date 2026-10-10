@@ -153,8 +153,12 @@ try {
         if (width === 390) {
           await page.getByRole("button", { name: "Open More", exact: true }).click();
         }
-        const recordsSection = page.locator('section[data-nav-section="Records"]:visible').first();
-        const records = recordsSection.getByRole("button", { name: "Expand Records links" });
+        const recordsSection = page
+          .locator('section[data-nav-section="Customers & sales"]:visible')
+          .first();
+        const records = recordsSection.getByRole("button", {
+          name: "Expand Customers & sales links",
+        });
         if (await records.count()) await records.click();
         await recordsSection.getByRole("link", { name: "Pipeline", exact: true }).click();
         await page.getByRole("heading", { name: "This feature needs setup" }).waitFor();

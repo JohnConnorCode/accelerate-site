@@ -1,10 +1,10 @@
 # Universal approved AI access to admin
 
-The AI is a complete conversational interface to the admin. The product target
-is that a user can ask it to inspect, create, update, organize, run, publish,
+The product target is a complete conversational interface to the admin, where a user can ask it to inspect, create, update, organize, run, publish,
 archive or remove anything that user is authorized to manage in the admin.
 This includes configuration and plugin workflows, not just selected CRM tools.
-Every write requested through this interface requires human approval by default.
+Writes use exact human review or a current, bounded standing permission for
+covered routine internal work. Consequential actions retain human review.
 This document defines the target and contributor contract; universal runtime
 coverage is **not implemented yet**.
 
@@ -70,10 +70,13 @@ what the user may request.
    normalized payload, target IDs, relevant revisions and expiry. Creating a
    pending proposal is not applying its business change.
 4. An authenticated human approves, edits or rejects in the shared review UI.
+   A covered routine internal proposal may execute under a current member
+   permission bound to named records, fields, expiry and daily limits.
    The AI cannot call an approval endpoint or approve its own policy change.
    Secret entry and OAuth consent use a secure user interaction; tool context
    contains configuration references and redacted status, never secret values.
-5. On approval, recheck the approver's permissions, active membership, module,
+5. At execution, recheck the actor's authority, standing permission where used,
+   active membership, module,
    target state and preconditions. Changed data, revoked access or a stale
    preview requires a new review. Use the canonical execution claim and service.
 6. Persist a truthful receipt and audit/provenance. Confirm success only from the
@@ -101,8 +104,9 @@ and revocation for a tenant-bound connection. These are secure human handoffs,
 not model-callable business operations. The separate
 `/api/public/<tenantSlug>/mcp/oauth` endpoint exposes only registered workspace
 tools after checking the live user, native OAuth grant, session, active admin
-membership, and 30-day local delegation. Business changes still require a
-separate Command Center approval. This connection does not add universal admin
+membership, and 30-day local delegation. Business changes use the same action policy. Bounded routine internal changes
+may use a current member standing permission; consequential changes retain
+separate human review. This connection does not add universal admin
 operation coverage or Site Studio execution. See the
 [setup and verification guide](../self-hosting/WORKSPACE-MCP-OAUTH.md).
 
@@ -131,13 +135,16 @@ write, then map them to the existing service, tool, approval and receipt. A rout
 with multiple `action` values is several operations. A POST may only preview or
 authenticate. Transport inventory alone proves neither semantics nor parity.
 
-The checked-in [route inventory](../generated/admin-ai-route-inventory.json)
-records all exported admin HTTP handlers, imports for navigation and source
-fingerprints. CI fails if handlers or source change without refreshing the
-inventory. Aliases and named reexports are included; ambiguous wildcard exports
-fail closed. This is an initial drift detector, not a universal-access switch or
-a full inventory of server actions, other API roots and direct client mutations.
-Domain implementation cards must inspect those additional paths.
+The checked-in [operation inventory](../generated/admin-ai-route-inventory.json)
+records admin and additional API handlers, declared server actions, direct client
+mutation candidates and source fingerprints. Its semantic bindings are generated
+from the existing tool registry: versioned operation IDs, service owners,
+entrypoints and verification paths. Conflicting definitions or service owners
+fail, as do newly introduced unreviewed tools, handlers or discovered source
+operations, even during refresh.
+Existing unreviewed bindings and handlers remain explicit gaps. Refreshing source
+fingerprints cannot prove behavioral parity, and action variants and indirect
+client writes still require domain review. Universal coverage is not asserted.
 
 After reviewing a route change and updating its live parity card:
 
@@ -155,14 +162,33 @@ Verify the shared demo at desktop/mobile widths with fictional data and no live
 side effects. Authentication-only steps are explicitly classified secure human
 handoffs; missing business tools stay visible as implementation gaps.
 
-## Current baseline
+## Current implementation boundary
 
-Main `57e5ef3` has 50 registered AI tools and working approval paths for selected
-operations, including Collections. Many admin operations are not registered.
-The inventory currently covers 86 route files and 76 exported POST/PUT/PATCH/DELETE
-handlers. These counts are transport facts, not business-operation counts or a
-coverage percentage. This foundation changes engineering requirements and drift
-detection; it does not grant additional runtime write authority.
+Use the generated inventory and live capability catalogue for current counts.
+These are transport and registration facts, not a business coverage percentage.
+The foundation adds reviewed semantic mappings without granting write authority.
+Content creation, deletion and reordering, remaining domain CRUD/import/export,
+expanded standing permissions and separately scoped founder administration remain
+open until their shared services and end-to-end governance are verified.
+
+## Implemented reporting path
+
+`get_revenue_report`, `get_revenue_analytics`, `export_revenue_report` and
+`export_revenue_analytics` call `revenue-os.analytics`, the dashboard owner.
+Typed filters and named sections exclude arbitrary SQL, tenant overrides and
+currency conversion. Drilldowns expose totals and continuation; exports contain
+only the requested section/page with source and quality metadata. Primary reads
+refuse incomplete datasets. Auxiliary history, communication and website failures
+remain disclosed degraded sources, not fabricated zeros. Website capture time
+comes from the latest observed event, not the time the report was opened.
+
+The reporting acceptance test compares authenticated routes, internal tool dispatch
+and MCP results, including tenant isolation, module disable, revoked membership,
+strict input validation, pagination, source limits and formula-safe CSV. The
+fictional demo does not execute these live report tools; its dashboard data and
+assistant remain simulations. Native live-client acceptance is a separate release
+check. `get_admin_operation_coverage` and the capability screen expose registration
+and reviewed mapping status without claiming every administrative change is covered.
 
 ## Implemented branding write path
 
@@ -211,10 +237,21 @@ digest for review, and wait for an administrator decision. Execution rechecks
 the active tenant admin, current module enablement and item revision before a
 tenant-scoped compare-and-set write. Approval does not publish content.
 
-Content calendar creation, deletion and column reordering are not yet part of
-this AI parity path. Creation/deletion and other domain write paths still need
-their own shared operation services and governance where appropriate, so the
-content domain is not complete parity.
+Content calendar creation, permanent item deletion and item reordering now use
+`preview_content_calendar_change` and `propose_content_calendar_change`. The
+strict versioned command binds a stable request key, normalized input, exact item
+revisions and current columns. Tools accept at most ten reordered items; direct
+admin controls accept at most 250. Approval rechecks current administrator access,
+module availability and every snapshot. The shared database function atomically
+writes the calendar and its audit receipt; replay cannot save a different command.
+Deletion preserves approvals/audit and does not delete or unpublish website pages.
+The fictional demo shares command validation and review UI, with session-local
+simulated effects. Its scripted assistant does not infer these calendar commands.
+
+Shared Kanban column creation/rename/deletion, assets and installation-wide website
+publication remain outside this slice. The parent `admin-ai-parity-content` card
+retains those gaps; the content domain is not complete parity. See the
+[operation matrix and verification](../verification/CONTENT-CALENDAR-LIFECYCLE-2026-10-06.md).
 
 ## Implemented plugin and module configuration path
 

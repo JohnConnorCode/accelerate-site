@@ -876,7 +876,7 @@ export default function ConversationsPage() {
                                 value={reply}
                                 onChange={(event) => setReply(event.target.value)}
                                 rows={3}
-                                placeholder="Write a reply or notes. Nothing sends without confirmation."
+                                placeholder="Write a reply, then review the recipient and message."
                                 className="admin-composer-field text-xs"
                               />
                               <button

@@ -128,8 +128,8 @@ async function openNoteFromPalette(page, mobile = false) {
   else await page.getByRole("button", { name: /^Search/ }).click();
   const palette = page.getByRole("dialog", { name: "Admin command palette" });
   await palette.waitFor();
-  await palette.getByPlaceholder("Search people, pages, or run a command…").fill("capture note");
-  await palette.getByRole("button", { name: /Capture note/ }).click();
+  await palette.getByPlaceholder("Search records, pages, or run a command…").fill("capture note");
+  await palette.getByRole("option", { name: /Capture note/ }).click();
   await page.getByRole("dialog", { name: "Capture what you know" }).waitFor();
   await palette.waitFor({ state: "detached" });
 }

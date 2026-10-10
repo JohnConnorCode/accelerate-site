@@ -4,6 +4,7 @@ import type { FeatureRequest } from "../feature-board";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { EVIDENCE_ENVIRONMENTS, compareWorkOrder } from "../work-packet";
+import { repositoryIdentity } from "../work-repository.mjs";
 
 export const WORK_OPERATIONS = [
   "create",
@@ -79,7 +80,13 @@ export const workSpecSchema = z
     requiredCapabilities: z.array(line).max(50).optional(),
     unresolvedDependencies: z.array(line).nullable().optional(),
     repository: z
-      .object({ url: line, baseBranch: line, baseCommit: z.string().regex(/^[a-f0-9]{40}$/) })
+      .object({
+        url: line.refine((value) => repositoryIdentity(value) !== null, {
+          message: "Use a credential-free HTTPS, SSH or absolute file repository URL",
+        }),
+        baseBranch: line,
+        baseCommit: z.string().regex(/^[a-f0-9]{40}$/),
+      })
       .strict()
       .optional(),
     workflow: z.array(line).max(100).optional(),

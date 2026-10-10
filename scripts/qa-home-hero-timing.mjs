@@ -1,5 +1,10 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { chromium, webkit } from "playwright";
+import {
+  installHeroMotionObserver,
+  hasPerceptibleHeroSequence,
+  hasFreshHeroEntrance,
+} from "./lib/hero-motion-observer.mjs";
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-home-hero-timing";
@@ -172,27 +177,7 @@ for (const [label, viewport, colorScheme] of [
       : {}),
   });
   await context.addInitScript((theme) => localStorage.setItem("theme", theme), colorScheme);
-  await context.addInitScript(() => {
-    window.__heroEntrances = [];
-    document.addEventListener("animationstart", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement) || !target.closest(".home-hero")) return;
-      const phase = target.matches(".home-hero-eyebrow")
-        ? "eyebrow"
-        : target.matches(".home-hero-lead .home-hero-word")
-          ? "lead"
-          : target.matches(".home-hero-heading em .home-hero-word")
-            ? "outcome"
-            : target.matches(".home-hero-support")
-              ? "support"
-              : target.matches(".home-hero-actions")
-                ? "action"
-                : target.matches(".home-hero-index > span")
-                  ? `index-${[...target.parentElement.children].indexOf(target)}`
-                  : null;
-      if (phase) window.__heroEntrances.push({ phase, time: performance.now() });
-    });
-  });
+  await context.addInitScript(installHeroMotionObserver);
   const page = await context.newPage();
   page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
   page.on("console", (message) => {
@@ -267,13 +252,7 @@ for (const [label, viewport, colorScheme] of [
   if (settled.cta !== "1") failures.push(`${label}: CTA is not visible`);
   if (!settled.wordsComplete) failures.push(`${label}: word entrance did not settle`);
   if (!settled.entriesComplete) failures.push(`${label}: hero sequence did not settle`);
-  if (
-    settled.phases.some((phase) => !phase) ||
-    settled.phases.some(
-      (phase, index, phases) =>
-        index > 0 && phase && phases[index - 1] && phase.time - phases[index - 1].time < 30,
-    )
-  )
+  if (!hasPerceptibleHeroSequence(settled.phases))
     failures.push(`${label}: hero phases did not enter in a perceptible sequence`);
   await page.waitForFunction(
     () => document.querySelector(".home-hero").dataset.heroActive === "true",
@@ -344,37 +323,24 @@ for (const [label, viewport, colorScheme] of [
     const homeLink = page.locator('header .logo-link[href="/"]');
     await homeLink.hover();
     await page.waitForTimeout(350);
+    await page.evaluate(() => {
+      window.__heroForward = null;
+      window.__heroForwardArmedAt = performance.now();
+    });
     await homeLink.click();
     await page.waitForURL(`${baseUrl}/`);
     await page.waitForFunction(() =>
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
-    const forward = await page.evaluate(() => {
-      const hero = document.querySelector(".home-hero");
-      const word = hero.querySelector(".home-hero-word");
-      const entrance = word
-        .getAnimations()
-        .find((animation) => animation.animationName === "home-hero-word-enter");
-      return {
-        kind: document.documentElement.dataset.navigationKind,
-        animated: getComputedStyle(word).animationName,
-        immediate: hero.classList.contains("reveal-immediate"),
-        playState: entrance?.playState,
-        currentTime: entrance?.currentTime,
-        endTime: entrance?.effect.getComputedTiming().endTime,
-        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
-      };
-    });
+    // Wait for a captured entry, never poll the current animation until green.
+    // A missing entry still fails; an already completed navigation cannot erase
+    // the running clock observed inside the browser when the entrance began.
+    await page
+      .waitForFunction(() => window.__heroForward, undefined, { timeout: 5000 })
+      .catch(() => {});
+    const forward = await page.evaluate(() => window.__heroForward);
     settled.forward = forward;
-    // A client commit can be observed partway through its entrance. Require
-    // a live, fresh animation clock; concealed opening frames are tested above.
-    if (
-      forward.kind !== "fresh" ||
-      forward.animated !== "home-hero-word-enter" ||
-      forward.immediate ||
-      forward.playState !== "running" ||
-      forward.currentTime >= forward.endTime
-    )
+    if (!hasFreshHeroEntrance(forward))
       failures.push(
         `${label}: prefetched forward navigation skipped the fresh entrance: ${JSON.stringify(forward)}`,
       );
@@ -577,12 +543,20 @@ await staticPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 
 // Poll from the test process so computed-style checks cover the rendered hero.
 let stylesReady = false;
 for (let attempt = 0; attempt < 100 && !stylesReady; attempt++) {
-  stylesReady = await staticPage.evaluate(
-    () => getComputedStyle(document.querySelector(".home-hero-poster")).position === "absolute",
-  );
+  stylesReady = await staticPage.evaluate(() => {
+    const poster = document.querySelector(".home-hero-poster");
+    return (
+      getComputedStyle(poster).position === "absolute" &&
+      poster instanceof HTMLImageElement &&
+      poster.complete &&
+      poster.naturalWidth > 1 &&
+      poster.naturalHeight > 1
+    );
+  });
   if (!stylesReady) await staticPage.waitForTimeout(100);
 }
-if (!stylesReady) failures.push("No-JavaScript hero stylesheet did not load");
+if (!stylesReady) failures.push("No-JavaScript hero stylesheet or poster did not load");
+await staticPage.waitForLoadState("networkidle");
 const staticHero = await staticPage.evaluate(() => ({
   heading: document.querySelector(".home-hero-heading")?.textContent?.replace(/\s+/g, " "),
   cta: getComputedStyle(document.querySelector(".home-hero-cta")).opacity,
@@ -592,7 +566,9 @@ const staticHero = await staticPage.evaluate(() => ({
   backgroundStatic:
     document.querySelector(".home-hero-artwork").dataset.artworkReady === "false" &&
     getComputedStyle(document.querySelector(".home-hero-poster")).opacity === "1" &&
-    document.querySelectorAll(".home-hero-poster path").length > 0,
+    document.querySelector(".home-hero-poster").complete &&
+    document.querySelector(".home-hero-poster").naturalWidth > 1 &&
+    document.querySelector(".home-hero-poster").naturalHeight > 1,
   allContentReadable: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -609,6 +585,12 @@ if (
   !staticHero.allContentReadable
 )
   failures.push("No-JavaScript hero did not remain complete and static");
+// The image and local fonts can be fetched but still await decoding/painting.
+// Capture their settled no-script presentation, not the network's first paint.
+await staticPage.evaluate(async () => {
+  await document.fonts.ready;
+  await document.querySelector(".home-hero-poster").decode();
+});
 await staticPage.screenshot({ caret: "initial", path: `${output}/desktop-no-js.png` });
 await noJS.close();
 const gpuFallbacks = [];
@@ -637,19 +619,27 @@ for (const mode of ["unavailable", "context-lost"]) {
     await page.waitForFunction(
       () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "false",
     );
-    await page.evaluate(() => document.documentElement.classList.toggle("dark"));
+    await page.evaluate(() => {
+      const root = document.documentElement;
+      root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+    });
     await page.waitForTimeout(600);
   }
   const fallback = await page.evaluate(() => ({
     ready: document.querySelector(".home-hero-artwork").dataset.artworkReady,
     state: document.querySelector(".home-hero-artwork").dataset.motionState,
     poster: getComputedStyle(document.querySelector(".home-hero-poster")).opacity,
+    posterLoaded:
+      document.querySelector(".home-hero-poster").complete &&
+      document.querySelector(".home-hero-poster").naturalWidth > 1 &&
+      document.querySelector(".home-hero-poster").naturalHeight > 1,
     booking: getComputedStyle(document.querySelector(".home-hero-actions")).opacity,
   }));
   if (
     fallback.ready !== "false" ||
     fallback.state !== "paused" ||
     fallback.poster !== "1" ||
+    !fallback.posterLoaded ||
     fallback.booking !== "1"
   )
     failures.push(`${mode}: GPU failure hid the poster or booking action`);
@@ -680,7 +670,29 @@ for (const [label, viewport, touch] of [
   });
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.waitForTimeout(3500);
-  const ready = await page.locator(".home-hero-artwork").getAttribute("data-artwork-ready");
+  // Shader initialization follows the finite entrance. Inspect the handoff
+  // together: separate protocol calls can straddle the poster-to-canvas swap.
+  await page.evaluate(async () => {
+    const animations = document.querySelector(".home-hero").getAnimations({ subtree: true });
+    await Promise.all(
+      animations
+        .filter((animation) => animation.animationName?.startsWith("home-hero-"))
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
+  const artworkState = await page.locator(".home-hero-artwork").evaluate((element) => {
+    const poster = element.querySelector(".home-hero-poster");
+    return {
+      ready: element.dataset.artworkReady,
+      posterVisible:
+        getComputedStyle(poster).opacity === "1" &&
+        poster instanceof HTMLImageElement &&
+        poster.complete &&
+        poster.naturalWidth > 1 &&
+        poster.naturalHeight > 1,
+    };
+  });
+  const { ready } = artworkState;
   const canvas = page.locator(".home-hero-canvas");
   if (ready === "true") {
     const first = await canvas.screenshot();
@@ -692,17 +704,8 @@ for (const [label, viewport, touch] of [
     await page.waitForTimeout(600);
     if (!paused.equals(await canvas.screenshot()))
       failures.push(`${label}: pause does not freeze the artwork`);
-  } else {
-    if (
-      !(await page
-        .locator(".home-hero-poster")
-        .evaluate(
-          (element) =>
-            getComputedStyle(element).opacity === "1" &&
-            element.querySelectorAll("path").length > 0,
-        ))
-    )
-      failures.push(`${label}: unavailable GPU has no visible poster`);
+  } else if (!artworkState.posterVisible) {
+    failures.push(`${label}: unavailable GPU has no visible poster`);
   }
   if (!(await page.locator(".home-hero-cta").isVisible()))
     failures.push(`${label}: booking is unavailable`);

@@ -1,22 +1,39 @@
 ---
-title: "Build Apps with a coding assistant"
-description: "A concrete brief to hand a coding assistant today, plus where the in-app builder is headed."
-updated: "2026-09-09"
+title: "Build Apps with a coding agent"
+description: "Turn a recurring business task into an App, using a clear brief and the existing workspace services."
+updated: "2026-10-07"
 ---
 
-A vague request like "build me a review workflow" gets a coding assistant guessing at your business; a concrete one, naming the real workflow, the records it touches, and what "done" looks like, gets you something worth reviewing on the first pass. An assistant can build a review queue, a specialist integration, or an entire operating screen from the open-source repository, reusing the business context and services already present while adding only the parts specific to your process.
+When client feedback arrives in several threads, somebody has to find the latest revision, work out who is reviewing it and chase the missing decision. A proposed Creative Review App could keep those details together, so your team spends less time reconstructing status before doing the next piece of work.
 
-Today this is a source-development workflow you run with a coding assistant. Command Center does not yet include a general-purpose in-app App builder or development terminal, though that is the direction the product is headed, covered below.
+You can ask a coding agent to build this kind of App from the open-source repository today. It can reuse customer records, workspace access and existing business services, which reduces the setup and repeated implementation needed for each custom workflow. You supply the business rules and review a working result; the agent writes the source, registers the extension and runs the checks.
 
-## Give the assistant a complete brief
+<Callout type="info" title="Start with one repetitive task">
+  Describe the work your team repeats, the information they gather and the result the next person
+  needs. A useful first App removes a specific round of searching, copying or status chasing.
+</Callout>
 
-Use this example as a starting point. Creative Review is a proposed extension, not a bundled App.
+## Decide what the App should do
 
-> Read NORTHSTAR.md, AGENTS.md and the live Feature Board packet before editing. Build a Creative Review App for an agency. Reuse canonical customers, memberships, activity and approval services. Add a review record that owns its brief, revision history, reviewer and lifecycle. Provide a native review queue and a revision comparison screen. Treat a preparation task and an approval of a particular revision as separate linked objects. Expose the same domain operations to the UI and governed AI tools. Keep the App usable without a model call. Use fictional reviews to prove accepted, changes-requested, stale-version, disabled-module and cross-tenant behavior. Update its public guide, changelog and Command Center description with the implemented behavior. Show the exact tested source changes and remaining limitations before release.
+For a client review queue, the owner specifies who submits work, who reviews it, which revision a decision applies to and what happens after changes are requested. A useful result shows the current revision, reviewer and outstanding decision together, with the customer history available from the same workspace.
 
-Add the actual business rules: who reviews, what acceptance means, what expires, which integrations are needed and whether any operation sends something outside the workspace. A useful example record is more precise than a request for “a powerful dashboard.”
+The agent chooses the implementation from those rules. Depending on the workflow, it may need a dedicated screen, new records, a provider connection or an AI tool. Shared customer identity and access checks give it a starting point, while the parts unique to your process still need implementation and verification.
 
-Follow [your first developer change](/docs/extend/first-change) to run the repository. For shared work, the live Feature Board owns the approved scope, dependencies and verification evidence. Source changes remain reviewable and versioned through the normal development process.
+## Give the agent a complete brief
+
+Give this brief to Codex or Claude Code in the Accelerate repository to commission the proposed Creative Review extension. For fictional test records, an agency could review work for Northline Roofing & Exteriors, one of the demo businesses, without using real customer data.
+
+> Read `docs/NORTHSTAR.md` and then `AGENTS.md`. If this is an assigned Feature Board task, follow its live execution packet and approved source. Build a Creative Review App for an agency so the team can find the latest client revision and outstanding decision in one place. Reuse canonical customers, memberships, activity and approval services. Add a review record for the brief, revision history, reviewer and lifecycle. Provide a review queue and a revision comparison screen. Keep preparation tasks linked to the review, and bind each decision to the revision reviewed. Use the same business operations for the interface and governed AI tools. Keep the App usable without a model call. Register its module and any required plugin or tools. Demonstrate accepted, changes-requested, stale-version, disabled-module and cross-workspace behavior with fictional records. Deliver the bundled operator README and public guide with manifest registration and a current generated index. Update the operator guide, changelog and product descriptions to match what works. Run the required checks and show the desktop and mobile result, exact tested commit and remaining limitations. Hand off publication separately.
+
+Add your actual review rules, an example submission, any deadlines and the systems it needs to reach. Say whether completion should save an internal decision, create the next task or send something outside the workspace, because each result needs its own verification.
+
+Follow [your first agent-built change](/docs/extend/first-change) for setup and the first handoff. For shared work, the live Feature Board owns the approved scope, dependencies and verification evidence, so another agent can continue from the recorded assignment and source.
+
+## Review what work it saves
+
+Ask the agent to walk through one complete example, from submission to a recorded decision and the next person's view. Check whether somebody can find the current revision and take the next step without copying status between tools. If the team still has to maintain a parallel spreadsheet, explain the missing step so the agent can address it in the same workflow.
+
+The handoff should include a working preview, setup instructions, the source changes and named check results. Review the business behavior yourself, and have the technical review confirm permissions, saved records and recovery before release.
 
 ## Planned: create and update Apps inside Command Center
 
@@ -30,18 +47,18 @@ The intended experience is:
 6. Review and publish the exact verified App version.
 7. Reopen that version for further changes, compare versions and roll back compatible code when needed.
 
-This is planned product behavior. The current source extension path and bounded plugin runtime provide pieces of the foundation; they do not yet implement this complete authoring flow.
+The current source extension path and bounded plugin runtime provide parts of that foundation. The complete in-app authoring flow remains planned.
 
 ## What an App can become
 
-An App may define domain objects, custom work types, connectors, workflows, tools, coworkers and a bespoke interface. It can participate in shared views when useful or use its own native workspace. The default task and approval screens are not an exhaustive list of business processes.
+An App can add custom records, work types, connections to other systems and a dedicated interface. The agent can contribute its records to supported shared views or implement a workspace designed around the business process. [App design](/docs/extend/apps), [custom work](/docs/extend/work-primitives) and [custom UI](/docs/extend/custom-ui) explain these implementation choices.
 
-A development terminal could help build and test such Apps. It would need its own isolated execution environment, explicit network and secret access, resource limits and an inspectable result. It would not receive the running application's production credentials merely because AI generated the code.
+A planned development terminal would need an isolated execution environment, scoped access to connections and secrets, resource limits and an inspectable result.
 
-## Publishing and recovery need exact versions
+## What to check
 
-The intended publication review binds source, dependencies, requested capabilities, migration plan and check results to one immutable artifact. A changed artifact requires a new review. App updates should preserve record identities, customer context and execution history.
+Creative Review is a proposed extension, not a bundled App. Use an external coding agent and the repository's source-development workflow today; treat the general-purpose in-app App builder and development terminal as planned.
 
-Rolling back code cannot retract a delivered email or erase a completed business operation. Schema changes need a compatible recovery plan. Those distinctions let the authoring experience support ambitious Apps while keeping the business state understandable.
+Bind source, dependencies, requested access, any database changes and check results to the exact version reviewed. Preserve customer identities and execution history across updates, and verify recovery using the documented release workflow.
 
-Read [App design](/docs/extend/apps), [custom work](/docs/extend/work-primitives) and [custom UI](/docs/extend/custom-ui) to start implementing that range of software today.
+Check external-action receipts before telling someone that a message or business operation completed. Plan recovery for database changes and completed external actions separately from restoring an earlier code version.

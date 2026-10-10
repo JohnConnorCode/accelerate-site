@@ -178,8 +178,10 @@ const NATIVE_CAPABILITIES: Record<
 
 /**
  * Register a capability a coworker requires. Native capabilities are
- * available immediately; provider capabilities (Gmail, Calendar) stay
- * unavailable until their integration connects. Failures surface to the
+ * seeded as available; provider capabilities (Gmail, Calendar) stay
+ * unavailable until their integration connects. Repeated setup preserves
+ * existing connection state and policy, repairing only untouched legacy
+ * native placeholders. Failures surface to the
  * approval that ran the bootstrap instead of leaving the coworker silently
  * unready.
  */

@@ -19,7 +19,7 @@ export default function ExampleInventoryPage() {
     <div className="space-y-6 pb-10">
       <PageHeader
         title="Inventory"
-        subtitle="An example extension module. Its manifest, nav entry, and module toggle are all registered from extensions/example-inventory.module.json, with no change to any core file."
+        subtitle="Explore sample stock records and inspect the reorder settings for this example workspace."
       />
       <AdminSurface padding="lg">
         <p className="admin-eyebrow">Extension example</p>

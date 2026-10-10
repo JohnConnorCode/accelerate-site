@@ -1,7 +1,7 @@
 ---
 title: "Connect your tools and data"
 description: "Turn a message, calendar event, or invoice sitting in another app into usable context here."
-updated: "2026-09-29"
+updated: "2026-10-05"
 ---
 
 A calendar event or customer email helps the team when it is available alongside the related business record. **Integrations** manages supported connections and module settings, so you can choose which sources and capabilities your workspace uses.
@@ -45,5 +45,7 @@ The client uses the workspace's registered tools and approval rules. It can help
 Ask AI and authorized MCP clients can read redacted connection status and prepare a provider disconnect, a Drive folder selection, a Google connection check or a bounded sync. Review the exact values and consequences in Work before approving. If the connection or configuration changes first, prepare a new preview and approve that version.
 
 Drive selection accepts up to ten unique folder IDs. Saving the selection changes future reads and retains previously stored documents. A sync reads only the selected connected sources and records its results. Sources run in order; an incomplete source stops the remaining work. Completed work stays saved, so inspect the source receipts before retrying only the incomplete source.
+
+**Sync Workspace** can sync Gmail and Calendar before you select Drive folders. Drive then records **Not configured**, with no Drive files read. A Drive-only sync requires a folder selection. If another sync is already running, Setup reports that no new sync started; this is not a completion receipt.
 
 Disconnect removes the workspace's stored credentials and disables its environment fallback. Historical records remain, and an upstream request already in flight cannot be recalled. Reconnecting, entering or rotating secrets, granting Google consent and creating one-time integration keys require the secure human controls in Integrations. Never paste those values into an assistant conversation.

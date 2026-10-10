@@ -1,6 +1,20 @@
 # Accelerate Revenue OS setup
 
+## Private founder commands
+
+Apply `20261007181105_platform_private_command_context.sql` through the ordered
+migration runner before deploying the private command context revision. It adds
+immutable private ownership to the existing approval, audit, conversation and
+trace ledgers while retaining shared records and tenant policies. Service-client
+privacy filters require these columns; a missing migration leaves that access
+unavailable. Keep the migration and private rows when rolling application code
+back. See [Platform command privacy](../contracts/PLATFORM-COMMAND-PRIVACY.md) for
+controlled verification, refusal behavior and separate release requirements.
+Source authority requires `20260925-source-authority-registry.sql` and `20261008230447_source_authority_atomic_receipts.sql` from the ordered migration catalog before activating this source release. The latter revokes direct registry writes and installs the verified host command, version checks, immutable receipts and exact audit links. Existing registry rows and audit history remain; reverify historical entries with a new request to obtain a trustworthy receipt. A missing or unverifiable receipt stays unconfirmed rather than being repaired by inventing an audit.
+
 ## Conversational work and public inference
+
+Apply `migrations/20261006200652_content_calendar_commands.sql` through the ordered migration runner before using calendar lifecycle commands. It adds the host-only atomic calendar/audit function and retained replay receipts. Apply it only to a project you control; the native regression uses a disposable database and applies it twice.
 
 Apply `migrations/20260930190623_conversational_agent_runtime.sql` through the ordered migration runner before activating this source release. It adds member-bound ordered plans, atomic internal permission limits and private public-demo inference admission. The native regression applies it twice and verifies replay, concurrent limits and revocation against a controlled database.
 
@@ -19,6 +33,8 @@ Apply `20260929-shared-rate-limits.sql` through the migration catalog before dep
 Apply `20260923-schema-migration-ledger-rls.sql` through the catalog before deploying the worker readiness repair. The migration ledger is internal to the database runner and remains unavailable to application API roles. The work scheduler now bootstraps only missing built-in Coworkers inside the current tenant before it creates recurring work. A bootstrap failure stops that tenant's cron cycle before work is scheduled or executed.
 
 ## Required migration order
+
+Apply `migrations/20261007200138_learning_proposals_least_privilege.sql` through the ordered catalog before releasing the Learning Inbox privilege repair. It revokes all proposal-table privileges from `PUBLIC`, `anon` and `authenticated`, then restores authenticated `SELECT`, `INSERT`, `UPDATE` and `DELETE`. Existing tenant RLS, proposal records, approval RPCs and service-role grants remain intact. PostgreSQL 15+ is supported; `REVOKE ALL` also removes `MAINTAIN` on PostgreSQL 17+ without introducing incompatible syntax on earlier versions. Do not edit completed migration files or manually restore broad client grants. `npm run test:learning-proposals:postgres` creates its own disposable loopback database and proves fresh and populated upgrades twice with the source-controlled membership helpers. It never connects to the configured hosted database. Schema review, migration application and application deployment remain separate release steps.
 
 Apply `migrations/20260929211535_contact_import_review_atomic.sql` through the catalog before releasing the revised importer. It adds the tenant-scoped transaction for review rows, approval invalidation and history. Existing ready batches may require saving and reviewing again after the digest normalization change. A missing function leaves review saving unavailable; application requests do not create schema.
 
@@ -307,6 +323,16 @@ The public embed does not require a Calendly API token and is not verified attri
 For local Command Center verification, run `npm run test:admin-recovery`, `npm run test:features`, `npm run test:contact-imports`, and `npm run test:admin-parity`. These authenticated Playwright journeys cover shared dialogs, Email Studio, Contact Import review/approval, collapsed/mobile navigation, Feature Board movement, and document-level overflow across every registered admin route. A source review or in-app browser check is not a substitute for these repository journeys.
 
 ## Developer work board
+
+Apply `20261006231324_work_repository_readiness.sql` through the ordered catalog
+with this source release. It validates repository addresses for feature and bug
+readiness and claims without rewriting existing cards, claims or receipts. An
+invalid legacy address remains visible as `invalid_repository_url`; a maintainer
+repairs it through the canonical revision-checked edit. Rollback preserves the
+migration and recorded work; use a compatible client rather than weakening the
+repository or claim checks. Native PostgreSQL proof covers fresh and retained
+protocol upgrade paths and migration replay. Source verification does not activate
+an older hosted deployment.
 
 Clean installs include `20260906-universal-work-board.sql` and `20260907-work-packet-quality.sql` in the ordered catalog. The latter supplies packet validation and ordered card reads. Applying schema alone does not activate an older deployment: release compatible adapters, verify canonical writes and then check `npm run dev:doctor -- --board` with an issued worker credential. See [developer start](../contributing/DEVELOPER-START.md).
 

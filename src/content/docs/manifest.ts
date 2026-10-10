@@ -38,8 +38,8 @@ export const docsTracks: DocsTrack[] = [
   },
   {
     id: "builder",
-    title: "Build and run it yourself",
-    description: "For a developer or coding assistant: plugins, extension points, self-hosting.",
+    title: "Build with your agent",
+    description: "Give a coding agent the business brief, setup reference and extension contracts.",
   },
 ];
 
@@ -77,7 +77,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["start", "business-owners"],
         title: "For business owners",
         description:
-          "Decide whether it fits, run a small pilot, and know what to check before you rely on it.",
+          "Review the business, assign the next step and verify the result before expanding a connected workspace.",
       },
       {
         slug: ["start", "agencies"],
@@ -87,9 +87,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["start", "daily-path"],
-        title: "Your first workflow",
+        title: "Three workflows to learn the workspace",
         description:
-          "Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.",
+          "Answer an inquiry, start client work and prepare an invoice, then check the saved result and next step.",
       },
       {
         slug: ["start", "first-value"],
@@ -340,7 +340,7 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["outreach", "email-studio"],
-        title: "Email Studio",
+        title: "Email Templates",
         description:
           "Edit the actual live copy, check what really sent, and write a direct one-off follow-up.",
       },
@@ -378,7 +378,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["delivery", "content"],
         title: "Manage editorial work",
         description:
-          "Track a brief from idea to published, and verify a review caught what mattered.",
+          "Plan editorial work, review proposed calendar changes and recover from interrupted saves.",
       },
       {
         slug: ["delivery", "resources"],
@@ -402,7 +402,7 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["sources", "leads"],
-        title: "Review leads and chat handoffs",
+        title: "Review website inquiries and chat handoffs",
         description:
           "Qualify a new inquiry, check whether it's someone you already know, and record what's next.",
       },
@@ -438,6 +438,12 @@ export const docsManifest: DocsSection[] = [
         title: "Teach the business with the Learning Inbox",
         description:
           "Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work.",
+      },
+      {
+        slug: ["intelligence", "source-authority"],
+        title: "Source authority",
+        description:
+          "Give agents verified evidence and reduce time spent correcting outdated or conflicting answers.",
       },
       {
         slug: ["intelligence", "workspace"],
@@ -596,7 +602,7 @@ export const docsManifest: DocsSection[] = [
     track: "builder",
     title: "Build on it",
     description:
-      "For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.",
+      "Describe the business workflow, have a coding agent implement it, and review the result on the shared workspace foundation.",
     pages: [
       {
         slug: ["extend", "overview"],
@@ -624,21 +630,21 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["extend", "ai-authoring"],
-        title: "Build Apps with a coding assistant",
+        title: "Build Apps with a coding agent",
         description:
-          "A concrete brief to hand a coding assistant today, plus where the in-app builder is headed.",
+          "Turn a recurring business task into an App, using a clear brief and the existing workspace services.",
       },
       {
         slug: ["extend", "first-change"],
-        title: "Your first developer change",
+        title: "Your first agent-built change",
         description:
-          "Run the demo, learn where code lives, and make one small, safe extension change.",
+          "Describe one business workflow, have a coding agent build it, and review the working result.",
       },
       {
         slug: ["extend", "modules"],
         title: "Add a module",
         description:
-          "Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed.",
+          "Register a workspace feature with its pages, operator guide and shared availability controls.",
       },
       {
         slug: ["extend", "adapters"],
@@ -701,7 +707,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["self-hosting", "recovery"],
         title: "Recover a failing workspace",
         description:
-          "Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims.",
+          "Repair sign-in, schema and stalled work, then restore saved records and private files with verified recovery steps.",
       },
       {
         slug: ["self-hosting", "installation"],

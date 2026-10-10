@@ -10,7 +10,7 @@ const scenarioBrands = [
   ["hearthline-realty", "Hearthline Realty Group"],
   ["common-table-network", "Common Table Community Network"],
 ];
-const output = "/tmp/accelerate-email-studio";
+const output = process.env.QA_OUTPUT || "/tmp/accelerate-email-studio";
 const failures = [];
 
 await mkdir(output, { recursive: true });
@@ -39,9 +39,24 @@ for (const [label, viewport] of [
     waitUntil: "domcontentloaded",
     timeout: 60_000,
   });
-  await page.getByRole("heading", { name: "Email Studio" }).waitFor({ timeout: 30_000 });
+  await page
+    .getByRole("heading", { name: "Email Templates", exact: true })
+    .waitFor({ timeout: 30_000 });
   const initialPreview = page.locator('iframe[title^="Email preview:"]');
   await initialPreview.waitFor({ timeout: 15_000 });
+  if (label === "mobile") {
+    const headerWidth = await page
+      .getByRole("heading", { name: "New inquiry response", exact: true })
+      .evaluate((heading) => {
+        const copy = heading.parentElement?.parentElement;
+        return {
+          copy: copy?.getBoundingClientRect().width ?? 0,
+          header: copy?.parentElement?.getBoundingClientRect().width ?? 0,
+        };
+      });
+    if (!headerWidth.header || headerWidth.copy < headerWidth.header * 0.6)
+      failures.push(`${label}: email title and description are squeezed by header actions`);
+  }
   const initialFrame = page.frameLocator('iframe[title^="Email preview:"]');
   await initialFrame.locator("body").waitFor();
   const initialEmail = await initialFrame.locator("body").innerText();

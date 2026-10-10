@@ -55,6 +55,10 @@ function title(run: AiRunSummary) {
   return run.promptPreview || run.resultPreview || run.error || "AI workspace run";
 }
 
+function tokenCount(input: number | null, output: number | null) {
+  return input === null || output === null ? "Not recorded" : (input + output).toLocaleString();
+}
+
 function RunRow({
   run,
   active,
@@ -101,8 +105,8 @@ function RunRow({
           ) : null}
         </span>
         <span className="mt-1 block truncate text-xs text-[var(--admin-muted)]">
-          {run.surface.replace(/_/g, " ")} · {run.toolPack || "core"} ·{" "}
-          {(run.inputTokens + run.outputTokens).toLocaleString()} tokens
+          {run.surface.replace(/_/g, " ")} · {run.toolPack || "core"} · Tokens:{" "}
+          {tokenCount(run.inputTokens, run.outputTokens)}
         </span>
         <span className="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-medium text-[var(--admin-muted)]">
           <span
@@ -184,7 +188,7 @@ function RunDetail({ id, onConversation }: { id: string; onConversation: (id: st
         {[
           ["Model", run.model || "Not recorded"],
           ["Tool pack", run.toolPack || "core"],
-          ["Tokens", (run.inputTokens + run.outputTokens).toLocaleString()],
+          ["Tokens", tokenCount(run.inputTokens, run.outputTokens)],
           ["Duration", elapsed(run.durationMs)],
         ].map(([label, value]) => (
           <div
@@ -355,7 +359,10 @@ export function AIRunHistory() {
             { label: "Failures", value: data.metrics.failed.toLocaleString(), icon: CircleAlert },
             {
               label: "Tokens observed",
-              value: data.metrics.totalTokens.toLocaleString(),
+              value:
+                data.metrics.totalTokens === null
+                  ? "Not recorded"
+                  : data.metrics.totalTokens.toLocaleString(),
               icon: Wrench,
             },
           ]
@@ -481,13 +488,13 @@ export function AIRunHistory() {
       )}
       {!error && data?.schemaReady !== false && (
         <AdminSurface padding="none" className="overflow-hidden">
-          <div className="grid min-h-[520px] lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.35fr)]">
+          <div className="grid min-h-[520px] grid-cols-1 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.35fr)]">
             <div className="border-b border-[var(--admin-border)] lg:border-b-0 lg:border-r">
               <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-5 py-4">
                 <div>
                   <p className="admin-eyebrow">Trace ledger</p>
                   <p className="mt-1 text-sm font-semibold text-[var(--admin-ink)]">
-                    {data?.metrics.runs ?? 0} matching runs
+                    {data?.metrics.runs ?? 0} matching {data?.metrics.runs === 1 ? "run" : "runs"}
                   </p>
                 </div>
                 {loading && <Loader2 className="size-4 animate-spin text-[var(--admin-muted)]" />}

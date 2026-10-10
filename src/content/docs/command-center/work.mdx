@@ -1,7 +1,7 @@
 ---
 title: "Manage tasks and approvals in Work"
 description: "Review tasks, approvals and AI work, and save task views for your workspace."
-updated: "2026-09-27"
+updated: "2026-10-06"
 ---
 
 A follow-up task needs a clear owner, date and result. **Work**, at `/admin/work`, gives you tasks, pending decisions and AI work status in one place. Today draws attention to the same underlying work, while Work lets you inspect the details.
@@ -31,8 +31,9 @@ In a connected workspace, choose **Save view** to open the view editor, enter a 
     status you selected. Use the page controls when more than 100 tasks match.
   </Step>
   <Step number={3} title="Open and edit">
-    Select a task to open its inspector, change its title, due date, or priority, and choose **Save
-    changes**.
+    Select a task to open its inspector, change its title, **Instructions**, due date or priority,
+    and choose **Save changes**. Instructions describe the expected result so the next person can
+    finish the work without guessing.
   </Step>
   <Step number={4} title="Confirm it stuck">
     Return to Today and check the task where it's due. An edit keeps the task's existing status; it
@@ -40,11 +41,19 @@ In a connected workspace, choose **Save view** to open the view editor, enter a 
   </Step>
 </StepByStep>
 
+Task selection stays in the page link, so a reload opens the same inspector. When a task has a stored client, contact or opportunity, use its **Open related** link to review that source record. The inspector loads each task separately and offers **Retry** when details cannot load; an unavailable task shows **Task not found** without editable fields.
+
 Use the completion control specifically when work is finished. To defer a task, open it, choose **Snooze until**, and select **Snooze task**. It stays visible in Work's **Snoozed** view, so nothing gets lost by deferring it. Completing a snoozed task clears the snooze and records completion against that same original task, not a new one.
 
 In the list, press **j** or **k** to select a row. Press **Enter** or **e** to open a task, or **s** to open its snooze date. On the Approvals tab, **a** and **r** open the selected decision for review; inside that review, those keys approve or reject it. The exact action remains visible before you decide. These shortcuts stay inactive while you type in a field.
 
 The ownership filter is a lens for browsing, not an assignment tool: changing whose work you're looking at does not reassign anything. Assignment follows whatever workflow originally created the task, and a custom App can keep its own native queue and lifecycle entirely separate from this one.
+
+## Recover an interrupted edit
+
+While saving or snoozing, fields and the close control pause so the submitted values stay fixed. A failed change leaves your draft in place with the error. Changing task links while an earlier read or save is pending keeps the later inspector attached to its own task. Completed tasks remain available for reference with their fields disabled.
+
+If a change cannot be confirmed, close the inspector and reopen the task to check its saved values before submitting another edit. A refresh failure labels previously loaded details and provides Retry, so you can recover the read without discarding a draft that is still open.
 
 ## Updating a task with Ask AI
 
@@ -65,6 +74,8 @@ Read [approval results](/docs/command-center/approvals) before you interpret wha
 [Activity](/docs/command-center/activity) keeps the recorded history of what changed here. A completed task confirms the task is done, and nothing more: it does not confirm a payment arrived, an email sent, or a customer accepted a proposal, so open the relevant record for those results specifically.
 
 ## What to check
+
+- If meeting work is waiting for review, open its source notes, configure the required AI connection, and prepare the exact CRM changes in Ask AI. Inspect the resulting approval and saved record afterward; the waiting result explains which step remains.
 
 - Use the task controls for deletion or assignment workflows. The AI task-update tool supports the changes listed above; broader customer-record editing and import operations have separate coverage.
 

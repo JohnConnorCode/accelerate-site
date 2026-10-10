@@ -13,6 +13,14 @@ import {
   internalPermissionProposalSchema,
 } from "./internal-permission-contract";
 import { getTenantRequestContext } from "@/lib/tenancy/context";
+import { readRevenueReport, readAnalyticsReport, exportReportingResult } from "./analytics";
+import {
+  revenueReportInputSchema,
+  analyticsReportInputSchema,
+  reportExportInputSchema,
+  REVENUE_REPORT_OPERATION,
+  ANALYTICS_REPORT_OPERATION,
+} from "./reporting-contract";
 import { prepareOperatorTaskPatch, taskReviewState } from "./operator-task-patch";
 import { previewCollectionPolicy, proposeCollectionPolicy } from "./collection-policy";
 import {
@@ -129,9 +137,15 @@ import {
   listContentCalendarItems,
   previewContentCalendarUpdate,
   proposeContentCalendarUpdate,
+  previewContentCalendarCommand,
+  proposeContentCalendarCommand,
   contentCalendarPreviewSchema,
   contentCalendarProposalSchema,
 } from "./content-calendar";
+import {
+  contentCalendarCommandPreviewSchema,
+  contentCalendarCommandProposalSchema,
+} from "./content-calendar-contract";
 import { generateContentBrief, parseContentBriefInput } from "./content-brief";
 import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
 import {
@@ -140,18 +154,18 @@ import {
   brandPreviewInputSchema,
   brandProposalInputSchema,
 } from "./branding-actions-contract";
-import type { AiToolConnectionRequirement } from "./ai-tool-contract";
+import type { AiToolConnectionRequirement, AiAdminOperation } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
 import { readCompleteGmailThread, readGmailReplyTarget } from "./google";
 import {
-  debateMilestoneSchema,
   listDebateProductions,
   loadDebateProduction,
   proposeDebateMilestone,
 } from "./debate-bookings";
-import { debateInvitationSchema, proposeDebateInvitation } from "./debate-invitations";
+import { debateMilestoneSchema, debateInvitationSchema } from "./debate-booking-contract";
+import { proposeDebateInvitation } from "./debate-invitations";
 import { reversibilityOf } from "./action-reversibility-contract";
 import {
   assertGmailDraftTarget,
@@ -274,6 +288,7 @@ type AiToolRegistration = {
   impact: AiToolImpact;
   confirmationRequired: boolean;
   executionPolicy?: "site-studio-delegation" | "agent-work";
+  operation?: AiAdminOperation;
   execute: (context: AiToolContext, input: Record<string, unknown>) => Promise<unknown>;
 };
 
@@ -287,6 +302,8 @@ export interface RevenueAiCapabilityDescriptor {
   connectionRequirement: AiToolConnectionRequirement;
   available: boolean;
   availabilityReason: string;
+  /** Missing bindings remain visible as unreviewed coverage, never inferred parity. */
+  operation: AiAdminOperation | null;
 }
 
 const ACTION_OUTPUT_SCHEMA = {
@@ -327,14 +344,30 @@ const TIMELINE_OUTPUT_SCHEMA = {
 };
 const KNOWLEDGE_OUTPUT_SCHEMA = {
   type: "object",
-  required: ["contract", "found", "query", "chunks", "generatedAt"],
+  required: ["contract", "found", "query", "chunks", "conflicts", "generatedAt"],
   properties: {
     contract: { type: "string" },
     found: { type: "boolean" },
     query: { type: "string" },
-    entitySummary: { type: "object" },
-    chunks: { type: "array" },
-    refusalReason: { type: "string" },
+    entitySummary: { type: ["object", "null"] },
+    chunks: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          systemKey: { type: "string" },
+          authorityTier: { type: "string", enum: ["official", "approved", "working", "low"] },
+          authorityOwner: { type: ["string", "null"] },
+          lastVerifiedAt: { type: ["string", "null"] },
+          current: { type: "boolean" },
+          stale: { type: "boolean" },
+          conflict: { type: ["string", "null"] },
+        },
+      },
+    },
+    conflicts: { type: "array", items: { type: "object" } },
+    missing: { type: "array", items: { type: "string" } },
+    refusalReason: { type: ["string", "null"] },
     generatedAt: { type: "string" },
   },
 };
@@ -449,7 +482,7 @@ export function validateToolOutput(
   }
   const record = output as Record<string, unknown>;
   const required = Array.isArray(schema.required) ? (schema.required as string[]) : [];
-  const properties = (schema.properties ?? {}) as Record<string, { type?: string }>;
+  const properties = (schema.properties ?? {}) as Record<string, { type?: string | string[] }>;
   for (const key of required) {
     if (record[key] === undefined || record[key] === null) {
       throw new Error(`${toolName} returned an invalid output: missing "${key}".`);
@@ -458,12 +491,18 @@ export function validateToolOutput(
   for (const [key, spec] of Object.entries(properties)) {
     const result = record[key];
     if (result === undefined || result === null || !spec.type) continue;
-    if (spec.type === "array" && !Array.isArray(result))
-      throw new Error(`${toolName} returned an invalid output: "${key}" must be an array.`);
-    if (spec.type === "number" && (typeof result !== "number" || !Number.isFinite(result)))
-      throw new Error(`${toolName} returned an invalid output: "${key}" must be a finite number.`);
-    if (spec.type !== "array" && spec.type !== "number" && typeof result !== spec.type)
-      throw new Error(`${toolName} returned an invalid output: "${key}" must be a ${spec.type}.`);
+    const types = Array.isArray(spec.type) ? spec.type : [spec.type];
+    const matches = types.some((type) => {
+      if (type === "array") return Array.isArray(result);
+      if (type === "number") return typeof result === "number" && Number.isFinite(result);
+      if (type === "integer") return typeof result === "number" && Number.isInteger(result);
+      if (type === "object") return typeof result === "object" && !Array.isArray(result);
+      return typeof result === type;
+    });
+    if (!matches)
+      throw new Error(
+        `${toolName} returned an invalid output: "${key}" must be a ${types.map((type) => (type === "number" ? "finite number" : type)).join(" or ")}.`,
+      );
   }
 }
 
@@ -622,7 +661,99 @@ const PLUGIN_TOOL_EXECUTORS = {
   ) => Promise<unknown>
 >;
 
+const adminCoverageInputSchema = z
+  .object({
+    query: z.string().trim().max(160).optional(),
+    offset: z.number().int().min(0).max(10000).default(0),
+    limit: z.number().int().min(1).max(5).default(5),
+  })
+  .strict();
+
 const registry: AiToolRegistration[] = [
+  {
+    name: "get_admin_operation_coverage",
+    description:
+      "Inspect the actual registered tool coverage and reviewed admin-operation mappings. Use a query and offset for focused pages. Unreviewed bindings are documentation/verification gaps, not proof that a tool is missing or broken. Universal coverage remains incomplete; never equate tool counts with all business operations.",
+    inputSchema: z.toJSONSchema(adminCoverageInputSchema),
+    parseInput: (i) => adminCoverageInputSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.tool-discovery",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "command-center.read-operation-coverage",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        { path: "/api/admin/revenue-os/ai/capabilities", method: "GET", variant: "coverage" },
+      ],
+      verification: ["scripts/test-ai-tool-discovery.ts", "scripts/test-admin-ai-inventory.mjs"],
+    },
+    execute: async (c, i) => getRevenueAiCoverage(c, i),
+  },
+  {
+    name: "get_revenue_report",
+    description:
+      "Read the Revenue dashboard's exact current contract and opportunity values. Request summary, client drilldown, industries, timeline or definitions. Paged sections return at most five rows and nextOffset. Contract and won values are not collected payments; never infer cash or currency conversion.",
+    inputSchema: z.toJSONSchema(revenueReportInputSchema),
+    parseInput: (i) => revenueReportInputSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.analytics",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: REVENUE_REPORT_OPERATION,
+    execute: (c, i) => readRevenueReport(c.supabase, i),
+  },
+  {
+    name: "get_revenue_analytics",
+    description:
+      "Read the Analytics dashboard's exact funnel, forecasts, data quality, source attribution or website metrics. Filter the creation cohort by days (7–365), source, owner, campaign and stage. Summary is compact; use named sections and continuation offsets for details. Disclose missing or degraded evidence rather than calculating complete totals from a partial page.",
+    inputSchema: z.toJSONSchema(analyticsReportInputSchema),
+    parseInput: (i) => analyticsReportInputSchema.parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.analytics",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: ANALYTICS_REPORT_OPERATION,
+    execute: (c, i) => readAnalyticsReport(c.supabase, i),
+  },
+  {
+    name: "export_revenue_report",
+    description:
+      "Export a Revenue report section or bounded drilldown page as JSON or CSV. Returns file contents for the client to save, including definitions and continuation metadata; does not publish or email a file. Follow nextOffset for additional pages.",
+    inputSchema: z.toJSONSchema(revenueReportInputSchema.extend(reportExportInputSchema.shape)),
+    parseInput: (i) => revenueReportInputSchema.extend(reportExportInputSchema.shape).parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.analytics",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: { ...REVENUE_REPORT_OPERATION, id: "revenue.export-report", entrypoints: [] },
+    execute: async (c, i) => {
+      const { format, ...filters } = i;
+      return exportReportingResult(await readRevenueReport(c.supabase, filters), { format });
+    },
+  },
+  {
+    name: "export_revenue_analytics",
+    description:
+      "Export the exact filtered Analytics report section/page as JSON or CSV, with source-quality and continuation metadata. Returns contents for the client to save; does not send or publish. Incomplete primary reporting sources fail rather than producing misleading totals.",
+    inputSchema: z.toJSONSchema(analyticsReportInputSchema.extend(reportExportInputSchema.shape)),
+    parseInput: (i) => analyticsReportInputSchema.extend(reportExportInputSchema.shape).parse(i),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.analytics",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: { ...ANALYTICS_REPORT_OPERATION, id: "analytics.export-report", entrypoints: [] },
+    execute: async (c, i) => {
+      const { format, ...filters } = i;
+      return exportReportingResult(await readAnalyticsReport(c.supabase, filters), { format });
+    },
+  },
   {
     name: "preview_agent_work",
     description:
@@ -961,6 +1092,62 @@ const registry: AiToolRegistration[] = [
     impact: "read",
     confirmationRequired: false,
     execute: (context, input) => generateContentBrief(context.supabase, input),
+  },
+  {
+    name: "preview_content_calendar_change",
+    description:
+      "Preview an editorial calendar create, permanent delete or item reorder. Supply a stable requestKey UUID; create also needs a new item UUID and title/status values. Reorder uses exact existing IDs and current column_key statuses, at most ten items. Returns the exact normalized command, current item/status snapshots and digest. Does not save or publish anything.",
+    inputSchema: z.toJSONSchema(contentCalendarCommandPreviewSchema, { io: "input" }),
+    parseInput: (input) => contentCalendarCommandPreviewSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "content.preview-calendar-change",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/content/commands", method: "POST", variant: "preview" }],
+      verification: [
+        "scripts/test-content-calendar-actions.ts",
+        "scripts/test-content-calendar-postgres.mjs",
+      ],
+    },
+    execute: ({ supabase }, input) => {
+      const parsed = contentCalendarCommandPreviewSchema.parse(input);
+      if (parsed.command.operation === "reorder" && parsed.command.updates.length > 10)
+        throw new Error("Preview no more than ten content items at once");
+      return previewContentCalendarCommand(supabase, parsed);
+    },
+  },
+  {
+    name: "propose_content_calendar_change",
+    description:
+      "Stage the same requestKey, command and digest returned by preview_content_calendar_change for exact human review. Creates, permanently deletes or reorders calendar items only after approval. Deletion keeps receipts and website pages; calendar status never publishes a page. Changed inputs require another preview and review.",
+    inputSchema: z.toJSONSchema(contentCalendarCommandProposalSchema, { io: "input" }),
+    parseInput: (input) => contentCalendarCommandProposalSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    operation: {
+      id: "content.propose-calendar-change",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/content/commands", method: "POST", variant: "propose" }],
+      verification: [
+        "scripts/test-content-calendar-actions.ts",
+        "scripts/test-content-calendar-postgres.mjs",
+      ],
+    },
+    execute: ({ supabase, actorEmail }, input) => {
+      const parsed = contentCalendarCommandProposalSchema.parse(input);
+      if (parsed.command.operation === "reorder" && parsed.command.updates.length > 10)
+        throw new Error("Propose no more than ten content items at once");
+      return proposeContentCalendarCommand(supabase, parsed, actorEmail);
+    },
   },
   {
     name: "read_site_editor",
@@ -1932,7 +2119,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "search_knowledge_base",
     description:
-      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, conversations, private uploaded references, authorized Drive documents, and activity timeline. Prefer entityType and entityId for known records. Returns tagged chunks with confidence and recency or refuses cleanly.",
+      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, conversations, private uploaded references, authorized Drive documents, and activity timeline. Prefer entityType and entityId for known records. Returns cited chunks with explicit authorityTier, owner, verification date, current/stale flags, potential conflicts and missing-source warnings. Check those fields before using a claim; unregistered sources are low and unverified. Conflicts require review, never a silently chosen winner.",
     inputSchema: {
       type: "object",
       properties: {
@@ -3344,6 +3531,101 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "list_source_authorities",
+    description:
+      "List the source authority registry: which connected systems own which truth domains, with tier, owner and last-verified date. Unregistered sources stay at the lowest trust. Use this before trusting retrieved knowledge.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.knowledge-retrieval",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "knowledge.read-source-authority",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/source-authority", method: "GET" }],
+      verification: [
+        "scripts/test-source-authority.ts",
+        "scripts/test-source-authority-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase }) => {
+      const { listSourceAuthorities } = await import("./source-authority");
+      return listSourceAuthorities(supabase, { limit: 100 });
+    },
+  },
+  {
+    name: "register_source_authority",
+    description:
+      "Propose a source-authority registry change for human review: map a connected system to the truth domains it owns, with an explicit tier, owner and last-verified date. Authority is never inferred from volume or recency. Approval writes through the same domain service as the admin registry.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        systemKey: { type: "string" },
+        displayName: { type: "string" },
+        truthDomains: { type: "array", items: { type: "string" } },
+        authorityTier: { type: "string", enum: ["official", "approved", "working", "low"] },
+        ownerEmail: { type: "string" },
+        lastVerifiedAt: { type: "string" },
+        verificationLapseDays: { type: "integer", minimum: 1, maximum: 3650 },
+        expectedVersion: {
+          type: "integer",
+          minimum: 0,
+          description: "Version from list_source_authorities; use 0 for a new source.",
+        },
+        requestKey: { type: "string", maxLength: 128 },
+        appliesTo: {
+          type: "object",
+          properties: {
+            entityTypes: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 32 },
+            coworkerIds: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 16 },
+          },
+          additionalProperties: false,
+        },
+      },
+      required: [
+        "systemKey",
+        "displayName",
+        "truthDomains",
+        "authorityTier",
+        "ownerEmail",
+        "lastVerifiedAt",
+      ],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-write",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    operation: {
+      id: "knowledge.register-source-authority",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/source-authority", method: "POST" }],
+      verification: [
+        "scripts/test-source-authority.ts",
+        "scripts/test-source-authority-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase, actorEmail }, input) => {
+      const { prepareSourceAuthorityCommand } = await import("./source-authority");
+      const command = prepareSourceAuthorityCommand(input);
+      return proposeAction(supabase, {
+        actionType: "register_source_authority",
+        title: "Register source authority",
+        payload: command,
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      });
+    },
+  },
+  {
     name: "check_budgets",
     description:
       "Check whether a coworker has remaining budget for work execution. Shows current usage vs limits for model spend, API calls, emails, research depth, retries, and runtime. Budgets are per-day by default.",
@@ -3603,6 +3885,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_debate_milestone",
     "propose_debate_invitation",
     "generate_content_brief",
+    "preview_content_calendar_change",
+    "propose_content_calendar_change",
     "get_social_workspace",
     "prepare_social_week",
     "preview_social_change",
@@ -3673,6 +3957,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "record_learned_policy",
     "list_learning_proposals",
     "propose_learning",
+    "list_source_authorities",
+    "register_source_authority",
     "check_budgets",
     "get_budget_limits",
     "propose_task",
@@ -3784,8 +4070,47 @@ export function listRevenueAiCapabilities(
       connectionRequirement: tool.connectionRequirement,
       available: availability.available,
       availabilityReason: availability.reason,
+      operation: tool.operation ?? null,
     };
   });
+}
+
+/** Registry truth shared by the capabilities UI, internal AI and MCP. Counts are not parity percentages. */
+export function getRevenueAiCoverage(
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+  input: { query?: unknown; offset?: unknown; limit?: unknown } = {},
+) {
+  const all = listRevenueAiCapabilities(context);
+  const parsed = adminCoverageInputSchema.parse(input);
+  const query = (parsed.query ?? "").toLowerCase();
+  const { offset, limit } = parsed;
+  const matched = all.filter((tool) =>
+    `${tool.name} ${tool.description} ${tool.operation?.id ?? ""}`.toLowerCase().includes(query),
+  );
+  return {
+    registryVersion: TOOL_REGISTRY_VERSION,
+    universalCoverage: false as const,
+    registeredTools: all.length,
+    availableTools: all.filter((tool) => tool.available).length,
+    reviewedOperationMappings: new Set(
+      all.flatMap((tool) => (tool.operation ? [tool.operation.id] : [])),
+    ).size,
+    unreviewedToolBindings: all.filter((tool) => !tool.operation).length,
+    meaning:
+      "A registered tool can be used subject to its runtime authority. An unreviewed admin binding needs mapping/verification; it is not a missing-tool verdict. Missing business operations remain separate coverage gaps.",
+    totalMatches: matched.length,
+    nextOffset: offset + limit < matched.length ? offset + limit : null,
+    tools: matched.slice(offset, offset + limit).map((tool) => ({
+      name: tool.name,
+      available: tool.available,
+      impact: tool.impact,
+      confirmationRequired: tool.confirmationRequired,
+      operationId: tool.operation?.id ?? null,
+      scope: tool.operation?.scope ?? "workspace",
+      mapping: tool.operation ? "reviewed" : "unreviewed",
+      reason: tool.availabilityReason,
+    })),
+  };
 }
 export function toOpenRouterTools(
   pack?: RevenueToolPackId,

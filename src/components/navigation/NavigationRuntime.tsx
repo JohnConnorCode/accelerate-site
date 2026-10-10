@@ -311,6 +311,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       const root = isAdminPath(pathname)
         ? adminScroller.current
         : document.getElementById("main-content");
+      if (root?.inert) return false;
       if (root?.querySelector("[data-admin-route-loading]")) return false;
       const heading = root?.querySelector<HTMLElement>("h1, [data-route-heading]");
       // Client admin pages may commit a local data placeholder before their
@@ -320,11 +321,15 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       const focusTarget = heading || root;
       if (!restoresHistory && focusTarget) {
         const active = document.activeElement;
+        // The deferred first handoff can run after the operator has already
+        // entered a destination field or opened another dialog. Those controls
+        // now own focus, including when streamed content replaces the heading.
+        const operatorHasFocus =
+          (active !== root && active !== focusTarget && root?.contains(active)) ||
+          active?.closest('[data-admin-overlay="dialog"][data-state="open"]');
         const canRefocus =
-          !focusedTarget ||
-          active === document.body ||
-          active === focusedTarget ||
-          !document.contains(focusedTarget);
+          !operatorHasFocus &&
+          (!focusedTarget || active === document.body || active === focusedTarget);
         if (canRefocus) {
           if (!focusTarget.hasAttribute("tabindex")) focusTarget.setAttribute("tabindex", "-1");
           focusTarget.focus({ preventScroll: true });
@@ -356,7 +361,12 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
             if (focusedTarget && document.contains(focusedTarget)) return;
             focusDestination();
           });
-          focusObserver.observe(root, { childList: true, subtree: true });
+          focusObserver.observe(root, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["inert"],
+          });
         }
         focusDestination();
       });
@@ -417,6 +427,15 @@ export function useAppNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const navigation = useNavigationRuntime();
+  const replaceSearch = useCallback((search: URLSearchParams) => {
+    // Next's native History API adapter updates search params without a route fetch.
+    // Keep our entry identity; Next adds its own framework state to this payload.
+    window.history.replaceState(
+      { [ENTRY_KEY]: currentHistoryState()[ENTRY_KEY] },
+      "",
+      `${window.location.pathname}${search.size ? `?${search}` : ""}${window.location.hash}`,
+    );
+  }, []);
 
   const navigate = (kind: "push" | "replace", href: string, scroll: NavigationScroll = "top") => {
     const destination = new URL(href, window.location.href);
@@ -429,5 +448,6 @@ export function useAppNavigation() {
   return {
     push: (href: string, scroll: NavigationScroll = "top") => navigate("push", href, scroll),
     replace: (href: string, scroll: NavigationScroll = "top") => navigate("replace", href, scroll),
+    replaceSearch,
   };
 }

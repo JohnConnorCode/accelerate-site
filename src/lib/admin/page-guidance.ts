@@ -1,6 +1,10 @@
+import { adminNavLinks } from "./navigation";
 /** Operator explanations for core destinations. Keep claims aligned with their pages. */
 export interface AdminPageGuidance {
   description: string;
+  startHint?: string;
+  savedOutcome?: string;
+  workflowId?: string;
   steps: readonly string[];
   guideHref: string;
 }
@@ -31,6 +35,15 @@ export const adminPageGuidance: Record<string, AdminPageGuidance> = {
       "Resolve validation findings before approving an exact version. Approval and application are separate steps.",
     ],
     guideHref: "/docs/intelligence/workspace",
+  },
+  "source-authority": {
+    description:
+      "Review who verified a source, which facts it covers, and when that verification expires before relying on an agent answer.",
+    steps: [
+      "Register verified systems with an owner, tier, truth domains and expiry.",
+      "Review stale evidence and potential conflicts; retry an interrupted save to confirm its original receipt.",
+    ],
+    guideHref: "/docs/intelligence/source-authority",
   },
   learning: {
     description: "Review reusable corrections before sharing them with future work.",
@@ -100,9 +113,10 @@ export const adminPageGuidance: Record<string, AdminPageGuidance> = {
     guideHref: "/docs/contacts/overview",
   },
   contacts: {
-    description: "Review website submissions and import contact lists for your team to follow up.",
+    description:
+      "Understand each customer through their messages, opportunities and assigned next steps.",
     steps: [
-      "Open a submission to review the person and their request.",
+      "Open a contact and review their history and current next step.",
       "For a list import, check the preview and resolve any issues before confirming.",
     ],
     guideHref: "/docs/contacts/import",
@@ -304,3 +318,151 @@ export const adminPageGuidance: Record<string, AdminPageGuidance> = {
     guideHref: "/docs/sources/overview",
   },
 };
+
+const taskContext: Record<
+  string,
+  Pick<AdminPageGuidance, "startHint" | "savedOutcome" | "workflowId">
+> = {
+  today: {
+    startHint: "Open the source behind a finding before choosing the next action.",
+    savedOutcome:
+      "Completed work remains with its source record; refresh Today to review the latest available evidence.",
+  },
+  work: {
+    startHint:
+      "Choose Tasks or Approvals, then open an item to see its owner, due date and related record.",
+    savedOutcome:
+      "Task changes stay on the assigned task. Approval results show what was attempted and confirmed.",
+  },
+  contacts: {
+    startHint:
+      "Search by name or email. Open history to review messages, tasks and linked opportunities.",
+    savedOutcome: "The customer history keeps linked messages, opportunities and tasks together.",
+    workflowId: "inquiry",
+  },
+  conversations: {
+    startHint: "Select a customer thread, read the latest request and prepare a reply.",
+    savedOutcome: "Check the message result in the thread before treating the reply as sent.",
+    workflowId: "inquiry",
+  },
+  clients: {
+    startHint:
+      "Open a client to review the engagement, delivery notes and outstanding commitments.",
+    savedOutcome: "Saved client changes and linked tasks remain available to the next teammate.",
+    workflowId: "onboarding",
+  },
+  pipeline: {
+    startHint: "Open the opportunity you want to move forward and check its stage and next step.",
+    savedOutcome: "Stage changes stay with the opportunity and its recorded history.",
+  },
+};
+
+const extensionGuidance: Record<string, AdminPageGuidance> = {
+  "stripe-invoicing": {
+    description: "Create customer invoices and inspect their recorded Stripe status.",
+    startHint:
+      "Open an invoice to inspect its status, or choose Create invoice to prepare a customer draft.",
+    steps: [
+      "Choose the customer, line items and terms, then inspect the invoice preview.",
+      "Request draft approval, review the exact version and create it. Request sending approval when it is ready.",
+      "Inspect the confirmed result and payment status before following up.",
+    ],
+    savedOutcome:
+      "Draft creation, sending and payment have separate results. An accepted send leaves payment outstanding until Stripe records it.",
+    guideHref: "/docs/plugins/stripe-invoicing",
+    workflowId: "invoice",
+  },
+  "receivables-collections": {
+    description: "Review outstanding invoices and choose the next payment follow-up.",
+    startHint: "Open a case and check its remaining amount, due date and latest source status.",
+    steps: [
+      "Review the customer, invoice and any dispute or pause.",
+      "Prepare the available follow-up, review it and inspect its recorded result.",
+    ],
+    savedOutcome:
+      "The case keeps the follow-up result alongside its invoice source and current balance.",
+    guideHref: "/docs/plugins/receivables-collections",
+    workflowId: "invoice",
+  },
+  "client-onboarding": {
+    description: "Turn a won engagement into an owned delivery checklist.",
+    startHint:
+      "Choose the won opportunity, then supply the owner and dates needed for the handoff.",
+    steps: [
+      "Select the engagement and review the proposed onboarding tasks.",
+      "Check each owner and due date, approve the exact proposal and open the created tasks in Work.",
+    ],
+    savedOutcome:
+      "Created tasks link back to the engagement so the delivery team can follow the handoff.",
+    guideHref: "/docs/plugins/client-onboarding",
+    workflowId: "onboarding",
+  },
+  "site-studio": {
+    description: "Create website pages and review each revision before publishing.",
+    startHint:
+      "Open a page or create a draft. Use preview to inspect changes before choosing Publish.",
+    steps: [
+      "Describe the page or edit its existing blocks, then save the draft.",
+      "Preview the customer view and inspect the exact revision before publishing.",
+      "Check the published revision; use the available rollback action when an earlier version is needed.",
+    ],
+    savedOutcome:
+      "Saving retains the draft. Publishing changes the public revision after the separate confirmation.",
+    guideHref: "/docs/plugins/site-studio",
+  },
+  "stripe-subscriptions": {
+    description: "Inspect recurring billing and the subscription status recorded by Stripe.",
+    steps: [
+      "Find the customer subscription and inspect its billing status.",
+      "Review the available billing action and its result before promising a change to the customer.",
+    ],
+    guideHref: "/docs/plugins/stripe-invoicing",
+  },
+  "form-builder": {
+    description: "Create intake forms that collect the information your team needs to respond.",
+    steps: [
+      "Open a form and review its questions, routing and customer-facing preview.",
+      "Save the form and check its available publication settings before sharing it.",
+    ],
+    guideHref: "/docs/plugins/form-builder",
+  },
+  "meeting-commitments": {
+    description: "Review meeting commitments and turn agreed next steps into owned tasks.",
+    steps: [
+      "Choose the meeting and inspect the supported commitments.",
+      "Check the owner and due date before approving task creation, then inspect the saved tasks.",
+    ],
+    guideHref: "/docs/plugins/meeting-commitments",
+  },
+  "opportunity-radar": {
+    description: "Review relevant public opportunities and decide which deserve follow-up.",
+    steps: [
+      "Open an opportunity and read its source and relevance explanation.",
+      "Review outreach details and the available action before proceeding.",
+    ],
+    guideHref: "/docs/plugins/opportunity-radar",
+  },
+  "social-marketing": {
+    description: "Prepare social content and review the scheduled publishing work.",
+    steps: [
+      "Open the draft and check its message, source and destination account.",
+      "Preview the content before scheduling it and inspect the publishing result.",
+    ],
+    guideHref: "/docs/plugins/social-marketing",
+  },
+  "example-inventory": {
+    description: "Inspect the example inventory workspace and its stock records.",
+    steps: [
+      "Choose an inventory item and review its stock and reorder information.",
+      "Review the available changes and check the saved result.",
+    ],
+    guideHref: "/docs/plugins/example-inventory",
+  },
+};
+Object.assign(adminPageGuidance, extensionGuidance);
+for (const link of adminNavLinks) {
+  const guidance = adminPageGuidance[link.id];
+  if (!guidance) continue;
+  Object.assign(guidance, taskContext[link.id]);
+  guidance.startHint ??= guidance.steps[0];
+}

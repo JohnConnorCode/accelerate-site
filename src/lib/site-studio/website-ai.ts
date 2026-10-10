@@ -45,8 +45,10 @@ const editsSchema = z
 export async function proposeWebsitePage(
   auth: AdminAuthorization,
   input: z.infer<typeof websiteAiInput>,
+  signal?: AbortSignal,
 ) {
   assertWebsiteOwner(auth);
+  signal?.throwIfAborted();
   const limited = await rateLimit(`website-ai:${auth.user.id}`, 20, 60 * 60 * 1000);
   if (!limited.success)
     throw new WebsiteGenerationLimitError(
@@ -68,6 +70,7 @@ export async function proposeWebsitePage(
       buildPageUserPrompt(brief),
       input.model,
       input.priceCeiling,
+      signal,
     );
     return {
       page: websitePageSchema.parse({ ...input.page, content: { kind: "document", document } }),
@@ -86,6 +89,7 @@ export async function proposeWebsitePage(
   const result = await openRouterJson({
     database: auth.database,
     job: "site-page-draft",
+    signal,
     timeoutMs: 150_000,
     ...(await resolveSiteModel(input.model, input.priceCeiling)),
     maxTokens: 8000,

@@ -9,6 +9,12 @@ import {
 } from "@/lib/tenancy/context";
 import { TENANT_SCOPED_TABLES } from "@/lib/revenue-os/schema-contract";
 
+import {
+  attachPrivateCommandOwner,
+  platformCommandScopeForDatabase,
+  PRIVATE_COMMAND_TABLES,
+} from "@/lib/revenue-os/platform-command-context";
+
 const tenantScopedTableSet = new Set<string>(TENANT_SCOPED_TABLES);
 const tenantDatabaseScopes = new WeakMap<object, { id: string; slug?: string }>();
 
@@ -49,18 +55,41 @@ export function bindTenantDatabase(
                   !onConflict.split(",").includes("tenant_id")
                     ? { ...optionRecord, onConflict: `tenant_id,${onConflict}` }
                     : options;
-                return value.call(builderTarget, attachTenant(rows, tenantId), tenantOptions);
+                const tenantRows = attachTenant(rows, tenantId);
+                return value.call(
+                  builderTarget,
+                  attachPrivateCommandOwner(database, table, tenantRows),
+                  tenantOptions,
+                );
               };
             }
+            const actor = getTenantRequestContext();
+            const delegatedPrivateTable =
+              PRIVATE_COMMAND_TABLES.has(table) &&
+              actor?.kind === "actor" &&
+              Boolean(actor.workspaceMcpProof);
             if (
-              enforceFilters &&
+              (enforceFilters || delegatedPrivateTable) &&
               ["select", "update", "delete"].includes(String(builderProperty))
             ) {
               return (...args: unknown[]) => {
                 const result = value.apply(builderTarget, args) as {
-                  eq: (column: string, value: string) => unknown;
+                  eq: (
+                    column: string,
+                    value: string,
+                  ) => {
+                    or: (expression: string) => unknown;
+                    is: (column: string, value: null) => unknown;
+                  };
                 };
-                return result.eq("tenant_id", tenantId);
+                const scoped = result.eq("tenant_id", tenantId);
+                if (!PRIVATE_COMMAND_TABLES.has(table)) return scoped;
+                const command = platformCommandScopeForDatabase(database);
+                return command
+                  ? scoped.or(
+                      `platform_owner_user_id.is.null,platform_owner_user_id.eq.${command.ownerUserId}`,
+                    )
+                  : scoped.is("platform_owner_user_id", null);
               };
             }
             return value.bind(builderTarget);
@@ -320,6 +349,20 @@ export async function callDebateProductionHostRpc(
     p_operation: operation,
     p_input: input,
     p_actor_email: actorEmail,
+  });
+}
+
+/** Source trust is an administrator decision, never a model-supplied identity. */
+export async function callSourceAuthorityRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+) {
+  const context = getTenantRequestContext();
+  if (context?.kind !== "actor" || args.p_actor_email !== context.user.email)
+    throw new Error("Verified source-authority administrator required");
+  return callVerifiedHostRpc(database, "register_source_authority", {
+    ...args,
+    p_actor_id: context.user.id,
   });
 }
 

@@ -332,11 +332,22 @@ async function main() {
   );
 
   await expectDecline(
-    harness({ clients: [{ id: "client-1", email: "dana@northsidedental.com" }] }),
+    harness({ clients: [{ id: "client-1", contact_email: "dana@northsidedental.com" }] }),
     {},
     "existing_client",
     "someone already paying us gets a person, not an autoresponder",
   );
+
+  for (const table of ["contacts", "clients", "messages"]) {
+    const unreadable = harness();
+    unreadable.fail(table, { message: "controlled eligibility read failure" });
+    await expectDecline(
+      unreadable,
+      {},
+      table === "contacts" ? "contact_suppressed" : "eligibility_unavailable",
+      "Failed eligibility reads must decline without generation or email",
+    );
+  }
 
   await expectDecline(
     harness({
@@ -600,6 +611,7 @@ async function main() {
           "inquiry_too_thin",
           "contact_suppressed",
           "existing_client",
+          "eligibility_unavailable",
           "already_contacted",
           "daily_cap_reached",
           "failed_grounding_check",

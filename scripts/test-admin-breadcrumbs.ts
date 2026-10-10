@@ -3,9 +3,12 @@ import { readFileSync } from "node:fs";
 import { getAdminBreadcrumbs } from "../src/lib/admin/breadcrumbs";
 import {
   adminNavSections,
+  adminNavLinks,
+  groupAdminNavLinks,
   filterNavSectionsByTenant,
   searchAdminNavLinks,
 } from "../src/lib/admin/navigation";
+import { adminPageGuidance } from "../src/lib/admin/page-guidance";
 import { resolveAdminHref } from "../src/lib/admin/navigation-paths";
 
 assert.deepEqual(getAdminBreadcrumbs("/admin/integrations"), [
@@ -91,3 +94,34 @@ assert.match(
 );
 
 console.log("admin breadcrumb contract passed");
+
+const businessGroups = groupAdminNavLinks(adminNavSections);
+assert.equal(businessGroups.length, 9);
+const presentedIds = businessGroups.flatMap((group) => [
+  group.primary!.id,
+  ...group.links.map((link) => link.id),
+]);
+assert.equal(
+  new Set(presentedIds).size,
+  adminNavLinks.length,
+  "Every registered destination appears once",
+);
+for (const link of adminNavLinks) {
+  assert.ok(adminPageGuidance[link.id]?.description, `${link.id} needs useful page context`);
+  assert.ok(adminPageGuidance[link.id]?.startHint, `${link.id} needs a first action`);
+}
+assert.equal(searchAdminNavLinks(adminNavLinks, "Site Studio")[0]?.label, "Website & pages");
+assert.equal(
+  searchAdminNavLinks(adminNavLinks, "Leads").some((link) => link.id === "leads"),
+  true,
+);
+const disabled = groupAdminNavLinks(
+  filterNavSectionsByTenant(adminNavSections, {
+    modules: { "stripe-invoicing": false, "receivables-collections": false, "site-studio": false },
+  }),
+).flatMap((group) => [group.primary!.id, ...group.links.map((link) => link.id)]);
+assert.equal(disabled.includes("stripe-invoicing"), false);
+assert.equal(disabled.includes("site-studio"), false);
+console.log(
+  "Business navigation: context coverage, unique membership, old-name aliases and disabled Apps passed.",
+);

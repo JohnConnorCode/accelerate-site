@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-07
+
+- Make copyable agent briefs recover clearly when clipboard access is unavailable, retain the full text for manual copying, and provide mobile-sized Copy controls. Pending copies disable repeated requests; settled feedback belongs to the mounted screen and reset timers are cleaned up. Agent entrypoint checks name missing instruction files instead of throwing file errors; regression cases cover missing files and conflicting pickup policy. Repository identity recognizes standard SSH port 22 while keeping custom ports distinct.
+- Integrate contributor repository validation and approved-source recovery. Preserve the matching recovery in the natural-language runner's next step instead of suggesting credential setup for missing or mismatched source.
+- Make setup and extension entry points agent-first. Owners give Claude Code or Codex a business brief and review the working result; agents handle configuration, implementation, registration and verification. Guides explain the work saved by shared records and services, distinguish proposed Apps from bundled features, and remove claims that registration automatically implements approvals or audit behavior.
+- Retain a focused contributor-guide screenshot artifact alongside the complete browser evidence, so reviewers can inspect agent setup and extension guidance without downloading unrelated journeys.
+- Align Claude's entrypoint with the canonical explicit-backlog rule and verify that it preserves the user's latest scope. Generic completion requests continue the current task. Contributor review captures wait for reveal readiness and finish finite animations before saving readable desktop evidence.
+
 Notable changes to this repository — the codebase, tooling, and open-source infrastructure. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Product-facing updates (features, fixes, and improvements to the live application) are tracked separately at [/changelog](https://www.acceleratewith.us/changelog) and [src/content/changelog.ts](src/content/changelog.ts).
@@ -8,11 +16,33 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Added
 
+- Owner-first admin navigation uses one business-group registry, with visible purpose descriptions and preserved destination IDs. Page guidance adds starting instructions, saved-result context and links to connected walkthroughs. Today reviews sourced sales, customer follow-up, delivery and payment work without inventing financial totals; custom views retain their arrangements.
+- Owner and daily guides now teach inquiry replies, client handoffs and invoicing through their saved results. Demo QA waits for the installed scenario runtime before reading protected API fixtures.
+- Revenue and Analytics report tools and JSON/CSV exports share dashboard services. Reviewed operation mappings are generated from the tool registry; new unreviewed handlers or tools fail the inventory gate. Existing coverage gaps stay explicit.
+- The Command Center search palette now opens tasks, opportunities, clients and proposals alongside people, pages and commands. Tenant-bound reads respect module configuration; grouped results include status context, keyboard selection stays visible, sequential task links cannot bind the previous task’s cached details, and proposal links resolve outside the current list filter.
+
 - AI can now prepare exact Content Calendar item updates for administrator approval. The admin editor and approved-action executor share a tenant-scoped, revision-checked writer; approval does not publish content.
 
 - Shared themed fields now govern Clients, Analytics, Campaigns, Integrations and Proposals; compact custom themes retain usable targets. Setup readiness inherits readable theme colors, and contact relationship failures offer retry instead of appearing empty.
 
 ### Fixed
+
+- Work task selection now keeps its exact URL and independent read/retry lifecycle. Editable instructions reuse the existing task writer; pending edits lock the form, failed confirmations retain drafts, and late reads or saves cannot target the next inspector. Source links use stored identifiers in Work and legacy Today.
+
+- Client detail uses independently recoverable queries for the record, activity and follow-ups. Failed refreshes retain loaded data and local edits; native forms validate nonnegative cent values and lock pending submissions. Follow-up creation refreshes related history and Work/Today caches.
+
+- Installation website save, reload and import now share a synchronous operation lock. Failed reloads retain local edits and undo, leaving ignores late responses, and success requires a matching version and publication receipt. Initial load failures offer a direct retry; editing and Undo/Redo clear outdated success messages.
+
+- Private page drafts now reuse the validated iframe preview with real responsive viewports and public page styling. Links, including keyboard and middle-button activation, stay inside the preview; FAQ disclosure remains interactive.
+
+- The fictional Site Studio demo now supports private draft creation, renaming and checksum-checked discard through shared draft rules. Scenario-local receipts appear in Activity; AI examples use the template without a provider call.
+
+- Site Studio previews AI suggestions before applying, forwards cancellation through the existing model gateway, and rejects late or stale replies. Page-scoped tools preserve custom addresses and enforce validated section limits.
+- Contributor pickup identifies the blocked card and separates missing approved commits, unavailable branches, ancestry mismatches and fetch failures before claiming. Recovery guidance preserves the approved source and directs card corrections through revision-checked edits.
+- Standing-permission execution preserves partial service outcomes in the tool response instead of labeling every admitted action executed. Human-review and record-permission checks remain required.
+
+- Analytics refuses incomplete primary datasets and discloses degraded auxiliary sources. Website capture freshness uses the latest event timestamp. AI capability search distinguishes registered tools from execution readiness and offers retry after loading failure.
+- Proposal forms reset when opening another record, rejected saves retain the draft for retry, and sent/viewed edits open the returned successor draft. Late completions preserve the current record. Saved changes and failed list refreshes receive separate feedback; clipboard success waits for confirmation and failed copying selects the link for manual copying.
 
 - A newly connected workspace can add a contact directly from Contacts and create a follow-up from that contact's record. The task is linked to the contact timeline and refuses cross-workspace contact IDs. The fictional demo persists newly added contacts instead of claiming success without saving them.
 

@@ -1,10 +1,12 @@
 ---
 title: "Connect your installation"
 description: "Create the owner account, apply the ordered schema, and sign in to a workspace you control."
-updated: "2026-09-29"
+updated: "2026-10-07"
 ---
 
-This walkthrough turns a local demo into a connected installation you control: database, authentication, and a real owner account. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email; complete [the local quickstart](/docs/self-hosting) first if you haven't already.
+Once the demo shows a workflow your team wants to use, a coding agent can follow this walkthrough to connect your own database, sign-in and owner account. The guided setup reuses the migration catalog and owner verification, which saves assembling those steps separately and gives the next maintainer a repeatable installation path.
+
+Give Claude Code or Codex a working checkout, authorized access to a new empty Supabase project and the chosen owner email. The agent handles private configuration, the read-only setup plan and verification. You own the accounts and complete any account authorization or credential-entry step that requires you. Start with [the local quickstart](/docs/self-hosting) to review the demo together.
 
 Use the installation instructions shipped with your checkout when upgrading an older version. This guide follows the repository's `docs/self-hosting/SELF-HOSTING.md` sequence. The setup command below changes the project you configure.
 
@@ -18,7 +20,7 @@ In the repository root, copy the example file:
 cp .env.example .env.local
 ```
 
-Edit `.env.local` in your editor. Keep it private and out of commits. Fill in the actual values from the new project:
+The agent configures `.env.local` through the authorized local setup, keeping it private and out of commits. Supply credentials through secure configuration rather than chat. It uses the actual values from the new project:
 
 | Configuration                                                                      | Purpose                                                           |
 | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -106,8 +108,33 @@ and set `SOCIAL_MARKETING_ENABLED=true` before running `npm run stack:up`. The r
 and routes them through one HTTPS proxy. Postiz requires no second installation.
 See the repository `deployment/README.md` for DNS, updates and retained data.
 
+## Keep your changes through an update
+
+Configure your business through the existing Branding, appearance and Site Studio controls so that everyday changes stay with your installation. Set `NEXT_PUBLIC_BUSINESS_NAME` and `NEXT_PUBLIC_SITE_URL` in your private environment for the public bootstrap identity. For Vercel, the repository's hosting generator creates an ignored `deployment-target.local.json` containing your project identity; keep that file with your installation backup.
+
+Before merging a fetched upstream commit or tag, run `npm run fork:check -- --ref <commit-or-tag>`. It checks local Git ancestry and reports unfinished work, source conflicts or legacy configuration edits while preserving your checkout. A clean source merge still needs backup, migration review and isolated verification. Follow the repository's [fork update guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/FORK-UPGRADES.md) for the exact sequence and for adopting a reduced export with independent Git history.
+
 ## Protect your saved work
 
 Before importing customer records, keep recovery copies of the database, uploaded files and encryption configuration, then test restoring them into an isolated installation. Follow the repository's [backup and recovery guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/BACKUP-RECOVERY.md) and record the result so the next maintainer can repeat it.
 
 Protected actions share request limits across server instances. A 429 response means the limit was reached; wait for the indicated retry time. A 503 means the action is temporarily unavailable, so check Setup, the migration catalog and server configuration before retrying. The request stops before sending messages or starting the protected action.
+
+An unconnected workspace asks you to complete the database and authentication steps above before using protected features. Once those values are configured, sign-in and active membership still determine access.
+
+## Check core releases
+
+The installation owner can open **Setup** and select **Check stable releases**. The result separates the recorded core version from your fork's source commit and reports when it was checked. A supported path names the release order, including any bridge versions you must apply first. Read those release notes, check the required Node, npm and PostgreSQL versions, and test your recovery copies before changing a connected installation.
+
+A checkout from main starts **Unversioned**. Once a stable upstream release exists, fetch its tag and confirm that commit is part of your fork's history. From that checkout, run:
+
+```bash
+git fetch https://github.com/JohnConnorCode/accelerate-site.git 'refs/tags/v0.1.0:refs/tags/v0.1.0'
+npm run release:adopt -- --tag v0.1.0
+```
+
+Replace the example tag with an actual published stable release. Adoption checks its metadata, checksum and exact tag commit, then writes `core-release.json`. Commit that file with your fork and rebuild so the deployed application retains the recorded version. Adoption records a source baseline; it does not certify your database or merge local changes. Package version `0.1.0` alone is not release proof.
+
+You can also run `npm run release:check` from the repository. Both checks use the same public upstream and compatibility rules, without sending installation records or credentials. If no stable release exists, the result is unknown. Offline access, rate limits or unverifiable metadata produce an unavailable result with a check time. Retry later; an older result does not establish current compatibility.
+
+These controls help plan an upgrade. Applying it, migrating the database and deploying remain reviewed maintainer work. The repository [release policy](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/RELEASES.md) explains supported source versions and release preparation.

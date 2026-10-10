@@ -7,6 +7,7 @@ import { registerRequiredCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
+import { deferWork } from "./work-result";
 import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
 
 // ---------------------------------------------------------------------------
@@ -62,6 +63,20 @@ export async function bootstrapMeetingIntelCoworker(
   supabase: SupabaseClient,
   actorEmail?: string | null,
 ): Promise<{ coworker: Coworker; capabilityGaps: string[]; readyToWork: boolean }> {
+  // Register the tenant-owned identity before its scoped policies.
+  const coworker = await registerCoworker(supabase, {
+    id: MEETING_INTEL_COWORKER_ID,
+    name: "Meeting Intelligence",
+    role: "Generates pre-call briefs, processes post-meeting outcomes, and updates CRM from meetings",
+    description:
+      "Watches for upcoming calendar events and prepares pre-call briefs with company context, recent activity, and open items. After meetings, processes notes into CRM updates, follow-up tasks, and next-step work items.",
+    toolPack: "pipeline",
+    requiredCapabilities: [...MEETING_INTEL_REQUIRED_CAPABILITIES],
+    workKinds: [...MEETING_INTEL_WORK_KINDS],
+    actorEmail,
+    seedOnly: true,
+  });
+
   for (const capKey of MEETING_INTEL_REQUIRED_CAPABILITIES) {
     await registerRequiredCapability(supabase, capKey);
   }
@@ -76,18 +91,6 @@ export async function bootstrapMeetingIntelCoworker(
       actorEmail,
     });
   }
-
-  const coworker = await registerCoworker(supabase, {
-    id: MEETING_INTEL_COWORKER_ID,
-    name: "Meeting Intelligence",
-    role: "Generates pre-call briefs, processes post-meeting outcomes, and updates CRM from meetings",
-    description:
-      "Watches for upcoming calendar events and prepares pre-call briefs with company context, recent activity, and open items. After meetings, processes notes into CRM updates, follow-up tasks, and next-step work items.",
-    toolPack: "pipeline",
-    requiredCapabilities: [...MEETING_INTEL_REQUIRED_CAPABILITIES],
-    workKinds: [...MEETING_INTEL_WORK_KINDS],
-    actorEmail,
-  });
 
   const manifest = await getCoworkerManifest(supabase, MEETING_INTEL_COWORKER_ID);
 
@@ -184,41 +187,45 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi, signal) => {
 
   // Deterministic fallback.
   // Load contact details.
-  const { data: contact } = await supabase
+  const { data: contact, error: contactError } = await supabase
     .from("contacts")
-    .select("id, email, first_name, last_name, company_id")
+    .select("id, primary_email, full_name, company_id")
     .eq("id", contactId)
     .maybeSingle();
+  if (contactError) throw new Error(contactError.message);
   if (!contact) return { status: "skipped", outcome: `Contact ${contactId} not found` };
 
   // Load open opportunity for this contact.
-  const { data: opportunity } = await supabase
+  const { data: opportunity, error: opportunityError } = await supabase
     .from("opportunities")
-    .select("id, stage, company_name, probability, next_action")
+    .select("id, stage, name, probability, next_action")
     .eq("contact_id", contactId)
     .not("stage", "in", '("won","lost")')
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (opportunityError) throw new Error(opportunityError.message);
 
   // Count recent activity.
-  const { count: recentActivity } = await supabase
+  const { count: recentActivity, error: recentActivityError } = await supabase
     .from("activities")
     .select("*", { count: "exact", head: true })
     .eq("contact_id", contactId)
     .gte("occurred_at", new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString());
+  if (recentActivityError) throw new Error(recentActivityError.message);
 
   // Count pending actions.
-  const { count: pendingActions } = await supabase
+  const { count: pendingActions, error: pendingActionsError } = await supabase
     .from("action_queue")
     .select("*", { count: "exact", head: true })
     .eq("entity_id", contactId)
     .eq("status", "pending");
+  if (pendingActionsError) throw new Error(pendingActionsError.message);
 
   const briefParts = [
-    `Contact: ${contact.first_name ?? ""} ${contact.last_name ?? ""} (${contact.email})`,
+    `Contact: ${contact.full_name || contact.primary_email || contact.id} (${contact.primary_email})`,
     opportunity
-      ? `Opportunity: ${opportunity.company_name} — stage: ${opportunity.stage}, probability: ${opportunity.probability}%`
+      ? `Opportunity: ${opportunity.name} — stage: ${opportunity.stage}, probability: ${opportunity.probability}%`
       : "No active opportunity",
     opportunity?.next_action ? `Next action: ${opportunity.next_action}` : "No next action set",
     `Recent activity (14d): ${recentActivity ?? 0} events`,
@@ -239,7 +246,7 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi, signal) => {
   await storeAgentMemory(supabase, {
     coworkerId: MEETING_INTEL_COWORKER_ID,
     category: "prior_work",
-    subject: `pre_call_brief: ${contact.first_name ?? ""} ${contact.last_name ?? ""}`,
+    subject: `pre_call_brief: ${contact.full_name || contact.primary_email || contact.id}`,
     body: brief,
     entityType: "contact",
     entityId: contactId,
@@ -271,92 +278,37 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi, signal) 
   }
 
   // Deterministic fallback.
-  const { data: opportunity } = await supabase
+  const { data: opportunity, error: opportunityError } = await supabase
     .from("opportunities")
-    .select("id, stage, company_name, contact_id")
+    .select("id, stage, name, contact_id")
     .eq("id", opportunityId)
     .maybeSingle();
+  if (opportunityError) throw new Error(opportunityError.message);
   if (!opportunity) return { status: "skipped", outcome: `Opportunity ${opportunityId} not found` };
 
-  // Create a CRM update work item to capture meeting outcomes.
-  await createWorkItem(supabase, {
-    kind: "update_crm_from_meeting",
-    objective: `Update CRM from meeting with ${opportunity.company_name}`,
-    reason: `Post-meeting processing — update opportunity stage and next actions`,
-    source: "meeting_intel_coworker",
-    priority: "high",
-    coworkerId: MEETING_INTEL_COWORKER_ID,
-    entityType: "opportunity",
-    entityId: opportunityId,
-    dedupeKey: `meeting:crm-update:${opportunityId}:${new Date().toISOString().slice(0, 10)}`,
-    maxAttempts: 2,
-    actorEmail: "system",
-  });
-
-  await recordAudit(supabase, {
-    actorEmail: "system",
-    action: "meeting_intel.post_meeting_processed",
-    entityType: "opportunity",
-    entityId: opportunityId,
-    source: "automation",
-    after: { stage: opportunity.stage, company: opportunity.company_name, work_item: wi.id },
-  });
-
-  const outcome = `Post-meeting processed for ${opportunity.company_name} (stage: ${opportunity.stage}) — CRM update queued`;
-  await storeAgentMemory(supabase, {
-    coworkerId: MEETING_INTEL_COWORKER_ID,
-    category: "prior_work",
-    subject: `post_meeting_process: ${opportunity.company_name}`,
-    body: outcome,
-    entityType: "opportunity",
-    entityId: opportunityId,
-    relevanceHorizon: "weekly",
-  });
-
-  return { status: "completed", outcome };
+  return deferWork(
+    `Review the meeting notes for ${opportunity.name || opportunity.id} and configure AI execution to prepare the supported changes. No CRM changes were recorded.`,
+  );
 };
 
-const updateCrmFromMeetingHandler: WorkKindHandler = async (supabase, wi) => {
+const updateCrmFromMeetingHandler: WorkKindHandler = async (supabase, wi, signal) => {
   const opportunityId = wi.entity_id;
   if (!opportunityId) return { status: "skipped", outcome: "No opportunity ID linked" };
 
-  const { data: opportunity } = await supabase
+  const { data: opportunity, error: opportunityError } = await supabase
     .from("opportunities")
-    .select("id, stage, company_name, next_action")
+    .select("id, stage, name, next_action")
     .eq("id", opportunityId)
     .maybeSingle();
+  if (opportunityError) throw new Error(opportunityError.message);
   if (!opportunity) return { status: "skipped", outcome: `Opportunity ${opportunityId} not found` };
 
-  // In a full implementation, this would parse meeting notes/transcript
-  // and propose CRM updates. For the reference implementation, we audit
-  // the intent and mark completion.
-  await recordAudit(supabase, {
-    actorEmail: "system",
-    action: "meeting_intel.crm_updated_from_meeting",
-    entityType: "opportunity",
-    entityId: opportunityId,
-    source: "automation",
-    after: {
-      stage: opportunity.stage,
-      next_action: opportunity.next_action,
-      company: opportunity.company_name,
-      work_item: wi.id,
-      note: "Reference implementation — full note parsing pending Phase E deepening",
-    },
-  });
+  const aiResult = await tryAiExecution(supabase, wi, signal);
+  if (aiResult) return aiResult;
 
-  const outcome = `CRM update from meeting for ${opportunity.company_name} (stage: ${opportunity.stage})`;
-  await storeAgentMemory(supabase, {
-    coworkerId: MEETING_INTEL_COWORKER_ID,
-    category: "prior_work",
-    subject: `update_crm_from_meeting: ${opportunity.company_name}`,
-    body: outcome,
-    entityType: "opportunity",
-    entityId: opportunityId,
-    relevanceHorizon: "weekly",
-  });
-
-  return { status: "completed", outcome };
+  return deferWork(
+    `Review the meeting notes for ${opportunity.name || opportunity.id} and prepare the exact CRM changes for approval. No CRM changes were recorded.`,
+  );
 };
 
 // ---------------------------------------------------------------------------

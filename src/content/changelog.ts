@@ -2,6 +2,348 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-kinetic-identity",
+    slug: "homepage-kinetic-identity",
+    title: "A kinetic identity for the homepage",
+    description:
+      "Accelerate's wordmark and chevrons travel around layered dimensional bands, with narrow ribbons moving in the opposite direction. The composition adapts the Tower study in Dominik Fojcik's Kinetic Images series. Motion runs independently of the cursor, with Pause/Play controls and a matching static image when animation or graphics are unavailable. Mobile artwork and controls have separate space below booking. This change is included in this source release; production publication is separate.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "invoice-design-revisions",
+    slug: "invoice-design-revisions",
+    title: "Refine customer invoice pages with AI",
+    description:
+      "See revisions in a live preview, adjust typography, spacing, color and wording directly, and undo or redo AI and manual changes. Style starters preserve your wording, while the phone preview shows the narrow customer layout. Reopen a published design to start another draft, then preview it before requesting publication approval. Existing customer links keep their approved design; Stripe continues to supply billing facts and the secure payment page.",
+    category: "improvement",
+    publishedAt: "2026-10-04",
+  },
+  {
+    id: "proposal-editor-recovery",
+    slug: "proposal-editor-recovery",
+    title: "Keep proposal edits with the right record",
+    description:
+      "Opening another proposal loads its own fields. Failed saves retain your draft for retry, and edits to sent or viewed proposals open the new draft version. A save that finishes later leaves the record you opened in place. Saved changes and a failed list refresh show separate feedback. Copy confirms the clipboard result and selects the link for manual copying if access fails.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "workspace-record-search",
+    slug: "workspace-record-search",
+    title: "Find workspace records from one search",
+    description:
+      "Search now opens tasks, opportunities, clients and proposals alongside people, pages and commands. Grouped results include status and relationship context, arrow-key selection stays in view, and proposal links work outside the current list filter. Disabled modules stay out of results. Failed reads offer Retry search while local pages and commands remain available.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "command-center-view-and-recovery",
+    slug: "command-center-view-and-recovery",
+    title: "Smoother workspace views and clearer recovery",
+    description:
+      "Work, Pipeline, Content, Features, and the AI workspace share animated view selection with keyboard access and reduced-motion support. AI and Content view changes use the shared section entrance. People search shows failed reads and retry separately from no matches, while local commands remain available. Client detail and activity retain loaded information after refresh failures and offer independent retry. Unavailable records no longer appear as missing clients or empty history.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "shared-ai-reporting",
+    slug: "shared-ai-reporting",
+    title: "Dashboard reports through Ask AI and MCP",
+    description:
+      "Revenue and Analytics tools use the dashboard reporting services, with named sections, bounded drilldowns and JSON/CSV exports. Incomplete data stays visible, and recorded revenue remains distinct from forecasts and collected payments. Capability search helps operators find supported actions and recover from a failed read. Reviewed operation mappings are generated from the tool registry; universal administrative coverage remains in progress.",
+    category: "feature",
+    publishedAt: "2026-10-09",
+  },
+  {
+    id: "source-authority",
+    slug: "source-authority",
+    title: "Verified sources for agent answers",
+    description:
+      "Help agents answer from sources your team has verified. The registry tracks ownership, trust, scope and verification expiry; grounded searches mark stale evidence and potential conflicts. Source changes, audit records and replay receipts now commit together, and interrupted saves can be confirmed without overwriting a later change. Claude Code, Codex and connected assistants can propose the same settings for human approval.",
+    category: "feature",
+    publishedAt: "2026-10-08",
+  },
+  {
+    id: "blueprint-operating-setup",
+    slug: "blueprint-operating-setup",
+    title: "Save a reviewed Blueprint's operating setup",
+    description:
+      "Blueprint review now brings available board columns and the remaining setup recommendations together. Save an approved version to add columns to Pipeline or Content, while navigation, views, workflows and Coworkers stay recorded recommendations for review. The saved result includes its audit record, retries reuse the same result, and earlier unverified saves show a maintainer recovery step. Claude Code, Codex or another coding agent can use the custom development briefs with the extension guide to build the remaining capabilities.",
+    category: "improvement",
+    publishedAt: "2026-10-08",
+  },
+  {
+    id: "learning-proposal-privileges",
+    slug: "learning-proposal-privileges",
+    title: "Tighter database permissions for Learning Inbox proposals",
+    description:
+      "A catalogued upgrade removes anonymous access and unused table-management powers from learning proposals. Signed-in workspace members retain their proposal actions under tenant isolation, and existing records and approval history stay intact. Coding agents can run the documented migration and disposable database checks instead of maintaining manual grant changes. Apply the migration before releasing the repair to a connected installation.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "reviewed-content-calendar-lifecycle",
+    slug: "reviewed-content-calendar-lifecycle",
+    title: "Review calendar creation, deletion and moves from Ask AI",
+    description:
+      "Ask AI and connected workspace MCP assistants can preview and propose new calendar items, permanent item deletion and moves between existing columns. Approvals show the exact items and changes. Saving checks current access and refuses stale items or columns; creation, deletion and moves commit with their audit receipts. Retries reuse saved receipts. The editor now clears blank optional fields. Deleting a calendar item preserves approval history and website pages. These changes are included in this source release; production publication is separate.",
+    category: "improvement",
+    publishedAt: "2026-10-06",
+  },
+  {
+    id: "workspace-file-recovery",
+    slug: "workspace-file-recovery",
+    title: "Recover uploaded files with a checked restore plan",
+    description:
+      "Self-hosters can copy uploaded file bytes with a private checksum manifest, inspect a read-only restore plan, and resume interrupted restoration without overwriting matching files. Conflicting files, bucket settings and corrupt copies are refused. The recovery guide covers database and encryption configuration separately, with provider-receipt review before reconnecting external actions. An isolated native drill exercises restored Auth, tenant permissions, files and upgrades; hosted recovery remains installation-specific.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "fork-customization-preservation",
+    slug: "fork-customization-preservation",
+    title: "Keep installation settings separate from core updates",
+    description:
+      "Fork hosting now uses a local target file that survives upstream source changes, with overwrite refusal and the existing account checks. A local Git preflight reports unfinished work, conflicts, legacy configuration edits and independent export history without applying an update. Starter identity follows environment settings, while saved branding, pages and plugins keep their existing owners. Backup, migration and provider verification remain part of each installation's release process.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "fork-core-release-contract",
+    slug: "fork-core-release-contract",
+    title: "Verified core versions for self-hosted forks",
+    description:
+      "Setup and the release-check command verify stable upstream metadata, exact tag commits and supported source paths. Recorded core identity remains separate from a customized fork commit. Explicit compatibility rules check migration history, the extension contract and the running Node version, including required bridge releases. Unversioned and unavailable results explain recovery. Fresh installations show sign-in setup guidance until the database connection is configured. Release preparation requires complete CI for the exact source; publication, database upgrades and deployment remain separate maintainer actions.",
+    category: "feature",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "operational-read-and-eligibility-repairs",
+    slug: "operational-read-and-eligibility-repairs",
+    title: "Restore Intake review, email evidence and meeting scheduling",
+    description:
+      "Intake review reads canonical action fields and the existing coworker task bridge, avoids duplicate bridge entries, opens exact approvals and reports failed reads. Email history uses recorded send times and provider IDs, warns when incomplete and fails clearly when both sources are unavailable. Approved email checks canonical contact eligibility; automated first replies recognize existing clients and decline when eligibility or send limits cannot be verified. Meeting briefs use the actual calendar start time, skip cancelled meetings and report repeated work as skipped.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "google-sync-optional-drive",
+    slug: "google-sync-optional-drive",
+    title: "Sync Gmail and Calendar before selecting Drive folders",
+    description:
+      "Workspace sync now reads Gmail and Calendar when no Drive folders are selected, records Drive as not configured and performs no Drive file requests. Drive-only sync still requires selected folders. Setup distinguishes an already-running sync from completed work. The Google readiness check follows the current bounded folder validation and allowlist rules.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "coworker-setup-and-evidence",
+    slug: "coworker-setup-and-evidence",
+    title: "Configure coworkers without resetting saved settings",
+    description:
+      "Coworker setup preserves saved settings, connected accounts and existing permissions, creates the coworker before its scoped policies, and reports policy failures. It repairs untouched native CRM placeholders left by older setup. Worker reports use canonical contact, opportunity and execution fields, and fail clearly when business evidence cannot be read. Meeting work keeps unresolved CRM changes waiting for review. Today refreshes recent workspace activity, Today and booking reads load consistently after a restart, and AI run details fit the mobile screen.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "demo-ai-recorded-traces",
+    slug: "demo-ai-recorded-traces",
+    title: "Inspect demo answers without invented evidence",
+    description:
+      "Demo Run history opens answers that used no tools and preserves recorded tool successes, failures and prepared proposals across reloads. Unknown token usage displays as not recorded. Older saved runs disclose missing trace evidence. The inspector no longer invents a completed tool call or links an unrelated opportunity.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "operational-health-unresolved-outcomes",
+    slug: "operational-health-unresolved-outcomes",
+    title: "Keep uncertain outcomes visible in operational health",
+    description:
+      "Setup and Today flag uncertain outbound message outcomes for receipt review, alongside failed and processing messages. Open work counts include claimed and in-progress items, so work does not disappear from the count while a worker handles it. Check the provider receipt before retrying an uncertain action.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "agent-first-setup-and-extensions",
+    slug: "agent-first-setup-and-extensions",
+    title: "Start and extend your workspace with a coding agent",
+    description:
+      "Setup and extension guides now start with a business brief for Claude Code or Codex. The agent handles configuration, source changes, registration and checks while the owner reviews the working workflow. Examples explain how shared customer records and services reduce repeated setup and status chasing, with proposed Apps kept distinct from available features. Copy controls fit mobile and show pending requests, successful copies and manual-copy recovery. Claude's entrypoint keeps generic continuation requests on the current task and reserves backlog pickup for explicit requests.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "contributor-approved-source-recovery",
+    slug: "contributor-approved-source-recovery",
+    title: "Clearer recovery when contributor pickup cannot use its approved source",
+    description:
+      "Contributor pickup now names the blocked card and distinguishes a missing commit, unavailable branch, commit outside the approved branch history and failed fetch. Each message gives the relevant recovery step before ownership is claimed. Existing source, repository identity checks and revision-checked assignment remain in place. This source change still requires review and release before hosted activation.",
+    category: "fix",
+    publishedAt: "2026-10-06",
+  },
+  {
+    id: "contributor-repository-readiness",
+    slug: "contributor-repository-readiness",
+    title: "Clearer recovery when contributor pickup cannot use a repository",
+    description:
+      "Contributor pickup identifies the affected card and explains whether its repository address needs a maintainer edit or the checkout needs to use the approved clone. Standard SSH addresses with explicit port 22 match their default-port aliases, while custom ports remain distinct. Unsafe addresses stay unclaimed, credentials stay hidden, and the approved branch, source commit and work history stay intact.",
+    category: "fix",
+    publishedAt: "2026-10-06",
+  },
+  {
+    id: "command-destination-focus",
+    slug: "command-destination-focus",
+    title: "Keep typing when a command opens setup",
+    description:
+      "Opening a page from Search preserves focus when you start entering a field. Closing dialogs and delayed page content respect the control you are using, while ordinary dismissal still returns to the previous control. Invoice setup keeps the Stripe key field ready for keyboard input on desktop and mobile, including reduced motion.",
+    category: "fix",
+    publishedAt: "2026-10-09",
+  },
+  {
+    id: "ai-reading-continuity",
+    slug: "ai-reading-continuity",
+    title: "Read AI answers at your own pace",
+    description:
+      "Ask AI keeps your place when you scroll up during a response. Jump to latest resumes following new text, and another question or a conversation change returns to the latest message. The composer grows for multiline questions and waits for input-method composition to finish before Enter can send. Starting guidance now explains what to ask without repeating the evidence and approval summary.",
+    category: "fix",
+    publishedAt: "2026-10-08",
+  },
+  {
+    id: "mobile-navigation-handoffs",
+    slug: "mobile-navigation-handoffs",
+    title: "Keep phone navigation and tool handoffs steady",
+    description:
+      "More keeps scrolling and background controls paused until its menu finishes closing. Search, Ask AI and the search shortcut wait for that removal before opening their panel. Dismissal returns focus to More, while navigation focuses the destination heading once the workspace is available. Reduced motion opens and closes the menu immediately.",
+    category: "fix",
+    publishedAt: "2026-10-08",
+  },
+  {
+    id: "notification-close-continuity",
+    slug: "notification-close-continuity",
+    title: "Close notifications without losing your place",
+    description:
+      "The phone dock stays paused until the notification sheet finishes closing. Dismissal returns focus to the bell after the panel leaves, while notification links keep focus with their destination. Desktop and phone panels skip animation under reduced motion.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "dialog-exit-continuity",
+    slug: "dialog-exit-continuity",
+    title: "Keep the workspace steady while dialogs close",
+    description:
+      "The phone navigation dock and embedded previews stay hidden while a dialog fades out, and sidebar controls remain paused until the last dialog leaves the screen. Closing a nested confirmation keeps the editor's hold in place. Reduced motion releases the workspace as soon as the dialog is removed.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "nested-dialog-layering",
+    slug: "nested-dialog-layering",
+    title: "Keep nested confirmations in focus",
+    description:
+      "A confirmation now dims and blocks the editor beneath it. Each dialog keeps its panel and backdrop together through entry and exit, so closing a confirmation reveals the retained draft with the same soft transition or immediate reduced-motion response.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "dialog-decision-polish",
+    slug: "dialog-decision-polish",
+    title: "Make the confirmation choice clear",
+    description:
+      "Delete, discard and archive confirmations use the shared danger appearance while the safer cancel choice receives initial keyboard focus. Keep editing returns to an unsaved card draft, and the action row wraps on small screens. Dialogs and backdrops open and close immediately under reduced motion, including nested confirmations, while normal motion keeps the existing soft transitions. Closing preserves focus already moved to another page control.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "action-feedback-polish",
+    slug: "action-feedback-polish",
+    title: "Read action feedback at your own pace",
+    description:
+      "Brief confirmations and warnings pause while you hover over them or focus their dismiss control, then resume with their remaining reading time. Larger dismiss targets and visible keyboard focus make messages easier to clear. Stacked messages settle smoothly when one disappears; reduced motion shows and clears feedback without animation.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "page-help-interaction-polish",
+    slug: "page-help-interaction-polish",
+    title: "Read page guidance without losing your place",
+    description:
+      "How this works opens a compact panel with workflow steps, saved results and clearly separated guide actions. Open and close transitions reverse when you change your mind; reduced motion skips them. Keyboard focus enters the panel, while Close help and Escape return to the page controls. Guide links keep their position on hover and provide larger touch targets. Today and Contacts starting instructions now name the specific first action.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "owner-business-workspace",
+    slug: "owner-business-workspace",
+    title: "Find the business question and follow it into work",
+    description:
+      "Nine sidebar groups explain where to manage the business. Core page headers show a starting instruction, with expanded steps and saved-result context. Today begins with sourced findings across sales, customer follow-up, delivery and money, links each finding to its record and prepares contextual AI questions. Connected walkthroughs teach answering an inquiry, starting client work and following an invoice through its recorded result. Existing custom views, permissions and business records remain intact.",
+    category: "improvement",
+    publishedAt: "2026-10-06",
+  },
+  {
+    id: "task-inspector-context-recovery",
+    slug: "task-inspector-context-recovery",
+    title: "Keep task details attached to the right work",
+    description:
+      "Task links reopen the same inspector after reload, load independently and offer retry on read failures. Switching links cannot reuse another task’s fields or let a late save close the next task. Edit instructions beside title, date and priority, and open the related client, contact or opportunity. Pending changes lock the form and close control, failed edits retain the draft, and completed tasks remain available for reference. Legacy Today links use stored record identifiers.",
+    category: "fix",
+    publishedAt: "2026-10-06",
+  },
+  {
+    id: "client-workspace-recovery",
+    slug: "client-workspace-recovery",
+    title: "Keep client records, activity and follow-ups connected",
+    description:
+      "Client records, activity and follow-ups load independently and offer scoped retries. Failed refreshes retain loaded information and unsaved edits. Follow-ups sit beside activity and refresh Work and Today after creation. Pending submissions hold the draft fixed, failed submissions retain edits, and client values accept cents with nonnegative form validation.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "website-editor-operation-recovery",
+    slug: "website-editor-operation-recovery",
+    title: "Keep website edits safe during saves, reloads and imports",
+    description:
+      "Website editing pauses while a save, reload or import finishes, so competing actions cannot overwrite local work. Failed reloads retain your edits and undo history, and initial loading failures offer a direct retry. Incomplete or mismatched confirmations keep the exact pending change for retry. Leaving the editor stops pending requests and ignores late responses. Editing, Undo and Redo clear outdated success messages.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "private-draft-responsive-preview",
+    slug: "private-draft-responsive-preview",
+    title: "Check private drafts in real responsive viewports",
+    description:
+      "Preview saved private drafts at 390, 768 and 1440 pixels. Each size gives the page its own viewport, so responsive layouts and typography match the selected width even on a small admin screen. The preview uses public page styling, keeps links and forms inactive, and lets you open FAQ answers without leaving the editor.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "private-page-draft-demo",
+    slug: "private-page-draft-demo",
+    title: "Try private page drafts in the demo",
+    description:
+      "Create, preview, rename and discard private page drafts in each fictional business. Saved titles survive reloads, businesses keep separate copies, and confirmed changes appear as simulated activity. AI example mode uses the service template without a provider call. Drafts remain in browser-session storage until discarded or the business is reset. Preview centering preserves the gap before rename controls.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "private-page-draft-recovery",
+    slug: "private-page-draft-recovery",
+    title: "Recover private page drafts without losing your title",
+    description:
+      "Failed refreshes retain your preview and typed title. Load the latest copy after a stale or uncertain save or discard, review it, then retry. Creation keeps its brief fixed while pending, supports Enter submission, and requires a successful list refresh after an unclear result. Late replies cannot move you away from another page, and Keep draft cancels a discard choice. The optional image catalogue opens on demand and shows the eight-image selection limit.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "website-ai-review-recovery",
+    slug: "website-ai-review-recovery",
+    title: "Preview and recover AI website edits",
+    description:
+      "Review proposed pages at phone, tablet and desktop widths before applying them. Cancel a pending suggestion without changing your draft, and prepare a fresh suggestion when newer edits need protection. AI review stays with its page, custom addresses survive title changes, and visible section limits keep pages valid and saveable.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

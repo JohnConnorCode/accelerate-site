@@ -4,10 +4,199 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { randomUUID, createHash } from "node:crypto";
 import { chromium } from "playwright";
+import { parseSiteDocument } from "../src/lib/site-studio/document";
 import { servicePageTemplate } from "../src/lib/site-studio/templates";
 
+async function verifyDraftPreview(page: import("playwright").Page, output: string, width: number) {
+  const preview = page.getByRole("region", { name: "Private draft preview", exact: true });
+  const frame = page.frameLocator('iframe[title="Private draft page preview"]');
+  const heading = frame.getByRole("heading", { name: "Roof inspection", exact: true });
+  await heading.waitFor();
+  await frame.locator("body").evaluate(async () => {
+    await Promise.all(Array.from(document.images, (image) => image.decode()));
+  });
+  const sizes = [
+    [390, "Phone"],
+    [768, "Tablet"],
+    [1440, "Desktop"],
+  ] as const;
+  const fontSizes: number[] = [];
+  for (const [size, label] of sizes) {
+    await preview.getByRole("button", { name: label, exact: true }).press("Enter");
+    await page.waitForFunction(
+      (size) =>
+        document.querySelector<HTMLIFrameElement>('iframe[title="Private draft page preview"]')
+          ?.contentWindow?.innerWidth === size,
+      size,
+    );
+    assert.equal(
+      await preview.getByRole("button", { name: label, exact: true }).getAttribute("aria-pressed"),
+      "true",
+    );
+    assert.equal(
+      await frame.locator("body").evaluate(() => matchMedia("(max-width: 640px)").matches),
+      size <= 640,
+    );
+    fontSizes.push(
+      await heading.evaluate((element) => parseFloat(getComputedStyle(element).fontSize)),
+    );
+    assert.equal(await frame.locator(".admin-route-frame, header, footer").count(), 0);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await preview.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/${width}-preview-${size}.png` });
+  }
+  assert.ok(fontSizes[2]! > fontSizes[0]!, "hero type must respond to the iframe viewport");
+  await preview.getByRole("button", { name: "Phone", exact: true }).press("Enter");
+  const iframe = await page.locator('iframe[title="Private draft page preview"]').elementHandle();
+  assert.ok(iframe);
+  const frameUrl = await iframe.evaluate(
+    (element) => (element as HTMLIFrameElement).contentWindow!.location.href,
+  );
+  const outerUrl = page.url();
+  const popups: string[] = [];
+  page.on("popup", (popup) => popups.push(popup.url()));
+  const link = frame.getByRole("link", { name: "Start a conversation", exact: true }).first();
+  await link.click();
+  await link.press("Enter");
+  await link.click({ button: "middle" });
+  assert.equal(
+    await iframe.evaluate((element) => (element as HTMLIFrameElement).contentWindow!.location.href),
+    frameUrl,
+  );
+  assert.equal(page.url(), outerUrl);
+  assert.deepEqual(popups, []);
+  const question = frame.locator("summary").first();
+  await question.press("Enter");
+  assert.equal(await question.locator("..").getAttribute("open"), "");
+  await question.press("Enter");
+  // Invalid parent messages and valid messages from the wrong source must not replace the preview.
+  await iframe.evaluate((element) => {
+    (element as HTMLIFrameElement).contentWindow!.postMessage(
+      { type: "site-draft-preview-document", document: { engine: "script" } },
+      location.origin,
+    );
+  });
+  const rejected = servicePageTemplate({
+    serviceName: "Untrusted replacement",
+    audience: "QA",
+    outcome: "Ignore self messages",
+  });
+  await frame.locator("body").evaluate((_, document) => {
+    window.postMessage({ type: "site-draft-preview-document", document }, location.origin);
+  }, rejected);
+  const oversized = parseSiteDocument({
+    ...rejected,
+    root: Array.from({ length: 15 }, (_, section) => ({
+      id: `section-${section}`,
+      type: "section",
+      children: Array.from({ length: 20 }, (_, text) => ({
+        id: `text-${section}-${text}`,
+        type: "text",
+        props: { text: "a".repeat(2000) },
+      })),
+    })),
+  });
+  assert.ok(new TextEncoder().encode(JSON.stringify(oversized)).length > 512_000);
+  await iframe.evaluate((element, document) => {
+    (element as HTMLIFrameElement).contentWindow!.postMessage(
+      { type: "site-draft-preview-document", document },
+      location.origin,
+    );
+  }, oversized);
+  await page.waitForTimeout(250);
+  assert.equal(await heading.count(), 1);
+  assert.equal(
+    await frame.getByRole("heading", { name: "Untrusted replacement", exact: true }).count(),
+    0,
+  );
+  const bounds = await preview.boundingBox();
+  const rename = await page
+    .getByRole("region", { name: "Rename draft", exact: true })
+    .boundingBox();
+  assert.ok(
+    bounds && rename && rename.y - (bounds.y + bounds.height) >= 16,
+    "preview must retain spacing before rename controls",
+  );
+}
+
+async function verifyDefaultDemo(
+  browser: import("playwright").Browser,
+  base: string,
+  output: string,
+) {
+  for (const width of [1440, 390]) {
+    const context = await browser.newContext({
+      viewport: { width, height: 1000 },
+      reducedMotion: "reduce",
+    });
+    const page = await context.newPage();
+    try {
+      const errors: string[] = [];
+      const protectedRequests: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      page.on("console", (message) => {
+        if (message.type() === "error") errors.push(message.text());
+      });
+      await context.route("**/*", (route) => {
+        const url = new URL(route.request().url());
+        if (url.origin !== new URL(base).origin || url.pathname.startsWith("/api/")) {
+          protectedRequests.push(url.pathname);
+          return route.abort();
+        }
+        return route.continue();
+      });
+      const home = `${base}/demo/command-center/northline-roofing/site`;
+      await page.goto(home);
+      await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
+      await page.getByLabel("Service name", { exact: true }).fill("Roof inspection");
+      await page.getByLabel("Audience", { exact: true }).fill("Property owners");
+      await page.getByLabel("Outcome", { exact: true }).fill("Review the condition report");
+      await page.getByRole("combobox", { name: /^Creation mode/ }).selectOption("ai");
+      assert.equal(await page.getByRole("combobox", { name: /^Creation mode/ }).inputValue(), "ai");
+      await page.screenshot({ path: `${output}/${width}-default-demo-create.png`, fullPage: true });
+      await page.getByLabel("Outcome", { exact: true }).press("Enter");
+      await page.getByRole("heading", { name: "Roof inspection", exact: true }).first().waitFor();
+      assert.ok((await page.locator("main").innerText()).includes("AI example (simulated)"));
+      const draftUrl = page.url();
+      await page.getByLabel("Draft title", { exact: true }).fill("Inspection review");
+      await page.getByRole("button", { name: "Save title", exact: true }).click();
+      await page.getByText("Title saved.", { exact: true }).waitFor();
+      await page.reload();
+      await page.getByRole("heading", { name: "Inspection review", exact: true }).waitFor();
+      await verifyDraftPreview(page, output, width);
+      await page.screenshot({ path: `${output}/${width}-default-demo-saved.png`, fullPage: true });
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await page.getByRole("button", { name: "Discard draft", exact: true }).click();
+      await page.getByRole("button", { name: "Keep draft", exact: true }).press("Enter");
+      await page.getByRole("button", { name: "Discard draft", exact: true }).waitFor();
+      await page.goto(`${base}/demo/command-center/ledgerstone-advisory/site`);
+      await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
+      await page.goto(home);
+      await page.getByRole("link", { name: /Inspection review/ }).click();
+      await page.waitForURL(draftUrl);
+      await page.getByRole("heading", { name: "Inspection review", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Discard draft", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Click again to discard Inspection review", exact: true })
+        .click();
+      await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
+      await page.reload();
+      await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
+      assert.deepEqual(protectedRequests, []);
+      assert.deepEqual(errors, []);
+    } catch (error) {
+      await page
+        .screenshot({ path: `${output}/${width}-default-demo-failure.png`, fullPage: true })
+        .catch(() => {});
+      throw error;
+    } finally {
+      await context.close();
+    }
+  }
+}
+
 async function main() {
-  const base = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3028";
+  const base = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3028";
   const output = process.env.SITE_STUDIO_QA_OUTPUT ?? "/tmp/accelerate-site-studio-qa";
   await mkdir(output, { recursive: true });
   const server = process.env.PLAYWRIGHT_BASE_URL
@@ -19,7 +208,7 @@ async function main() {
           "dev",
           "--webpack",
           "--hostname",
-          "127.0.0.1",
+          "localhost",
           "--port",
           "3028",
         ],
@@ -37,6 +226,13 @@ async function main() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
     browser = await chromium.launch();
+    if (process.env.SITE_STUDIO_QA_DEMO_ONLY === "1") {
+      await verifyDefaultDemo(browser, base, output);
+      console.log(
+        "PASS: real 390/768/1440 private preview viewports, typography, keyboard controls, inactive links, interactive FAQ, message validation and default demo recovery at outer 1440/390; protected/provider requests and browser errors absent.",
+      );
+      return;
+    }
     const document = servicePageTemplate({
       serviceName: "Roof inspection",
       audience: "Property owners",
@@ -65,6 +261,34 @@ async function main() {
       await context.addInitScript(
         ({ initial }) => {
           let record: typeof initial | null = null;
+          let staleSave = false,
+            failedRead = false,
+            failedDiscard = false,
+            uncertainCreate = false;
+          let heldCreate: (() => void) | null = null;
+          let holdCreate = false;
+          Object.defineProperty(window, "__siteDraftQA", {
+            value: {
+              holdCreate() {
+                holdCreate = true;
+              },
+              releaseCreate() {
+                heldCreate?.();
+              },
+              conflict() {
+                staleSave = true;
+              },
+              failRead() {
+                failedRead = true;
+              },
+              failDiscard() {
+                failedDiscard = true;
+              },
+              uncertainCreate() {
+                uncertainCreate = true;
+              },
+            },
+          });
           let wrapped: typeof fetch;
           const wrap =
             (next: typeof fetch): typeof fetch =>
@@ -81,15 +305,44 @@ async function main() {
                 });
               if (method === "POST") {
                 record = structuredClone(initial);
+                if (holdCreate) {
+                  holdCreate = false;
+                  await new Promise<void>((resolve) => {
+                    heldCreate = resolve;
+                  });
+                  heldCreate = null;
+                }
+                if (uncertainCreate) {
+                  uncertainCreate = false;
+                  return reply({ error: "Response lost after saving" }, 503);
+                }
                 return reply({ draft: record }, 201);
               }
               if (method === "PATCH") {
                 const value = JSON.parse(String(init?.body));
                 if (!record || value.expectedChecksum !== record.checksum)
                   return reply({ error: "Draft changed; reload" }, 409);
+                if (staleSave) {
+                  staleSave = false;
+                  record = {
+                    ...record,
+                    title: "Changed elsewhere",
+                    checksum: "d".repeat(64),
+                    document: {
+                      ...record.document,
+                      metadata: { ...record.document.metadata, title: "Changed elsewhere" },
+                    },
+                    version: record.version + 1,
+                  };
+                  return reply({ error: "Stale title" }, 409);
+                }
                 record = {
                   ...record,
                   title: value.patches[0].title,
+                  document: {
+                    ...record.document,
+                    metadata: { ...record.document.metadata, title: value.patches[0].title },
+                  },
                   checksum: "b".repeat(64),
                   version: record.version + 1,
                 };
@@ -98,11 +351,33 @@ async function main() {
               if (method === "DELETE") {
                 if (new Headers(init?.headers).get("if-match") !== record?.checksum)
                   return reply({ error: "Stale discard" }, 409);
+                if (failedDiscard) {
+                  failedDiscard = false;
+                  return reply({ error: "Stale discard" }, 422);
+                }
+                const discarded = { id: record!.id, slug: record!.slug, title: record!.title };
                 record = null;
-                return reply({ discarded: true });
+                return reply({ discarded });
+              }
+              if (failedRead) {
+                failedRead = false;
+                return reply({ error: "Read unavailable" }, 503);
               }
               if (url.pathname === "/api/admin/site/drafts")
-                return reply({ drafts: record ? [record] : [] });
+                return reply({
+                  drafts: record
+                    ? [
+                        (({ id, slug, title, source, updatedAt, checksum }) => ({
+                          id,
+                          slug,
+                          title,
+                          source,
+                          updatedAt,
+                          checksum,
+                        }))(record),
+                      ]
+                    : [],
+                });
               return record ? reply({ draft: record }) : reply({ error: "Draft not found" }, 404);
             };
           wrapped = wrap(window.fetch.bind(window));
@@ -119,6 +394,9 @@ async function main() {
       const page = await context.newPage();
       activePage = page;
       const errors: string[] = [];
+      page.on("console", (message) => {
+        if (message.type() === "error") errors.push(`console: ${message.text()}`);
+      });
       page.on("pageerror", (error) => {
         errors.push(error.message);
         console.error("browser:", error.message);
@@ -130,7 +408,7 @@ async function main() {
       });
       page.setDefaultTimeout(20_000);
       await page.goto(`${base}/demo/command-center/superdebate/site`, { timeout: 60_000 });
-      await page.getByRole("heading", { name: "Site Studio", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Website & pages", exact: true }).waitFor();
       await page
         .getByPlaceholder("Bookkeeping automation", { exact: true })
         .fill("Roof inspection");
@@ -138,17 +416,100 @@ async function main() {
       await page
         .getByPlaceholder("The office runs while the crew builds", { exact: true })
         .fill("Review the condition report");
+      const catalogue = page.getByText("Browse image catalogue", { exact: true });
+      await catalogue.focus();
+      await page.keyboard.press("Enter");
+      const photos = page.locator("details").filter({ has: catalogue }).getByRole("checkbox");
+      assert.ok((await photos.count()) > 8);
+      for (let i = 0; i < 8; i++) await photos.nth(i).check();
+      assert.equal(await photos.nth(8).isDisabled(), true);
+      await page.getByText("8 of 8 images selected", { exact: true }).waitFor();
+      await photos.nth(0).uncheck();
+      assert.equal(await photos.nth(8).isDisabled(), false);
+      for (let i = 1; i < 8; i++) await photos.nth(i).uncheck();
+      await catalogue.focus();
+      await page.keyboard.press("Enter");
+      await page
+        .getByRole("heading", { name: "Website & pages", exact: true })
+        .scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${output}/${width}-create.png`, fullPage: true });
-      await page.getByRole("button", { name: "Create draft", exact: true }).click();
+      await page.evaluate(() => Reflect.get(window, "__siteDraftQA").holdCreate());
+      await page.getByPlaceholder("bookkeeping-automation", { exact: true }).fill(" CUSTOM-ROOF ");
+      await page.getByPlaceholder("Bookkeeping automation", { exact: true }).press("Enter");
+      await page.getByRole("button", { name: "Creating draft…", exact: true }).waitFor();
+      assert.equal(
+        await page.getByPlaceholder("Bookkeeping automation", { exact: true }).isDisabled(),
+        true,
+      );
+      await page.evaluate(() => Reflect.get(window, "__siteDraftQA").releaseCreate());
       await page.getByRole("heading", { name: "Rename draft", exact: true }).waitFor();
+      await page
+        .frameLocator('iframe[title="Private draft page preview"]')
+        .getByRole("heading", { name: "Roof inspection", exact: true })
+        .waitFor();
       assert.match(page.url(), /\/demo\/command-center\/superdebate\/site\//);
+      assert.equal(
+        await page.getByRole("button", { name: "Save title", exact: true }).isDisabled(),
+        true,
+      );
       await page.getByLabel("Draft title", { exact: true }).fill("Reviewed roof inspection");
+      await page.evaluate(() => Reflect.get(window, "__siteDraftQA").conflict());
+      await page.getByRole("button", { name: "Save title", exact: true }).click();
+      await page
+        .getByText(
+          "This draft changed elsewhere. Load the latest draft, review it, then save your title again.",
+          { exact: true },
+        )
+        .waitFor();
+      assert.equal(
+        await page.getByLabel("Draft title", { exact: true }).inputValue(),
+        "Reviewed roof inspection",
+      );
+      assert.equal(
+        await page.getByRole("button", { name: "Save title", exact: true }).isDisabled(),
+        true,
+      );
+      await page.evaluate(() => Reflect.get(window, "__siteDraftQA").failRead());
+      await page.getByRole("button", { name: "Load latest draft", exact: true }).click();
+      await page
+        .getByText(
+          "Could not load the private draft. Retry to check the latest copy. Your title text is retained.",
+          { exact: true },
+        )
+        .waitFor();
+      assert.equal(
+        await page.getByLabel("Draft title", { exact: true }).inputValue(),
+        "Reviewed roof inspection",
+      );
+      assert.equal(
+        await page.getByRole("button", { name: "Save title", exact: true }).isDisabled(),
+        true,
+      );
+      await page.screenshot({ path: `${output}/${width}-refresh-failed.png`, fullPage: true });
+      await page.getByRole("button", { name: "Load latest draft", exact: true }).click();
+      await page
+        .getByText("Latest draft loaded. Review before saving or discarding.", { exact: true })
+        .waitFor();
+      await page.getByRole("heading", { name: "Changed elsewhere", exact: true }).waitFor();
+      assert.equal(
+        await page.getByLabel("Draft title", { exact: true }).inputValue(),
+        "Reviewed roof inspection",
+      );
       await page.getByRole("button", { name: "Save title", exact: true }).click();
       await page.getByRole("heading", { name: "Reviewed roof inspection", exact: true }).waitFor();
       assert.ok(
         await page.evaluate(() => window.document.documentElement.scrollWidth <= innerWidth),
       );
+      await page.screenshot({ path: `${output}/${width}-title-controls.png`, fullPage: true });
+      await page
+        .getByRole("heading", { name: "Reviewed roof inspection", exact: true })
+        .scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${output}/${width}-detail.png`, fullPage: true });
+      await page.getByRole("button", { name: "Discard draft", exact: true }).click();
+      await page.getByRole("button", { name: "Keep draft", exact: true }).focus();
+      await page.keyboard.press("Enter");
+      await page.getByRole("button", { name: "Discard draft", exact: true }).waitFor();
+      await page.evaluate(() => Reflect.get(window, "__siteDraftQA").failDiscard());
       await page.getByRole("button", { name: "Discard draft", exact: true }).click();
       await page
         .getByRole("button", {
@@ -156,21 +517,137 @@ async function main() {
           exact: true,
         })
         .click();
-      await page.getByRole("heading", { name: "Site Studio", exact: true }).waitFor();
+      await page
+        .getByText(
+          "Could not confirm discard. Load the latest draft and review it before retrying.",
+          { exact: true },
+        )
+        .waitFor();
+      assert.equal(
+        await page.getByRole("button", { name: "Discard draft", exact: true }).isDisabled(),
+        true,
+      );
+      await page.getByRole("button", { name: "Load latest draft", exact: true }).click();
+      await page
+        .getByText("Latest draft loaded. Review before saving or discarding.", { exact: true })
+        .waitFor();
+      await page.getByRole("button", { name: "Discard draft", exact: true }).click();
+      await page
+        .getByRole("button", {
+          name: "Click again to discard Reviewed roof inspection",
+          exact: true,
+        })
+        .click();
+      await page.getByRole("heading", { name: "Website & pages", exact: true }).waitFor();
       await page.getByText("No drafts yet. Create the first one above.", { exact: true }).waitFor();
+      await page
+        .getByPlaceholder("Bookkeeping automation", { exact: true })
+        .fill("Roof inspection");
+      await page.getByPlaceholder("Home service owners", { exact: true }).fill("Property owners");
+      await page
+        .getByPlaceholder("The office runs while the crew builds", { exact: true })
+        .fill("Review the report");
+      await page.evaluate(() => Reflect.get(window, "__siteDraftQA").uncertainCreate());
+      await page.getByRole("button", { name: "Create draft", exact: true }).click();
+      await page
+        .getByText(
+          "Could not confirm draft creation. Refresh drafts to check for a saved copy before retrying.",
+          { exact: true },
+        )
+        .waitFor();
+      assert.equal(
+        await page.getByRole("button", { name: "Create draft", exact: true }).isDisabled(),
+        true,
+      );
+      await page.getByRole("button", { name: "Refresh drafts", exact: true }).focus();
+      await page.keyboard.press("Enter");
+      await page.getByRole("link", { name: initial.title, exact: true }).waitFor();
+      assert.equal(
+        await page.getByRole("button", { name: "Create draft", exact: true }).isDisabled(),
+        false,
+      );
+      await page.screenshot({ path: `${output}/${width}-create-recovered.png`, fullPage: true });
+      for (const [route, expected] of [
+        ["/docs/plugins/site-studio", "A failed refresh retains the preview and your text"],
+        ["/docs/plugins/overview", "checking the list after an uncertain create"],
+        ["/command-center", "Private workspace drafts retain typed titles"],
+        ["/changelog", "Check private drafts in real responsive viewports"],
+      ] as const) {
+        const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
+        assert.equal(response?.status(), 200, route);
+        await page.locator("main h1").waitFor({ state: "visible" });
+        if (route.startsWith("/docs/")) {
+          const figureImage = page.locator("main figure img").first();
+          await figureImage.scrollIntoViewIfNeeded();
+          await page.waitForFunction(
+            (image) =>
+              image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+            await figureImage.elementHandle(),
+            { timeout: 15_000 },
+          );
+          await page.locator("main h1").scrollIntoViewIfNeeded();
+        }
+        if (route === "/command-center") {
+          await page.evaluate(async () => {
+            await window.document.fonts.ready;
+          });
+          const reference = page
+            .locator("summary")
+            .filter({ hasText: "Browse and search the complete capability reference" });
+          await reference.focus();
+          await page.keyboard.press("Enter");
+          const search = page.getByLabel("Find a capability", { exact: true });
+          await search.waitFor({ state: "visible" });
+          assert.equal(await reference.locator("..").getAttribute("open"), "");
+          await search.fill("Website pages");
+          await page.getByText("Website pages", { exact: true }).click();
+          await reference.click();
+          await search.waitFor({ state: "hidden" });
+          await reference.click();
+          await search.waitFor({ state: "visible" });
+          assert.equal(await search.inputValue(), "Website pages");
+        }
+        assert.ok((await page.locator("main").innerText()).includes(expected), route);
+        assert.ok(
+          await page.evaluate(() => window.document.documentElement.scrollWidth <= innerWidth),
+          route,
+        );
+        if (route === "/docs/plugins/site-studio") {
+          await page
+            .getByRole("heading", {
+              name: "Private workspace drafts and the fictional demo",
+              exact: true,
+            })
+            .evaluate((element) =>
+              window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY - 120),
+            );
+        }
+        await page.screenshot({ path: `${output}/${width}-${route.replaceAll("/", "_")}.png` });
+      }
       assert.deepEqual(errors, []);
       await context.close();
     }
+    await verifyDefaultDemo(browser, base, output);
     console.log(
-      "PASS: Site Studio shared admin create, scoped navigation, rename, checksum-bound discard and responsive rendering at 1440/390 (controlled adapter).",
+      "PASS: Site Studio shared admin Enter submission, locked creation, uncertain create refresh, stale title review, failed refresh retention, discard cancellation/recovery and responsive rendering at 1440/390, plus changed public guide, overview, feature and changelog rendering (controlled adapter); default demo creation, AI labeling, rename persistence, scenario isolation, confirmed discard and zero protected/provider requests.",
     );
   } catch (error) {
     if (activePage && !activePage.isClosed()) {
-      await activePage.screenshot({ path: `${output}/failure.png`, fullPage: true });
+      console.error(error);
+      await activePage
+        .screenshot({ path: `${output}/failure.png`, fullPage: true, timeout: 5_000 })
+        .catch(() => {});
       await writeFile(
         `${output}/failure.json`,
         JSON.stringify(
-          { url: activePage.url(), text: await activePage.locator("body").innerText() },
+          {
+            url: activePage.url(),
+            error: String(error),
+            text: await activePage
+              .locator("body")
+              .innerText({ timeout: 5_000 })
+              .catch(() => "Unavailable"),
+          },
           null,
           2,
         ),

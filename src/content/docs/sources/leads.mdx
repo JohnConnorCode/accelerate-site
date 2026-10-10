@@ -1,17 +1,17 @@
 ---
-title: "Review leads and chat handoffs"
+title: "Review website inquiries and chat handoffs"
 description: "Qualify a new inquiry, check whether it's someone you already know, and record what's next."
-updated: "2026-09-29"
+updated: "2026-10-06"
 ---
 
-A form submission and a returning customer asking the same question twice look identical until someone checks. Open `/admin/leads` for website and form inquiries, or `/admin/chat-leads` for handoffs from the public assistant, and work each one with that check in mind.
+A form submission and a returning customer asking the same question twice look identical until someone checks. Open **Customers & sales → Website inquiries** for website and form inquiries, or **Chat inquiries** for handoffs from the public assistant, and work each one with that check in mind.
 
 <DocsFigure
   src="/images/docs/sources/leads.png"
-  alt="The Leads screen in the fictional Northline Roofing workspace, showing inquiries with score and status columns."
+  alt="SuperDebate’s fictional inquiry review with the saved result, an incomplete status update and its retry control."
   width={1440}
   height={1000}
-  caption="Leads in the fictional Northline Roofing workspace: eighteen inquiries with their qualification status. Fictional demo data."
+  caption="Fictional SuperDebate inquiries after a partial status update. Saved changes remain visible while Retry incomplete updates finishes the remaining work."
 />
 
 ## Work an inquiry
@@ -26,7 +26,7 @@ A useful next action names the person responsible, the action and the date: “M
 
 ## Add an inquiry and finish its setup
 
-When someone calls or emails directly, open **Leads**, choose **New Lead**, and enter their contact name and email. Add the available business details, then save. A completed save closes the form and confirms that the inquiry is linked to [Pipeline](/docs/pipeline), where the team can continue the relationship.
+When someone calls or emails directly, open **Website inquiries**, choose **New Lead**, and enter their contact name and email. Add the available business details, then save. A completed save closes the form and confirms that the inquiry is linked to [Pipeline](/docs/pipeline), where the team can continue the relationship.
 
 If the form says **Lead saved; setup needs attention**, the inquiry is already recorded, but its linked business records still need repair. Keep the form open and choose **Retry setup**. The original details stay locked so the retry finishes that same inquiry. **Save needs attention** means the outcome could not be confirmed; choose **Retry save** with the retained details.
 
@@ -56,7 +56,7 @@ Suppression uses the same service as unsubscribe and delivery feedback. It never
 
 Maya at the fictional Northline business wants to group three estimate inquiries before preparing a campaign.
 
-1. In **Leads**, select the three inquiries and check whether any selected lead has no linked contact. Contact actions skip those unlinked leads.
+1. In **Website inquiries**, select the three inquiries and check whether any selected lead has no linked contact. Contact actions skip those unlinked leads.
 2. Choose **Add tags**, enter `estimate-follow-up`, and select **Tag**. Read the result for each contact.
 3. Select the intended leads again, choose **Enroll…**, and select an existing draft campaign. Confirm the contact count and enrollment.
 4. Open [Campaigns](/docs/outreach/campaigns) and inspect the draft's audience before any activation. Enrollment alone sends no email.

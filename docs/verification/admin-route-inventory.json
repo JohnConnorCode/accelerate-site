@@ -10,71 +10,72 @@
     "src/app/admin/activity/page.tsx": "c4b241ef52db45e5bfbb922fb8b8177aafaf17f2a90bd5d0238b41cb2088f02c",
     "src/app/admin/ai-operations/page.tsx": "92aae0344b61a69def1d4fd711c387863b1c9bf18c433f33706271b7c6c4d2aa",
     "src/app/admin/ai/page.tsx": "ae4d9cbb09dcba05beffdf3d618210e5286273f7c651c4eb0c03aada76c07ed3",
-    "src/app/admin/analytics/page.tsx": "a51845fdc289105edd710cea3c6fe7232c1cc1184307bfe175596878b295c3b7",
+    "src/app/admin/analytics/page.tsx": "84c6f4d802c63d932f6d790520d7d9816e9d4f673c9c515ddafc12761936a4c1",
     "src/app/admin/blueprints/[id]/page.tsx": "7f0cacbe1722bd215b37406d74a7b230182873c9d4e4e53b76afc07b944aaab2",
     "src/app/admin/blueprints/page.tsx": "63d92c68c2224de0b2cf604a85f6507ee30c25e1fe5a6930c0d7ef6413150192",
     "src/app/admin/bookings/page.tsx": "09f7fc4ebab637eb219bc37124c2ad962a3dc679e1f2c4b979d33bee0a308aa5",
     "src/app/admin/branding/page.tsx": "ac3e975f287358e7ea76ed8a77d3b4f6c0cf45d96be588aeeb4d7fabb05f03b8",
     "src/app/admin/campaigns/page.tsx": "ea15218c5addc8408fa198309a63880db147fcf091b40386f2a459c51a53000a",
-    "src/app/admin/chat-leads/page.tsx": "558df6867918a226a4cd105628d5f0750f50c99d4c7aa5cce0476bf70380668c",
+    "src/app/admin/chat-leads/page.tsx": "5c617455bdbf887e15af3fee42d2ca2f951753f358adb72737313292e203ef56",
     "src/app/admin/client-onboarding/page.tsx": "4d5539fa0198edaabf7dd3494d3d5b8c6b0dd20957b2cf1b9fc95c8624f12ca8",
-    "src/app/admin/clients/[id]/page.tsx": "8f5fbeae59219848af049bb9cc10d914124cf33b800e71da577e0f1916113ab7",
-    "src/app/admin/clients/page.tsx": "3aee0d1f0797d216b6baf11676984cc4a3acdd01086a85eccc860d9fd4479c8e",
+    "src/app/admin/clients/[id]/page.tsx": "b5069e1fb478168020c0a8825c395503b021187e18b83e983fbde9fa3fd839f7",
+    "src/app/admin/clients/page.tsx": "e62ffcaddf13cd03612aeab53a1513fec092e6fef40c08834d58e53534ce348b",
     "src/app/admin/collections/page.tsx": "0564cde5a5e31bd65faeb64668a47ce9fbef778d7d6d0b0570fc93e9471e8482",
     "src/app/admin/contact-imports/page.tsx": "43c5b88d4be32405b784c2e538d8277ff41834c00b248b57da471ecb1c2b43e7",
-    "src/app/admin/contacts/[email]/page.tsx": "0d68167d52feafc6f1d9426d3b7159e005a72b70d896569c8ed2ed28eac903bf",
+    "src/app/admin/contacts/[email]/page.tsx": "4c4847ed12f186fc3d2ee7599448407e711dbaf35161d87ef3223259c869e7f5",
     "src/app/admin/contacts/page.tsx": "466e503e618bacebc3e6fbdebc5dfecce2ecb7b8041258b8e26c13dfd57037a7",
-    "src/app/admin/content/page.tsx": "a0030f8d7358b117a1ee97ddc8321aefdeb07f665c9d72238929f441035fef60",
-    "src/app/admin/conversations/page.tsx": "bd265281c241928e52d832a844116dc577d206d47c4738cb59952be96c9dc19d",
+    "src/app/admin/content/page.tsx": "034cc7700d3353974bfcb4ae5b83fc762f5aacf4f594ce27bbd0a33f17cb1ccb",
+    "src/app/admin/conversations/page.tsx": "94e3ed120add7aa8a867f573efeae210df80405a7d01b1e37baf98dc20ab5954",
     "src/app/admin/coworkers/page.tsx": "c889581a33db33a40c3d610c231cd5a54b8b34f8041c105ea068a572668e620a",
     "src/app/admin/debates/page.tsx": "43633143ac79702fdbcde7bd556f3abf00a23815f1de9a01afffb6647671f065",
     "src/app/admin/email-sequences/page.tsx": "a0653d19827ea87cffd77c12501180118ce97099238e09ed1617c27e23aaa881",
-    "src/app/admin/emails/page.tsx": "08f46f76e4c42134b0fbfa6b77a54b7400969f6eff03b60f246c7feaaea98a02",
-    "src/app/admin/example-inventory/page.tsx": "18eeaa9e5c5802e02b01a471271db10ab5a7cdfb447af33667c524890fba691b",
-    "src/app/admin/features/page.tsx": "5ed7a5159c0d1d5234b620c98da60006e3029821575d91d4808d684252278830",
+    "src/app/admin/emails/page.tsx": "69e80ff73f18e7c8f8b210755fa5f4c0264bd6930b7de4f12bb9d96e7061562d",
+    "src/app/admin/example-inventory/page.tsx": "93572790a580f3e95233d83a456ef5241b5d51d2f12813d65ee3222d11a988c0",
+    "src/app/admin/features/page.tsx": "a24eaffcd48a84e3ae5e0c4bc2149272f3c3380d5ad8c881fb5591d18c3445fe",
     "src/app/admin/forms/page.tsx": "8b2b917e0174872a6c7b2b1314540c0b00a4d20fbbfd80e5101c4858c0f8ec65",
     "src/app/admin/get-started/page.tsx": "9f4510837f1626a2262d2bec3258aaf1a1d8aa4992da7098acfc2811676f5ffd",
     "src/app/admin/identity-review/page.tsx": "93d875e879ea45822a3a66a45c017fee081c2ff13a89dc2f745fcf27549e7631",
     "src/app/admin/inbox/page.tsx": "e68393d6ed5462661be12b125eadf3543d2ca935f61454fa34e8914e0dc5e472",
     "src/app/admin/integrations/page.tsx": "66a05fecb574b1b3fa9b7178fb10cfd57bd7a4b10f4ee14dfc847264cd4e45a5",
-    "src/app/admin/invoicing/page.tsx": "85bdcda9b897413ecd02717719a8fa27c5c60803cbb5d64fbd6f5433021e0537",
-    "src/app/admin/leads/page.tsx": "af3e64b93a106e759563e7834dc6ea9f194095f141fba58d04edc8e324012212",
+    "src/app/admin/invoicing/page.tsx": "58f4b4d25295e869f7fd436240a7282429779aa68012ba065aba48e0b8c89231",
+    "src/app/admin/leads/page.tsx": "3825c0c1d99ca81c8939249aa26e1051b587aa0f21d9bffcc770828cd6852724",
     "src/app/admin/learning/page.tsx": "a6722bfef692402e5da9ebe3eaff5ae776ca70ad07b89c8d863a93d4f7ed0f61",
-    "src/app/admin/login/page.tsx": "b9fcdeb4f4e89aec6ec75859670e762d276fc52e0ef4c4bed85eec1965e5e4f2",
+    "src/app/admin/login/page.tsx": "198de31be5e2dfed5d09de6fceb3e99c7c921f02f7b6eca220a1d2886b917f98",
     "src/app/admin/mcp/connect/page.tsx": "c86f62d9fe7a1b590db2c78c1b911213863950f2038cd93461e52e3a60bbf03c",
     "src/app/admin/meeting-commitments/page.tsx": "8321baededd9c74b3f742cfdefbe5dacb221c79f153ad78293d07690dfb12174",
     "src/app/admin/oauth/consent/page.tsx": "8256719d19b583b140fbb8d3346b4eef03474b04d2645ce2cf2b189f49780e97",
     "src/app/admin/page.tsx": "98c79d9db2288115c77c549e3ab5c391cecae1f0db649d2c3a3b84764203bed3",
     "src/app/admin/partners/page.tsx": "f8f10cdafdf18f44f63b50e1b5e92af4002cad7d3ee79e2efc28ef10d784d8cc",
-    "src/app/admin/pipeline/[id]/page.tsx": "8c68643fc06af47ce8d74c3b6cbd419ca81c3b5bce4a151a0fb8c9214c011920",
+    "src/app/admin/pipeline/[id]/page.tsx": "52470465c50b13e0bb48729441313682c171eba06d547bd71922899ad7ad5e6c",
     "src/app/admin/pipeline/page.tsx": "05e14bafce5974519ee4dc1eeec1b2507e9e9b5f62597b65d3f0db144fef5f83",
     "src/app/admin/plugins/page.tsx": "a377bebea912eca2a70f3418a5770948ea056bf60e67a2c6dfca434669fb4061",
-    "src/app/admin/proposals/page.tsx": "e4e56e5d1b96a18a06831b662c856917aad0fdd81a34c36e3891c5d9d2c07bc8",
+    "src/app/admin/proposals/page.tsx": "bd5e54155a282b918e57e5d49f6482f0e5461702377845929c175d3b36abb765",
     "src/app/admin/radar/history/page.tsx": "623933fc9c5c073ae71be3f4b1811dc7be3b1da2b708d71b1e2a1f7fbc22329f",
     "src/app/admin/radar/opportunities/[id]/page.tsx": "d07e3a8bcfc257339da4b4fa6ff5f3abe7dc693186e0a217f8fe6ab9a0f396f5",
     "src/app/admin/radar/page.tsx": "952f463a826f122874794dd91cded3498578f4bc73d222e2cc871ddd005bc246",
     "src/app/admin/radar/today/page.tsx": "9c2bf2c18ffc537d0cdac03e7a831185d5cce208d625d9c69726547ec23bb7ec",
     "src/app/admin/recovery/page.tsx": "6abcbf134638b81888c82881950d8fea073f6ad05a786b0c30bfc92cf41b3e25",
-    "src/app/admin/resources/page.tsx": "4f9c6539ebcdd69d96e0e81d5f60b746fc8d37b643ef33a94c1535902da0a3a3",
+    "src/app/admin/resources/page.tsx": "ccccfc8716e77e3c66975560b43e76eb01a7a21847efdf37dbf3b96267400f3f",
     "src/app/admin/revenue/page.tsx": "067e05606e15de6d3e1cb29feff33b925373d98c8d9017148cd8e6072013daab",
     "src/app/admin/settings/page.tsx": "ddc02dcafabc97ec8f408f9cafaa3c56342fe9364495fe09167be42ee55188c8",
-    "src/app/admin/setup/page.tsx": "5f314b54610fe02f5c0179bca6cb99a50426b017cc6ff5f78cd8a5dea52b67ce",
-    "src/app/admin/site/[id]/page.tsx": "967b7d53e5e731e05e9c88fa943853ee977b8bd8afd8ee2bb88a8d7ce016fee9",
+    "src/app/admin/setup/page.tsx": "ff831885b28a586c8bfeaa82728cb91f674629d88a63b0a10a79a76664f81297",
+    "src/app/admin/site/[id]/page.tsx": "2e89b18b9c9ef6c95e4dfcecd6411b2d99a38fe14c37a6fde2ef69499332dcd1",
     "src/app/admin/site/connect/page.tsx": "46746b81f2b127b7c002509cc1d3b04e673e8bb44e7ca389fcad43eca7c7dd74",
-    "src/app/admin/site/page.tsx": "759acbf21797f27e6f49b56fd3c358b38fc354c810566c4db1d2bab4a8b63f4c",
+    "src/app/admin/site/page.tsx": "28416c58e824c83768c524d9917c243f89366705f80f0580a9a5a7cea13a291f",
     "src/app/admin/site/website/page.tsx": "1652cf0e48e62ab7c772bc1eb83655cc6b5dfdd40f4483b841cb0015adcc9a0f",
     "src/app/admin/site/website/preview/page.tsx": "ba3b9457651a48b4045b913c4bb959f80cd510e356968c66b20bdae666eb1582",
     "src/app/admin/social/history/page.tsx": "86febd1247f7fb57489a0daa4e71f31f57bb2809989f4972b6dff1a233d30672",
     "src/app/admin/social/page.tsx": "e28a7c16b4d5ac7c66ba78ad5686bfb236aa15bf37d9e50a3c7a23c7fc58ef32",
-    "src/app/admin/subscribers/page.tsx": "a6e6a3a70e99bd893cce87b09767af6530e8e94cd7b4ac2acefc88941c7b7b99",
+    "src/app/admin/source-authority/page.tsx": "6b134b0e6cdb1776af866ab8c91c8f6934fe0c3ef6dd96a931dbff214c6d1956",
+    "src/app/admin/subscribers/page.tsx": "b549e23d6af001341eb8814a21fa7f5447b0b2a02478f70bca51c68498c83155",
     "src/app/admin/subscriptions/page.tsx": "2481e5305a579d5b133dcbece39836a69d5d73c04692d79aeb4e9e9ad081ec99",
     "src/app/admin/tenants/page.tsx": "b80ccf7b64c9b909ec879ef90e6d440aa2ec53690a25fcbb8a777327412e0f77",
     "src/app/admin/today/page.tsx": "cbbba1645450b9ecc3bce1771bd06029306e62c33025bff07d5b7b1a30d13a4c",
-    "src/app/admin/update-password/page.tsx": "e62f24ee8b4843f033eb5b4d28f6ed4141765990678e88fde91799f7b35a8274",
-    "src/app/admin/website-grades/page.tsx": "81e08a663b69ba64ae3f123857d3558dc7e71b8c562161f3df6df2f1c1765639",
-    "src/app/admin/work/page.tsx": "dc63f7cf367112ea603bcffebdab03130629ca97087934c76ad240849ef3f305",
+    "src/app/admin/update-password/page.tsx": "a4958cdde6065cb8b147ca23e380f829df4221e92e92e18c421f3a4ba82105d1",
+    "src/app/admin/website-grades/page.tsx": "d519f5bbde93a82914777fe500b4538e963bd8b1573f345c853ea7cec6ae5b6a",
+    "src/app/admin/work/page.tsx": "768134e692cc83bd07c564790676f0a11c64043e74871b387cad88b64a329f3c",
     "src/app/api/admin/activity/route.ts": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f",
-    "src/app/api/admin/blueprints/[id]/route.ts": "0f320be38283c086d60f7bc49c8138abba4e99ca967b14c90c20bb2a7047f67f",
+    "src/app/api/admin/blueprints/[id]/route.ts": "55e534d37af37a4b8ebe48748681fe883722e2c9c7ed5d4068b4eb25dd414dff",
     "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
     "src/app/api/admin/bookings/route.ts": "57b07eb5f5da312bc972daec1cfa68584d9e4f65f0451940dabd42f04565341e",
     "src/app/api/admin/chat-leads/route.ts": "1252546fd8002454ebf50caceca306f1c31a31c08dfef3fbdb64ce6bdf2526a1",
@@ -86,10 +87,10 @@
     "src/app/api/admin/contacts/export/route.ts": "8a25082eec41bafa5cdf74c482b9fe0bedde5d4f3190693394b695ca54df6c21",
     "src/app/api/admin/contacts/route.ts": "32bcdb9034bcbb27c885dee932c2c36eed10d735ffa8cc12e1ed13e2b2a6a475",
     "src/app/api/admin/contacts/timeline/route.ts": "be72a39a9eda48dd24aaa9085ed351b49f89a534d1e86ccc86db782bb0e69404",
-    "src/app/api/admin/content/route.ts": "e53f5044795f2009c4c6276358f3476bd2d6fe675a5061409e9433177d8e1ec2",
+    "src/app/api/admin/content/route.ts": "5a1103a276c845a3fd945304f11b90e3bc9d0acc857944fd0273cb25e5e14fef",
     "src/app/api/admin/corrections/detect/route.ts": "74315d275feaaf6bec1d247cff193480819677efa3a50278fe88eb8af30e92a2",
     "src/app/api/admin/email-sequences/route.ts": "9f3ccd0bff8a241ab65bb0a5cf08c750e7d6f558254ba1cb0b01af26ce6240b1",
-    "src/app/api/admin/emails/history/route.ts": "7e0d48ee096aaa52047b23e748570e89da1a7b46c0729e37fb9e1e0ee5c7a02c",
+    "src/app/api/admin/emails/history/route.ts": "e32b181321a859caa4f2d56e473ec07b5b9990c34a9f0eaea678dbcaec3d3078",
     "src/app/api/admin/emails/preview/route.ts": "74e83fb3d54ac25280e13ef4282e852f2e597f639b820c834ec69a42c20dbd65",
     "src/app/api/admin/features/agents/route.ts": "5e3f84e0ebb5ef161da251d2662334ded0dfaf7a63c8d3e0c26784ea09ce0656",
     "src/app/api/admin/features/route.ts": "0e864c3544c47c54146f56d1900e3248e11e9be2c63563bd6715f22bb949d88a",
@@ -97,9 +98,9 @@
     "src/app/api/admin/forms/route.ts": "8168bca4de53ee289fc11bc8fabd2e15944efc6bec13991a6e12b0feab1bea03",
     "src/app/api/admin/get-started/route.ts": "fe02a68b546dcb6e8101056ca5ef54b568ec15c9d1a98aca836e55ea64f2c287",
     "src/app/api/admin/google/sync/route.ts": "f48402ec4aecb7033af6f4f6e68f49e0623dd0d57dcc56c17bd95b6f525dd7de",
-    "src/app/api/admin/inbox/route.ts": "cccb2726c649b723803094a08b45459d2f95c01299c7170a92ffa52e7a2667cf",
+    "src/app/api/admin/inbox/route.ts": "5792e238abbe5610624ff3cd932f33618c2571aee9b11fd8b2f9e7b8b0c5638b",
     "src/app/api/admin/integrations/route.ts": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb",
-    "src/app/api/admin/invoicing/pages/route.ts": "f94e4ac92458b7e68c88a6b610fc82c81ba5fc52605d7251f9bc16a9c4fb8233",
+    "src/app/api/admin/invoicing/pages/route.ts": "976266b5f66a3e8b0b7b58e5946e321a0c76ad030b910d58e7f928a5ec5f0e82",
     "src/app/api/admin/invoicing/route.ts": "5f4c2479a6239162bd1591fad503818c7276e09e2dc3ffa167910391a8ebe54c",
     "src/app/api/admin/knowledge/documents/route.ts": "2bd5551ffa70098c449cbcfac12e60bc9684c10af0a895ef84df9a72a2c18f35",
     "src/app/api/admin/leads/route.ts": "46aac5c5656abc5382e714e9d7f0976a4dd649959b8d8709240688f680d6f057",
@@ -111,7 +112,7 @@
     "src/app/api/admin/memory/[id]/route.ts": "0e9a6f69c75162331ccd6aea8e0fcf3e9a9177fa17cee8acdb2dc969f97b74d3",
     "src/app/api/admin/memory/route.ts": "d6b0932f6dbefa9b17da3e670400ee4739a100882a43f4c92de633525a95aec4",
     "src/app/api/admin/partners/route.ts": "ae44503e05ecc4181c565dde831f3b5d29f7347cb49f3d28e2d06667122498a6",
-    "src/app/api/admin/password-reset/route.ts": "dc53ffddab805408244303c6a22e09169f8260f0106d24a0d5aab7af0711b945",
+    "src/app/api/admin/password-reset/route.ts": "bb099e845be631686d48927bf313f0319ca0b83274abd86cfae2ce58a227366a",
     "src/app/api/admin/plugins/run/route.ts": "63116ab1a496af78539b3801fb57da3ec9bebbb47efbf52a6de6fd34bf892084",
     "src/app/api/admin/plugins/tasks/route.ts": "b99c65e9d43524894b64968e3e06d86593324435699e106d2bc4fab81f1013b0",
     "src/app/api/admin/plugins/workflow/route.ts": "9b2c2929f67e0980c347aa00ae475dd79c9dc111d2ffedf617e24e7c7c702dd6",
@@ -121,7 +122,7 @@
     "src/app/api/admin/radar/workspace/route.ts": "2dd44773ded01b396cefe982db2bf2d327fb96b6c4e29b09c1080b30330eff00",
     "src/app/api/admin/resources/route.ts": "9e9b8c2d48eebfa36feedfd096b290438a56cd21b706fedb001583636f8c7831",
     "src/app/api/admin/revenue-os/actions/route.ts": "f5a664e8643da880d683199ddfaaa2882214b5f3cd2e11a75074903d57c5973d",
-    "src/app/api/admin/revenue-os/ai/capabilities/route.ts": "6f7ac4fefdbf00690a036eba905643d7406beb4cb3bba458e703236b73a64655",
+    "src/app/api/admin/revenue-os/ai/capabilities/route.ts": "4c047cfd593dbaf62b455793977346269e17210c35d159fe508618a88fa4c91c",
     "src/app/api/admin/revenue-os/ai/conversations/[id]/context/route.ts": "f30f24f1f3697c37230c6da8ac4c07d7905b7bd1b6e884f91b2f2f36736461f0",
     "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts": "d4f346d8e2454a5306244ab76b2d79e167c0e7146d422161daf27257770198fd",
     "src/app/api/admin/revenue-os/ai/conversations/[id]/sources/route.ts": "e52b7af4d426d3b5f1d401885151ef013e12235e5d579e3ff301cde6da00d2a5",
@@ -131,7 +132,7 @@
     "src/app/api/admin/revenue-os/ai/runs/[id]/route.ts": "c88f9daf9b655445bf240ce856ff5b1fb364afc9dba642513470dbe8fd5e3383",
     "src/app/api/admin/revenue-os/ai/runs/route.ts": "1611a2f123a5751e7bb2c37955dd1c0b4209d003028aa0a8660e47f1bae80189",
     "src/app/api/admin/revenue-os/ai/stream/route.ts": "57cde2a8ccd0f9504d5869f97b0d44692ddad10c9ddd1a24bf586ad08e87c556",
-    "src/app/api/admin/revenue-os/analytics/route.ts": "962c2a65c89ea76b6445bf99c94f8f555d4759bd4410f0d961b2028fd0818d1e",
+    "src/app/api/admin/revenue-os/analytics/route.ts": "a9eccf55883d3be5a4d65000b5396dffcc729406d30f1dcc7a3efd55b9641481",
     "src/app/api/admin/revenue-os/campaigns/members/route.ts": "853132cc41d0863663b276645c419ef73acd8e9ca8b9ab861664b5fcda73d96c",
     "src/app/api/admin/revenue-os/campaigns/preview/route.ts": "63eab34f9292f3f161061a89e7a528725d2dbf896236825716e6acdb3c5af3f9",
     "src/app/api/admin/revenue-os/campaigns/route.ts": "2859455f923dc00dec63ebe331f4847fa021858fc802eb2179b022c5fba27ac0",
@@ -152,13 +153,14 @@
     "src/app/api/admin/settings/test/route.ts": "f8418e1833464d34dbcb16316986faa252b85d331627d1417f4e66ec64d352f4",
     "src/app/api/admin/setup/route.ts": "dd275356738ca89aab4c50ca5166915d0532ca74d2ca95023567be9f9201946d",
     "src/app/api/admin/site/delegations/route.ts": "3333c0a130adf584099b498e191d0d8fef5bbbc700305d5cefd4ca4770ad91fc",
-    "src/app/api/admin/site/drafts/[id]/route.ts": "d1b109ec287325688acdd544984e10a0d91a0742dd5be50af106ce2950317692",
+    "src/app/api/admin/site/drafts/[id]/route.ts": "f7e547c8e1baf242021191bb7e4e934ff1dba0707c3b205795901a09b3888f74",
     "src/app/api/admin/site/drafts/[id]/sections/route.ts": "8bcadef5e0a52c3a3760c7619368451b9af9b5c133e2a22c2fe72a6d55cb8a6e",
-    "src/app/api/admin/site/drafts/route.ts": "38ece6df30f16a0f108d76702b6bf75b340fd8616d2477b561c0c3cc78cd1579",
+    "src/app/api/admin/site/drafts/route.ts": "a3f163bcf2b4db06fd18c711da058cee46c61ec0161163e823101be85c53e717",
     "src/app/api/admin/site/website/route.ts": "17e128b4083fcaf22ffce08041102e6aae75360dc39e84fa0c7c71d6232e5aca",
-    "src/app/api/admin/site/website/suggest/route.ts": "f45ad05f4f39f1d62fe55f328fe7a354d29c2e4af8eb15bd3e34f6b0ff8e46f4",
+    "src/app/api/admin/site/website/suggest/route.ts": "0012a5f62a698e1e605226b5ac7ad1795a6f919aba971febe5c3143df87b293c",
     "src/app/api/admin/social-history/route.ts": "6c763c4d22eeadf9cd10b64256416fb06bda6439f0fa53a38c0fb899d313ee0b",
     "src/app/api/admin/social/route.ts": "3ed15ebef11c14c15ca17526cf2e03f1296cafb4090cbb20bb83593f6864a57c",
+    "src/app/api/admin/source-authority/route.ts": "af5a44fb2059eb2beb6cab547e6b443c53368aed68665f855c2c4aaf5567c8a7",
     "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
     "src/app/api/admin/subscribers/route.ts": "3463b6ca89854e49bd045cf80ae1076332078bcfdd602c09ac482031a16573e9",
     "src/app/api/admin/subscriptions/route.ts": "0ce8c7d379219cc74fba1dedb6cffb5ccc9756fa0ae5a043028e2af71063b855",
@@ -170,35 +172,35 @@
     "src/app/api/admin/website-grades/export/route.ts": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772",
     "src/app/api/admin/website-grades/route.ts": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98",
     "src/app/api/admin/work/agent-items/route.ts": "7cd6c8e2873c0c8d96a3008470453e6118f3486d8e2a19092f1fd50f1028fce5",
-    "src/components/admin/AICapabilities.tsx": "a002a0ed29cca7fbbb4be4599b317dafbf5be1fad7b8ad17aef54864945c3b2b",
+    "src/components/admin/AICapabilities.tsx": "5defa082c692fbf902511a86d359a4aa1be91754863bff81a2044b9c2909a70a",
     "src/components/admin/AIReadinessPanel.tsx": "4a2f79fb03c96f6c8763118392a4bdb5d7c5ce5ccc9351f8bbed2a31828cc18f",
-    "src/components/admin/AIRunHistory.tsx": "b3aa372fb87a449cb0a895c9d0e15ea0060e2d27c522043952cb2eb0837accdc",
-    "src/components/admin/ActionReviewDialog.tsx": "0291df53e5df3331c07b42bf2633f162340e29fabad19656ba02b7eb8254fe91",
+    "src/components/admin/AIRunHistory.tsx": "31fe825ac6247419d453934884ab140a528be927d0ad92a1e5b63657a8028351",
+    "src/components/admin/ActionReviewDialog.tsx": "24e43c7694752b874ecc802d985a245b3a7123849edfe3384fd398d247e3880d",
     "src/components/admin/AddLeadModal.tsx": "57e3653a3cd765a8788b50135ac98140c417c8b9369bccc43b0f1b6159c5a30b",
-    "src/components/admin/AdminAIChat.tsx": "2c11bd552b59c54b07eb3bb8622192ddb4368522aed826b6592f48e85897fac5",
-    "src/components/admin/AdminAIPanel.tsx": "b7153809b5422c884a719a0ae3210eace4223838e4be334fc0b8340884ac647a",
+    "src/components/admin/AdminAIChat.tsx": "76ab2c70eaeccbf715c8879a0fee293510d1ba18b0bcc17ca592f174e3ca1e76",
+    "src/components/admin/AdminAIPanel.tsx": "ea2a8a85786ffc2e8290757b98b4969c427a165afadebb8d4a4d07c3963eb7e2",
     "src/components/admin/AdminAIProvider.tsx": "af41848e65d561ec3ee0887ea81ce590e1c71e27fa6bfe17715eb9451b675be2",
-    "src/components/admin/AdminAIWorkspace.tsx": "cb613eda4a0de12c4247dd2389123be574fdb7f162da6cdd336ee4c38d5e2f06",
+    "src/components/admin/AdminAIWorkspace.tsx": "3c60b188906446ca39efaf22b7116756c4b0874d1043584f2af3cc6d081ba5ee",
     "src/components/admin/AdminAppearancePicker.tsx": "2f999424ec4d1262c3a7fc555f12be18664fdebdfe47eae51a21fddcb90a09c6",
-    "src/components/admin/AdminAsyncRegion.tsx": "99be3bc487e69c11e5159e61b525e3500e81399a8344eb3f6cc1cea812fd0e4b",
+    "src/components/admin/AdminAsyncRegion.tsx": "3ee68daf270ed188f5318fae1c11e7a855edf716c2a9cc90e257a5f6638b399b",
     "src/components/admin/AdminAuthLayout.tsx": "52ff564e4ebb8e3f755b97ba7a609e41dd06a5a8f513ec8c98115c114e12ec52",
     "src/components/admin/AdminButton.tsx": "d31ec6fd7aa2d9778b08d5c5ebf14afee9ce0a3abf72edc1dbe858aa162d320d",
-    "src/components/admin/AdminConfirmationProvider.tsx": "c194e2b52066576006d44b7a7401c0e81f0ba34ac7fd1023a0a35bab2e59cb35",
+    "src/components/admin/AdminConfirmationProvider.tsx": "2696ca6822a56e2815213217e30fc1de8386424ab010abbbf8a34201201113fc",
     "src/components/admin/AdminCreateTaskModal.tsx": "d266f1bbe609f7dc004a0d8d49249ee593c8e6b706c298ae098850e4be32cd16",
     "src/components/admin/AdminDemoBoundary.tsx": "d98b0fa181be2d7b9abe8e908f5de1ffad127542816faf74509f98846ea2c126",
     "src/components/admin/AdminDensityControl.tsx": "f57410fbe25fae548a806878ff866ebce7b905147dd6d08eee260a0696c6e622",
     "src/components/admin/AdminDesignPreview.tsx": "b253e6b1a04bad3692b012f37530e5e457dd497af57cb5a86fc0358929a5cbf5",
-    "src/components/admin/AdminDialog.tsx": "020f04a036c983f808dccc1b79f347ea6ee6a0a9a32229602a809811339a0699",
+    "src/components/admin/AdminDialog.tsx": "ff4f01afadd4411587fbf2543a6759738ca3b31a628a198e1f93562cbf539dfa",
     "src/components/admin/AdminErrorBoundary.tsx": "b394d8434ccfe4def165e7cd532bf99edbc66c1cd65f4fe5077295f29f33057a",
-    "src/components/admin/AdminFounderNoteModal.tsx": "01cc9a604ff0b1ef48ca43e59924ab8895d6f8a493a6c2bcd4e00bf6f3939b5a",
-    "src/components/admin/AdminLink.tsx": "f8cd70a0fda1961e9a46b06a868d6f5d09ee26092c17a461e55087f9c85ebab2",
+    "src/components/admin/AdminFounderNoteModal.tsx": "13e2a2f7747ce33d58acec7bc81a0edb80b68257491520a52b35ae46b5bda2e9",
+    "src/components/admin/AdminLink.tsx": "df61e471a2fdd830e8f6986d42e2bd59597eae1d18f24f5783d4831c1af5d176",
     "src/components/admin/AdminPageLoading.tsx": "599a73d33e924dabc3fa5027ed814799b0d9c638e6298cef8fb610358068832e",
     "src/components/admin/AdminQueryProvider.tsx": "64e5872bd4521ba4f391782d3f9f1d261917e8dd8bed32f99b453a9cd7335336",
     "src/components/admin/AdminReadBody.tsx": "ed1b578fce0a9822afaf803910c1429b0d4dda8fedab721a322f310af73545bf",
     "src/components/admin/AdminRecordRow.tsx": "9748f883c556dfdbfd1f24a08ceb76e6b600aa962fee3dc69a2663a0259309af",
     "src/components/admin/AdminRouteSkeleton.tsx": "0249268d08d6dc7ec8a69f78185022a89d716ea798a615e87f9c1f4e7e101e03",
-    "src/components/admin/AdminRouteStage.tsx": "5fff9f23d43a219c7b2cbe238c12c8da729035de5035fd9646620af6614c5186",
-    "src/components/admin/AdminShell.tsx": "2c015efeff6375248200e616344c19234586e2df8d96e7d3d8df89b19675a45d",
+    "src/components/admin/AdminRouteStage.tsx": "56808e4309137d883534cd8273326f438f5bbd14015729f39d2c8cdc69b832ee",
+    "src/components/admin/AdminShell.tsx": "c1d46e4710a9c228ea1e433f908b6a5840c8e72ced58d9f62264eb39178ca97e",
     "src/components/admin/AdminShortcuts.tsx": "c8af898b63ab4b344b5093b9baee4ccabc77548593d935cc8467a9f9411c63ff",
     "src/components/admin/AdminStatusMessage.tsx": "2a6a04a62b69e69db7100cb7a768ff328d5c2dfea3bb04763863f848141583fe",
     "src/components/admin/AdminSurface.tsx": "e7b452317be1082926abf851d663d80ab9c18447482b3763762c4542a3ee5f25",
@@ -206,24 +208,26 @@
     "src/components/admin/AdminTable.tsx": "d503b511de047215ab9dc622e2301ce7dcb0bb5f34a5ca95e172f1754c044f87",
     "src/components/admin/AdminThemeEditor.tsx": "30215c12098d8fd136cb490185d892ff1e3b5b7f7a2cfe36712505e49e79b263",
     "src/components/admin/AdminThemeProvider.tsx": "8e6a151e4c0b8c9211ee35b88d89e8cd3808a5bed7c9d865d12f61e0d79176e3",
+    "src/components/admin/AdminViewSwitcher.tsx": "c9cd614e5996c8bef33c3de79f95f22d49b5f5dd0045b046a23f3b9b56c33918",
     "src/components/admin/AgentMemoryReview.tsx": "1b5593583cbb10d9b87fc9b0f512ed8fb0961b0eb869ff97d3a04513a26c23ff",
     "src/components/admin/AgentWorkPanel.tsx": "5cf0acd08e2477fb005fd363dbf5a1f8ebf016f214f81edbc7f372874eeec522",
     "src/components/admin/ArchitectEvidencePanel.tsx": "5d3763ebfc64b6e5a0c301d88c96979d0bf66be387b292382fbf5bcea0ea300e",
     "src/components/admin/ArchitectUnderstandingPanel.tsx": "3cc664230ebb00d1d31554bb537d8db12a83969cdd2df1f53c95d97db0d17366",
     "src/components/admin/AttentionList.tsx": "ed7468bc4c78b694e8a333db014b3ff5981d405db7879bf868e1ac18f50e843a",
-    "src/components/admin/BlueprintReview.tsx": "407f1a47329c3c07a03b773ef1cfdfb92a8545763a8af1e4b063c00a8c3434e3",
+    "src/components/admin/BlueprintReview.tsx": "11e76ce7b08a36e38b0df7b9060970d89c583f1326293352aa8f3aed06bf698a",
     "src/components/admin/BlueprintsWorkspace.tsx": "253c805e70938cf8b5c0bcdbeb58776b9e894175531baf66c0fa94c3824f2179",
     "src/components/admin/CanonicalSourceLink.tsx": "edc89be4aaafce6a7777ac6212687311ca14c15d0e784c9087bd46643875c04a",
     "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
-    "src/components/admin/ClientDetail.tsx": "b512ddc529c183bc04bb516402d70af93cb8929d7ecf24c18f303cf1623444c1",
+    "src/components/admin/ClientDetail.tsx": "2c7a8b63da7b2ba4f89e3f5f46a02d8c2f8c232698e90a987b834d5a9f93f1a4",
     "src/components/admin/CollectionsWorkspace.tsx": "c70e37cc11f2bd095a8670132f439616236a18ed758bba7cd96991db674ac9b9",
     "src/components/admin/CommandCenterPwa.tsx": "c39c6ab18d111988e1b818c7210054c948ec009409cb776420ba12bac07353e5",
     "src/components/admin/ContactIntakeNav.tsx": "0b442890abee019e85fecb756f7c92cdf16951b0e6eeac3abf00f254f45bcec1",
     "src/components/admin/ContactSubmissionsPage.tsx": "f2d02abf3174cd164b982f15a59fa8b5f5bca8ca30afb98ce634edd1c3f0e648",
     "src/components/admin/ContactTimeline.tsx": "8fcc27a6abf5c834b81fbee9741b16b91bdaaa6491868abf8cea23e4a15b9e90",
-    "src/components/admin/ContentItemForm.tsx": "c38501325fb916ac37d567f3e957c26b22d0b79d2f0218cd0c6cd48d0f4afbf1",
+    "src/components/admin/ContentItemForm.tsx": "c4eb4dacd6766b49dc3bcc6d5b590eec1b5ca38c24a491a2fc4a3fbfef76124c",
     "src/components/admin/ContentKanban.tsx": "142a69aca2337d8b78f54ecb383951c2293de0e821d8e5c17edd71f2709e285c",
     "src/components/admin/ConversionFunnel.tsx": "27757a15e248ce5478a21f614e53d8ead969d350a301a42573213b0435cee310",
+    "src/components/admin/CoreReleaseStatus.tsx": "fe9cc2ab69c58db766b7bdebedc6a9bf68560799b16cdc78a96ea0076ef372fa",
     "src/components/admin/DashboardMetrics.tsx": "5b5cba2bb1428f8e6e7679f9962c626853977db25af7d1e7fdd9f5fd177137de",
     "src/components/admin/DateRangeFilter.tsx": "fff3da0f7a72aeece714791da8655799cfaf35eed43c12c6e852849fc63ee6c5",
     "src/components/admin/DemoBusinessNotice.tsx": "006392b9131053d3272373cd2b8d96043fb42eeefccf7ebe5d88ef0611b5a3dd",
@@ -235,7 +239,7 @@
     "src/components/admin/EmptyState.tsx": "8f132fb9c46c909d96dbcbc189faceaafb0055e6be06d217e61de3030533d2a1",
     "src/components/admin/FormsWorkspace.tsx": "4029feb6ee217b4b7f028f34b6319cac7907d28f77fba6049e4815e0ab40572b",
     "src/components/admin/InvoiceIndex.tsx": "30efc69dc7a789d08ac675da9cd6f1cdb475a13d705962704b4012327c3f6107",
-    "src/components/admin/InvoicePageDesigner.tsx": "8f23de09a4bbe8e5c58fcd3f87af34c74daac70b89bed0e3925456e1ef725e08",
+    "src/components/admin/InvoicePageDesigner.tsx": "8b80c316a2117b2fe16f0039cda9a1145c80ebc6b49f620cc7a81d3c01dd2135",
     "src/components/admin/KnowledgeSources.tsx": "84fe6c5bcb787c4b75655166911cdf695edb22347074b0e1f2c9f3d304d1d6c8",
     "src/components/admin/LayoutCustomizeDialog.tsx": "b44371cf020302b208208d68d674d6554020030518c4e57d87c34b714ead7510",
     "src/components/admin/LayoutScopeCard.tsx": "2392593a0b7b7b2995dabfba624fbbb72928690eb05e2b92eef12da243928df3",
@@ -249,11 +253,11 @@
     "src/components/admin/MRRChart.tsx": "3024a09c9dfc49db70361472189b2d4098494779efcafaf1295904f79a31d104",
     "src/components/admin/ModuleDisabledNotice.tsx": "2c33a3e845a64efd7187388b61184aafc4725afab2c227585aaec42c85c73d17",
     "src/components/admin/ModuleSettingsForm.tsx": "07ba6bb965cf8bacb40be797e3b4d967c6db19bd7f4b03a134c9f3b8d02b2077",
-    "src/components/admin/NotificationBell.tsx": "05cac06d0c88f2b359968e40822d9d2a1d9602d876ae656b3ca5981b47b9ccd9",
-    "src/components/admin/PageHeader.tsx": "5bf46188e8678543501dc4f248900a2cc2d5746088a348b3f6f1f0444d589a3f",
+    "src/components/admin/NotificationBell.tsx": "d2f0c34f9c3a711ed188c18a297a1c4098bf0960edaa42c74275990287790deb",
+    "src/components/admin/PageHeader.tsx": "0de2ff9a261860f8012c2a811b97cccf24c90d4a7bedbc8dccd7cc93d2efda52",
     "src/components/admin/Pagination.tsx": "016836958a375d173f0a43a8b4ca24522c66e3eec2efdfaa02858f2d682f56b6",
     "src/components/admin/PlausibleWidget.tsx": "250f81a9de33b8432d902c626757002def6ea084e88c26dfa0c933f6e54ebeed",
-    "src/components/admin/ProposalEditor.tsx": "7cf12792d78b7fceefaca96a06c928a438d1dfe1f30e74eda95f15e043f36a6d",
+    "src/components/admin/ProposalEditor.tsx": "1cca3e788b3574ac0cc845d7d46fd3574575b832993ca03435003e8e69d5a201",
     "src/components/admin/QuickActions.tsx": "56f5b4b70153e6b787b4f1ab9547b580de0ab0e6af9cda76a06a9440117719ff",
     "src/components/admin/RadarEditorDialog.tsx": "05c3c1542b4ee1a356539a4ef8c4089e0993c7d988d4cfc38fa4c94307ca0e6b",
     "src/components/admin/RadarOpportunityDetail.tsx": "555bdee5c4624d876d337767e45cc40e51362f0aadefc35b07a2e06842105b4b",
@@ -269,35 +273,36 @@
     "src/components/admin/SourceToolDispositions.tsx": "7d46e897d09a1c4b1e26220f290b5a0d1b3ec723c76238eceee4bf13f2fa8ef2",
     "src/components/admin/StatCard.tsx": "6286532a370c017df492f4bd3d787cf5278f4102cf000bc3328942258570195e",
     "src/components/admin/StatusBadge.tsx": "3a5cc477a064efa4a14a1946819a0a6ff8f7fb64774fa2a8614681e559c7ceb1",
-    "src/components/admin/TaskQuickAdd.tsx": "7d5d674d94b5c6127af9dcc457f43011525ca88c226fc943ec3ccbc06dd86f34",
-    "src/components/admin/TaskWidget.tsx": "9e28f59818214d0be7c0d155a1f3eaffe0448e2698ee67019a3e986caed213a8",
+    "src/components/admin/TaskQuickAdd.tsx": "4a8c10382b2f51bfb4738d42b244ef1d6524e629a19fb8377094fe62fa6ec4e8",
+    "src/components/admin/TaskWidget.tsx": "546bc15f15401e1a9e7cc3119828cfa5ba33ea5fac9573c1c605c1d8d8be4e53",
     "src/components/admin/TaskWorkflowWorkspace.tsx": "a1b4c961f9c982d39540aefb901fb8a7dfb88a9e31e95cac62fe87cef076a4db",
     "src/components/admin/TenantProviderControls.tsx": "75b2b3130f88c5f0d11312e2d70525f5558d569aa8d802e8653c782959ca0872",
-    "src/components/admin/Toaster.tsx": "5f927bce3bcb92973809d03f06792568d4e0d1b1e64dc7e95de85a84cca41e30",
+    "src/components/admin/Toaster.tsx": "1c1370f7cf7d2d19c06135f60174c8e493189f7e2701f21cb70d3e6eab110fcb",
     "src/components/admin/TodayViewEditor.tsx": "e1d59a1c8a0796a14af5d03d016fa5891222da2dd79f7bbb71c7d75d21ae0913",
-    "src/components/admin/TodayWorkspace.tsx": "68c7cff48f9d4f74c608fdc5c2f711f89e31f8def7748b781b5de2311caa03bc",
+    "src/components/admin/TodayWorkspace.tsx": "d808f3b98d186d22e75b59347f57d8b750bed736d2f9d8cea00754ad65a91256",
     "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
     "src/components/admin/WorkflowCalendar.tsx": "86a0e1972d87270f8d90a608eba1c48de9cd3122503a10300e8ece41223b90aa",
-    "src/components/admin/WorkflowLayoutSwitcher.tsx": "4bc7bf68e5464071f7345bd8c1b19863ae8db9a10905a58e2601b61643cc6e86",
+    "src/components/admin/WorkflowLayoutSwitcher.tsx": "5db8e60cfaa98c60310f44f93ee37ff390a3769d2a77454da55d4882810b67b4",
     "src/components/admin/WorkspaceMcpConnections.tsx": "55619da7893bae1ff11e7afb18b303bfa4db8366152f807c0a3ce22ef59b091e",
     "src/components/admin/site/SiteEditorConnections.tsx": "0202597ce85f52e4e08b1a43728e471857ef0f5d0ccdcf4b443a1f7cd11fa47e",
     "src/components/admin/site/WebsiteAssets.tsx": "b5e4a83a145f48bfb9139712edd4e9dfff12baa8e10404aba44c80e3d0651a72",
     "src/components/admin/site/WebsiteCollections.tsx": "6aa3035ebdb68f35843569a690e5e44e2d87ed53f5a6de99326dfd2fc829fe26",
-    "src/components/admin/site/WebsiteContentEditor.tsx": "aa8d9577afcf79b69881eb5ab3c486377a8628b20da5ea1fca965b423e6ec685",
-    "src/components/admin/site/WebsiteEditor.tsx": "d5580a3ebd26b36d4dd6bf484ebf0a5797273a04314bd8e41ac7be4dbf189204",
+    "src/components/admin/site/WebsiteContentEditor.tsx": "0fdef546a66644efd8bb2b776b577c673e1d0e5fb5ea52ecd65cd7cf36634105",
+    "src/components/admin/site/WebsiteEditor.tsx": "d6ff66c5c8359fc38b83df42fc7bdf249526e4a88fefed067c149d04c4bdfd60",
     "src/components/admin/site/WebsiteFields.tsx": "6b5d3b2fe83da6a676afbb420b69de8b86aca2bb52d800409bc715db76744116",
     "src/components/admin/site/WebsiteFormPicker.tsx": "bb611fa58e98668187992f62b4f18700fac353c4a12f4da2174be6629c9cb49b",
-    "src/components/admin/site/WebsiteLivePreview.tsx": "ca00c1896711944cc8bc843164501847dd5bc6babc8d5e6924824469813e1164",
+    "src/components/admin/site/WebsiteLivePreview.tsx": "63df93da44ebe3c757c57fe5c263465b4ce0482eef127ce00a816007167e6297",
     "src/components/admin/site/WebsiteModelPicker.tsx": "afd7c84948e05ad417b6ff5aefb3201cee8dee5e679a9f1848a8ac12b612169f",
-    "src/components/admin/site/WebsitePageTools.tsx": "69e69730ec327d0503e9d82fe7dd83dde30821b7e0375a2f943c4dda89007479",
-    "src/components/admin/site/WebsitePreview.tsx": "bf8311f0add8e7765f8f6911b4540667d5f95cc7ec6e3429997d6ac2c0347c4b",
+    "src/components/admin/site/WebsitePageTools.tsx": "36e716e12f2a013fc2c9368a922e7c82404f62285ae825a24d3634eedcc2aeee",
+    "src/components/admin/site/WebsitePreview.tsx": "0356cc6d4712857de82f2e86c894a6f5a5c30ac9cc9c3a84d48fd465dad062fb",
     "src/components/admin/site/WebsitePreviewFrame.tsx": "28e60da16e883e94480ee3c5e3a2e2a502284a805de170c69d1bf2ba6dfcc245",
     "src/components/admin/site/WebsitePreviewRuntime.tsx": "7e733f728af32992d95ebd684e9deeb3eba1ad9e45199da766f5f74eddf4b3e5",
     "src/components/admin/site/WebsitePublishing.tsx": "43fa82fe3408d9138977c9c34ec8459b5e174fc1844d4b4c1cce515be8d44864",
     "src/components/admin/work-board/WorkAgents.tsx": "121364e1d6de244e38afa6ab92f769bd6f84610b9f677b40295befd5435f8232",
     "src/components/admin/work-board/WorkControls.tsx": "1a4c021380e0d557a108480652a772f503e33d55f63b546279bb95c1a4320f0b",
     "src/components/admin/work-board/WorkViews.tsx": "50e28eb8c22d05cae7e1dd6196758a35c65541cd21dace1782e1ced6a2138d04",
-    "src/lib/admin/navigation.ts": "bc51b7337972e9fe06e4e664b31a6f4b95db7f7100d6a41f6f03a3c546825ee3",
+    "src/lib/admin/auth.ts": "7e110b623b546dd407bd34daa348d31c95c6ef031a19016a14eae94532df635b",
+    "src/lib/admin/navigation.ts": "664e63b0b3a5b685afd3c0489fe5e1452a4a1a57a84824803dc3a3c287ff4a66",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
     "src/lib/ai/openrouter-models.ts": "005042ecb73505abc050af9b753e47db588f80fcfe3598fd81a04112a7b72784",
     "src/lib/ai/openrouter.ts": "5da3d5a8f6e0dd66d99e56554aec3f62095df6a59f04a66124de39eb15a89be7",
@@ -307,19 +312,19 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "16ab060272509bd090ca9d4625ff76e254249a366ab1f6ff5871ce820987820d",
-    "src/lib/revenue-os/action-executor.ts": "11c9c370dbe11e3776d9a38635c73492060100b2fb1494b80c18d760b5ef787f",
-    "src/lib/revenue-os/actions.ts": "95635bbe32710683f6c74b609daac3cdd98595821d41b92e984d0f9adf96372f",
+    "src/lib/revenue-os/README.md": "2048996af185439222de017218c288839ea70c53e439cd6ff11803bac04a3799",
+    "src/lib/revenue-os/action-executor.ts": "9a8849023a98b0802c265dbc3be539f53f2851deaa6d35196d0fa341ba915b64",
+    "src/lib/revenue-os/actions.ts": "85c625d7a9f7b4e5572b2c2063dc8a98f146d4a85ced41e72f9506ff99e5b867",
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
-    "src/lib/revenue-os/ai-agent.ts": "320648b61ebb3914c060e5cbe0f1fdcea7928cd4b0fba53457ae6738eda37c8a",
+    "src/lib/revenue-os/ai-agent.ts": "2dcf6720ca7606f9e0001ec458c9d04f6a03548cec6fe8ad00af895e6817f651",
     "src/lib/revenue-os/ai-conversations.ts": "e1c24666ab9b00840d804e7301d347dada1e424c85637710811e2d603ac952b7",
-    "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
-    "src/lib/revenue-os/ai-operations.ts": "87a1920d2f8c49a557cf3c54577909548fdcfcf64a8b30a8c5b8cc4a2aefe54b",
+    "src/lib/revenue-os/ai-operations-contract.ts": "e5b7a00424187c92fdb969fd98236a274b992b751380bb00b3cf4b911b7ae65f",
+    "src/lib/revenue-os/ai-operations.ts": "32eb6cdefa75a8cdd05c871420ff4bd3cf2184fdc9b1e2743c80faf103f820a6",
     "src/lib/revenue-os/ai-stream-contract.ts": "45e5459095d2c4b27c2a0927a83408ef352bf4584653638d7d03b5447dbf1c0b",
-    "src/lib/revenue-os/ai-tools.ts": "4a6a42b1ccd7023b539e9d4f691c97fd00e646d452df01ed7442cc63a4d8436b",
-    "src/lib/revenue-os/analytics.ts": "4e57afb24352b6c09cd2f4dc062792d84986376739866e7b76ab53c34978624d",
+    "src/lib/revenue-os/ai-tools.ts": "83a5ca4a82a9c7a66debca5658a04af9929884e39d883ab1fb47c997a353d32e",
+    "src/lib/revenue-os/analytics.ts": "61ac0118d5177b5222f0e7f07243196d5907106b45e84e2c00650d35d4688c9d",
     "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "928a37ea33689f746e8df5cbbbaa0505e193ba0a1e40bc711508ffaa2caae5f2",
@@ -331,12 +336,12 @@
     "src/lib/revenue-os/collections.ts": "a05af80ab775b9459d8799350b6cfb5e51799374bdab8e8264dadfe517a25c73",
     "src/lib/revenue-os/communications.ts": "86a48ad957fe47f6c9db0f2d50645068ebcfdacaece907aaa30a722abc80aca9",
     "src/lib/revenue-os/contact-imports.ts": "d23584a3126b2d75d5dd39cc96f29e997fc7f9b1217af0ab4007e37e533d276e",
-    "src/lib/revenue-os/content-calendar.ts": "4f0f412607819ceb3ad348bebd8605622089d058c2cd6a67b4c8f59a62d45caf",
+    "src/lib/revenue-os/content-calendar.ts": "9ac20c1bd02752a985119edbf81ee26075941e3d3a57807dc2165b8749f299a6",
     "src/lib/revenue-os/conversations.ts": "6be8f7e1052a99c7dd938b4770308a74ba9d6057baaaf728709bcfa46d4dd25a",
     "src/lib/revenue-os/correction-capture.ts": "4fe7e40961eed06f2e02f6d2aa926efaa41f630ae5b67b07980ac7749dbd9832",
     "src/lib/revenue-os/db.ts": "167cc018fe0d8387547c174be0fc105edb9efbee6608bf93e2d0e9ca05d038cb",
-    "src/lib/revenue-os/debate-bookings.ts": "53e38ce61a8a08319eca0bc3661c179c2df91fe226b889c5579e8046cf56a73b",
-    "src/lib/revenue-os/debate-invitations.ts": "597cf9949a68e13bf296403e5464baf6d432d23b828ecf79ccd6f5f0cfc710ee",
+    "src/lib/revenue-os/debate-bookings.ts": "165820dc8a4d755c4f088df577bd5972ee4a277625ebeb704bd02d4e65586746",
+    "src/lib/revenue-os/debate-invitations.ts": "d246fab77a84363e3ab1528be4bbc42fe6b78425fec5327aac7a8ffa0a40caae",
     "src/lib/revenue-os/delivery-handoff-contract.ts": "fdaddaa73123e99c372bb279626a3ab3072a2cc13418c10bb8244f791d1cbace",
     "src/lib/revenue-os/delivery-handoff.ts": "dba3dab7ae5f4de087ef792a4fb7f08bf1c1597b1af6404ef62eef65c9bbf19e",
     "src/lib/revenue-os/document-extraction.ts": "8612e2e4c43bd0f5ea84e0238ed6a76a01d84599e50baa70edf24214592fa007",
@@ -345,23 +350,23 @@
     "src/lib/revenue-os/form-builder-contract.ts": "a2a3403c5b9aff4d70c55a64cb3b672bb84484f81fcba33d5ab2deee015d280a",
     "src/lib/revenue-os/form-builder.ts": "3f2c181efe1dca678ccd9457e8f76d309657770badb16429cc70a27fc835f862",
     "src/lib/revenue-os/google.ts": "748bf626071a1c8a500dc2d2ddbe3079393f87a796e0774232be7753a8fab65a",
-    "src/lib/revenue-os/health.ts": "d2aec6b40a32001b1a6f89d07fb29d00f5fca19d051ca301cdecd3fac3220d92",
+    "src/lib/revenue-os/health.ts": "674d80b48a05c5dbe3451b265342ae6d5cdf6d2b3db2e2dd0bc2f2a14fe93f15",
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
     "src/lib/revenue-os/identity.ts": "cb0b7bbff0e3efd674652a9e84000e6f8db56fe2033763541e6068ae4be0a6ed",
     "src/lib/revenue-os/inbound.ts": "e7befa23ba586f0c4a3b2fd5b2e1c6ea95710eb4dce4ec75601ef46e476a5f19",
     "src/lib/revenue-os/integration-adapters.ts": "7f427bb456d210228a21a62dc8afe84514a5c1c3f864815157d93742cf871baf",
     "src/lib/revenue-os/integrations.ts": "8d4d468661f4325468c53e9dfd613fa5ecc7c84b85ece0cb36f8f5b00c7aa304",
-    "src/lib/revenue-os/invoice-page-contract.ts": "350da047e7317f8e8e6d73cbce19749be9dd40bda82f180f8f0b8bd037da8baa",
-    "src/lib/revenue-os/invoice-pages.ts": "6572730905437cc60ff24cb31bd2f80724c4f49d67d1297fe567c454656c3d06",
+    "src/lib/revenue-os/invoice-page-contract.ts": "d17d126c0a6c8150529b679fdd1895eaaf7818a932046c662578b94f512aae07",
+    "src/lib/revenue-os/invoice-pages.ts": "270e214dd19657be1b4eabd19469fabb5a4eba405def1c2ed7a1372ed0ff6214",
     "src/lib/revenue-os/knowledge-documents.ts": "47a34d44a1dd97fc57b136f4d1f746b18572f627a0d8b18b8c24f9d1c8b99481",
     "src/lib/revenue-os/learning-inbox.ts": "3e41488df45146b0cccd60306eab937d1429c9aa86e5feedddbd040640021cd4",
     "src/lib/revenue-os/learning-signals.ts": "952ade0d696341fd1c1c48471cdc695cd591d4b38863bad9eaaa4cf98c6123e9",
     "src/lib/revenue-os/legacy-adapter.ts": "dc9173ac9b25658a9e0f1512cf7ba877fd7b8b88920f9f8c575966ee57b33f4e",
-    "src/lib/revenue-os/mcp-server.ts": "31f79e9768c699e06975a505e9ffff9b458819347f4950bd8f16f075481bcea2",
+    "src/lib/revenue-os/mcp-server.ts": "90a68ed82006f54640b82773e562b6287858f3cba964009d452d28d024f6e413",
     "src/lib/revenue-os/memory.ts": "6b30e30b9cd7cfefbe83b78d9912aa24c898a436d8f095a34f60f011d0996db3",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
-    "src/lib/revenue-os/modules.ts": "3cbdaea4ff5b10b765f168c4b5f3b137159f7f33cf6660306ed43ada22bc44ee",
+    "src/lib/revenue-os/modules.ts": "03fb5c736f89d9f83dfd7869b02cebe13c9f865c1c9ccef440710b2e7e27f58a",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "5832f25f4a0a93a0913fc080e9cd984b57e1b42bf7840e291449c8fac0ff8134",
     "src/lib/revenue-os/pipeline.ts": "c01c688af0c25fffd4f926e55ad4c134ccf12f2cbcfd553d27525a91f6ecb886",
     "src/lib/revenue-os/proposals.ts": "1cfb2a6d157df923f7f910c13fc41410af1617a5d11e765cb9cb5e4daa4d7fb3",
@@ -370,11 +375,13 @@
     "src/lib/revenue-os/records.ts": "68cfc52f8b97ffde1a73c3722801832cc196e3f2141e8ce1820df08ba3df9c5c",
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
+    "src/lib/revenue-os/reporting-contract.ts": "d4a083bdf9810f8b3180b90f4515d42a89874f8156307871f540f46c00fb9e42",
     "src/lib/revenue-os/retained-source-dispositions.ts": "3dadabae5e8fc129bd51d1c3027093634c30a1836bd8d37f206cfc788243ac23",
-    "src/lib/revenue-os/schema-contract.ts": "93873d0015c64f3b44f025235938141ff455e7eb77969f116f9a2ca3c9ccf97b",
+    "src/lib/revenue-os/schema-contract.ts": "4bae9b405093ea54850671996cd77fe65e21581bf408f7086c07ce3605b696b7",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/shared-context.ts": "2886f194671f3b671cfafb7bd289c8b2d54414608df083165bc509b5d3f76e8d",
     "src/lib/revenue-os/social-marketing.ts": "a5421a504fd070c4826a0fb62037abe6f83786781c0dd7c21f4d27c94b901ea8",
+    "src/lib/revenue-os/source-authority.ts": "19d25cf0e00302d07c4a8ea0b07e203d327074a98546e9eccfa567f31cf95bec",
     "src/lib/revenue-os/stage-history.ts": "83ce2f34e57acab509375b99ef6042d3cd77605a859923974aecd871692608a9",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/subscriptions-contract.ts": "aeeafdd05eb69cdfe1a9c7d67670d33fbc289a60452cb2f0021a8df1a68418c0",
@@ -382,26 +389,28 @@
     "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
     "src/lib/revenue-os/types.ts": "7c2ef713990b2180acd4c76507e708431288fd46d98fab1072cc6451a15e44bd",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
-    "src/lib/revenue-os/work-board.ts": "5d7bd5f73b74ce4ae1b09a823a185e2c88e5bee252c28e52492b1193619aa004",
+    "src/lib/revenue-os/work-board.ts": "74115a62c8415c2a27d97ab68cfa8efaba3f471f009fb26a22f01844a77311e9",
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
+    "src/lib/revenue-os/workspace-architect-generated-operations.ts": "052b53334e27e1c888b42e881d3a42fd9927a495d61e11733408129c528b5a28",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
     "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
-    "src/lib/revenue-os/workspace-configuration.ts": "f293e0d1481a964a5e6e761e3d4e114b06c5ddaba1b266cdfb287c54ff9081d4",
+    "src/lib/revenue-os/workspace-configuration.ts": "e31e6ccc812f890bf9f10515332e8c062c0349e7a533edc5626c95330713f5b6",
     "src/lib/revenue-os/workspace-mcp-oauth.ts": "9073501451d28a00dad04577404eefdc5c85c51a50890bf243eda505528b1753",
     "src/lib/site-studio/database-store.ts": "58a4234f1af081f015727ba72c527e6b7ac78e110a868d0dc5b18c895e674842",
     "src/lib/site-studio/delegation.ts": "a0e55a813bb33b3a791c6b84be69e3f3a6c8f6a38ed52372c5dc3e85416fe4e9",
     "src/lib/site-studio/document.ts": "fa1e5a9b58b02ca02dfe7310087274e52d1e3112119f4c995cd405c71a7af8f8",
-    "src/lib/site-studio/drafts.ts": "eb016af336fa9d0efa3e7f3e628de3414f22486017b3cf8682658c4076eb6d42",
-    "src/lib/site-studio/generate.ts": "625c4fb23e5af9ba5d98443131f9a6697884141424baa78296d18ebfd11a2a96",
+    "src/lib/site-studio/drafts.ts": "76359587c993100f7da8cddb076ef1e3a009cf86edfdee1ac84eaf7a2d3ce3a7",
+    "src/lib/site-studio/generate.ts": "a511b5f85c42bd93610abb305ddbfe86a5bce64a05f31d368a14f3d164affa6c",
     "src/lib/site-studio/models.ts": "3b2c7552368a6163543629c3fa3a1e9d1131f98d4f412319c6587a053afe17a5",
-    "src/lib/site-studio/openrouter-adapter.ts": "14af349e03067da6ddbe6308a730e1e59cf7b16e60069efab3e58db603daed43",
+    "src/lib/site-studio/openrouter-adapter.ts": "79bd52ee6584e430936b8d7c6e1a5b25f758ef46b46a53401a0345deaaa17303",
     "src/lib/site-studio/regenerate.ts": "ddec0aa53354e760a55324ce3c13c53ffa44dfb254e7f415672c2bb1fabaa802",
-    "src/lib/site-studio/revision.ts": "3a945fd87c2524a81bbd3b321ecefa97a0a5a3764a39fde3f8a3764313cafb20",
-    "src/lib/site-studio/website-ai.ts": "5c08897bfb6eded0335d2c0d1f1f26eee705b156ee0172d109f59e9d5f8f1000",
-    "src/lib/site-studio/website-commands.ts": "064486605dce783b163a46b9620947f4b0b01b8c080eb746b4e90076500ecad2",
+    "src/lib/site-studio/revision.ts": "59a0002647d99958e956ec19c40b8a27f60d18328faccef8a99595c1d6e73923",
+    "src/lib/site-studio/website-ai.ts": "613dfb089df3cd6b70e3b74946f87f88171bfbb69e5a028363da96fce9905dc4",
+    "src/lib/site-studio/website-commands.ts": "8f5179c7e1bba7d3475afffb671968edeab565b9be1e49fdbb5e235f4f72ec58",
     "src/lib/site-studio/website-document.ts": "f11491f0a4fa55a8a34833469737a233f2d7d5b03cbaec17f9deeb0483bb601f",
     "src/lib/site-studio/website-seed.ts": "3b21a1a09b355fdc021b37196f9aa29626e2eb439e1bfff325cd8be800039499",
     "src/lib/site-studio/website-store.ts": "a17e1efc93c4aa8fdd86276ef82a188de583ea9925476f3ab66eebc80c442f37",
+    "src/lib/supabase/configuration.mjs": "d3f6d31e7ef52126c7b0aaef7abd6e332e36bbefa94ade60443c5e5839291af6",
     "src/lib/tenancy/context.ts": "511fecd436fb9d4028b6758bac59ba51ee71fa7f798f84ae3cb0adea12bdd949",
     "src/lib/tenancy/lifecycle.ts": "2b2ca947757d4ff3595062f918734b1b765f89352a834e440ae28ae140de8b53",
     "src/lib/tenancy/system.ts": "28e241c788fba9c5793536d0bcf6db076c0d56f6513976f9ae387acc4b222911"
@@ -521,6 +530,21 @@
       "specialBoundary": "redirect:/admin/ai?view=runs"
     },
     {
+      "route": "/admin/analytics",
+      "page": "src/app/admin/analytics/page.tsx",
+      "primaryAction": "Compare funnel and revenue metrics",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/analytics/route.ts",
+          "domainImports": ["@/lib/revenue-os/analytics", "@/lib/revenue-os/reporting-contract"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Canonical analytics read model; field parity with Revenue remains unproven.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
       "route": "/admin/blueprints",
       "page": "src/app/admin/blueprints/page.tsx",
       "primaryAction": "Create and list versioned Workspace Blueprints",
@@ -543,28 +567,14 @@
         {
           "path": "src/app/api/admin/blueprints/[id]/route.ts",
           "domainImports": [
+            "@/lib/revenue-os/workspace-architect-generated-operations",
             "@/lib/revenue-os/workspace-blueprint",
             "@/lib/revenue-os/workspace-blueprint-compiler"
           ],
-          "directTables": []
+          "directTables": ["workspace_blueprints"]
         }
       ],
       "boundary": "Review is read-only against the latest version. Validation uses live capabilities and entity keys. The document is never executed.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "route": "/admin/analytics",
-      "page": "src/app/admin/analytics/page.tsx",
-      "primaryAction": "Compare funnel and revenue metrics",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/revenue-os/analytics/route.ts",
-          "domainImports": ["@/lib/revenue-os/analytics", "@/lib/revenue-os/db"],
-          "directTables": []
-        }
-      ],
-      "boundary": "Canonical analytics read model; field parity with Revenue remains unproven.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -694,7 +704,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared task workflow services own proposals and task execution; task adapter reads canonical tasks, opportunities and memberships. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode.",
+      "boundary": "Shared task workflow services own proposals and task execution; task adapter reads canonical tasks, opportunities and memberships. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -802,7 +812,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Existing policy fields share exact AI/MCP preview and proposal, current recipient/invoice facts, authenticated human approval, transactional case receipts and revision checks. Policy approval never sends a reminder. Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Confirmed message receipts remain the cooldown authority; database timestamps are normalized to UTC before isolated workflow evaluation.",
+      "boundary": "Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Existing policy fields share exact AI/MCP preview and proposal, current recipient/invoice facts, authenticated human approval, transactional case receipts and revision checks. Policy approval never sends a reminder. Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. Confirmed message receipts remain the cooldown authority; database timestamps are normalized to UTC before isolated workflow evaluation. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -892,26 +902,6 @@
       "specialBoundary": null
     },
     {
-      "route": "/admin/coworkers",
-      "page": "src/app/admin/coworkers/page.tsx",
-      "primaryAction": "Inspect AI work outcomes and give feedback on completed runs",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/work/agent-items/route.ts",
-          "domainImports": [],
-          "directTables": ["work_items"]
-        },
-        {
-          "path": "src/app/api/admin/revenue-os/ai/feedback/route.ts",
-          "domainImports": ["@/lib/revenue-os/agent-learning"],
-          "directTables": []
-        }
-      ],
-      "boundary": "The existing AgentWorkPanel reads work items through an admin route with an explicit tenant filter. Feedback uses the existing audited completed-run route; customer-facing actions remain in Work approvals.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
       "route": "/admin/content",
       "page": "src/app/admin/content/page.tsx",
       "primaryAction": "Create content items and move their status",
@@ -919,7 +909,7 @@
         {
           "path": "src/app/api/admin/content/route.ts",
           "domainImports": ["@/lib/revenue-os/content-calendar"],
-          "directTables": ["content_calendar", "kanban_columns"]
+          "directTables": []
         }
       ],
       "boundary": "content_calendar and kanban_columns remain source records; status changes do not publish content. Shared editor sessions and discard confirmations own local draft state; fictional edits and order persist only in demo scenario storage.",
@@ -983,6 +973,26 @@
         }
       ],
       "boundary": "Conversation and Google services own triage and threaded replies. Draft comparisons remain read-only; saving a correction creates a reviewable learning proposal.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/coworkers",
+      "page": "src/app/admin/coworkers/page.tsx",
+      "primaryAction": "Inspect AI work outcomes and give feedback on completed runs",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/work/agent-items/route.ts",
+          "domainImports": [],
+          "directTables": ["work_items"]
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/feedback/route.ts",
+          "domainImports": ["@/lib/revenue-os/agent-learning"],
+          "directTables": []
+        }
+      ],
+      "boundary": "The existing AgentWorkPanel reads work items through an admin route with an explicit tenant filter. Feedback uses the existing audited completed-run route; customer-facing actions remain in Work approvals.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1084,6 +1094,40 @@
       "specialBoundary": null
     },
     {
+      "route": "/admin/forms",
+      "page": "src/app/admin/forms/page.tsx",
+      "primaryAction": "Build intake forms, publish share links, review responses into the pipeline",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/forms/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/form-builder",
+            "@/lib/revenue-os/form-builder-contract",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": []
+        }
+      ],
+      "boundary": "Form-builder service owns schema validation, compare-and-swap definitions, idempotent public submission and transactional review. The admin adapter carries the verified actor into the tenant-bound host writer. Accepted intake uses the existing action queue and canonical ingest service; failed intake remains visible and retryable. Public links resolve only while published and enabled. AI writes reuse these services after existing approval.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/get-started",
+      "page": "src/app/admin/get-started/page.tsx",
+      "primaryAction": "Follow saved inquiry-to-follow-up progress and inspect capability readiness",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/get-started/route.ts",
+          "domainImports": ["@/lib/revenue-os/first-use"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Read-only tenant-bound progress service, shared by hosted invited owners and self-hosted owners; never equates configuration with successful execution.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
       "route": "/admin/identity-review",
       "page": "src/app/admin/identity-review/page.tsx",
       "primaryAction": "Resolve or defer ambiguous identities",
@@ -1143,7 +1187,7 @@
           "directTables": ["tasks"]
         }
       ],
-      "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count. Approval opens the exact action in Work for review; only rejection is decided directly from Inbox.",
+      "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count. Approval opens the exact action in Work for review; only rejection is decided directly from Inbox. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
@@ -1239,7 +1283,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice.",
+      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1266,6 +1310,49 @@
       "specialBoundary": null
     },
     {
+      "route": "/admin/learning",
+      "page": "src/app/admin/learning/page.tsx",
+      "primaryAction": "Propose reusable corrections; approve or reject learnings into shared policy; review, correct or remove agent memory",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/learning/route.ts",
+          "domainImports": ["@/lib/revenue-os/learning-inbox"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/learning/[id]/route.ts",
+          "domainImports": ["@/lib/revenue-os/learning-inbox"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/knowledge/documents/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/document-extraction",
+            "@/lib/revenue-os/knowledge-documents"
+          ],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/learning/signals/route.ts",
+          "domainImports": ["@/lib/revenue-os/learning-signals"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/memory/route.ts",
+          "domainImports": ["@/lib/revenue-os/memory"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/memory/[id]/route.ts",
+          "domainImports": ["@/lib/revenue-os/memory"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Learning proposals and dispositions use the shared owner. Atomic human-approved actions create scoped policy. Document storage and indexing use tenant-bound private services. Signals capture evidence, never automatic authority. Agent memory review is founder-only; corrections and removals are audited with the prior state.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
       "route": "/admin/login",
       "page": "src/app/admin/login/page.tsx",
       "primaryAction": "Sign in with email or configured Google OAuth, or request a password reset",
@@ -1282,6 +1369,21 @@
         }
       ],
       "boundary": "Authentication boundary for authorized workspace members; no business record reconciliation applies. Missing, placeholder or malformed public database configuration shows setup on direct and redirected visits, with public-site documentation and fictional demo links. Login and password-reset APIs return 503 before provider calls until public configuration is valid. Google OAuth appears only when Supabase reports that provider enabled; its PKCE callback sets the session, while existing workspace membership checks still determine access. Configured email requests retain existing rate limits and membership checks. Password recovery uses the configured sender when available or Supabase Auth email otherwise; both callback paths use the configured workspace origin, while eligible membership and rate limits still gate issuance. Public links grant no authentication or workspace access.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/mcp/connect",
+      "page": "src/app/admin/mcp/connect/page.tsx",
+      "primaryAction": "Approve, inspect, renew or revoke a workspace MCP OAuth connection",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/mcp/delegations/route.ts",
+          "domainImports": ["@/lib/revenue-os/workspace-mcp-oauth"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Secure human consent for a registered, tenant-bound OAuth client. Only an active workspace admin can grant or renew a 30-day delegation or revoke their own connection. This page does not make permission changes available as AI tools; business writes still require separate approvals.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1323,9 +1425,18 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared task workflow services own proposals and task execution; source meeting IDs must remain linked to created work. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode.",
+      "boundary": "Shared task workflow services own proposals and task execution; source meeting IDs must remain linked to created work. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
+    },
+    {
+      "route": "/admin/oauth/consent",
+      "page": "src/app/admin/oauth/consent/page.tsx",
+      "primaryAction": "Route native OAuth consent to its registered scoped connection",
+      "adapters": [],
+      "boundary": "Authenticated native OAuth dispatcher validates the authorization request and client identity, then sends the user to the matching workspace MCP or Site Studio consent screen. Unknown and ambiguous clients fail closed.",
+      "followUp": null,
+      "specialBoundary": "Authentication and consent routing only; no business record mutation."
     },
     {
       "route": "/admin/partners",
@@ -1450,6 +1561,130 @@
       "specialBoundary": null
     },
     {
+      "route": "/admin/radar",
+      "page": "src/app/admin/radar/page.tsx",
+      "primaryAction": "Review sourced business opportunities and prepare approved changes",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/radar/workspace/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/radar/commands/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/db",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": ["action_queue"]
+        }
+      ],
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/radar/history",
+      "page": "src/app/admin/radar/history/page.tsx",
+      "primaryAction": "Read retained Radar records while the plugin is disabled",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/radar/workspace/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/radar/commands/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/db",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": ["action_queue"]
+        }
+      ],
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/radar/opportunities/[id]",
+      "page": "src/app/admin/radar/opportunities/[id]/page.tsx",
+      "primaryAction": "Read evidence, canonical contact restrictions and review opportunity changes",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/radar/workspace/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/radar/commands/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/db",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": ["action_queue"]
+        }
+      ],
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/radar/today",
+      "page": "src/app/admin/radar/today/page.tsx",
+      "primaryAction": "Review sourced business opportunities and prepare approved changes",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/radar/workspace/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/radar/commands/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/db",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": ["action_queue"]
+        }
+      ],
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
       "route": "/admin/recovery",
       "page": "src/app/admin/recovery/page.tsx",
       "primaryAction": "Preview eligible recovery contacts and stage a batch",
@@ -1528,49 +1763,6 @@
       "specialBoundary": null
     },
     {
-      "route": "/admin/learning",
-      "page": "src/app/admin/learning/page.tsx",
-      "primaryAction": "Propose reusable corrections; approve or reject learnings into shared policy; review, correct or remove agent memory",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/learning/route.ts",
-          "domainImports": ["@/lib/revenue-os/learning-inbox"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/learning/[id]/route.ts",
-          "domainImports": ["@/lib/revenue-os/learning-inbox"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/knowledge/documents/route.ts",
-          "domainImports": [
-            "@/lib/revenue-os/document-extraction",
-            "@/lib/revenue-os/knowledge-documents"
-          ],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/learning/signals/route.ts",
-          "domainImports": ["@/lib/revenue-os/learning-signals"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/memory/route.ts",
-          "domainImports": ["@/lib/revenue-os/memory"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/memory/[id]/route.ts",
-          "domainImports": ["@/lib/revenue-os/memory"],
-          "directTables": []
-        }
-      ],
-      "boundary": "Learning proposals and dispositions use the shared owner. Atomic human-approved actions create scoped policy. Document storage and indexing use tenant-bound private services. Signals capture evidence, never automatic authority. Agent memory review is founder-only; corrections and removals are audited with the prior state.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
       "route": "/admin/setup",
       "page": "src/app/admin/setup/page.tsx",
       "primaryAction": "Inspect setup health and run available setup actions",
@@ -1611,6 +1803,166 @@
         }
       ],
       "boundary": "Health and schema checks are operational evidence, not business record parity. Optional Gmail draft permission reports connection and scope readiness without a scheduled run or exposing credentials. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/site",
+      "page": "src/app/admin/site/page.tsx",
+      "primaryAction": "Create and list private structured page drafts",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/site/drafts/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/database-store",
+            "@/lib/site-studio/drafts",
+            "@/lib/site-studio/generate",
+            "@/lib/site-studio/openrouter-adapter"
+          ],
+          "directTables": []
+        }
+      ],
+      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate list and create receipts. Pending creation locks the form, and an uncertain result requires a successful list refresh before retrying. Route/workspace changes ignore late replies. Fictional demo does not implement private draft creation; browser recovery proof uses a controlled adapter around the real UI. The fictional runtime reuses the same pure draft operations with browser-session storage, scenario isolation and simulated Activity receipts. AI example mode uses the service template without provider traffic; authenticated live storage and provider adapters remain server-only.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/site/[id]",
+      "page": "src/app/admin/site/[id]/page.tsx",
+      "primaryAction": "Preview, rename and discard one private page draft",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/site/drafts/[id]/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/database-store",
+            "@/lib/site-studio/drafts",
+            "@/lib/site-studio/revision"
+          ],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/site/drafts/[id]/sections/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/database-store",
+            "@/lib/site-studio/document",
+            "@/lib/site-studio/drafts",
+            "@/lib/site-studio/models",
+            "@/lib/site-studio/openrouter-adapter",
+            "@/lib/site-studio/regenerate",
+            "@/lib/site-studio/revision"
+          ],
+          "directTables": []
+        }
+      ],
+      "boundary": "Tenant-admin Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout. Client reads validate document, record ID and checksum. Failed refreshes retain the preview and typed title. Stale or uncertain writes require an explicit successful latest read and review; discard includes cancellation and validates its receipt. State is keyed by workspace path and draft ID, canceled reads and late write replies cannot overwrite another route. The fictional runtime reuses the same pure draft operations with browser-session storage, scenario isolation and simulated Activity receipts. AI example mode uses the service template without provider traffic; authenticated live storage and provider adapters remain server-only. Saved private documents render in the shared live iframe with real 390/768/1440 pixel viewports and public styles; same-origin parent messages validate schema and size. Preview links and forms are inactive, FAQ disclosure remains interactive, and live private frames do not fetch owner website data.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/site/connect",
+      "page": "src/app/admin/site/connect/page.tsx",
+      "primaryAction": "Approve, inspect, renew or revoke scoped Site Studio OAuth connections",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/site/delegations/route.ts",
+          "domainImports": ["@/lib/site-studio/delegation", "@/lib/site-studio/website-store"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Secure human handoff, not an AI-callable permission grant. The authenticated installation owner confirms a pre-registered native OAuth client and a 30-day installation-wide website delegation. The shared delegation service rechecks owner, bootstrap tenant and active membership; local revocation is durable even if native grant revocation is unavailable. Ordinary workspace MCP credentials gain no authority.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "adapters": [
+        {
+          "path": "src/app/api/admin/site/website/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/website-commands",
+            "@/lib/site-studio/website-document",
+            "@/lib/site-studio/website-seed",
+            "@/lib/site-studio/website-store"
+          ],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/site/website/suggest/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/models",
+            "@/lib/site-studio/website-ai",
+            "@/lib/site-studio/website-store"
+          ],
+          "directTables": []
+        }
+      ],
+      "specialBoundary": null,
+      "route": "/admin/site/website",
+      "page": "src/app/admin/site/website/page.tsx",
+      "primaryAction": "Create and edit website pages; review AI suggestions and publish a saved revision",
+      "boundary": "Installation owner, active bootstrap admin membership, tenant-bound database and enabled Site Studio are required. UI and typed AI/MCP operations share canonical commands, optimistic versions and immutable idempotent receipts. Published form choices use the module-guarded Form Builder API; shared command validation enforces publication and installation ownership, while exact completed retries reach the atomic writer. Draft previews never submit forms. The neutral bootstrap and public site share the same validated document and theme; application paths remain reserved. AI suggestion preparation uses the shared budget gateway and owner rate limit; local adoption and saving are explicit, and AI cannot invent form tokens. Public rendering reads only the published revision. The separate scoped OAuth endpoint allows owner-delegated execution without changing ordinary workspace MCP authority; client confirmation is not recorded as independent human approval. Direct authenticated RPC writes remain denied. Automatic import of remaining source layouts is still separate work on the linked claim. Committed publication changes and exact retries refresh the public tag and root layout through the shared writer; a cache-host failure preserves the immutable receipt and leaves the existing public revalidation window as recovery.",
+      "followUp": {
+        "id": "7b54f4b4-7519-4758-a268-eeaa17fc0d17",
+        "key": "site-studio-installation-editor"
+      }
+    },
+    {
+      "adapters": [
+        {
+          "path": "src/app/api/admin/site/website/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/website-commands",
+            "@/lib/site-studio/website-document",
+            "@/lib/site-studio/website-seed",
+            "@/lib/site-studio/website-store"
+          ],
+          "directTables": []
+        }
+      ],
+      "specialBoundary": null,
+      "route": "/admin/site/website/preview",
+      "page": "src/app/admin/site/website/preview/page.tsx",
+      "primaryAction": "Preview the current saved installation website draft at desktop, tablet and mobile widths",
+      "boundary": "Read-only preview frame. The frame URL contains page identity only; real content is fetched through the same installation-owner API and never embedded in static output or shared cache. Recognized demo scenarios use isolated fictional browser-session data through the shared demo runtime. No preview grants publication authority.",
+      "followUp": null
+    },
+    {
+      "route": "/admin/social",
+      "page": "src/app/admin/social/page.tsx",
+      "primaryAction": "Draft, review, schedule and reconcile LinkedIn company-page posts",
+      "boundary": "Module admin routes and shared social domain service own validation; shared action queue owns exact human approval; SQL RPCs own tenant-scoped receipts and one-time dispatch. No provider keys or direct database writes in the browser.",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/social/route.ts",
+          "domainImports": ["@/lib/revenue-os/social-marketing"],
+          "directTables": []
+        }
+      ]
+    },
+    {
+      "route": "/admin/social/history",
+      "page": "src/app/admin/social/history/page.tsx",
+      "primaryAction": "Read retained social drafts and publication receipts",
+      "boundary": "Active tenant membership scopes retained reads; disabled plugin cannot create drafts, approve schedules or submit new effects.",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/social-history/route.ts",
+          "domainImports": ["@/lib/revenue-os/social-marketing"],
+          "directTables": []
+        }
+      ]
+    },
+    {
+      "route": "/admin/source-authority",
+      "page": "src/app/admin/source-authority/page.tsx",
+      "primaryAction": "Register connected systems against the truth domains they own, with explicit authority tiers",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/source-authority/route.ts",
+          "domainImports": ["@/lib/revenue-os/source-authority"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Verified administrator changes use a version-checked host RPC that commits the registry, exact audit and immutable request receipt together. Agent writes stage a human approval with the same normalized command; retrieval access checks precede explicit source authority and scoped, stale and potential-conflict tags.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1718,7 +2070,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared overview, task and action services; layout changes are configuration.",
+      "boundary": "Shared overview, task and action services; layout changes are configuration. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1758,130 +2110,6 @@
       "specialBoundary": null
     },
     {
-      "route": "/admin/radar/today",
-      "page": "src/app/admin/radar/today/page.tsx",
-      "primaryAction": "Review sourced business opportunities and prepare approved changes",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/radar/workspace/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/radar/commands/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/revenue-os/actions/route.ts",
-          "domainImports": [
-            "@/lib/revenue-os/action-executor",
-            "@/lib/revenue-os/actions",
-            "@/lib/revenue-os/collection-reminders",
-            "@/lib/revenue-os/db",
-            "@/lib/tenancy/context"
-          ],
-          "directTables": ["action_queue"]
-        }
-      ],
-      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "route": "/admin/radar/opportunities/[id]",
-      "page": "src/app/admin/radar/opportunities/[id]/page.tsx",
-      "primaryAction": "Read evidence, canonical contact restrictions and review opportunity changes",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/radar/workspace/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/radar/commands/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/revenue-os/actions/route.ts",
-          "domainImports": [
-            "@/lib/revenue-os/action-executor",
-            "@/lib/revenue-os/actions",
-            "@/lib/revenue-os/collection-reminders",
-            "@/lib/revenue-os/db",
-            "@/lib/tenancy/context"
-          ],
-          "directTables": ["action_queue"]
-        }
-      ],
-      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "route": "/admin/radar/history",
-      "page": "src/app/admin/radar/history/page.tsx",
-      "primaryAction": "Read retained Radar records while the plugin is disabled",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/radar/workspace/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/radar/commands/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/revenue-os/actions/route.ts",
-          "domainImports": [
-            "@/lib/revenue-os/action-executor",
-            "@/lib/revenue-os/actions",
-            "@/lib/revenue-os/collection-reminders",
-            "@/lib/revenue-os/db",
-            "@/lib/tenancy/context"
-          ],
-          "directTables": ["action_queue"]
-        }
-      ],
-      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "route": "/admin/radar",
-      "page": "src/app/admin/radar/page.tsx",
-      "primaryAction": "Review sourced business opportunities and prepare approved changes",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/radar/workspace/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/radar/commands/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/revenue-os/actions/route.ts",
-          "domainImports": [
-            "@/lib/revenue-os/action-executor",
-            "@/lib/revenue-os/actions",
-            "@/lib/revenue-os/collection-reminders",
-            "@/lib/revenue-os/db",
-            "@/lib/tenancy/context"
-          ],
-          "directTables": ["action_queue"]
-        }
-      ],
-      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
       "route": "/admin/work",
       "page": "src/app/admin/work/page.tsx",
       "primaryAction": "Review canonical tasks across saved layouts, edit tasks, and decide exact pending approvals",
@@ -1908,214 +2136,9 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute.",
+      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
       "followUp": null,
       "specialBoundary": null
-    },
-    {
-      "route": "/admin/site",
-      "page": "src/app/admin/site/page.tsx",
-      "primaryAction": "Create and list private structured page drafts",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/site/drafts/route.ts",
-          "domainImports": [
-            "@/lib/site-studio/database-store",
-            "@/lib/site-studio/document",
-            "@/lib/site-studio/drafts",
-            "@/lib/site-studio/generate",
-            "@/lib/site-studio/models",
-            "@/lib/site-studio/openrouter-adapter"
-          ],
-          "directTables": []
-        }
-      ],
-      "boundary": "Owner-only Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "route": "/admin/site/connect",
-      "page": "src/app/admin/site/connect/page.tsx",
-      "primaryAction": "Approve, inspect, renew or revoke scoped Site Studio OAuth connections",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/site/delegations/route.ts",
-          "domainImports": ["@/lib/site-studio/delegation", "@/lib/site-studio/website-store"],
-          "directTables": []
-        }
-      ],
-      "boundary": "Secure human handoff, not an AI-callable permission grant. The authenticated installation owner confirms a pre-registered native OAuth client and a 30-day installation-wide website delegation. The shared delegation service rechecks owner, bootstrap tenant and active membership; local revocation is durable even if native grant revocation is unavailable. Ordinary workspace MCP credentials gain no authority.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "route": "/admin/site/[id]",
-      "page": "src/app/admin/site/[id]/page.tsx",
-      "primaryAction": "Preview, rename and discard one private page draft",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/site/drafts/[id]/route.ts",
-          "domainImports": [
-            "@/lib/site-studio/database-store",
-            "@/lib/site-studio/drafts",
-            "@/lib/site-studio/revision"
-          ],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/site/drafts/[id]/sections/route.ts",
-          "domainImports": [
-            "@/lib/site-studio/database-store",
-            "@/lib/site-studio/document",
-            "@/lib/site-studio/drafts",
-            "@/lib/site-studio/models",
-            "@/lib/site-studio/openrouter-adapter",
-            "@/lib/site-studio/regenerate",
-            "@/lib/site-studio/revision"
-          ],
-          "directTables": []
-        }
-      ],
-      "boundary": "Owner-only Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "adapters": [
-        {
-          "path": "src/app/api/admin/site/website/route.ts",
-          "domainImports": [
-            "@/lib/site-studio/website-commands",
-            "@/lib/site-studio/website-document",
-            "@/lib/site-studio/website-seed",
-            "@/lib/site-studio/website-store"
-          ],
-          "directTables": []
-        },
-        {
-          "path": "src/app/api/admin/site/website/suggest/route.ts",
-          "domainImports": [
-            "@/lib/site-studio/models",
-            "@/lib/site-studio/website-ai",
-            "@/lib/site-studio/website-store"
-          ],
-          "directTables": []
-        }
-      ],
-      "specialBoundary": null,
-      "route": "/admin/site/website",
-      "page": "src/app/admin/site/website/page.tsx",
-      "primaryAction": "Create and edit website pages; review AI suggestions and publish a saved revision",
-      "boundary": "Installation owner, active bootstrap admin membership, tenant-bound database and enabled Site Studio are required. UI and typed AI/MCP operations share canonical commands, optimistic versions and immutable idempotent receipts. Published form choices use the module-guarded Form Builder API; shared command validation enforces publication and installation ownership, while exact completed retries reach the atomic writer. Draft previews never submit forms. The neutral bootstrap and public site share the same validated document and theme; application paths remain reserved. AI suggestion preparation uses the shared budget gateway and owner rate limit; local adoption and saving are explicit, and AI cannot invent form tokens. Public rendering reads only the published revision. The separate scoped OAuth endpoint allows owner-delegated execution without changing ordinary workspace MCP authority; client confirmation is not recorded as independent human approval. Direct authenticated RPC writes remain denied. Automatic import of remaining source layouts is still separate work on the linked claim. Committed publication changes and exact retries refresh the public tag and root layout through the shared writer; a cache-host failure preserves the immutable receipt and leaves the existing public revalidation window as recovery.",
-      "followUp": {
-        "id": "7b54f4b4-7519-4758-a268-eeaa17fc0d17",
-        "key": "site-studio-installation-editor"
-      }
-    },
-    {
-      "adapters": [
-        {
-          "path": "src/app/api/admin/site/website/route.ts",
-          "domainImports": [
-            "@/lib/site-studio/website-commands",
-            "@/lib/site-studio/website-document",
-            "@/lib/site-studio/website-seed",
-            "@/lib/site-studio/website-store"
-          ],
-          "directTables": []
-        }
-      ],
-      "specialBoundary": null,
-      "route": "/admin/site/website/preview",
-      "page": "src/app/admin/site/website/preview/page.tsx",
-      "primaryAction": "Preview the current saved installation website draft at desktop, tablet and mobile widths",
-      "boundary": "Read-only preview frame. The frame URL contains page identity only; real content is fetched through the same installation-owner API and never embedded in static output or shared cache. Recognized demo scenarios use isolated fictional browser-session data through the shared demo runtime. No preview grants publication authority.",
-      "followUp": null
-    },
-    {
-      "route": "/admin/social",
-      "page": "src/app/admin/social/page.tsx",
-      "primaryAction": "Draft, review, schedule and reconcile LinkedIn company-page posts",
-      "boundary": "Module admin routes and shared social domain service own validation; shared action queue owns exact human approval; SQL RPCs own tenant-scoped receipts and one-time dispatch. No provider keys or direct database writes in the browser.",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/social/route.ts",
-          "domainImports": ["@/lib/revenue-os/social-marketing"],
-          "directTables": []
-        }
-      ]
-    },
-    {
-      "route": "/admin/social/history",
-      "page": "src/app/admin/social/history/page.tsx",
-      "primaryAction": "Read retained social drafts and publication receipts",
-      "boundary": "Active tenant membership scopes retained reads; disabled plugin cannot create drafts, approve schedules or submit new effects.",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/social-history/route.ts",
-          "domainImports": ["@/lib/revenue-os/social-marketing"],
-          "directTables": []
-        }
-      ]
-    },
-    {
-      "route": "/admin/forms",
-      "page": "src/app/admin/forms/page.tsx",
-      "primaryAction": "Build intake forms, publish share links, review responses into the pipeline",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/forms/route.ts",
-          "domainImports": [
-            "@/lib/revenue-os/form-builder",
-            "@/lib/revenue-os/form-builder-contract",
-            "@/lib/tenancy/context"
-          ],
-          "directTables": []
-        }
-      ],
-      "boundary": "Form-builder service owns schema validation, compare-and-swap definitions, idempotent public submission and transactional review. The admin adapter carries the verified actor into the tenant-bound host writer. Accepted intake uses the existing action queue and canonical ingest service; failed intake remains visible and retryable. Public links resolve only while published and enabled. AI writes reuse these services after existing approval.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "route": "/admin/get-started",
-      "page": "src/app/admin/get-started/page.tsx",
-      "primaryAction": "Follow saved inquiry-to-follow-up progress and inspect capability readiness",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/get-started/route.ts",
-          "domainImports": ["@/lib/revenue-os/first-use"],
-          "directTables": []
-        }
-      ],
-      "boundary": "Read-only tenant-bound progress service, shared by hosted invited owners and self-hosted owners; never equates configuration with successful execution.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "route": "/admin/mcp/connect",
-      "page": "src/app/admin/mcp/connect/page.tsx",
-      "primaryAction": "Approve, inspect, renew or revoke a workspace MCP OAuth connection",
-      "adapters": [
-        {
-          "path": "src/app/api/admin/mcp/delegations/route.ts",
-          "domainImports": ["@/lib/revenue-os/workspace-mcp-oauth"],
-          "directTables": []
-        }
-      ],
-      "boundary": "Secure human consent for a registered, tenant-bound OAuth client. Only an active workspace admin can grant or renew a 30-day delegation or revoke their own connection. This page does not make permission changes available as AI tools; business writes still require separate approvals.",
-      "followUp": null,
-      "specialBoundary": null
-    },
-    {
-      "route": "/admin/oauth/consent",
-      "page": "src/app/admin/oauth/consent/page.tsx",
-      "primaryAction": "Route native OAuth consent to its registered scoped connection",
-      "adapters": [],
-      "boundary": "Authenticated native OAuth dispatcher validates the authorization request and client identity, then sends the user to the matching workspace MCP or Site Studio consent screen. Unknown and ambiguous clients fail closed.",
-      "followUp": null,
-      "specialBoundary": "Authentication and consent routing only; no business record mutation."
     }
   ],
   "previousBase": "50f3aa671751619f44af22bb0736618c362d1b6b",

@@ -203,11 +203,19 @@ async function main() {
   assert.deepEqual(missingDetail.events, []);
 
   const capabilities = listRevenueAiCapabilities();
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v28");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v30");
   assert.ok(capabilities.some((capability) => capability.impact === "read"));
+  assert.deepEqual(
+    capabilities
+      .filter((capability) => capability.impact !== "read" && !capability.confirmationRequired)
+      .map((capability) => capability.name)
+      .sort(),
+    ["control_agent_work", "start_agent_work"],
+    "member-owned work controls do not grant business execution authority",
+  );
   assert.ok(
     capabilities
-      .filter((capability) => capability.impact !== "read")
+      .filter((capability) => ["external_action", "destructive"].includes(capability.impact))
       .every((capability) => capability.confirmationRequired),
   );
 
@@ -231,7 +239,7 @@ async function main() {
     "utf8",
   );
   assert.match(capabilitiesRoute, /scope: "runtime_registry"/);
-  assert.match(capabilitiesRoute, /readinessEvaluated: true/);
+  assert.match(capabilitiesRoute, /readinessEvaluated: false/);
   assert.match(capabilitiesRoute, /state: capability\.available \? "available" : "unavailable"/);
 
   console.log(

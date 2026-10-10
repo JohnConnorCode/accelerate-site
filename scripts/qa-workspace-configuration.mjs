@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3018";
-const output = "/tmp/accelerate-workspace-configuration";
+const output = process.env.QA_OUTPUT || "/tmp/accelerate-workspace-configuration";
 mkdirSync(output, { recursive: true });
 const scenarios = [
   "northline-roofing",
@@ -218,6 +218,110 @@ try {
       await page.screenshot({
         path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-integrations.png`,
       });
+      assert.equal(
+        (await request("/api/admin/google/sync", "PATCH", { driveFolderIds: [] })).status,
+        200,
+      );
+      assert.equal(
+        (await request("/api/admin/google/sync", "POST", { source: "all" })).status,
+        200,
+        "Sync all permits Gmail and Calendar with unconfigured Drive",
+      );
+      assert.equal(
+        (await request("/api/admin/google/sync", "POST", { source: "drive" })).status,
+        409,
+        "Drive-only sync still requires selected folders",
+      );
+      await page.goto(`${base}/demo/command-center/${scenario}/setup`, {
+        waitUntil: "networkidle",
+      });
+      const sync = page.getByRole("button", { name: "Sync Workspace", exact: true });
+      await sync.waitFor();
+      assert.equal(
+        (await page.locator("#supabase").innerText()).split(
+          "Stores operating records and receipts.",
+        ).length - 1,
+        1,
+        "A setup check shows repeated description/outcome copy only once",
+      );
+      // Simulate a busy job at the existing transport boundary. No provider
+      // credentials or live API calls are involved.
+      await page.evaluate(() => {
+        const original = window.fetch;
+        let requests = 0;
+        window.fetch = async (input, init) => {
+          if (String(input) === "/api/admin/google/sync" && init?.method === "POST")
+            return Response.json(
+              requests++ === 0
+                ? { success: false, skipped: true, existingStatus: "running" }
+                : { success: true, skipped: false },
+            );
+          return original(input, init);
+        };
+      });
+      await sync.focus();
+      await page.keyboard.press("Enter");
+      const busyNotice = page.getByText(
+        "Workspace sync is already running; no new sync was started.",
+        { exact: true },
+      );
+      await busyNotice.waitFor();
+      await busyNotice.scrollIntoViewIfNeeded();
+      assert.match(
+        (await page
+          .getByRole("status")
+          .filter({ hasText: "Workspace sync is already running; no new sync was started." })
+          .getAttribute("class")) ?? "",
+        /admin-status-message--info/,
+        "A skipped busy job is informational, not a completion receipt",
+      );
+      assert.equal(await page.getByText("Workspace sync completed.", { exact: true }).count(), 0);
+      assert.equal(
+        await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+        false,
+      );
+      await page.screenshot({
+        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-setup-sync-running.png`,
+      });
+      await sync.focus();
+      await page.keyboard.press("Enter");
+      await page.getByText("Workspace sync completed.", { exact: true }).waitFor();
+      assert.match(
+        (await page
+          .getByRole("status")
+          .filter({ hasText: "Workspace sync completed." })
+          .getAttribute("class")) ?? "",
+        /admin-status-message--success/,
+      );
+      await page.goto(`${base}/demo/command-center/${scenario}/emails`, {
+        waitUntil: "networkidle",
+      });
+      await page.getByRole("heading", { name: "Email Templates", exact: true }).waitFor();
+      await page.evaluate(() => {
+        const original = window.fetch;
+        window.fetch = async (input, init) => {
+          const response = await original(input, init);
+          if (String(input) === "/api/admin/emails/history" && response.ok)
+            return Response.json({ ...(await response.json()), partial: true });
+          return response;
+        };
+      });
+      const history = page.getByRole("tab", { name: "Sent history", exact: true });
+      await history.focus();
+      await page.keyboard.press("Enter");
+      await page.getByRole("button", { name: "Refresh Email Studio", exact: true }).click();
+      const partialNotice = page
+        .getByRole("status")
+        .filter({ hasText: "Some email history could not be read." });
+      await partialNotice.waitFor();
+      await partialNotice.scrollIntoViewIfNeeded();
+      assert.equal(
+        await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+        false,
+      );
+      await page.screenshot({
+        path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-email-history-partial.png`,
+      });
       assert.equal(escaped.length, 0, JSON.stringify(escaped));
       assert.equal(errors.length, 0, JSON.stringify(errors));
       results.push({
@@ -230,6 +334,9 @@ try {
         stale: true,
         reload: true,
         replay: true,
+        optionalDriveSync: true,
+        skippedSyncFeedback: true,
+        partialHistoryFeedback: true,
         escapedWrites: 0,
         consoleErrors: 0,
         reducedMotion: true,

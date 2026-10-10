@@ -12,6 +12,26 @@ import {
 } from "./verify-google-oauth-readiness.mjs";
 
 assert.equal(readinessResult("source", evaluateSource(readSourceState())).status, "ready");
+const source = readSourceState();
+for (const unsafe of [
+  { drivePlan: source.drivePlan.replace("MAX_DRIVE_FOLDERS = 10", "MAX_DRIVE_FOLDERS = 11") },
+  { drivePlan: source.drivePlan.replace("ids.length >= MAX_DRIVE_FOLDERS", "false") },
+  {
+    google: source.google.replace(
+      "normalizeDriveFolderIds(settings.drive_folder_ids",
+      "uncheckedFolders(settings.drive_folder_ids",
+    ),
+  },
+  { google: source.google.replace("isWithinAllowlist(file.parents, [folderId])", "true") },
+  { syncRoute: source.syncRoute.replace(".max(10)", ".max(11)") },
+  { syncRoute: source.syncRoute.replace(".max(10)", "") },
+])
+  assert.equal(
+    evaluateSource({ ...source, ...unsafe }).find((entry) => entry.id === "source.drive_boundary")
+      .status,
+    "blocked",
+    "Drive readiness must still reject an unbounded or unscoped implementation",
+  );
 assert.equal(
   readinessResult("production", evaluateProductionEnvironment(REQUIRED_GOOGLE_ENV)).status,
   "ready",
@@ -84,6 +104,7 @@ console.log(
   JSON.stringify({
     result: "passed",
     sourceChecks: evaluateSource(readSourceState()).length,
+    driveBoundaryFailureModes: 6,
     productionFailureModes: 7,
     readOnlyProductionProof: true,
   }),

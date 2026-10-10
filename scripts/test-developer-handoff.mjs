@@ -139,7 +139,69 @@ test("wrong repository, unpublished base, unsafe key and occupied path fail befo
   }
 });
 
-test("CLI refuses missing bases before POST, claims with revision, returns pure JSON and replays the original request", async () => {
+test("approved-base recovery distinguishes commit, branch, ancestry and fetch failures", () => {
+  const f = fixture();
+  try {
+    const before = git(f.clone, ["show-ref"]);
+    writeFileSync(join(f.clone, "unfinished.txt"), "retained source\n");
+    const absent = structuredClone(f.card);
+    absent.work_spec.repository.baseCommit = "b".repeat(40);
+    assert.throws(
+      () => prepareWorkspace(f.clone, absent),
+      /Card fixture-ticket: approved commit b{40} is unavailable.*Fetch approved branch "approved"/,
+    );
+    const branch = structuredClone(f.card);
+    branch.work_spec.repository.baseBranch = "not-downloaded";
+    assert.throws(
+      () => prepareWorkspace(f.clone, branch),
+      /Card fixture-ticket: approved branch "not-downloaded" is unavailable/,
+    );
+    assert.throws(
+      () => prepareWorkspace(f.clone, branch, { fetchBase: true }),
+      /Card fixture-ticket: cannot fetch approved branch "not-downloaded".*No work was claimed/,
+    );
+    assert.equal(git(f.clone, ["show-ref"]), before);
+    assert.equal(readFileSync(join(f.clone, "unfinished.txt"), "utf8"), "retained source\n");
+    assert.throws(
+      () => prepareWorkspace(f.clone, { ...absent, seed_key: "unsafe\nkey" }),
+      /Ticket key cannot safely/,
+    );
+    git(f.source, ["checkout", "--orphan", "diverged"]);
+    git(f.source, [
+      "-c",
+      "user.name=Fixture",
+      "-c",
+      "user.email=fixture@example.test",
+      "-c",
+      "core.hooksPath=/dev/null",
+      "commit",
+      "-m",
+      "Diverged",
+    ]);
+    git(f.source, ["push", f.remote, "diverged"]);
+    branch.work_spec.repository.baseBranch = "diverged";
+    assert.throws(
+      () => prepareWorkspace(f.clone, branch, { fetchBase: true }),
+      /Card fixture-ticket: approved commit [a-f0-9]{40} is not an ancestor of branch "diverged".*revision-checked edit/,
+    );
+    assert.equal(readFileSync(join(f.clone, "unfinished.txt"), "utf8"), "retained source\n");
+    const failedOrigin = "https://127.0.0.1:1/unreachable.git";
+    git(f.clone, ["remote", "set-url", "origin", failedOrigin]);
+    git(f.clone, ["config", "http.extraHeader", "Authorization: Bearer fixture-fetch-secret"]);
+    branch.work_spec.repository.url = failedOrigin;
+    assert.throws(
+      () => prepareWorkspace(f.clone, branch, { fetchBase: true }),
+      (error) =>
+        /cannot fetch approved branch/.test(error.message) &&
+        !error.message.includes("fixture-fetch-secret") &&
+        !error.message.includes(failedOrigin),
+    );
+  } finally {
+    rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+test("CLI refuses missing or mismatched bases before POST, claims with revision, returns pure JSON and replays the original request", async () => {
   const f = fixture();
   let posts = 0;
   const bodies = [];
@@ -171,13 +233,59 @@ test("CLI refuses missing bases before POST, claims with revision, returns pure 
     WORK_BOARD_TOKEN: "fixture-private-token",
   };
   try {
+    const url = f.card.work_spec.repository.url;
+    const state = git(f.clone, ["status", "--porcelain"]);
+    const worktrees = git(f.clone, ["worktree", "list", "--porcelain"]);
+    for (const invalid of [
+      "local:Accelerate-agency/accelerate-site",
+      "https://user:fixture-secret@example.test/repo",
+    ]) {
+      f.card.work_spec.repository.url = invalid;
+      const refused = await cli(f.clone, ["next", "--json"], env);
+      assert.equal(refused.code, 1);
+      assert.equal(posts, 0, "invalid repository must fail before any claim POST");
+      assert.match(refused.stderr, /Card fixture-ticket: invalid repository address/);
+      assert.match(refused.stderr, /revision-checked card edit/);
+      assert.ok(!refused.stderr.includes(invalid) && !refused.stderr.includes("fixture-secret"));
+      assert.equal(git(f.clone, ["status", "--porcelain"]), state);
+      assert.equal(git(f.clone, ["worktree", "list", "--porcelain"]), worktrees);
+    }
+    f.card.work_spec.repository.url = url;
     const base = f.card.work_spec.repository.baseCommit;
     f.card.work_spec.repository.baseCommit = "b".repeat(40);
     let result = await cli(f.clone, ["next", "--json"], env);
     assert.equal(result.code, 1);
     assert.equal(posts, 0);
-    assert.match(result.stderr, /unavailable/);
+    assert.match(result.stderr, /Card fixture-ticket: approved commit b{40} is unavailable/);
+    assert.deepEqual(bodies, [], "preflight refusal leaves immutable work history untouched");
+    assert.equal(f.card.revision, 1);
+    assert.equal(f.card.status, "planned");
+    assert.equal(git(f.clone, ["status", "--porcelain"]), "");
     f.card.work_spec.repository.baseCommit = base;
+    git(f.source, ["checkout", "--orphan", "diverged"]);
+    git(f.source, [
+      "-c",
+      "user.name=Fixture",
+      "-c",
+      "user.email=fixture@example.test",
+      "-c",
+      "core.hooksPath=/dev/null",
+      "commit",
+      "-m",
+      "Diverged",
+    ]);
+    git(f.source, ["push", f.remote, "diverged"]);
+    f.card.work_spec.repository.baseBranch = "diverged";
+    result = await cli(f.clone, ["next", "--json"], env);
+    assert.equal(result.code, 1);
+    assert.match(
+      result.stderr,
+      /Card fixture-ticket: approved commit [a-f0-9]{40} is not an ancestor/,
+    );
+    assert.equal(posts, 0);
+    assert.deepEqual(bodies, []);
+    assert.equal(git(f.clone, ["status", "--porcelain"]), "");
+    f.card.work_spec.repository.baseBranch = "approved";
     const requestKey = randomUUID();
     result = await cli(f.clone, ["next", "--json", "--request-key", requestKey], env);
     assert.equal(result.code, 0, result.stderr);

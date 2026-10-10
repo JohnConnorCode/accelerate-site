@@ -81,6 +81,7 @@ export type ResponderDeclineReason =
   | "tenant_inactive"
   | "not_first_touch"
   | "existing_client"
+  | "eligibility_unavailable"
   | "contact_suppressed"
   | "already_contacted"
   | "daily_cap_reached"
@@ -396,50 +397,73 @@ export async function respondToInbound(
     return decline(supabase, input.opportunityId, "inquiry_too_thin");
   }
 
-  const { data: contact } = await supabase
+  const { data: contact, error: contactError } = await supabase
     .from("contacts")
     .select("id,communication_status,lifecycle_stage")
     .eq("id", input.contactId)
     .maybeSingle();
-  if (contact && contact.communication_status !== "active") {
+  if (contactError || !contact || contact.communication_status !== "active") {
     return decline(
       supabase,
       input.opportunityId,
       "contact_suppressed",
-      String(contact.communication_status),
+      contactError || !contact
+        ? "Contact eligibility could not be verified."
+        : String(contact.communication_status),
     );
   }
 
   // Someone paying us gets a person, not an autoresponder.
-  const { data: client } = await supabase
+  const { data: client, error: clientError } = await supabase
     .from("clients")
     .select("id")
-    .eq("email", input.email)
+    .eq("contact_email", input.email)
     .maybeSingle();
+  if (clientError)
+    return decline(
+      supabase,
+      input.opportunityId,
+      "eligibility_unavailable",
+      "Client status could not be verified.",
+    );
   if (client) {
     return decline(supabase, input.opportunityId, "existing_client");
   }
 
   // If anything has already gone out to this address, a human or an earlier run
   // has it, and a second automated hello is worse than none.
-  const { data: priorSends } = await supabase
+  const { data: priorSends, error: priorSendsError } = await supabase
     .from("messages")
     .select("id")
     .eq("direction", "outbound")
     .contains("recipient_emails", [input.email])
     .limit(RESPONDER_POLICY.perContactCap);
+  if (priorSendsError)
+    return decline(
+      supabase,
+      input.opportunityId,
+      "eligibility_unavailable",
+      "Prior email receipts could not be verified.",
+    );
   if ((priorSends?.length ?? 0) >= RESPONDER_POLICY.perContactCap) {
     return decline(supabase, input.opportunityId, "already_contacted");
   }
 
   const dayStart = new Date(now);
   dayStart.setUTCHours(0, 0, 0, 0);
-  const { data: todaySends } = await supabase
+  const { data: todaySends, error: todaySendsError } = await supabase
     .from("messages")
     .select("id")
     .eq("direction", "outbound")
     .gte("created_at", dayStart.toISOString())
     .limit(RESPONDER_POLICY.dailyCap + 1);
+  if (todaySendsError)
+    return decline(
+      supabase,
+      input.opportunityId,
+      "eligibility_unavailable",
+      "Daily email limits could not be verified.",
+    );
   if ((todaySends?.length ?? 0) >= RESPONDER_POLICY.dailyCap) {
     return decline(
       supabase,

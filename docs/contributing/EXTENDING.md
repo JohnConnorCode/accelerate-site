@@ -14,6 +14,18 @@ changes require application code and an additive migration; a JSON manifest by
 itself does not implement them. The future in-app AI authoring direction is
 specified in [the northstar](../NORTHSTAR.md#29-ai-generated-extensions).
 
+## Start from a business brief
+
+Codex or Claude Code can set up the repository and implement an extension from
+the [coding-assistant brief](https://www.acceleratewith.us/docs/extend/ai-authoring). Supply the business
+process, example inputs, expected saved result and who may perform each action.
+Ask the agent to read `docs/NORTHSTAR.md`, `AGENTS.md`, this guide and
+`docs/contracts/PLUGIN-DOCUMENTATION.md`, then reuse the existing services.
+For assigned work, the live Feature Board packet owns scope, dependencies and
+acceptance. For a personal fork experiment, use a separate branch and fictional
+data. Review the exact changes, checks and remaining connected-workspace proof
+before integration; production publication is a separate owner decision.
+
 What every extension inherits automatically:
 
 - **The approval queue.** An AI tool that mutates anything can only stage a
@@ -36,10 +48,14 @@ What every extension inherits automatically:
 
 ---
 
+For fork ownership and source updates, follow [fork customization and updates](../self-hosting/FORK-UPGRADES.md). Keep custom source in uniquely named modules and regenerate extension outputs after a merge. Plugin activation and migration remain governed by the existing `plugin-install-lifecycle` work, not the Git preflight.
+
 ## 1. Add a module
 
-A module is the unit a workspace turns on and off. Registering one takes a JSON
-manifest and the pages it names. You do not edit any core array.
+A module is the unit a workspace turns on and off. Its registration names the
+pages, navigation and operator guide; its source implements the actual business
+behavior. Start from the existing Inventory example and keep core definitions
+intact.
 
 Create `extensions/<your-module>.module.json`:
 
@@ -50,7 +66,7 @@ Create `extensions/<your-module>.module.json`:
   "name": "Inventory",
   "description": "Stock levels, reorder points, and supplier lead times.",
   "category": "delivery",
-  "defaultEnabled": true,
+  "defaultEnabled": false,
   "navLinks": [
     {
       "id": "acme-inventory",
@@ -63,13 +79,25 @@ Create `extensions/<your-module>.module.json`:
   ],
   "routes": ["/admin/acme-inventory"],
   "aiToolNames": [],
-  "setupChecks": []
+  "setupChecks": [],
+  "docsUrl": "/docs/plugins/acme-inventory"
 }
 ```
 
-Then create `src/app/admin/acme-inventory/page.tsx`, run
-`npm run build:extensions`, and commit both the manifest and the regenerated
-`src/lib/revenue-os/extension-modules.generated.ts`.
+This illustrates registration for a new module; stock storage and reorder
+behavior need their own implementation and tests. Before running the builder:
+
+1. Create `src/app/admin/acme-inventory/page.tsx` with the behavior the brief
+   requests, using the shared domain services for reads and writes.
+2. Write `plugins/acme-inventory/README.md` with a worked operator task, access,
+   costs, permissions, recovery and source references. Follow
+   [the plugin documentation contract](../contracts/PLUGIN-DOCUMENTATION.md).
+3. Create `src/content/docs/plugins/acme-inventory.mdx` and add its matching
+   title, description and slug to `src/content/docs/manifest.ts`. The example's
+   `docsUrl` must lead to this module's public task guide.
+4. Run `npm run build:extensions` and the checks below. Commit the implementation,
+   manifest, guides and regenerated `src/lib/revenue-os/extension-modules.generated.ts`
+   together. Run `npm run docs:llms` after changing public docs.
 
 ### Field reference
 
@@ -463,7 +491,12 @@ the migration twice, and verifies cross-tenant foreign keys, terminal replay
 constraints, RLS, immutable publication and permanent revocation.
 
 Browser QA uses `qa-business-fixture-server.mjs` on port 3044 and Next on 3023
-configured with its local Supabase URL, fixture keys and `ADMIN_EMAIL=qa@example.example`.
+configured with `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:3044`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_controlledfixture`,
+`SUPABASE_SERVICE_ROLE_KEY=controlled-fixture-key` and `ADMIN_EMAIL=qa@example.example`.
+These are fictional test keys, not credentials. The fixture acknowledges only the
+validated `consume_rate_limit` RPC with fictional abuse metadata; business-record
+writes remain refused. This does not prove production rate-limit concurrency.
 For the public page, preload `qa-business-fetch-fixture.mjs` through `NODE_OPTIONS`
 and set `GOOGLE_TOKEN_ENCRYPTION_KEY=controlled-browser-encryption`. The preload
 refuses external fetches and serves only the declared Stripe read fixture. Run
@@ -485,8 +518,12 @@ It creates a fictional customer and a USD 5.00 test invoice, deliberately loses 
 successful line-write response, verifies an idempotent retry leaves one invoice
 and one line, checks disabled/duplicate approvals, finalizes and requests a
 test-mode send, and verifies branded publication/revocation using actual Stripe
-facts. It voids its open test invoice and retains provider audit history; a failed
-draft is reported for inspection. A successful run writes provider request IDs to
+facts. It now also attaches Stripe's documented test payment methods, proves a
+decline leaves the full invoice balance open, then pays with a successful test card
+and checks the shared receipt and customer page become paid with zero remaining.
+No real money moves. The paid test invoice retains provider audit history; an open
+invoice is voided on cleanup and a failed draft is reported for inspection.
+A successful run writes provider request IDs to
 `accelerate-stripe-sandbox-evidence.json` in the OS temporary directory.
 
 Real Stripe verification passed on 2026-09-05. This proves provider integration,

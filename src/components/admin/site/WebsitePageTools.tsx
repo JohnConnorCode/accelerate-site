@@ -1,7 +1,8 @@
 "use client";
 import { WebsiteModelPicker } from "./WebsiteModelPicker";
 import { DEFAULT_SITE_MODEL, siteModel, modelPriceCeiling } from "@/lib/site-studio/models";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { WebsiteLivePreview } from "./WebsiteLivePreview";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import {
   createWebsitePage,
@@ -31,6 +32,7 @@ export function WebsitePageTools({
   const [clone, setClone] = useState(false);
   const [title, setTitle] = useState("");
   const [path, setPath] = useState("");
+  const [customPath, setCustomPath] = useState(false);
   const [starter, setStarter] = useState<WebsiteStarter>("service");
   const [error, setError] = useState("");
   const [aiOpen, setAiOpen] = useState(false);
@@ -38,13 +40,29 @@ export function WebsitePageTools({
   const [mode, setMode] = useState<"edit" | "generate">("edit");
   const [model, setModel] = useState(() => siteModel(DEFAULT_SITE_MODEL));
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [previewSuggestion, setPreviewSuggestion] = useState(false);
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
+  const cancelSuggestion = () => {
+    request.current?.abort();
+    request.current = null;
+    setBusy(false);
+    setNotice("Suggestion canceled. Your draft is unchanged.");
+  };
+  const closeAi = () => {
+    if (request.current) cancelSuggestion();
+    setAiOpen(false);
+  };
   const [proposal, setProposal] = useState<{
     page: WebsitePage;
     summary: string;
     before: string;
   } | null>(null);
+  const staleProposal = !!proposal && JSON.stringify(page) !== proposal.before;
   const openCreate = (copy: boolean) => {
     setClone(copy);
+    setCustomPath(false);
     setTitle(copy ? `${page.metadata.title} copy` : "");
     setPath(copy ? suggestedWebsitePath(website, `${page.metadata.title} copy`) : "");
     setError("");
@@ -78,6 +96,7 @@ export function WebsitePageTools({
           onClick={() => {
             setAiOpen(true);
             setError("");
+            setNotice("");
           }}
         >
           <Sparkles size={16} className="mr-2" />
@@ -131,7 +150,7 @@ export function WebsitePageTools({
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
-                setPath(suggestedWebsitePath(website, e.target.value));
+                if (!customPath) setPath(suggestedWebsitePath(website, e.target.value));
               }}
             />
           </label>
@@ -141,7 +160,10 @@ export function WebsitePageTools({
               required
               className={field}
               value={path}
-              onChange={(e) => setPath(e.target.value)}
+              onChange={(e) => {
+                setCustomPath(true);
+                setPath(e.target.value);
+              }}
               placeholder="/your-page"
             />
           </label>
@@ -186,22 +208,14 @@ export function WebsitePageTools({
       <AdminDialog
         className="rounded-2xl bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-2xl"
         open={aiOpen}
-        onClose={() => {
-          if (!busy) setAiOpen(false);
-        }}
+        onClose={closeAi}
         title="Edit with AI"
-        maxWidth="lg"
+        maxWidth="xl"
       >
         <div className="space-y-4 p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Edit with AI</h2>
-            <button
-              type="button"
-              className={button}
-              disabled={busy}
-              aria-label="Close AI editor"
-              onClick={() => setAiOpen(false)}
-            >
+            <button type="button" className={button} aria-label="Close AI editor" onClick={closeAi}>
               <X size={18} />
             </button>
           </div>
@@ -257,12 +271,18 @@ export function WebsitePageTools({
             className={button}
             disabled={disabled || busy || instruction.trim().length < 3}
             onClick={async () => {
+              if (request.current) return;
+              const controller = new AbortController();
+              request.current = controller;
               setBusy(true);
               setError("");
+              setNotice("");
               setProposal(null);
+              setPreviewSuggestion(false);
               const before = JSON.stringify(page);
               try {
                 const response = await fetch("/api/admin/site/website/suggest", {
+                  signal: controller.signal,
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
@@ -275,6 +295,7 @@ export function WebsitePageTools({
                   }),
                 });
                 const result = await response.json();
+                if (controller.signal.aborted || request.current !== controller) return;
                 if (!response.ok) throw new Error(result.error ?? "AI is unavailable.");
                 parseWebsiteDocument({
                   ...website,
@@ -282,18 +303,37 @@ export function WebsitePageTools({
                 });
                 setProposal({ ...result, before });
               } catch (cause) {
+                if (controller.signal.aborted || request.current !== controller) return;
                 setError(
                   cause instanceof Error
                     ? cause.message
                     : "AI is unavailable. Your edits are preserved.",
                 );
               } finally {
-                setBusy(false);
+                if (request.current === controller) {
+                  request.current = null;
+                  setBusy(false);
+                }
               }
             }}
           >
             {busy ? "Preparing suggestion…" : "Prepare suggestion"}
           </button>
+          {busy && (
+            <div className="space-y-2">
+              <button type="button" className={button} onClick={cancelSuggestion}>
+                Cancel suggestion
+              </button>
+              <p className="text-xs text-[var(--admin-muted)]">
+                Cancel stops this request and keeps your draft. Provider charges may still apply.
+              </p>
+            </div>
+          )}
+          {notice && (
+            <p role="status" className="text-sm text-[var(--admin-muted)]">
+              {notice}
+            </p>
+          )}
           {proposal && (
             <section
               className="space-y-3 rounded-lg bg-[var(--admin-surface-subtle)] p-4"
@@ -301,9 +341,43 @@ export function WebsitePageTools({
             >
               <h3 className="font-semibold">Review suggestion</h3>
               <p className="text-sm">{proposal.summary}</p>
-              <div className="max-h-64 overflow-auto">
-                <WebsiteSuggestion before={page} after={proposal.page} />
+              <div role="group" aria-label="Suggestion view" className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className={button}
+                  aria-pressed={!previewSuggestion}
+                  onClick={() => setPreviewSuggestion(false)}
+                >
+                  Review changes
+                </button>
+                <button
+                  type="button"
+                  className={button}
+                  aria-pressed={previewSuggestion}
+                  onClick={() => setPreviewSuggestion(true)}
+                >
+                  Preview suggestion
+                </button>
               </div>
+              {previewSuggestion ? (
+                <WebsiteLivePreview
+                  document={{
+                    ...website,
+                    pages: website.pages.map((p) => (p.id === page.id ? proposal.page : p)),
+                  }}
+                  pageId={page.id}
+                />
+              ) : (
+                <div className="max-h-64 overflow-auto">
+                  <WebsiteSuggestion before={JSON.parse(proposal.before)} after={proposal.page} />
+                </div>
+              )}
+              {staleProposal && (
+                <p role="alert" className="text-sm text-[var(--admin-danger)]">
+                  This page changed after the suggestion. Prepare a fresh suggestion to preserve
+                  your edits.
+                </p>
+              )}
               <p className="text-xs text-[var(--admin-muted)]">
                 Applying changes updates your local draft. Preview and save when ready; nothing is
                 published.
@@ -311,9 +385,10 @@ export function WebsitePageTools({
               <button
                 type="button"
                 className={button}
-                disabled={disabled}
+                disabled={disabled || staleProposal}
                 onClick={() => {
                   if (JSON.stringify(page) !== proposal.before) {
+                    setProposal(null);
                     setError(
                       "This page changed after the suggestion. Prepare a fresh suggestion to preserve your edits.",
                     );
@@ -339,21 +414,26 @@ export function WebsitePageTools({
 import { websiteTextFields } from "@/lib/site-studio/website-authoring";
 function WebsiteSuggestion({ before, after }: { before: WebsitePage; after: WebsitePage }) {
   const old = new Map(websiteTextFields(before).map((field) => [field.key, field.value]));
+  const changes = websiteTextFields(after).filter((field) => old.get(field.key) !== field.value);
+  if (!changes.length)
+    return (
+      <p className="text-sm text-[var(--admin-muted)]">
+        The text is unchanged. Use Preview suggestion to inspect layout and appearance.
+      </p>
+    );
   return (
     <dl className="space-y-3 text-sm">
-      {websiteTextFields(after)
-        .filter((field) => old.get(field.key) !== field.value)
-        .map((field) => (
-          <div key={field.key}>
-            <dt className="mb-1 text-xs text-[var(--admin-muted)]">
-              {field.key.replace(/\./g, " › ")}
-            </dt>
-            {old.has(field.key) && (
-              <dd className="mb-1 line-through opacity-60">{old.get(field.key)}</dd>
-            )}
-            <dd>{field.value}</dd>
-          </div>
-        ))}
+      {changes.map((field) => (
+        <div key={field.key}>
+          <dt className="mb-1 text-xs text-[var(--admin-muted)]">
+            {field.key.replace(/\./g, " › ")}
+          </dt>
+          {old.has(field.key) && (
+            <dd className="mb-1 line-through opacity-60">{old.get(field.key)}</dd>
+          )}
+          <dd>{field.value}</dd>
+        </div>
+      ))}
     </dl>
   );
 }

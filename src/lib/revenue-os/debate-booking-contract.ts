@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export const DEBATE_MILESTONES = [
   "topic_interest",
   "counterpart",
@@ -11,6 +13,37 @@ export const DEBATE_MILESTONES = [
   "recording",
   "publication",
 ] as const;
+
+// Tool schemas must load without initializing booking services or the AI registry.
+export const debateMilestoneSchema = z.object({
+  productionId: z.uuid(),
+  milestone: z.enum(DEBATE_MILESTONES),
+  status: z.enum(["proposed", "verified", "declined", "cancelled"]),
+  value: z.string().trim().min(1).max(4000),
+  sourceType: z.enum([
+    "gmail_message",
+    "calendar_event",
+    "founder_note",
+    "drive_document",
+    "uploaded_document",
+    "founder_confirmation",
+  ]),
+  sourceId: z.string().trim().min(1).max(240),
+  observedAt: z.iso.datetime({ offset: true }),
+});
+
+export const debateInvitationSchema = z.object({
+  productionId: z.uuid(),
+  expectedRevision: z.number().int().min(0),
+  summary: z.string().trim().min(3).max(240),
+  description: z.string().trim().min(10).max(4000),
+  startAt: z.iso.datetime({ offset: true }),
+  endAt: z.iso.datetime({ offset: true }),
+  timeZone: z.string().trim().min(3).max(80),
+  location: z.string().trim().max(300).nullable().optional(),
+  createMeet: z.boolean(),
+  acceptanceMessageIds: z.tuple([z.uuid(), z.uuid()]),
+});
 
 export type DebateMilestone = (typeof DEBATE_MILESTONES)[number];
 export type DebateMilestoneStatus = "proposed" | "verified" | "declined" | "cancelled";

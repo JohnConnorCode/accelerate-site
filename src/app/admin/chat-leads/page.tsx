@@ -131,7 +131,7 @@ export default function ChatLeadsPage() {
     >
       <PageHeader
         title={adminPageName("chat-leads")}
-        subtitle={`${total} conversation${total === 1 ? "" : "s"}${debouncedQuery ? ` matching “${debouncedQuery}”` : ""}`}
+        subtitle={`Review requests submitted through website chat and find the related customer history. ${total} conversation${total === 1 ? "" : "s"}${debouncedQuery ? ` matching “${debouncedQuery}”` : ""}`}
         actions={
           <button
             type="button"

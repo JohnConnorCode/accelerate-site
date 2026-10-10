@@ -1,7 +1,7 @@
 ---
 title: "Recover a failing workspace"
-description: "Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims."
-updated: "2026-09-27"
+description: "Repair sign-in, schema and stalled work, then restore saved records and private files with verified recovery steps."
+updated: "2026-10-05"
 ---
 
 **You need:** the checkout, a `.env.local` that points at a Supabase project **you control**, and PostgreSQL client tools for migration commands. Inspect the project ref and database host each command prints before continuing. Do not run mutating verify scripts against a customer production database.
@@ -118,6 +118,26 @@ Leave unused providers unset. Add one, then prove it with a receipt on Setup:
 
 Configuration without that receipt stays **Action needed**. That is the truthful state.
 
-## After repair
+## Restore saved records and uploaded files
+
+When an installation must be rebuilt, keep its database backup, uploaded files and encryption configuration together as a recorded recovery point. The database contains file metadata, so it cannot replace the bytes of an uploaded document. Before importing customer records, follow the repository's [backup and recovery guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/BACKUP-RECOVERY.md) and restore a controlled copy into a separate installation.
+
+With the reviewed source configuration, create a private file copy and checksum manifest:
+
+```bash
+npm run workspace:files -- backup --project YOUR_SOURCE_REF --directory /absolute/private/new-files-copy
+```
+
+Encrypt that copy before moving it off-host. Select the target configuration and inspect the read-only restore plan:
+
+```bash
+npm run workspace:files -- restore --project YOUR_TARGET_REF --directory /absolute/private/files-copy
+```
+
+Add `--apply` only for the reviewed restore. Conflicting files or bucket settings are refused, and matching files remain intact if you repeat a stopped restore. Run the read-only plan again afterward; it should show no pending files.
+
+Keep provider connections and schedules disabled while you verify sign-in, saved records, memberships, document downloads and action receipts. Review the provider's own records for effects since the backup point before preparing retries, because an absent local receipt does not prove a send never happened. The Connected fork workflow's recovery receipt measures a controlled native restoration with real Auth and file APIs; hosted restoration, your Auth settings and a human recovery trial still require installation-specific verification.
+
+## Confirm the repair
 
 Return to Setup, press **Refresh checks**, and confirm the failing row moved. Open Activity for the migrate, sync, or task you ran. If the row is still Degraded, stop and keep the error text; do not rotate keys in a loop.

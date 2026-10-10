@@ -150,10 +150,7 @@ export function workspaceConfigurationOutcome(
         "Save this named workspace preference. Legacy site/email preferences do not replace workspace Branding, provider credentials or server environment. Notification preference is stored; this does not send a notification.";
       break;
     case "sync_google":
-      if (
-        (change.source === "drive" || change.source === "all") &&
-        !(before as { folderIds?: string[] }).folderIds?.length
-      )
+      if (change.source === "drive" && !(before as { folderIds?: string[] }).folderIds?.length)
         throw new Error("Select Drive folders before syncing Drive");
       after = {
         source: change.source,
@@ -161,7 +158,7 @@ export function workspaceConfigurationOutcome(
         folderIds: (before as { folderIds?: string[] }).folderIds ?? [],
       };
       consequences =
-        "Read the selected connected Google sources through existing bounded sync services and record source/job receipts. No email or calendar invitation is sent. Sources run in order; completed source work remains if a later source fails.";
+        "Read the selected connected Google sources through existing bounded sync services and record source/job receipts. Sync all includes Gmail and Calendar; Drive is recorded as not configured when no folders are selected. No email or calendar invitation is sent. Sources run in order; completed source work remains if a later source fails.";
       break;
     case "test_google_connection":
       after = { operation: "Verify Google access" };

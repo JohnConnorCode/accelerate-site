@@ -1,108 +1,61 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 type Point = [number, number, number];
-type Face = Point[];
-const outline: [number, number][] = [
-  [0, 1],
-  [0.875, 1],
-  [1.375, 0],
-  [0.875, -1],
-  [0, -1],
-  [0.5, 0],
-];
-const inset: [number, number][] = [
-  [0.04, 0.96],
-  [0.85, 0.96],
-  [1.32, 0],
-  [0.85, -0.96],
-  [0.04, -0.96],
-  [0.53, 0],
-];
-const front = inset.map(([x, y]) => [x, y, 0.19] as Point);
-const back = inset.map(([x, y]) => [x, y, -0.19] as Point);
-const edge = outline.map(([x, y]) => [x, y, 0.14] as Point);
-const rear = outline.map(([x, y]) => [x, y, -0.14] as Point);
-const faces: Face[] = [
-  ...[
-    [0, 5, 1],
-    [1, 5, 2],
-    [2, 5, 3],
-    [3, 5, 4],
-  ].flatMap((indices) => [
-    indices.map((i) => front[i]!),
-    indices
-      .slice()
-      .reverse()
-      .map((i) => back[i]!),
-  ]),
-  ...outline.flatMap((_, i) => {
-    const j = (i + 1) % outline.length;
-    return [
-      [front[i]!, front[j]!, edge[j]!, edge[i]!],
-      [edge[i]!, edge[j]!, rear[j]!, rear[i]!],
-      [back[j]!, back[i]!, rear[i]!, rear[j]!],
-    ];
-  }),
-];
-const normal = (face: Face): Point => {
-  const origin = face[0]!,
-    second = face[1]!,
-    third = face[2]!;
-  const a: Point = [second[0] - origin[0], second[1] - origin[1], second[2] - origin[2]];
-  const b: Point = [third[0] - origin[0], third[1] - origin[1], third[2] - origin[2]];
-  const n: Point = [
-    a[1] * b[2] - a[2] * b[1],
-    a[2] * b[0] - a[0] * b[2],
-    a[0] * b[1] - a[1] * b[0],
-  ];
-  const length = Math.hypot(...n);
-  return n.map((v) => v / length) as Point;
-};
 
-// A small, real mesh of the existing brand mark. Flat planes, bevels and studio
-// reflections give it a material; there is no pointer-following decoration.
+// Art direction: Dominik Fojcik's Kinetic Images / Tower (Codrops, July 2025).
+// Adapt its stacked cylindrical image bands, counter-running narrow ribbons and
+// fixed low-perspective camera to Accelerate's own type and chevrons. No source
+// photographs, models, textures or implementation code are imported.
+// https://tympanus.net/codrops/2025/07/09/how-to-create-kinetic-image-animations-with-react-three-fiber/
 const vertex = `
 attribute vec3 position;
 attribute vec3 normal;
+attribute vec2 uv;
 uniform mat4 model;
 uniform vec2 viewport;
-varying vec3 point;
+uniform float phase;
 varying vec3 surface;
+varying vec3 point;
+varying vec2 printUV;
 void main() {
   vec4 p = model * vec4(position, 1.0);
   point = p.xyz;
   surface = mat3(model) * normal;
-  float camera = 6.8 - p.z;
+  printUV = vec2(uv.x + phase, uv.y);
+  float camera = 9.0 - p.z;
   float aspect = viewport.x / viewport.y;
-  float scale = min(2.65, aspect * 3.0);
+  float scale = min(3.45, aspect * 4.5);
   gl_Position = vec4(p.x * scale / aspect, p.y * scale, camera * 1.002 - 0.2002, camera);
 }`;
 const fragment = `
-precision mediump float;
-varying vec3 point;
-varying vec3 surface;
+precision highp float;
+uniform sampler2D print;
 uniform float dark;
+uniform float ribbon;
+varying vec3 surface;
+varying vec3 point;
+varying vec2 printUV;
 void main() {
   vec3 n = normalize(surface);
-  vec3 eye = normalize(vec3(0.0, 0.0, 6.8) - point);
-  vec3 r = reflect(-eye, n);
-  float key = max(dot(n, normalize(vec3(-1.0, 1.8, 2.0))), 0.0);
-  float rim = pow(1.0 - max(dot(n, eye), 0.0), 3.0);
-  // Rectangular studio softboxes reflected by the actual bevelled geometry.
-  float strip = exp(-pow((r.x + 0.68) / 0.16, 2.0)) * (1.0 - smoothstep(0.6, 0.9, abs(r.y)));
-  float softbox = exp(-pow((r.x - 0.3) / 0.45, 2.0)) * exp(-pow((r.y + 0.4) / 0.6, 2.0));
-  float roof = exp(-pow((r.y + 0.74) / 0.25, 2.0)) * 0.3;
-  float edge = pow(max(dot(n, normalize(vec3(1.0, -0.3, 2.0))), 0.0), 32.0);
-  vec3 graphite = vec3(0.027, 0.032, 0.038);
-  vec3 steel = vec3(0.92, 0.94, 0.96);
-  vec3 color = mix(graphite, steel, clamp(key * 0.05 + strip * 0.86 + softbox * 0.42 + roof, 0.0, 1.0));
-  color += rim * mix(0.04, 0.14, dark) + edge * 0.2;
-  gl_FragColor = vec4(color, 1.0);
+  vec3 eye = normalize(vec3(0.0, 0.0, 9.0) - point);
+  float facing = dot(n, eye);
+  float light = 0.76 + 0.24 * max(dot(n, normalize(vec3(-0.5, 1.5, 3.0))), 0.0);
+  float paper = texture2D(print, printUV).r;
+  paper = mix(paper, 1.0 - paper, ribbon);
+  // The reverse is unprinted ink. The broad frontal paper stays warm white;
+  // side falloff and a narrow cut edge give the printed bands real depth.
+  if (facing < 0.0) paper = 0.045;
+  float edge = smoothstep(0.0, 0.018, min(printUV.y, 1.0 - printUV.y));
+  paper *= mix(0.48, 1.0, edge);
+  float color = mix(0.035, light, paper);
+  color = mix(color, 1.0 - color, dark);
+  gl_FragColor = vec4(vec3(color), 1.0);
 }`;
 
-function pose(yaw: number, pitch: number, roll: number, offset: number, depth = 0) {
+function pose(yaw: number, pitch: number, roll: number, height: number) {
   const cy = Math.cos(yaw),
     sy = Math.sin(yaw);
   const cx = Math.cos(pitch),
@@ -116,35 +69,86 @@ function pose(yaw: number, pitch: number, roll: number, offset: number, depth = 
       d = sx * y + cx * b;
     return [cz * a - sz * c, sz * a + cz * c, d];
   };
-  const x = rotate([1, 0, 0]),
-    y = rotate([0, 1, 0]),
-    z = rotate([0, 0, 1]);
-  const t = rotate([offset - 1.8125, 0, depth]);
-  return new Float32Array([...x, 0, ...y, 0, ...z, 0, ...t, 1]);
+  return new Float32Array([
+    ...rotate([1, 0, 0]),
+    0,
+    ...rotate([0, 1, 0]),
+    0,
+    ...rotate([0, 0, 1]),
+    0,
+    ...rotate([0, height, 0]),
+    1,
+  ]);
 }
-const transform = (p: Point, m: Float32Array): Point => [
-  m[0]! * p[0] + m[4]! * p[1] + m[8]! * p[2] + m[12]!,
-  m[1]! * p[0] + m[5]! * p[1] + m[9]! * p[2] + m[13]!,
-  m[2]! * p[0] + m[6]! * p[1] + m[10]! * p[2] + m[14]!,
-];
-const poster = [0, 1, 2]
-  .flatMap((index) => {
-    const m = pose(-0.65, 0.25, -0.3, index * 1.125);
-    return faces
-      .map((face) => {
-        const points = face.map((p) => transform(p, m));
-        return {
-          points,
-          shade: normal(points)[2],
-          depth: points.reduce((s, p) => s + p[2], 0) / points.length,
-        };
-      })
-      .filter((face) => face.shade > 0);
-  })
-  .sort((a, b) => a.depth - b.depth);
+
+// One continuous surface per band. All motion changes its print coordinates;
+// there are no per-frame geometry allocations or pointer-dependent poses.
+const vertices: number[] = [];
+for (let i = 0; i < 128; i++) {
+  const segment = (column: number, top: boolean) => {
+    const angle = (column / 128) * Math.PI * 2;
+    return [
+      Math.sin(angle),
+      top ? 0.5 : -0.5,
+      Math.cos(angle),
+      Math.sin(angle),
+      0,
+      Math.cos(angle),
+      column / 128,
+      top ? 0 : 1,
+    ];
+  };
+  [
+    segment(i, false),
+    segment(i + 1, false),
+    segment(i + 1, true),
+    segment(i, false),
+    segment(i + 1, true),
+    segment(i, true),
+  ].forEach((point) => vertices.push(...point));
+}
+
+function createPrint(hero: HTMLElement, ribbon: boolean) {
+  const sheet = document.createElement("canvas");
+  sheet.width = 2048;
+  sheet.height = ribbon ? 128 : 512;
+  const ink = sheet.getContext("2d");
+  if (!ink) return null;
+  ink.fillStyle = "#fff";
+  ink.fillRect(0, 0, sheet.width, sheet.height);
+  ink.fillStyle = "#080808";
+  const family = getComputedStyle(hero).getPropertyValue("--display").trim() || "sans-serif";
+  if (ribbon) {
+    ink.font = `500 72px ${family}`;
+    ink.textBaseline = "middle";
+    for (let copy = 0; copy < 2; copy++)
+      ink.fillText("STRATEGY  /  SYSTEMS  /  EXECUTION  /", copy * 1024 + 24, 68, 976);
+    return sheet;
+  }
+  ink.font = `600 260px ${family}`;
+  ink.textBaseline = "middle";
+  for (let arrow = 0; arrow < 3; arrow++) {
+    ink.save();
+    ink.translate(40 + arrow * 76, 172);
+    ink.scale(1.6, 1.6);
+    ink.beginPath();
+    [
+      [0, 0],
+      [27, 0],
+      [51, 52],
+      [27, 104],
+      [0, 104],
+      [24, 52],
+    ].forEach(([x, y], i) => (i ? ink.lineTo(x!, y!) : ink.moveTo(x!, y!)));
+    ink.closePath();
+    ink.fill();
+    ink.restore();
+  }
+  ink.fillText("ACCELERATE", 360, 270, 1640);
+  return sheet;
+}
 
 export function HeroArtwork() {
-  const id = useId();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const elapsed = useRef(0);
   const [paused, setPaused] = useState(false);
@@ -196,12 +200,6 @@ export function HeroArtwork() {
         stage.dataset.artworkReady = "false";
         return;
       }
-      const vertices: number[] = [];
-      faces.forEach((face) => {
-        const n = normal(face);
-        for (let i = 1; i < face.length - 1; i++)
-          [face[0]!, face[i]!, face[i + 1]!].forEach((p) => vertices.push(...p, ...n));
-      });
       const buffer = gl.createBuffer();
       if (!buffer) {
         shaders.forEach((shader) => gl.deleteShader(shader));
@@ -215,15 +213,39 @@ export function HeroArtwork() {
       for (const [name, offset] of [
         ["position", 0],
         ["normal", 12],
+        ["uv", 24],
       ] as const) {
         const attribute = gl.getAttribLocation(program, name);
         gl.enableVertexAttribArray(attribute);
-        gl.vertexAttribPointer(attribute, 3, gl.FLOAT, false, 24, offset);
+        gl.vertexAttribPointer(attribute, name === "uv" ? 2 : 3, gl.FLOAT, false, 32, offset);
+      }
+      const textures: WebGLTexture[] = [];
+      for (const narrow of [false, true]) {
+        const sheet = createPrint(hero, narrow);
+        const texture = gl.createTexture();
+        if (texture) textures.push(texture);
+        if (!sheet || !texture) {
+          textures.forEach((item) => gl.deleteTexture(item));
+          gl.deleteBuffer(buffer);
+          gl.deleteProgram(program);
+          shaders.forEach((shader) => gl.deleteShader(shader));
+          stage.dataset.artworkReady = "false";
+          return;
+        }
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sheet);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       }
       gl.enable(gl.DEPTH_TEST);
       const model = gl.getUniformLocation(program, "model");
       const viewport = gl.getUniformLocation(program, "viewport");
       const theme = gl.getUniformLocation(program, "dark");
+      const phase = gl.getUniformLocation(program, "phase");
+      const ribbon = gl.getUniformLocation(program, "ribbon");
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
       let frame = 0,
         last = 0,
@@ -236,23 +258,26 @@ export function HeroArtwork() {
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.uniform2f(viewport, canvas.width, canvas.height);
-        gl.uniform1f(theme, Number(document.documentElement.classList.contains("dark")));
+        gl.uniform1f(theme, Number(document.documentElement.dataset.theme === "dark"));
         const t = reduced.matches ? 0 : elapsed.current;
-        const arc = (t * Math.PI) / 9;
-        for (let i = 0; i < 3; i++) {
-          const depth = Math.sin(arc) ** 2 * (1 - i) * 0.5;
-          gl.uniformMatrix4fv(
-            model,
-            false,
-            pose(
-              -0.65 + Math.sin(arc) * 0.45,
-              0.25 + Math.sin(arc * 2) * 0.09,
-              -0.3 + Math.sin(arc) * 0.12,
-              i * 1.125,
-              depth,
-            ),
-          );
-          gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6);
+        for (let i = 0; i < 5; i++) {
+          const narrow = i % 2 === 1;
+          const height = (2 - i) * 0.66;
+          const matrix = pose(-0.22, -0.18, -0.2 + (narrow ? 0.075 : 0), height);
+          // Broad image cylinders and slim counter-running banners follow the
+          // reference's two interleaved rhythms. Their silhouettes stay composed.
+          const radius = narrow ? 2.035 : 2.0;
+          const breadth = narrow ? 0.145 : 1.015;
+          for (let axis = 0; axis < 3; axis++) {
+            matrix[axis]! *= radius;
+            matrix[4 + axis]! *= breadth;
+            matrix[8 + axis]! *= radius;
+          }
+          gl.uniformMatrix4fv(model, false, matrix);
+          gl.uniform1f(phase, i * 0.19 + t * (narrow ? -0.027 : 0.018));
+          gl.uniform1f(ribbon, Number(narrow));
+          gl.bindTexture(gl.TEXTURE_2D, textures[Number(narrow)]!);
+          gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 8);
         }
         stage.dataset.artworkReady = "true";
       };
@@ -295,7 +320,10 @@ export function HeroArtwork() {
         attributes: true,
         attributeFilter: ["data-mobile-navigation"],
       });
-      state.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+      state.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+      });
       const lost = (event: Event) => {
         event.preventDefault();
         lostContext = true;
@@ -317,6 +345,7 @@ export function HeroArtwork() {
         reduced.removeEventListener("change", sync);
         document.removeEventListener("visibilitychange", sync);
         canvas.removeEventListener("webglcontextlost", lost);
+        textures.forEach((texture) => gl.deleteTexture(texture));
         gl.deleteBuffer(buffer);
         gl.deleteProgram(program);
         shaders.forEach((shader) => gl.deleteShader(shader));
@@ -354,36 +383,20 @@ export function HeroArtwork() {
     };
   }, [paused]);
   return (
-    <div className="home-hero-artwork" data-artwork-ready="false" data-motion-state="paused">
-      <svg className="home-hero-poster" viewBox="0 0 600 650" aria-hidden="true">
-        <defs>
-          <linearGradient id={id} x1="0" y1="0" x2="1" y2="0.5">
-            <stop stopColor="#22262a" />
-            <stop offset="0.28" stopColor="#9ca1a5" />
-            <stop offset="0.46" stopColor="#e7e9ea" />
-            <stop offset="0.53" stopColor="#555b60" />
-            <stop offset="1" stopColor="#292d31" />
-          </linearGradient>
-        </defs>
-        {poster.map(({ points, shade }, index) => (
-          <path
-            key={index}
-            d={
-              points
-                .map(
-                  ([x, y, z], i) =>
-                    `${i ? "L" : "M"}${(300 + (x * 861.25) / (6.8 - z)).toFixed(3)} ${(325 - (y * 861.25) / (6.8 - z)).toFixed(3)}`,
-                )
-                .join(" ") + " Z"
-            }
-            fill={
-              shade > 0.5
-                ? `url(#${id})`
-                : `rgb(${(40 + shade * 110).toFixed(2)}, ${(43 + shade * 110).toFixed(2)}, ${(47 + shade * 110).toFixed(2)})`
-            }
-          />
-        ))}
-      </svg>
+    <div
+      className="home-hero-artwork"
+      data-artwork-design="kinetic-bands"
+      data-artwork-ready="false"
+      data-motion-state="paused"
+    >
+      <Image
+        className="home-hero-poster"
+        src="/images/home/hero-kinetic-poster.png"
+        alt=""
+        fill
+        loading="eager"
+        unoptimized
+      />
       <canvas ref={canvasRef} className="home-hero-canvas" aria-hidden="true" />
       <div className="home-hero-artwork-caption">
         <span aria-hidden="true">Accelerate / 01</span>

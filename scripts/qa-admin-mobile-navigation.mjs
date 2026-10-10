@@ -85,7 +85,7 @@ check(
   "Search: mobile command surface does not own the safe viewport",
 );
 check(searchGeometry.activeTag === "INPUT", "Search: input was not focused on the first frame");
-await page.getByPlaceholder("Search people, pages, or run a command…").fill("analytics");
+await page.getByPlaceholder("Search records, pages, or run a command…").fill("analytics");
 check(
   (await page.getByRole("button", { name: /Analytics/ }).count()) > 0,
   "Search: local page results were not available immediately",

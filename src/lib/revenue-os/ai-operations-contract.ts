@@ -1,4 +1,4 @@
-import type { AiToolConnectionRequirement } from "./ai-tool-contract";
+import type { AiToolConnectionRequirement, AiAdminOperation } from "./ai-tool-contract";
 export const AI_RUN_STATUSES = ["running", "completed", "partial", "failed", "cancelled"] as const;
 export type AiRunStatus = (typeof AI_RUN_STATUSES)[number];
 export type AiRunDisplayStatus = AiRunStatus | "unknown";
@@ -15,8 +15,8 @@ export interface AiRunSummary {
   conversationId: string | null;
   status: AiRunDisplayStatus;
   toolNames: string[];
-  inputTokens: number;
-  outputTokens: number;
+  inputTokens: number | null;
+  outputTokens: number | null;
   durationMs: number | null;
   promptPreview: string | null;
   resultPreview: string | null;
@@ -33,7 +33,7 @@ export interface AiRunMetrics {
   failed: number;
   cancelled: number;
   successRate: number | null;
-  totalTokens: number;
+  totalTokens: number | null;
   medianDurationMs: number | null;
   feedbackCoverage: number | null;
 }
@@ -77,6 +77,7 @@ export interface AiRunDetailPayload {
 }
 
 export interface AiCapability {
+  operation?: AiAdminOperation | null;
   name: string;
   label: string;
   description: string;
@@ -86,16 +87,25 @@ export interface AiCapability {
   serviceTarget: string;
   connectionRequirement: AiToolConnectionRequirement;
   state: "available" | "unavailable";
-  operationalReadiness: "ready" | "unavailable";
+  operationalReadiness: "not_evaluated" | "ready" | "unavailable";
   availabilityReason: string;
 }
 
 export interface AiCapabilitiesPayload {
+  coverage?: {
+    registryVersion: string;
+    universalCoverage: false;
+    registeredTools: number;
+    availableTools: number;
+    reviewedOperationMappings: number;
+    unreviewedToolBindings: number;
+  };
   registryVersion: string;
   scope: "runtime_registry";
   /** Task-focused registry profile this payload is scoped to. */
   profile: "core" | "ops" | "full";
-  readinessEvaluated: true;
+  /** Registry/module availability does not establish provider or record readiness. */
+  readinessEvaluated: boolean;
   capabilities: AiCapability[];
   safety: {
     registeredReads: number;

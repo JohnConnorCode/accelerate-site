@@ -417,12 +417,24 @@
       "module": "core-intelligence"
     },
     {
+      "tool": "list_source_authorities",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "register_source_authority",
+      "module": "core-intelligence"
+    },
+    {
       "tool": "get_claims_for_entity",
       "module": "core-intelligence"
     },
     {
       "tool": "get_agent_activity_for_entity",
       "module": "core-intelligence"
+    },
+    {
+      "tool": "get_admin_operation_coverage",
+      "module": "core-system"
     },
     {
       "tool": "discover_tool_bundles",
@@ -525,6 +537,14 @@
       "module": "campaigns"
     },
     {
+      "tool": "get_revenue_report",
+      "module": "revenue"
+    },
+    {
+      "tool": "export_revenue_report",
+      "module": "revenue"
+    },
+    {
       "tool": "get_debate_production",
       "module": "bookings"
     },
@@ -551,6 +571,22 @@
     {
       "tool": "propose_content_calendar_update",
       "module": "content"
+    },
+    {
+      "tool": "preview_content_calendar_change",
+      "module": "content"
+    },
+    {
+      "tool": "propose_content_calendar_change",
+      "module": "content"
+    },
+    {
+      "tool": "get_revenue_analytics",
+      "module": "analytics"
+    },
+    {
+      "tool": "export_revenue_analytics",
+      "module": "analytics"
     },
     {
       "tool": "run_business_pulse",

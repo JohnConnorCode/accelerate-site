@@ -111,6 +111,7 @@ async function digest(value: unknown) {
     .map((x) => x.toString(16).padStart(2, "0"))
     .join("");
 }
+export { digest as demoBusinessDigest };
 export function createDemoBusinessState(pack: DemoScenarioPack): DemoBusinessState {
   const brand = resolveWorkspaceBrand({ brand: pack.tenant.brand }, pack.name);
   Object.assign(brand, {
@@ -515,11 +516,22 @@ export async function handleDemoBusinessRequest(
             simulated: true,
           });
         }
+        const pages = state.pages
+          .filter((x) => x.creationActionId === url.searchParams.get("creationActionId"))
+          .slice()
+          .reverse();
         return response({
           tenantSlug: pack.id,
-          pages: state.pages.filter(
-            (x) => x.creationActionId === url.searchParams.get("creationActionId"),
-          ),
+          pages,
+          ...(url.searchParams.get("view") === "designer"
+            ? {
+                preview: await view(
+                  url.searchParams.get("creationActionId"),
+                  pages.find((x) => !x.revokedAt && Date.parse(x.expiresAt) > Date.now())?.design ||
+                    defaultInvoiceDesign,
+                ),
+              }
+            : {}),
           simulated: true,
         });
       }
@@ -535,14 +547,30 @@ export async function handleDemoBusinessRequest(
       }
       if (body.mode === "generate") {
         invoice(body.creationActionId);
-        z.string().max(1000).parse(body.brief);
+        const brief = z.string().trim().min(1).max(1000).parse(body.brief);
+        const current = invoiceDesignSchema.parse(body.currentDesign || defaultInvoiceDesign);
         record("Simulated AI invoice design");
         return response({
           design: {
-            ...defaultInvoiceDesign,
-            layout: String(body.brief).toLowerCase().includes("classic") ? "classic" : "editorial",
-            introduction: pack.business.introduction,
-            closing: `Questions? Contact ${state.brand.supportEmail}.`,
+            ...current,
+            layout: /classic/i.test(brief)
+              ? "classic"
+              : /editorial/i.test(brief)
+                ? "editorial"
+                : current.layout,
+            introduction: body.currentDesign ? current.introduction : pack.business.introduction,
+            closing: body.currentDesign
+              ? current.closing
+              : `Questions? Contact ${state.brand.supportEmail}.`,
+            ...(/serif/i.test(brief) ? { font: /sans/i.test(brief) ? "sans" : "serif" } : {}),
+            ...(/compact/i.test(brief)
+              ? { spacing: "compact" }
+              : /comfortable/i.test(brief)
+                ? { spacing: "comfortable" }
+                : {}),
+            ...(brief.match(/#[0-9a-fA-F]{6}\b/)
+              ? { accentColor: brief.match(/#[0-9a-fA-F]{6}\b/)![0] }
+              : {}),
           },
           simulated: true,
         });

@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "701775f0ea202849d1b45d124e3b13c374277332e328e1d9d519d1291b8e611a",
+      contractHash: "e492b2fd697175438f8d73552e13ed09b8e4fdfcba28aa03a3e7b5e19d489d5e",
       tools: [
         {
           operation: "prepare-workflow",
@@ -464,7 +464,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "7b6898ffed0b9499e275ad2ffda158fece195fa4fb55735554eda7882b05c936",
+      contractHash: "5be09b782addf836d505c87d8faf92f99ae62f89d6a894271ca8389aa2b6791e",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1161,7 +1161,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "9ce6b06966485617186f619f94b2907cacbf9a45f4dcd63fa6228c6882410cdb",
+      contractHash: "1d7f99a0609b4aab481cf67717b9a9a1b3f455a8929ac64596c98ebdf6acbc6e",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1383,6 +1383,20 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                     type: "string",
                     maxLength: 300,
                   },
+                  accentColor: {
+                    type: "string",
+                    minLength: 7,
+                    maxLength: 7,
+                    pattern: "^#[0-9a-fA-F]{6}$",
+                  },
+                  font: {
+                    type: "string",
+                    enum: ["workspace", "sans", "serif"],
+                  },
+                  spacing: {
+                    type: "string",
+                    enum: ["comfortable", "compact"],
+                  },
                 },
                 required: ["layout", "heading", "introduction", "closing"],
                 additionalProperties: false,
@@ -1430,6 +1444,20 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                   closing: {
                     type: "string",
                     maxLength: 300,
+                  },
+                  accentColor: {
+                    type: "string",
+                    minLength: 7,
+                    maxLength: 7,
+                    pattern: "^#[0-9a-fA-F]{6}$",
+                  },
+                  font: {
+                    type: "string",
+                    enum: ["workspace", "sans", "serif"],
+                  },
+                  spacing: {
+                    type: "string",
+                    enum: ["comfortable", "compact"],
                   },
                 },
                 required: ["layout", "heading", "introduction", "closing"],
@@ -1515,10 +1543,10 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
   {
     moduleId: "site-studio",
     id: "site-studio",
-    label: "Site Studio",
+    label: "Website & pages",
     href: "/admin/site",
     icon: "Globe2",
-    description: "Create and publish website pages",
+    description: "Create page drafts, preview revisions and publish your website",
     moreGroup: "Delivery",
   },
   {

@@ -69,7 +69,7 @@ async function controlDemoInference(context) {
         model: "controlled-browser-model",
         events: [],
         proposals: [],
-        usage: { inputTokens: 123, outputTokens: 45, durationMs: 42 },
+        usage: { inputTokens: null, outputTokens: null, durationMs: 42 },
         toolNames: [],
       },
     }),
@@ -113,14 +113,15 @@ async function readStablePageState(page) {
     waitUntil: "domcontentloaded",
     timeout: 60_000,
   });
-  const launcher = await page.locator('a[href^="/demo/command-center/"][href$="/today"]').count();
+  const workspaceLinks = page.getByRole("link", { name: /^Explore .+ demo workspace$/ });
+  const launcher = await workspaceLinks.count();
   if (launcher !== scenarios.length && !process.argv.includes("--one"))
     failures.push(`launcher: expected ${scenarios.length} scenario cards, found ${launcher}`);
   if (
     !(await page
-      .getByText("Fictional data. No signup. Explore the real workspace in this browser session.", {
-        exact: true,
-      })
+      .getByText(
+        /Explore a fictional business\. Actions are simulated, and no signup is required\./,
+      )
       .count())
   )
     failures.push("launcher: missing fictional-data disclosure");
@@ -131,7 +132,7 @@ async function readStablePageState(page) {
   )
     failures.push("launcher: current workflow-led heading is missing");
   if (
-    !(await page.getByRole("heading", { name: "Follow the work through to its result." }).count())
+    !(await page.getByRole("heading", { name: "Start with a request. Review the result." }).count())
   )
     failures.push("launcher: complete-workflow showcase is missing");
   if (await page.getByText("Command Center overview", { exact: false }).count())
@@ -151,10 +152,7 @@ async function readStablePageState(page) {
   if (marks.length !== 6 || new Set(marks.map((mark) => mark.classes)).size !== 6)
     failures.push("launcher: scenario logos are not six distinct marks");
   await page.waitForTimeout(1_300);
-  const firstCard = page
-    .locator("article")
-    .filter({ has: page.locator('a[href^="/demo/command-center/"][href$="/today"]').first() })
-    .first();
+  const firstCard = page.locator("article").filter({ has: workspaceLinks }).first();
   await firstCard.hover();
   await page.waitForTimeout(180);
   const hoverState = await firstCard.evaluate((node) => ({
@@ -300,19 +298,26 @@ for (const scenario of scenarios) {
         if (!(await historyLinks.count())) {
           failures.push(`${scenario} ${label} contacts: demo has no populated contact rows`);
         } else {
-          const profile = await page.evaluate(async () => {
-            const directory = await fetch("/api/admin/contacts/directory").then((response) =>
-              response.json(),
+          const historyHref = await historyLinks.first().getAttribute("href");
+          const profile = await page.evaluate(async (href) => {
+            const identifier = decodeURIComponent(
+              new URL(href, location.origin).pathname.split("/").at(-1),
             );
-            const email = directory.contacts?.[0]?.primary_email;
-            return fetch(`/api/admin/contacts/timeline?email=${encodeURIComponent(email)}`).then(
-              (response) => response.json(),
-            );
-          });
+            const field = identifier.includes("@") ? "email" : "contactId";
+            return fetch(
+              `/api/admin/contacts/timeline?${field}=${encodeURIComponent(identifier)}`,
+            ).then((response) => response.json());
+          }, historyHref);
           if ((profile.timeline?.length || 0) < 4 || profile.canonical?.status !== "connected")
             failures.push(`${scenario} ${label} contacts: relationship data is incomplete`);
           await historyLinks.first().click();
-          await page.getByRole("heading", { level: 1, name: "Contact relationship" }).waitFor();
+          await page
+            .getByRole("heading", {
+              level: 1,
+              name: profile.canonical.contact.full_name,
+              exact: true,
+            })
+            .waitFor();
           await page.goto(`${base}/demo/command-center/${scenario}/contacts?view=requests`, {
             waitUntil: "networkidle",
           });
@@ -619,24 +624,30 @@ for (const scenario of scenarios) {
           failures.push(`${scenario} mobile: open navigation did not lock background scrolling`);
 
         if (scenario === "northline-roofing") {
-          const salesToggle = controlsScope.getByRole("button", { name: "Sales", exact: true });
-          const salesPanelId = await salesToggle.getAttribute("aria-controls");
-          const salesPanel = controlsScope.locator(`[id="${salesPanelId}"]`);
-          await salesToggle.click();
-          await salesPanel.waitFor();
-          if ((await salesPanel.getAttribute("aria-hidden")) !== "false")
-            failures.push(`${scenario} ${label}: Sales disclosure did not expose its links`);
-          await salesToggle.click();
-          if ((await salesPanel.getAttribute("aria-hidden")) !== "true")
-            failures.push(`${scenario} ${label}: Sales disclosure did not hide its links`);
-          await salesToggle.click();
-          if ((await salesPanel.getAttribute("aria-hidden")) !== "false")
-            failures.push(`${scenario} ${label}: Sales disclosure did not reopen`);
+          const workToggle = controlsScope.getByRole("button", {
+            name: /^(Expand|Collapse) Tasks & approvals links$/,
+          });
+          const workPanelId = await workToggle.getAttribute("aria-controls");
+          const workPanel = controlsScope.locator(`[id="${workPanelId}"]`);
+          if ((await workToggle.getAttribute("aria-expanded")) === "true") await workToggle.click();
+          await workToggle.click();
+          await workPanel.waitFor();
+          if ((await workPanel.getAttribute("aria-hidden")) !== "false")
+            failures.push(
+              `${scenario} ${label}: Tasks & approvals disclosure did not expose its links`,
+            );
+          await workToggle.click();
+          if ((await workPanel.getAttribute("aria-hidden")) !== "true")
+            failures.push(
+              `${scenario} ${label}: Tasks & approvals disclosure did not hide its links`,
+            );
+          await workToggle.click();
+          if ((await workPanel.getAttribute("aria-hidden")) !== "false")
+            failures.push(`${scenario} ${label}: Tasks & approvals disclosure did not reopen`);
 
           const inboxHref = `/demo/command-center/${scenario}/inbox`;
           const todayHref = `/demo/command-center/${scenario}/today`;
-          await controlsScope.getByRole("button", { name: "Lead sources" }).click();
-          await controlsScope.locator(`a.admin-nav-link[href="${inboxHref}"]`).click();
+          await workPanel.locator(`a.admin-nav-link[href="${inboxHref}"]`).click();
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/inbox$`));
           if (
             (await page
@@ -750,16 +761,61 @@ for (const scenario of scenarios) {
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
       await page.waitForFunction(() => document.documentElement.dataset.theme === "studio");
 
+      // Run history contains executed demo work, not seeded pretend traces.
+      await page.evaluate(async () => {
+        const response = await fetch("/api/admin/revenue-os/ai/stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: "What matters now?",
+            clientMessageId: crypto.randomUUID(),
+          }),
+        });
+        const stream = await response.text();
+        if (!response.ok || !stream.includes('"type":"final"'))
+          throw new Error("Controlled demo work did not produce a completed run");
+      });
       await page.goto(`${base}/demo/command-center/northline-roofing/ai?view=runs`, {
         waitUntil: "domcontentloaded",
       });
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
       await page.getByText("Trace ledger", { exact: true }).waitFor();
-      await page.getByText("Ordered trace", { exact: true }).waitFor();
       await page
-        .getByRole("button", { name: /Capabilities Understand tools and safeguards/ })
+        .getByRole("button", { name: /What matters now\?/ })
+        .first()
         .click();
-      await page.getByRole("heading", { name: "Read capabilities", exact: true }).waitFor();
+      await page.getByText("Ordered trace", { exact: true }).waitFor();
+      await page.getByText("Model response", { exact: true }).waitFor();
+      if (!(await page.getByText("Not recorded", { exact: true }).count()))
+        failures.push("AI workspace: unknown token usage was not disclosed");
+      if (await page.getByText("Linked records", { exact: true }).count())
+        failures.push("AI workspace: a no-tool answer invented a linked record");
+      await page.screenshot({ path: `${output}/ai-run-history-desktop.png`, fullPage: true });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page
+        .getByRole("button", { name: /What matters now\?/ })
+        .first()
+        .press("Enter");
+      await page.getByText("Ordered trace", { exact: true }).waitFor();
+      if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2))
+        failures.push("AI workspace: run history has horizontal overflow on mobile");
+      await page.getByText("Ordered trace", { exact: true }).scrollIntoViewIfNeeded();
+      const conversationControlFits = await page
+        .getByRole("button", { name: "Open conversation", exact: true })
+        .evaluate((node) => {
+          const button = node.getBoundingClientRect();
+          const container = node.closest(".overflow-hidden").getBoundingClientRect();
+          return button.left >= container.left && button.right <= container.right;
+        });
+      if (!conversationControlFits)
+        failures.push("AI workspace: mobile run-detail control is clipped inside its surface");
+      await page.screenshot({ path: `${output}/ai-run-history-mobile.png`, fullPage: true });
+      await page.setViewportSize(viewport);
+      await page
+        .getByRole("group", { name: "AI workspace views", exact: true })
+        .getByRole("button", { name: "Capabilities", exact: true })
+        .click();
+      await page.getByRole("heading", { name: "Reads and reports", exact: true }).waitFor();
       if (!page.url().includes("/demo/command-center/northline-roofing/ai?view=capabilities"))
         failures.push("AI workspace: tab navigation escaped the public demo URL");
       const mutation = await page.evaluate(async () => {

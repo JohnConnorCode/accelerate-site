@@ -2,10 +2,17 @@
 
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { siteUrl, tenant } from "@/config/tenant";
+import { fetchJson } from "@/lib/admin/fetchJson";
+import {
+  parseSearchResponse,
+  searchRecordGroups,
+  type SearchRecord,
+} from "@/lib/admin/workspace-search";
 import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -17,10 +24,9 @@ import { resolveAdminPathname } from "@/lib/admin/navigation-paths";
 import { AdminConfirmationProvider } from "@/components/admin/AdminConfirmationProvider";
 import { AdminThemeProvider } from "@/components/admin/AdminThemeProvider";
 import type { AdminThemeDefinition } from "@/lib/admin/theme-definition";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight,
-  BookOpen,
   Bot,
   ChevronDown,
   CheckSquare,
@@ -29,7 +35,6 @@ import {
   LifeBuoy,
   LogOut,
   Mail,
-  MessageSquareText,
   MonitorPlay,
   MoreHorizontal,
   NotebookPen,
@@ -41,9 +46,6 @@ import {
   Settings,
   User,
   UsersRound,
-  LayoutDashboard,
-  ListChecks,
-  PlugZap,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -68,6 +70,7 @@ import { LogoMark } from "@/components/ui/LogoMark";
 import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
 import {
   adminMobileLinks,
+  groupAdminNavLinks,
   adminNavSections,
   applyNavLayoutOverride,
   filterNavSectionsByTenant,
@@ -99,12 +102,6 @@ function resolveAdminPageTitle(pathname: string) {
   return resolveAdminNavLink(pathname)?.label || "Command Center";
 }
 
-interface SearchPerson {
-  name: string;
-  email: string;
-  type: string;
-}
-
 interface CommandAction {
   label: string;
   description: string;
@@ -123,110 +120,6 @@ interface WorkspaceOption {
 const mobilePrimaryLinks = adminMobileLinks.filter((link) =>
   ["today", "work", "contacts"].includes(link.id),
 );
-const primaryRecordLinks = new Set(["pipeline", "clients", "proposals"]);
-
-const sidebarGroups: Array<{
-  id: string;
-  label: string;
-  primaryId: string;
-  icon: LucideIcon;
-  members: string[];
-}> = [
-  {
-    id: "today",
-    label: "Today",
-    primaryId: "today",
-    icon: LayoutDashboard,
-    members: ["today", "analytics", "activity", "opportunity-radar"],
-  },
-  {
-    id: "work",
-    label: "Work",
-    primaryId: "work",
-    icon: ListChecks,
-    members: ["work", "inbox", "bookings"],
-  },
-  {
-    id: "records",
-    label: "Records",
-    primaryId: "contacts",
-    icon: UsersRound,
-    members: [
-      "contacts",
-      "pipeline",
-      "clients",
-      "proposals",
-      "revenue",
-      "recovery",
-      "leads",
-      "chat-leads",
-      "subscribers",
-      "partners",
-      "website-grades",
-      "identity-review",
-      "stripe-subscriptions",
-      "receivables-collections",
-    ],
-  },
-  {
-    id: "invoices",
-    label: "Invoices",
-    primaryId: "stripe-invoicing",
-    icon: ReceiptText,
-    members: ["stripe-invoicing"],
-  },
-  {
-    id: "conversations",
-    label: "Conversations",
-    primaryId: "conversations",
-    icon: MessageSquareText,
-    members: ["conversations", "emails", "campaigns", "delivery-runs"],
-  },
-  {
-    id: "knowledge",
-    label: "Knowledge",
-    primaryId: "learning",
-    icon: BookOpen,
-    members: ["learning", "blueprints", "architect", "resources", "content"],
-  },
-  {
-    id: "coworkers",
-    label: "Coworkers",
-    primaryId: "coworkers",
-    icon: Bot,
-    members: ["coworkers", "ai"],
-  },
-  {
-    id: "apps",
-    label: "Apps",
-    primaryId: "integrations",
-    icon: PlugZap,
-    members: ["integrations"],
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    primaryId: "settings",
-    icon: Settings,
-    members: ["settings", "branding", "tenants", "setup", "get-started", "features"],
-  },
-];
-
-function groupSidebarLinks(sections: AdminNavSection[]) {
-  const links = sections.flatMap((section) => section.links);
-  const assigned = new Set(sidebarGroups.flatMap((group) => group.members));
-  return sidebarGroups
-    .map((group) => {
-      const members = links.filter(
-        (link) =>
-          group.members.includes(link.id) || (group.id === "apps" && !assigned.has(link.id)),
-      );
-      const primary = members.find((link) => link.id === group.primaryId) ?? members[0];
-      return { ...group, primary, links: members.filter((link) => link.id !== primary?.id) };
-    })
-    .filter((group) => group.primary);
-}
-
 export default function AdminShell({
   children,
   demoScenarioId,
@@ -295,10 +188,14 @@ export default function AdminShell({
   const { pendingHref, registerAdminScroller } = useNavigationRuntime();
   const isAuthRoute = pathname === "/admin/login" || pathname === "/admin/update-password";
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileMounted, setMobileMounted] = useState(false);
+  const mobileHeld = mobileOpen || mobileMounted;
+  const reducedMotion = useReducedMotion();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchPeople, setSearchPeople] = useState<SearchPerson[]>([]);
-  const [searchingPeople, setSearchingPeople] = useState(false);
+  const [searchRecords, setSearchRecords] = useState<SearchRecord[]>([]);
+  const [searchingRecords, setSearchingRecords] = useState(false);
+  const [recordSearchError, setRecordSearchError] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeDraft, setComposeDraft] = useState({ subject: "", body: "" });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -308,17 +205,35 @@ export default function AdminShell({
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileDrawerRef = useRef<HTMLElement>(null);
   const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileRestoreFocusRef = useRef(true);
+  const mobileActionRef = useRef<(() => void) | null>(null);
+  const attachMobileDrawer = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    mobileDrawerRef.current = node;
+    mobileRestoreFocusRef.current = true;
+    setMobileMounted(true);
+    return () => {
+      mobileDrawerRef.current = null;
+      setMobileMounted(false);
+    };
+  }, []);
   const mainRef = useRef<HTMLElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const searchAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (!mobileMounted) {
+      const action = mobileActionRef.current;
+      mobileActionRef.current = null;
+      action?.();
+      return;
+    }
     const previousOverflow = document.body.style.overflow;
     const mainNode = mainRef.current;
     const previousMainOverflow = mainNode?.style.overflowY || "";
     const returnFocus = mobileMenuButtonRef.current;
-    const focusTimer = window.setTimeout(() => mobileCloseButtonRef.current?.focus(), 40);
+    const drawerNode = mobileDrawerRef.current;
+    const focusFrame = window.requestAnimationFrame(() => mobileCloseButtonRef.current?.focus());
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -350,14 +265,19 @@ export default function AdminShell({
     if (mainNode) mainNode.style.overflowY = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
-      window.clearTimeout(focusTimer);
+      window.cancelAnimationFrame(focusFrame);
       document.body.style.overflow = previousOverflow;
       document.body.classList.remove("admin-mobile-nav-open");
       if (mainNode) mainNode.style.overflowY = previousMainOverflow;
       window.removeEventListener("keydown", onKeyDown);
-      window.requestAnimationFrame(() => returnFocus?.focus());
+      const active = document.activeElement;
+      if (
+        mobileRestoreFocusRef.current &&
+        (!active || active === document.body || drawerNode?.contains(active))
+      )
+        returnFocus?.focus({ preventScroll: true });
     };
-  }, [mobileOpen]);
+  }, [mobileMounted]);
 
   useEffect(() => {
     document.documentElement.classList.add("admin-app-open");
@@ -399,19 +319,32 @@ export default function AdminShell({
     };
   }, [effectivePathname, identityHref, scenarioId]);
 
+  const resetSearch = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    searchAbortRef.current?.abort();
+    searchAbortRef.current = null;
+    setSearchQuery("");
+    setSearchRecords([]);
+    setRecordSearchError("");
+    setSearchingRecords(false);
+  }, []);
+
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
-    setSearchQuery("");
-    setSearchPeople([]);
-  }, []);
+    resetSearch();
+  }, [resetSearch]);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setSearchOpen((current) => !current);
-        setSearchQuery("");
-        setSearchPeople([]);
+        if (mobileDrawerRef.current) {
+          mobileActionRef.current = () => setSearchOpen(true);
+          setMobileOpen(false);
+        } else {
+          setSearchOpen((current) => !current);
+        }
+        resetSearch();
         return;
       }
       if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "m") {
@@ -429,42 +362,47 @@ export default function AdminShell({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [resetSearch]);
 
-  const searchForPeople = useCallback(async (query: string) => {
+  const searchForRecords = useCallback(async (query: string) => {
     searchAbortRef.current?.abort();
     if (query.length < 3) {
-      setSearchPeople([]);
-      setSearchingPeople(false);
+      setSearchRecords([]);
+      setSearchingRecords(false);
+      setRecordSearchError("");
       return;
     }
     const controller = new AbortController();
     searchAbortRef.current = controller;
-    setSearchingPeople(true);
+    setSearchingRecords(true);
+    setRecordSearchError("");
     try {
-      const response = await fetch(`/api/admin/search?q=${encodeURIComponent(query)}`, {
-        signal: controller.signal,
-      });
-      if (!response.ok) throw new Error(`Search failed (${response.status})`);
-      const data = await response.json();
-      setSearchPeople(data.results || []);
-    } catch (error) {
-      if (!controller.signal.aborted) {
-        console.error("[admin-search] failed:", error);
-        setSearchPeople([]);
-      }
+      const data = await fetchJson<Parameters<typeof parseSearchResponse>[0]>(
+        `/api/admin/search?q=${encodeURIComponent(query)}`,
+        { signal: controller.signal },
+      );
+      if (controller.signal.aborted || searchAbortRef.current !== controller) return;
+      setSearchRecords(parseSearchResponse(data));
+    } catch {
+      if (!controller.signal.aborted && searchAbortRef.current === controller)
+        setRecordSearchError("Workspace search couldn’t load. Try again.");
     } finally {
       if (searchAbortRef.current === controller) {
         searchAbortRef.current = null;
-        setSearchingPeople(false);
+        setSearchingRecords(false);
       }
     }
   }, []);
 
   const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => searchForPeople(value), 120);
+    searchAbortRef.current?.abort();
+    searchAbortRef.current = null;
+    setSearchQuery(value);
+    setSearchRecords([]);
+    setRecordSearchError("");
+    setSearchingRecords(value.trim().length >= 3);
+    debounceRef.current = setTimeout(() => searchForRecords(value.trim()), 120);
   };
 
   useEffect(
@@ -475,7 +413,10 @@ export default function AdminShell({
     [],
   );
 
-  useEffect(() => setMobileOpen(false), [effectivePathname]);
+  useEffect(() => {
+    mobileRestoreFocusRef.current = false;
+    setMobileOpen(false);
+  }, [effectivePathname]);
 
   useEffect(() => {
     if (scenarioId || isAuthRoute) return;
@@ -762,7 +703,7 @@ export default function AdminShell({
                   Skip to content
                 </a>
                 <aside
-                  inert={mobileOpen}
+                  inert={mobileHeld}
                   className={cn(
                     "admin-sidebar hidden shrink-0 lg:block",
                     sidebarCollapsed ? "w-[80px]" : "w-[272px]",
@@ -789,7 +730,7 @@ export default function AdminShell({
                 </aside>
 
                 <header
-                  inert={mobileOpen}
+                  inert={mobileHeld}
                   className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex min-h-16 items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)] lg:hidden"
                 >
                   {scenarioId ? (
@@ -836,40 +777,46 @@ export default function AdminShell({
                         type="button"
                         aria-label="Dismiss navigation"
                         className="admin-overlay-backdrop absolute inset-0"
-                        initial={{ opacity: 0 }}
+                        initial={reducedMotion ? false : { opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        transition={{ duration: reducedMotion ? 0 : 0.2 }}
                         onClick={() => setMobileOpen(false)}
                       />
                       <motion.aside
-                        ref={mobileDrawerRef}
+                        ref={attachMobileDrawer}
                         id="admin-mobile-navigation"
                         role="dialog"
                         aria-modal="true"
                         aria-label="Admin navigation"
                         className="admin-mobile-sheet admin-sidebar absolute bottom-2 right-2 top-2 flex w-[min(22rem,calc(100vw-1rem))] flex-col rounded-[var(--admin-surface-radius)] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
-                        initial={{ opacity: 0, x: 30, scale: 0.985 }}
+                        initial={reducedMotion ? false : { opacity: 0, x: 30, scale: 0.985 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: 22, scale: 0.99 }}
-                        transition={{ type: "spring", duration: 0.34, bounce: 0 }}
+                        exit={reducedMotion ? { opacity: 0 } : { opacity: 0, x: 22, scale: 0.99 }}
+                        transition={{
+                          type: "spring",
+                          duration: reducedMotion ? 0 : 0.34,
+                          bounce: 0,
+                        }}
                       >
                         <SidebarContent
                           idPrefix="admin-mobile"
                           isActive={isActive}
                           onSignOut={handleSignOut}
-                          onNavigate={() => setMobileOpen(false)}
+                          onNavigate={() => {
+                            mobileRestoreFocusRef.current = false;
+                            setMobileOpen(false);
+                          }}
                           onClose={() => setMobileOpen(false)}
                           closeButtonRef={mobileCloseButtonRef}
                           onOpenSearch={() => {
+                            mobileActionRef.current = () => setSearchOpen(true);
                             setMobileOpen(false);
-                            window.setTimeout(() => setSearchOpen(true), 220);
                           }}
                           onOpenAI={() => {
+                            mobileActionRef.current = () =>
+                              window.dispatchEvent(new CustomEvent("admin:open-ai"));
                             setMobileOpen(false);
-                            window.setTimeout(
-                              () => window.dispatchEvent(new CustomEvent("admin:open-ai")),
-                              220,
-                            );
                           }}
                           priorityCount={priorityCount}
                           demoScenarioId={scenarioId}
@@ -891,14 +838,15 @@ export default function AdminShell({
                   onQueryChange={handleSearchChange}
                   actions={filteredActions}
                   pageResults={filteredLinks}
-                  peopleResults={searchPeople}
-                  searchingPeople={searchingPeople}
+                  recordResults={searchRecords}
+                  searchingRecords={searchingRecords}
+                  recordSearchError={recordSearchError}
+                  onRetryRecords={() => {
+                    searchInputRef.current?.focus();
+                    void searchForRecords(searchQuery.trim());
+                  }}
                   onSelectPage={(href) => {
                     router.push(href);
-                    closeSearch();
-                  }}
-                  onSelectPerson={(email) => {
-                    router.push(`/admin/contacts/${encodeURIComponent(email)}`);
                     closeSearch();
                   }}
                   onSelectAction={(action) => {
@@ -912,7 +860,7 @@ export default function AdminShell({
                   id="main-content"
                   ref={mainRef}
                   tabIndex={-1}
-                  inert={mobileOpen}
+                  inert={mobileHeld}
                   className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-0 xl:px-10"
                 >
                   <div
@@ -987,7 +935,7 @@ export default function AdminShell({
                 </main>
 
                 <nav
-                  inert={mobileOpen}
+                  inert={mobileHeld}
                   style={{ "--admin-mobile-dock-index": mobileDockIndex } as CSSProperties}
                   className="admin-mobile-dock fixed inset-x-4 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-4 items-stretch rounded-[var(--admin-surface-radius)] p-1 lg:hidden"
                   aria-label="Primary navigation"
@@ -1009,9 +957,7 @@ export default function AdminShell({
                         )}
                       >
                         <link.icon className="relative z-10 size-[17px]" aria-hidden="true" />
-                        <span className="relative z-10 max-w-full truncate">
-                          {link.id === "contacts" ? "Records" : link.label}
-                        </span>
+                        <span className="relative z-10 max-w-full truncate">{link.label}</span>
                       </Link>
                     );
                   })}
@@ -1096,7 +1042,7 @@ function SidebarContent({
   workspaces: WorkspaceOption[];
   onSwitchWorkspace: (slug: string) => void;
 }) {
-  const groups = groupSidebarLinks(navigationSections);
+  const groups = groupAdminNavLinks(navigationSections);
   const activeGroup = groups.find((group) =>
     [group.primary, ...group.links].some((link) => link && isActive(link.href)),
   )?.id;
@@ -1108,7 +1054,6 @@ function SidebarContent({
       )
     : null;
   const [openGroup, setOpenGroup] = useState<string | null>(null);
-  const [recordsMoreOverride, setRecordsMoreOverride] = useState<boolean | null>(null);
   const demoScenario = demoScenarioId ? DEMO_SCENARIOS[demoScenarioId] : null;
 
   return (
@@ -1226,16 +1171,6 @@ function SidebarContent({
           const expanded = !collapsed && (openGroup === group.id || (openGroup === null && active));
           const panelId = `${idPrefix}-nav-${group.id}`;
           const Icon = group.icon;
-          const extraLinks =
-            group.id === "records"
-              ? group.links.filter((link) => !primaryRecordLinks.has(link.id))
-              : [];
-          const directLinks =
-            group.id === "records"
-              ? group.links.filter((link) => primaryRecordLinks.has(link.id))
-              : group.links;
-          const recordsMoreExpanded =
-            recordsMoreOverride ?? extraLinks.some((link) => isActive(link.href));
           const renderChildLink = (link: AdminNavLink) => {
             const selected = isActive(link.href);
             return (
@@ -1244,7 +1179,6 @@ function SidebarContent({
                 href={link.href}
                 onClick={() => {
                   setOpenGroup(null);
-                  setRecordsMoreOverride(null);
                   onNavigate?.();
                 }}
                 title={link.description}
@@ -1264,7 +1198,6 @@ function SidebarContent({
                   href={primary.href}
                   onClick={() => {
                     setOpenGroup(null);
-                    setRecordsMoreOverride(null);
                     onNavigate?.();
                   }}
                   aria-label={collapsed ? group.label : undefined}
@@ -1282,7 +1215,11 @@ function SidebarContent({
                   )}
                 >
                   <Icon className="size-4 shrink-0" aria-hidden="true" />
-                  {!collapsed && <span className="min-w-0 flex-1 truncate">{group.label}</span>}
+                  {!collapsed && (
+                    <span className="min-w-0 flex-1 py-1 leading-[18px] text-balance">
+                      {group.label}
+                    </span>
+                  )}
                   {group.id === "today" && priorityCount > 0 && (
                     <span
                       className={cn(
@@ -1332,42 +1269,10 @@ function SidebarContent({
                 >
                   <div className="min-h-0 overflow-hidden">
                     <div className="space-y-0.5 pb-1 pl-6 pt-0.5">
-                      {directLinks.map(renderChildLink)}
-                      {extraLinks.length > 0 && (
-                        <div>
-                          <button
-                            type="button"
-                            onClick={() => setRecordsMoreOverride(!recordsMoreExpanded)}
-                            aria-expanded={recordsMoreExpanded}
-                            aria-controls={`${panelId}-more`}
-                            className="admin-nav-link flex min-h-10 w-full items-center justify-between rounded-[var(--admin-control-radius)] px-2.5 text-left text-xs font-medium transition-colors duration-150"
-                          >
-                            More records
-                            <ChevronDown
-                              className={cn(
-                                "size-3.5 transition-transform duration-200",
-                                recordsMoreExpanded && "rotate-180",
-                              )}
-                              aria-hidden="true"
-                            />
-                          </button>
-                          <div
-                            id={`${panelId}-more`}
-                            inert={!recordsMoreExpanded}
-                            aria-hidden={!recordsMoreExpanded}
-                            className={cn(
-                              "admin-nav-disclosure grid",
-                              recordsMoreExpanded
-                                ? "grid-rows-[1fr] opacity-100"
-                                : "grid-rows-[0fr] opacity-0",
-                            )}
-                          >
-                            <div className="min-h-0 space-y-0.5 overflow-hidden pl-2">
-                              {extraLinks.map(renderChildLink)}
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      <p className="px-2.5 pb-2 text-xs leading-relaxed text-[var(--admin-nav-faint)]">
+                        {group.description}
+                      </p>
+                      {group.links.map(renderChildLink)}
                     </div>
                   </div>
                 </div>
@@ -1492,10 +1397,11 @@ function CmdKSearch({
   onQueryChange,
   actions,
   pageResults,
-  peopleResults,
-  searchingPeople,
+  recordResults,
+  searchingRecords,
+  recordSearchError,
+  onRetryRecords,
   onSelectPage,
-  onSelectPerson,
   onSelectAction,
   inputRef,
 }: {
@@ -1505,22 +1411,33 @@ function CmdKSearch({
   onQueryChange: (query: string) => void;
   actions: CommandAction[];
   pageResults: AdminNavLink[];
-  peopleResults: SearchPerson[];
-  searchingPeople: boolean;
+  recordResults: SearchRecord[];
+  searchingRecords: boolean;
+  recordSearchError: string;
+  onRetryRecords: () => void;
   onSelectPage: (href: string) => void;
-  onSelectPerson: (email: string) => void;
   onSelectAction: (action: CommandAction) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
+  const listId = useId();
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const orderedRecords = useMemo(
+    () =>
+      searchRecordGroups.flatMap((group) =>
+        recordResults.filter((record) => record.kind === group.kind),
+      ),
+    [recordResults],
+  );
   const items = useMemo(
     () => [
       ...actions.map((action) => ({ kind: "action" as const, action })),
       ...pageResults.map((page) => ({ kind: "page" as const, page })),
-      ...peopleResults.map((person) => ({ kind: "person" as const, person })),
+      ...orderedRecords.map((record) => ({ kind: "record" as const, record })),
     ],
-    [actions, pageResults, peopleResults],
+    [actions, pageResults, orderedRecords],
   );
+
+  const activeIndex = Math.min(selectedIndex, Math.max(0, items.length - 1));
 
   useEffect(() => {
     if (!open) return;
@@ -1536,7 +1453,7 @@ function CmdKSearch({
     if (!item) return;
     if (item.kind === "action") onSelectAction(item.action);
     if (item.kind === "page") onSelectPage(item.page.href);
-    if (item.kind === "person") onSelectPerson(item.person.email);
+    if (item.kind === "record") onSelectPage(item.record.href);
   };
 
   return (
@@ -1554,6 +1471,12 @@ function CmdKSearch({
           <Search className="h-4 w-4 shrink-0 text-[var(--admin-muted)]" />
           <input
             ref={inputRef}
+            role="combobox"
+            aria-label="Search workspace"
+            aria-expanded={open}
+            aria-autocomplete="list"
+            aria-controls={listId}
+            aria-activedescendant={items.length ? `${listId}-${activeIndex}` : undefined}
             value={query}
             onChange={(event) => {
               setSelectedIndex(0);
@@ -1570,11 +1493,11 @@ function CmdKSearch({
               }
               if (event.key === "Enter") {
                 event.preventDefault();
-                select(selectedIndex);
+                select(activeIndex);
               }
               if (event.key === "Escape") onClose();
             }}
-            placeholder="Search people, pages, or run a command…"
+            placeholder="Search records, pages, or run a command…"
             className="min-w-0 flex-1 bg-transparent text-base text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] sm:text-sm focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
           />
           <button
@@ -1590,16 +1513,22 @@ function CmdKSearch({
           </kbd>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-2 sm:max-h-[58vh]">
+        <div
+          id={listId}
+          role="listbox"
+          aria-label="Search results"
+          className="min-h-0 flex-1 overflow-y-auto p-2 sm:max-h-[58vh]"
+        >
           {actions.length > 0 && (
             <ResultSection label="Actions">
               {actions.map((action, index) => (
                 <CommandRow
+                  id={`${listId}-${index}`}
                   key={action.label}
                   icon={action.icon}
                   label={action.label}
                   description={action.description}
-                  selected={selectedIndex === index}
+                  selected={activeIndex === index}
                   onClick={() => onSelectAction(action)}
                 />
               ))}
@@ -1611,42 +1540,75 @@ function CmdKSearch({
                 const itemIndex = actions.length + index;
                 return (
                   <CommandRow
+                    id={`${listId}-${itemIndex}`}
                     key={page.href}
                     icon={page.icon}
                     label={page.label}
                     description={page.description}
-                    selected={selectedIndex === itemIndex}
+                    selected={activeIndex === itemIndex}
                     onClick={() => onSelectPage(page.href)}
                   />
                 );
               })}
             </ResultSection>
           )}
-          {peopleResults.length > 0 && (
-            <ResultSection label="People">
-              {peopleResults.map((person, index) => {
-                const itemIndex = actions.length + pageResults.length + index;
-                return (
+          {searchRecordGroups.map((group) => {
+            const matches = recordResults.filter((record) => record.kind === group.kind);
+            if (matches.length === 0) return null;
+            const icon = {
+              people: User,
+              work: CheckSquare,
+              opportunities: ArrowUpRight,
+              clients: UsersRound,
+              proposals: ReceiptText,
+            }[group.kind];
+            return (
+              <ResultSection key={group.kind} label={group.label}>
+                {matches.map((record) => (
                   <CommandRow
-                    key={person.email}
-                    icon={User}
-                    label={person.name}
-                    description={`${person.email} · ${person.type}`}
-                    selected={selectedIndex === itemIndex}
-                    onClick={() => onSelectPerson(person.email)}
+                    id={`${listId}-${actions.length + pageResults.length + orderedRecords.indexOf(record)}`}
+                    key={`${record.kind}:${record.id}`}
+                    icon={icon}
+                    label={record.label}
+                    description={record.description}
+                    selected={
+                      activeIndex ===
+                      actions.length + pageResults.length + orderedRecords.indexOf(record)
+                    }
+                    onClick={() => onSelectPage(record.href)}
                   />
-                );
-              })}
-            </ResultSection>
-          )}
-          {searchingPeople && (
+                ))}
+              </ResultSection>
+            );
+          })}
+          {searchingRecords && (
             <p className="px-3 py-4 text-center text-xs text-[var(--admin-muted)]">
               Searching records…
             </p>
           )}
-          {!searchingPeople && items.length === 0 && query && (
+          {recordSearchError && (
+            <div
+              role="alert"
+              className="m-2 rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface-subtle)] p-3"
+            >
+              <p className="text-sm font-semibold">{recordSearchError}</p>
+              {recordResults.length > 0 && (
+                <p className="admin-copy mt-1 text-xs">Previously loaded matches remain visible.</p>
+              )}
+              <button
+                type="button"
+                onClick={onRetryRecords}
+                className="admin-button admin-button--secondary mt-3"
+              >
+                Retry search
+              </button>
+            </div>
+          )}
+          {!searchingRecords && !recordSearchError && items.length === 0 && query.trim() && (
             <p className="px-3 py-8 text-center text-sm text-[var(--admin-muted)]">
-              No matching people, pages, or commands.
+              {query.trim().length < 3
+                ? "Type at least 3 characters to search workspace records."
+                : "No matching records, pages, or commands."}
             </p>
           )}
         </div>
@@ -1663,7 +1625,7 @@ function CmdKSearch({
 
 function ResultSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="mb-2 last:mb-0">
+    <section role="group" aria-label={label} className="mb-2 last:mb-0">
       <p className="px-3 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-muted)]">
         {label}
       </p>
@@ -1673,20 +1635,32 @@ function ResultSection({ label, children }: { label: string; children: React.Rea
 }
 
 function CommandRow({
+  id,
   icon: Icon,
   label,
   description,
   selected,
   onClick,
 }: {
+  id: string;
   icon: LucideIcon;
   label: string;
   description: string;
   selected: boolean;
   onClick: () => void;
 }) {
+  const rowRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (selected) rowRef.current?.scrollIntoView({ block: "nearest" });
+  }, [selected]);
   return (
     <button
+      ref={rowRef}
+      id={id}
+      role="option"
+      aria-selected={selected}
+      tabIndex={-1}
+      data-command-selected={selected || undefined}
       type="button"
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
@@ -1710,7 +1684,7 @@ function CommandRow({
         <span
           className={cn(
             "block truncate text-[11px]",
-            selected ? "opacity-60" : "text-[var(--admin-muted)]",
+            selected ? "text-current" : "text-[var(--admin-muted)]",
           )}
         >
           {description}

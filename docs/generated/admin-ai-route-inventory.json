@@ -1,14 +1,1432 @@
 {
-  "contract": "admin-ai-route-inventory.v1",
-  "scope": "Exported HTTP handlers under src/app/api/admin. Source inventory, not verified AI operation coverage.",
+  "contract": "admin-ai-route-inventory.v2",
+  "scope": "Admin HTTP handlers, other API entrypoints, declared server actions and direct client mutation candidates. Source inventory plus reviewed tool bindings, not universal runtime acceptance.",
   "limitations": [
     "HTTP methods do not identify business operations: POST may read, authenticate or approve; one handler may dispatch multiple commands.",
     "Imports are navigation references, not proof of service use, authorization, approval or tool parity.",
-    "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
+    "Server-action and client-write candidates are static discovery only; indirect client writes and third-party plugin entrypoints still require semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 129,
-  "mutationHandlerCount": 115,
+  "routeCount": 133,
+  "mutationHandlerCount": 118,
+  "semantic": {
+    "complete": false,
+    "unreviewedSourceBindings": [],
+    "meaning": "Reviewed command-to-transport bindings with executable verification references. No coverage percentage or universal runtime acceptance is asserted.",
+    "registeredTools": 136,
+    "unreviewedToolBindings": [
+      "activate_tool_bundle",
+      "bootstrap_business_pulse_coworker",
+      "bootstrap_finance_coworker",
+      "bootstrap_meeting_intel_coworker",
+      "bootstrap_operations_coworker",
+      "bootstrap_sales_coworker",
+      "check_budgets",
+      "control_agent_work",
+      "discover_tool_bundles",
+      "execute_site_change",
+      "generate_content_brief",
+      "get_agent_activity_for_entity",
+      "get_agent_memory",
+      "get_agent_work",
+      "get_autonomy_policies",
+      "get_budget_limits",
+      "get_claimable_work",
+      "get_claims_for_entity",
+      "get_collection_cases",
+      "get_coworkers",
+      "get_debate_production",
+      "get_first_use_progress",
+      "get_learned_policies",
+      "get_learning_evidence",
+      "get_module_configuration",
+      "get_pending_actions",
+      "get_plugins",
+      "get_radar_model_status",
+      "get_radar_outreach_history",
+      "get_radar_relationship_context",
+      "get_radar_selection",
+      "get_radar_store",
+      "get_radar_workspace",
+      "get_record_timeline",
+      "get_social_workspace",
+      "get_today_snapshot",
+      "get_today_views",
+      "get_today_workspace",
+      "get_workspace_brand",
+      "get_workspace_capabilities",
+      "get_workspace_configuration",
+      "list_content_calendar",
+      "list_forms",
+      "list_knowledge_documents",
+      "list_learning_proposals",
+      "prepare_client_onboarding",
+      "prepare_form_draft",
+      "prepare_meeting_commitments",
+      "prepare_radar_brief",
+      "prepare_radar_opportunity_brief",
+      "prepare_radar_outreach",
+      "prepare_site_change",
+      "prepare_social_week",
+      "prepare_stripe_invoicing",
+      "preview_agent_work",
+      "preview_collection_policy",
+      "preview_collection_reminder",
+      "preview_content_calendar_update",
+      "preview_internal_permission",
+      "preview_invoice_page",
+      "preview_module_configuration",
+      "preview_radar_assessment",
+      "preview_radar_outreach",
+      "preview_radar_relationship",
+      "preview_radar_store_change",
+      "preview_social_change",
+      "preview_today_view_change",
+      "preview_workspace_brand_update",
+      "preview_workspace_configuration",
+      "propose_bulk_enroll_contacts",
+      "propose_bulk_suppress_contacts",
+      "propose_bulk_tag_contacts",
+      "propose_campaign_activation",
+      "propose_campaign_duplicate",
+      "propose_client_onboarding",
+      "propose_collection_policy",
+      "propose_collection_reminder",
+      "propose_content_calendar_update",
+      "propose_conversation_reply",
+      "propose_correction",
+      "propose_debate_invitation",
+      "propose_debate_milestone",
+      "propose_form_draft",
+      "propose_form_publish",
+      "propose_founder_note",
+      "propose_gmail_draft",
+      "propose_internal_permission",
+      "propose_invoice_page",
+      "propose_knowledge_change",
+      "propose_layout_change",
+      "propose_learning",
+      "propose_meeting_commitments",
+      "propose_module_configuration",
+      "propose_next_action",
+      "propose_radar_assessment",
+      "propose_radar_outreach",
+      "propose_radar_relationship",
+      "propose_radar_store_change",
+      "propose_send_email",
+      "propose_social_change",
+      "propose_stage_change",
+      "propose_stripe_invoice_send",
+      "propose_stripe_invoicing",
+      "propose_task",
+      "propose_task_update",
+      "propose_today_view_change",
+      "propose_workspace_brand_update",
+      "propose_workspace_configuration",
+      "query_memory",
+      "read_complete_gmail_thread",
+      "read_form_submissions",
+      "read_site_editor",
+      "reconcile_radar_model_call",
+      "reconcile_radar_outreach",
+      "record_learned_policy",
+      "run_business_pulse",
+      "run_commitment_watch",
+      "run_meeting_prep",
+      "run_pipeline_watch",
+      "search_contacts",
+      "search_conversations",
+      "search_knowledge_base",
+      "search_pipeline",
+      "stage_site_change",
+      "start_agent_work",
+      "store_agent_memory",
+      "suggest_site_page"
+    ],
+    "operations": [
+      {
+        "definition": {
+          "id": "analytics.export-report",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [],
+          "verification": [
+            "scripts/test-ai-reporting.ts",
+            "scripts/test-analytics-decision-model.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.analytics",
+        "tools": [
+          "export_revenue_analytics"
+        ]
+      },
+      {
+        "definition": {
+          "id": "analytics.read-report",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/revenue-os/analytics",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-ai-reporting.ts",
+            "scripts/test-analytics-decision-model.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.analytics",
+        "tools": [
+          "get_revenue_analytics"
+        ]
+      },
+      {
+        "definition": {
+          "id": "command-center.read-operation-coverage",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/revenue-os/ai/capabilities",
+              "method": "GET",
+              "variant": "coverage"
+            }
+          ],
+          "verification": [
+            "scripts/test-ai-tool-discovery.ts",
+            "scripts/test-admin-ai-inventory.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.tool-discovery",
+        "tools": [
+          "get_admin_operation_coverage"
+        ]
+      },
+      {
+        "definition": {
+          "id": "content.preview-calendar-change",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/content/commands",
+              "method": "POST",
+              "variant": "preview"
+            }
+          ],
+          "verification": [
+            "scripts/test-content-calendar-actions.ts",
+            "scripts/test-content-calendar-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.content-calendar",
+        "tools": [
+          "preview_content_calendar_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "content.propose-calendar-change",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/content/commands",
+              "method": "POST",
+              "variant": "propose"
+            }
+          ],
+          "verification": [
+            "scripts/test-content-calendar-actions.ts",
+            "scripts/test-content-calendar-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.content-calendar",
+        "tools": [
+          "propose_content_calendar_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "knowledge.read-source-authority",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/source-authority",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-source-authority.ts",
+            "scripts/test-source-authority-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.knowledge-retrieval",
+        "tools": [
+          "list_source_authorities"
+        ]
+      },
+      {
+        "definition": {
+          "id": "knowledge.register-source-authority",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/source-authority",
+              "method": "POST"
+            }
+          ],
+          "verification": [
+            "scripts/test-source-authority.ts",
+            "scripts/test-source-authority-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.memory-write",
+        "tools": [
+          "register_source_authority"
+        ]
+      },
+      {
+        "definition": {
+          "id": "revenue.export-report",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [],
+          "verification": [
+            "scripts/test-ai-reporting.ts",
+            "scripts/verify-revenue-read-correctness.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.analytics",
+        "tools": [
+          "export_revenue_report"
+        ]
+      },
+      {
+        "definition": {
+          "id": "revenue.read-report",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/revenue",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-ai-reporting.ts",
+            "scripts/verify-revenue-read-correctness.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.analytics",
+        "tools": [
+          "get_revenue_report"
+        ]
+      }
+    ],
+    "handlersWithoutReviewedBindings": [
+      "DELETE /api/admin/contacts",
+      "DELETE /api/admin/content",
+      "DELETE /api/admin/emails/preview",
+      "DELETE /api/admin/features",
+      "DELETE /api/admin/features/agents",
+      "DELETE /api/admin/features/views",
+      "DELETE /api/admin/google/status",
+      "DELETE /api/admin/kanban/columns/[columnKey]",
+      "DELETE /api/admin/leads",
+      "DELETE /api/admin/memory/[id]",
+      "DELETE /api/admin/revenue-os/ai/conversations/[id]",
+      "DELETE /api/admin/site/drafts/[id]",
+      "DELETE /api/admin/tasks",
+      "DELETE /api/admin/work/views",
+      "DELETE /api/public/[tenantSlug]/mcp",
+      "GET /api/admin/activity",
+      "GET /api/admin/ai-readiness",
+      "GET /api/admin/analytics",
+      "GET /api/admin/blueprints",
+      "GET /api/admin/blueprints/[id]",
+      "GET /api/admin/bookings",
+      "GET /api/admin/chat-leads",
+      "GET /api/admin/clients",
+      "GET /api/admin/collections",
+      "GET /api/admin/collections/workspace",
+      "GET /api/admin/contacts",
+      "GET /api/admin/contacts/directory",
+      "GET /api/admin/contacts/export",
+      "GET /api/admin/contacts/timeline",
+      "GET /api/admin/content",
+      "GET /api/admin/email-sequences",
+      "GET /api/admin/emails/history",
+      "GET /api/admin/emails/preview",
+      "GET /api/admin/features",
+      "GET /api/admin/features/agents",
+      "GET /api/admin/features/views",
+      "GET /api/admin/forms",
+      "GET /api/admin/get-started",
+      "GET /api/admin/google/authorize",
+      "GET /api/admin/google/callback",
+      "GET /api/admin/google/status",
+      "GET /api/admin/inbox",
+      "GET /api/admin/integrations",
+      "GET /api/admin/invoicing",
+      "GET /api/admin/invoicing/list",
+      "GET /api/admin/invoicing/pages",
+      "GET /api/admin/kanban/columns",
+      "GET /api/admin/knowledge/documents",
+      "GET /api/admin/leads",
+      "GET /api/admin/leads/export",
+      "GET /api/admin/learning",
+      "GET /api/admin/learning/signals",
+      "GET /api/admin/mcp/delegations",
+      "GET /api/admin/media-assets",
+      "GET /api/admin/memory",
+      "GET /api/admin/metrics",
+      "GET /api/admin/notifications",
+      "GET /api/admin/offline-snapshot",
+      "GET /api/admin/partners",
+      "GET /api/admin/plausible",
+      "GET /api/admin/plugins/tasks",
+      "GET /api/admin/proposals",
+      "GET /api/admin/radar/workspace",
+      "GET /api/admin/resources",
+      "GET /api/admin/revenue-os/actions",
+      "GET /api/admin/revenue-os/activity",
+      "GET /api/admin/revenue-os/agent-work",
+      "GET /api/admin/revenue-os/ai/conversations",
+      "GET /api/admin/revenue-os/ai/conversations/[id]",
+      "GET /api/admin/revenue-os/ai/runs",
+      "GET /api/admin/revenue-os/ai/runs/[id]",
+      "GET /api/admin/revenue-os/campaigns",
+      "GET /api/admin/revenue-os/campaigns/preview",
+      "GET /api/admin/revenue-os/contact-imports",
+      "GET /api/admin/revenue-os/conversations",
+      "GET /api/admin/revenue-os/debates",
+      "GET /api/admin/revenue-os/identity-review",
+      "GET /api/admin/revenue-os/layout",
+      "GET /api/admin/revenue-os/notes",
+      "GET /api/admin/revenue-os/overview",
+      "GET /api/admin/revenue-os/pipeline",
+      "GET /api/admin/revenue-os/priority",
+      "GET /api/admin/revenue-os/records/opportunity/[id]",
+      "GET /api/admin/revenue-os/recovery",
+      "GET /api/admin/revenue-os/today",
+      "GET /api/admin/revenue-os/today/views",
+      "GET /api/admin/revenue-os/workspace-configuration",
+      "GET /api/admin/search",
+      "GET /api/admin/settings",
+      "GET /api/admin/setup",
+      "GET /api/admin/setup/release",
+      "GET /api/admin/site/delegations",
+      "GET /api/admin/site/drafts",
+      "GET /api/admin/site/drafts/[id]",
+      "GET /api/admin/site/models",
+      "GET /api/admin/site/website",
+      "GET /api/admin/social",
+      "GET /api/admin/social-history",
+      "GET /api/admin/subscribers",
+      "GET /api/admin/subscribers/export",
+      "GET /api/admin/subscriptions",
+      "GET /api/admin/tasks",
+      "GET /api/admin/tenant/branding",
+      "GET /api/admin/tenant/ingest-keys",
+      "GET /api/admin/tenant/modules",
+      "GET /api/admin/tenant/providers",
+      "GET /api/admin/tenants",
+      "GET /api/admin/website-grades",
+      "GET /api/admin/website-grades/export",
+      "GET /api/admin/work/agent-items",
+      "GET /api/admin/work/views",
+      "GET /api/agent/work-board",
+      "GET /api/ai-readiness",
+      "GET /api/ai-readiness/pdf",
+      "GET /api/cron/google-workspace-sync",
+      "GET /api/cron/revenue-campaigns",
+      "GET /api/cron/system-health-snapshot",
+      "GET /api/cron/work-engine",
+      "GET /api/mcp",
+      "GET /api/mcp/site-studio",
+      "GET /api/og",
+      "GET /api/plan-pdf/[token]",
+      "GET /api/proposal/[token]",
+      "GET /api/public/[tenantSlug]/billing",
+      "GET /api/public/[tenantSlug]/mcp",
+      "GET /api/public/[tenantSlug]/mcp/oauth",
+      "GET /api/public/[tenantSlug]/proposal/[token]",
+      "GET /api/public/[tenantSlug]/unsubscribe/[token]",
+      "GET /api/public/[tenantSlug]/webhooks/whatsapp",
+      "GET /api/public/forms/[token]",
+      "GET /api/qualify/resume",
+      "GET /api/roadmap",
+      "GET /api/search",
+      "GET /api/unsubscribe/[token]",
+      "OPTIONS /api/mcp",
+      "OPTIONS /api/mcp/site-studio",
+      "OPTIONS /api/public/[tenantSlug]/mcp",
+      "OPTIONS /api/public/[tenantSlug]/mcp/oauth",
+      "PATCH /api/admin/bookings",
+      "PATCH /api/admin/clients",
+      "PATCH /api/admin/collections",
+      "PATCH /api/admin/contacts",
+      "PATCH /api/admin/content",
+      "PATCH /api/admin/email-sequences",
+      "PATCH /api/admin/emails/preview",
+      "PATCH /api/admin/features",
+      "PATCH /api/admin/google/sync",
+      "PATCH /api/admin/kanban/columns/[columnKey]",
+      "PATCH /api/admin/kanban/columns/reorder",
+      "PATCH /api/admin/knowledge/documents",
+      "PATCH /api/admin/leads",
+      "PATCH /api/admin/memory/[id]",
+      "PATCH /api/admin/notifications",
+      "PATCH /api/admin/partners",
+      "PATCH /api/admin/proposals",
+      "PATCH /api/admin/revenue-os/actions",
+      "PATCH /api/admin/revenue-os/agent-work",
+      "PATCH /api/admin/revenue-os/ai/conversations/[id]/context",
+      "PATCH /api/admin/revenue-os/campaigns",
+      "PATCH /api/admin/revenue-os/conversations",
+      "PATCH /api/admin/revenue-os/debates",
+      "PATCH /api/admin/revenue-os/pipeline",
+      "PATCH /api/admin/revenue-os/records/opportunity/[id]",
+      "PATCH /api/admin/revenue-os/recovery",
+      "PATCH /api/admin/revenue-os/tasks",
+      "PATCH /api/admin/site/drafts/[id]",
+      "PATCH /api/admin/tasks",
+      "PATCH /api/admin/tenant/modules",
+      "PATCH /api/admin/work/views",
+      "POST /api/admin/ai-content-brief",
+      "POST /api/admin/blueprints",
+      "POST /api/admin/blueprints/[id]/apply",
+      "POST /api/admin/blueprints/[id]/approve",
+      "POST /api/admin/blueprints/[id]/generate-operations",
+      "POST /api/admin/clients",
+      "POST /api/admin/collections",
+      "POST /api/admin/collections/reminders",
+      "POST /api/admin/contacts/directory",
+      "POST /api/admin/content",
+      "POST /api/admin/corrections/detect",
+      "POST /api/admin/emails/preview",
+      "POST /api/admin/features",
+      "POST /api/admin/features/agents",
+      "POST /api/admin/features/views",
+      "POST /api/admin/forms",
+      "POST /api/admin/google/status",
+      "POST /api/admin/google/sync",
+      "POST /api/admin/invoicing",
+      "POST /api/admin/invoicing/pages",
+      "POST /api/admin/kanban/columns",
+      "POST /api/admin/knowledge/documents",
+      "POST /api/admin/leads",
+      "POST /api/admin/leads/bulk",
+      "POST /api/admin/learning",
+      "POST /api/admin/learning/signals",
+      "POST /api/admin/login",
+      "POST /api/admin/mcp/delegations",
+      "POST /api/admin/password-reset",
+      "POST /api/admin/plugins/run",
+      "POST /api/admin/plugins/workflow",
+      "POST /api/admin/proposals",
+      "POST /api/admin/proposals/generate",
+      "POST /api/admin/radar/commands",
+      "POST /api/admin/revenue-os/ai/conversations",
+      "POST /api/admin/revenue-os/ai/conversations/[id]/sources",
+      "POST /api/admin/revenue-os/ai/conversations/[id]/understanding",
+      "POST /api/admin/revenue-os/ai/feedback",
+      "POST /api/admin/revenue-os/ai/stream",
+      "POST /api/admin/revenue-os/campaigns",
+      "POST /api/admin/revenue-os/campaigns/members",
+      "POST /api/admin/revenue-os/contact-imports",
+      "POST /api/admin/revenue-os/conversations/action",
+      "POST /api/admin/revenue-os/conversations/reply",
+      "POST /api/admin/revenue-os/debates",
+      "POST /api/admin/revenue-os/identity-review",
+      "POST /api/admin/revenue-os/layout",
+      "POST /api/admin/revenue-os/notes",
+      "POST /api/admin/revenue-os/pipeline",
+      "POST /api/admin/revenue-os/records/opportunity/[id]",
+      "POST /api/admin/revenue-os/recovery",
+      "POST /api/admin/revenue-os/today/views",
+      "POST /api/admin/revenue-os/workspace-configuration",
+      "POST /api/admin/send-email",
+      "POST /api/admin/settings/test",
+      "POST /api/admin/site/delegations",
+      "POST /api/admin/site/drafts",
+      "POST /api/admin/site/drafts/[id]/sections",
+      "POST /api/admin/site/website",
+      "POST /api/admin/site/website/suggest",
+      "POST /api/admin/social",
+      "POST /api/admin/social/media",
+      "POST /api/admin/subscriptions",
+      "POST /api/admin/tasks",
+      "POST /api/admin/tenant/ingest-keys",
+      "POST /api/admin/tenant/providers",
+      "POST /api/admin/tenants",
+      "POST /api/admin/work/views",
+      "POST /api/agent/work-board",
+      "POST /api/agent/work-board/mcp",
+      "POST /api/ai-readiness",
+      "POST /api/analytics/events",
+      "POST /api/chat",
+      "POST /api/cron/system-health-snapshot",
+      "POST /api/demo/agent",
+      "POST /api/generate-plan",
+      "POST /api/mcp",
+      "POST /api/mcp/site-studio",
+      "POST /api/partner-apply",
+      "POST /api/proposal/[token]",
+      "POST /api/public/[tenantSlug]/billing",
+      "POST /api/public/[tenantSlug]/billing/portal",
+      "POST /api/public/[tenantSlug]/intake/[surface]",
+      "POST /api/public/[tenantSlug]/mcp",
+      "POST /api/public/[tenantSlug]/mcp/oauth",
+      "POST /api/public/[tenantSlug]/proposal/[token]",
+      "POST /api/public/[tenantSlug]/unsubscribe/[token]",
+      "POST /api/public/[tenantSlug]/webhooks/calendly",
+      "POST /api/public/[tenantSlug]/webhooks/hubspot",
+      "POST /api/public/[tenantSlug]/webhooks/resend",
+      "POST /api/public/[tenantSlug]/webhooks/stripe",
+      "POST /api/public/[tenantSlug]/webhooks/whatsapp",
+      "POST /api/public/forms/[token]",
+      "POST /api/qualify",
+      "POST /api/qualify/calendar-viewed",
+      "POST /api/resource-download",
+      "POST /api/revalidate",
+      "POST /api/roadmap",
+      "POST /api/send-contact-email",
+      "POST /api/send-plan-email",
+      "POST /api/subscribe",
+      "POST /api/unsubscribe/[token]",
+      "POST /api/webhooks/calendly",
+      "POST /api/webhooks/resend",
+      "PUT /api/admin/learning/[id]",
+      "PUT /api/admin/settings",
+      "PUT /api/admin/tenant/branding",
+      "PUT /api/chat"
+    ]
+  },
+  "additionalEntrypoints": [
+    {
+      "source": "src/app/api/agent/work-board/mcp/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/revenue-os/work-board",
+        "@/lib/revenue-os/work-board-http",
+        "@/lib/revenue-os/work-board-mcp",
+        "@/lib/supabase/server",
+        "next/server"
+      ],
+      "sourceSha256": "6f8a729efc02d00440777fffb87a663583a4ac333124cb576b10fab157723db0"
+    },
+    {
+      "source": "src/app/api/agent/work-board/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/revenue-os/work-board",
+        "@/lib/revenue-os/work-board-http",
+        "@/lib/supabase/server",
+        "next/server"
+      ],
+      "sourceSha256": "12b435e9724dd61fdcd2e7d5f77447a70b25b06ed9b0b7678860488386f9c1eb"
+    },
+    {
+      "source": "src/app/api/ai-readiness/pdf/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/ai-readiness-pdf",
+        "@/lib/ai-readiness-service",
+        "@/lib/rate-limit",
+        "next/server"
+      ],
+      "sourceSha256": "d18cbca451dd8c748beafe6c0fc371852241c1f444ab9bc1be00d6a8e9acaced"
+    },
+    {
+      "source": "src/app/api/ai-readiness/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/ai-readiness-service",
+        "@/lib/rate-limit",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "93f40186460359f60afc1628dee70c47fced3fe04a45dead1f397e19fd5c4f48"
+    },
+    {
+      "source": "src/app/api/analytics/events/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/supabase/server",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "d4d44d09b4ab9880abe4ad7ede0a0fdfe107cf5620ad7355b41f46f4ea98bc01"
+    },
+    {
+      "source": "src/app/api/chat/route.ts",
+      "handlers": [
+        "POST",
+        "PUT"
+      ],
+      "mutationHandlers": [
+        "POST",
+        "PUT"
+      ],
+      "imports": [
+        "@/lib/ai/openrouter",
+        "@/lib/ai/openrouter-credentials",
+        "@/lib/chat/fallbacks",
+        "@/lib/chat/guardrails",
+        "@/lib/chat/lead-capture",
+        "@/lib/chat/sanitize",
+        "@/lib/chat/system-prompt",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/agent-trace",
+        "@/lib/revenue-os/ai-context",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/inbound",
+        "@/lib/supabase/server",
+        "@/lib/types",
+        "@/lib/validation",
+        "next/server"
+      ],
+      "sourceSha256": "d8872418209d6ad57f2dcbb491b31a717e75d2e9c4c6dcce5ba4251b70e22bf4"
+    },
+    {
+      "source": "src/app/api/cron/google-workspace-sync/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/revenue-os/google",
+        "@/lib/revenue-os/runs",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "a80f561de8958f5d8744c1278afcccf7f6d176d4eee030361449ccb4e54690fc"
+    },
+    {
+      "source": "src/app/api/cron/revenue-campaigns/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/revenue-os/campaigns",
+        "@/lib/revenue-os/db",
+        "@/lib/revenue-os/recovery",
+        "@/lib/revenue-os/runs",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "50e618cd358af2ab0e892d56d6fc96733339047f284c476d7d92797ccf330d75"
+    },
+    {
+      "source": "src/app/api/cron/system-health-snapshot/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/revenue-os/health",
+        "@/lib/revenue-os/runs",
+        "@/lib/revenue-os/scheduler",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "b48816fdbcdee829af23b9f4bb84dea6c33115625fa49ca2b77845c6017b4d0e"
+    },
+    {
+      "source": "src/app/api/cron/work-engine/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/revenue-os/agent-work",
+        "@/lib/revenue-os/bounded-execution",
+        "@/lib/revenue-os/business-pulse-coworker",
+        "@/lib/revenue-os/debate-booking-work",
+        "@/lib/revenue-os/finance-coworker",
+        "@/lib/revenue-os/knowledge-documents",
+        "@/lib/revenue-os/learning-signals",
+        "@/lib/revenue-os/meeting-intel-coworker",
+        "@/lib/revenue-os/operations-coworker",
+        "@/lib/revenue-os/proactive-intel",
+        "@/lib/revenue-os/runs",
+        "@/lib/revenue-os/sales-coworker",
+        "@/lib/revenue-os/social-marketing-work",
+        "@/lib/revenue-os/trust-graduation",
+        "@/lib/revenue-os/work-executor",
+        "@/lib/revenue-os/work-scheduler",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "d6419c9d4304a1cea60516e34c9352eeb91d034568ae36cae66fb50bc63db39d"
+    },
+    {
+      "source": "src/app/api/demo/agent/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/demo/agent",
+        "@/lib/admin/demo/agent-contract",
+        "@/lib/admin/demo/agent-inference",
+        "@/lib/ai/bounded-json",
+        "@/lib/rate-limit",
+        "next/server"
+      ],
+      "sourceSha256": "8988bc71370cc0f53535bfa808c9a1f6078eb55cec29ed97582a6231018eea42"
+    },
+    {
+      "source": "src/app/api/generate-plan/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/ai/approved-pricing",
+        "@/lib/ai/openrouter",
+        "@/lib/ai/openrouter-credentials",
+        "@/lib/ai/prompts",
+        "@/lib/email/send",
+        "@/lib/email/sequences",
+        "@/lib/rate-limit",
+        "@/lib/supabase/server",
+        "@/lib/types",
+        "@supabase/supabase-js",
+        "nanoid",
+        "next/server"
+      ],
+      "sourceSha256": "ff6eb1a04fc6d947c6fc58a82752f83f8b9981bddf9ec83a4dd7ae2a73403dd1"
+    },
+    {
+      "source": "src/app/api/mcp/route.ts",
+      "handlers": [
+        "GET",
+        "OPTIONS",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/admin/auth",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/mcp-request",
+        "@/lib/revenue-os/mcp-server",
+        "@/lib/revenue-os/tool-profiles",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "next/server",
+        "node:crypto"
+      ],
+      "sourceSha256": "4ccaf22821d266c48a3492360ca038cd1c6df7651fc75ad2c58a852358944a60"
+    },
+    {
+      "source": "src/app/api/mcp/site-studio/route.ts",
+      "handlers": [
+        "GET",
+        "OPTIONS",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/http/bounded-json",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/mcp-request",
+        "@/lib/revenue-os/mcp-server",
+        "@/lib/site-studio/delegation",
+        "@/lib/site-studio/editor-contract",
+        "@/lib/tenancy/context",
+        "next/server"
+      ],
+      "sourceSha256": "0cc033ed59ac73523eeafd11524727fb2be7b9a671bd0a7dee69d26e28e76b7e"
+    },
+    {
+      "source": "src/app/api/og/route.tsx",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/components/social/SocialCard",
+        "@/config/tenant",
+        "@/lib/distribution/profile",
+        "next/og",
+        "next/server"
+      ],
+      "sourceSha256": "23158eee1279ee1240da8a16164ac132c6d0584f07657e5b6fc63bfbf1663ad0"
+    },
+    {
+      "source": "src/app/api/partner-apply/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/rate-limit",
+        "@/lib/supabase/server",
+        "@/lib/validation",
+        "next/server"
+      ],
+      "sourceSha256": "a2413839ddd4120a157591c8ca17ac5ec4e80be9937dd19b6cb0bb96afe8c0ff"
+    },
+    {
+      "source": "src/app/api/plan-pdf/[token]/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/plan-document",
+        "@/lib/rate-limit",
+        "@/lib/supabase/server",
+        "@/lib/types",
+        "next/server"
+      ],
+      "sourceSha256": "ee9e68ef28974fc305ba13db6ed1f2c201ec583baf6e88ddc08c22cec303bbc2"
+    },
+    {
+      "source": "src/app/api/proposal/[token]/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/pipeline",
+        "@/lib/revenue-os/proposals",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "f84852a33d42889c5897831369fee9d37d978f4a43e85a52eca244e9bf409ea2"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/billing/portal/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/revenue-os/stripe-adapter",
+        "@/lib/revenue-os/subscriptions-contract",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/system",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "b08c8d0d5bf3371b2d0ecec555bef7c32d354e6cbf20ca6acf12266070ae980f"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/billing/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/subscriptions",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "1a0658e79d50a01a870a811487fb170eb53ccef91d865ee5f3ff883a8527ae6b"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/intake/[surface]/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/tenancy/ingest",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "f14e3f3516c8406c20c92a9712750d60aa28a6e22e01fe511a56eacd3209ca85"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/mcp/oauth/route.ts",
+      "handlers": [
+        "GET",
+        "OPTIONS",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/http/bounded-json",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/mcp-request",
+        "@/lib/revenue-os/mcp-server",
+        "@/lib/revenue-os/tool-profiles",
+        "@/lib/revenue-os/workspace-mcp-oauth",
+        "@/lib/tenancy/context",
+        "next/server",
+        "node:crypto"
+      ],
+      "sourceSha256": "0b875be6d56db49540c5e60d86aa80771c4efeaaa1a6136be8bb511aca35aa86"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/mcp/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "OPTIONS",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/mcp-request",
+        "@/lib/revenue-os/mcp-server",
+        "@/lib/revenue-os/tool-profiles",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/providers",
+        "next/server",
+        "node:crypto"
+      ],
+      "sourceSha256": "e7da826c3354434aec878cc8b66dace2dfe64681248dc8b199c357bfdf57af18"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/proposal/[token]/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/app/api/proposal/[token]/route",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "e5d18d96e6ca5c7fad0a03f7a42804f286e4bb927baa0c2df54079c8c85f2339"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/unsubscribe/[token]/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/revenue-os/public-unsubscribe",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "bfe586591a6d176b7cb1abaac4823bf90e985b3fe44e3298b63bd6d09440bc18"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/webhooks/calendly/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/app/api/webhooks/calendly/route",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/providers",
+        "next/server"
+      ],
+      "sourceSha256": "b43766d0f76062c8ca0bbe3584eb38e35b9b1dc2daf42e8f11c7ee62e4ace801"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/webhooks/hubspot/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/revenue-os/integration-adapters",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/providers",
+        "next/server",
+        "node:crypto"
+      ],
+      "sourceSha256": "57cfe67529d57ff0d23d29ad5f9896b29544082e1d418d8ae7292a5b806eb004"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/webhooks/resend/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/app/api/webhooks/resend/route",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/providers",
+        "next/server",
+        "resend"
+      ],
+      "sourceSha256": "1abcfe952a779d7a7896c5023d16df7a26cb6ce77c7b5880e68bbb9aba89a4ca"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/webhooks/stripe/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/revenue-os/subscriptions",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/providers",
+        "next/server"
+      ],
+      "sourceSha256": "a419651d08a6dbf2177796a425fb2ecdf1b978eb417cacb4b5d8c241558e9052"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/webhooks/whatsapp/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/revenue-os/integration-adapters",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/providers",
+        "next/server",
+        "node:crypto"
+      ],
+      "sourceSha256": "aea02cc4448ec94868b37d43611719c7ea04ab54ed6aa6f3767e2303223959d1"
+    },
+    {
+      "source": "src/app/api/public/forms/[token]/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/http/bounded-json",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/form-builder",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "8767429e52250dc2c64d3b575e49d48860bc08aadba42218096e503c31f5ea64"
+    },
+    {
+      "source": "src/app/api/qualify/calendar-viewed/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/revenue-os/pipeline",
+        "@/lib/supabase/server",
+        "next/server"
+      ],
+      "sourceSha256": "c484c115f109984ffbf048e622bee0acf8dbd576a33527b0851771b40947ed7f"
+    },
+    {
+      "source": "src/app/api/qualify/resume/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/booking",
+        "@/lib/supabase/server",
+        "next/server"
+      ],
+      "sourceSha256": "31827bef819f3b31b34824d45a19d60d489651774383256eb3a32ce9a77b9212"
+    },
+    {
+      "source": "src/app/api/qualify/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/booking",
+        "@/lib/email/sequences",
+        "@/lib/opportunities",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/inbound",
+        "@/lib/supabase/server",
+        "nanoid",
+        "next/server"
+      ],
+      "sourceSha256": "08ab08ae774f408b3266311d94243f9a867b4647475c26c350e0ed2c5af5ad27"
+    },
+    {
+      "source": "src/app/api/resource-download/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/content/lead-magnets",
+        "@/lib/email/sequences",
+        "@/lib/rate-limit",
+        "@/lib/supabase/server",
+        "@/lib/validation",
+        "next/server"
+      ],
+      "sourceSha256": "3ef43190ce00215c61e492d2d34efa72bbfc1ddb635f0e9481ce6a6cbdeea855"
+    },
+    {
+      "source": "src/app/api/revalidate/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "next/cache",
+        "next/server"
+      ],
+      "sourceSha256": "57335990132708311525981d2c4c8ffbaf1dbf2b723e47c475ec7e8b836d418b"
+    },
+    {
+      "source": "src/app/api/roadmap/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/work-board",
+        "@/lib/roadmap",
+        "@/lib/supabase/server",
+        "@/lib/validation",
+        "next/server"
+      ],
+      "sourceSha256": "8541efd97727ae3b1eb437e2c49b2ee3e0945c1178b95e875e8b3b79afb0a371"
+    },
+    {
+      "source": "src/app/api/search/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/distribution/profile",
+        "@/lib/search",
+        "@/lib/site-studio/website-public",
+        "next/server"
+      ],
+      "sourceSha256": "1bae250d098dd359cb7b895959abad4f53877e324dcfb880c52c545a7bee0b03"
+    },
+    {
+      "source": "src/app/api/send-contact-email/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/email/send",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/inbound",
+        "@/lib/supabase/server",
+        "@/lib/validation",
+        "next/server"
+      ],
+      "sourceSha256": "dc427b3b12eeee786cad47dc9efe0f6e6d6b0cf59dd2c3173af3dd0e20d39f06"
+    },
+    {
+      "source": "src/app/api/send-plan-email/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/email/send",
+        "@/lib/rate-limit",
+        "@/lib/validation",
+        "next/server"
+      ],
+      "sourceSha256": "812e4fd1b7d1cda371c1e59859e68827c6d0d2e11b80cb88e8193ed2bff4b829"
+    },
+    {
+      "source": "src/app/api/subscribe/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/rate-limit",
+        "@/lib/supabase/server",
+        "@/lib/validation",
+        "next/server"
+      ],
+      "sourceSha256": "512b9f0a2934d6f9b4cad8f33e3f2f7d6fa875360aa52125fcb5c1041f438960"
+    },
+    {
+      "source": "src/app/api/unsubscribe/[token]/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/revenue-os/public-unsubscribe",
+        "next/server"
+      ],
+      "sourceSha256": "9af6e43d7633d29e671dca42a4eb41d4f4c8f0b28fbb6594cfc0000b6ca9ec02"
+    },
+    {
+      "source": "src/app/api/webhooks/calendly/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/email/booking",
+        "@/lib/email/resend",
+        "@/lib/email/sequences",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/activities",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/campaign-stops",
+        "@/lib/revenue-os/meeting-intel-coworker",
+        "@/lib/revenue-os/pipeline",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/constants",
+        "@/lib/tenancy/context",
+        "next/server",
+        "node:crypto"
+      ],
+      "sourceSha256": "f3b830388173a4e7f30dc8d52ca3b47b708c1d38cb3b05575537085737492bc6"
+    },
+    {
+      "source": "src/app/api/webhooks/resend/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/email/resend",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/activities",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/campaign-stops",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "next/server",
+        "node:crypto",
+        "resend"
+      ],
+      "sourceSha256": "95e5527f4505b830086115f753289518909898b66b45d9d2da33e7b2eff44a22"
+    }
+  ],
+  "serverActions": [],
+  "clientWrites": [],
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -95,6 +1513,21 @@
       "sourceSha256": "fa6c3fd345c40b8ded3ece2a747c0f3adc14cd55e62980eb759e802807d6ebaf"
     },
     {
+      "source": "src/app/api/admin/blueprints/[id]/generate-operations/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/workspace-architect-generated-operations",
+        "next/server"
+      ],
+      "sourceSha256": "0b3ed795dcfa91e211ded4f69b8fadd4daacfeadb967b4839a8f6970a1419a70"
+    },
+    {
       "source": "src/app/api/admin/blueprints/[id]/route.ts",
       "handlers": [
         "GET"
@@ -102,11 +1535,12 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/revenue-os/workspace-architect-generated-operations",
         "@/lib/revenue-os/workspace-blueprint",
         "@/lib/revenue-os/workspace-blueprint-compiler",
         "next/server"
       ],
-      "sourceSha256": "0f320be38283c086d60f7bc49c8138abba4e99ca967b14c90c20bb2a7047f67f"
+      "sourceSha256": "55e534d37af37a4b8ebe48748681fe883722e2c9c7ed5d4068b4eb25dd414dff"
     },
     {
       "source": "src/app/api/admin/blueprints/route.ts",
@@ -290,6 +1724,22 @@
       "sourceSha256": "be72a39a9eda48dd24aaa9085ed351b49f89a534d1e86ccc86db782bb0e69404"
     },
     {
+      "source": "src/app/api/admin/content/commands/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/content-calendar",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "7c9a300d78875de6235f0b44fd8b8412f304bfb855a11e4a14142f69292429e1"
+    },
+    {
       "source": "src/app/api/admin/content/route.ts",
       "handlers": [
         "DELETE",
@@ -308,7 +1758,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "e53f5044795f2009c4c6276358f3476bd2d6fe675a5061409e9433177d8e1ec2"
+      "sourceSha256": "5a1103a276c845a3fd945304f11b90e3bc9d0acc857944fd0273cb25e5e14fef"
     },
     {
       "source": "src/app/api/admin/corrections/detect/route.ts",
@@ -350,7 +1800,7 @@
         "@/lib/admin/module-guard",
         "next/server"
       ],
-      "sourceSha256": "7e0d48ee096aaa52047b23e748570e89da1a7b46c0729e37fb9e1e0ee5c7a02c"
+      "sourceSha256": "e32b181321a859caa4f2d56e473ec07b5b9990c34a9f0eaea678dbcaec3d3078"
     },
     {
       "source": "src/app/api/admin/emails/preview/route.ts",
@@ -565,7 +2015,7 @@
         "@/lib/revenue-os/legacy-adapter",
         "next/server"
       ],
-      "sourceSha256": "cccb2726c649b723803094a08b45459d2f95c01299c7170a92ffa52e7a2667cf"
+      "sourceSha256": "5792e238abbe5610624ff3cd932f33618c2571aee9b11fd8b2f9e7b8b0c5638b"
     },
     {
       "source": "src/app/api/admin/integrations/route.ts",
@@ -612,7 +2062,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "f94e4ac92458b7e68c88a6b610fc82c81ba5fc52605d7251f9bc16a9c4fb8233"
+      "sourceSha256": "976266b5f66a3e8b0b7b58e5946e321a0c76ad030b910d58e7f928a5ec5f0e82"
     },
     {
       "source": "src/app/api/admin/invoicing/route.ts",
@@ -957,7 +2407,7 @@
         "@supabase/ssr",
         "next/server"
       ],
-      "sourceSha256": "dc53ffddab805408244303c6a22e09169f8260f0106d24a0d5aab7af0711b945"
+      "sourceSha256": "bb099e845be631686d48927bf313f0319ca0b83274abd86cfae2ce58a227366a"
     },
     {
       "source": "src/app/api/admin/plausible/route.ts",
@@ -1162,7 +2612,7 @@
         "@/lib/revenue-os/tool-profiles",
         "next/server"
       ],
-      "sourceSha256": "6f7ac4fefdbf00690a036eba905643d7406beb4cb3bba458e703236b73a64655"
+      "sourceSha256": "4c047cfd593dbaf62b455793977346269e17210c35d159fe508618a88fa4c91c"
     },
     {
       "source": "src/app/api/admin/revenue-os/ai/conversations/[id]/context/route.ts",
@@ -1310,10 +2760,10 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/analytics",
-        "@/lib/revenue-os/db",
+        "@/lib/revenue-os/reporting-contract",
         "next/server"
       ],
-      "sourceSha256": "962c2a65c89ea76b6445bf99c94f8f555d4759bd4410f0d961b2028fd0818d1e"
+      "sourceSha256": "a9eccf55883d3be5a4d65000b5396dffcc729406d30f1dcc7a3efd55b9641481"
     },
     {
       "source": "src/app/api/admin/revenue-os/campaigns/members/route.ts",
@@ -1678,9 +3128,11 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/admin/workspace-search",
+        "@/lib/revenue-os/modules",
         "next/server"
       ],
-      "sourceSha256": "24e2a8ca883dc636b2650d2019bfc5845a51723cd49727e6a52737d090540f6d"
+      "sourceSha256": "a7fd22ebdda774de0d270add813928633495a09741cfb2fc2ac6013356182ee9"
     },
     {
       "source": "src/app/api/admin/send-email/route.ts",
@@ -1734,6 +3186,19 @@
         "next/server"
       ],
       "sourceSha256": "f8418e1833464d34dbcb16316986faa252b85d331627d1417f4e66ec64d352f4"
+    },
+    {
+      "source": "src/app/api/admin/setup/release/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/core-release.mjs",
+        "next/server"
+      ],
+      "sourceSha256": "8c9d82bea129f9065967ce040a2a3d06a7947a1906ece68017678c1e81c6d5d8"
     },
     {
       "source": "src/app/api/admin/setup/route.ts",
@@ -1796,10 +3261,9 @@
         "@/lib/site-studio/database-store",
         "@/lib/site-studio/drafts",
         "@/lib/site-studio/revision",
-        "next/server",
-        "zod"
+        "next/server"
       ],
-      "sourceSha256": "d1b109ec287325688acdd544984e10a0d91a0742dd5be50af106ce2950317692"
+      "sourceSha256": "f7e547c8e1baf242021191bb7e4e934ff1dba0707c3b205795901a09b3888f74"
     },
     {
       "source": "src/app/api/admin/site/drafts/[id]/sections/route.ts",
@@ -1837,15 +3301,12 @@
         "@/lib/admin/module-guard",
         "@/lib/rate-limit",
         "@/lib/site-studio/database-store",
-        "@/lib/site-studio/document",
         "@/lib/site-studio/drafts",
         "@/lib/site-studio/generate",
-        "@/lib/site-studio/models",
         "@/lib/site-studio/openrouter-adapter",
-        "next/server",
-        "zod"
+        "next/server"
       ],
-      "sourceSha256": "38ece6df30f16a0f108d76702b6bf75b340fd8616d2477b561c0c3cc78cd1579"
+      "sourceSha256": "a3f163bcf2b4db06fd18c711da058cee46c61ec0161163e823101be85c53e717"
     },
     {
       "source": "src/app/api/admin/site/models/route.ts",
@@ -1897,7 +3358,7 @@
         "@/lib/site-studio/website-store",
         "next/server"
       ],
-      "sourceSha256": "f45ad05f4f39f1d62fe55f328fe7a354d29c2e4af8eb15bd3e34f6b0ff8e46f4"
+      "sourceSha256": "0012a5f62a698e1e605226b5ac7ad1795a6f919aba971febe5c3143df87b293c"
     },
     {
       "source": "src/app/api/admin/social-history/route.ts",
@@ -1946,6 +3407,22 @@
         "zod"
       ],
       "sourceSha256": "3ed15ebef11c14c15ca17526cf2e03f1296cafb4090cbb20bb83593f6864a57c"
+    },
+    {
+      "source": "src/app/api/admin/source-authority/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/source-authority",
+        "next/server"
+      ],
+      "sourceSha256": "af5a44fb2059eb2beb6cab547e6b443c53368aed68665f855c2c4aaf5567c8a7"
     },
     {
       "source": "src/app/api/admin/subscribers/export/route.ts",

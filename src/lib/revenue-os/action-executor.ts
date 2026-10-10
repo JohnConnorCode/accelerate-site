@@ -1,3 +1,4 @@
+import { withActionCommandContext } from "./platform-command-context";
 import { taskReviewStateSchema } from "./operator-task-patch";
 import { executeCollectionPolicy } from "./collection-policy";
 import { executeWorkspaceConfiguration } from "./workspace-configuration";
@@ -47,7 +48,7 @@ import {
 } from "./tasks";
 import { applyLayoutChange } from "./admin-layout";
 import { captureFounderNote } from "./notes";
-import { executeContentCalendarUpdate } from "./content-calendar";
+import { executeContentCalendarUpdate, executeContentCalendarCommand } from "./content-calendar";
 
 function stringValue(
   payload: Record<string, unknown>,
@@ -63,6 +64,29 @@ function stringValue(
 export const APPROVABLE_ACTIONS = ACTION_REVERSIBILITY.map((entry) => entry.actionType);
 
 export async function approveAndExecuteAction(
+  supabase: SupabaseClient,
+  id: string,
+  actorEmail: string,
+  options?: { mode?: "approved" | "autonomous"; requesterId?: string },
+) {
+  return withActionCommandContext(supabase, id, actorEmail, async (privateCommand) => {
+    if (privateCommand && options?.mode === "autonomous") {
+      await denyAction(
+        supabase,
+        id,
+        {
+          code: "private_command_requires_approval",
+          reason: "Private commands require exact human approval",
+        },
+        "pending",
+      );
+      throw new Error("Private commands require exact human approval");
+    }
+    return executeApprovedAction(supabase, id, actorEmail, options);
+  });
+}
+
+async function executeApprovedAction(
   supabase: SupabaseClient,
   id: string,
   actorEmail: string,
@@ -220,6 +244,11 @@ export async function approveAndExecuteAction(
         result = await executeContentCalendarUpdate(supabase, payload, actorEmail);
         break;
       }
+      case "content_calendar_change": {
+        if (mode !== "approved") throw new Error("Content calendar changes require human approval");
+        result = await executeContentCalendarCommand(supabase, payload, actorEmail);
+        break;
+      }
       case "today_view_change": {
         if (mode !== "approved") throw new Error("Today view changes require human approval");
         result = await executeTodayViewChange(supabase, payload);
@@ -245,6 +274,7 @@ export async function approveAndExecuteAction(
       case "bootstrap_coworker":
       case "store_agent_memory":
       case "record_learned_policy":
+      case "register_source_authority":
       case "approve_learning": {
         if (mode !== "approved")
           throw new Error("Runtime configuration and memory changes require human approval");
@@ -301,13 +331,12 @@ export async function approveAndExecuteAction(
         if (contactId) {
           const { data: contact, error: contactError } = await supabase
             .from("contacts")
-            .select("id,unsubscribed")
+            .select("id,communication_status")
             .eq("id", contactId)
             .maybeSingle();
           if (contactError) throw new Error(contactError.message);
-          if (contact && contact.unsubscribed) {
-            throw new Error("Cannot send email: contact has unsubscribed");
-          }
+          if (!contact || contact.communication_status !== "active")
+            throw new Error("Cannot send email: contact is unavailable or suppressed");
         }
         result = await sendRecordedEmail(supabase, {
           to: stringValue(payload, "to")!,

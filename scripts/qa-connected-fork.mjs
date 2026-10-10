@@ -7,6 +7,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 const mode = process.argv[2];
 const ownerEmail = "founder@local.test";
 const base = "http://localhost:3000";
+const resetCallback = new URL("/auth/callback", base);
+resetCallback.searchParams.set("next", "/admin/update-password");
 
 if (mode === "diagnose-native") {
   const path = process.argv[3];
@@ -31,6 +33,12 @@ if (mode === "diagnose-native") {
   assert.equal(root, `${process.env.RUNNER_TEMP}/fork-connected-ci`);
   const path = `${root}/supabase/config.toml`;
   let config = await readFile(path, "utf8");
+  config = config
+    .replace(/^site_url = .*$/m, `site_url = "${base}"`)
+    .replace(
+      /^additional_redirect_urls = .*$/m,
+      `additional_redirect_urls = ${JSON.stringify([`${base}/auth/callback`, resetCallback.href])}`,
+    );
   config = config.replace(/(\[auth\.oauth_server\][\s\S]*?)(?=\n\[|$)/, (block) =>
     block
       .replace(/^enabled = false$/m, "enabled = true")
@@ -91,6 +99,11 @@ if (mode === "diagnose-native") {
   console.log("Prepared isolated fictional fork configuration");
 } else if (mode === "run") {
   process.loadEnvFile(".env.local");
+  assert.equal(process.env.SUPABASE_PROJECT_REF, "fork-connected-ci");
+  assert.equal(process.env.NEXT_PUBLIC_SUPABASE_URL, "http://127.0.0.1:54321");
+  assert.equal(process.env.SUPABASE_DB_HOST, "127.0.0.1");
+  assert.equal(process.env.ADMIN_EMAIL, ownerEmail);
+  assert.ok(!process.env.RESEND_API_KEY, "Native recovery must use local mail capture only");
   const { chromium } = await import("playwright");
   const output = process.env.RUNNER_TEMP
     ? `${process.env.RUNNER_TEMP}/accelerate-connected-fork`
@@ -104,6 +117,45 @@ if (mode === "diagnose-native") {
   );
   let browser;
   const checks = [];
+  let currentPassword = process.env.SETUP_OWNER_PASSWORD;
+  const mailBase = "http://127.0.0.1:54324";
+  async function mail(path) {
+    const response = await fetch(`${mailBase}/api/v1/${path}`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    assert.ok(response.ok, "Isolated Mailpit must be available");
+    return response.json();
+  }
+  async function capturedResetLink(existingIds) {
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const { messages } = await mail("messages");
+      const message = messages.find(
+        (item) =>
+          !existingIds.has(item.ID) &&
+          item.To.some((recipient) => recipient.Address === ownerEmail) &&
+          /reset/i.test(item.Subject),
+      );
+      if (message) {
+        const body = await mail(`message/${encodeURIComponent(message.ID)}`);
+        const hrefs = [...body.HTML.matchAll(/href="([^"]+)"/g)];
+        const link = hrefs
+          .map((match) => match[1].replaceAll("&amp;", "&"))
+          .find((href) => {
+            const url = new URL(href);
+            return (
+              url.origin === process.env.NEXT_PUBLIC_SUPABASE_URL &&
+              url.pathname === "/auth/v1/verify" &&
+              url.searchParams.get("type") === "recovery" &&
+              url.searchParams.get("redirect_to") === resetCallback.href
+            );
+          });
+        assert.ok(link, "Captured email must contain the exact isolated recovery callback");
+        return link;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    throw new Error("Native reset email was not captured within 15 seconds");
+  }
   try {
     let ready = false;
     for (let attempt = 0; attempt < 120; attempt++) {
@@ -136,7 +188,7 @@ if (mode === "diagnose-native") {
         page.on("pageerror", (error) => pageErrors.push(error.message));
         await page.goto(`${base}/admin/login`);
         await page.getByLabel("Email", { exact: true }).fill(ownerEmail);
-        await page.getByLabel("Password", { exact: true }).fill(process.env.SETUP_OWNER_PASSWORD);
+        await page.getByLabel("Password", { exact: true }).fill(currentPassword);
         await page.getByRole("button", { name: "Sign in", exact: true }).click();
         await page.waitForURL(
           (url) => url.pathname.includes("/admin") && !url.pathname.includes("/login"),
@@ -188,9 +240,13 @@ if (mode === "diagnose-native") {
         const taskTitle = `Call ${name} about trial`;
         await taskDialog.getByLabel("What needs to happen?").fill(taskTitle);
         await taskDialog.getByRole("button", { name: "Add task" }).click();
+        // The dialog closes only after the API confirms persistence. Reloading
+        // sooner can cancel the save rather than test a saved task.
+        await taskDialog.waitFor({ state: "hidden" });
         await page.reload();
         await page.locator("[data-contact-timeline-item]").getByText(taskTitle).waitFor();
         checks.push(`${label}-linked-task-persists`);
+        const recordUrl = page.url();
         await page.screenshot({ path: `${output}/${label}-contact-task.png`, fullPage: true });
 
         if (label === "mobile") await page.getByRole("button", { name: "Open More" }).click();
@@ -199,6 +255,73 @@ if (mode === "diagnose-native") {
         await page.goto(`${base}/admin/contacts`);
         await page.waitForURL((url) => url.pathname.includes("/login"));
         checks.push(`${label}-sign-out-protects-workspace`);
+
+        const existingMail = new Set((await mail("messages")).messages.map((item) => item.ID));
+        await page.getByRole("button", { name: "Forgot password?" }).click();
+        await page.getByLabel("Email", { exact: true }).fill(ownerEmail);
+        const resetResponse = page.waitForResponse(
+          (response) => response.url() === `${base}/api/admin/password-reset`,
+        );
+        await page.getByRole("button", { name: "Send reset link" }).focus();
+        await page.keyboard.press("Enter");
+        assert.equal((await resetResponse).status(), 200, "Native reset request must succeed");
+        await page
+          .getByRole("status")
+          .getByText("Check your email for a password reset link.")
+          .waitFor();
+        assert.ok(
+          (await context.cookies()).some((cookie) => cookie.name.includes("code-verifier")),
+        );
+        const resetLink = await capturedResetLink(existingMail);
+        await page.goto(resetLink);
+        await page.waitForURL((url) => url.pathname === "/admin/update-password");
+        const oldPassword = currentPassword;
+        currentPassword = randomBytes(24).toString("base64url");
+        await page.getByLabel("New password", { exact: true }).fill(currentPassword);
+        await page.getByLabel("Confirm password", { exact: true }).fill(currentPassword);
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+        await page.screenshot({ path: `${output}/${label}-password-recovery.png` });
+        await page.getByRole("button", { name: "Update password", exact: true }).click();
+        await page.waitForURL(
+          (url) => url.pathname.includes("/admin") && !url.pathname.includes("update-password"),
+        );
+        await page.goto(recordUrl);
+        await page.locator("[data-contact-timeline-item]").getByText(taskTitle).waitFor();
+        checks.push(`${label}-native-email-pkce-password-update-retains-records`);
+
+        if (label === "mobile") await page.getByRole("button", { name: "Open More" }).click();
+        await page.getByRole("button", { name: "Sign out" }).click();
+        await page.waitForURL((url) => url.pathname === "/admin/login");
+        await page.getByLabel("Email", { exact: true }).fill(ownerEmail);
+        await page.getByLabel("Password", { exact: true }).fill(oldPassword);
+        await page.getByRole("button", { name: "Sign in", exact: true }).click();
+        await page.getByRole("alert").waitFor();
+        assert.equal(new URL(page.url()).pathname, "/admin/login");
+        checks.push(`${label}-old-password-rejected`);
+        await page.getByLabel("Password", { exact: true }).fill(currentPassword);
+        await page.getByRole("button", { name: "Sign in", exact: true }).click();
+        await page.waitForURL(
+          (url) => url.pathname.includes("/admin") && !url.pathname.includes("/login"),
+        );
+        await page.goto(recordUrl);
+        await page.locator("[data-contact-timeline-item]").getByText(taskTitle).waitFor();
+        checks.push(`${label}-new-password-sign-in-retains-records`);
+        if (label === "mobile") await page.getByRole("button", { name: "Open More" }).click();
+        await page.getByRole("button", { name: "Sign out" }).click();
+        await page.waitForURL((url) => url.pathname === "/admin/login");
+        await page.goto(resetLink);
+        await page.waitForURL(
+          (url) =>
+            url.pathname === "/admin/login" && url.searchParams.get("error") === "reset_failed",
+        );
+        await page.getByRole("heading", { name: "Reset your password", exact: true }).waitFor();
+        await page
+          .getByRole("alert")
+          .getByText(/expired or was invalid/)
+          .waitFor();
+        await page.getByRole("button", { name: "Send reset link" }).focus();
+        await page.screenshot({ path: `${output}/${label}-replayed-reset-link.png` });
+        checks.push(`${label}-replayed-email-refused-with-reset-guidance`);
         assert.deepEqual(pageErrors, [], `${label} must not have uncaught browser errors`);
       } finally {
         await context.close();
@@ -213,7 +336,8 @@ if (mode === "diagnose-native") {
       limitations: [
         "No hosted Supabase project",
         "No human installer",
-        "No password-reset or restore proof",
+        "No hosted SMTP delivery or human account recovery",
+        "No backup/restore proof",
       ],
     };
     await writeFile(`${output}/receipt.json`, JSON.stringify(receipt, null, 2) + "\n");

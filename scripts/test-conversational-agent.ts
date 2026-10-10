@@ -22,9 +22,126 @@ import { withDemoInference, demoSession } from "../src/lib/admin/demo/agent-infe
 import { handleMcpRequest } from "../src/lib/revenue-os/mcp-server";
 import { createDemoBusinessState } from "../src/lib/admin/demo/business-runtime";
 import { seedDemoCollections } from "../src/lib/admin/demo/collections-runtime";
+import { installAdminDemoRuntime } from "../src/lib/admin/demo/runtime";
+import type { AiRunDetailPayload } from "../src/lib/revenue-os/ai-operations-contract";
 import { DEMO_SCENARIOS } from "../src/lib/admin/demo/scenarios";
 import type { OpenRouterResponse } from "../src/lib/ai/openrouter";
 import type { WorkItem } from "../src/lib/revenue-os/work-items";
+
+async function testDemoRunHistory() {
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "sessionStorage");
+  const storage = new Map<string, string>();
+  Object.defineProperty(globalThis, "sessionStorage", {
+    configurable: true,
+    value: {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+      removeItem: (key: string) => storage.delete(key),
+    },
+  });
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      location: { origin: "https://demo.example", reload: () => {} },
+      open: () => null,
+      dispatchEvent: () => true,
+      fetch: async (path: RequestInfo | URL, init?: RequestInit) => {
+        assert.equal(path, "/api/demo/agent", "Only sandbox inference may leave the runtime");
+        const withTools = JSON.parse(String(init?.body)).text === "Read records";
+        return Response.json({
+          runId: randomUUID(),
+          text: withTools ? "Some evidence was unavailable." : "Which contact should I review?",
+          status: withTools ? "partial" : "completed",
+          model: "controlled-model",
+          toolNames: withTools ? ["get_today_snapshot", "search_contacts"] : [],
+          usage: { inputTokens: null, outputTokens: null, durationMs: 5 },
+          proposals: [],
+          events: withTools
+            ? [
+                { type: "tool_started", name: "get_today_snapshot", index: 0 },
+                {
+                  type: "tool_completed",
+                  name: "get_today_snapshot",
+                  index: 0,
+                  failed: true,
+                  summary: "The controlled read failed.",
+                },
+                { type: "tool_started", name: "search_contacts", index: 1 },
+                {
+                  type: "tool_completed",
+                  name: "search_contacts",
+                  index: 1,
+                  failed: false,
+                  summary: "Read bounded fictional records",
+                },
+              ]
+            : [],
+        });
+      },
+    },
+  });
+  let runtime = installAdminDemoRuntime("northline-roofing");
+  const detail = async (id: string): Promise<AiRunDetailPayload> =>
+    (await window.fetch(`/api/admin/revenue-os/ai/runs/${id}`)).json();
+  const ask = async (text: string) => {
+    const response = await window.fetch("/api/admin/revenue-os/ai/stream", {
+      method: "POST",
+      body: JSON.stringify({ text, clientMessageId: randomUUID() }),
+    });
+    assert.equal(response.status, 200);
+    const events = (await response.text())
+      .trim()
+      .split("\n\n")
+      .map((line) => JSON.parse(line.slice(6)));
+    return events.find((event) => event.type === "final").runId as string;
+  };
+  try {
+    const plainId = await ask("Clarify");
+    const plain = await detail(plainId);
+    assert.equal(plain.degraded, false);
+    assert.deepEqual(
+      plain.events.map((event) => event.type),
+      ["model_response"],
+    );
+    assert.deepEqual(plain.affectedRecords, [], "A run ID cannot imply an affected opportunity");
+
+    const toolsId = await ask("Read records");
+    const tools = await detail(toolsId);
+    assert.deepEqual(
+      tools.events.map((event) => event.type),
+      ["tool_started", "tool_error", "tool_started", "tool_result", "model_response"],
+    );
+    assert.equal(tools.events[1]!.status, "failed");
+    assert.equal(tools.events[1]!.summary, "The controlled read failed.");
+    assert.equal(tools.events[3]!.status, "completed");
+    assert.deepEqual(tools.affectedRecords, []);
+
+    runtime.restore();
+    runtime = installAdminDemoRuntime("northline-roofing");
+    assert.deepEqual((await detail(toolsId)).events, tools.events, "Trace survives reload");
+    runtime.restore();
+    const key = "accelerate:admin-demo:northline-roofing:v3";
+    const saved = JSON.parse(storage.get(key)!);
+    for (const run of saved.generatedAiRuns) delete run.traceEvents;
+    storage.set(key, JSON.stringify(saved));
+    runtime = installAdminDemoRuntime("northline-roofing");
+    const legacy = await detail(plainId);
+    assert.equal(legacy.degraded, true, "Legacy runs must disclose missing trace evidence");
+    assert.ok(legacy.degradationReasons.length);
+    assert.deepEqual(
+      legacy.events.map((event) => event.type),
+      ["model_response"],
+    );
+    assert.deepEqual(legacy.affectedRecords, []);
+  } finally {
+    runtime.restore();
+    if (originalWindow) Object.defineProperty(globalThis, "window", originalWindow);
+    else Reflect.deleteProperty(globalThis, "window");
+    if (originalStorage) Object.defineProperty(globalThis, "sessionStorage", originalStorage);
+    else Reflect.deleteProperty(globalThis, "sessionStorage");
+  }
+}
 async function main() {
   const tenantId = randomUUID(),
     userId = randomUUID(),
@@ -443,6 +560,7 @@ async function main() {
   );
   assert.equal(held.proposals.length, 0);
   assert.ok(held.events.some((event) => event.type === "tool_completed" && event.failed));
+  await testDemoRunHistory();
   for (const name of [
     "preview_agent_work",
     "start_agent_work",

@@ -1,4 +1,14 @@
 import "server-only";
+import { MAX_TOOL_RESULT_CONTEXT_CHARS } from "./ai-context";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
+import { isModuleEnabled } from "./modules";
+import { isMissingRevenueSchema } from "./db";
+import {
+  analyticsFiltersSchema,
+  analyticsReportInputSchema,
+  revenueReportInputSchema,
+  reportExportInputSchema,
+} from "./reporting-contract";
 import { pipelineMetrics } from "./pipeline-metrics";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -18,6 +28,7 @@ type WebsiteEvent = {
   utm_medium: string | null;
   utm_campaign: string | null;
   referrer_host: string | null;
+  created_at?: string;
 };
 
 const percentage = (numerator: number, denominator: number) =>
@@ -37,17 +48,24 @@ export async function loadRevenueAnalytics(
 ) {
   const filters = typeof input === "number" ? { days: input } : input;
   const since = new Date(Date.now() - filters.days * 86400000).toISOString();
-  const [{ data, error }, stages] = await Promise.all([
+  const [{ data, error, count }, stages] = await Promise.all([
     supabase
       .from("opportunities")
       .select(
         "id,stage,source,source_detail,campaign_id,owner_email,next_action,next_action_at,estimated_value,won_value,probability,created_at",
+        { count: "exact" },
       )
+      .eq("tenant_id", tenantId)
       .gte("created_at", since)
-      .limit(2000),
-    loadPipelineStages(supabase, tenantId),
+      .order("id")
+      .limit(2001),
+    loadPipelineStages(supabase, tenantId, { requireComplete: true }),
   ]);
   if (error) throw new Error(error.message);
+  if (!Array.isArray(data) || count === null || count !== data.length || count > 2000)
+    throw new Error(
+      "Complete opportunity analytics unavailable: reporting limit or incomplete source",
+    );
   const allOpportunities = data ?? [];
   const allIds = allOpportunities.map((item) => item.id);
   const stageEventsResult = allIds.length
@@ -79,7 +97,8 @@ export async function loadRevenueAnalytics(
     stageEventsResult.error ? undefined : stageEventsByOpportunity,
     stageEventsResult.error
       ? "unavailable"
-      : (stageEventsResult.count ?? 0) > (stageEventsResult.data?.length ?? 0) ||
+      : !Number.isInteger(stageEventsResult.count) ||
+          (stageEventsResult.count ?? 0) > (stageEventsResult.data?.length ?? 0) ||
           (stageEventsResult.data?.length ?? 0) >= 20000
         ? "truncated"
         : "complete",
@@ -88,20 +107,29 @@ export async function loadRevenueAnalytics(
   const conversations = opportunityIds.length
     ? await supabase
         .from("conversations")
-        .select("id")
+        .select("id", { count: "exact" })
         .in("opportunity_id", opportunityIds)
-        .limit(2000)
-    : { data: [], error: null };
-  let communication: ReturnType<typeof summarizeReplySignals> & {
+        .limit(2001)
+    : { data: [], error: null, count: 0 };
+  let communication: Omit<
+    ReturnType<typeof summarizeReplySignals>,
+    "inboundConversations" | "repliedConversations"
+  > & {
+    inboundConversations: number | null;
+    repliedConversations: number | null;
     status: "ready" | "degraded";
     reason?: string;
   };
-  if (conversations.error) {
+  if (
+    conversations.error ||
+    conversations.count !== conversations.data?.length ||
+    (conversations.data?.length ?? 0) > 2000
+  ) {
     communication = {
       status: "degraded",
-      reason: "Conversation analytics are unavailable.",
-      inboundConversations: 0,
-      repliedConversations: 0,
+      reason: "Conversation analytics could not be read completely.",
+      inboundConversations: null,
+      repliedConversations: null,
       replyRate: null,
       medianResponseHours: null,
     };
@@ -110,20 +138,23 @@ export async function loadRevenueAnalytics(
     const messages = conversationIds.length
       ? await supabase
           .from("messages")
-          .select("conversation_id,direction,created_at,sent_at,received_at")
+          .select("conversation_id,direction,created_at,sent_at,received_at", { count: "exact" })
           .in("conversation_id", conversationIds)
-          .limit(10000)
-      : { data: [], error: null };
-    communication = messages.error
-      ? {
-          status: "degraded",
-          reason: "Message analytics are unavailable.",
-          inboundConversations: 0,
-          repliedConversations: 0,
-          replyRate: null,
-          medianResponseHours: null,
-        }
-      : { status: "ready", ...summarizeReplySignals(messages.data ?? []) };
+          .limit(10001)
+      : { data: [], error: null, count: 0 };
+    communication =
+      messages.error ||
+      messages.count !== messages.data?.length ||
+      (messages.data?.length ?? 0) > 10000
+        ? {
+            status: "degraded",
+            reason: "Message analytics could not be read completely.",
+            inboundConversations: null,
+            repliedConversations: null,
+            replyRate: null,
+            medianResponseHours: null,
+          }
+        : { status: "ready", ...summarizeReplySignals(messages.data ?? []) };
   }
   const impossibleStageSequences = stageEventsResult.error
     ? null
@@ -536,13 +567,21 @@ const isConversion = (name: string) => name !== "page_view" && !isEngagement(nam
 
 /** First-party website analytics. This is intentionally separate from revenue truth. */
 export async function loadWebsiteAnalytics(supabase: SupabaseClient, days: number) {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Website analytics require a tenant-bound database");
   const since = new Date(Date.now() - days * 86400000).toISOString();
-  const { data, error } = await supabase
+  const { data, error, count } = await supabase
     .from("website_events")
-    .select("event_name,path,visitor_id,utm_source,utm_medium,utm_campaign,referrer_host")
+    .select(
+      "event_name,path,visitor_id,utm_source,utm_medium,utm_campaign,referrer_host,created_at",
+      { count: "exact" },
+    )
+    .eq("tenant_id", tenantId)
     .gte("created_at", since)
-    .limit(10000);
+    .limit(10001);
   if (error) throw new Error(error.message);
+  if (!Array.isArray(data) || count === null || count !== data.length || count > 10000)
+    throw new Error("Complete website analytics unavailable: reporting limit or incomplete source");
   const events = (data ?? []) as WebsiteEvent[];
   const pageViews = events.filter((event) => event.event_name === "page_view");
   const conversions = events.filter((event) => isConversion(event.event_name));
@@ -571,6 +610,228 @@ export async function loadWebsiteAnalytics(supabase: SupabaseClient, days: numbe
     sources: ranked(sources),
     conversionEvents: ranked(conversionNames),
     eventCount: events.length,
-    lastCapturedAt: events.length ? new Date().toISOString() : null,
+    lastCapturedAt: events.reduce<string | null>((last, event) => {
+      if (!event.created_at || !Number.isFinite(Date.parse(event.created_at))) return last;
+      return !last || Date.parse(event.created_at) > Date.parse(last) ? event.created_at : last;
+    }, null),
   };
+}
+
+async function readWebsiteAnalyticsSource(database: SupabaseClient, days: number) {
+  try {
+    return await loadWebsiteAnalytics(database, days);
+  } catch (error) {
+    console.warn("Website analytics source unavailable", {
+      errorType: error instanceof Error ? error.name : "UnknownError",
+    });
+    return {
+      status: "degraded" as const,
+      reason:
+        "Website analytics could not be read completely. Check event storage and reporting limits.",
+      pageViews: null,
+      visitors: null,
+      conversions: null,
+      engagementEvents: null,
+      conversionRate: null,
+      topPages: [],
+      sources: [],
+      conversionEvents: [],
+      eventCount: null,
+      lastCapturedAt: null,
+    };
+  }
+}
+
+/** One dashboard read adapter for HTTP, Ask AI, and MCP. */
+export async function loadDashboardAnalytics(
+  database: SupabaseClient,
+  tenantId: string,
+  raw: unknown,
+) {
+  const filters = analyticsFiltersSchema.parse(raw);
+  try {
+    const revenue = await loadRevenueAnalytics(database, tenantId, filters);
+    return {
+      schemaReady: true as const,
+      ...revenue,
+      web: await readWebsiteAnalyticsSource(database, filters.days),
+    };
+  } catch (error) {
+    if (isMissingRevenueSchema(error))
+      return { schemaReady: false as const, funnel: null, sources: [], web: null };
+    throw error;
+  }
+}
+
+async function reportingWorkspace(database: SupabaseClient, moduleId: "revenue" | "analytics") {
+  const tenantId = tenantIdForDatabase(database);
+  if (!tenantId) throw new Error("Reports require a tenant-bound database");
+  const { data, error } = await database
+    .from("tenants")
+    .select("status,config")
+    .eq("id", tenantId)
+    .maybeSingle();
+  if (error || data?.status !== "active" || !isModuleEnabled(moduleId, data.config))
+    throw new Error(`The ${moduleId} module is unavailable for this workspace`);
+  return tenantId;
+}
+
+function reportPage<T>(rows: T[], offset: number, limit: number) {
+  return {
+    offset,
+    limit,
+    rows: rows.slice(offset, offset + limit),
+    totalRows: rows.length,
+    nextOffset: offset + limit < rows.length ? offset + limit : null,
+    truncated: offset > 0 || offset + limit < rows.length,
+  };
+}
+
+/** A narrow section keeps full, exact facts inside the model's existing evidence budget. */
+function boundedReport<T>(report: T): T {
+  if (JSON.stringify(report).length > MAX_TOOL_RESULT_CONTEXT_CHARS)
+    throw new Error(
+      "This report section exceeds the evidence limit. Choose a narrower section, fewer rows or more specific filters.",
+    );
+  return report;
+}
+
+export async function readRevenueReport(database: SupabaseClient, raw: unknown) {
+  const input = revenueReportInputSchema.parse(raw);
+  const tenantId = await reportingWorkspace(database, "revenue");
+  const report = await loadRevenueReport(database, tenantId);
+  const { byClient, industryBreakdown, mrrTimeline, dispositions, ...summary } = report;
+  const data =
+    input.section === "clients"
+      ? reportPage(byClient, input.offset, input.limit)
+      : input.section === "industries"
+        ? reportPage(industryBreakdown, input.offset, input.limit)
+        : input.section === "timeline"
+          ? reportPage(mrrTimeline, input.offset, input.limit)
+          : input.section === "definitions"
+            ? reportPage(dispositions, input.offset, input.limit)
+            : summary;
+  return boundedReport({
+    report: "revenue",
+    section: input.section,
+    status: "ready",
+    observedAt: new Date().toISOString(),
+    period: "Current recorded contracts and opportunity state; not a historical payment ledger",
+    definitions:
+      "Contract values, accepted proposal values, recorded won values and forecasts are separate. These are not collected payments. Currency units follow the source records; no conversion is applied.",
+    source: { service: "revenue-os.analytics", adminPath: "/admin/revenue", complete: true },
+    data,
+  });
+}
+
+export async function readAnalyticsReport(database: SupabaseClient, raw: unknown) {
+  const input = analyticsReportInputSchema.parse(raw);
+  const tenantId = await reportingWorkspace(database, "analytics");
+  const { section, offset, limit, ...filters } = input;
+  if (section === "website") {
+    if (filters.source || filters.owner || filters.campaign || filters.stage)
+      throw new Error(
+        "Website reports support days only. Source, owner, campaign and stage filters apply to opportunities.",
+      );
+    const data = await readWebsiteAnalyticsSource(database, filters.days);
+    return boundedReport({
+      report: "analytics",
+      section,
+      status: data.status,
+      observedAt: new Date().toISOString(),
+      filters: { days: filters.days },
+      definitions:
+        "Website events captured in this window. Opportunity filters do not apply to this source.",
+      source: {
+        service: "revenue-os.analytics",
+        adminPath: "/admin/analytics",
+        complete: data.status === "ready",
+      },
+      data,
+    });
+  }
+  const report = await loadDashboardAnalytics(database, tenantId, filters);
+  if (!report.schemaReady)
+    return {
+      report: "analytics",
+      section,
+      status: "unavailable",
+      data: null,
+      reason:
+        "Canonical reporting storage is unavailable. Complete the installation setup before retrying.",
+      source: { service: "revenue-os.analytics", adminPath: "/admin/analytics", complete: false },
+    };
+  const { filterOptions, sources, web, funnel, forecast, quality, communication, ...overview } =
+    report;
+  const data =
+    section === "funnel"
+      ? { funnel }
+      : section === "forecast"
+        ? forecast
+        : section === "quality"
+          ? { quality, communication }
+          : section === "sources"
+            ? reportPage(sources, offset, limit)
+            : section === "filters"
+              ? Object.fromEntries(
+                  Object.entries(filterOptions).map(([key, rows]) => [
+                    key,
+                    reportPage(rows, offset, limit),
+                  ]),
+                )
+              : { ...overview, funnel, forecast };
+  const degraded =
+    quality.stageHistory.inputStatus !== "complete" ||
+    communication.status !== "ready" ||
+    web.status !== "ready";
+  return boundedReport({
+    report: "analytics",
+    section,
+    status: degraded ? "degraded" : "ready",
+    observedAt: new Date().toISOString(),
+    filters,
+    definitions:
+      "Creation-window opportunity cohort. Forecasts are estimates; recorded won value is not cash collected. History-derived metrics may use disclosed fallbacks. Website and communication sources are separate.",
+    source: {
+      service: "revenue-os.analytics",
+      adminPath: "/admin/analytics",
+      complete: !degraded,
+      primaryComplete: true,
+    },
+    quality: {
+      stageHistory: quality.stageHistory.inputStatus,
+      communication: communication.status,
+      website: web.status,
+    },
+    data,
+  });
+}
+
+/** Exports the exact returned section/page. Clients may save it; no public artifact or external effect. */
+export function exportReportingResult(report: unknown, raw: unknown) {
+  const { format } = reportExportInputSchema.parse(raw);
+  const rows: [string, unknown][] = [];
+  function flatten(value: unknown, path: string) {
+    if (value !== null && typeof value === "object") {
+      for (const [key, child] of Object.entries(value))
+        flatten(child, path ? `${path}.${key}` : key);
+    } else rows.push([path, value]);
+  }
+  flatten(report, "");
+  const cell = (value: unknown) => {
+    let text = value == null ? "" : String(value);
+    if (typeof value === "string" && /^[\s]*[=+\-@]/.test(text)) text = `'${text}`;
+    return `"${text.replaceAll('"', '""')}"`;
+  };
+  const contents =
+    format === "json"
+      ? JSON.stringify(report)
+      : ["field,value", ...rows.map(([key, value]) => `${cell(key)},${cell(value)}`)].join("\r\n");
+  return boundedReport({
+    format,
+    mimeType: format === "json" ? "application/json" : "text/csv",
+    contents,
+    scope:
+      "The requested report section/page, including its filters, quality and continuation metadata",
+  });
 }

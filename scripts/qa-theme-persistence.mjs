@@ -94,8 +94,10 @@ try {
     );
     assert.equal(await demo.locator("html").getAttribute("data-theme"), "dark");
     if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
-    const recordsSection = demo.locator('section[data-nav-section="Records"]:visible').first();
-    const records = recordsSection.getByRole("button", { name: "Expand Records links" });
+    const recordsSection = demo
+      .locator('section[data-nav-section="Customers & sales"]:visible')
+      .first();
+    const records = recordsSection.getByRole("button", { name: "Expand Customers & sales links" });
     if (await records.count()) await records.click();
     await recordsSection.getByRole("link", { name: "Pipeline", exact: true }).click();
     await demo.getByRole("heading", { name: "Pipeline", exact: true }).waitFor();
@@ -146,9 +148,11 @@ try {
     );
     if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
     const conversationsSection = demo
-      .locator('section[data-nav-section="Conversations"]:visible')
+      .locator('section[data-nav-section="Messages & marketing"]:visible')
       .first();
-    await conversationsSection.getByRole("link", { name: "Conversations", exact: true }).click();
+    await conversationsSection
+      .getByRole("link", { name: "Messages & marketing", exact: true })
+      .click();
     await demo.getByRole("heading", { name: "Conversations", exact: true }).waitFor();
     await demo.screenshot({ path: `${output}/conversations-${width}.png`, fullPage: true });
     assert.deepEqual(errors, []);

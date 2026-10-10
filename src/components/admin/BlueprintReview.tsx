@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "./PageHeader";
 import { AdminSurface } from "./AdminSurface";
@@ -7,6 +7,11 @@ import AdminLink from "./AdminLink";
 import { DemoBusinessNotice } from "./DemoBusinessNotice";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
+
+import type {
+  GeneratedOperationsReceipt,
+  WorkspaceOperationsPlan,
+} from "@/lib/revenue-os/workspace-architect-generated-operations";
 
 type ItemStatus = "ready" | "blocked" | "approval" | "info";
 
@@ -28,6 +33,11 @@ interface GateItem {
 interface BlueprintDetail {
   blueprintId: string;
   version: number;
+  status?: string;
+  generation?: {
+    state: "not_generated" | "saved" | "reconciliation_required";
+    receipt: GeneratedOperationsReceipt | null;
+  };
   parentVersion: number | null;
   changeSummary: string;
   createdAt: string;
@@ -61,6 +71,7 @@ interface BlueprintDetail {
     approvals: Array<{ ref: string; key: string; reason: string }>;
     blocked: Array<{ ref: string; key: string; reason: string }>;
   };
+  operations?: WorkspaceOperationsPlan;
 }
 
 const STATUS_LABEL: Record<ItemStatus, string> = {
@@ -108,6 +119,7 @@ const field = "admin-field mt-1";
 const button = "admin-button admin-button--secondary";
 
 export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
+  const generationRequest = useRef<{ version: number; key: string } | null>(null);
   const query = useAdminQuery<BlueprintDetail>(
     ["admin", "blueprint", blueprintId],
     `/api/admin/blueprints/${blueprintId}`,
@@ -207,6 +219,39 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
     }
   };
 
+  const generateOperations = async () => {
+    if (!query.data) return;
+    setError("");
+    setNotice("");
+    setSaving(true);
+    try {
+      if (generationRequest.current?.version !== query.data.version) {
+        generationRequest.current = { version: query.data.version, key: crypto.randomUUID() };
+      }
+      const result = await fetchJson<{
+        replayed: boolean;
+        receipt: { boards: Array<{ columnsCreated: string[] }> };
+      }>(`/api/admin/blueprints/${blueprintId}/generate-operations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          version: query.data.version,
+          requestKey: generationRequest.current.key,
+        }),
+      });
+      setNotice(
+        result.replayed
+          ? "Operating setup for this version is already saved."
+          : `Operating setup saved. Board columns added: ${result.receipt.boards.reduce((count, board) => count + board.columnsCreated.length, 0)}.`,
+      );
+      await cache.invalidateQueries({ queryKey: ["admin", "blueprint", blueprintId] });
+    } catch (generateError) {
+      setError(generateError instanceof Error ? generateError.message : "Generate failed.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (query.isPending) return <p role="status">Loading Blueprint review…</p>;
   if (query.isError || !query.data) {
     return (
@@ -224,6 +269,15 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
 
   const detail = query.data;
   const gates = detail.review.gates;
+  const operations = detail.generation?.receipt ?? detail.operations;
+  const customAppBriefs = [
+    ...new Map(
+      (operations?.customAppBriefs ?? []).map((brief) => [
+        JSON.stringify([brief.title, brief.missingKey, brief.why, brief.boundary]),
+        brief,
+      ]),
+    ).values(),
+  ];
 
   return (
     <div>
@@ -306,6 +360,18 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
           >
             Apply approved version
           </button>
+          <button
+            type="button"
+            className={button}
+            disabled={
+              saving ||
+              !["approved", "applied"].includes(detail.status ?? "") ||
+              detail.generation?.state === "reconciliation_required"
+            }
+            onClick={() => void generateOperations()}
+          >
+            Save operating setup
+          </button>
         </div>
       </AdminSurface>
       {detail.compile?.customAppBriefs && detail.compile.customAppBriefs.length > 0 && (
@@ -320,6 +386,93 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
               </li>
             ))}
           </ul>
+        </AdminSurface>
+      )}
+
+      {operations && (
+        <AdminSurface>
+          <h2 className="mb-3 text-sm font-semibold">Operating setup</h2>
+          <p className="mb-2 text-xs text-[var(--admin-muted)]">
+            Save the approved version to add available board columns. Navigation, views, workflows
+            and Coworkers are saved as recommendations for review.
+          </p>
+          {detail.generation?.state === "saved" && (
+            <p role="status" className="mb-3 text-xs">
+              Setup saved with an audit record. Board columns added:{" "}
+              {detail.generation.receipt?.boards.reduce(
+                (count, board) => count + board.columnsCreated.length,
+                0,
+              )}
+              .
+            </p>
+          )}
+          {detail.generation?.state === "reconciliation_required" && (
+            <p role="alert" className="mb-3 text-xs">
+              An earlier setup save needs maintainer reconciliation. Existing columns are preserved;
+              ask the maintainer to verify its receipt and audit before continuing.
+            </p>
+          )}
+          <ul className="space-y-2 text-xs">
+            {operations.navigation.map((item) => (
+              <li key={item.ref}>
+                Navigation · {item.label} · <span className="font-semibold">{item.status}</span>
+                {item.reason ? ` (${item.reason})` : ""}
+              </li>
+            ))}
+            {operations.boards.map((board) => (
+              <li key={board.ref}>
+                Board · {board.name} → {board.targetBoardKey ?? "no existing board"} ·{" "}
+                <span className="font-semibold">{board.status}</span>
+                {board.reason ? ` (${board.reason})` : ""}
+                <p className="mt-1 text-[var(--admin-muted)]">
+                  Columns: {board.columns.map((column) => column.label).join(" · ")}
+                </p>
+              </li>
+            ))}
+            {operations.views.map((view) => (
+              <li key={view.ref}>
+                View · {view.name} ({view.sourceType}) ·{" "}
+                <span className="font-semibold">{view.status}</span>
+              </li>
+            ))}
+            {operations.workflows.map((workflow) => (
+              <li key={workflow.ref}>
+                Workflow · {workflow.name} ·{" "}
+                {workflow.approvalRequired
+                  ? "recommendation; execution needs approval"
+                  : "recommendation; review before enabling"}{" "}
+                · <span className="font-semibold">{workflow.status}</span>
+                <p className="mt-1 text-[var(--admin-muted)]">
+                  Capabilities:{" "}
+                  {workflow.steps.map((step) => step.capabilityKey ?? step.kind).join(" → ")}
+                </p>
+              </li>
+            ))}
+            {operations.coworkers.map((coworker) => (
+              <li key={coworker.ref}>
+                Coworker · {coworker.name} · required:{" "}
+                {coworker.requiredCapabilities.join(", ") || "none"}
+                {coworker.missingCapabilities.length > 0
+                  ? ` · missing: ${coworker.missingCapabilities.join(", ")}`
+                  : ""}{" "}
+                · <span className="font-semibold">{coworker.status}</span>
+              </li>
+            ))}
+          </ul>
+          {customAppBriefs.length > 0 && (
+            <div className="mt-3">
+              <h3 className="mb-2 text-xs font-semibold">
+                Custom App Briefs (unsupported requirements)
+              </h3>
+              <ul className="space-y-2 text-xs">
+                {customAppBriefs.map((brief) => (
+                  <li key={brief.id}>
+                    {brief.title} — {brief.why}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </AdminSurface>
       )}
 

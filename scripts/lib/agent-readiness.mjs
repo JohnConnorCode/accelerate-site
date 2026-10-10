@@ -1,6 +1,8 @@
 /** Bounded diagnosis; lifecycle readiness itself comes from the canonical service. */
 export function readinessSummary(cards, now = Date.now()) {
+  /** @type {Record<string, number>} */
   const reasons = {};
+  const repositoryProblems = [];
   let active = 0,
     expired = 0,
     resumable = 0;
@@ -16,9 +18,27 @@ export function readinessSummary(cards, now = Date.now()) {
       ["backlog", "planned"].includes(card.status) &&
       card.labels?.some((l) => ["milestone:now", "milestone:next"].includes(l))
     )
-      for (const reason of card.readiness ?? []) reasons[reason] = (reasons[reason] ?? 0) + 1;
+      for (const reason of card.readiness ?? []) {
+        reasons[reason] = (reasons[reason] ?? 0) + 1;
+        if (reason === "invalid_repository_url" && repositoryProblems.length < 10) {
+          const key = card.seed_key ?? card.id;
+          repositoryProblems.push({
+            key:
+              typeof key === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(key)
+                ? key
+                : "(invalid card key)",
+            reason,
+          });
+        }
+      }
   }
-  return { active, expired, resumable, reasons };
+  return {
+    active,
+    expired,
+    resumable,
+    reasons,
+    ...(repositoryProblems.length ? { repositoryProblems } : {}),
+  };
 }
 export function resumableCard(card, support, now = Date.now()) {
   return (

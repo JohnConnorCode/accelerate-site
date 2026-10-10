@@ -1,0 +1,182 @@
+.studio {
+  --studio-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.studio :is(button, a) {
+  transition-property: background-color, color, box-shadow, transform;
+  transition-duration: 180ms;
+  transition-timing-function: var(--studio-ease);
+}
+
+.studio button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.title {
+  font-family: Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.starter {
+  position: relative;
+  display: flex;
+  min-height: 132px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  padding: 12px 4px;
+  color: var(--admin-ink);
+  background: var(--admin-surface-subtle);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.starter:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.starterSelection {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1.5px var(--admin-ink);
+  background: color-mix(in srgb, var(--admin-ink) 5%, transparent);
+}
+
+.miniature {
+  position: relative;
+  display: flex;
+  width: 50px;
+  height: 72px;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  color: #172033;
+  background: white;
+  box-shadow:
+    0 0 0 1px #00000008,
+    0 3px 8px #00000012;
+  transition: transform 250ms var(--studio-ease);
+}
+
+.starter:hover:not(:disabled) .miniature {
+  transform: translateY(-3px);
+}
+
+.miniatureHeading {
+  margin-top: 3px;
+  font-size: 8px;
+  line-height: 16px;
+}
+
+.miniatureEditorial .miniatureHeading {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -1px;
+}
+
+.aiPanel {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--admin-surface-subtle);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--admin-ink) 5%, transparent);
+}
+
+.canvas {
+  padding: 20px;
+  border-radius: 20px;
+  background-color: var(--admin-surface-subtle);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--admin-ink) 10%, transparent) 0.7px,
+    transparent 0.7px
+  );
+  background-size: 18px 18px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--admin-ink) 5%, transparent);
+}
+
+.segment {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--admin-surface);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 6%, transparent);
+}
+
+.segmentButton {
+  position: relative;
+  min-height: 40px;
+  border-radius: 9px;
+  padding: 0 12px;
+  color: var(--admin-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmentButton[aria-pressed="true"] {
+  color: var(--admin-surface);
+}
+
+.segmentSelection {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--admin-ink);
+}
+
+.paper {
+  margin-inline: auto;
+  transition: width 320ms var(--studio-ease);
+}
+
+.studio :is(button, a):focus-visible {
+  outline: 2px solid var(--admin-action);
+  outline-offset: 3px;
+}
+
+@media (min-width: 1280px) {
+  .controls,
+  .canvas {
+    max-height: calc(100dvh - 180px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .controls {
+    padding: 4px 12px 4px 4px;
+  }
+
+  .canvas {
+    position: sticky;
+    top: 100px;
+  }
+}
+
+@media (max-width: 640px) {
+  .canvas {
+    padding: 12px;
+    border-radius: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio :is(button, a),
+  .miniature,
+  .paper {
+    transition-duration: 0s;
+  }
+
+  .studio button:active:not(:disabled),
+  .starter:hover:not(:disabled) .miniature {
+    transform: none;
+  }
+}

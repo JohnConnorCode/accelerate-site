@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { expect } from "playwright/test";
@@ -6,6 +7,7 @@ import { navItems, footerLinks } from "../src/content/navigation";
 
 const base = process.env.DOCS_QA_URL ?? "http://localhost:3025";
 const output = process.env.DOCS_QA_OUTPUT ?? "/tmp/accelerate-docs-takeover-qa";
+const figureVersions = new Map<string, string>();
 const routes = [
   "/docs",
   "/docs/recipes",
@@ -13,7 +15,12 @@ const routes = [
   "/docs/start/business-owners",
   "/docs/start/agencies",
   "/docs/extend/first-change",
+  "/docs/extend/ai-authoring",
+  "/docs/extend/modules",
   "/docs/self-hosting/installation",
+  "/docs/self-hosting/recovery",
+  "/docs/self-hosting/overview",
+  "/docs/self-hosting/permissions",
   "/docs/start/troubleshooting",
   "/docs/command-center",
   "/docs/contacts/import",
@@ -104,9 +111,148 @@ async function main() {
           if (route === "/docs/delivery/resources") {
             await expect(page.locator("main")).toContainText("loaded page of downloads");
           }
+          for (const [figureIndex, figure] of (
+            await page.locator('main figure:has(a[href^="/images/docs/"])').all()
+          ).entries()) {
+            const link = figure.locator("a").first();
+            const href = await link.getAttribute("href");
+            if (!href?.startsWith("/images/docs/")) continue;
+            const fullSize = new URL(href, base);
+            let revision = figureVersions.get(fullSize.pathname);
+            if (!revision) {
+              const source = await page.request.get(new URL(fullSize.pathname, base).href);
+              assert.equal(source.status(), 200);
+              revision = createHash("sha256")
+                .update(await source.body())
+                .digest("hex")
+                .slice(0, 12);
+              figureVersions.set(fullSize.pathname, revision);
+            }
+            const image = figure.locator("img");
+            const imageSrc = await image.getAttribute("src");
+            assert.ok(imageSrc);
+            const optimized = new URL(imageSrc, base);
+            const original = new URL(optimized.searchParams.get("url") ?? imageSrc, base);
+            assert.equal(original.pathname, fullSize.pathname);
+            assert.equal(
+              fullSize.searchParams.get("v"),
+              revision,
+              `${route}: stale full-size figure`,
+            );
+            assert.equal(
+              original.searchParams.get("v"),
+              revision,
+              `${route}: stale figure cache key`,
+            );
+            await figure.scrollIntoViewIfNeeded();
+            await page.waitForFunction(
+              (image) =>
+                image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+              await image.elementHandle(),
+            );
+            await page.screenshot({
+              path: `${output}/${viewport.width}-figure-${route.replaceAll("/", "_")}-${figureIndex}.png`,
+            });
+          }
+          await page.locator("main h1").scrollIntoViewIfNeeded();
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
+            fullPage: route === "/docs/self-hosting/permissions",
           });
+          if (route === "/docs/extend/first-change") {
+            await expect(page.locator("main")).toContainText("Give an agent the first assignment");
+            const brief = page.locator("[data-docs-content]").getByRole("link", {
+              name: "Build Apps with a coding agent",
+              exact: true,
+            });
+            await expect(brief).toHaveAttribute("href", "/docs/extend/ai-authoring");
+            const recovery = page.getByRole("heading", {
+              name: "Recover a repository setup refusal",
+              exact: true,
+            });
+            await recovery.scrollIntoViewIfNeeded();
+            await page.screenshot({ path: `${output}/${viewport.width}-repository-recovery.png` });
+            checks.push(`${viewport.width}: contributor repository recovery instructions render`);
+          }
+          if (route === "/docs/extend/ai-authoring") {
+            await expect(page.locator("main")).toContainText("Review what work it saves");
+            await expect(page.locator("main")).toContainText(
+              "Creative Review is a proposed extension",
+            );
+            await page
+              .getByRole("heading", { name: "Review what work it saves", exact: true })
+              .scrollIntoViewIfNeeded();
+            await page.screenshot({
+              path: `${output}/${viewport.width}-agent-workflow-review.png`,
+            });
+          }
+          if (
+            [
+              "/docs/extend/first-change",
+              "/docs/extend/ai-authoring",
+              "/docs/extend/modules",
+            ].includes(route)
+          ) {
+            await expect(page.locator("main")).toContainText("Codex");
+            await expect(page.locator("main")).toContainText("Claude Code");
+            if (route === "/docs/extend/modules") {
+              const manifest = JSON.parse(await page.locator("main pre").first().innerText());
+              assert.equal(manifest.docsUrl, "/docs/plugins/acme-inventory");
+              assert.equal(manifest.defaultEnabled, false);
+              await expect(page.locator("main")).toContainText("plugins/acme-inventory/README.md");
+              await page
+                .locator("main pre")
+                .first()
+                .screenshot({
+                  path: `${output}/${viewport.width}-agent-module-manifest.png`,
+                });
+            } else {
+              const brief = page.locator("main blockquote").first();
+              await expect(brief).toContainText("docs/NORTHSTAR.md");
+              await brief.screenshot({
+                path: `${output}/${viewport.width}-agent-brief-${route.split("/").at(-1)}.png`,
+              });
+            }
+            checks.push(`${viewport.width} ${route}: agent brief and delivery instructions render`);
+          }
+          if (route === "/docs/self-hosting/recovery") {
+            const restore = page.getByRole("heading", {
+              name: "Restore saved records and uploaded files",
+              exact: true,
+            });
+            await restore.scrollIntoViewIfNeeded();
+            await expect(restore).toBeVisible();
+            await expect(page.locator("main")).toContainText("npm run workspace:files -- backup");
+            await expect(page.locator("main")).toContainText("npm run workspace:files -- restore");
+            await expect(page.locator("main")).toContainText("absent local receipt");
+            await page.screenshot({
+              path: `${output}/${viewport.width}-workspace-file-recovery.png`,
+            });
+            const plan = page
+              .locator("main pre")
+              .filter({ hasText: "npm run workspace:files -- restore" });
+            await plan.scrollIntoViewIfNeeded();
+            await expect(plan).toBeInViewport();
+            await page.screenshot({
+              path: `${output}/${viewport.width}-workspace-file-restore-plan.png`,
+            });
+            checks.push(`${viewport.width}: file recovery commands and receipt review render`);
+          }
+          if (route === "/docs/self-hosting/overview") {
+            await page
+              .getByRole("heading", { name: "Keep your installation maintainable", exact: true })
+              .scrollIntoViewIfNeeded();
+            const recovery = page.getByRole("link", { name: "recovery guide", exact: true });
+            await expect(recovery).toBeVisible();
+            await expect(recovery).toHaveAttribute("href", "/docs/self-hosting/recovery");
+            await expect(page.locator("main")).toContainText(
+              "actual uploaded files and encryption configuration",
+            );
+            await page.screenshot({
+              path: `${output}/${viewport.width}-self-hosting-recovery-link.png`,
+            });
+            checks.push(`${viewport.width}: self-hosting recovery guidance and direct link render`);
+          }
           if (route === "/docs/sources/leads") {
             const recovery = page.getByRole("heading", {
               name: "Change a status and recover an incomplete update",
@@ -219,6 +365,12 @@ async function main() {
         const page = await context.newPage();
         page.on("pageerror", (error) => failures.push(error.message));
         await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+        // The header enables its mobile controls after hydration at every viewport width.
+        await page.waitForFunction(
+          () =>
+            document.querySelector<HTMLButtonElement>('button[aria-label="Open navigation menu"]')
+              ?.disabled === false,
+        );
         if (width >= 1280) {
           const nav = page.getByRole("navigation", { name: "Primary", exact: true });
           const product = nav.getByRole("button", { name: "Command Center", exact: true });
@@ -342,9 +494,177 @@ async function main() {
         await page.waitForURL("**/docs");
         for (const [route, label, destination] of [
           ["/command-center", "Build on the platform", "/docs/extend"],
-          ["/open-source", "Read the self-hosting docs", "/docs/self-hosting"],
+          ["/open-source", "Start with your coding agent", "/docs/extend/first-change"],
         ] as const) {
           await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
+          if (route === "/open-source") {
+            await expect(page.locator(".public-hero-entrance")).toHaveAttribute(
+              "data-reveal-state",
+              "visible",
+            );
+            await page.screenshot({
+              path: `${output}/${width}-open-source-agent-start.png`,
+              animations: "disabled",
+            });
+            await page
+              .getByRole("heading", { name: "Ask your agent to get it running.", exact: true })
+              .scrollIntoViewIfNeeded();
+            const assignment = page
+              .getByText("Give Claude Code or Codex this assignment", { exact: true })
+              .locator("..")
+              .locator("..");
+            await page.waitForFunction(
+              (element) => {
+                if (!element) return false;
+                for (let owner: Element | null = element; owner; owner = owner.parentElement)
+                  if (owner.getAttribute("data-reveal-state") === "pending") return false;
+                return true;
+              },
+              await assignment.elementHandle(),
+            );
+            const copy = assignment.getByRole("button");
+            const target = await copy.boundingBox();
+            assert.ok(
+              target && target.width >= 44 && target.height >= 44,
+              "Copy needs a touch-sized target",
+            );
+            const prompt = await assignment.locator("pre code").textContent();
+            assert.ok(
+              prompt?.includes("Set up https://github.com/JohnConnorCode/accelerate-site.\n"),
+            );
+            let copiedText = "";
+            let pendingWrites = 0;
+            let releaseCopy: () => void = () => {};
+            let holdCopy = true;
+            const pendingCopy = new Promise<void>((resolve) => {
+              releaseCopy = resolve;
+            });
+            await page.exposeFunction("qaCaptureClipboard", async (text: string) => {
+              copiedText = text;
+              if (holdCopy) {
+                pendingWrites++;
+                await pendingCopy;
+              }
+            });
+            await page.evaluate(() => {
+              Object.defineProperty(navigator, "clipboard", {
+                configurable: true,
+                value: {
+                  writeText(text: string) {
+                    return (
+                      window as typeof window & {
+                        qaCaptureClipboard: (text: string) => Promise<void>;
+                      }
+                    ).qaCaptureClipboard(text);
+                  },
+                },
+              });
+            });
+            try {
+              await copy.focus();
+              await page.keyboard.press("Enter");
+              await expect(copy).toBeDisabled();
+              await expect(copy).toHaveText("Copying");
+              await expect.poll(() => pendingWrites).toBe(1);
+              await page.keyboard.press("Enter");
+              assert.equal(
+                pendingWrites,
+                1,
+                "An unresolved copy cannot admit a second keyboard request",
+              );
+            } finally {
+              holdCopy = false;
+              releaseCopy();
+            }
+            await expect(copy).toHaveText("Copied");
+            await expect(copy).toBeEnabled();
+            assert.equal(copiedText, prompt);
+            checks.push(
+              `${width}: pending clipboard disables repeated requests and settles truthfully`,
+            );
+            for (const mode of ["success", "denied", "unavailable", "success"] as const) {
+              await page.evaluate((mode) => {
+                Object.defineProperty(navigator, "clipboard", {
+                  configurable: true,
+                  value:
+                    mode === "unavailable"
+                      ? undefined
+                      : {
+                          async writeText(text: string) {
+                            if (mode === "denied")
+                              throw new DOMException(
+                                "Controlled clipboard refusal",
+                                "NotAllowedError",
+                              );
+                            await (
+                              window as typeof window & {
+                                qaCaptureClipboard: (text: string) => Promise<void>;
+                              }
+                            ).qaCaptureClipboard(text);
+                          },
+                        },
+                });
+              }, mode);
+              await copy.focus();
+              await page.keyboard.press("Enter");
+              if (mode === "success") {
+                await expect(copy).toHaveText("Copied");
+                assert.equal(copiedText, prompt, "Copy preserves the exact brief and line breaks");
+                await expect(assignment.getByRole("status")).toHaveText("Copied to clipboard.");
+              } else {
+                await expect(assignment.getByRole("status")).toContainText(
+                  "Select the text above and copy it manually.",
+                );
+                await expect(copy).toHaveText("Copy");
+                await expect(assignment.locator("pre code")).toHaveText(prompt!);
+                if (mode === "denied") {
+                  await assignment.evaluate((element) => {
+                    window.scrollBy({
+                      top: element.getBoundingClientRect().bottom - (innerHeight - 160),
+                      behavior: "instant",
+                    });
+                  });
+                  await expect(assignment.getByRole("status")).toBeVisible();
+                  const recovery = await assignment.getByRole("status").boundingBox();
+                  assert.ok(
+                    recovery &&
+                      recovery.y >= 0 &&
+                      recovery.y + recovery.height <= page.viewportSize()!.height - 159,
+                    "Manual-copy evidence must stay above floating controls",
+                  );
+                  await assignment.screenshot({
+                    path: `${output}/${width}-open-source-clipboard-recovery.png`,
+                    animations: "disabled",
+                  });
+                }
+              }
+              checks.push(`${width}: agent brief clipboard ${mode} has truthful keyboard feedback`);
+            }
+            await expect(copy).toHaveText("Copy");
+            const setupCommands = page.locator("summary", {
+              hasText: "Local setup commands for your agent",
+            });
+            await setupCommands.focus();
+            await page.keyboard.press("Enter");
+            await expect(setupCommands.locator("..")).toHaveAttribute("open", "");
+            await page.waitForFunction(() => {
+              const summary = document.querySelector("main details[open] summary");
+              if (!summary) return false;
+              for (let element: Element | null = summary; element; element = element.parentElement)
+                if (element.getAttribute("data-reveal-state") === "pending") return false;
+              return true;
+            });
+            assert.equal(
+              await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+              false,
+              `Agent assignment overflows at ${width}`,
+            );
+            await page.screenshot({
+              path: `${output}/${width}-open-source-agent-assignment.png`,
+              animations: "disabled",
+            });
+            await page.keyboard.press("Enter");
+          }
           await page.locator("main").getByRole("link", { name: label, exact: true }).click();
           await page.waitForURL(`**${destination}`);
         }

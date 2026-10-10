@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { chromium } from "playwright";
 
-const base = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3047";
-const output = "/tmp/accelerate-daily-work-qa";
+const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3047";
+const output = process.env.QA_DAILY_WORK_OUTPUT || "/tmp/accelerate-daily-work-qa";
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 
@@ -32,7 +32,17 @@ try {
       await rail
         .locator("section[data-nav-section]")
         .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-nav-section"))),
-      ["Today", "Work", "Records", "Conversations", "Knowledge", "Coworkers", "Apps", "Settings"],
+      [
+        "Business overview",
+        "Tasks & approvals",
+        "Customers & sales",
+        "Client work",
+        "Billing & payments",
+        "Messages & marketing",
+        "AI & knowledge",
+        "Apps & connections",
+        "Workspace settings",
+      ],
     );
     if (width === 390) {
       assert.deepEqual(
@@ -42,18 +52,19 @@ try {
             .locator("a,button")
             .allTextContents()
         ).map((value) => value.trim()),
-        ["Today", "Work", "Records", "More"],
+        ["Today", "Work", "Contacts", "More"],
       );
       await page.getByRole("button", { name: "Close navigation" }).click();
       await page.waitForTimeout(350);
     }
     assert.equal(
       await page
-        .locator('[data-today-module="attention"]')
+        .locator('[data-today-module="brief"]')
         .evaluate((node) =>
           Boolean(
-            node.compareDocumentPosition(document.querySelector('[data-today-module="brief"]')) &
-            Node.DOCUMENT_POSITION_FOLLOWING,
+            node.compareDocumentPosition(
+              document.querySelector('[data-today-module="attention"]'),
+            ) & Node.DOCUMENT_POSITION_FOLLOWING,
           ),
         ),
       true,
@@ -75,10 +86,23 @@ try {
       await firstTask.locator("[data-record-row]").getAttribute("data-selected"),
       "true",
     );
+    const historyEntry = await page.evaluate(() => {
+      window.__dailyWorkDocument = "original";
+      return history.state.__accelerateNavigationId;
+    });
     await page.keyboard.press("s");
     const taskDialog = page.getByRole("dialog", { name: "Task details" });
     await taskDialog.waitFor();
     assert.ok(await taskDialog.getByLabel("Snooze until").inputValue());
+    assert.deepEqual(
+      await page.evaluate(() => [
+        window.__dailyWorkDocument,
+        history.state.__accelerateNavigationId,
+      ]),
+      ["original", historyEntry],
+      "Task opening must retain the document and shared history entry",
+    );
+    assert.ok(new URL(page.url()).searchParams.get("task"));
     await page.waitForFunction(() => {
       const dialog = document.querySelector('[data-admin-overlay="dialog"]');
       return dialog && Number(getComputedStyle(dialog).opacity) >= 0.99;
@@ -86,6 +110,8 @@ try {
     await page.screenshot({ path: `${output}/work-${width}.png`, fullPage: false });
     await taskDialog.getByRole("button", { name: "Close task" }).click();
     await taskDialog.waitFor({ state: "hidden" });
+    assert.equal(await page.evaluate(() => window.__dailyWorkDocument), "original");
+    assert.equal(new URL(page.url()).searchParams.has("task"), false);
     await page.getByRole("link", { name: "Approvals", exact: true }).click();
     await page.locator('[data-source-type="approval"]').first().waitFor();
     await page.keyboard.press("j");
@@ -115,12 +141,9 @@ try {
     const opportunityLink = page.locator('a[href*="/pipeline/"]').first();
     await opportunityLink.waitFor();
     if (width === 1440) {
-      const records = page.locator('section[data-nav-section="Records"]:visible');
-      const moreRecords = records.getByRole("button", { name: "More records" });
-      assert.equal(await moreRecords.getAttribute("aria-expanded"), "false");
-      await moreRecords.click();
-      await records.getByRole("link", { name: "Leads", exact: true }).waitFor();
-      await moreRecords.click();
+      const records = page.locator('section[data-nav-section="Customers & sales"]:visible');
+      await records.getByRole("link", { name: "Website inquiries", exact: true }).waitFor();
+      assert.ok((await records.innerText()).includes("Understand each relationship"));
     }
     await page.screenshot({ path: `${output}/contact-${width}.png`, fullPage: false });
     assert.equal(

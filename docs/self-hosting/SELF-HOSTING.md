@@ -1,5 +1,7 @@
 # Self-hosting
 
+For recorded core versions, stable release checks and supported upgrade paths, use [Core releases and fork upgrades](RELEASES.md). Main-branch and package versions alone do not identify a supported stable release.
+
 Use this guide to go from a fictional customer workflow to a workspace that saves your own records and tasks. Start with the demo, then connect a Supabase project you control, sign in, and verify a saved result before importing real customer data. Keep your fork separate from Accelerate's database, hosting, provider accounts and domains.
 
 A full repository fork defaults to the [neutral distribution](NEUTRAL-DISTRIBUTION.md) profile. It includes the entire application and an editable public Command Center homepage. Every installation, including ours, can turn bundled agency presentation on with `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` or off with `neutral`. Use the same profile at build and runtime, then rebuild and deploy. Profile selection never changes saved drafts or publication history and does not select a different product or hosting account.
@@ -35,6 +37,18 @@ Password recovery uses Supabase Auth email when `RESEND_API_KEY` is unset, so co
 that your Auth email delivery works before relying on the workspace. Supabase's
 default hosted sender is limited; configure SMTP for regular use. When Resend is
 configured, Command Center sends its own recovery email instead.
+
+Before relying on recovery, open **Sign in to Command Center**, choose **Forgot
+password?**, enter the owner's email and select **Send reset link**. Open the
+email in the same browser that requested it so the browser can finish the secure
+exchange. Set a different password, sign out, and confirm the new password opens
+the existing workspace. Check a saved contact and its follow-up after signing in.
+
+An expired or previously used link opens **Reset your password** with guidance to
+request another email. If the update fails, the form keeps the entered values and
+allows another attempt. **Request a new reset link** returns to recovery without
+requiring access to the workspace. A successful request message does not prove
+email delivery; check the inbox and complete the sign-in test.
 
 ## 3. Plan and apply workspace setup
 
@@ -130,6 +144,10 @@ Then prove tenant isolation using controlled fictional tenants. Do not invite re
 ## Back up before importing real data
 
 Follow [Backup and recovery](BACKUP-RECOVERY.md) to retain database records, uploaded files and encryption configuration, then restore them into an isolated target. Free-tier database access does not establish a backup or availability guarantee.
+
+## Keep customization through updates
+
+Use the existing saved Branding, appearance and Site Studio controls for normal customization. Keep hosting IDs in ignored `deployment-target.local.json`, credentials in your own environment, and custom source in uniquely named extensions. Before merging a fetched upstream revision, run `npm run fork:check -- --ref <commit-or-tag>`. This inspects local history without applying an update. Follow [fork customization and updates](FORK-UPGRADES.md) for conflicts, legacy edits and reduced exports.
 
 ## 6. Deploy
 

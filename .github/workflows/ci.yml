@@ -62,6 +62,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -87,6 +89,9 @@ jobs:
           node --test scripts/test-admin-ai-inventory.mjs
           node scripts/admin-ai-inventory.mjs --check
 
+      - name: Verify account recovery boundaries
+        run: npm run test:password-recovery
+
       - name: Verify admin route inventory
         run: npm run test:admin-route-inventory
 
@@ -109,6 +114,10 @@ jobs:
       - name: Verify full-product neutral fork and connected website forms
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:full-product-fork
+
+      - name: Verify customized forks survive upstream source updates
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:fork-upgrade-preservation
 
       - name: Verify admin design token contract
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -204,6 +213,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:setup-status
 
+      - name: Verify fork release metadata and compatibility
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:fork-release-contract
+
       - name: Verify fresh-fork install runbook
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:install-runbook
@@ -225,17 +238,39 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:agent-loop
 
+      - name: Verify source-authority atomicity and retrieval
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          npm run test:source-authority
+          NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-knowledge.ts
+          PATH="$(pg_config --bindir):$PATH" npm run test:source-authority-postgres
+
+      - name: Retain source-authority PostgreSQL evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-authority-postgres-evidence
+          path: /tmp/accelerate-source-authority-postgres.json
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Verify runtime PostgreSQL concurrency and migrations
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: |
           echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
           PATH="$(pg_config --bindir):$PATH" npm run test:tenant-lifecycle:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:conversational-agent:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:platform-command-context:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
+          npm run test:content-calendar-actions
+          PATH="$(pg_config --bindir):$PATH" npm run test:content-calendar-postgres
+          npm run test:workspace-operations
+          PATH="$(pg_config --bindir):$PATH" npm run test:workspace-operations-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning
+          PATH="$(pg_config --bindir):$PATH" npm run test:learning-proposals:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:ai-readiness
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
@@ -265,7 +300,7 @@ jobs:
 
       - name: Upload reference journey evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reference-business-journeys
           path: /tmp/accelerate-reference-journeys-*/
@@ -318,14 +353,17 @@ jobs:
     needs: scope
     if: ${{ !inputs.admin_design_only && !inputs.cold_start_only }}
     runs-on: ubuntu-latest
-    # Full browser coverage can take 30 minutes before evidence and cache uploads.
-    timeout-minutes: 45
+    # Full browser coverage includes owner workflows and isolated navigation
+    # checks; leave time to retain their evidence and compiler cache.
+    timeout-minutes: 60
     env:
       # Preserve explicit coverage for the original agency installation.
       NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
@@ -334,7 +372,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Restore Next.js compiler cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .next/cache
           key: ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
@@ -342,6 +380,7 @@ jobs:
             ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-
       # next build includes TypeScript validation. Never ignore build errors.
       - name: Build and typecheck
+        id: production-build
         run: npm run build
 
       # A public-only verification can supply a local production preview when
@@ -374,11 +413,82 @@ jobs:
         run: node scripts/check-plugin-host-package.mjs
 
       - name: Install browser for first-run verification
+        id: browser-install
         run: npx playwright install --with-deps chromium webkit
+      - name: Verify shared focus handoff and baseline comparison
+        if: ${{ needs.scope.outputs.docs_only != 'true' }}
+        env:
+          QA_FOCUS_BASELINE_REF: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p /tmp/accelerate-admin-focus-handoff
+          set -o pipefail
+          node scripts/qa-admin-focus-handoff.mjs 2>&1 | tee /tmp/accelerate-admin-focus-handoff/runner.log
+      - name: Retain shared focus handoff evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: admin-focus-handoff-evidence
+          path: /tmp/accelerate-admin-focus-handoff/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify Blueprint operating setup
+        if: ${{ needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
+        run: |
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-workspace-operations-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/demo/command-center" > /dev/null; then ready=true; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-workspace-operations-server.log; exit 1; fi
+          npm run resources:run -- npm run qa:workspace-operations
+      - name: Retain operating setup browser evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: workspace-operations-evidence
+          path: |
+            /tmp/accelerate-workspace-operations-qa/
+            /tmp/accelerate-workspace-operations-server.log
+          if-no-files-found: ignore
+      - name: Verify source-authority browser recovery
+        if: ${{ !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
+        run: |
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-source-authority-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/demo/command-center" > /dev/null; then ready=true; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then cat /tmp/accelerate-source-authority-server.log; exit 1; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-source-authority-server.log; exit 1; fi
+          npm run resources:run -- npm run qa:source-authority
+
+      - name: Retain source-authority browser evidence
+        if: ${{ always() && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-authority-browser-evidence
+          path: |
+            /tmp/accelerate-source-authority/
+            /tmp/accelerate-source-authority-server.log
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Verify native homepage and cached mobile motion
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
+          PUBLIC_PAGES_ONLY: ${{ inputs.public_pages_only }}
         run: |
           setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-mobile-motion-server.log 2>&1 &
           server_pid=$!
@@ -390,13 +500,36 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-mobile-motion-server.log; exit 1; fi
+          admin_status=0
+          if [ "$PUBLIC_PAGES_ONLY" != "true" ]; then
+            node scripts/qa-admin-demo.mjs --one || admin_status=$?
+          fi
           hero_status=0
+          observer_status=0
           mobile_status=0
           loading_status=0
+          core_release_status=0
+          node scripts/test-hero-motion-observer.mjs || observer_status=$?
           node scripts/qa-home-hero-timing.mjs || hero_status=$?
           node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
           node scripts/qa-public-loading.mjs || loading_status=$?
-          test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
+          node scripts/qa-core-release.mjs || core_release_status=$?
+          test "$core_release_status" -eq 0 && test "$admin_status" -eq 0 && test "$observer_status" -eq 0 && test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
+      - name: Retain focused homepage motion diagnostics
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: homepage-motion-diagnostics
+          path: |
+            /tmp/accelerate-hero-motion-observer/results.json
+            /tmp/accelerate-home-hero-timing/results.json
+            /tmp/accelerate-home-hero-timing/desktop-frame-*.png
+            /tmp/accelerate-home-hero-timing/mobile-frame-*.png
+            /tmp/accelerate-home-hero-timing/desktop-settled.png
+            /tmp/accelerate-home-hero-timing/mobile-settled.png
+            /tmp/accelerate-mobile-motion/results.json
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain native mobile motion evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
         uses: actions/upload-artifact@v7
@@ -406,7 +539,9 @@ jobs:
             /tmp/accelerate-home-hero-timing/
             /tmp/accelerate-mobile-motion/
             /tmp/accelerate-public-loading/
+            /tmp/accelerate-core-release-browser/
             /tmp/accelerate-mobile-motion-server.log
+            /tmp/accelerate-full-admin-demo/
           if-no-files-found: ignore
           retention-days: 7
       - name: Verify Leads partial writes and recovery
@@ -434,7 +569,7 @@ jobs:
           path: /tmp/accelerate-leads-write-recovery/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Verify Revenue reporting and recovery
+      - name: Verify reporting and AI capability recovery
         if: ${{ !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
@@ -453,12 +588,15 @@ jobs:
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-revenue-server.log; exit 1; fi
           npm run qa:revenue
+          node scripts/qa-ai-capabilities.mjs
       - name: Retain Revenue browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
           name: revenue-browser-evidence
-          path: /tmp/accelerate-revenue-qa/
+          path: |
+            /tmp/accelerate-revenue-qa/
+            /tmp/admin-ai-capabilities-qa/
           if-no-files-found: ignore
           retention-days: 7
       - name: Verify industry and Chicago release pages
@@ -499,6 +637,7 @@ jobs:
             /tmp/accelerate-configuration-server.log
 
       - name: Verify credential-free first-run journey
+        if: ${{ !cancelled() && steps.production-build.outcome == 'success' && steps.browser-install.outcome == 'success' }}
         env:
           # NextURL canonicalizes loopback IPs to localhost. Keep the server's
           # initURL on that same origin so demo rewrites never become self-proxies.
@@ -527,12 +666,16 @@ jobs:
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
+            node scripts/qa-owner-workspace.mjs
+            node scripts/qa-command-center-daily-work.mjs
+            node scripts/qa-content-calendar.mjs
             npx tsx scripts/qa-site-studio.ts
             node scripts/qa-campaign-duplicate.mjs
             node scripts/qa-delivery-handoff.mjs
             node scripts/qa-leads-bulk.mjs
             node scripts/qa-website-editor.mjs
             node scripts/qa-website-authoring.mjs
+            node scripts/qa-website-ai-recovery.mjs
             node scripts/qa-analytics-workspace.mjs --demo
             node scripts/qa-radar-workspace.mjs
             node scripts/qa-command-center-offline-store.mjs
@@ -566,6 +709,8 @@ jobs:
               if ! node "scripts/${polish_suite}.mjs"; then polish_status=1; fi
             done
             if [ "$polish_status" -ne 0 ]; then exit "$polish_status"; fi
+            node scripts/qa-command-center-interactions.mjs
+            node scripts/qa-proposal-editor-recovery.mjs
             node scripts/qa-contact-review-copy.mjs
             node scripts/qa-demo-marketing.mjs
             node scripts/qa-theme-persistence.mjs
@@ -581,10 +726,69 @@ jobs:
             if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
           fi
           if [ "$PUBLIC_PAGES_ONLY" != "true" ] && [ "$DOCS_ONLY" != "true" ]; then
+            if ! node scripts/qa-navigation-runtime.mjs; then browser_status=1; fi
+            if ! node scripts/qa-navigation-filmstrip.mjs; then browser_status=1; fi
             if ! node scripts/qa-contact-import-source-review.mjs; then browser_status=1; fi
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
+      - name: Retain owner workspace and guide evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: owner-workspace-browser-evidence
+          path: |
+            /tmp/accelerate-owner-workspace/
+            /tmp/accelerate-site-studio-qa/
+            /tmp/accelerate-daily-work-qa/
+            /tmp/accelerate-today-workspace/
+            /tmp/accelerate-docs-takeover-qa/
+            /tmp/accelerate-navigation-runtime/
+            /tmp/accelerate-navigation-filmstrip/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Retain focused contributor guide evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: contributor-guide-evidence
+          path: |
+            /tmp/accelerate-docs-takeover-qa/*-_docs_extend_first-change.png
+            /tmp/accelerate-docs-takeover-qa/*-_docs_extend_ai-authoring.png
+            /tmp/accelerate-docs-takeover-qa/*-repository-recovery.png
+            /tmp/accelerate-docs-takeover-qa/*-agent-workflow-review.png
+            /tmp/accelerate-docs-takeover-qa/*-open-source-agent-start.png
+            /tmp/accelerate-docs-takeover-qa/*-open-source-agent-assignment.png
+            /tmp/accelerate-docs-takeover-qa/*-open-source-clipboard-recovery.png
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain permissions guide browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: permissions-guide-browser-evidence
+          path: |
+            /tmp/accelerate-docs-takeover-qa/*-_docs_self-hosting_permissions.png
+            /tmp/accelerate-docs-takeover-qa/results.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Retain Command Center interaction evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: command-center-interaction-evidence
+          path: /tmp/accelerate-command-interactions/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain proposal editor recovery evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: proposal-editor-recovery-evidence
+          path: /tmp/accelerate-proposal-editor-recovery/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -596,7 +800,9 @@ jobs:
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-website-editor/
             /tmp/accelerate-website-authoring/
+            /tmp/accelerate-website-ai-recovery/
             /tmp/accelerate-campaign-duplicate/
+            /tmp/accelerate-content-calendar/
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
             /tmp/accelerate-turnkey-qa/
@@ -619,6 +825,8 @@ jobs:
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
             /tmp/accelerate-client-interactions/
+            /tmp/accelerate-owner-workspace/
+            /tmp/accelerate-daily-work-qa/
             /tmp/accelerate-admin-language/
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/

@@ -1,17 +1,17 @@
 ---
-title: "Email Studio"
+title: "Email Templates"
 description: "Edit the actual live copy, check what really sent, and write a direct one-off follow-up."
-updated: "2026-09-19"
+updated: "2026-10-05"
 ---
 
-Use Email Studio to prepare reusable copy, investigate a send or write a direct follow-up. Open **Email Studio** at `/admin/emails`, then choose Templates, History or Composer for the task at hand.
+Open **Email Templates** at `/admin/emails` to prepare reusable copy or investigate a send. Choose **Templates** or **Sent history**. To write a direct follow-up, open a template and select **Compose**.
 
 <DocsFigure
   src="/images/docs/outreach/email-studio.png"
-  alt="Email Studio in the fictional Northline Roofing workspace."
+  alt="Email templates in the fictional Northline Roofing workspace."
   width={1440}
   height={1000}
-  caption="Email Studio in the fictional Northline Roofing workspace: templates, send history, and a composer. Fictional demo data."
+  caption="Templates, recorded sends and compose handoff in the fictional Northline Roofing workspace."
 />
 
 ## Templates
@@ -22,6 +22,8 @@ Drafts stay protected until you explicitly publish a revision, and preview and t
 
 Open a send to inspect its recorded status and provider receipt. Check the recipient, time and content before deciding whether to retry. A missing provider ID needs investigation; it does not establish delivery or prove that nothing was sent.
 
+History combines operator sends and canonical message receipts using their recorded send times. If one source cannot be read, the available records remain visible with an incomplete-history notice. If neither source can be read, the screen shows an error and retry instead of an empty history.
+
 ## Composer
 
-Choose the recipient, write the message and review its exact content before sending. The shared sender checks communication eligibility and records an operation identity so retrying the same request can be reconciled. Inspect the resulting status in History. If the result is uncertain, investigate that send before creating another message.
+Select **Compose** on an open template, then choose the recipient and review the message before sending. The shared sender checks communication eligibility and records an operation identity so retrying the same request can be reconciled. Inspect the resulting status in **Sent history**. If the result is uncertain, investigate that send before creating another message.
