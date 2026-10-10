@@ -1,7 +1,7 @@
 ---
 title: "Form builder"
 description: "Publish shareable intake forms and review each response before it enters the pipeline."
-updated: "2026-09-19"
+updated: "2026-10-10"
 ---
 
 Collect structured answers without giving the public a login. Build a form, publish a link, and accept each response into the same pipeline every other surface uses. Nothing a stranger submits becomes a lead until a person reviews it.
@@ -42,6 +42,6 @@ If publishing is refused, open the draft and fix the named field, then save and 
 
 Saving and publication check the version you opened. After an edit conflict, keep a copy of your changes and reload the current form before saving again. Public responses are checked against the published fields, including required answers, allowed choices and email formats. Failed submissions preserve the visitor's answers; a network retry reuses the same request identity, producing one response and one operator notification.
 
-If acceptance reports that intake needs attention, open **Responses**, include reviewed responses, and retain the displayed action ID. Inspect the recorded failure in **Tasks & approvals**, correct the cause, then select **Retry approved intake** on the response. This resumes the same unexpired operation with its original response identity. For an expired operation, inspect the existing contact and recorded effects before planning recovery; do not submit the person's answers again to manufacture a new inquiry.
+If acceptance reports that intake needs attention, open **Responses**, include reviewed responses, and retain the displayed action ID. Inspect the recorded failure in **Work**, correct the cause, then select **Retry approved intake** on the response. This resumes the same unexpired operation with its original response identity. For an expired operation, inspect the existing contact and recorded effects before planning recovery; do not submit the person's answers again to manufacture a new inquiry.
 
 The [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/form-builder/README.md) covers contracts and `npm run test:form-builder`. Controlled tests and fictional demo behavior are distinct from verification of your own workspace permissions and database.

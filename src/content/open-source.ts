@@ -22,8 +22,8 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
       "Start with the fictional demo, then connect a Supabase project you control. The same application runs our agency workspace. You own your deployment, data and AI provider account, and can change the source around your business.",
     included: [
       "The complete source, MIT licensed, no seat limits or usage tiers",
-      "CRM, pipeline, inbox, campaigns, proposals, and analytics in one application",
-      "AI operations with approval gates and an audit trail, using your own OpenRouter key",
+      "Customer history, sales, client work, billing and marketing in one adaptable platform",
+      "AI that uses available business context and proposes supported actions, using your own model account",
       "An MCP server for supported external assistants, using the workspace's permissions and action rules",
       "Pluggable modules a workspace turns on and off, extendable from a manifest without forking",
       "An ordered database migration catalog and full documentation for tenancy and security",
@@ -57,15 +57,9 @@ export interface OpenSourceStat {
   detail: string;
 }
 
-/** Verifiable facts about the codebase, not illustrative figures. Recompute
-    against the repo before changing a number here. */
-export const OPEN_SOURCE_STATS: OpenSourceStat[] = [
-  { value: "132", label: "Ordered migrations", detail: "Every schema change, in sequence" },
-  { value: "313", label: "Automated checks", detail: "Test and verification scripts" },
-  { value: "214K", label: "Lines of TypeScript", detail: "Across 1071 source files" },
-
-  { value: "MIT", label: "Fully open license", detail: "No seat limits, no usage tiers" },
-];
+/** Code volume is not product value. Keep the public metric contract available
+ * for verified future claims; the current page leads with business capabilities. */
+export const OPEN_SOURCE_STATS: OpenSourceStat[] = [];
 
 export const TECH_STACK = [
   "Next.js 16",

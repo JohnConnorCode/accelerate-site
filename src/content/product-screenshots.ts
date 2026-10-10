@@ -10,12 +10,12 @@ export type ProductScreenshot = WorkImage & {
     fictional businesses and five of the product's built-in appearances.
     Shared between the Open Source page and the Command Center page so
     both draw on one source of truth instead of maintaining separate
-    screenshot sets. Recapture and replace in place if the UI changes
-    enough to make one of these stale. */
+    screenshot sets. Use a new filename when refreshing a screenshot so
+    previously optimized images cannot hide an interface update. */
 export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   {
     kind: "image",
-    src: "/images/open-source/slide-today-paper.png",
+    src: "/images/open-source/slide-today-paper-20261010.png",
     alt: "Today, the operator priority queue and approval decisions, in the Paper appearance for a fictional roofing business.",
     caption: "Today · Paper theme",
     width: 1400,
@@ -25,7 +25,7 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-pipeline-night.png",
+    src: "/images/open-source/slide-pipeline-night-20261010.png",
     alt: "Pipeline, a nine-stage opportunity board, in the Night appearance for a fictional law firm.",
     caption: "Pipeline · Night theme",
     width: 1400,
@@ -35,7 +35,7 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-conversations-paper.png",
+    src: "/images/open-source/slide-conversations-paper-20261010.png",
     alt: "Conversations, a linked reply-ready inbox, in the Paper appearance for a fictional roofing business.",
     caption: "Conversations · Paper theme",
     width: 1400,
@@ -45,37 +45,37 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-revenue-night.png",
-    alt: "Revenue, active client contracts and agreement value, in the Night appearance for a fictional law firm.",
-    caption: "Revenue · Night theme",
+    src: "/images/open-source/slide-collections-night.png",
+    alt: "Collections, with unpaid invoice balances and payment follow-up for a fictional law firm, in the Night appearance.",
+    caption: "Collections · Night theme",
     width: 1400,
     height: 875,
     presentation: "interface",
-    demoHref: "/demo/command-center/alder-ridge-law/revenue",
+    demoHref: "/demo/command-center/alder-ridge-law/collections",
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-features-signal.png",
-    alt: "The Feature Board kanban, the same public roadmap system, in the Signal appearance for a fictional advisory firm.",
-    caption: "Feature Board · Signal theme",
+    src: "/images/open-source/slide-delivery-signal.png",
+    alt: "Client onboarding, preparing owned delivery tasks from a won opportunity for a fictional advisory firm, in the Signal appearance.",
+    caption: "Client onboarding · Signal theme",
     width: 1400,
     height: 875,
     presentation: "interface",
-    demoHref: "/demo/command-center/ledgerstone-advisory/features",
+    demoHref: "/demo/command-center/ledgerstone-advisory/client-onboarding",
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-analytics-studio.png",
-    alt: "Analytics, revenue facts and forecasts from canonical records, in the Studio appearance for a fictional real estate team.",
-    caption: "Analytics · Studio theme",
+    src: "/images/open-source/slide-website-studio.png",
+    alt: "Website and pages, with fictional real estate content ready to edit and preview, in the Studio appearance.",
+    caption: "Website & pages · Studio theme",
     width: 1400,
     height: 875,
     presentation: "interface",
-    demoHref: "/demo/command-center/hearthline-realty/analytics",
+    demoHref: "/demo/command-center/hearthline-realty/site",
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-ai-frost.png",
+    src: "/images/open-source/slide-ai-frost-20261010.png",
     alt: "The AI workspace, grounded chat with visible evidence, in the Frost appearance for a fictional nonprofit network.",
     caption: "AI Workspace · Frost theme",
     width: 1400,

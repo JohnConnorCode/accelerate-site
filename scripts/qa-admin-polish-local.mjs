@@ -63,6 +63,31 @@ try {
       );
     });
   if (focus?.split(",").includes("business")) await import("./qa-demo-business-workflows.mjs");
+  if (focus?.split(",").includes("product-story"))
+    await import("./qa-command-center-product-story.mjs");
+  if (focus?.split(",").includes("docs-captures"))
+    await new Promise((resolve, reject) => {
+      const capture = spawn(process.execPath, ["scripts/capture-docs-screenshots.mjs"], {
+        stdio: "inherit",
+        env: process.env,
+      });
+      capture.once("error", reject);
+      capture.once("exit", (code) =>
+        code === 0 ? resolve() : reject(new Error(`Docs capture exited ${code}`)),
+      );
+    });
+  if (focus?.split(",").includes("docs"))
+    await new Promise((resolve, reject) => {
+      const check = spawn(
+        process.execPath,
+        ["--conditions=react-server", "--import", "tsx", "scripts/qa-docs.ts"],
+        { stdio: "inherit", env: { ...process.env, DOCS_QA_URL: process.env.PLAYWRIGHT_BASE_URL } },
+      );
+      check.once("error", reject);
+      check.once("exit", (code) =>
+        code === 0 ? resolve() : reject(new Error(`Docs acceptance exited ${code}`)),
+      );
+    });
   if (focus?.split(",").includes("api"))
     await new Promise((resolve, reject) => {
       const check = spawn(

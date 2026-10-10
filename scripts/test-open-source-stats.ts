@@ -1,10 +1,8 @@
 #!/usr/bin/env tsx
 /**
- * The /open-source page's stats block (src/content/open-source.ts) claims
- * concrete numbers, not adjectives, and its own comment says to recompute
- * them before changing anything. Nothing did, so two of the four drifted
- * silently (checks 101 -> 118, source files 534 -> 541) before this existed.
- * Fails the build the moment the codebase moves and the page doesn't.
+ * Verify any authored codebase metrics against the current repository.
+ * The product page currently leads with capabilities and omits code-volume
+ * metrics. If a future metric is added, it must still match the source.
  */
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -19,10 +17,28 @@ function gitFiles(pattern: string): string[] {
 }
 
 const statByLabel = new Map(OPEN_SOURCE_STATS.map((stat) => [stat.label, stat.value]));
+assert.equal(statByLabel.size, OPEN_SOURCE_STATS.length, "Duplicate public metric labels");
+assert(
+  OPEN_SOURCE_STATS.every((stat) =>
+    [
+      "Ordered migrations",
+      "Automated checks",
+      "Lines of TypeScript",
+      "Fully open license",
+    ].includes(stat.label),
+  ),
+  "Add verification for a new public metric",
+);
+if (!OPEN_SOURCE_STATS.length)
+  assert.doesNotMatch(
+    readFileSync("src/components/sections/OpenSourcePage.tsx", "utf8"),
+    /OPEN_SOURCE_STATS/,
+    "An empty metric block must stay out of the page",
+  );
 
 function expectStat(label: string, expected: string) {
   const actual = statByLabel.get(label);
-  assert.ok(actual, `src/content/open-source.ts is missing an OPEN_SOURCE_STATS entry: ${label}`);
+  if (actual === undefined) return;
   assert.equal(
     actual,
     expected,
@@ -47,10 +63,11 @@ expectStat("Lines of TypeScript", `${roundedThousands}K`);
 const linesOfTypeScriptStat = OPEN_SOURCE_STATS.find(
   (stat) => stat.label === "Lines of TypeScript",
 );
-assert.ok(
-  linesOfTypeScriptStat?.detail.includes(String(sourceFiles.length)),
-  `OPEN_SOURCE_STATS "Lines of TypeScript" detail says a different file count than the actual ${sourceFiles.length}. Update src/content/open-source.ts.`,
-);
+if (linesOfTypeScriptStat)
+  assert.ok(
+    linesOfTypeScriptStat?.detail.includes(String(sourceFiles.length)),
+    `OPEN_SOURCE_STATS "Lines of TypeScript" detail says a different file count than the actual ${sourceFiles.length}. Update src/content/open-source.ts.`,
+  );
 
 console.log(
   JSON.stringify(

@@ -1,144 +1,70 @@
 ---
-title: "Your first agent-built change"
-description: "Describe one business workflow, have a coding agent build it, and review the working result."
-updated: "2026-10-07"
+title: "Adapt a working follow-up report"
+description: "Run the source, change a useful business rule and verify its findings against fixed fictional opportunities."
+updated: "2026-10-10"
 ---
 
-When your team keeps chasing the latest client revision through messages and spreadsheets, a dedicated review queue can put the work and its decision together. A coding agent can build that queue on the existing customer records and access rules, which saves rebuilding the shared foundation for every new workflow.
+For your first developer change, adapt Pipeline follow-up to your team's timing. The bundled report finds open opportunities with an overdue next action or at least seven quiet days. You will change that second rule to three days and verify which opportunities appear.
 
-You describe the business process and review the result. The agent handles repository setup, source changes, extension registration and verification. Start with one useful workflow so you can judge whether the screen actually removes work from your team's day.
+This exercise uses the real report source and its existing sandbox with fixed fictional records. It needs no database, model or sending account.
 
-## Give an agent the first assignment
+## Start the source
 
-Choose a repetitive task and describe who performs it, what information they need and what should happen when they finish. For example, a proposed client review queue could show the latest revision, its reviewer and the outstanding decision together, reducing repeated status checks across separate threads.
-
-Open the Accelerate repository in Codex or Claude Code. Give your agent this starting instruction, then add your business rules:
-
-> Set up https://github.com/JohnConnorCode/accelerate-site. Read `docs/NORTHSTAR.md` and then `AGENTS.md`. Preserve existing unfinished work. Run the fictional demo, then build one client review workflow from my brief. Reuse the existing customer identity, workspace access and shared domain services. Implement the required interface, records and extension registration. Use fictional data to demonstrate the normal path, a stale revision and access from the wrong workspace. Run the required checks and show me the working screen on desktop and mobile, the exact tested source changes and any unfinished behavior. Keep publication as a separate handoff.
-
-The [open-source page](/open-source) includes a Copy button for its starting assignment. If copying is unavailable, the text stays visible so you can select it and copy it manually.
-
-For a shared Feature Board assignment, the agent follows its live execution packet, which records the approved source, scope and required evidence. For a local experiment, it starts from published main and reports the experiment as such. [Build Apps with a coding agent](/docs/extend/ai-authoring) provides a fuller business brief.
-
-## Start the app
-
-The following commands are the agent's setup reference. It needs Git, Node.js 22.16 or later and npm, and starts from the published main branch for a local experiment.
+You need Git, Node.js 22.16 or later, npm and an editor. For a local experiment, start from published main:
 
 ```bash
-node --version
-npm --version
 git clone https://github.com/JohnConnorCode/accelerate-site.git
 cd accelerate-site
-git rev-parse HEAD
-```
-
-For an assigned Feature Board task, use the approved repository base and exact commit in its live execution packet. Resolve a mismatch before changing code.
-
-Then install and start the app:
-
-```bash
 npm ci
 npm run dev
 ```
 
-Run the remaining commands from the cloned repository, where `package.json` lives. `npm ci` installs the versions recorded in the lockfile. `npm run dev` starts the local development server; it does not publish the application.
+Open the printed address and visit `/demo/command-center`. Explore [the customer lifecycle](/docs/start/daily-path), then stop your own server with Control-C. Read `docs/NORTHSTAR.md` and `AGENTS.md` before changing source. Assigned work uses the exact base and checkout from its execution packet.
 
-Have the agent open the URL printed by the terminal, then visit `/demo/command-center`. Explore a fictional business workspace together and follow [your first workflow](/docs/start/daily-path) to understand the existing behavior before extending it. The agent stops its own server when finished.
+## Verify the original rule
 
-## Where the agent implements the change
-
-| You want to change…                    | Start here                                    |
-| -------------------------------------- | --------------------------------------------- |
-| A page or request entrypoint           | `src/app/`                                    |
-| Reusable interface pieces              | `src/components/`                             |
-| Business rules and reusable operations | `src/lib/revenue-os/`                         |
-| Module registration                    | `extensions/`                                 |
-| Public product guides                  | `src/content/docs/` and its `manifest.ts`     |
-| Database structure                     | Ordered migrations and the migration manifest |
-
-Read `docs/NORTHSTAR.md` and then `AGENTS.md` before implementation. For coordinated repository work, follow the live Feature Board contract; a local experiment is not a claimed or completed board ticket.
-
-## Build on the existing extension patterns
-
-The Inventory example shows the agent how to register a page and a workspace toggle. Its source lives at `src/app/admin/example-inventory/page.tsx`, and `extensions/example-inventory.module.json` declares the page. The example ships with `defaultEnabled: false`, so an administrator chooses which test workspace enables it.
-
-For your workflow, the agent implements the business behavior and uses [the module reference](/docs/extend/modules) to register its screens and tools. It keeps business writes in the shared domain services so the interface, AI tools and integrations follow the same rules. External effects use the existing action policy, retry protection and recorded results.
-
-These registration checks are part of the agent's verification:
+From the repository, run:
 
 ```bash
-npm run verify:extensions
-git diff --check
-git diff
+npm run example:followup -- --days 7
 ```
 
-The agent also runs checks for the implemented business rules, permissions and rendered interface, then submits the exact source it tested for review.
+The fixed example shows the seven-day opportunity and an overdue callback. A recent inquiry and a won job stay out. The command evaluates `plugins/pipeline-watch/report.js`, the report your extension actually supplies.
 
-## Review the workflow as its owner
+## Change the useful rule
 
-The public demo demonstrates selected fictional workflows. To inspect this admin extension, use a [connected local installation](/docs/self-hosting/installation) with an administrator account.
+Open `plugins/pipeline-watch/report.js`. Find:
 
-Ask the agent to demonstrate the workflow with fictional records in a connected test workspace. Follow a record from intake to completion, check what the next person sees, and try an incomplete or outdated submission. For a review queue, you should be able to identify the current revision, its reviewer and the decision that still needs attention without searching another system.
+```js
+const stale = Number.isFinite(updated) && now - updated >= 7 * 86400000;
+```
 
-The agent demonstrates workspace enablement, disabling and access checks as part of its handoff. You review whether the result solves the business problem; the source diff and named check results let a technical reviewer verify how it was built.
+Change `7` to `3`. The multiplier converts days to milliseconds; leave the overdue next-action and closed-stage rules in place.
 
-## Keep developing through the backlog
+Then verify the new result and refresh generated registration:
 
-Follow-up requests to finish or continue keep the agent on your current business brief. Backlog pickup begins when you explicitly request backlog work, so a saved assignment cannot quietly replace the workflow you asked it to build.
+```bash
+npm run example:followup -- --days 3
+npm run build:extensions
+npm run verify:extensions
+npm run test:report-plugins
+git diff --check
+```
 
-You can simply tell a coding agent: “Pick up work from the backlog and go until
-it is completed and committed. Follow protocol.” The repository entrypoint
-defines that as a complete execution request. The agent continues its current task or selects eligible interrupted work before
-starting a ready card. It uses an isolated worktree, follows the live packet, verifies the result,
-commits the exact change and submits evidence for review. Internally this uses
-`agent:go`, but you do not need to provide a ticket key or command name.
+The three-day and four-day opportunities now appear alongside the seven-day opportunity and overdue callback. The check fails if the saved report still uses the old threshold. The existing report suite checks source boundaries, disabled execution and isolated evaluation.
 
-Run `npm run dev:doctor` to check local readiness and `npm run dev:doctor -- --board` for a read-only board connection check. Pickup, diagnostics, heartbeat and submission reuse the configured private profile across worktrees. An owner-authorized local profile uses the existing named-project configuration. A remote contributor configures project-scoped HTTPS access once through the setup workflow and does not need the owner’s database credentials. Agents never ask you to paste secrets into chat. If a feature checkout has unfinished work, preserve it and start a new session from a clean published-main control checkout.
+## Explain the result to a business user
 
-If an agent runs out of time or credit, its next replacement should be able to
-continue from saved source and remaining work. With this release's recovery schema
-and project policy enabled, the runner resumes an expired task from its latest
-checkpoint, a saved copy of unfinished source. It preserves the previous checkout
-so work newer than that copy can still be inspected. Initial pickup and progress
-updates save checkpoints; newly created source files need explicit inclusion.
+The office now sees quiet opportunities sooner and can choose an appropriate next action. The report remains read-only: it identifies work worth inspecting and does not send a message or create a task.
 
-The internal runner handles continuation, selection and claim for the natural-language
-request. For explicit diagnostics, `npm run agent:status` and
-`npm run agent:show -- --card <key>` remain available; `agent:next` is the
-compatibility command for a named card. Follow the live acceptance criteria,
-use the emitted commands to renew ownership, and submit named checks and the exact
-commit with `agent:complete`. For long checks, the bounded job wrapper keeps
-ownership current while the command runs. The [agent handoff guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/NATURAL-LANGUAGE-AGENT.md#preserve-work-between-agents)
-explains source checkpoints and attempt-specific commands.
-Submission, review, merge and deployment are separate recorded steps. The full
-command contract is in `AGENTS.md` and its linked developer handoff.
+Update the seven-day description in the [Pipeline follow-up guide](/docs/plugins/pipeline-watch) and its plugin README for your customized installation. Review your diff and run the repository's required checks before handing off application changes.
 
-Every feature change also updates the organized public guides, product changelog and Command Center descriptions in the same pull request. Keep planned capabilities clearly separate from available behavior. Report new gaps through the live board so the next contributor has a concrete task and verification criteria.
+## Use it with connected records
 
-### Resolve an approved-source mismatch
+Follow [installation](/docs/self-hosting/installation), then enable Pipeline follow-up in Apps for your test workspace. Run the report, inspect its findings and open their source records. The fixture proves the rule over controlled input; a connected run also needs readable source registration and workspace access.
 
-Before a coding agent takes ownership, pickup checks the card's approved repository, branch and exact commit, which identifies the source it may change. A refusal names the card so you can find the assignment without searching every open task.
+## Keep building
 
-If the approved commit is unavailable, fetch the declared branch; when that fetch succeeds but the commit is still missing, ask the maintainer to publish the source or correct the card through its recorded revision. If the branch is unavailable, fetch that branch and retry. If the commit is outside the branch history, the maintainer needs to reconcile the approved base with the published source before work starts.
+[Extension design](/docs/extend) helps you choose a module, report, workflow, provider adapter or AI tool. [App design](/docs/extend/apps) explains a dedicated business workspace. Give a coding agent a [business brief](/docs/extend/ai-authoring) with the useful result and acceptance example.
 
-A failed fetch points you to repository access, network connectivity and branch publication. Keep the existing remote and retained source intact while resolving it. The refusal leaves the task unclaimed, so retry the same assignment after correcting the cause. The [developer handoff](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/DEVELOPER-START.md#connect-to-assigned-work) explains these messages and the approved recovery steps.
-
-## Recover a repository setup refusal
-
-If pickup names an invalid repository address, read that card with `npm run agent:show -- --card <key>` and ask its maintainer to correct the address through a versioned edit. The card needs a credential-free HTTPS or SSH Git address, or an absolute file URL for a controlled local repository. Keep its approved branch and exact commit intact, because those identify the source you are authorized to change.
-
-The runner reports the affected card and stops before claiming work. Credentials belong in Git's secure authentication setup; remove passwords, tokens, query strings and fragments from the address. A checkout mismatch means you need the approved clone. Follow the named recovery instead of reconfiguring board access or bypassing the worktree check.
-
-## Keep agent work within machine capacity
-
-The shared resource runner allows one heavy job at a time across worktrees. An optional [local machine supervisor](https://github.com/JohnConnorCode/accelerate-site/blob/main/scripts/supervisor/README.md) adds a queue and process identity checks for registered agent sessions. It starts off and requires no service credentials. It is separate from Feature Board assignment: continue using the ordinary backlog runner to claim and complete work.
-
-The supervisor can pause a registered producer without terminating it, preserve a paused session during recovery, and report unmanaged launch paths. It does not install hooks into every agent, reconstruct lost conversations, or provide OS-level isolation. Its guide explains configuration, recovery, and the tested limits.
-
-## What to check
-
-The client review queue above is an example to commission from an agent; the Inventory starter registers a page and toggle, not stock storage or automatic reordering. Verify the implemented workflow against your brief before describing it as available.
-
-Use your own accounts for a connected installation and give the agent access through the documented setup. Keep credentials in secure configuration. Check permission tests, saved records, failure recovery and any external-action receipts before introducing real customer work. Submission, review, merge and deployment each need their own recorded result.
-
-For setup failures, use [Troubleshooting](/docs/start/troubleshooting). The module reference follows this guide for the agent implementing your extension.
+For shared backlog work, explicitly ask the agent to "pick up work from the backlog." The internal `agent:go` runner resolves the approved scope and worker checkout. Continue there through implementation, verification, commit and evidence submission for review. Use that claim workflow only for backlog pickup, preserve unfinished source, and record review, merge and deployment separately.

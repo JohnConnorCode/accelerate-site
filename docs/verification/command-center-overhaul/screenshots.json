@@ -1,0 +1,179 @@
+{
+  "result": "passed",
+  "shots": [
+    {
+      "id": "plugins/client-onboarding",
+      "ok": true,
+      "bytes": 726860,
+      "path": "public/images/docs/plugins/client-onboarding.png"
+    },
+    {
+      "id": "plugins/collections",
+      "ok": true,
+      "bytes": 832930,
+      "path": "public/images/docs/plugins/collections.png"
+    },
+    {
+      "id": "plugins/site-studio",
+      "ok": true,
+      "bytes": 790483,
+      "path": "public/images/docs/plugins/site-studio.png"
+    },
+    {
+      "id": "command-center/today",
+      "ok": true,
+      "bytes": 850956,
+      "path": "public/images/docs/command-center/today.png"
+    },
+    {
+      "id": "command-center/inbox",
+      "ok": true,
+      "bytes": 798787,
+      "path": "public/images/docs/command-center/inbox.png"
+    },
+    {
+      "id": "command-center/work",
+      "ok": true,
+      "bytes": 796085,
+      "path": "public/images/docs/command-center/work.png"
+    },
+    {
+      "id": "command-center/activity",
+      "ok": true,
+      "bytes": 742137,
+      "path": "public/images/docs/command-center/activity.png"
+    },
+    {
+      "id": "contacts/overview",
+      "ok": true,
+      "bytes": 777654,
+      "path": "public/images/docs/contacts/overview.png"
+    },
+    {
+      "id": "contacts/record",
+      "ok": true,
+      "bytes": 755416,
+      "path": "public/images/docs/contacts/record.png"
+    },
+    {
+      "id": "contacts/import",
+      "ok": true,
+      "bytes": 853503,
+      "path": "public/images/docs/contacts/import.png"
+    },
+    {
+      "id": "conversations/overview",
+      "ok": true,
+      "bytes": 964753,
+      "path": "public/images/docs/conversations/overview.png"
+    },
+    {
+      "id": "pipeline/overview",
+      "ok": true,
+      "bytes": 848102,
+      "path": "public/images/docs/pipeline/overview.png"
+    },
+    {
+      "id": "pipeline/revenue",
+      "ok": true,
+      "bytes": 763864,
+      "path": "public/images/docs/pipeline/revenue.png"
+    },
+    {
+      "id": "proposals/overview",
+      "ok": true,
+      "bytes": 817860,
+      "path": "public/images/docs/proposals/overview.png"
+    },
+    {
+      "id": "outreach/campaigns",
+      "ok": true,
+      "bytes": 810844,
+      "path": "public/images/docs/outreach/campaigns.png"
+    },
+    {
+      "id": "outreach/email-studio",
+      "ok": true,
+      "bytes": 875290,
+      "path": "public/images/docs/outreach/email-studio.png"
+    },
+    {
+      "id": "outreach/recovery",
+      "ok": true,
+      "bytes": 853586,
+      "path": "public/images/docs/outreach/recovery.png"
+    },
+    {
+      "id": "delivery/clients",
+      "ok": true,
+      "bytes": 777722,
+      "path": "public/images/docs/delivery/clients.png"
+    },
+    {
+      "id": "delivery/bookings",
+      "ok": true,
+      "bytes": 853980,
+      "path": "public/images/docs/delivery/bookings.png"
+    },
+    {
+      "id": "delivery/content",
+      "ok": true,
+      "bytes": 723722,
+      "path": "public/images/docs/delivery/content.png"
+    },
+    {
+      "id": "delivery/resources",
+      "ok": true,
+      "bytes": 809334,
+      "path": "public/images/docs/delivery/resources.png"
+    },
+    {
+      "id": "sources/leads",
+      "ok": true,
+      "bytes": 831340,
+      "path": "public/images/docs/sources/leads.png"
+    },
+    {
+      "id": "workspace/settings",
+      "ok": true,
+      "bytes": 768997,
+      "path": "public/images/docs/workspace/settings.png"
+    },
+    {
+      "id": "workspace/setup",
+      "ok": true,
+      "bytes": 806606,
+      "path": "public/images/docs/workspace/setup.png"
+    },
+    {
+      "id": "workspace/integrations",
+      "ok": true,
+      "bytes": 903277,
+      "path": "public/images/docs/workspace/integrations.png"
+    },
+    {
+      "id": "intelligence/workspace",
+      "ok": true,
+      "bytes": 740232,
+      "path": "public/images/docs/intelligence/workspace.png"
+    },
+    {
+      "id": "plugins/stripe-invoicing",
+      "ok": true,
+      "bytes": 812746,
+      "path": "public/images/docs/plugins/stripe-invoicing.png"
+    },
+    {
+      "id": "plugins/example-inventory",
+      "ok": true,
+      "bytes": 690663,
+      "path": "public/images/docs/plugins/example-inventory.png"
+    },
+    {
+      "id": "start/agencies",
+      "ok": true,
+      "bytes": 611348,
+      "path": "public/images/docs/start/agencies.png"
+    }
+  ]
+}

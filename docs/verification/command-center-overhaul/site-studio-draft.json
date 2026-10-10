@@ -1,0 +1,3333 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "name": "Accelerate",
+    "tagline": "We find where AI and automation can free up time or increase revenue, then build and run the right custom solution."
+  },
+  "navigation": [
+    {
+      "label": "Services",
+      "href": "/services"
+    },
+    {
+      "label": "Command Center",
+      "href": "/command-center",
+      "children": [
+        {
+          "label": "Overview",
+          "href": "/command-center"
+        },
+        {
+          "label": "Features",
+          "href": "/command-center/features"
+        },
+        {
+          "label": "Compare alternatives",
+          "href": "/command-center/compare"
+        },
+        {
+          "label": "Try the demo",
+          "href": "/demo/command-center"
+        },
+        {
+          "label": "Build on the platform",
+          "href": "/open-source"
+        },
+        {
+          "label": "Roadmap",
+          "href": "/roadmap"
+        },
+        {
+          "label": "Changelog",
+          "href": "/changelog"
+        }
+      ]
+    },
+    {
+      "label": "Industries",
+      "href": "#",
+      "children": [
+        {
+          "label": "All industries",
+          "href": "/industries"
+        },
+        {
+          "label": "Home Services",
+          "href": "/industries/home-services"
+        },
+        {
+          "label": "Law Firms",
+          "href": "/industries/law-firms"
+        },
+        {
+          "label": "Professional Services",
+          "href": "/industries/professional-services"
+        },
+        {
+          "label": "Real Estate",
+          "href": "/industries/real-estate"
+        },
+        {
+          "label": "Nonprofits",
+          "href": "/industries/nonprofits"
+        }
+      ]
+    },
+    {
+      "label": "Work",
+      "href": "/work"
+    },
+    {
+      "label": "Company",
+      "href": "/about",
+      "children": [
+        {
+          "label": "Chicago",
+          "href": "/chicago"
+        },
+        {
+          "label": "About us",
+          "href": "/about"
+        },
+        {
+          "label": "Team",
+          "href": "/team"
+        },
+        {
+          "label": "Partners",
+          "href": "/partners"
+        },
+        {
+          "label": "Contact",
+          "href": "/contact"
+        }
+      ]
+    },
+    {
+      "label": "Docs",
+      "href": "/docs"
+    }
+  ],
+  "header": {
+    "ctaLabel": "Book a call",
+    "ctaHref": "/contact"
+  },
+  "footer": {
+    "text": "AI systems for small businesses. We find where it fits, build it, and run it.",
+    "links": [
+      {
+        "label": "Privacy Policy",
+        "href": "/privacy"
+      },
+      {
+        "label": "Terms of Service",
+        "href": "/terms"
+      }
+    ],
+    "columns": [
+      {
+        "heading": "Services",
+        "links": [
+          {
+            "label": "Strategy & consulting",
+            "href": "/services#strategy"
+          },
+          {
+            "label": "Custom systems",
+            "href": "/services#automation"
+          },
+          {
+            "label": "Managed execution",
+            "href": "/services#sales"
+          },
+          {
+            "label": "Training & optimization",
+            "href": "/services#reporting"
+          },
+          {
+            "label": "What we build",
+            "href": "/services#build"
+          },
+          {
+            "label": "Selected work",
+            "href": "/services#work"
+          }
+        ]
+      },
+      {
+        "heading": "Command Center",
+        "links": [
+          {
+            "label": "Overview",
+            "href": "/command-center"
+          },
+          {
+            "label": "Features",
+            "href": "/command-center/features"
+          },
+          {
+            "label": "Compare alternatives",
+            "href": "/command-center/compare"
+          },
+          {
+            "label": "Try the demo",
+            "href": "/demo/command-center"
+          },
+          {
+            "label": "Build on the platform",
+            "href": "/open-source"
+          },
+          {
+            "label": "Roadmap",
+            "href": "/roadmap"
+          },
+          {
+            "label": "Changelog",
+            "href": "/changelog"
+          },
+          {
+            "label": "Documentation",
+            "href": "/docs"
+          },
+          {
+            "label": "Self-hosting guide",
+            "href": "/docs/self-hosting"
+          }
+        ]
+      },
+      {
+        "heading": "Industries",
+        "links": [
+          {
+            "label": "Home Services",
+            "href": "/industries/home-services"
+          },
+          {
+            "label": "Law Firms",
+            "href": "/industries/law-firms"
+          },
+          {
+            "label": "Professional Services",
+            "href": "/industries/professional-services"
+          },
+          {
+            "label": "Real Estate",
+            "href": "/industries/real-estate"
+          },
+          {
+            "label": "Nonprofits",
+            "href": "/industries/nonprofits"
+          },
+          {
+            "label": "All industries",
+            "href": "/industries"
+          }
+        ]
+      },
+      {
+        "heading": "Learn",
+        "links": [
+          {
+            "label": "Articles & guides",
+            "href": "/learn"
+          },
+          {
+            "label": "Free downloads",
+            "href": "/resources"
+          }
+        ]
+      },
+      {
+        "heading": "Company",
+        "links": [
+          {
+            "label": "Our work",
+            "href": "/work"
+          },
+          {
+            "label": "Chicago",
+            "href": "/chicago"
+          },
+          {
+            "label": "About us",
+            "href": "/about"
+          },
+          {
+            "label": "Team",
+            "href": "/team"
+          },
+          {
+            "label": "Partners",
+            "href": "/partners"
+          },
+          {
+            "label": "Contact",
+            "href": "/contact"
+          }
+        ]
+      }
+    ],
+    "email": "john@acceleratewith.us",
+    "social": [
+      {
+        "label": "LinkedIn",
+        "href": "https://www.linkedin.com/company/acceleratewith/"
+      }
+    ],
+    "rights": "All rights reserved.",
+    "newsletter": {
+      "visible": true,
+      "heading": "One email a week",
+      "description": "No spam. Unsubscribe anytime.",
+      "placeholder": "your@email.com",
+      "inputLabel": "Email address",
+      "buttonLabel": "Subscribe",
+      "successText": "You’re subscribed!"
+    }
+  },
+  "dock": {
+    "visible": true,
+    "heading": "Free 30-minute strategy session",
+    "detail": "You leave with a written plan",
+    "ctaLabel": "Book",
+    "ctaHref": "/contact"
+  },
+  "theme": {
+    "accent": "#d8b36a",
+    "background": "#fbfbfa",
+    "foreground": "#0b0b0b",
+    "font": "installation",
+    "radius": "soft"
+  },
+  "assets": [
+    {
+      "id": "cc-customer-context",
+      "src": "/images/docs/conversations/overview.png?v=8a493776ea23",
+      "alt": "A fictional Northline customer conversation with its linked relationship context.",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "id": "cc-sales",
+      "src": "/images/docs/pipeline/overview.png?v=45f09182079b",
+      "alt": "Northline's fictional sales pipeline showing opportunities, stages and next actions.",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "id": "cc-delivery",
+      "src": "/images/docs/plugins/client-onboarding.png?v=63983a560cae",
+      "alt": "A fictional client onboarding checklist with assigned work and its engagement context.",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "id": "cc-billing",
+      "src": "/images/docs/plugins/collections.png?v=dd8e5bc9a6b6",
+      "alt": "A fictional Collections case showing invoice evidence, payment promises and follow-up.",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "id": "cc-marketing",
+      "src": "/images/docs/plugins/site-studio.png?v=0778fe137986",
+      "alt": "Site Studio in the fictional workspace, with a page draft and responsive preview.",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "id": "cc-custom-apps",
+      "src": "/images/docs/intelligence/workspace.png?v=e607c9f45d97",
+      "alt": "The AI workspace with a fictional business request and linked business actions.",
+      "width": 1440,
+      "height": 1000
+    }
+  ],
+  "pages": [
+    {
+      "id": "home",
+      "path": "/",
+      "metadata": {
+        "title": "Accelerate | Custom AI Strategy, Solutions & Execution",
+        "description": "We find where AI and automation can free up time or increase revenue, then build and run the right custom solution.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "native",
+        "sections": [
+          {
+            "id": "home-hero",
+            "template": "home-hero",
+            "fields": {
+              "eyebrow": "AI strategy · custom systems · ongoing execution",
+              "heading": "We use AI to help your business",
+              "emphasis": "make more money while you save more time.",
+              "support": "We find where AI can make a difference, build it around the tools you already use, and help your team put it to work.",
+              "ctaLabel": "Book a free strategy session",
+              "ctaHref": "/contact"
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-statement",
+            "template": "home-statement",
+            "fields": {
+              "eyebrow": "Built around your business",
+              "heading": "We start with the work your team does every day.",
+              "body": "A new inquiry can disappear between a form and an inbox. We find problems like that, build the useful AI and integrations, and help your team run the result in production.",
+              "systemsLabel": "How we help",
+              "systemsHref": "#systems",
+              "workLabel": "See our work",
+              "workHref": "#selected-work",
+              "productLabel": "Explore Command Center",
+              "productHref": "#command-center"
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-marquee",
+            "template": "home-marquee",
+            "fields": {
+              "items": [
+                "Revenue systems",
+                "Workflow automation",
+                "Custom integrations",
+                "AI agents",
+                "Forecasting and analytics",
+                "Internal tools",
+                "Team enablement"
+              ]
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-work",
+            "template": "home-work",
+            "fields": {
+              "eyebrow": "Selected work",
+              "heading": "Systems that had to work in production.",
+              "body": "These projects show the operating experience behind Accelerate: finding the constraint, designing the right system, building it, and improving the work around it.",
+              "ctaLabel": "See all work",
+              "ctaHref": "/work"
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-systems",
+            "template": "home-systems",
+            "fields": {
+              "eyebrow": "How we help",
+              "headingStart": "Start with the business.",
+              "headingMiddle": "Build",
+              "headingEnd": "what it needs.",
+              "body": "We learn how your team works, find the useful opportunities for AI and automation, and shape the engagement around the result you need.",
+              "listLabel": "Ways to work with Accelerate",
+              "modes": [
+                {
+                  "key": "strategy",
+                  "label": "Strategy and consulting",
+                  "title": "Find where AI fits",
+                  "description": "We learn how the business works, identify the useful opportunities, and put them in the right order before anyone spends money building.",
+                  "example": "Workflow audit · opportunity map · practical roadmap",
+                  "href": "/services#strategy"
+                },
+                {
+                  "key": "build",
+                  "label": "Custom systems",
+                  "title": "Build what is missing",
+                  "description": "We create workflows, AI agents, internal tools, and integrations around the systems and habits your team already has.",
+                  "example": "Automations · AI agents · tools · integrations",
+                  "href": "/services#automation"
+                },
+                {
+                  "key": "execute",
+                  "label": "Managed execution",
+                  "title": "Run the work with you",
+                  "description": "We can operate the sales, marketing, service, content, reporting, or administrative work the solution is built to handle.",
+                  "example": "Campaigns · customer work · content · reporting",
+                  "href": "/services#sales"
+                },
+                {
+                  "key": "improve",
+                  "label": "Training and optimization",
+                  "title": "Make it better over time",
+                  "description": "We train the team, document the system, watch what happens in production, and keep improving it as the business changes.",
+                  "example": "Training · support · measurement · refinement",
+                  "href": "/services#reporting"
+                }
+              ],
+              "note": "Choose the support your team needs. We agree the scope together."
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-trades",
+            "template": "home-trades",
+            "fields": {
+              "eyebrow": "Where it lands",
+              "headingStart": "Built around the work",
+              "headingMiddle": "your team",
+              "headingEnd": "actually does.",
+              "trades": [
+                {
+                  "href": "/industries/home-services",
+                  "name": "Home services",
+                  "promise": "The office runs while the crew builds.",
+                  "image": "/images/home-services/hero.jpg",
+                  "alt": "A construction crew working on a roof against an open sky"
+                },
+                {
+                  "href": "/industries/law-firms",
+                  "name": "Law firms",
+                  "promise": "The week back from process.",
+                  "image": "/images/law-firms/hero.jpg",
+                  "alt": "Law books and a gavel on a wooden desk"
+                },
+                {
+                  "href": "/industries/professional-services",
+                  "name": "Professional services",
+                  "promise": "Admin off the people who bill.",
+                  "image": "/images/professional-services/hero.jpg",
+                  "alt": "A desk with notebooks, a laptop, and working papers"
+                },
+                {
+                  "href": "/industries/real-estate",
+                  "name": "Real estate",
+                  "promise": "A pipeline with a long memory.",
+                  "image": "/images/real-estate/hero.jpg",
+                  "alt": "A row of houses along a quiet residential street"
+                },
+                {
+                  "href": "/industries/nonprofits",
+                  "name": "Nonprofits",
+                  "promise": "Every supporter thanked, then invited back.",
+                  "image": "/images/nonprofits/hero.jpg",
+                  "alt": "Volunteers packing donated goods at a community table"
+                }
+              ]
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-command-center",
+            "template": "home-command-center",
+            "fields": {
+              "eyebrow": "One integrated solution",
+              "headingStart": "Run your business.",
+              "headingEnd": "Build what it needs.",
+              "body": "Command Center brings customers, sales, delivery, billing, marketing and AI into an open-source platform that can be adapted to your business. We can implement it with your team or build a focused workflow, integration or tool when that better fits the job.",
+              "introduction": "Browse real product screens with fictional business data. Open the demo to explore the same workspace, records, and workflows yourself.",
+              "groupLabel": "Command Center screens",
+              "slides": [
+                {
+                  "kind": "image",
+                  "src": "/images/open-source/slide-today-paper-20261010.png",
+                  "alt": "Today, the operator priority queue and approval decisions, in the Paper appearance for a fictional roofing business.",
+                  "caption": "Today · Paper theme",
+                  "width": 1400,
+                  "height": 875,
+                  "presentation": "interface",
+                  "demoHref": "/demo/command-center/northline-roofing/today"
+                },
+                {
+                  "kind": "image",
+                  "src": "/images/open-source/slide-pipeline-night-20261010.png",
+                  "alt": "Pipeline, a nine-stage opportunity board, in the Night appearance for a fictional law firm.",
+                  "caption": "Pipeline · Night theme",
+                  "width": 1400,
+                  "height": 875,
+                  "presentation": "interface",
+                  "demoHref": "/demo/command-center/alder-ridge-law/pipeline"
+                },
+                {
+                  "kind": "image",
+                  "src": "/images/open-source/slide-conversations-paper-20261010.png",
+                  "alt": "Conversations, a linked reply-ready inbox, in the Paper appearance for a fictional roofing business.",
+                  "caption": "Conversations · Paper theme",
+                  "width": 1400,
+                  "height": 875,
+                  "presentation": "interface",
+                  "demoHref": "/demo/command-center/northline-roofing/conversations"
+                },
+                {
+                  "kind": "image",
+                  "src": "/images/open-source/slide-collections-night.png",
+                  "alt": "Collections, with unpaid invoice balances and payment follow-up for a fictional law firm, in the Night appearance.",
+                  "caption": "Collections · Night theme",
+                  "width": 1400,
+                  "height": 875,
+                  "presentation": "interface",
+                  "demoHref": "/demo/command-center/alder-ridge-law/collections"
+                },
+                {
+                  "kind": "image",
+                  "src": "/images/open-source/slide-delivery-signal.png",
+                  "alt": "Client onboarding, preparing owned delivery tasks from a won opportunity for a fictional advisory firm, in the Signal appearance.",
+                  "caption": "Client onboarding · Signal theme",
+                  "width": 1400,
+                  "height": 875,
+                  "presentation": "interface",
+                  "demoHref": "/demo/command-center/ledgerstone-advisory/client-onboarding"
+                },
+                {
+                  "kind": "image",
+                  "src": "/images/open-source/slide-website-studio.png",
+                  "alt": "Website and pages, with fictional real estate content ready to edit and preview, in the Studio appearance.",
+                  "caption": "Website & pages · Studio theme",
+                  "width": 1400,
+                  "height": 875,
+                  "presentation": "interface",
+                  "demoHref": "/demo/command-center/hearthline-realty/site"
+                },
+                {
+                  "kind": "image",
+                  "src": "/images/open-source/slide-ai-frost-20261010.png",
+                  "alt": "The AI workspace, grounded chat with visible evidence, in the Frost appearance for a fictional nonprofit network.",
+                  "caption": "AI Workspace · Frost theme",
+                  "width": 1400,
+                  "height": 875,
+                  "presentation": "interface",
+                  "demoHref": "/demo/command-center/common-table-network/ai"
+                }
+              ],
+              "links": [
+                {
+                  "label": "Explore the Command Center",
+                  "href": "/command-center"
+                },
+                {
+                  "label": "Explore six fictional businesses",
+                  "href": "/demo/command-center"
+                },
+                {
+                  "label": "Follow a customer workflow",
+                  "href": "/demo/command-center/northline-roofing/today?workflow=client"
+                },
+                {
+                  "label": "Explore business features",
+                  "href": "/command-center/features"
+                },
+                {
+                  "label": "Read the docs",
+                  "href": "/docs"
+                }
+              ]
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-process",
+            "template": "home-process",
+            "fields": {
+              "eyebrow": "How we work",
+              "headingStart": "From understanding",
+              "headingMiddle": "the business to",
+              "headingEnd": "making it better.",
+              "body": "The shape of the engagement follows the problem. The solution may be advice, a focused build, training, ongoing execution, or a combination.",
+              "steps": [
+                {
+                  "n": "01",
+                  "title": "The session",
+                  "tag": "30 min · free",
+                  "body": "We learn how the business works, what the team wants to change, and where time or revenue is being lost."
+                },
+                {
+                  "n": "02",
+                  "title": "The plan",
+                  "tag": "yours to keep",
+                  "body": "A written recommendation: where AI fits, the right type of solution, what should happen first, and why."
+                },
+                {
+                  "n": "03",
+                  "title": "The delivery",
+                  "tag": "fixed scope",
+                  "body": "We provide the agreed consulting, custom build, integrations, training, or managed execution against a clear scope."
+                },
+                {
+                  "n": "04",
+                  "title": "The improvement",
+                  "tag": "ongoing support",
+                  "body": "When ongoing help makes sense, we run the work, support the team, measure what changes, and keep improving it."
+                }
+              ]
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-plan",
+            "template": "home-plan",
+            "fields": {
+              "eyebrow": "The plan",
+              "heading": "You leave the first session with a written plan.",
+              "body": "Thirty minutes. You describe how the business runs and what you want to change. We identify where AI or automation fits, recommend the right kind of solution, and put the next steps in writing. Yours to keep either way.",
+              "items": [
+                "Where AI or automation is genuinely useful",
+                "Whether the answer is advice, a workflow, an agent, an integration, training, or execution",
+                "What should happen first and why",
+                "The tools, access, people, and approvals the work needs",
+                "A clear scope, ownership model, and way to measure progress"
+              ],
+              "deck": {
+                "label": "Sample plan",
+                "business": "Regional services co.",
+                "swipeLabel": "Swipe",
+                "pages": [
+                  {
+                    "title": "1. Where the hours go",
+                    "sub": "Named in the team's language, from the first session",
+                    "rows": [
+                      {
+                        "label": "Missed first contact",
+                        "detail": "Calls and forms while the crew is on a job",
+                        "value": "Evenings"
+                      },
+                      {
+                        "label": "Median first response",
+                        "detail": "Business hours only, today",
+                        "value": "Hours",
+                        "mute": true
+                      },
+                      {
+                        "label": "Routine inquiry handling",
+                        "detail": "Per week, across two people",
+                        "value": "22 hrs"
+                      },
+                      {
+                        "label": "Quote turnaround",
+                        "detail": "Request to something the customer can act on",
+                        "value": "Days"
+                      },
+                      {
+                        "label": "Follow-up that depends on memory",
+                        "detail": "Estimates that sit until someone has an evening",
+                        "value": "Most"
+                      }
+                    ],
+                    "note": "The team is spending the week on qualification and chasing. The work only they can do waits."
+                  },
+                  {
+                    "title": "2. What we take off them first",
+                    "sub": "Sequenced so people get the week back where it counts",
+                    "rows": [
+                      {
+                        "label": "Phase 1: Front desk",
+                        "detail": "Capture, qualification, and routing, including after hours",
+                        "value": "Week 1"
+                      },
+                      {
+                        "label": "Phase 2: Follow-up",
+                        "detail": "The unclosed estimate that currently depends on memory",
+                        "value": "Week 2"
+                      },
+                      {
+                        "label": "Phase 3: CRM connection",
+                        "detail": "So the record and the conversation stay in one place",
+                        "value": "Week 3"
+                      },
+                      {
+                        "label": "Phase 4: Field notes",
+                        "detail": "End-of-day paperwork that should not need a desk",
+                        "value": "Week 4",
+                        "mute": true
+                      }
+                    ],
+                    "note": "Phase one is live in under two weeks. The crew keeps doing jobs while the machine starts catching what they were missing."
+                  },
+                  {
+                    "title": "3. What the week looks like after",
+                    "sub": "Typical on the workflows we take on, not a headline return",
+                    "rows": [
+                      {
+                        "label": "First response",
+                        "detail": "While the inquiry is still warm, any hour",
+                        "value": "Minutes"
+                      },
+                      {
+                        "label": "Hours returned",
+                        "detail": "Per person, per week, on the work we absorb",
+                        "value": "~10 hrs"
+                      },
+                      {
+                        "label": "Routine work absorbed",
+                        "detail": "Intake, follow-up, scheduling no longer needs a person",
+                        "value": "One role"
+                      },
+                      {
+                        "label": "Who still decides",
+                        "detail": "Anything that needs judgment comes to you",
+                        "value": "You"
+                      },
+                      {
+                        "label": "You own it",
+                        "detail": "Accounts, code, documentation",
+                        "value": "Yours"
+                      }
+                    ],
+                    "note": "The same people spend the week on jobs, cases, and clients. We run the rest."
+                  }
+                ]
+              },
+              "ctaLabel": "Book a free strategy session",
+              "ctaHref": "/contact"
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-who",
+            "template": "home-who",
+            "fields": {
+              "eyebrow": "The firm",
+              "headingStart": "Engineered by",
+              "headingMiddle": "veteran founders",
+              "headingEnd": "and operators.",
+              "years": "15",
+              "yearsLabel": "Years deploying machine learning at scale",
+              "body": "We put AI into production long before the hype cycle. Knowing exactly where to deploy automation, and what will break when you do, is the difference between a system that runs and one that needs babysitting.",
+              "detail": "We are deliberately selective. You interface directly with the engineers architecting your system, never an account manager. The practice is led by John Connor.",
+              "linkLabel": "Read more about the team",
+              "linkHref": "/about"
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-faq",
+            "template": "home-faq",
+            "fields": {
+              "eyebrow": "Common questions",
+              "title": "Answered plainly.",
+              "questions": [
+                "What does this cost?",
+                "How soon would we see a result?",
+                "Nobody here is technical. Is that a problem?",
+                "Our data is disorganized. Fix that first?",
+                "We bought an AI tool and nobody uses it.",
+                "Is our data safe?",
+                "Who owns what you build?"
+              ],
+              "answers": [
+                "The session and the plan cost nothing. Delivery is a fixed price agreed before work begins. If a project is too small to justify the fee, we will say so on the session.",
+                "It depends on the recommendation. A training or workflow engagement can move quickly; a custom build or broader execution scope takes longer. We define the first useful result before work begins.",
+                "No, and it is the usual case. You explain how the business runs. We handle the rest, and your team is trained on anything they touch.",
+                "No. Waiting to clean it up is the most common reason projects never start. We scope around what exists and improve the rest along the way.",
+                "Common. Sometimes the right answer is training, clearer rules, or a better workflow around the tool rather than another purchase. We recommend that when it is the smallest useful fix.",
+                "It stays in your accounts. We use providers with no-training agreements, give each system access only to what it needs, and log what it touches. Bring your compliance requirements to the first call.",
+                "You do. The accounts, the code, the documentation. Support is available and optional, and nothing is built so that you need us to keep it running."
+              ]
+            },
+            "hidden": false
+          },
+          {
+            "id": "home-final-cta",
+            "template": "home-final-cta",
+            "fields": {
+              "eyebrow": "Start here",
+              "headingStart": "Book the session.",
+              "headingEnd": "Keep the plan.",
+              "body": "Thirty minutes with the people who would advise, build, or run the work. You leave with the recommendation in writing. Yours to keep either way.",
+              "ctaLabel": "Book a free strategy session",
+              "ctaHref": "/contact"
+            },
+            "hidden": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "open-source",
+      "path": "/open-source",
+      "metadata": {
+        "title": "Build on Command Center",
+        "description": "Manage customers, sales, delivery, billing and marketing in one system. Use AI with your business context, and build workflows and custom apps around the way your team works.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "eyebrow": "For builders and agencies",
+                    "heading": "Build business Apps. Start with a working foundation.",
+                    "body": "Manage customers, sales, delivery, billing and marketing in one system. Use AI with your business context, and build workflows and custom apps around the way your team works.",
+                    "primaryCta": {
+                      "label": "Adapt a working follow-up report",
+                      "href": "/docs/extend/first-change"
+                    },
+                    "secondaryCta": {
+                      "label": "Explore the platform",
+                      "href": "/demo/command-center"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-foundation",
+              "type": "section",
+              "children": [
+                {
+                  "id": "foundation",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Spend development effort on your business's own process"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-reuse",
+              "type": "section",
+              "children": [
+                {
+                  "id": "reuse",
+                  "type": "text",
+                  "props": {
+                    "text": "Reuse customer identity, conversations, opportunities, tasks, access and business services. Build an industry report, specialized workspace or custom lifecycle, then make supported operations available to AI through the shared tools."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-app-design",
+              "type": "section",
+              "children": [
+                {
+                  "id": "app-design",
+                  "type": "button",
+                  "props": {
+                    "label": "Understand App design",
+                    "href": "/docs/extend/apps",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-ownership",
+              "type": "section",
+              "children": [
+                {
+                  "id": "ownership",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Own the installation and handoff"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-requirements",
+              "type": "section",
+              "children": [
+                {
+                  "id": "requirements",
+                  "type": "text",
+                  "props": {
+                    "text": "The application source is MIT licensed. A connected installation uses your own Supabase project and provider accounts, with hosting and usage costs. Current custom App development uses the source and an external coding agent. General-purpose App creation inside the workspace remains planned."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-setup",
+              "type": "section",
+              "children": [
+                {
+                  "id": "setup",
+                  "type": "button",
+                  "props": {
+                    "label": "Read the self-hosting guide",
+                    "href": "/docs/self-hosting",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Build on Command Center",
+            "slug": "open-source",
+            "description": "Manage customers, sales, delivery, billing and marketing in one system. Use AI with your business context, and build workflows and custom apps around the way your team works."
+          }
+        }
+      }
+    },
+    {
+      "id": "command-center",
+      "path": "/command-center",
+      "metadata": {
+        "title": "Command Center | Open-source AI business platform",
+        "description": "Manage customers, sales, delivery, billing and marketing in one system. Use AI with your business context, and build workflows and custom apps around the way your team works.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "eyebrow": "Open-source AI business platform",
+                    "heading": "Run your business. Build what it needs.",
+                    "body": "Manage customers, sales, delivery, billing and marketing in one system. Use AI with your business context, and build workflows and custom apps around the way your team works.",
+                    "primaryCta": {
+                      "label": "Follow a client workflow",
+                      "href": "/demo/command-center/northline-roofing/today?workflow=client"
+                    },
+                    "secondaryCta": {
+                      "label": "Build on the platform",
+                      "href": "/docs/extend/first-change"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-business-areas",
+              "type": "section",
+              "children": [
+                {
+                  "id": "business-areas",
+                  "type": "featureGrid",
+                  "props": {
+                    "title": "The business work you can do",
+                    "items": [
+                      {
+                        "title": "Customers & conversations",
+                        "body": "Find a person's conversations, opportunities, notes and commitments together. Give the next teammate enough context to help, and let AI use the available records when preparing a response."
+                      },
+                      {
+                        "title": "Sales & follow-up",
+                        "body": "Capture an inquiry, keep the opportunity's stage and next action visible, prepare a proposal and find follow-up that has gone quiet."
+                      },
+                      {
+                        "title": "Delivery & commitments",
+                        "body": "Connect client engagements, meeting commitments and assigned tasks. Keep the customer and agreement attached so the person doing the work understands what was promised."
+                      },
+                      {
+                        "title": "Billing & collections",
+                        "body": "Prepare Stripe invoices, offer recurring plans and manage overdue balances with customer context. Keep a contract value, invoice, payment promise and collected payment distinct."
+                      },
+                      {
+                        "title": "Marketing & publishing",
+                        "body": "Create forms and website pages, organize editorial work, prepare email outreach and schedule supported social posts. Use the business context already available to produce more relevant content."
+                      },
+                      {
+                        "title": "Custom Apps & AI",
+                        "body": "Start with existing customer records and business services. Use a coding agent to add reports, workflows, tools or a dedicated App, and connect supported external assistants through MCP."
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-customer-context",
+              "type": "section",
+              "children": [
+                {
+                  "id": "customer-context",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Customers & conversations",
+                    "href": "/command-center/features/customer-context",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-sales",
+              "type": "section",
+              "children": [
+                {
+                  "id": "sales",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Sales & follow-up",
+                    "href": "/command-center/features/sales",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-delivery",
+              "type": "section",
+              "children": [
+                {
+                  "id": "delivery",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Delivery & commitments",
+                    "href": "/command-center/features/delivery",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-billing",
+              "type": "section",
+              "children": [
+                {
+                  "id": "billing",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Billing & collections",
+                    "href": "/command-center/features/billing",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-marketing",
+              "type": "section",
+              "children": [
+                {
+                  "id": "marketing",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Marketing & publishing",
+                    "href": "/command-center/features/marketing",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-custom-apps",
+              "type": "section",
+              "children": [
+                {
+                  "id": "custom-apps",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Custom Apps & AI",
+                    "href": "/command-center/features/custom-apps",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-builder",
+              "type": "section",
+              "children": [
+                {
+                  "id": "builder",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Adapt the platform to your business"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-foundation",
+              "type": "section",
+              "children": [
+                {
+                  "id": "foundation",
+                  "type": "text",
+                  "props": {
+                    "text": "Reuse customer identity, conversations, work, permissions and business services. Add a report, workflow or custom App with your coding agent, then verify the working result. General-purpose App creation inside the workspace remains planned."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-exercise",
+              "type": "section",
+              "children": [
+                {
+                  "id": "exercise",
+                  "type": "button",
+                  "props": {
+                    "label": "Adapt a working follow-up report",
+                    "href": "/docs/extend/first-change",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-comparison",
+              "type": "section",
+              "children": [
+                {
+                  "id": "comparison",
+                  "type": "button",
+                  "props": {
+                    "label": "Compare alternatives",
+                    "href": "/command-center/compare",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Command Center | Open-source AI business platform",
+            "slug": "command-center",
+            "description": "Manage customers, sales, delivery, billing and marketing in one system. Use AI with your business context, and build workflows and custom apps around the way your team works."
+          }
+        }
+      }
+    },
+    {
+      "id": "command-center-features",
+      "path": "/command-center/features",
+      "metadata": {
+        "title": "Command Center features",
+        "description": "Manage customers, sales, delivery, billing and marketing in one system. Use AI with your business context, and build workflows and custom apps around the way your team works.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "heading": "Customer work, connected across the business.",
+                    "body": "Manage customers, sales, delivery, billing and marketing in one system. Use AI with your business context, and build workflows and custom apps around the way your team works."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-business-areas",
+              "type": "section",
+              "children": [
+                {
+                  "id": "business-areas",
+                  "type": "featureGrid",
+                  "props": {
+                    "title": "The business work you can do",
+                    "items": [
+                      {
+                        "title": "Customers & conversations",
+                        "body": "Find a person's conversations, opportunities, notes and commitments together. Give the next teammate enough context to help, and let AI use the available records when preparing a response."
+                      },
+                      {
+                        "title": "Sales & follow-up",
+                        "body": "Capture an inquiry, keep the opportunity's stage and next action visible, prepare a proposal and find follow-up that has gone quiet."
+                      },
+                      {
+                        "title": "Delivery & commitments",
+                        "body": "Connect client engagements, meeting commitments and assigned tasks. Keep the customer and agreement attached so the person doing the work understands what was promised."
+                      },
+                      {
+                        "title": "Billing & collections",
+                        "body": "Prepare Stripe invoices, offer recurring plans and manage overdue balances with customer context. Keep a contract value, invoice, payment promise and collected payment distinct."
+                      },
+                      {
+                        "title": "Marketing & publishing",
+                        "body": "Create forms and website pages, organize editorial work, prepare email outreach and schedule supported social posts. Use the business context already available to produce more relevant content."
+                      },
+                      {
+                        "title": "Custom Apps & AI",
+                        "body": "Start with existing customer records and business services. Use a coding agent to add reports, workflows, tools or a dedicated App, and connect supported external assistants through MCP."
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-customer-context",
+              "type": "section",
+              "children": [
+                {
+                  "id": "customer-context",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Customers & conversations",
+                    "href": "/command-center/features/customer-context",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-sales",
+              "type": "section",
+              "children": [
+                {
+                  "id": "sales",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Sales & follow-up",
+                    "href": "/command-center/features/sales",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-delivery",
+              "type": "section",
+              "children": [
+                {
+                  "id": "delivery",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Delivery & commitments",
+                    "href": "/command-center/features/delivery",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-billing",
+              "type": "section",
+              "children": [
+                {
+                  "id": "billing",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Billing & collections",
+                    "href": "/command-center/features/billing",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-marketing",
+              "type": "section",
+              "children": [
+                {
+                  "id": "marketing",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Marketing & publishing",
+                    "href": "/command-center/features/marketing",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-custom-apps",
+              "type": "section",
+              "children": [
+                {
+                  "id": "custom-apps",
+                  "type": "button",
+                  "props": {
+                    "label": "Explore Custom Apps & AI",
+                    "href": "/command-center/features/custom-apps",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Command Center features",
+            "slug": "command-center-features",
+            "description": "Manage customers, sales, delivery, billing and marketing in one system. Use AI with your business context, and build workflows and custom apps around the way your team works."
+          }
+        }
+      }
+    },
+    {
+      "id": "command-center-features-customer-context",
+      "path": "/command-center/features/customer-context",
+      "metadata": {
+        "title": "Customers & conversations | Command Center",
+        "description": "Find a person's conversations, opportunities, notes and commitments together. Give the next teammate enough context to help, and let AI use the available records when preparing a response.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "eyebrow": "Customers & conversations",
+                    "heading": "Answer with the customer's history in front of you.",
+                    "body": "Find a person's conversations, opportunities, notes and commitments together. Give the next teammate enough context to help, and let AI use the available records when preparing a response.",
+                    "primaryCta": {
+                      "label": "Try it in the demo",
+                      "href": "/demo/command-center/northline-roofing/conversations"
+                    },
+                    "secondaryCta": {
+                      "label": "Read the practical guide",
+                      "href": "/docs/contacts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-outcome",
+              "type": "section",
+              "children": [
+                {
+                  "id": "outcome",
+                  "type": "text",
+                  "props": {
+                    "text": "Less searching across inboxes and fewer handoffs that lose customer context."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-screenshot",
+              "type": "section",
+              "children": [
+                {
+                  "id": "screenshot",
+                  "type": "image",
+                  "props": {
+                    "assetId": "cc-customer-context",
+                    "alt": "A fictional Northline customer conversation with its linked relationship context.",
+                    "caption": "The actual interface with fictional demo records."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-tasks",
+              "type": "section",
+              "children": [
+                {
+                  "id": "tasks",
+                  "type": "featureGrid",
+                  "props": {
+                    "title": "What you can do",
+                    "items": [
+                      {
+                        "title": "Keep one customer history",
+                        "body": "Open linked messages, opportunities and work from the contact directory. Review unfamiliar senders before matching them."
+                      },
+                      {
+                        "title": "Prepare a useful reply",
+                        "body": "Ask AI about the selected conversation, inspect the source context and edit the proposed response."
+                      },
+                      {
+                        "title": "Bring existing information with you",
+                        "body": "Review contact imports and connect supported email, calendar and Drive sources incrementally."
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Keep one customer history",
+                    "href": "/docs/contacts",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-1",
+                  "type": "button",
+                  "props": {
+                    "label": "Prepare a useful reply",
+                    "href": "/docs/conversations/reply",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-2",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-2",
+                  "type": "button",
+                  "props": {
+                    "label": "Bring existing information with you",
+                    "href": "/docs/workspace/integrations",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-example",
+              "type": "section",
+              "children": [
+                {
+                  "id": "example",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "A homeowner asks when the inspection will happen"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-steps",
+              "type": "section",
+              "children": [
+                {
+                  "id": "steps",
+                  "type": "text",
+                  "props": {
+                    "text": "Open the customer's conversation and linked opportunity.\n\nRead the recorded callback window and outstanding next step.\n\nPrepare a response that reflects those details, then review and send it through the conversation."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-result",
+              "type": "section",
+              "children": [
+                {
+                  "id": "result",
+                  "type": "text",
+                  "props": {
+                    "text": "The response remains in the customer's thread, with the opportunity and follow-up available to the next teammate."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-setup",
+              "type": "section",
+              "children": [
+                {
+                  "id": "setup",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Start with the right setup"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-requirements",
+              "type": "section",
+              "children": [
+                {
+                  "id": "requirements",
+                  "type": "text",
+                  "props": {
+                    "text": "The contact directory and manual records work without a model. Connected history needs its provider setup and completed sync. AI drafting needs a configured model; sending needs the configured sender and exact approval."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Adapt it to your business"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-builder",
+              "type": "section",
+              "children": [
+                {
+                  "id": "builder",
+                  "type": "text",
+                  "props": {
+                    "text": "Add the customer information your industry needs, or build an account screen that combines existing identity, conversations and domain records. Reuse canonical customer IDs and workspace access."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build-guide",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build-guide",
+                  "type": "button",
+                  "props": {
+                    "label": "Build with a coding agent",
+                    "href": "/docs/extend/ai-authoring",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Customers & conversations | Command Center",
+            "slug": "command-center-features-customer-context",
+            "description": "Find a person's conversations, opportunities, notes and commitments together. Give the next teammate enough context to help, and let AI use the available records when preparing a response."
+          }
+        }
+      }
+    },
+    {
+      "id": "command-center-features-sales",
+      "path": "/command-center/features/sales",
+      "metadata": {
+        "title": "Sales & follow-up | Command Center",
+        "description": "Capture an inquiry, keep the opportunity's stage and next action visible, prepare a proposal and find follow-up that has gone quiet.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "eyebrow": "Sales & follow-up",
+                    "heading": "Give each inquiry an owner and a path to a decision.",
+                    "body": "Capture an inquiry, keep the opportunity's stage and next action visible, prepare a proposal and find follow-up that has gone quiet.",
+                    "primaryCta": {
+                      "label": "Try it in the demo",
+                      "href": "/demo/command-center/northline-roofing/pipeline"
+                    },
+                    "secondaryCta": {
+                      "label": "Read the practical guide",
+                      "href": "/docs/pipeline"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-outcome",
+              "type": "section",
+              "children": [
+                {
+                  "id": "outcome",
+                  "type": "text",
+                  "props": {
+                    "text": "A visible next step for new business, with fewer opportunities left to someone's memory."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-screenshot",
+              "type": "section",
+              "children": [
+                {
+                  "id": "screenshot",
+                  "type": "image",
+                  "props": {
+                    "assetId": "cc-sales",
+                    "alt": "Northline's fictional sales pipeline showing opportunities, stages and next actions.",
+                    "caption": "The actual interface with fictional demo records."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-tasks",
+              "type": "section",
+              "children": [
+                {
+                  "id": "tasks",
+                  "type": "featureGrid",
+                  "props": {
+                    "title": "What you can do",
+                    "items": [
+                      {
+                        "title": "Capture and qualify inquiries",
+                        "body": "Use website intake or Form builder, check the customer match and accept the inquiry into Pipeline."
+                      },
+                      {
+                        "title": "Manage the next sales action",
+                        "body": "Use board, list or calendar views. Assign ownership, record a dated next action and inspect quiet opportunities with Pipeline follow-up."
+                      },
+                      {
+                        "title": "Prepare and follow proposals",
+                        "body": "Build a proposal around the agreed services, send it for a customer decision and follow its linked opportunity."
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Capture and qualify inquiries",
+                    "href": "/docs/plugins/form-builder",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-1",
+                  "type": "button",
+                  "props": {
+                    "label": "Manage the next sales action",
+                    "href": "/docs/pipeline/board",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-2",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-2",
+                  "type": "button",
+                  "props": {
+                    "label": "Prepare and follow proposals",
+                    "href": "/docs/proposals",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-example",
+              "type": "section",
+              "children": [
+                {
+                  "id": "example",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "A roof inspection request becomes an owned opportunity"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-steps",
+              "type": "section",
+              "children": [
+                {
+                  "id": "steps",
+                  "type": "text",
+                  "props": {
+                    "text": "Review the inquiry and match it to the right customer.\n\nRecord the inspection opportunity, owner and callback date.\n\nPrepare the estimate or proposal, and use the follow-up report to find overdue next actions."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-result",
+              "type": "section",
+              "children": [
+                {
+                  "id": "result",
+                  "type": "text",
+                  "props": {
+                    "text": "The office can see who owns the inquiry, what was offered and which customer action comes next."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-setup",
+              "type": "section",
+              "children": [
+                {
+                  "id": "setup",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Start with the right setup"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-requirements",
+              "type": "section",
+              "children": [
+                {
+                  "id": "requirements",
+                  "type": "text",
+                  "props": {
+                    "text": "Pipeline and manual tasks are core. Forms and Pipeline follow-up are optional Apps. Messages and proposals need their configured sending path; the read-only follow-up report never sends a message."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Adapt it to your business"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-builder",
+              "type": "section",
+              "children": [
+                {
+                  "id": "builder",
+                  "type": "text",
+                  "props": {
+                    "text": "Adapt qualification fields, pipeline stages or a follow-up report to your process. Keep proposal and opportunity changes in their existing services so the interface and AI observe the same decision."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build-guide",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build-guide",
+                  "type": "button",
+                  "props": {
+                    "label": "Build with a coding agent",
+                    "href": "/docs/extend/ai-authoring",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Sales & follow-up | Command Center",
+            "slug": "command-center-features-sales",
+            "description": "Capture an inquiry, keep the opportunity's stage and next action visible, prepare a proposal and find follow-up that has gone quiet."
+          }
+        }
+      }
+    },
+    {
+      "id": "command-center-features-delivery",
+      "path": "/command-center/features/delivery",
+      "metadata": {
+        "title": "Delivery & commitments | Command Center",
+        "description": "Connect client engagements, meeting commitments and assigned tasks. Keep the customer and agreement attached so the person doing the work understands what was promised.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "eyebrow": "Delivery & commitments",
+                    "heading": "Turn agreed work into a handoff the team can follow.",
+                    "body": "Connect client engagements, meeting commitments and assigned tasks. Keep the customer and agreement attached so the person doing the work understands what was promised.",
+                    "primaryCta": {
+                      "label": "Try it in the demo",
+                      "href": "/demo/command-center/northline-roofing/client-onboarding"
+                    },
+                    "secondaryCta": {
+                      "label": "Read the practical guide",
+                      "href": "/docs/delivery"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-outcome",
+              "type": "section",
+              "children": [
+                {
+                  "id": "outcome",
+                  "type": "text",
+                  "props": {
+                    "text": "Clearer kickoff ownership and fewer commitments lost between sales and delivery."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-screenshot",
+              "type": "section",
+              "children": [
+                {
+                  "id": "screenshot",
+                  "type": "image",
+                  "props": {
+                    "assetId": "cc-delivery",
+                    "alt": "A fictional client onboarding checklist with assigned work and its engagement context.",
+                    "caption": "The actual interface with fictional demo records."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-tasks",
+              "type": "section",
+              "children": [
+                {
+                  "id": "tasks",
+                  "type": "featureGrid",
+                  "props": {
+                    "title": "What you can do",
+                    "items": [
+                      {
+                        "title": "Start a client engagement",
+                        "body": "Prepare access requests, kickoff steps and assigned work from a won opportunity."
+                      },
+                      {
+                        "title": "Carry meeting commitments forward",
+                        "body": "Turn an explicitly entered meeting checklist into dated tasks with owners and source context."
+                      },
+                      {
+                        "title": "Track the work in a useful view",
+                        "body": "Use Work as a list, board or calendar; save views, snooze tasks and find overdue commitments."
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Start a client engagement",
+                    "href": "/docs/plugins/client-onboarding",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-1",
+                  "type": "button",
+                  "props": {
+                    "label": "Carry meeting commitments forward",
+                    "href": "/docs/plugins/meeting-commitments",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-2",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-2",
+                  "type": "button",
+                  "props": {
+                    "label": "Track the work in a useful view",
+                    "href": "/docs/command-center/work",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-example",
+              "type": "section",
+              "children": [
+                {
+                  "id": "example",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "The customer accepts the job"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-steps",
+              "type": "section",
+              "children": [
+                {
+                  "id": "steps",
+                  "type": "text",
+                  "props": {
+                    "text": "Open the won opportunity and client engagement.\n\nPrepare the site-access, materials and start-date checklist with actual owners and dates.\n\nCreate the reviewed tasks and track completion in Work."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-result",
+              "type": "section",
+              "children": [
+                {
+                  "id": "result",
+                  "type": "text",
+                  "props": {
+                    "text": "The team has an assigned checklist linked to the engagement instead of a separate handoff spreadsheet."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-setup",
+              "type": "section",
+              "children": [
+                {
+                  "id": "setup",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Start with the right setup"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-requirements",
+              "type": "section",
+              "children": [
+                {
+                  "id": "requirements",
+                  "type": "text",
+                  "props": {
+                    "text": "Client records and shared tasks are core. Client onboarding and Meeting commitments are optional Apps. They use supplied checklist information; they do not infer every obligation from a meeting."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Adapt it to your business"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-builder",
+              "type": "section",
+              "children": [
+                {
+                  "id": "builder",
+                  "type": "text",
+                  "props": {
+                    "text": "Build a job, case or review workspace with its own lifecycle, linked to the customer and shared tasks. Collections demonstrates how an App can own domain state while participating in shared attention and AI."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build-guide",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build-guide",
+                  "type": "button",
+                  "props": {
+                    "label": "Build with a coding agent",
+                    "href": "/docs/extend/ai-authoring",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Delivery & commitments | Command Center",
+            "slug": "command-center-features-delivery",
+            "description": "Connect client engagements, meeting commitments and assigned tasks. Keep the customer and agreement attached so the person doing the work understands what was promised."
+          }
+        }
+      }
+    },
+    {
+      "id": "command-center-features-billing",
+      "path": "/command-center/features/billing",
+      "metadata": {
+        "title": "Billing & collections | Command Center",
+        "description": "Prepare Stripe invoices, offer recurring plans and manage overdue balances with customer context. Keep a contract value, invoice, payment promise and collected payment distinct.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "eyebrow": "Billing & collections",
+                    "heading": "Know what was agreed, what was invoiced and what still needs collecting.",
+                    "body": "Prepare Stripe invoices, offer recurring plans and manage overdue balances with customer context. Keep a contract value, invoice, payment promise and collected payment distinct.",
+                    "primaryCta": {
+                      "label": "Try it in the demo",
+                      "href": "/demo/command-center/northline-roofing/invoicing"
+                    },
+                    "secondaryCta": {
+                      "label": "Read the practical guide",
+                      "href": "/docs/billing"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-outcome",
+              "type": "section",
+              "children": [
+                {
+                  "id": "outcome",
+                  "type": "text",
+                  "props": {
+                    "text": "Less reconstructing billing status before invoicing a customer or following up on an unpaid balance."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-screenshot",
+              "type": "section",
+              "children": [
+                {
+                  "id": "screenshot",
+                  "type": "image",
+                  "props": {
+                    "assetId": "cc-billing",
+                    "alt": "A fictional Collections case showing invoice evidence, payment promises and follow-up.",
+                    "caption": "The actual interface with fictional demo records."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-tasks",
+              "type": "section",
+              "children": [
+                {
+                  "id": "tasks",
+                  "type": "featureGrid",
+                  "props": {
+                    "title": "What you can do",
+                    "items": [
+                      {
+                        "title": "Create and send an invoice",
+                        "body": "Choose the customer and line items, preview the invoice and design its customer page before publication."
+                      },
+                      {
+                        "title": "Offer recurring plans",
+                        "body": "Configure supported monthly or annual subscriptions, customer checkout and account management."
+                      },
+                      {
+                        "title": "Follow up on unpaid balances",
+                        "body": "Track selected invoices, inspect verified balances and payment promises, then prepare an appropriate reminder."
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Create and send an invoice",
+                    "href": "/docs/plugins/stripe-invoicing",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-1",
+                  "type": "button",
+                  "props": {
+                    "label": "Offer recurring plans",
+                    "href": "/docs/plugins/stripe-subscriptions",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-2",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-2",
+                  "type": "button",
+                  "props": {
+                    "label": "Follow up on unpaid balances",
+                    "href": "/docs/plugins/receivables-collections",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-example",
+              "type": "section",
+              "children": [
+                {
+                  "id": "example",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "An agreed job needs an invoice and a later follow-up"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-steps",
+              "type": "section",
+              "children": [
+                {
+                  "id": "steps",
+                  "type": "text",
+                  "props": {
+                    "text": "Prepare an invoice for the existing customer and review its amounts.\n\nApprove creation and sending, then inspect the provider result.\n\nTrack an outstanding invoice in Collections and review the balance, holds and promises before preparing a reminder."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-result",
+              "type": "section",
+              "children": [
+                {
+                  "id": "result",
+                  "type": "text",
+                  "props": {
+                    "text": "The team can distinguish a sent invoice from a payment and see the next collection decision against invoice evidence."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-setup",
+              "type": "section",
+              "children": [
+                {
+                  "id": "setup",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Start with the right setup"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-requirements",
+              "type": "section",
+              "children": [
+                {
+                  "id": "requirements",
+                  "type": "text",
+                  "props": {
+                    "text": "Invoicing, subscriptions and Collections are optional and use connected Stripe accounts. Reminders also need a sender. Billing and external sends retain human approval; Revenue reports agreement values separately from collected cash."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Adapt it to your business"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-builder",
+              "type": "section",
+              "children": [
+                {
+                  "id": "builder",
+                  "type": "text",
+                  "props": {
+                    "text": "Adapt invoice presentation or build a domain-specific billing workflow around the existing Stripe and collection services. Keep provider amounts and payment facts authoritative."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build-guide",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build-guide",
+                  "type": "button",
+                  "props": {
+                    "label": "Build with a coding agent",
+                    "href": "/docs/extend/ai-authoring",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Billing & collections | Command Center",
+            "slug": "command-center-features-billing",
+            "description": "Prepare Stripe invoices, offer recurring plans and manage overdue balances with customer context. Keep a contract value, invoice, payment promise and collected payment distinct."
+          }
+        }
+      }
+    },
+    {
+      "id": "command-center-features-marketing",
+      "path": "/command-center/features/marketing",
+      "metadata": {
+        "title": "Marketing & publishing | Command Center",
+        "description": "Create forms and website pages, organize editorial work, prepare email outreach and schedule supported social posts. Use the business context already available to produce more relevant content.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "eyebrow": "Marketing & publishing",
+                    "heading": "Prepare the campaign, website and follow-up in the same business workspace.",
+                    "body": "Create forms and website pages, organize editorial work, prepare email outreach and schedule supported social posts. Use the business context already available to produce more relevant content.",
+                    "primaryCta": {
+                      "label": "Try it in the demo",
+                      "href": "/demo/command-center/northline-roofing/site"
+                    },
+                    "secondaryCta": {
+                      "label": "Read the practical guide",
+                      "href": "/docs/outreach"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-outcome",
+              "type": "section",
+              "children": [
+                {
+                  "id": "outcome",
+                  "type": "text",
+                  "props": {
+                    "text": "Fewer separate handoffs between preparing content, publishing it and following up with customers."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-screenshot",
+              "type": "section",
+              "children": [
+                {
+                  "id": "screenshot",
+                  "type": "image",
+                  "props": {
+                    "assetId": "cc-marketing",
+                    "alt": "Site Studio in the fictional workspace, with a page draft and responsive preview.",
+                    "caption": "The actual interface with fictional demo records."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-tasks",
+              "type": "section",
+              "children": [
+                {
+                  "id": "tasks",
+                  "type": "featureGrid",
+                  "props": {
+                    "title": "What you can do",
+                    "items": [
+                      {
+                        "title": "Build and update website pages",
+                        "body": "Use Site Studio to prepare AI page suggestions, compare changes and preview a draft before publishing a revision."
+                      },
+                      {
+                        "title": "Run email outreach and follow-up",
+                        "body": "Prepare audiences, templates, campaigns and sequences; inspect delivery and responses through the supported sending workflow."
+                      },
+                      {
+                        "title": "Coordinate content and social posts",
+                        "body": "Track editorial work in Content Calendar and prepare reviewed posts for supported LinkedIn company pages."
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Build and update website pages",
+                    "href": "/docs/plugins/site-studio",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-1",
+                  "type": "button",
+                  "props": {
+                    "label": "Run email outreach and follow-up",
+                    "href": "/docs/outreach/campaigns",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-2",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-2",
+                  "type": "button",
+                  "props": {
+                    "label": "Coordinate content and social posts",
+                    "href": "/docs/plugins/social-marketing",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-example",
+              "type": "section",
+              "children": [
+                {
+                  "id": "example",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Prepare a seasonal roof-inspection campaign"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-steps",
+              "type": "section",
+              "children": [
+                {
+                  "id": "steps",
+                  "type": "text",
+                  "props": {
+                    "text": "Draft the inspection page in Site Studio and preview its phone layout.\n\nPrepare the form and email audience, then review the content and publishing decisions.\n\nFollow incoming inquiries in Contacts and Pipeline; inspect campaign delivery separately."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-result",
+              "type": "section",
+              "children": [
+                {
+                  "id": "result",
+                  "type": "text",
+                  "props": {
+                    "text": "The team can manage the page, outreach and resulting inquiries in one application while checking each channel's actual result."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-setup",
+              "type": "section",
+              "children": [
+                {
+                  "id": "setup",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Start with the right setup"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-requirements",
+              "type": "section",
+              "children": [
+                {
+                  "id": "requirements",
+                  "type": "text",
+                  "props": {
+                    "text": "Campaigns and editorial work use existing capabilities. Site Studio, forms and social publishing have their own module and connection requirements. Social scheduling currently supports the documented LinkedIn company-page path through Postiz; cross-channel attribution is not implied."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Adapt it to your business"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-builder",
+              "type": "section",
+              "children": [
+                {
+                  "id": "builder",
+                  "type": "text",
+                  "props": {
+                    "text": "Add the content workflow or provider adapter your team needs using the existing customer, publishing and sending services. Channel-specific integrations still need implementation and verification."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build-guide",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build-guide",
+                  "type": "button",
+                  "props": {
+                    "label": "Build with a coding agent",
+                    "href": "/docs/extend/ai-authoring",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Marketing & publishing | Command Center",
+            "slug": "command-center-features-marketing",
+            "description": "Create forms and website pages, organize editorial work, prepare email outreach and schedule supported social posts. Use the business context already available to produce more relevant content."
+          }
+        }
+      }
+    },
+    {
+      "id": "command-center-features-custom-apps",
+      "path": "/command-center/features/custom-apps",
+      "metadata": {
+        "title": "Custom Apps & AI | Command Center",
+        "description": "Start with existing customer records and business services. Use a coding agent to add reports, workflows, tools or a dedicated App, and connect supported external assistants through MCP.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "eyebrow": "Custom Apps & AI",
+                    "heading": "Build your business's missing tools on a working foundation.",
+                    "body": "Start with existing customer records and business services. Use a coding agent to add reports, workflows, tools or a dedicated App, and connect supported external assistants through MCP.",
+                    "primaryCta": {
+                      "label": "Try it in the demo",
+                      "href": "/demo/command-center/northline-roofing/ai"
+                    },
+                    "secondaryCta": {
+                      "label": "Read the practical guide",
+                      "href": "/docs/extend"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-outcome",
+              "type": "section",
+              "children": [
+                {
+                  "id": "outcome",
+                  "type": "text",
+                  "props": {
+                    "text": "Spend development effort on the process unique to your business instead of rebuilding common business infrastructure."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-screenshot",
+              "type": "section",
+              "children": [
+                {
+                  "id": "screenshot",
+                  "type": "image",
+                  "props": {
+                    "assetId": "cc-custom-apps",
+                    "alt": "The AI workspace with a fictional business request and linked business actions.",
+                    "caption": "The actual interface with fictional demo records."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-tasks",
+              "type": "section",
+              "children": [
+                {
+                  "id": "tasks",
+                  "type": "featureGrid",
+                  "props": {
+                    "title": "What you can do",
+                    "items": [
+                      {
+                        "title": "Ask AI to work with business context",
+                        "body": "Read records, prepare exact changes and use supported jobs and bounded internal permissions. Review consequential actions where required."
+                      },
+                      {
+                        "title": "Adapt an existing report",
+                        "body": "Change Pipeline follow-up to fit your team's timing and verify findings against fixed fictional records."
+                      },
+                      {
+                        "title": "Build an App with a coding agent",
+                        "body": "Define the business task, reuse existing services and review the implemented interface, source and verification."
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Ask AI to work with business context",
+                    "href": "/docs/intelligence/workspace",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-1",
+                  "type": "button",
+                  "props": {
+                    "label": "Adapt an existing report",
+                    "href": "/docs/extend/first-change",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-guide-2",
+              "type": "section",
+              "children": [
+                {
+                  "id": "guide-2",
+                  "type": "button",
+                  "props": {
+                    "label": "Build an App with a coding agent",
+                    "href": "/docs/extend/ai-authoring",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-example",
+              "type": "section",
+              "children": [
+                {
+                  "id": "example",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Your team follows up after three quiet days"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-steps",
+              "type": "section",
+              "children": [
+                {
+                  "id": "steps",
+                  "type": "text",
+                  "props": {
+                    "text": "Run the source and explore the fictional workspace.\n\nChange the existing Pipeline follow-up report's stale threshold from seven days to three.\n\nRun the controlled report fixture and verify which open opportunities now appear."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-result",
+              "type": "section",
+              "children": [
+                {
+                  "id": "result",
+                  "type": "text",
+                  "props": {
+                    "text": "A useful business rule is adapted in a real extension, with the original customer references and report runtime preserved."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-setup",
+              "type": "section",
+              "children": [
+                {
+                  "id": "setup",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Start with the right setup"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-requirements",
+              "type": "section",
+              "children": [
+                {
+                  "id": "requirements",
+                  "type": "text",
+                  "props": {
+                    "text": "The local site and demo need no business provider keys. Connected use needs workspace setup. Custom Apps are built from source with an external coding agent today; general-purpose in-app App generation remains planned."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Adapt it to your business"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-builder",
+              "type": "section",
+              "children": [
+                {
+                  "id": "builder",
+                  "type": "text",
+                  "props": {
+                    "text": "Modules register navigation, routes and tools. Plugins reuse bounded runtime contracts. New domain records can own their lifecycle while linking to shared identity, tasks, AI and activity."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-build-guide",
+              "type": "section",
+              "children": [
+                {
+                  "id": "build-guide",
+                  "type": "button",
+                  "props": {
+                    "label": "Build with a coding agent",
+                    "href": "/docs/extend/ai-authoring",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Custom Apps & AI | Command Center",
+            "slug": "command-center-features-custom-apps",
+            "description": "Start with existing customer records and business services. Use a coding agent to add reports, workflows, tools or a dedicated App, and connect supported external assistants through MCP."
+          }
+        }
+      }
+    },
+    {
+      "id": "command-center-compare",
+      "path": "/command-center/compare",
+      "metadata": {
+        "title": "Compare Command Center and alternatives",
+        "description": "Choose between a CRM, business suite, app builder and an adaptable business platform.",
+        "noIndex": false
+      },
+      "content": {
+        "kind": "document",
+        "document": {
+          "schemaVersion": 1,
+          "engine": "site-studio",
+          "engineVersion": 1,
+          "root": [
+            {
+              "id": "section-intro",
+              "type": "section",
+              "children": [
+                {
+                  "id": "intro",
+                  "type": "hero",
+                  "props": {
+                    "variant": "editorial",
+                    "heading": "Choose the platform around the work you need.",
+                    "body": "Official product descriptions reviewed 2026-10-10. This guide explains strengths and fit; it does not certify feature parity or quoted pricing."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-choice-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "choice-0",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Twenty"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-strength-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "strength-0",
+                  "type": "text",
+                  "props": {
+                    "text": "Customizable CRM. Twenty leads with an open-source CRM that technical teams can adapt, including custom data, interfaces and automation.\n\nConsider it when a customizable CRM is the main system you need.\n\nConsider Command Center when you want to start from customer work spanning sales, delivery, invoicing and publishing, and extend that operating foundation."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-0-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-0-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Twenty product overview",
+                    "href": "https://twenty.com/",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-choice-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "choice-1",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Kyma / Mila Omni"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-strength-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "strength-1",
+                  "type": "text",
+                  "props": {
+                    "text": "AI application creation. Kyma's public documentation describes generating React applications, working with drafts, previewing changes and publishing workstations.\n\nEvaluate it when creating applications from prompts inside the product is central to your requirements. Validate the described workflow with your own trial.\n\nCommand Center's custom App path currently uses the source repository and an external coding agent. Choose it for the existing business services you can reuse; its general-purpose in-app App builder remains planned."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-1-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-1-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Kyma product documentation",
+                    "href": "https://www.kymainfostructure.com/docs",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-choice-2",
+              "type": "section",
+              "children": [
+                {
+                  "id": "choice-2",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Attio"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-strength-2",
+              "type": "section",
+              "children": [
+                {
+                  "id": "strength-2",
+                  "type": "text",
+                  "props": {
+                    "text": "Revenue CRM. Attio organizes its AI CRM around building pipeline, converting leads, running sales motions, forecasting and account growth.\n\nConsider it when your principal goal is a focused sales and revenue CRM.\n\nConsider Command Center when customer operations also need delivery tasks, billing, content and custom Apps in a source-owned platform."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-2-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-2-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Attio product overview",
+                    "href": "https://attio.com/",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-choice-3",
+              "type": "section",
+              "children": [
+                {
+                  "id": "choice-3",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "HubSpot"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-strength-3",
+              "type": "section",
+              "children": [
+                {
+                  "id": "strength-3",
+                  "type": "text",
+                  "props": {
+                    "text": "Customer platform. HubSpot presents a shared CRM across marketing, sales, service, content, data and commerce, with connected AI capabilities.\n\nConsider it when you want an established hosted customer platform and its packaged ecosystem.\n\nConsider Command Center when controlling the application source and adapting domain workflows matter enough to take on a configured implementation."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-3-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-3-0",
+                  "type": "button",
+                  "props": {
+                    "label": "HubSpot product suite",
+                    "href": "https://www.hubspot.com/products",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-choice-4",
+              "type": "section",
+              "children": [
+                {
+                  "id": "choice-4",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "HighLevel"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-strength-4",
+              "type": "section",
+              "children": [
+                {
+                  "id": "strength-4",
+                  "type": "text",
+                  "props": {
+                    "text": "Agency and marketing operations. HighLevel connects lead capture, nurture, closing and reactivation, with agency-oriented accounts, marketing channels and AI features.\n\nConsider it when packaged agency marketing and customer-acquisition workflows are your primary requirement.\n\nConsider Command Center when your agency wants to build client-specific operational Apps from an MIT-licensed foundation. Check each required channel against the current connection guides."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-4-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-4-0",
+                  "type": "button",
+                  "props": {
+                    "label": "HighLevel platform overview",
+                    "href": "https://www.gohighlevel.com/",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-choice-5",
+              "type": "section",
+              "children": [
+                {
+                  "id": "choice-5",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Zoho One"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-strength-5",
+              "type": "section",
+              "children": [
+                {
+                  "id": "strength-5",
+                  "type": "text",
+                  "props": {
+                    "text": "Integrated business suite. Zoho One combines business applications with AI, integrations, automation and custom application development.\n\nConsider it when broad packaged application coverage is more useful than maintaining your own platform source.\n\nConsider Command Center when shared customer operations and your own business-specific extensions are the starting point. Compare the actual workflows you need rather than the size of the app catalog."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-5-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-5-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Zoho One overview",
+                    "href": "https://www.zoho.com/one/overview.html",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-choice-6",
+              "type": "section",
+              "children": [
+                {
+                  "id": "choice-6",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Odoo / ERPNext"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-strength-6",
+              "type": "section",
+              "children": [
+                {
+                  "id": "strength-6",
+                  "type": "text",
+                  "props": {
+                    "text": "ERP and broad operations. Odoo and ERPNext cover broad business operations, including accounting, sales, purchasing, inventory and projects.\n\nConsider them when a full ERP, stock management, manufacturing or accounting ledger is central to the project.\n\nCommand Center currently focuses on customer work, delivery, billing and adaptable Apps. Evaluate its current guides for those jobs and scope additional ERP functions separately."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-6-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-6-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Odoo applications",
+                    "href": "https://www.odoo.com/page/all-apps",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-6-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-6-1",
+                  "type": "button",
+                  "props": {
+                    "label": "ERPNext product overview",
+                    "href": "https://frappe.io/erpnext",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-choice-7",
+              "type": "section",
+              "children": [
+                {
+                  "id": "choice-7",
+                  "type": "heading",
+                  "props": {
+                    "level": 2,
+                    "text": "Retool / n8n"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-strength-7",
+              "type": "section",
+              "children": [
+                {
+                  "id": "strength-7",
+                  "type": "text",
+                  "props": {
+                    "text": "Apps and workflow automation. Retool provides applications, workflows and agents around business data. n8n provides composable automation and AI workflows across connected systems.\n\nConsider them when you primarily need to build tools or orchestrate systems you already use.\n\nConsider Command Center when you also want existing customer, opportunity, task and billing workflows to build on. Custom integrations still need their own implementation and verification."
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-7-0",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-7-0",
+                  "type": "button",
+                  "props": {
+                    "label": "Retool AI",
+                    "href": "https://retool.com/ai",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-source-7-1",
+              "type": "section",
+              "children": [
+                {
+                  "id": "source-7-1",
+                  "type": "button",
+                  "props": {
+                    "label": "n8n product overview",
+                    "href": "https://n8n.io/",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "section-trial",
+              "type": "section",
+              "children": [
+                {
+                  "id": "trial",
+                  "type": "button",
+                  "props": {
+                    "label": "Try your workflow in the demo",
+                    "href": "/demo/command-center",
+                    "variant": "secondary"
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "title": "Compare Command Center and alternatives",
+            "slug": "command-center-compare",
+            "description": "Choose between a CRM, business suite, app builder and an adaptable business platform."
+          }
+        }
+      }
+    }
+  ],
+  "collections": []
+}

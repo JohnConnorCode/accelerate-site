@@ -232,7 +232,7 @@ try {
           .locator("[data-capture-annotation]")
           .evaluateAll((nodes) => nodes.forEach((node) => node.remove()));
         await page.getByRole("button", { name: /Collapse sidebar/ }).click();
-        await page.getByRole("link", { name: "Business overview", exact: true }).waitFor();
+        await page.getByRole("link", { name: "Daily work", exact: true }).waitFor();
         await page.getByRole("button", { name: /Expand sidebar/ }).click();
       }
       const salesSources = page.locator('[data-business-review="sales"] a');

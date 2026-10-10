@@ -11,14 +11,15 @@ import {
 } from "@/lib/admin/demo/scenarios";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { WorkflowShowcase } from "@/components/command-center/WorkflowShowcase";
+import { ClientLifecycle } from "@/components/command-center/ClientLifecycle";
 import { DemoStory } from "@/components/command-center/launcher/DemoStory";
 import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
 import styles from "@/components/command-center/product.module.css";
 
 export const metadata: Metadata = {
-  title: "Try the Command Center AI agent",
+  title: "Try Command Center's business workflows",
   description:
-    "Ask an AI agent to handle customer follow-ups, organize work and prepare decisions. Try Command Center with fictional business data.",
+    "Explore customer, sales, delivery, billing, marketing and AI workflows in Command Center with fictional business data.",
   robots: { index: false, follow: false },
 };
 
@@ -98,15 +99,14 @@ export default function AdminDemoLauncher() {
             <div className={styles.heroCopy}>
               <p className="label">Explore Command Center</p>
               <h1 className={styles.title}>
-                Tell your agent
+                Follow the customer.
                 <br />
-                <em>what needs doing.</em>
+                <em>See the business work.</em>
               </h1>
               <p className={styles.lede}>
-                Command Center connects your customers, conversations and work. Ask your agent to
-                find answers, prepare replies, organize follow-ups and handle the routine work
-                you’ve allowed. You review messages, publishing and other consequential actions
-                before they run.
+                Explore sales, client delivery, billing, marketing and AI in the same workspace.
+                Follow a homeowner from inquiry to an assigned job and invoice, or choose the
+                business closest to yours and try a specific task.
               </p>
               <p className={styles.note}>
                 Explore a fictional business. Actions are simulated, and no signup is required. If
@@ -114,10 +114,10 @@ export default function AdminDemoLauncher() {
               </p>
               <div className={styles.actions}>
                 <Link
-                  href="/demo/command-center/northline-roofing/today?agent=priorities"
+                  href="/demo/command-center/northline-roofing/today?workflow=client"
                   className={styles.primary}
                 >
-                  Try the AI agent <ArrowRight size={16} aria-hidden="true" />
+                  Follow the client lifecycle <ArrowRight size={16} aria-hidden="true" />
                 </Link>
                 <Link href="#business-demos" className={styles.secondary}>
                   Explore the workspace <span aria-hidden="true">↓</span>
@@ -135,16 +135,24 @@ export default function AdminDemoLauncher() {
         <div className="wrap">
           <AnimateOnScroll className={styles.sectionIntro}>
             <div>
-              <p className="label">Three ways to try it</p>
+              <p className="label">One homeowner across the business</p>
               <h2 className={styles.heading} id="demo-workflows-title">
-                Start with a request. Review the result.
+                Follow the client lifecycle.
               </h2>
             </div>
             <p className={styles.lede}>
-              Tell the agent what you need in your own words. It gathers the context, prepares the
-              work and brings decisions back to the conversation.
+              Start with Lena Walsh&apos;s request in Northline Roofing, then inspect the
+              opportunity, delivery work and billing records. People and supported AI operations use
+              the same workspace throughout.
             </p>
           </AnimateOnScroll>
+          <ClientLifecycle demo />
+          <Link
+            href="/demo/command-center/northline-roofing/today?workflow=client"
+            className={styles.primary}
+          >
+            Open the guided workspace <ArrowRight size={16} aria-hidden="true" />
+          </Link>
           <AnimateOnScroll className={styles.workflowShell} delay={0.08}>
             <WorkflowShowcase />
           </AnimateOnScroll>

@@ -1,0 +1,259 @@
+{
+  "result": "passed",
+  "checks": [
+    {
+      "width": 1440,
+      "route": "/command-center",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/command-center/features",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/command-center/features/customer-context",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/command-center/features/sales",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/command-center/features/delivery",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/command-center/features/billing",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/command-center/features/marketing",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/command-center/features/custom-apps",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/command-center/compare",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/open-source",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/docs",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/docs/start/daily-path",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/docs/extend/first-change",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/docs/billing",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "/demo/command-center",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "docs audience switch and Back",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "scenario": "northline-roofing",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "scenario": "alder-ridge-law",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "scenario": "ledgerstone-advisory",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "scenario": "hearthline-realty",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "scenario": "common-table-network",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "scenario": "superdebate",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "optional lifecycle, keyboard, reload and Back",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "route": "first-use choices and prepared AI request",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/command-center",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/command-center/features",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/command-center/features/customer-context",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/command-center/features/sales",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/command-center/features/delivery",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/command-center/features/billing",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/command-center/features/marketing",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/command-center/features/custom-apps",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/command-center/compare",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/open-source",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/docs",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/docs/start/daily-path",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/docs/extend/first-change",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/docs/billing",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "/demo/command-center",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "docs audience switch and Back",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "scenario": "northline-roofing",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "scenario": "alder-ridge-law",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "scenario": "ledgerstone-advisory",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "scenario": "hearthline-realty",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "scenario": "common-table-network",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "scenario": "superdebate",
+      "route": "navigation groups, direct load and Back",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "optional lifecycle, keyboard, reload and Back",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "route": "first-use choices and prepared AI request",
+      "result": "passed"
+    }
+  ],
+  "escaped": [],
+  "errors": []
+}

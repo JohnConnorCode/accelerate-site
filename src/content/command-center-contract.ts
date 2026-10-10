@@ -1,5 +1,7 @@
 /** Shared by branded content and the exported neutral starter. */
 export type CapabilityCategory = "capture" | "organize" | "act" | "learn" | "connect" | "govern";
+export type BusinessAreaId =
+  "customer-context" | "sales" | "delivery" | "billing" | "marketing" | "custom-apps";
 export interface CategoryMeta {
   id: CapabilityCategory;
   label: string;
@@ -14,6 +16,9 @@ export interface Capability {
   promise: string;
   detail: string;
   gated?: boolean;
+  businessArea?: BusinessAreaId;
+  guideHref?: string;
+  demoHref?: string;
 }
 export type SurfaceGroupId = "day" | "revenue" | "control";
 export interface SurfaceGroup {

@@ -1,0 +1,30 @@
+{
+  "result": "passed",
+  "baseCommit": "7120c68667be73829686b7035145596b813f0f41",
+  "candidate": "PR head containing this evidence",
+  "checks": [
+    {
+      "command": "npm run verify:guardrails",
+      "result": "passed"
+    },
+    {
+      "command": "npm run lint",
+      "result": "passed"
+    },
+    {
+      "command": "npm run resources:run -- npm run test:core",
+      "result": "passed",
+      "commands": 87
+    },
+    {
+      "command": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded npm run build",
+      "result": "passed",
+      "typescript": "passed",
+      "generatedPages": 570
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ]
+}

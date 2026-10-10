@@ -34,12 +34,12 @@ export const docsTracks: DocsTrack[] = [
   {
     id: "operator",
     title: "Run your business",
-    description: "For the person who owns the workflow: contacts, pipeline, approvals, revenue.",
+    description: "Use customers, sales, delivery, billing and marketing in your daily operation.",
   },
   {
     id: "builder",
-    title: "Build with your agent",
-    description: "Give a coding agent the business brief, setup reference and extension contracts.",
+    title: "Build business apps",
+    description: "Run the source, adapt working capabilities and build with a coding agent.",
   },
 ];
 
@@ -63,9 +63,9 @@ export const docsManifest: DocsSection[] = [
     pages: [
       {
         slug: ["start", "overview"],
-        title: "From a customer question to a clear next step",
+        title: "An AI business platform you can make your own",
         description:
-          "See the customer history, decide what happens next, and build on an open-source workspace you control.",
+          "Manage customers, sales, delivery, billing and marketing, then build workflows and Apps around your business.",
       },
       {
         slug: ["start", "how-it-works"],
@@ -75,21 +75,21 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["start", "business-owners"],
-        title: "For business owners",
+        title: "Run your first useful business workflow",
         description:
-          "Review the business, assign the next step and verify the result before expanding a connected workspace.",
+          "Choose a practical customer, sales, delivery, billing or marketing workflow and put it into use with your team.",
       },
       {
         slug: ["start", "agencies"],
-        title: "For agencies",
+        title: "Build and hand over a client operation",
         description:
-          "Plan one client pilot: who owns what, how to prove data stays separated, and how to hand it over.",
+          "Reuse the business foundation, adapt one client workflow and give the team an operation they can run.",
       },
       {
         slug: ["start", "daily-path"],
-        title: "Three workflows to learn the workspace",
+        title: "Follow one customer from inquiry to billing",
         description:
-          "Answer an inquiry, start client work and prepare an invoice, then check the saved result and next step.",
+          "Explore a connected client lifecycle in the fictional Northline workspace, from customer context to delivery and payment follow-up.",
       },
       {
         slug: ["start", "first-value"],
@@ -152,14 +152,14 @@ export const docsManifest: DocsSection[] = [
     track: "operator",
     title: "Command Center",
     description:
-      "One shared operating layer for the businesses that need it, and how to run the daily workspace.",
+      "Find the workspace for your business work and use its daily priorities, records and actions.",
     modules: ["core-command"],
     pages: [
       {
         slug: ["command-center", "overview"],
         title: "The Command Center",
         description:
-          "Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.",
+          "Find the workspace for each business job, from daily priorities and customer history to delivery, billing and marketing.",
       },
       {
         slug: ["command-center", "setup"],
@@ -316,15 +316,15 @@ export const docsManifest: DocsSection[] = [
   {
     id: "outreach",
     track: "operator",
-    title: "Outreach",
+    title: "Marketing and publishing",
     description: "Campaigns, email templates, and reactivation of past demand.",
     modules: ["campaigns", "email-studio", "recovery"],
     pages: [
       {
         slug: ["outreach", "overview"],
-        title: "Outreach",
+        title: "Marketing and publishing",
         description:
-          "Review audiences and messages, run approved campaigns, and inspect delivery results.",
+          "Prepare website pages, email campaigns, sequences and supported social posts, then follow their actual publishing and delivery results.",
       },
       {
         slug: ["outreach", "collections"],
@@ -354,15 +354,15 @@ export const docsManifest: DocsSection[] = [
   {
     id: "delivery",
     track: "operator",
-    title: "Delivery",
+    title: "Delivery and commitments",
     description: "Clients, bookings, content, and resources after the sale.",
     modules: ["clients", "bookings", "content", "resources"],
     pages: [
       {
         slug: ["delivery", "overview"],
-        title: "Delivery",
+        title: "Delivery and commitments",
         description:
-          "Coordinate client accounts, bookings, editorial work and resource-download follow-up.",
+          "Start client engagements, assign agreed work and carry customer context through the handoff.",
       },
       {
         slug: ["delivery", "clients"],
@@ -505,8 +505,22 @@ export const docsManifest: DocsSection[] = [
     ],
   },
   {
+    id: "billing",
+    track: "operator",
+    title: "Billing & collections",
+    description: "Invoices, subscriptions and evidence-based payment follow-up.",
+    pages: [
+      {
+        slug: ["billing", "overview"],
+        title: "Billing and collections",
+        description:
+          "Prepare invoices, offer recurring plans and follow up on outstanding balances using the customer and payment evidence.",
+      },
+    ],
+  },
+  {
     id: "plugins",
-    track: "builder",
+    track: "operator",
     title: "Plugin examples",
     description:
       "See what you can build: reports, reviewed workflows and dedicated business workspaces.",
@@ -636,9 +650,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["extend", "first-change"],
-        title: "Your first agent-built change",
+        title: "Adapt a working follow-up report",
         description:
-          "Describe one business workflow, have a coding agent build it, and review the working result.",
+          "Run the source, change a useful business rule and verify its findings against fixed fictional opportunities.",
       },
       {
         slug: ["extend", "modules"],

@@ -26,6 +26,8 @@
     "start": "node scripts/next-release.mjs start",
     "start:qa": "NEXT_DIST_DIR=.next-qa node scripts/next-release.mjs start",
     "lint": "eslint",
+    "example:followup": "node --conditions=react-server --import tsx scripts/try-pipeline-followup.ts",
+    "test:product-story": "node --conditions=react-server --import tsx scripts/test-product-story.ts",
     "typecheck": "node scripts/resource-run.mjs tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

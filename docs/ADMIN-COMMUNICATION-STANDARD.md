@@ -3,6 +3,20 @@
 Every core admin page should help an operator answer three questions: what this
 page is for, what requires attention, and what they can do next.
 
+Business navigation uses seven groups: Daily work, Customers & sales, Delivery,
+Billing, Marketing, Apps & AI and Workspace. These groups change discovery only;
+stable route and module IDs, saved layouts, authorization and service owners remain
+the behavioral contract. New optional Apps belong to their business purpose where
+known, with Apps & AI as the fallback.
+
+First-use entry points should offer a useful workflow with a working destination
+and guide. AI discovery starts with business jobs and prepared requests; policies
+and the complete tool reference remain available in disclosures. Starting a
+prepared request fills the existing Ask AI composer without sending it.
+
+Nearby headings, purpose statements and help must each add distinct information.
+Do not repeat the heading as an eyebrow or paraphrase the purpose as a subheading.
+
 - Name the business object or task. Do not use internal jobs, filenames,
   migration names, or engineering abstractions in normal operator copy.
 - Use one canonical name in navigation, search, breadcrumbs, page headings and

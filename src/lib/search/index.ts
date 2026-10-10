@@ -10,6 +10,7 @@ import { TEAM_MEMBERS } from "@/content/team";
 import { docsManifest } from "@/content/docs/manifest";
 import { listRevenueAiCapabilities } from "@/lib/revenue-os/ai-tools";
 import { capabilities } from "@/content/command-center";
+import { businessAreas, commandCenterPositioning } from "@/content/command-center-business";
 import { getDocsPage } from "@/lib/docs";
 import { marketingPositioning } from "@/content/marketing-positioning";
 import { distributionProfile } from "@/lib/distribution/profile";
@@ -76,10 +77,44 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
   {
     id: "page-command-center",
     title: "Command Center",
-    description:
-      "Connect customer context, put AI to work and combine features and plugins into workflows for your business.",
+    description: commandCenterPositioning.description,
     href: "/command-center",
     keywords: ["dashboard", "admin", "operations", "software", "recipes", "plugins", "workflows"],
+  },
+  {
+    id: "page-command-center-features",
+    title: "Command Center features",
+    description:
+      "Customers, sales, delivery, billing, marketing and custom Apps in one adaptable AI business platform.",
+    href: "/command-center/features",
+    keywords: ["features", "capabilities", "business platform"],
+  },
+  ...businessAreas.map((area) => ({
+    id: `page-command-center-${area.id}`,
+    title: `${area.title} | Command Center`,
+    description: area.description,
+    href: `/command-center/features/${area.id}`,
+    keywords: [area.title, area.outcome, ...area.tasks.map((task) => task.title)],
+  })),
+  {
+    id: "page-command-center-compare",
+    title: "Compare Command Center and alternatives",
+    description:
+      "A sourced choice guide to CRM platforms, business suites, app builders and Command Center.",
+    href: "/command-center/compare",
+    keywords: [
+      "compare",
+      "alternatives",
+      "Twenty",
+      "Kyma",
+      "Attio",
+      "HubSpot",
+      "HighLevel",
+      "Zoho",
+      "Odoo",
+      "Retool",
+      "n8n",
+    ],
   },
   {
     id: "page-command-center-demo",
@@ -345,6 +380,7 @@ export function buildSearchIndex(): SearchEntry[] {
           "documentation",
           section.title,
           page.title,
+          ...page.slug.map((part) => part.replaceAll("-", " ")),
           ...(page.slug.join("/") === "intelligence/tools"
             ? listRevenueAiCapabilities().map((tool) => tool.name)
             : []),

@@ -33,15 +33,13 @@ try {
         .locator("section[data-nav-section]")
         .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-nav-section"))),
       [
-        "Business overview",
-        "Tasks & approvals",
+        "Daily work",
         "Customers & sales",
-        "Client work",
-        "Billing & payments",
-        "Messages & marketing",
-        "AI & knowledge",
-        "Apps & connections",
-        "Workspace settings",
+        "Delivery",
+        "Billing",
+        "Marketing",
+        "Apps & AI",
+        "Workspace",
       ],
     );
     if (width === 390) {

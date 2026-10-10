@@ -47,11 +47,11 @@ async function main() {
     "Generated tool names must be searchable",
   );
   assert.equal(
-    searchEntries(docs, "Three workflows to learn the workspace", 1)[0]?.href,
+    searchEntries(docs, "Follow one customer from inquiry to billing", 1)[0]?.href,
     "/docs/start/daily-path",
   );
   assert.ok(
-    searchEntries(docs, "Answer an inquiry", 5).some(
+    searchEntries(docs, "client lifecycle", 5).some(
       (entry) => entry.href === "/docs/start/daily-path",
     ),
     "Connected business examples must be searchable",

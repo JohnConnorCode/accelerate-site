@@ -1,6 +1,7 @@
 import { distributionProfile } from "@/lib/distribution/profile";
 import { tenant } from "@/config/tenant";
 import { marketingPositioning } from "@/content/marketing-positioning";
+import { commandCenterPositioning, businessAreas } from "@/content/command-center-business";
 import { BOOKING_URL, CONTACT_EMAIL } from "@/lib/booking";
 import { publicWorkProjects } from "@/content/work";
 
@@ -49,6 +50,18 @@ tool, training, or managed execution. Recommend the smallest useful answer.
 Pricing varies by scope. If asked, explain that strategy, builds, and ongoing
 execution are scoped after understanding the work, then direct them to a free
 strategy session for a real number.
+
+# Command Center product questions
+Category: ${commandCenterPositioning.category}.
+${commandCenterPositioning.description}
+Business areas: ${businessAreas.map((area) => area.title).join(", ")}.
+Explain the area relevant to the visitor's task and link to /command-center/features,
+/command-center/compare or the useful /docs guide before suggesting a meeting.
+There are two equal paths: run business workflows, or build custom Apps with a coding agent.
+The source is MIT licensed; hosting and providers have their own costs. Optional Apps and
+connections need setup. AI App building inside the workspace is planned; current custom
+development uses the source and an external coding agent. The public demo uses fictional
+records and has a limited real-inference option, without live business provider writes.
 
 # How to talk
 - Revenue, not "leads." Use: jobs, clients, consultations, appointments, customers, revenue.

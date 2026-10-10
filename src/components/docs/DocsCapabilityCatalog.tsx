@@ -1,4 +1,6 @@
-import { CATEGORY_META, capabilities } from "@/content/command-center";
+import Link from "next/link";
+import { capabilities } from "@/content/command-center";
+import { businessAreas } from "@/content/command-center-business";
 
 /**
  * Renders the Command Center capability list from src/content/command-center.ts.
@@ -8,8 +10,8 @@ import { CATEGORY_META, capabilities } from "@/content/command-center";
 export function DocsCapabilityCatalog() {
   return (
     <div className="not-prose mt-8 space-y-10">
-      {CATEGORY_META.map((category) => {
-        const items = capabilities.filter((capability) => capability.category === category.id);
+      {businessAreas.map((category) => {
+        const items = capabilities.filter((capability) => capability.businessArea === category.id);
         if (!items.length) return null;
         return (
           <section key={category.id} aria-labelledby={`cap-${category.id}`}>
@@ -17,9 +19,15 @@ export function DocsCapabilityCatalog() {
               id={`cap-${category.id}`}
               className="font-display text-xl font-semibold tracking-[-0.02em] text-heading"
             >
-              {category.label}
+              {category.title}
             </h2>
-            <p className="mt-1 text-sm leading-relaxed text-white-secondary">{category.blurb}</p>
+            <p className="mt-1 text-sm leading-relaxed text-white-secondary">{category.outcome}</p>
+            <Link
+              href={category.guideHref}
+              className="inline-flex min-h-10 items-center text-sm underline underline-offset-4"
+            >
+              Follow the practical guide
+            </Link>
             <dl className="mt-4 divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
               {items.map((item) => (
                 <div key={item.id} id={item.id} className="scroll-mt-28 py-4">

@@ -32,10 +32,12 @@ Core pages, extensions and fictional demos must inherit them.
   a root heading; record details may retain their specific record title.
 - Name the object or task: Email Templates, Email Sequences, Content Calendar,
   Workspaces and Setup. Avoid internal execution language such as Delivery Runs.
-- Daily work is the operating queue. Sales contains prospects and proposals.
-  Marketing groups templates, campaigns, sequences, content and subscribers.
-  Client work contains customers and bookings. Insights & AI explains results.
-  Administration configures the platform. Lead sources contains intake channels.
+- Daily work contains priorities, tasks and recent results. Customers & sales
+  connects the customer history, inquiries, opportunities and proposals. Delivery
+  organizes client work, bookings and commitments. Billing groups invoices,
+  subscriptions, collections and revenue. Marketing groups website pages, forms,
+  templates, campaigns, sequences and content. Apps & AI holds AI and adaptable
+  capabilities. Workspace configures connections, settings and access.
 - Keep stable URLs, module IDs, saved navigation keys and extension group IDs.
   Display labels can improve without migrating business identifiers.
 - Descriptions explain what users can see or do. Avoid source filenames, runtime
