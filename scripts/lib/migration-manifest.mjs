@@ -135,6 +135,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20261005141858_coworker_setup_preserves_workspace_state.sql",
   "migrations/20261005154158_repair_legacy_native_capability_seeds.sql",
   "migrations/20261006200652_content_calendar_commands.sql",
+  "migrations/20261007181105_platform_private_command_context.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

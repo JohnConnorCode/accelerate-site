@@ -1,5 +1,16 @@
 # Accelerate Revenue OS setup
 
+## Private founder commands
+
+Apply `20261007181105_platform_private_command_context.sql` through the ordered
+migration runner before deploying the private command context revision. It adds
+immutable private ownership to the existing approval, audit, conversation and
+trace ledgers while retaining shared records and tenant policies. Service-client
+privacy filters require these columns; a missing migration leaves that access
+unavailable. Keep the migration and private rows when rolling application code
+back. See [Platform command privacy](../contracts/PLATFORM-COMMAND-PRIVACY.md) for
+controlled verification, refusal behavior and separate release requirements.
+
 ## Conversational work and public inference
 
 Apply `migrations/20261006200652_content_calendar_commands.sql` through the ordered migration runner before using calendar lifecycle commands. It adds the host-only atomic calendar/audit function and retained replay receipts. Apply it only to a project you control; the native regression uses a disposable database and applies it twice.
