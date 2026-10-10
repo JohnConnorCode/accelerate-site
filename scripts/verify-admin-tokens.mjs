@@ -95,7 +95,7 @@ const COLOR_BUDGET = {
   "src/app/admin/today/page.tsx": 0,
   "src/components/admin/LegacyToday.tsx": 13,
   "src/app/admin/website-grades/page.tsx": 9,
-  "src/components/admin/AICapabilities.tsx": 9,
+  "src/components/admin/AICapabilities.tsx": 7,
   "src/components/admin/AIRunHistory.tsx": 29,
   "src/components/admin/AdminAIChat.tsx": 16,
   "src/components/admin/AdminErrorBoundary.tsx": 3,

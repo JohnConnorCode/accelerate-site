@@ -8,8 +8,8 @@ import { openSourceFaqs } from "@/content/open-source";
 const bundledMetadata = seoMetadata({
   title: "Open Source",
   description:
-    "Own the customer workspace behind your team's records, next actions and AI work. Try the demo, self-host the MIT-licensed source, or work with Accelerate.",
-  ogTitle: "Keep customer work connected. Own the system behind it.",
+    "Build business Apps on shared customer records, sales, delivery, billing, marketing and AI services. Run and extend the MIT-licensed Command Center.",
+  ogTitle: "Build business Apps on a working foundation.",
   ogSubtitle: "Try the demo, self-host the source, or build with Accelerate",
   path: "/open-source",
 });

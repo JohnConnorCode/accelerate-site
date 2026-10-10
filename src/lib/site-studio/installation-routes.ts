@@ -149,6 +149,27 @@ export const installationRoutes = [
     preserve: "Existing URL, metadata, content, layout, links and form integrations",
   },
   {
+    path: "/command-center/features",
+    source: "src/app/(marketing)/command-center/features/page.tsx",
+    kind: "page",
+    collection: null,
+    preserve: "Business feature discovery, guides and demo links",
+  },
+  {
+    path: "/command-center/features/[slug]",
+    source: "src/app/(marketing)/command-center/features/[slug]/page.tsx",
+    kind: "collection",
+    collection: "command-center-features",
+    preserve: "Six supported feature slugs, metadata and business workflow content",
+  },
+  {
+    path: "/command-center/compare",
+    source: "src/app/(marketing)/command-center/compare/page.tsx",
+    kind: "page",
+    collection: null,
+    preserve: "Dated competitor sources, strengths and selection guidance",
+  },
+  {
     path: "/demo/command-center",
     source: "src/app/(marketing)/demo/command-center/page.tsx",
     kind: "application",

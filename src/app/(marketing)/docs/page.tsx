@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { docsManifest, docsTracks } from "@/content/docs/manifest";
 import { workflowRecipes } from "@/content/workflow-recipes";
+import { businessAreas } from "@/content/command-center-business";
 import { RecipeCards } from "@/components/command-center/WorkflowRecipes";
 import { DocsFigure } from "@/components/docs/DocsFigure";
 import { DocsSectionIcon } from "@/components/docs/docs-section-icon";
@@ -12,7 +13,7 @@ import styles from "@/components/docs/docs.module.css";
 export const metadata: Metadata = seoMetadata({
   title: "Documentation",
   description:
-    "Follow a customer inquiry from context to next action and recorded result. Then connect your own workspace or build on the open-source foundation.",
+    "Learn Command Center's customer, sales, delivery, billing and marketing workflows. Run the platform and build custom business Apps on its open-source foundation.",
   path: "/docs",
 });
 
@@ -22,23 +23,25 @@ export default function DocsLandingPage() {
       <header className={styles.landingHero}>
         <p className="label">Documentation</p>
         <h1 className={styles.landingTitle}>
-          From inquiry to <em>recorded result.</em>
+          Run customer operations.
+          <br />
+          <em>Build your own Apps.</em>
         </h1>
         <p className={styles.landingLede}>
-          Start with a fictional customer inquiry and follow the record, decision and next action
-          through Command Center. Then use these guides to connect your own workspace or build the
-          workflow your team needs.
+          Use these guides to manage customers, sales, delivery, billing and marketing in Command
+          Center. Learn a practical workflow, connect your business and adapt the platform with a
+          coding agent.
         </p>
       </header>
       <div className={styles.pathGrid}>
         <section className={styles.pathCard} aria-labelledby="run-business">
           <p className="label">Business users</p>
           <h2 id="run-business" className="my-3 font-display text-2xl font-medium">
-            Run a customer workflow
+            Run your business
           </h2>
           <p>
-            See what needs attention, open the customer context, review a proposed action and check
-            what happened. The demo works without an account.
+            Answer inquiries, follow opportunities, assign delivery work and manage billing. Start
+            with a connected client lifecycle in the fictional demo.
           </p>
           <div className={styles.pathActions}>
             <Link className={styles.textLink} href="/docs/start/daily-path">
@@ -52,11 +55,11 @@ export default function DocsLandingPage() {
         <section className={styles.pathCard} aria-labelledby="build-platform">
           <p className="label">Builders and agencies</p>
           <h2 id="build-platform" className="my-3 font-display text-2xl font-medium">
-            Build on the same foundation
+            Build business apps
           </h2>
           <p>
-            Start the source locally, connect a database you control and add a workflow that uses
-            the existing records, permissions and action history.
+            Run the source and adapt a working follow-up report. Then build your own workflow or App
+            using existing customer records, business services and AI tools.
           </p>
           <div className={styles.pathActions}>
             <Link className={styles.textLink} href="/docs/extend/first-change">
@@ -68,6 +71,23 @@ export default function DocsLandingPage() {
           </div>
         </section>
       </div>
+      <section className={styles.landingSection} aria-labelledby="business-guides">
+        <h2 id="business-guides" className={styles.sectionTitle}>
+          Find the business task you need.
+        </h2>
+        <div className={styles.directoryGrid}>
+          {businessAreas.map((area) => (
+            <Link key={area.id} href={area.guideHref} className={styles.directoryLink}>
+              <span>
+                <strong className="block font-medium">{area.title}</strong>
+                <span className="mt-1 block text-sm leading-relaxed text-white-secondary">
+                  {area.outcome}
+                </span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
       <section className={styles.landingSection} aria-labelledby="recipes-heading">
         <p className="label">A complete example</p>
         <h2 id="recipes-heading" className={styles.sectionTitle}>
@@ -104,7 +124,7 @@ export default function DocsLandingPage() {
         {docsTracks.map((track) => (
           <section key={track.id} className={styles.track} aria-labelledby={`track-${track.id}`}>
             <h3 id={`track-${track.id}`} className={styles.trackTitle}>
-              {track.title}
+              {track.id === "operator" ? "Operating guides" : "Development guides"}
             </h3>
             <div className={styles.directoryGrid}>
               {docsManifest

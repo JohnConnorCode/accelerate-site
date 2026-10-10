@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { PageHeader } from "./PageHeader";
+import { BusinessWorkflowStarts } from "./BusinessWorkflowStarts";
 import { AdminDialog } from "./AdminDialog";
 import { AdminAsyncRegion } from "./AdminAsyncRegion";
 import { LoadingSkeleton } from "./LoadingSkeleton";
@@ -49,7 +50,6 @@ import {
   type TodayFact,
   type TodayRegion,
 } from "@/lib/admin/today-data";
-import { demoWorkflows } from "@/content/demo-workflows";
 import type { OperatorAttentionItem } from "@/lib/revenue-os/operator-attention";
 import styles from "./TodayWorkspace.module.css";
 
@@ -537,7 +537,7 @@ export function TodayWorkspace() {
             </h2>
           </div>
           <p className={styles.muted}>
-            Use the inspected records to choose the next business action. Updated{" "}
+            Updated{" "}
             {dateLabel(snapshot.generatedAt, {
               month: "short",
               day: "numeric",
@@ -882,7 +882,7 @@ export function TodayWorkspace() {
     >
       <PageHeader
         title="Today"
-        subtitle="Understand what needs attention across customers, delivery and money."
+        subtitle="Find the next sales action, client commitment or billing decision that needs your attention."
         eyebrow={false}
         compact
         utilityActions={
@@ -971,32 +971,7 @@ export function TodayWorkspace() {
           </>
         }
       />
-      <details className={styles.walkthroughs}>
-        <summary>How do I get work done?</summary>
-        <p className={styles.muted}>
-          Choose a worked example with a clear saved result. The demo uses fictional business
-          records.
-        </p>
-        <div className={styles.workflowGrid}>
-          {demoWorkflows.map((workflow) => (
-            <article key={workflow.id}>
-              <h3>{workflow.label}</h3>
-              <p className={styles.muted}>{workflow.problem}</p>
-              <div className={styles.reviewActions}>
-                <Link href={`/docs/start/daily-path#${workflow.id}`} className={styles.textLink}>
-                  Read the walkthrough
-                </Link>
-                <Link
-                  href={`/demo/command-center/${workflow.scenario}/${workflow.steps[0]?.route ?? "today"}`}
-                  className={styles.textLink}
-                >
-                  Try the fictional example <ArrowRight size={13} aria-hidden="true" />
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
-      </details>
+      <BusinessWorkflowStarts compact />
       {(error || query.error || viewsQuery.error) && (
         <div className={styles.error} role="alert">
           {error || query.error?.message || viewsQuery.error?.message}{" "}

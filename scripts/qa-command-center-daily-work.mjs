@@ -33,15 +33,13 @@ try {
         .locator("section[data-nav-section]")
         .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-nav-section"))),
       [
-        "Business overview",
-        "Tasks & approvals",
+        "Daily work",
         "Customers & sales",
-        "Client work",
-        "Billing & payments",
-        "Messages & marketing",
-        "AI & knowledge",
-        "Apps & connections",
-        "Workspace settings",
+        "Delivery",
+        "Billing",
+        "Marketing",
+        "Apps & AI",
+        "Workspace",
       ],
     );
     if (width === 390) {
@@ -143,7 +141,11 @@ try {
     if (width === 1440) {
       const records = page.locator('section[data-nav-section="Customers & sales"]:visible');
       await records.getByRole("link", { name: "Website inquiries", exact: true }).waitFor();
-      assert.ok((await records.innerText()).includes("Understand each relationship"));
+      assert.ok(
+        (await records.innerText()).includes(
+          "Find the customer history, answer inquiries and win the next engagement.",
+        ),
+      );
     }
     await page.screenshot({ path: `${output}/contact-${width}.png`, fullPage: false });
     assert.equal(

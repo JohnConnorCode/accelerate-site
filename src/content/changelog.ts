@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-center-business-platform",
+    slug: "command-center-business-platform",
+    title: "Explore Command Center by the business work it supports",
+    description:
+      "Six feature areas explain customer context, sales, delivery, billing, marketing and custom Apps. Business and builder guides have equal entry points, with a sourced comparison guide and a working follow-up report exercise. The workspace groups screens into Daily work, Customers & sales, Delivery, Billing, Marketing, Apps & AI and Workspace. AI discovery starts with useful tasks, and the optional Northline demo guide follows one customer across sales, onboarding and billing. This change is included in this source release; production publication is separate.",
+    category: "improvement",
+    publishedAt: "2026-10-10",
+  },
+  {
     id: "homepage-kinetic-identity",
     slug: "homepage-kinetic-identity",
     title: "A kinetic identity for the homepage",

@@ -169,8 +169,8 @@ export const homeWorkContent = {
 };
 export const homeCommandCenterContent = {
   eyebrow: marketingPositioning.commandCenter.label,
-  headingStart: "When the work needs",
-  headingEnd: "one place to run.",
+  headingStart: "Run your business.",
+  headingEnd: "Build what it needs.",
   body: marketingPositioning.commandCenter.description,
   introduction:
     "Browse real product screens with fictional business data. Open the demo to explore the same workspace, records, and workflows yourself.",
@@ -178,7 +178,12 @@ export const homeCommandCenterContent = {
   slides: PRODUCT_SCREENSHOTS.map((slide) => ({ ...slide })),
   links: [
     { label: "Explore the Command Center", href: "/command-center" },
-    { label: "Explore the demo", href: "/demo/command-center" },
+    { label: "Explore six fictional businesses", href: "/demo/command-center" },
+    {
+      label: "Follow a customer workflow",
+      href: "/demo/command-center/northline-roofing/today?workflow=client",
+    },
+    { label: "Explore business features", href: "/command-center/features" },
     { label: "Read the docs", href: "/docs" },
   ],
 };

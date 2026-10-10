@@ -63,7 +63,18 @@ console.log(
 );
 
 assert.equal(demoWorkflows.length, 3);
-assert.equal(productFaqs.length, 7);
+assert.equal(new Set(productFaqs.map((faq) => faq.question)).size, productFaqs.length);
+for (const question of [
+  "What is Command Center?",
+  "What business work can we do with it?",
+  "How does AI help with the work?",
+  "Can I try Command Center before setting it up?",
+  "Can we build a completely different App or interface?",
+])
+  assert(
+    productFaqs.some((faq) => faq.question === question),
+    question,
+  );
 assert.equal(
   new Set(workflowRecipes.map((recipe) => recipe.description)).size,
   workflowRecipes.length,

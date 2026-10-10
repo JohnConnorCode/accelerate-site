@@ -10,6 +10,7 @@
    needs). The docs reference reads the same two fields, so the public page and
    the docs cannot drift. */
 
+import { businessAreaForCapability } from "./command-center-business";
 import type {
   CategoryMeta,
   Capability,
@@ -70,7 +71,57 @@ export const CATEGORY_META: CategoryMeta[] = [
   },
 ];
 
-export const capabilities: Capability[] = [
+const capabilityDefinitions: Capability[] = [
+  {
+    id: "forms",
+    category: "capture",
+    title: "Forms and inquiry review",
+    promise:
+      "Collect the information your team needs and turn reviewed responses into customer and pipeline work.",
+    detail:
+      "Form builder supports draft definitions, preview and published share links. Review responses and customer matches before accepting them into the existing intake path.",
+    guideHref: "/docs/plugins/form-builder",
+  },
+  {
+    id: "proposals",
+    category: "act",
+    title: "Customer proposals",
+    promise: "Prepare an offer, follow its customer decision and keep the opportunity connected.",
+    detail:
+      "Proposals retain the services, pricing and customer context. Material edits and acceptance use the existing proposal lifecycle and linked pipeline rules.",
+    guideHref: "/docs/proposals",
+  },
+  {
+    id: "invoices",
+    category: "act",
+    title: "Invoices and customer billing pages",
+    promise:
+      "Create an invoice for an existing customer and follow its sending and payment status.",
+    detail:
+      "Enable Stripe invoicing, connect the intended account and review the line items. Draft creation, sending and customer-page publication have separate approved results; provider payment facts remain authoritative.",
+    gated: true,
+    guideHref: "/docs/plugins/stripe-invoicing",
+  },
+  {
+    id: "campaigns",
+    category: "act",
+    title: "Email campaigns",
+    promise: "Reach a reviewed audience with relevant copy and a defined follow-up policy.",
+    detail:
+      "Prepare recipients, message version, cadence and limits. Approved activation uses the existing sender and checks recorded replies, suppression and stop rules.",
+    gated: true,
+    guideHref: "/docs/outreach/campaigns",
+  },
+  {
+    id: "coworkers",
+    category: "act",
+    title: "AI coworker work",
+    promise:
+      "Give supported AI jobs business context and keep their progress, results and decisions visible.",
+    detail:
+      "Use the configured model, scheduler and registered tools. Work keeps its source context and recorded results; current policy determines which changes need a decision or can use bounded internal permission.",
+    guideHref: "/docs/intelligence/workspace",
+  },
   // ── Capture: what comes in gets recorded ──────────────────────────────
   {
     id: "transcripts",
@@ -583,6 +634,16 @@ export const LOOP_STEPS = [
     body: "Inspect what completed, open the source record and resolve any failure before repeating the work.",
   },
 ];
+
+export const capabilities: Capability[] = capabilityDefinitions.map((capability) => {
+  const area = businessAreaForCapability(capability.id);
+  return {
+    ...capability,
+    businessArea: area.id,
+    guideHref: capability.guideHref ?? area.guideHref,
+    demoHref: area.demoHref,
+  };
+});
 
 /** The autonomy ladder. Rendered with the .appr three-column primitive. */
 export const TRUST_LADDER = [

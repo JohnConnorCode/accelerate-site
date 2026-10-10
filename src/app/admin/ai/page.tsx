@@ -10,7 +10,7 @@ export default function AdminAIPage() {
       fallback={
         <AdminPageLoading
           title="AI Workspace"
-          subtitle="Inspect evidence, stage actions, and review every consequential decision before execution."
+          subtitle="Work with customer context, prepare follow-up and choose useful next steps."
           variant="detail"
         />
       }

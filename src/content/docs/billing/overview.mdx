@@ -1,0 +1,43 @@
+---
+title: "Billing and collections"
+description: "Prepare invoices, offer recurring plans and follow up on outstanding balances using the customer and payment evidence."
+updated: "2026-10-10"
+---
+
+Billing connects what the customer agreed to buy with the invoice, recurring plan and follow-up your team manages. Use Invoices to prepare the charge, Subscriptions for supported recurring plans, and Collections to work through selected unpaid balances.
+
+Keeping those facts distinct helps the team answer a practical question: does this account need an invoice, a reminder, a discussion about a promise, or a payment reconciliation?
+
+<DocsFigure
+  src="/images/docs/plugins/collections.png"
+  width={1440}
+  height={1000}
+  alt="A fictional Collections case with invoice balances, promises and follow-up information."
+  caption="Collections in the actual interface with fictional records. Invoice facts and case decisions remain separate."
+/>
+
+## Create and send an invoice
+
+Enable Stripe invoicing in Apps and connect the intended Stripe account. Open Invoices, choose the customer and line items, and inspect the draft before requesting its creation. Sending and publishing the customer page have their own review steps. The [invoicing guide](/docs/plugins/stripe-invoicing) explains the controls and recovery.
+
+## Offer a recurring plan
+
+Use [Subscriptions](/docs/plugins/stripe-subscriptions) for the documented monthly and annual plans, checkout and customer account controls. Provider events establish subscription and payment state. Follow the guide to verify the account and webhook path.
+
+## Follow up on an outstanding balance
+
+Enable [Collections](/docs/plugins/receivables-collections), track an explicit invoice and refresh its payment evidence. Check promises, pauses and disputes before preparing a reminder. Review the recipient and wording before sending; use the case's next action to make ownership clear.
+
+## Understand revenue separately
+
+[Revenue](/docs/pipeline/revenue) shows current agreement and opportunity figures. Use Stripe invoice and payment facts when the question is about billed amounts or collected cash. A promise to pay records the customer's commitment and does not establish payment.
+
+## Adapt the billing workflow
+
+A builder can reuse the existing invoice and collection services for a custom operating screen. Keep provider balances authoritative and link domain decisions to the original customer and invoice. [Build an App](/docs/extend/apps) explains the source-development path.
+
+## What to check
+
+Billing needs its optional Apps and the correct provider connections. An incomplete or uncertain provider result needs the named recovery step before another attempt. Confirm the invoice or reminder result in its source workspace.
+
+**Next:** [Create an invoice](/docs/plugins/stripe-invoicing) or [review a collection case](/docs/plugins/receivables-collections).

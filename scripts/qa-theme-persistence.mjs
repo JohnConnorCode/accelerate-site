@@ -148,11 +148,14 @@ try {
     );
     if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
     const conversationsSection = demo
-      .locator('section[data-nav-section="Messages & marketing"]:visible')
+      .locator('section[data-nav-section="Customers & sales"]:visible')
       .first();
-    await conversationsSection
-      .getByRole("link", { name: "Messages & marketing", exact: true })
-      .click();
+    const customerToggle = conversationsSection.getByRole("button", {
+      name: /^(Expand|Collapse) Customers & sales links$/,
+    });
+    if ((await customerToggle.getAttribute("aria-expanded")) === "false")
+      await customerToggle.click();
+    await conversationsSection.getByRole("link", { name: "Conversations", exact: true }).click();
     await demo.getByRole("heading", { name: "Conversations", exact: true }).waitFor();
     await demo.screenshot({ path: `${output}/conversations-${width}.png`, fullPage: true });
     assert.deepEqual(errors, []);

@@ -1,0 +1,169 @@
+{
+  "result": "passed",
+  "baseCommit": "7120c68667be73829686b7035145596b813f0f41",
+  "candidate": "PR head containing this evidence",
+  "checks": [
+    {
+      "command": "npm run verify:guardrails",
+      "result": "passed"
+    },
+    {
+      "command": "npm run lint",
+      "result": "passed"
+    },
+    {
+      "command": "npm run resources:run -- npm run test:core",
+      "result": "passed",
+      "commands": 87,
+      "sourceCommit": "2d65ca51d0e67bdf8c3d72eb562185de77a87ed8"
+    },
+    {
+      "command": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded npm run build",
+      "result": "passed",
+      "typescript": "passed",
+      "generatedPages": 570
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "npm run verify:oss",
+      "result": "passed"
+    },
+    {
+      "command": "npm run lint -- --max-warnings=0",
+      "result": "passed"
+    },
+    {
+      "command": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded npm run build",
+      "result": "passed",
+      "phase": "after review scroll correction",
+      "typescript": "passed",
+      "generatedPages": 570
+    },
+    {
+      "command": "npm run test:admin-route-inventory",
+      "result": "passed",
+      "pages": 67,
+      "sourceFingerprints": 409
+    },
+    {
+      "command": "npm run verify:admin-tokens",
+      "result": "passed"
+    },
+    {
+      "command": "node --conditions=react-server --import tsx scripts/test-navigation-runtime.ts",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-owner-workspace.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "transport": "fictional business adapter"
+    },
+    {
+      "command": "node scripts/qa-admin-demo.mjs --one",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-conversational-agent.mjs",
+      "result": "passed",
+      "businessViewportJourneys": 12,
+      "successfulRunsAfterScrollCorrection": 2,
+      "reviewViewportResize": true,
+      "realInference": false
+    },
+    {
+      "command": "node scripts/qa-command-center-interactions.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "motion": ["no-preference", "reduce"]
+    },
+    {
+      "command": "node --import tsx scripts/qa-site-studio.ts",
+      "result": "passed",
+      "transport": "controlled adapter and fictional demo"
+    },
+    {
+      "command": "npm run resources:run -- npm run lint -- --max-warnings=0",
+      "result": "passed",
+      "phase": "final source"
+    },
+    {
+      "command": "node scripts/qa-revenue.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "scenarios": 6,
+      "keyboardGuidePath": "/docs/billing -> /docs/pipeline/revenue",
+      "transport": "fictional business adapter"
+    },
+    {
+      "command": "node scripts/qa-collections-workspace.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "scenarios": 5,
+      "keyboardTechnicalDisclosure": true,
+      "transport": "fictional business adapter"
+    },
+    {
+      "command": "node scripts/qa-client-interactions.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "journeys": 7,
+      "transport": "fictional business adapter"
+    },
+    {
+      "command": "node /tmp/cc-overhaul-remaining-workspace.mjs",
+      "result": "passed",
+      "commands": 18,
+      "evidence": "workspace-browser.json",
+      "transport": "controlled adapters and fictional business session"
+    },
+    {
+      "command": "node scripts/admin-route-inventory.mjs --refresh && npm run test:admin-route-inventory",
+      "result": "passed",
+      "phase": "Today copy cleanup",
+      "pages": 67,
+      "sourceFingerprints": 409
+    },
+    {
+      "command": "npm run verify:guardrails",
+      "result": "passed",
+      "phase": "README approval claims and Today copy cleanup"
+    },
+    {
+      "command": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded npm run build",
+      "result": "passed",
+      "phase": "Today copy cleanup and refreshed captures",
+      "typescript": "passed",
+      "generatedPages": 570
+    }
+  ],
+  "initialApplicationCommit": "2d65ca51d0e67bdf8c3d72eb562185de77a87ed8",
+  "followUpApplicationInput": {
+    "file": "src/components/admin/AdminAIChat.tsx",
+    "sha256": "2a4122c3eb3c6dd0ec4043acd9937123b0296d9fb010da51802caabeecab09f6"
+  },
+  "communicationFollowUpInputs": [
+    {
+      "file": "src/components/admin/TodayWorkspace.tsx",
+      "sha256": "beae89d37254f9cd5087d0d0f8bfd48fa250027856c8ede47e03e5afb1b99760"
+    },
+    {
+      "file": "src/content/product-screenshots.ts",
+      "sha256": "fff98877a59c8f6702ce30dcd216dac61ae1d089a34bdc48a967ed0f8f9e24b4"
+    }
+  ],
+  "localFinalBuild": {
+    "result": "stopped by machine memory gate",
+    "phase": "final screenshot alt metadata",
+    "compiled": true,
+    "typescript": "passed",
+    "staticPagesGenerated": 369,
+    "staticPagesExpected": 570,
+    "memoryAvailabilityPercent": 12,
+    "requiredMemoryAvailabilityPercent": 20,
+    "exactCandidateCompleteBuild": "PR CI"
+  }
+}

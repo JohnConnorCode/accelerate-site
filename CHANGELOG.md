@@ -16,6 +16,9 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Added
 
+- Add `npm run example:followup` to exercise the actual Pipeline follow-up report against fixed fictional opportunities. The developer guide verifies the original seven-day rule and a three-day source adaptation without provider accounts.
+- Add an export-based Site Studio content-draft preparation command. It validates the website document, preserves the owner's identity, page IDs and unrelated content, includes current screenshot revisions, and writes a separate file without saving or publishing a connected website.
+
 - Owner-first admin navigation uses one business-group registry, with visible purpose descriptions and preserved destination IDs. Page guidance adds starting instructions, saved-result context and links to connected walkthroughs. Today reviews sourced sales, customer follow-up, delivery and payment work without inventing financial totals; custom views retain their arrangements.
 - Owner and daily guides now teach inquiry replies, client handoffs and invoicing through their saved results. Demo QA waits for the installed scenario runtime before reading protected API fixtures.
 - Revenue and Analytics report tools and JSON/CSV exports share dashboard services. Reviewed operation mappings are generated from the tool registry; new unreviewed handlers or tools fail the inventory gate. Existing coverage gaps stay explicit.
@@ -26,6 +29,10 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 - Shared themed fields now govern Clients, Analytics, Campaigns, Integrations and Proposals; compact custom themes retain usable targets. Setup readiness inherits readable theme colors, and contact relationship failures offer retry instead of appearing empty.
 
 ### Fixed
+
+- Keep exact-change AI reviews at their reading position through pending reads and chat resizes. Automatic following pauses until review ends, preserving the visible consequence and decision controls. Browser acceptance resizes the real viewport and verifies all six fictional businesses on desktop and mobile.
+
+- Feature-page images and enlargement links reuse the docs' content-hash cache keys. Refreshed gallery images use new filenames so optimized copies do not obscure interface changes; previously published assets remain available.
 
 - Work task selection now keeps its exact URL and independent read/retry lifecycle. Editable instructions reuse the existing task writer; pending edits lock the form, failed confirmations retain drafts, and late reads or saves cannot target the next inspector. Source links use stored identifiers in Work and legacy Today.
 

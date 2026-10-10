@@ -138,18 +138,18 @@ export function OpenSourcePageContent() {
                 <RevealHeading
                   as="h1"
                   className={HERO_HEADING}
-                  lead="Keep customer work connected."
-                  accent="Own the system behind it."
+                  lead="Build business Apps."
+                  accent="Start with a working foundation."
                   entrance="parent"
                 />
               </HeroEntranceItem>
               <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                  Give Claude Code or Codex the repository and describe what your business needs.
-                  Your agent can set it up and build custom screens, reports and workflows on the
-                  customer records, permissions and business services already here. Your team spends
-                  less time copying context between tools, and your agent has less foundation to
-                  rebuild. You own the MIT-licensed source and your installation.
+                  Start with customer records, sales, delivery, billing and marketing in an
+                  open-source AI business platform. Give your coding agent a real business task and
+                  build the report, workflow or App your team needs. Reuse existing identity,
+                  permissions and business services while keeping control of the MIT-licensed
+                  source.
                 </p>
               </HeroEntranceItem>
               <HeroEntranceItem step={4}>
@@ -267,39 +267,39 @@ Hand off deployment separately.`}
           <div className="min-w-0">
             <Eyebrow className="mb-6">why it&apos;s open</Eyebrow>
             <Heading size={2} as="h2" className="max-w-lg">
-              Build on context your team can trust.
+              Spend development effort on your business&apos;s own process.
             </Heading>
             <p className="mt-6 max-w-lg text-sm leading-relaxed text-white-muted">
-              A new screen is useful when it can see the right records and leave a reliable result.
-              Accelerate gives your own workflows and AI tools the same identity, permissions and
-              action history as the workspace.
+              Add a job workspace, a customer report or a review queue without starting over on
+              contacts, conversations and shared work. Your App can own the rules and records unique
+              to that process while using the platform&apos;s existing services.
             </p>
           </div>
           <ul className="flex flex-col gap-6" role="list">
             {[
               {
-                title: "AI earns more responsibility",
-                body: "Supported actions begin with review. After a record of successful approvals, an owner can grant eligible actions standing permission. Restricted actions keep their required human decision.",
+                title: "Start with customer context",
+                body: "Build around existing people, companies, conversations and opportunities. Customer identity and workspace access already have shared services, so your App can concentrate on the information and decisions your industry needs.",
               },
               {
-                title: "Answers have to cite what they read",
-                body: "A grounded answer is rejected before you see it unless it cites receipts from tools that actually ran in that request.",
+                title: "Add a useful report first",
+                body: "Adapt the bundled Pipeline follow-up report from seven quiet days to three. Run it against local fictional records and see exactly which opportunities become visible before connecting any provider.",
               },
               {
-                title: "Every external effect leaves a receipt",
-                body: "Sends, syncs, and webhooks carry idempotency keys and end in a terminal receipt, so a retry cannot fire twice and a silent failure cannot read as success.",
+                title: "Reuse the business services",
+                body: "Add a specialized workspace for client work, billing or marketing that calls the existing record services. The interface and AI tools can use the same validation and authorization instead of creating separate versions of the workflow.",
               },
               {
-                title: "Outside assistants get no looser path",
-                body: "Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity reach the workspace over MCP through the same registry, the same impact tiers, and the same approval queue as the interface.",
+                title: "Make your App available to AI",
+                body: "Register supported tools alongside your screen. Ask AI and authenticated MCP clients can work with that capability through its shared access and action policies, while the recorded result explains what happened.",
               },
               {
-                title: "Records and AI spend stay yours",
-                body: "Your data lives in a Supabase project you own and can move. Connect your own OpenRouter key and model usage bills to you at provider cost.",
+                title: "Own the installation",
+                body: "Run the MIT-licensed source with your own Supabase project and provider accounts. Keep the custom workflow in your repository, document it and hand over the accounts and operating responsibilities with the system.",
               },
               {
-                title: "Have an agent build your next workflow",
-                body: "Describe the business rules and review a working screen. The agent implements and registers the extension, reusing shared services for customer identity, access and governed actions.",
+                title: "Give your coding agent a concrete job",
+                body: "Describe the input, decision and saved result the team needs. An external coding agent can build and verify the source change. AI App building inside the workspace is planned; the current development path uses the repository.",
               },
             ].map((item, i) => (
               <li

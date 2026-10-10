@@ -1,0 +1,41 @@
+[
+  {
+    "scenario": "northline-roofing",
+    "width": 1440,
+    "taskInspector": "passed",
+    "runtimeErrors": []
+  },
+  {
+    "scenario": "northline-roofing",
+    "width": 390,
+    "taskInspector": "passed",
+    "runtimeErrors": []
+  },
+  {
+    "scenario": "northline-roofing",
+    "width": 1440,
+    "recovery": "passed",
+    "runtimeErrors": []
+  },
+  {
+    "scenario": "northline-roofing",
+    "width": 390,
+    "recovery": "passed",
+    "runtimeErrors": []
+  },
+  {
+    "scenario": "northline-roofing",
+    "width": 1440,
+    "result": "passed"
+  },
+  {
+    "scenario": "northline-roofing",
+    "width": 390,
+    "result": "passed"
+  },
+  {
+    "scenario": "superdebate",
+    "width": 390,
+    "result": "passed"
+  }
+]

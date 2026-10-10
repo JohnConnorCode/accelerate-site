@@ -127,13 +127,14 @@ async function readStablePageState(page) {
     failures.push("launcher: missing fictional-data disclosure");
   if (
     !(await page
-      .getByRole("heading", { level: 1, name: "Tell your agent what needs doing." })
+      .getByRole("heading", {
+        level: 1,
+        name: /^Follow the customer\.\s*See the business work\.$/,
+      })
       .count())
   )
     failures.push("launcher: current workflow-led heading is missing");
-  if (
-    !(await page.getByRole("heading", { name: "Start with a request. Review the result." }).count())
-  )
+  if (!(await page.getByRole("group", { name: "Choose a workflow", exact: true }).count()))
     failures.push("launcher: complete-workflow showcase is missing");
   if (await page.getByText("Command Center overview", { exact: false }).count())
     failures.push("launcher: duplicate local navigation chrome remains");
@@ -624,30 +625,31 @@ for (const scenario of scenarios) {
           failures.push(`${scenario} mobile: open navigation did not lock background scrolling`);
 
         if (scenario === "northline-roofing") {
-          const workToggle = controlsScope.getByRole("button", {
-            name: /^(Expand|Collapse) Tasks & approvals links$/,
+          const customerToggle = controlsScope.getByRole("button", {
+            name: /^(Expand|Collapse) Customers & sales links$/,
           });
-          const workPanelId = await workToggle.getAttribute("aria-controls");
-          const workPanel = controlsScope.locator(`[id="${workPanelId}"]`);
-          if ((await workToggle.getAttribute("aria-expanded")) === "true") await workToggle.click();
-          await workToggle.click();
-          await workPanel.waitFor();
-          if ((await workPanel.getAttribute("aria-hidden")) !== "false")
+          const customerPanelId = await customerToggle.getAttribute("aria-controls");
+          const customerPanel = controlsScope.locator(`[id="${customerPanelId}"]`);
+          if ((await customerToggle.getAttribute("aria-expanded")) === "true")
+            await customerToggle.click();
+          await customerToggle.click();
+          await customerPanel.waitFor();
+          if ((await customerPanel.getAttribute("aria-hidden")) !== "false")
             failures.push(
-              `${scenario} ${label}: Tasks & approvals disclosure did not expose its links`,
+              `${scenario} ${label}: Customers & sales disclosure did not expose its links`,
             );
-          await workToggle.click();
-          if ((await workPanel.getAttribute("aria-hidden")) !== "true")
+          await customerToggle.click();
+          if ((await customerPanel.getAttribute("aria-hidden")) !== "true")
             failures.push(
-              `${scenario} ${label}: Tasks & approvals disclosure did not hide its links`,
+              `${scenario} ${label}: Customers & sales disclosure did not hide its links`,
             );
-          await workToggle.click();
-          if ((await workPanel.getAttribute("aria-hidden")) !== "false")
-            failures.push(`${scenario} ${label}: Tasks & approvals disclosure did not reopen`);
+          await customerToggle.click();
+          if ((await customerPanel.getAttribute("aria-hidden")) !== "false")
+            failures.push(`${scenario} ${label}: Customers & sales disclosure did not reopen`);
 
           const inboxHref = `/demo/command-center/${scenario}/inbox`;
           const todayHref = `/demo/command-center/${scenario}/today`;
-          await workPanel.locator(`a.admin-nav-link[href="${inboxHref}"]`).click();
+          await customerPanel.locator(`a.admin-nav-link[href="${inboxHref}"]`).click();
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/inbox$`));
           if (
             (await page
@@ -814,6 +816,9 @@ for (const scenario of scenarios) {
       await page
         .getByRole("group", { name: "AI workspace views", exact: true })
         .getByRole("button", { name: "Capabilities", exact: true })
+        .click();
+      await page
+        .getByText("Search all registered operations and technical details", { exact: true })
         .click();
       await page.getByRole("heading", { name: "Reads and reports", exact: true }).waitFor();
       if (!page.url().includes("/demo/command-center/northline-roofing/ai?view=capabilities"))

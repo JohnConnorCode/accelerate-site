@@ -1,0 +1,114 @@
+{
+  "status": "passed",
+  "model": "controlled UI response; real inference not configured",
+  "checks": [
+    {
+      "scenario": "northline-roofing",
+      "viewport": "desktop",
+      "review": "keyboard",
+      "decision": "approve",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "alder-ridge-law",
+      "viewport": "desktop",
+      "review": "keyboard",
+      "decision": "approve",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "ledgerstone-advisory",
+      "viewport": "desktop",
+      "review": "keyboard",
+      "decision": "approve",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "hearthline-realty",
+      "viewport": "desktop",
+      "review": "keyboard",
+      "decision": "approve",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "common-table-network",
+      "viewport": "desktop",
+      "review": "keyboard",
+      "decision": "approve",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "superdebate",
+      "viewport": "desktop",
+      "review": "keyboard",
+      "decision": "approve",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "northline-roofing",
+      "viewport": "mobile",
+      "review": "keyboard",
+      "decision": "reject",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "alder-ridge-law",
+      "viewport": "mobile",
+      "review": "keyboard",
+      "decision": "reject",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "ledgerstone-advisory",
+      "viewport": "mobile",
+      "review": "keyboard",
+      "decision": "reject",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "hearthline-realty",
+      "viewport": "mobile",
+      "review": "keyboard",
+      "decision": "reject",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "common-table-network",
+      "viewport": "mobile",
+      "review": "keyboard",
+      "decision": "reject",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    },
+    {
+      "scenario": "superdebate",
+      "viewport": "mobile",
+      "review": "keyboard",
+      "decision": "reject",
+      "replay": "refused",
+      "reload": "receipt retained",
+      "protectedRequests": 0
+    }
+  ]
+}

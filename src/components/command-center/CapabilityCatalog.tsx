@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORY_META, capabilities, type CapabilityCategory } from "@/content/command-center";
+import Link from "next/link";
+import { capabilities } from "@/content/command-center";
+import { businessAreas } from "@/content/command-center-business";
+import type { BusinessAreaId } from "@/content/command-center-contract";
 import styles from "./product.module.css";
 
 export function CapabilityCatalog() {
-  const [active, setActive] = useState<CapabilityCategory | "all">("all");
+  const [active, setActive] = useState<BusinessAreaId | "all">("all");
   const [query, setQuery] = useState("");
   const filtered = capabilities.filter(
     (item) =>
-      (active === "all" || item.category === active) &&
+      (active === "all" || item.businessArea === active) &&
       `${item.title} ${item.promise} ${item.detail}`
         .toLowerCase()
         .includes(query.trim().toLowerCase()),
@@ -31,14 +34,14 @@ export function CapabilityCatalog() {
         <button type="button" aria-pressed={active === "all"} onClick={() => setActive("all")}>
           All capabilities
         </button>
-        {CATEGORY_META.map((category) => (
+        {businessAreas.map((category) => (
           <button
             key={category.id}
             type="button"
             aria-pressed={active === category.id}
             onClick={() => setActive(category.id)}
           >
-            {category.label}
+            {category.title}
           </button>
         ))}
       </div>
@@ -69,7 +72,19 @@ export function CapabilityCatalog() {
               </summary>
               <div>
                 <p>{item.detail}</p>
-                {item.gated && <p className={styles.note}>Uses the shared approval process.</p>}
+                {item.guideHref && (
+                  <Link className={styles.textLink} href={item.guideHref}>
+                    Open the practical guide
+                  </Link>
+                )}
+                {item.businessArea && (
+                  <Link
+                    className={styles.textLink}
+                    href={`/command-center/features/${item.businessArea}`}
+                  >
+                    See how this fits your business
+                  </Link>
+                )}
               </div>
             </details>
           ))}

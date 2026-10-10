@@ -1,93 +1,54 @@
 ---
-title: "Three workflows to learn the workspace"
-description: "Answer an inquiry, start client work and prepare an invoice, then check the saved result and next step."
-updated: "2026-10-06"
+title: "Follow one customer from inquiry to billing"
+description: "Explore a connected client lifecycle in the fictional Northline workspace, from customer context to delivery and payment follow-up."
+updated: "2026-10-10"
 ---
 
-A customer is waiting for an answer, a newly won engagement needs a handoff, and an invoice is ready to prepare. These are three different jobs, but each follows the same useful path: understand the situation, make a decision, save the next step and inspect its result. Practicing that path makes the workspace easier to use with your own business.
+Use the Northline Roofing demo to understand how customer information carries across sales, delivery and billing. Start with the fictional homeowner's request, open the linked opportunity and continue through the existing operating screens.
 
-**You need:** a browser for the fictional examples below. Open [Today in Northline Roofing](/demo/command-center/northline-roofing/today), review **Business review**, and expand **How do I get work done?** to choose an example. The demo retains changes in that business’s browser session and labels provider actions as simulated.
+The demo is a configured fictional workspace. Its business effects are simulated and stay in your browser session. You can explore freely, reset the scenario or use the optional client-lifecycle guide.
 
 <DocsFigure
-  src="/images/docs/command-center/today-owner-review.png"
-  alt="Northline Roofing’s fictional business review with sales, customer follow-up, delivery and money findings."
+  src="/images/docs/conversations/overview.png"
   width={1440}
   height={1000}
-  caption="Find your starting point in fictional Northline Roofing: 1 gives the first action, 2 links business findings to their source records, and 3 opens the three worked examples below."
+  alt="A fictional Northline homeowner conversation with related customer information."
+  caption="A Northline customer thread in the real interface. Demo replies and other business effects are simulated."
 />
 
-<h2 id="inquiry">Answer an inquiry</h2>
+<span id="inquiry" />
 
-A Northline homeowner has asked about an inspection. Before offering an appointment, read the request and the customer’s history so your answer addresses what they actually need. Start in [the fictional conversation workspace](/demo/command-center/northline-roofing/conversations).
+## Start with the customer
 
-<StepByStep>
-  <Step number={1} title="Read the customer’s situation">
-    Select a thread and read the latest request. Open the related contact or opportunity when you
-    need the property context, prior response or current next action before answering.
-  </Step>
-  <Step number={2} title="Review the reply you want to send">
-    Write the answer in the reply field, then choose **Review & Send**. Check the customer and exact
-    message in the confirmation. Choose **Edit** to revise it or **Confirm send** to proceed. Ask AI
-    can prepare a reply from the same context when the inference service is available.
-  </Step>
-  <Step number={3} title="Confirm the result and assign the follow-up">
-    Read the resulting message in the thread and check its recorded status. If somebody needs to
-    call back, open **Work** and create an owned task with a due date and the customer attached.
-    Return to Today and use **Refresh Today** to review the remaining follow-up.
-  </Step>
-</StepByStep>
+Open [Northline's client lifecycle](/demo/command-center/northline-roofing/today?workflow=client). In Contacts, open Lena Walsh and inspect her conversation, opportunity and work. Those source links are how the next teammate understands the relationship.
 
-**Saved result:** the reply stays in the conversation, while the callback remains an assigned task that the next teammate can open. Reload the thread and task to inspect them again. If a send fails or its outcome is unclear, read the original message result before trying again. Keep an unsent answer available until you know what happened.
+For a response, open Conversations and prepare a reply. If you use the demo agent, review the exact message and task it proposes. The agent needs its configured inference service; manual exploration remains available when that service is unavailable.
 
-<h2 id="onboarding">Start client work</h2>
+<span id="onboarding" />
 
-Ledgerstone Advisory has won an engagement, and the delivery team needs ownership, client access and a kickoff date. Start in [the fictional onboarding workspace](/demo/command-center/ledgerstone-advisory/client-onboarding), reached through **Client work → Client onboarding** when the App is enabled.
+## Move through the business work
 
-<StepByStep>
-  <Step number={1} title="Choose the engagement">
-    Select the won opportunity and review the customer and agreed work. Prepare tasks for kickoff
-    and the information you need from the client, with an assignee and due date for each.
-  </Step>
-  <Step number={2} title="Review the exact checklist">
-    Choose **Review workflow**, inspect the source and assignments, then choose **Request
-    approval**. Select **Approve & create tasks** on the proposal below, or review it in **Work →
-    Approvals**. With configured AI, you can also prepare the checklist and review its proposals in
-    chat.
-  </Step>
-  <Step number={3} title="Inspect the handoff">
-    Read the execution result and open the created tasks in Work. Check the instructions, dates and
-    opportunity links, then return to Today to see the delivery commitments alongside other work.
-  </Step>
-</StepByStep>
+1. In Pipeline, inspect the customer's opportunity, owner, stage and next action. Use the source record to understand what still needs a sales decision.
+2. In Proposals, review the offer and customer terms. A customer decision belongs to that proposal and the linked opportunity.
+3. Open Client onboarding for a won opportunity. Specify the owner and dates, prepare the checklist and create the reviewed tasks.
+4. Open Work to find those assigned tasks and their engagement context. Update or complete the actual work item rather than creating another copy.
 
-**Saved result:** assigned tasks stay linked to the engagement. A teammate can reload the task link and see what they own. If an owner or source changed during review, correct it and preview again; if task creation is uncertain, inspect the original result before preparing a second checklist. [Client onboarding](/docs/plugins/client-onboarding) explains these controls and recovery in more detail.
+<span id="invoice" />
 
-<h2 id="invoice">Prepare an invoice and follow payment</h2>
+## Prepare billing and payment follow-up
 
-SuperDebate needs to invoice a customer for agreed work. The decision is whether the recipient, line items and terms accurately represent that agreement. Open [the fictional invoice workspace](/demo/command-center/superdebate/invoicing) through **Billing & payments**.
+In Invoices, choose **Use sample invoice**, confirm Lena Walsh as the customer and inspect the service lines. Follow the separate draft-creation and sending decisions.
 
-<StepByStep>
-  <Step number={1} title="Prepare the customer draft">
-    Choose **Create invoice** or **Use sample invoice** in the demo. Review the billing customer,
-    currency, quantities and terms, then choose **Prepare invoice** to inspect the exact preview.
-  </Step>
-  <Step number={2} title="Create and send the reviewed version">
-    Choose **Request draft approval**, review it and select **Approve & create draft**. Inspect the
-    creation result. When the invoice is ready, choose **Request sending approval**, review the
-    recipient and select **Approve & send invoice**.
-  </Step>
-  <Step number={3} title="Follow the recorded payment status">
-    Inspect the result and reopen the invoice from **All invoices**. Read the provider’s recorded
-    status and remaining amount. When Collections is enabled, open the customer case through
-    **Billing & payments → Collections** to inspect any overdue balance and available follow-up.
-  </Step>
-</StepByStep>
+In Collections, open Lena's case for an earlier invoice. Read its balance, payment promises and holds before preparing a reminder. The new invoice you create remains a separate billing record; the starting collection case lets you inspect follow-up immediately.
 
-**Saved result:** invoice creation and sending have separate recorded results, while payment status comes from the invoice source. Reload the invoice and check its status before telling the customer it is paid. If a provider attempt times out, inspect the original action and invoice before retrying. [Stripe invoicing](/docs/plugins/stripe-invoicing) covers the branded customer view; [Collections](/docs/plugins/receivables-collections) explains payment follow-up.
+The starting fixtures contain work at different stages so you can inspect each part immediately. Progress you create stays in the scenario session; a reset restores its fictional starting state.
+
+## What the team gains
+
+An inquiry has a clear owner and next step. Won work has a delivery checklist. Billing has an invoice and an evidence-based follow-up decision. The customer record gives the team a shared starting point across those jobs.
 
 ## What to check
 
-- Check the source timestamp and any partial or unavailable warning before making a business decision. Refresh the review, or open the native record when its source needs investigation.
-- Every action in these demos is fictional. For real work, verify the required App, permissions and provider in [Setup](/docs/workspace/setup) before using a customer’s data.
-- AI availability is shown by the actual service response. Manual controls remain the starting path when an AI request cannot run.
-- Confirm the original result after an uncertain action. [Receipts and audit](/docs/start/receipts) explains what a saved, attempted or confirmed result means.
+A demo action records a simulated result. Verify real providers separately in your own workspace. Revenue agreement values, invoices and collected payments describe different business facts.
+
+**Next:** choose an [industry recipe](/docs/recipes) or [set up a connected workflow](/docs/workspace/setup).

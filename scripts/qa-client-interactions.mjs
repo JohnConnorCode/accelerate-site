@@ -405,6 +405,20 @@ async function checkRecovery(width) {
   const page = await context.newPage(),
     errors = [];
   page.setDefaultTimeout(20000);
+  const openWork = async () => {
+    const navigation = page.getByRole("navigation", {
+      name: width === 390 ? "Primary navigation" : "Admin navigation",
+      exact: true,
+    });
+    if (width !== 390) {
+      const expand = navigation.getByRole("button", {
+        name: "Expand Daily work links",
+        exact: true,
+      });
+      if (await expand.count()) await expand.press("Enter");
+    }
+    await navigation.getByRole("link", { name: "Work", exact: true }).click();
+  };
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
@@ -461,10 +475,7 @@ async function checkRecovery(width) {
         .waitFor({ state: "hidden" });
     }
     // Populate Work's query cache before creating a follow-up, then return through client navigation.
-    await page
-      .locator('a[href="/demo/command-center/northline-roofing/work"]:visible')
-      .first()
-      .click();
+    await openWork();
     await page.getByRole("textbox", { name: "Search tasks", exact: true }).waitFor();
     await page.goBack();
     await notes.waitFor();
@@ -550,10 +561,7 @@ async function checkRecovery(width) {
     });
     await followups.getByRole("link", { name: new RegExp(taskTitle) }).waitFor();
     await history.getByText(taskTitle, { exact: true }).waitFor();
-    await page
-      .locator('a[href="/demo/command-center/northline-roofing/work"]:visible')
-      .first()
-      .click();
+    await openWork();
     await page.getByRole("button", { name: `Open task ${taskTitle}`, exact: true }).waitFor();
     await page.goBack();
     await page.reload();

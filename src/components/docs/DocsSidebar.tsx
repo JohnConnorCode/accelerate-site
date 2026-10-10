@@ -12,26 +12,47 @@ import { DocsSectionIcon } from "./docs-section-icon";
 export function DocsSidebar() {
   const pathname = usePathname();
   const current = pathname.replace(/^\/docs\/?/, "");
+  const currentTrack =
+    docsManifest.find((section) => section.id === current.split("/")[0])?.track ?? "operator";
 
   return (
     <nav aria-label="Documentation sections" className="flex flex-col gap-7">
-      {docsTracks.map((track) => (
-        <div key={track.id} className="flex flex-col gap-5">
-          <p className="font-mono text-[0.66rem] uppercase tracking-[0.2em] text-white-muted">
+      <div className="grid grid-cols-2 gap-2" aria-label="Documentation audience">
+        {docsTracks.map((track) => (
+          <Link
+            key={track.id}
+            href={track.id === "operator" ? "/docs/start" : "/docs/extend"}
+            aria-current={currentTrack === track.id ? "true" : undefined}
+            className={cn(
+              "flex min-h-11 items-center rounded-lg px-3 py-2 text-xs font-medium shadow-[inset_0_0_0_1px_var(--rule)]",
+              currentTrack === track.id
+                ? "bg-[var(--bg-muted)] text-heading"
+                : "text-white-secondary",
+            )}
+          >
             {track.title}
-          </p>
-          {track.id === "builder" && (
-            <Link href="/docs/recipes" className="text-sm font-medium underline underline-offset-4">
-              Adapt an industry recipe
-            </Link>
-          )}
-          <DocsSidebarSections
-            sections={docsManifest.filter((section) => section.track === track.id)}
-            current={current}
-            pathname={pathname}
-          />
-        </div>
-      ))}
+          </Link>
+        ))}
+      </div>
+      {docsTracks
+        .filter((track) => track.id === currentTrack)
+        .map((track) => (
+          <div key={track.id} className="flex flex-col gap-5">
+            {track.id === "builder" && (
+              <Link
+                href="/docs/recipes"
+                className="text-sm font-medium underline underline-offset-4"
+              >
+                Adapt an industry recipe
+              </Link>
+            )}
+            <DocsSidebarSections
+              sections={docsManifest.filter((section) => section.track === track.id)}
+              current={current}
+              pathname={pathname}
+            />
+          </div>
+        ))}
     </nav>
   );
 }

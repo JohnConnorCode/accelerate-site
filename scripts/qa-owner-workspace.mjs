@@ -12,13 +12,18 @@ async function ready(page, scenario) {
   await page.locator(".admin-main h1").waitFor();
 }
 async function stable(page) {
-  await page.locator("[data-admin-route-stage]").evaluate(async (root) => {
-    await Promise.all(
-      root
-        .getAnimations({ subtree: true })
-        .filter((animation) => Number.isFinite(animation.effect.getComputedTiming().endTime))
-        .map((animation) => animation.finished.catch(() => {})),
-    );
+  // Collapsing native details can remove a transition while its captured
+  // finished promise stays pending. Inspect the current animation timeline.
+  await page.waitForFunction(() => {
+    const root = document.querySelector("[data-admin-route-stage]");
+    return root
+      ?.getAnimations({ subtree: true })
+      .every(
+        (animation) =>
+          !Number.isFinite(animation.effect.getComputedTiming().endTime) ||
+          animation.playState === "finished" ||
+          animation.playState === "idle",
+      );
   });
   assert.equal(
     await page.evaluate(() => {
@@ -174,17 +179,21 @@ try {
       await page.setViewportSize({ width, height: 1000 });
       await page.waitForFunction(() => document.activeElement?.matches(".admin-help-trigger"));
       assert.equal(await how.getAttribute("aria-expanded"), "false");
-      const walkthroughs = page
+      const workflows = page
         .locator("details")
-        .filter({ has: page.getByText("How do I get work done?", { exact: true }) });
-      await walkthroughs.locator("summary").focus();
+        .filter({ has: page.getByText("Start a business workflow", { exact: true }) });
+      await workflows.locator("summary").focus();
       await page.keyboard.press("Enter");
       assert.equal(
-        await walkthroughs.getByRole("link", { name: "Read the walkthrough", exact: true }).count(),
-        3,
+        await workflows.getByRole("link", { name: "Guide and setup", exact: true }).count(),
+        6,
       );
-      await walkthroughs.locator("summary").click();
-      await walkthroughs.locator("summary").evaluate((element) => element.blur());
+      assert.equal(
+        await workflows.getByRole("link", { name: "Open workspace", exact: true }).count(),
+        6,
+      );
+      await workflows.locator("summary").click();
+      await workflows.locator("summary").evaluate((element) => element.blur());
       await stable(page);
       await page.screenshot({ path: `${output}/today-${width}.png` });
       if (width === 1440) {
@@ -232,7 +241,7 @@ try {
           .locator("[data-capture-annotation]")
           .evaluateAll((nodes) => nodes.forEach((node) => node.remove()));
         await page.getByRole("button", { name: /Collapse sidebar/ }).click();
-        await page.getByRole("link", { name: "Business overview", exact: true }).waitFor();
+        await page.getByRole("link", { name: "Daily work", exact: true }).waitFor();
         await page.getByRole("button", { name: /Expand sidebar/ }).click();
       }
       const salesSources = page.locator('[data-business-review="sales"] a');

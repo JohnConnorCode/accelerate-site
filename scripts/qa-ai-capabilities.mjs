@@ -18,9 +18,13 @@ try {
     await page.goto(`${base}/demo/command-center/superdebate/ai?view=capabilities`, {
       timeout: 120_000,
     });
+    const reference = page
+      .locator("details")
+      .filter({ hasText: "Search all registered operations and technical details" });
+    await reference.locator("summary").click();
     const search = page.getByRole("searchbox", { name: "Find a capability" });
     await search.waitFor();
-    const cards = page.getByRole("heading", { level: 3 });
+    const cards = reference.getByRole("heading", { level: 3 });
     const total = await cards.count();
     assert.ok(total > 0, "fictional catalogue renders shared capability cards");
     await search.focus();
@@ -68,6 +72,7 @@ try {
       window.__capabilityReadFailure = false;
     });
     await page.getByRole("button", { name: "Retry", exact: true }).click();
+    await reference.locator("summary").click();
     await search.waitFor();
     assert.equal(await cards.count(), total, "retry restores catalogue");
     assert.deepEqual(errors, []);
