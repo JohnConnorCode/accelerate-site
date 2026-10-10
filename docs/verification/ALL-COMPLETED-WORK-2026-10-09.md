@@ -98,3 +98,11 @@ HTTP 404 as a retryable read failure. It now shares the existing null-record emp
 state while other read failures keep their recovery behavior. The existing browser
 journey covers both null and HTTP 404 missing records. Full acceptance is required
 on this final combined source.
+
+Focused continuation confirmed client null/404 recovery, invoice creation, homepage
+composition at eight viewports, business workflows for six desktop/mobile scenarios,
+contact matching, demo marketing and appearance persistence. The remaining tests
+used an old command-search placeholder and generic toast dismissal labels. They now
+use the `Search workspace` combobox and each toast's descriptive dismissal name.
+Task failure recovery now verifies that the requested inspector remains open with
+an inline retry and no stale editable task fields, matching the current shared owner.
