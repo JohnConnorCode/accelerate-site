@@ -228,6 +228,10 @@ try {
       await page
         .getByRole("button", { name: "Mark Sent", exact: true })
         .waitFor({ state: "hidden" });
+      // Toasts deliberately pause while hovered or focused. Leave the region
+      // before asserting their normal expiry after the send receipt.
+      await page.mouse.move(0, 0);
+      await title.focus();
       await page
         .getByRole("button", { name: /^Dismiss: / })
         .first()

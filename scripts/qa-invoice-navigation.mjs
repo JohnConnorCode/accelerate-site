@@ -164,7 +164,7 @@ try {
 
       // The palette must find creation and retain the current demo workspace.
       const dialog = await search(page, "create invoice");
-      await dialog.getByRole("button", { name: /Create invoice/ }).waitFor();
+      await dialog.getByRole("option", { name: /Create invoice/ }).waitFor();
       await dialog.getByRole("combobox", { name: "Search workspace", exact: true }).press("Enter");
       await page.getByRole("heading", { level: 1, name: "Create invoice", exact: true }).waitFor();
       assert.ok(page.url().startsWith(root + "/invoicing?view=create"));
@@ -174,9 +174,9 @@ try {
       await plugin.getByRole("button", { name: /^Disable / }).click();
       await plugin.getByRole("button", { name: /^Enable / }).click({ trial: true });
       const disabledSearch = await search(page, "invoice");
-      await disabledSearch.getByRole("button", { name: /Set up invoicing/ }).waitFor();
+      await disabledSearch.getByRole("option", { name: /Set up invoicing/ }).waitFor();
       assert.equal(
-        await disabledSearch.getByRole("button", { name: /^Create invoice/ }).count(),
+        await disabledSearch.getByRole("option", { name: /^Create invoice/ }).count(),
         0,
       );
       await disabledSearch
