@@ -82,9 +82,6 @@ export function AdminAIPanel() {
                 </span>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-[var(--admin-ink)]">Ask AI</p>
-                  <p className="truncate text-[10px] text-[var(--admin-muted)]">
-                    Live records · staged actions · visible evidence
-                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-1">

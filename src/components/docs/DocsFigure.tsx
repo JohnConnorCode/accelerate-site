@@ -1,4 +1,5 @@
 import { distributionProfile } from "@/lib/distribution/profile";
+import { docsFigureSource } from "@/lib/docs";
 import Image from "next/image";
 
 export function DocsFigure({
@@ -18,16 +19,17 @@ export function DocsFigure({
 }) {
   // Original guide screenshots are omitted from the neutral distribution.
   if (distributionProfile() === "neutral" && src.startsWith("/images/docs/")) return null;
+  const imageSrc = docsFigureSource(src);
   return (
     <figure className="not-prose my-8">
       <a
-        href={src}
+        href={imageSrc}
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`${alt} Open full-size image in a new tab.`}
       >
         <Image
-          src={src}
+          src={imageSrc}
           alt={alt}
           width={width}
           height={height}

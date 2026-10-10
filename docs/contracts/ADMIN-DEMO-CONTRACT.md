@@ -99,8 +99,9 @@ interaction frame. The default sales demo represents a
 configured, healthy operating system and does not show setup warnings unless a
 scenario explicitly demonstrates setup or recovery.
 
-On mobile, Today begins with a compact two-by-two operating summary followed by
-the priority queue. Duplicate desktop rails and the full operational ledger are
+On mobile, the standard Today view begins with a sourced business review followed by
+the priority queue. Sales, customer follow-up, delivery and money remain distinct,
+with explicit partial or unavailable sources and no inferred payment totals. Duplicate desktop rails and the full operational ledger are
 not part of the primary mobile reading order. Search is one responsive command
 surface: centered on desktop and a safe-area-aware full-height sheet on mobile.
 Local destinations and commands are immediate; remote people results enhance

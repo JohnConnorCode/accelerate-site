@@ -443,6 +443,8 @@ function FeatureDialog({
           title: "Discard card edits?",
           description: "Your unsaved changes will be lost. The saved card stays as it was.",
           confirmLabel: "Discard edits",
+          cancelLabel: "Keep editing",
+          destructive: true,
         })))
     )
       onClose();
@@ -1118,6 +1120,7 @@ export default function FeaturesPage() {
         title: "Archive this card?",
         description: `“${feature.title}” will leave the active board and remain in its history.`,
         confirmLabel: "Archive card",
+        destructive: true,
       }))
     )
       return;

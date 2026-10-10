@@ -65,10 +65,18 @@ const nextConfig: NextConfig = {
   // Image optimization
   images: {
     formats: ["image/avif", "image/webp"],
+    localPatterns: [
+      { pathname: "/**", search: "" },
+      // Guide screenshots include a content revision in their optimizer URL.
+      { pathname: "/images/docs/**" },
+    ],
   },
 
   // The live Collections decision isolate loads its inspectable source at runtime.
   outputFileTracingIncludes: {
+    // Documentation figures also need their bytes when rendered on demand.
+    "/docs": ["./public/images/docs/**/*"],
+    "/docs/**": ["./public/images/docs/**/*"],
     "/*": [
       "./plugins/receivables-collections/plan.js",
       "./node_modules/pdfjs-dist/legacy/build/*.mjs",

@@ -190,7 +190,25 @@ for (const [label, viewport, colorScheme] of [
                 : target.matches(".home-hero-index > span")
                   ? `index-${[...target.parentElement.children].indexOf(target)}`
                   : null;
-      if (phase) window.__heroEntrances.push({ phase, time: performance.now() });
+      if (phase) {
+        const animation = target
+          .getAnimations()
+          .find((animation) =>
+            /^home-hero-(word|label|detail|action)-enter$/.test(animation.animationName),
+          );
+        // Animation events can be delivered in one batch on a busy renderer.
+        // Compare the browser's native start/delay clocks; retain delivery time
+        // separately. The frame tests above verify the visible reveal itself.
+        window.__heroEntrances.push({
+          phase,
+          time:
+            typeof animation?.startTime === "number"
+              ? animation.startTime + Number(animation.effect.getTiming().delay)
+              : null,
+          deliveredAt: performance.now(),
+          elapsedTime: event.elapsedTime,
+        });
+      }
     });
   });
   const page = await context.newPage();
@@ -268,7 +286,9 @@ for (const [label, viewport, colorScheme] of [
   if (!settled.wordsComplete) failures.push(`${label}: word entrance did not settle`);
   if (!settled.entriesComplete) failures.push(`${label}: hero sequence did not settle`);
   if (
-    settled.phases.some((phase) => !phase) ||
+    settled.phases.some(
+      (phase) => !phase || typeof phase.time !== "number" || phase.elapsedTime !== 0,
+    ) ||
     settled.phases.some(
       (phase, index, phases) =>
         index > 0 && phase && phases[index - 1] && phase.time - phases[index - 1].time < 30,
@@ -344,36 +364,57 @@ for (const [label, viewport, colorScheme] of [
     const homeLink = page.locator('header .logo-link[href="/"]');
     await homeLink.hover();
     await page.waitForTimeout(350);
+    // Capture the entrance on the browser's animation clock. Playwright's URL
+    // and locator round-trips can arrive after a valid entrance finishes in CI.
+    await page.evaluate(() => {
+      window.__heroForwardEntrance = null;
+      function capture(event) {
+        if (
+          event.animationName !== "home-hero-word-enter" ||
+          !event.target.matches(".home-hero-word")
+        )
+          return;
+        const word = event.target;
+        const hero = word.closest(".home-hero");
+        const entrance = word
+          .getAnimations()
+          .find((animation) => animation.animationName === "home-hero-word-enter");
+        window.__heroForwardEntrance = {
+          kind: document.documentElement.dataset.navigationKind,
+          animated: getComputedStyle(word).animationName,
+          immediate: hero.classList.contains("reveal-immediate"),
+          playState: entrance?.playState,
+          currentTime: entrance?.currentTime,
+          endTime: entrance?.effect.getComputedTiming().endTime,
+          startTime: entrance?.startTime,
+          timelineTime: document.timeline.currentTime,
+          eventTime: event.timeStamp,
+          deliveredAt: performance.now(),
+          elapsedTime: event.elapsedTime,
+          action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
+        };
+        document.removeEventListener("animationstart", capture);
+      }
+      document.addEventListener("animationstart", capture);
+    });
     await homeLink.click();
     await page.waitForURL(`${baseUrl}/`);
     await page.waitForFunction(() =>
       document.querySelector(".home-hero")?.classList.contains("in"),
     );
-    const forward = await page.evaluate(() => {
-      const hero = document.querySelector(".home-hero");
-      const word = hero.querySelector(".home-hero-word");
-      const entrance = word
-        .getAnimations()
-        .find((animation) => animation.animationName === "home-hero-word-enter");
-      return {
-        kind: document.documentElement.dataset.navigationKind,
-        animated: getComputedStyle(word).animationName,
-        immediate: hero.classList.contains("reveal-immediate"),
-        playState: entrance?.playState,
-        currentTime: entrance?.currentTime,
-        endTime: entrance?.effect.getComputedTiming().endTime,
-        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
-      };
-    });
+    await page.waitForFunction(() => window.__heroForwardEntrance);
+    const forward = await page.evaluate(() => window.__heroForwardEntrance);
     settled.forward = forward;
-    // A client commit can be observed partway through its entrance. Require
-    // a live, fresh animation clock; concealed opening frames are tested above.
+    // animationstart.elapsedTime is zero for a normal fresh CSS entrance.
+    // A GPU-less runner can deliver this event after its wall-clock timeline
+    // finishes, so playState/currentTime are diagnostics, not start evidence.
+    // The actual concealed/readable frame sequence is tested above.
     if (
       forward.kind !== "fresh" ||
       forward.animated !== "home-hero-word-enter" ||
       forward.immediate ||
-      forward.playState !== "running" ||
-      forward.currentTime >= forward.endTime
+      forward.elapsedTime !== 0 ||
+      !(forward.endTime > 0)
     )
       failures.push(
         `${label}: prefetched forward navigation skipped the fresh entrance: ${JSON.stringify(forward)}`,

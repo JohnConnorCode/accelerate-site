@@ -30,6 +30,7 @@ import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { useAdminAI } from "@/components/admin/AdminAIProvider";
+import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -370,7 +371,12 @@ export default function OpportunityRecordPage() {
       </Link>
       <PageHeader
         title={opportunity?.name || record?.company?.name || "Opportunity record"}
-        subtitle="One operating view for identity, commitments, communication, meetings, proposals, and verified history."
+        subtitle="Review this opportunity’s current stage, customer history and outstanding commitments before deciding the next step."
+        guidance={{
+          ...adminPageGuidance.pipeline!,
+          startHint:
+            "Check the current next action, then update the opportunity or open its related work.",
+        }}
         actions={
           <div className="flex items-center gap-2">
             <button

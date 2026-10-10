@@ -73,7 +73,10 @@ export default function ResourcesPage() {
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <PageHeader title={adminPageName("resources")} subtitle={`${total} total downloads`} />
+      <PageHeader
+        title={adminPageName("resources")}
+        subtitle={`Manage the customer-facing resources available to download. ${total} total downloads`}
+      />
       <AdminReadBody
         loading={loading}
         hasData={Boolean(downloadsQuery.data)}

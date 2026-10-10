@@ -107,6 +107,11 @@ try {
       await review.focus();
       await page.keyboard.press("Enter");
       await page.locator('[data-review-decision="approve"]').waitFor();
+      assert.equal(
+        await page.getByRole("button", { name: "Jump to latest" }).count(),
+        0,
+        "The reading shortcut must not cover an exact-change review",
+      );
       await page
         .getByRole("region", { name: "Review exact changes" })
         .getByText(/Creates a task on your queue\./)

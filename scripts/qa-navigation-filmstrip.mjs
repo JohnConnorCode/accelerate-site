@@ -1,3 +1,5 @@
+import assert from "node:assert/strict";
+import { build } from "esbuild";
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
 
@@ -7,6 +9,39 @@ mkdirSync(output, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const failures = [];
+
+async function readColdFallback(page) {
+  return page.evaluate(() => {
+    const region = document.querySelector('[data-admin-async-state="loading"]');
+    if (!region) return null;
+    const reveal = region
+      .getAnimations()
+      .find((animation) => animation.animationName === "admin-async-placeholder-show");
+    return {
+      visible: region.getAttribute("data-admin-async-visible"),
+      opacity:
+        getComputedStyle(region).visibility === "hidden"
+          ? 0
+          : Number(getComputedStyle(region).opacity),
+      revealDelayMs: reveal?.effect?.getTiming().delay ?? null,
+      revealElapsedMs: typeof reveal?.currentTime === "number" ? reveal.currentTime : null,
+    };
+  });
+}
+
+function checkColdFallback(state, name) {
+  if (!state || state.visible !== "false") return;
+  if (state.revealDelayMs !== 120) {
+    failures.push(
+      `${name}: cold-load fallback lost its shared 120ms reveal delay (${JSON.stringify(state)})`,
+    );
+  }
+  // DOMContentLoaded, screenshots and throttled automation can arrive after the
+  // first-paint delay. Measure the CSS animation's clock, not the test's wait.
+  if (state.opacity > 0.05 && (state.revealElapsedMs === null || state.revealElapsedMs < 120)) {
+    failures.push(`${name}: cold-load fallback flashed before 120ms (${JSON.stringify(state)})`);
+  }
+}
 
 for (const run of [
   { name: "desktop-fast", viewport: { width: 1440, height: 900 }, delay: 0 },
@@ -24,6 +59,7 @@ for (const run of [
     window.__adminEntranceFrames = [];
     document.addEventListener("animationstart", (event) => {
       if (event.animationName !== "admin-route-section-in") return;
+      if (!event.target.closest("[data-admin-route-stage]")) return;
       const node = event.target;
       const sample = {
         path: location.pathname,
@@ -62,12 +98,12 @@ for (const run of [
     await page.route("**/*", async (route) => {
       const request = route.request();
       const isNavigationPayload = request.url().includes("_rsc=") || request.headers().rsc === "1";
-      const isPipelinePayload = isNavigationPayload && request.url().includes("/pipeline");
+      const isContactsPayload = isNavigationPayload && request.url().includes("/contacts");
       const isPrefetch =
         request.headers()["next-router-prefetch"] === "1" ||
         request.headers().purpose === "prefetch";
-      if (isPipelinePayload && isPrefetch && !navigationTriggered) return route.abort();
-      if (isPipelinePayload && navigationTriggered)
+      if (isContactsPayload && isPrefetch && !navigationTriggered) return route.abort();
+      if (isContactsPayload && navigationTriggered)
         await new Promise((resolve) => setTimeout(resolve, run.delay));
       await route.continue();
     });
@@ -76,42 +112,16 @@ for (const run of [
   await page.goto(`${base}/demo/command-center/northline-roofing/today`, {
     waitUntil: "domcontentloaded",
   });
-  const initialAsyncState = await page.evaluate(() => {
-    const region = document.querySelector('[data-admin-async-state="loading"]');
-    return region
-      ? {
-          visible: region.getAttribute("data-admin-async-visible"),
-          opacity:
-            getComputedStyle(region).visibility === "hidden"
-              ? 0
-              : Number(getComputedStyle(region).opacity),
-        }
-      : null;
-  });
-  if (initialAsyncState && initialAsyncState.opacity > 0.05) {
-    failures.push(
-      `${run.name}: cold-load fallback flashed before the shared ${120}ms reveal threshold (${JSON.stringify(initialAsyncState)})`,
-    );
-  }
+  const initialAsyncState = await readColdFallback(page);
+  checkColdFallback(initialAsyncState, `${run.name} initial`);
   await page.screenshot({ path: `${output}/${run.name}-direct-000.png` });
   await page.waitForTimeout(90);
-  const earlyAsyncState = await page.evaluate(() => {
-    const region = document.querySelector('[data-admin-async-state="loading"]');
-    return region
-      ? {
-          visible: region.getAttribute("data-admin-async-visible"),
-          opacity:
-            getComputedStyle(region).visibility === "hidden"
-              ? 0
-              : Number(getComputedStyle(region).opacity),
-        }
-      : null;
-  });
-  if (earlyAsyncState && earlyAsyncState.opacity > 0.05) {
-    failures.push(
-      `${run.name}: cold-load fallback became visible before 120ms (${JSON.stringify(earlyAsyncState)})`,
-    );
-  }
+  const earlyAsyncState = await readColdFallback(page);
+  checkColdFallback(earlyAsyncState, `${run.name} early`);
+  writeFileSync(
+    `${output}/${run.name}-cold-load.json`,
+    JSON.stringify({ initial: initialAsyncState, early: earlyAsyncState }, null, 2),
+  );
   await page.screenshot({ path: `${output}/${run.name}-direct-090.png` });
   await page.locator("[data-admin-route-stage]").waitFor({ state: "attached", timeout: 15_000 });
   await page.waitForFunction(
@@ -127,22 +137,19 @@ for (const run of [
     null,
     { timeout: 5_000 },
   );
+  await page.waitForFunction(
+    () =>
+      window.__adminEntranceFrames.filter((entry) => entry.path === location.pathname).length >= 2,
+    null,
+    { timeout: 5_000 },
+  );
   const directEntrance = await page.evaluate(() => {
-    const stage = document.querySelector("[data-admin-route-stage]");
-    const animations = document
-      .getAnimations({ subtree: true })
-      .filter(
-        (animation) =>
-          animation instanceof CSSAnimation &&
-          animation.effect?.target instanceof Element &&
-          stage?.contains(animation.effect.target) &&
-          animation.animationName === "admin-route-section-in",
-      );
+    const entrances = window.__adminEntranceFrames.filter(
+      (entry) => entry.path === location.pathname,
+    );
     return {
-      count: animations.length,
-      delays: [
-        ...new Set(animations.map((animation) => Number(animation.effect?.getTiming().delay || 0))),
-      ],
+      count: entrances.length,
+      delays: [...new Set(entrances.map((entry) => entry.delay))],
     };
   });
   if (directEntrance.count < 2 || directEntrance.delays.length < 2) {
@@ -154,7 +161,7 @@ for (const run of [
   if (!run.delay) await page.waitForLoadState("networkidle");
   const target = page
     .locator(
-      `${run.name.startsWith("mobile") ? ".admin-mobile-dock " : "nav[aria-label='Admin navigation'] "}a[href="/demo/command-center/northline-roofing/pipeline"]:visible`,
+      `${run.name.startsWith("mobile") ? ".admin-mobile-dock " : "nav[aria-label='Admin navigation'] "}a[href="/demo/command-center/northline-roofing/contacts"]:visible`,
     )
     .first();
   await target.waitFor({ state: "visible", timeout: 15_000 });
@@ -194,7 +201,7 @@ for (const run of [
       .locator('.admin-mobile-dock-item[data-pending="true"]')
       .textContent()
       .catch(() => "");
-    if (!pendingLabel?.includes("Pipeline"))
+    if (!pendingLabel?.includes("Contacts"))
       failures.push(
         `${run.name}: destination intent was not acknowledged before the route committed`,
       );
@@ -252,7 +259,7 @@ for (const run of [
     }
   }
 
-  await page.waitForURL("**/northline-roofing/pipeline", { timeout: 15_000 });
+  await page.waitForURL("**/northline-roofing/contacts", { timeout: 15_000 });
   await page
     .locator("[data-admin-route-loading]")
     .waitFor({ state: "detached", timeout: 15_000 })
@@ -268,22 +275,19 @@ for (const run of [
     null,
     { timeout: 5_000 },
   );
+  await page.waitForFunction(
+    () =>
+      window.__adminEntranceFrames.filter((entry) => entry.path === location.pathname).length >= 2,
+    null,
+    { timeout: 5_000 },
+  );
   const committedAnimations = await page.evaluate(() => {
-    const stage = document.querySelector("[data-admin-route-stage]");
-    const animations = document
-      .getAnimations({ subtree: true })
-      .filter(
-        (animation) =>
-          animation instanceof CSSAnimation &&
-          animation.effect?.target instanceof Element &&
-          stage?.contains(animation.effect.target) &&
-          animation.animationName === "admin-route-section-in",
-      );
+    const entrances = window.__adminEntranceFrames.filter(
+      (entry) => entry.path === location.pathname,
+    );
     return {
-      count: animations.length,
-      delays: [
-        ...new Set(animations.map((animation) => Number(animation.effect?.getTiming().delay || 0))),
-      ],
+      count: entrances.length,
+      delays: [...new Set(entrances.map((entry) => entry.delay))],
     };
   });
   if (committedAnimations.count < 2 || committedAnimations.delays.length < 2)
@@ -304,8 +308,8 @@ for (const run of [
       failures.push(
         `${run.name}: the shared dock selection surface did not move between destinations`,
       );
-    if (activeDockLabel?.trim() !== "Pipeline")
-      failures.push(`${run.name}: Pipeline did not become the active mobile destination`);
+    if (activeDockLabel?.trim() !== "Contacts")
+      failures.push(`${run.name}: Contacts did not become the active mobile destination`);
   }
   await page.screenshot({ path: `${output}/${run.name}-committed.png` });
   await page.waitForTimeout(700);
@@ -321,7 +325,7 @@ for (const run of [
   if (state.y > 2) failures.push(`${run.name}: forward navigation landed at ${state.y}px`);
   const frames = await page.evaluate(() => window.__adminEntranceFrames);
   writeFileSync(`${output}/${run.name}-frames.json`, JSON.stringify(frames, null, 2));
-  for (const route of ["/today", "/pipeline"]) {
+  for (const route of ["/today", "/contacts"]) {
     const samples = frames.filter((sample) => sample.path.endsWith(route));
     if (!samples.some((sample) => sample.opacity.some((opacity) => opacity > 0 && opacity < 0.85)))
       failures.push(`${run.name}: ${route} never displayed a perceptible intermediate fade frame`);
@@ -341,7 +345,7 @@ for (const run of [
     reducedMotion: "no-preference",
   });
   const page = await context.newPage();
-  await page.goto(`${base}/demo/command-center/northline-roofing/pipeline`, {
+  await page.goto(`${base}/demo/command-center/northline-roofing/contacts`, {
     waitUntil: "networkidle",
   });
   await page.evaluate(() => {
@@ -399,6 +403,76 @@ for (const run of [
     .waitFor({ state: "attached", timeout: 15_000 });
   await page.screenshot({ path: `${output}/mobile-local-data-ready.png` });
   await context.close();
+}
+
+// Exercise the shared component with real React commits, including the first
+// synchronous frame of a retry. Timer-only checks miss that stale-state flash.
+const fixture = await build({
+  stdin: {
+    contents: `
+      import React from "react";
+      import { createRoot } from "react-dom/client";
+      import { flushSync } from "react-dom";
+      import { AdminAsyncRegion } from "./src/components/admin/AdminAsyncRegion";
+      const root = createRoot(document.getElementById("root"));
+      window.setRegion = (loading, hasData) => {
+        flushSync(() => root.render(
+          <AdminAsyncRegion loading={loading} hasData={hasData} delayMs={500}
+            loadingFallback={<p>Loading evidence</p>}>
+            {hasData ? <p>Saved evidence</p> : <button>Try again</button>}
+          </AdminAsyncRegion>
+        ));
+        const fallback = document.querySelector('[data-admin-async-state="loading"]');
+        return fallback?.getAttribute("data-admin-async-visible") ?? null;
+      };
+      window.unmountRegion = () => flushSync(() => root.unmount());
+    `,
+    loader: "tsx",
+    resolveDir: process.cwd(),
+  },
+  bundle: true,
+  write: false,
+  platform: "browser",
+  define: { "process.env.NODE_ENV": '"production"' },
+});
+for (const width of [1440, 390]) {
+  const context = await browser.newContext({ viewport: { width, height: 900 } });
+  try {
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.setContent('<div id="root"></div>');
+    await page.addScriptTag({ content: fixture.outputFiles[0].text });
+    assert.equal(await page.evaluate(() => window.setRegion(true, false)), "false");
+    await page.waitForFunction(() => document.querySelector('[data-admin-async-visible="true"]'));
+    await page.evaluate(() => window.setRegion(false, false));
+    assert.equal(await page.getByRole("button", { name: "Try again" }).isVisible(), true);
+    await page.getByRole("button", { name: "Try again" }).focus();
+    assert.equal(
+      await page
+        .getByRole("button", { name: "Try again" })
+        .evaluate((node) => document.activeElement === node),
+      true,
+    );
+    assert.equal(
+      await page.evaluate(() => window.setRegion(true, false)),
+      "false",
+      "A retry must hide its placeholder on the first commit",
+    );
+    await page.evaluate(() => window.setRegion(false, true));
+    await page.waitForTimeout(550);
+    assert.equal(await page.getByText("Saved evidence").isVisible(), true);
+    await page.evaluate(() => window.setRegion(true, true));
+    assert.equal(await page.getByText("Saved evidence").isVisible(), true);
+    assert.equal(await page.locator('[data-admin-async-state="loading"]').count(), 0);
+    assert.equal(await page.locator('[aria-busy="true"]').count(), 1);
+    assert.equal(await page.evaluate(() => window.setRegion(true, false)), "false");
+    await page.evaluate(() => window.unmountRegion());
+    await page.waitForTimeout(550);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
 }
 
 await browser.close();

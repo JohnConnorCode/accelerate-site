@@ -2,14 +2,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { parseWebsiteDocument, type WebsiteDocument } from "@/lib/site-studio/website-document";
+import {
+  assertDocumentSize,
+  parseSiteDocument,
+  type SiteDocument,
+} from "@/lib/site-studio/document";
 import { websiteButtonClass as button } from "./WebsiteFields";
-export function WebsiteLivePreview({
-  document,
-  pageId,
-}: {
-  document: WebsiteDocument;
-  pageId: string;
-}) {
+type PreviewProps =
+  | { document: WebsiteDocument; pageId: string; kind?: "website" }
+  | { document: SiteDocument; pageId?: never; kind: "private-draft" };
+
+export function WebsiteLivePreview({ document, pageId, kind = "website" }: PreviewProps) {
+  const privateDraft = kind === "private-draft";
   const frame = useRef<HTMLIFrameElement>(null);
   const demo = useAdminDemo();
   const [width, setWidth] = useState(1440);
@@ -48,9 +52,14 @@ export function WebsiteLivePreview({
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        const valid = parseWebsiteDocument(document);
+        const valid = privateDraft ? parseSiteDocument(document) : parseWebsiteDocument(document);
+        if ("root" in valid) assertDocumentSize(valid);
         frame.current?.contentWindow?.postMessage(
-          { type: "website-preview-document", document: valid, pageId },
+          {
+            type: privateDraft ? "site-draft-preview-document" : "website-preview-document",
+            document: valid,
+            pageId,
+          },
           window.location.origin,
         );
         setInvalid(false);
@@ -59,18 +68,21 @@ export function WebsiteLivePreview({
       }
     }, 180);
     return () => clearTimeout(timer);
-  }, [document, pageId, ready]);
-  const query = new URLSearchParams({ page: pageId, live: "1" });
-  if (demo) query.set("scenario", demo.scenarioId);
+  }, [document, pageId, ready, privateDraft]);
+  const query = new URLSearchParams({ live: "1" });
+  if (pageId) query.set("page", pageId);
+  if (demo && !privateDraft) query.set("scenario", demo.scenarioId);
   const scale = Math.min(1, available / width);
   return (
     <section
-      aria-label="Live page preview"
-      className="min-w-0 space-y-3 lg:sticky lg:top-4 lg:self-start"
+      aria-label={privateDraft ? "Private draft preview" : "Live page preview"}
+      className={`min-w-0 space-y-3 ${privateDraft ? "" : "lg:sticky lg:top-4 lg:self-start"}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-medium">Live preview</span>
-        <div className="flex gap-1">
+        <span className="text-sm font-medium">
+          {privateDraft ? "Page preview" : "Live preview"}
+        </span>
+        <div className="flex gap-1" role="group" aria-label="Preview width">
           {[
             [390, "Phone"],
             [768, "Tablet"],
@@ -99,7 +111,7 @@ export function WebsiteLivePreview({
       >
         <iframe
           ref={frame}
-          title="Live website preview"
+          title={privateDraft ? "Private draft page preview" : "Live website preview"}
           src={`/site-preview?${query}`}
           onLoad={() => setReady((value) => value + 1)}
           className="block shrink-0 origin-top border-0 bg-white"
@@ -111,8 +123,8 @@ export function WebsiteLivePreview({
         />
       </div>
       <p className="text-xs text-[var(--admin-muted)]">
-        {width}px viewport · Unsaved changes are private. Links and forms are inactive in this
-        preview.
+        {width}px viewport · {privateDraft ? "Saved working copy." : "Unsaved changes are private."}{" "}
+        Links and forms are inactive in this preview.
       </p>
     </section>
   );

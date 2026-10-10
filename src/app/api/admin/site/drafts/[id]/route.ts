@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { siteDrafts } from "@/lib/site-studio/database-store";
 import { discardSiteDraft, DraftNotFoundError, SlugInUseError } from "@/lib/site-studio/drafts";
-import { StaleDraftError, reviseSiteDraft, sitePatchSchema } from "@/lib/site-studio/revision";
+import {
+  StaleDraftError,
+  reviseSiteDraft,
+  reviseSiteDraftSchema,
+} from "@/lib/site-studio/revision";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdminForModule("site-studio");
@@ -13,13 +16,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!draft) return NextResponse.json({ error: "Draft not found" }, { status: 404 });
   return NextResponse.json({ draft });
 }
-
-const patchSchema = z
-  .object({
-    patches: z.array(sitePatchSchema).min(1).max(50),
-    expectedChecksum: z.string().regex(/^[a-f0-9]{64}$/),
-  })
-  .strict();
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdminForModule("site-studio");
@@ -32,7 +28,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     console.warn("[site-studio] Draft revision received a non-JSON body");
     return NextResponse.json({ error: "Request body must be JSON" }, { status: 400 });
   }
-  const parsed = patchSchema.safeParse(body);
+  const parsed = reviseSiteDraftSchema.safeParse(body);
   if (!parsed.success)
     return NextResponse.json(
       { error: "A revision needs 1 to 50 valid patch operations" },

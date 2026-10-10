@@ -185,6 +185,26 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   border-color: var(--admin-border);
   box-shadow: var(--admin-shadow);
 }
+.admin-toast-dismiss {
+  display: grid;
+  flex-shrink: 0;
+  min-width: max(44px, var(--admin-control-height, 44px));
+  min-height: max(44px, var(--admin-control-height, 44px));
+  place-items: center;
+  margin: -0.75rem -0.25rem -0.75rem 0;
+  border-radius: var(--admin-control-radius);
+  color: var(--admin-muted);
+  cursor: pointer;
+  transition: background-color var(--admin-motion-fast) var(--admin-motion-ease);
+}
+.admin-toast-dismiss:hover {
+  background: var(--admin-surface-subtle);
+  color: var(--admin-ink);
+}
+.admin-toast-dismiss:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+}
 @media (max-width: 1023px) {
   .admin-toast-region {
     bottom: max(5.25rem, calc(env(safe-area-inset-bottom) + 4.75rem));
@@ -708,16 +728,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 .admin-page-introduction-compact .admin-page-title {
   font-size: 1.75rem;
 }
-@media (max-width: 639px) {
-  .admin-page-introduction-compact .admin-page-utilities {
-    right: 90px;
-  }
-  .admin-page-introduction-compact .admin-help-trigger {
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
-}
 /* A small anchored popover, not a full-width band: the trigger is sized
    like any other secondary header action. The panel portals to
    document.body (see PageHeader.tsx) so it floats above page content
@@ -761,6 +771,14 @@ body.admin-mobile-nav-open .admin-mobile-dock {
      getBoundingClientRect (see PageHeader.tsx), so it can never be
      trapped inside an ancestor's stacking context. */
   position: fixed;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.96);
+  pointer-events: none;
+  transition:
+    opacity var(--admin-motion-fast) var(--admin-motion-ease),
+    transform var(--admin-motion-fast) var(--admin-motion-ease),
+    visibility 0s linear var(--admin-motion-fast);
   z-index: 80;
   transform-origin: top right;
   --admin-help-top: 1rem;
@@ -779,10 +797,42 @@ body.admin-mobile-nav-open .admin-mobile-dock {
     0 20px 40px -14px color-mix(in srgb, var(--admin-ink) 34%, transparent);
   color: var(--admin-muted);
 }
+.admin-help-panel[data-open="true"] {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+.admin-help-panel:focus {
+  outline: none;
+}
+.admin-help-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.admin-help-close {
+  display: grid;
+  min-width: max(40px, var(--admin-control-height));
+  min-height: max(40px, var(--admin-control-height));
+  place-items: center;
+  border-radius: var(--admin-control-radius);
+  color: var(--admin-muted);
+  cursor: pointer;
+  transition: background-color var(--admin-motion-fast) var(--admin-motion-ease);
+}
+.admin-help-close:hover {
+  background: var(--admin-surface-subtle);
+  color: var(--admin-ink);
+}
+.admin-help-close:focus-visible,
+.admin-help-guide:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+}
 .admin-help-title {
-  padding-bottom: 0.7rem;
-  margin-bottom: 0.15rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--admin-ink) 8%, transparent);
   color: var(--admin-ink);
   font-size: 0.88rem;
   font-weight: 700;
@@ -797,7 +847,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
-  font-size: 0.82rem;
+  font-size: var(--admin-text-body);
   line-height: 1.55;
 }
 .admin-help-step {
@@ -813,21 +863,37 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   font-size: 0.66rem;
   font-weight: 750;
 }
-.admin-help-guide {
-  display: inline-flex;
-  min-height: 36px;
-  align-items: center;
-  gap: 0.35rem;
+.admin-help-links {
+  display: grid;
+  gap: 0.25rem;
   margin-top: 1rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid color-mix(in srgb, var(--admin-ink) 8%, transparent);
+  padding-top: 0.75rem;
+  box-shadow: inset 0 1px color-mix(in srgb, var(--admin-ink) 8%, transparent);
+}
+.admin-help-guide {
+  display: flex;
+  min-height: max(40px, var(--admin-control-height));
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: var(--admin-control-radius);
   color: var(--admin-accent);
-  font-size: 0.8rem;
+  font-size: var(--admin-text-body);
   font-weight: 650;
-  transition: gap var(--admin-motion-fast) var(--admin-motion-ease);
+  transition: background-color var(--admin-motion-fast) var(--admin-motion-ease);
 }
 .admin-help-guide:hover {
-  gap: 0.5rem;
+  background: var(--admin-surface-subtle);
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-help-panel,
+  .admin-help-chevron {
+    transition: none;
+  }
+  .admin-help-panel {
+    transform: none;
+  }
 }
 .admin-error-details summary {
   cursor: pointer;
@@ -932,7 +998,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -943,7 +1009,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    /* Release the entrance transform so scrolled, blurred surfaces paint normally. */
+    transform: none;
   }
 }
 
@@ -961,7 +1028,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   /* Semantic markup receives the same entrance before hydration. Registration
      adds the bounded order and covers otherwise unmarked content groups. */
   .admin-route-stage {
-    --admin-route-entry: admin-route-section-in 280ms var(--admin-motion-ease) both;
+    /* Keep the concealed stagger, then release the completed paint layer. */
+    --admin-route-entry: admin-route-section-in 280ms var(--admin-motion-ease) backwards;
   }
 
   .admin-route-stage
@@ -1099,7 +1167,7 @@ body.admin-dialog-open [data-admin-sidebar] {
 body.admin-dialog-open [data-contact-import-actions] {
   visibility: hidden;
 }
-body.admin-dialog-open iframe {
+body.admin-dialog-open .admin-route-frame iframe {
   visibility: hidden !important;
 }
 

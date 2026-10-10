@@ -13,7 +13,11 @@ import { AdminRecordRow } from "@/components/admin/AdminRecordRow";
 import { ActionReviewDialog, type ActionRow } from "@/components/admin/ActionReviewDialog";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
-import { relativeTime } from "@/lib/admin/work-presentation";
+import { useQueryClient } from "@tanstack/react-query";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { StatusBadge } from "@/components/admin/StatusBadge";
+import { relativeTime, taskSourceLink } from "@/lib/admin/work-presentation";
 import { cn } from "@/lib/utils";
 import { WorkflowCalendar } from "@/components/admin/WorkflowCalendar";
 import { WorkflowLayoutSwitcher } from "@/components/admin/WorkflowLayoutSwitcher";
@@ -86,6 +90,7 @@ const taskViewDescriptor: WorkflowViewDescriptor<TaskRow> = {
 };
 
 export default function WorkPage() {
+  const queryClient = useQueryClient();
   const pathname = usePathname();
   const scopeKey = pathname.replace(/\/work$/, "");
   const params = useSearchParams();
@@ -112,7 +117,11 @@ export default function WorkPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [task, setTask] = useState<TaskRow | null>(null);
+  const [taskDraft, setTask] = useState<TaskRow | null>(null);
+  const [dismissedTaskId, setDismissedTaskId] = useState<string | null>(null);
+  const taskOperation = useRef<string | null>(null);
+  const [taskError, setTaskError] = useState<{ id: string; message: string } | null>(null);
+  const [description, setDescription] = useState("");
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
   const [priority, setPriority] = useState("medium");
@@ -271,26 +280,54 @@ export default function WorkPage() {
   const selectedTaskQuery = useAdminQuery<{ tasks: TaskRow[] }>(
     ["work", "task", requestedTask],
     `/api/admin/tasks?id=${encodeURIComponent(requestedTask ?? "")}`,
-    { enabled: Boolean(requestedTask) },
+    { enabled: Boolean(requestedTask), placeholderData: undefined },
   );
+  const missingTask = selectedTaskQuery.isSuccess && selectedTaskQuery.data.tasks.length === 0;
+  const task = !missingTask && taskDraft?.id === requestedTask ? taskDraft : null;
+  const activeTaskId = useRef<string | null>(null);
+  activeTaskId.current = requestedTask;
   useEffect(() => {
+    activeTaskId.current = requestedTask;
+    return () => {
+      activeTaskId.current = null;
+    };
+  }, [requestedTask]);
+  const taskLink = task ? taskSourceLink(task) : null;
+  const mismatchedTask =
+    selectedTaskQuery.data?.tasks[0] && selectedTaskQuery.data.tasks[0].id !== requestedTask;
+  useEffect(() => {
+    setDismissedTaskId(null);
     if (!requestedTask) {
       loadedTaskRef.current = null;
-      return;
+      setTask(null);
     }
-    if (loadedTaskRef.current === requestedTask) return;
+  }, [requestedTask]);
+  useEffect(() => {
+    if (!requestedTask || dismissedTaskId === requestedTask) return;
     const row = selectedTaskQuery.data?.tasks[0];
-    if (row) {
-      loadedTaskRef.current = requestedTask;
-      setTask(row);
-      setTitle(row.title);
-      setDue(row.due_date ?? "");
-      setPriority(row.priority === "normal" ? "medium" : row.priority);
-    }
-  }, [requestedTask, selectedTaskQuery.data]);
+    if (row?.id !== requestedTask) return;
+    setTask(row);
+    if (loadedTaskRef.current === requestedTask) return;
+    loadedTaskRef.current = requestedTask;
+    setTitle(row.title);
+    setDescription(row.description ?? "");
+    setDue(row.due_date ?? "");
+    setPriority(row.priority === "normal" ? "medium" : row.priority);
+    setSnoozeDate("");
+    setTaskError(null);
+  }, [requestedTask, selectedTaskQuery.data, dismissedTaskId]);
   const closeTask = () => {
+    setDismissedTaskId(requestedTask);
     setTask(null);
-    if (requestedTask) router.replace("/admin/work", "preserve");
+    loadedTaskRef.current = null;
+    if (requestedTask) {
+      const next = new URLSearchParams(params.toString());
+      next.delete("task");
+      router.replaceSearch(next);
+    }
+  };
+  const dismissTask = () => {
+    if (!taskOperation.current) closeTask();
   };
   const actionId = params.get("action");
   useEffect(() => {
@@ -331,51 +368,78 @@ export default function WorkPage() {
     }
   };
   const edit = (row: TaskRow) => {
+    loadedTaskRef.current = row.id;
+    setDismissedTaskId(null);
     setTask(row);
     setTitle(row.title);
+    setDescription(row.description ?? "");
     setDue(row.due_date ?? "");
     setPriority(row.priority === "normal" ? "medium" : row.priority);
     setSnoozeDate("");
+    setTaskError(null);
     setError("");
+    const next = new URLSearchParams(params.toString());
+    next.set("task", row.id);
+    router.replaceSearch(next);
   };
-  const mutateTask = async (row: TaskRow, complete = false) => {
-    if (busy) return;
+  const mutateTask = async (row: TaskRow, action: "edit" | "complete" | "snooze" = "edit") => {
+    if (busy || taskOperation.current || (action === "snooze" && !snoozeDate)) return;
+    taskOperation.current = row.id;
     setBusy(true);
+    setTaskError(null);
     setError("");
     try {
-      await fetchJson(complete ? "/api/admin/revenue-os/tasks" : "/api/admin/tasks", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          complete
-            ? { id: row.id, action: "complete" }
-            : { id: row.id, title, priority, due_date: due || null },
-        ),
-      });
-      closeTask();
+      const saved = await fetchJson<{ task: TaskRow }>(
+        action === "complete" ? "/api/admin/revenue-os/tasks" : "/api/admin/tasks",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            action === "complete"
+              ? { id: row.id, action: "complete" }
+              : action === "snooze"
+                ? { id: row.id, status: "snoozed", snoozed_until: snoozeDate }
+                : {
+                    id: row.id,
+                    title,
+                    description: description || null,
+                    priority,
+                    due_date: due || null,
+                  },
+          ),
+        },
+      );
+      if (saved.task?.id !== row.id)
+        throw new Error(
+          "The task change could not be confirmed. Check the saved task before retrying.",
+        );
+      const key = ["work", "task", row.id];
+      await queryClient.cancelQueries({ queryKey: key, exact: true });
+      queryClient.setQueryData(key, { tasks: [saved.task] });
+      if (
+        activeTaskId.current === row.id &&
+        window.location.pathname === pathname &&
+        new URLSearchParams(window.location.search).get("task") === row.id
+      ) {
+        closeTask();
+        toast.success(
+          action === "snooze"
+            ? "Task snoozed"
+            : action === "complete"
+              ? "Task completed"
+              : "Task updated",
+        );
+      }
       await changed();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not save the task.");
-    } finally {
-      setBusy(false);
-    }
-  };
-  const snoozeTask = async (row: TaskRow) => {
-    if (busy || !snoozeDate) return;
-    setBusy(true);
-    setError("");
-    try {
-      await fetchJson("/api/admin/tasks", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: row.id, status: "snoozed", snoozed_until: snoozeDate }),
-      });
-      closeTask();
-      await changed();
-      toast.success("Task snoozed");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not snooze the task.");
+      const message =
+        cause instanceof Error
+          ? cause.message
+          : "Could not save the task. Your edits are still here.";
+      if (action === "complete") setError(message);
+      else setTaskError({ id: row.id, message });
     } finally {
+      taskOperation.current = null;
       setBusy(false);
     }
   };
@@ -424,7 +488,6 @@ export default function WorkPage() {
               setSnoozeDate(
                 `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`,
               );
-              window.setTimeout(() => document.getElementById("work-snooze-date")?.focus(), 40);
             }
           }
         } else {
@@ -900,7 +963,7 @@ export default function WorkPage() {
                             <button
                               type="button"
                               disabled={busy}
-                              onClick={() => void mutateTask(row, true)}
+                              onClick={() => void mutateTask(row, "complete")}
                               className="admin-button admin-button-secondary min-h-10 w-full"
                             >
                               Complete task
@@ -949,7 +1012,7 @@ export default function WorkPage() {
                             <button
                               type="button"
                               disabled={busy}
-                              onClick={() => void mutateTask(row, true)}
+                              onClick={() => void mutateTask(row, "complete")}
                               aria-label={`Complete ${row.title}`}
                               className="admin-work-complete inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-[var(--admin-ink)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
                             >
@@ -1105,8 +1168,8 @@ export default function WorkPage() {
         onReject={() => void decide("reject")}
       />
       <AdminDialog
-        open={Boolean(task)}
-        onClose={closeTask}
+        open={Boolean(requestedTask) && dismissedTaskId !== requestedTask}
+        onClose={dismissTask}
         title="Task details"
         align="right"
         maxWidth="sm"
@@ -1124,91 +1187,151 @@ export default function WorkPage() {
             <button
               type="button"
               aria-label="Close task"
-              onClick={closeTask}
+              onClick={dismissTask}
+              disabled={busy}
               className="admin-icon-button"
             >
               <X className="size-4" />
             </button>
           </div>
-          <div className="flex-1 space-y-4 overflow-y-auto p-5">
-            {error && (
-              <p role="alert" className="text-sm text-[var(--admin-danger)]">
-                {error}
-              </p>
-            )}
-            <label className="grid gap-1 text-sm text-[var(--admin-ink)]">
-              Title
-              <input
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className={control}
-              />
-            </label>
-            <label className="grid gap-1 text-sm text-[var(--admin-ink)]">
-              Due date
-              <input
-                type="date"
-                value={due}
-                onChange={(e) => setDue(e.target.value)}
-                className={control}
-              />
-            </label>
-            <label className="grid gap-1 text-sm text-[var(--admin-ink)]">
-              Priority
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className={control}
-              >
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </label>
-            {task?.description && (
-              <p className="text-sm text-[var(--admin-muted)]">{task.description}</p>
-            )}
-            {task?.status !== "completed" && (
-              <div className="rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] p-3">
-                <label className="grid gap-1 text-sm text-[var(--admin-ink)]">
-                  Snooze until
-                  <input
-                    id="work-snooze-date"
-                    type="date"
-                    className={control}
-                    value={snoozeDate}
-                    onChange={(event) => setSnoozeDate(event.target.value)}
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="admin-button admin-button--secondary mt-3"
-                  disabled={busy || !snoozeDate}
-                  onClick={() => {
-                    if (task) void snoozeTask(task);
-                  }}
-                >
-                  Snooze task
-                </button>
-              </div>
-            )}
-            {task?.opportunity_id && (
-              <Link
-                href={`/admin/pipeline/${task.opportunity_id}`}
-                className="inline-flex min-h-11 items-center text-sm underline"
-              >
-                Open related opportunity
-              </Link>
-            )}
-            <p className="text-xs text-[var(--admin-muted)]">
-              Status: {task?.status}. Changes save to the same task shown in Today.
-            </p>
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
+            <AdminReadBody
+              loading={selectedTaskQuery.isPending}
+              hasData={Boolean(task) || missingTask}
+              error={
+                mismatchedTask
+                  ? "The returned task does not match this link. Try again."
+                  : selectedTaskQuery.error?.message
+              }
+              refreshing={selectedTaskQuery.isFetching}
+              onRetry={() => void selectedTaskQuery.refetch()}
+              loadingFallback={<LoadingSkeleton variant="table" rows={2} />}
+              label="Loading task details"
+            >
+              {task ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={task.status} />
+                    {task.source && (
+                      <span className="text-xs capitalize text-[var(--admin-muted)]">
+                        {task.source.replaceAll("_", " ")}
+                      </span>
+                    )}
+                  </div>
+                  {task.related_name && (
+                    <p className="text-sm text-[var(--admin-muted)]">{task.related_name}</p>
+                  )}
+                  {taskLink && (
+                    <Link
+                      href={taskLink.href}
+                      className="inline-flex min-h-11 items-center text-sm text-[var(--admin-ink)] underline underline-offset-4"
+                    >
+                      {taskLink.label}
+                    </Link>
+                  )}
+                  {taskError?.id === task.id && (
+                    <p role="alert" className="text-sm text-[var(--admin-danger)]">
+                      {taskError.message}
+                    </p>
+                  )}
+                  <fieldset
+                    disabled={busy || task.status === "completed"}
+                    aria-busy={busy}
+                    className="min-w-0 space-y-4"
+                  >
+                    <label className="grid gap-1 text-sm text-[var(--admin-ink)]">
+                      Title
+                      <input
+                        required
+                        value={title}
+                        onChange={(event) => setTitle(event.target.value)}
+                        className={control}
+                        autoFocus={!snoozeDate}
+                        data-admin-autofocus={!snoozeDate || undefined}
+                      />
+                    </label>
+                    <label className="grid gap-1 text-sm text-[var(--admin-ink)]">
+                      Instructions
+                      <textarea
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                        className={`${control} min-h-28 resize-y py-3`}
+                        placeholder="What needs to happen, and what counts as done?"
+                      />
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="grid min-w-0 gap-1 text-sm text-[var(--admin-ink)]">
+                        Due date
+                        <input
+                          type="date"
+                          value={due}
+                          onChange={(event) => setDue(event.target.value)}
+                          className={control}
+                        />
+                      </label>
+                      <label className="grid min-w-0 gap-1 text-sm text-[var(--admin-ink)]">
+                        Priority
+                        <select
+                          value={priority}
+                          onChange={(event) => setPriority(event.target.value)}
+                          className={control}
+                        >
+                          <option value="high">High</option>
+                          <option value="medium">Medium</option>
+                          <option value="low">Low</option>
+                        </select>
+                      </label>
+                    </div>
+                    {task.status !== "completed" && (
+                      <div className="rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] p-3">
+                        <label className="grid gap-1 text-sm text-[var(--admin-ink)]">
+                          Snooze until
+                          <input
+                            id="work-snooze-date"
+                            type="date"
+                            className={control}
+                            value={snoozeDate}
+                            onChange={(event) => setSnoozeDate(event.target.value)}
+                            autoFocus={Boolean(snoozeDate)}
+                            data-admin-autofocus={Boolean(snoozeDate) || undefined}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className="admin-button admin-button--secondary mt-3"
+                          disabled={busy || !snoozeDate}
+                          onClick={() => void mutateTask(task, "snooze")}
+                        >
+                          Snooze task
+                        </button>
+                      </div>
+                    )}
+                  </fieldset>
+                  <p className="text-xs text-[var(--admin-muted)]">
+                    {task.status === "completed"
+                      ? "Completed tasks are shown for reference."
+                      : "Changes save to the same task shown in Today."}
+                  </p>
+                </>
+              ) : (
+                missingTask && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
+                      Task not found
+                    </h3>
+                    <p className="mt-1 text-sm text-[var(--admin-muted)]">
+                      This task is no longer available in this workspace. Close this panel and
+                      choose another task.
+                    </p>
+                  </div>
+                )
+              )}
+            </AdminReadBody>
           </div>
           <div className="border-t border-[var(--admin-border)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <button
               type="submit"
-              disabled={busy || task?.status === "completed"}
+              disabled={busy || !task || task.status === "completed"}
               className="admin-button admin-button--primary w-full"
             >
               {busy && <Loader2 className="size-4 animate-spin" />}Save changes

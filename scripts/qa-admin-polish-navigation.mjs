@@ -1,4 +1,6 @@
+/* eslint no-undef: "error" */
 import assert from "node:assert/strict";
+import { verifyAIReading } from "./qa-admin-ai-reading.mjs";
 import { chromium } from "playwright";
 import { readFile, writeFile } from "node:fs/promises";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3045",
@@ -15,6 +17,7 @@ async function navigate(page, suffix) {
   await link.click();
 }
 try {
+  results.push(...(await verifyAIReading({ browser, base, output })));
   for (const reducedMotion of ["no-preference", "reduce"]) {
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
@@ -105,6 +108,171 @@ try {
     await context.close();
   }
   // The live routes and fictional demo share these same page/read-region owners.
+  const drawerSamples = [];
+  for (const reducedMotion of ["no-preference", "reduce"]) {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      reducedMotion,
+    });
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
+    await page.goto(`${base}/demo/command-center/superdebate/today`, { timeout: 120000 });
+    await page.locator("[data-today-workspace]").waitFor();
+    const more = page.getByRole("button", { name: "Open More" });
+    const drawer = page.getByRole("dialog", { name: "Admin navigation", exact: true });
+    const baseline = await page.evaluate(() => ({
+      body: document.body.style.overflow,
+      main: document.querySelector(".admin-main").style.overflowY,
+    }));
+    async function openDrawer() {
+      await more.click();
+      await page.waitForFunction(() => {
+        const node = document.querySelector(".admin-mobile-sheet");
+        return (
+          node &&
+          getComputedStyle(node).opacity === "1" &&
+          getComputedStyle(node).transform === "none" &&
+          node.contains(document.activeElement)
+        );
+      });
+    }
+    await openDrawer();
+    for (let step = 0; step < 16; step++) {
+      await page.keyboard.press("Shift+Tab");
+      assert.ok(
+        await drawer.evaluate((node) => node.contains(document.activeElement)),
+        "More keeps keyboard focus inside",
+      );
+    }
+    await page.screenshot({ path: `${output}/mobile-more-${reducedMotion}.png` });
+    for (const action of ["Close navigation", "Search", "Ask AI"]) {
+      if (action !== "Close navigation") await openDrawer();
+      const closing = await drawer
+        .getByRole("button", { name: action, exact: true })
+        .evaluate(async (button) => {
+          const node = button.closest(".admin-mobile-sheet");
+          const main = document.querySelector(".admin-main");
+          const dock = document.querySelector(".admin-mobile-dock");
+          const frames = [];
+          button.click();
+          const deadline = performance.now() + 5000;
+          while (node.isConnected && performance.now() < deadline) {
+            await new Promise(requestAnimationFrame);
+            if (node.isConnected)
+              frames.push({
+                opacity: Number(getComputedStyle(node).opacity),
+                transform: getComputedStyle(node).transform,
+                held: document.body.classList.contains("admin-mobile-nav-open"),
+                body: document.body.style.overflow,
+                main: main.style.overflowY,
+                inert: main.inert && dock.inert,
+                focusInside: node.contains(document.activeElement),
+                otherDialog: Boolean(
+                  document.querySelector(
+                    '[role="dialog"][aria-label="Admin command palette"], [role="dialog"][aria-label="Ask AI"]',
+                  ),
+                ),
+              });
+          }
+          return { frames, removed: !node.isConnected };
+        });
+      drawerSamples.push({ reducedMotion, action, ...closing });
+      await writeFile(
+        `${output}/mobile-navigation-exit-frames.json`,
+        JSON.stringify(drawerSamples, null, 2),
+      );
+      assert.ok(closing.removed, "More finishes closing");
+      assert.ok(
+        closing.frames.every(
+          (frame) =>
+            frame.held &&
+            frame.body === "hidden" &&
+            frame.main === "hidden" &&
+            frame.inert &&
+            frame.focusInside &&
+            !frame.otherDialog,
+        ),
+        `More retains exclusive workspace ownership through every exit frame: ${JSON.stringify({ reducedMotion, action, ...closing })}`,
+      );
+      if (reducedMotion === "no-preference")
+        assert.ok(
+          closing.frames.some((frame) => frame.opacity > 0 && frame.opacity < 1),
+          "Normal More close retains a soft exit",
+        );
+      else
+        assert.ok(
+          closing.frames.every(
+            (frame) => frame.transform === "none" && (frame.opacity === 0 || frame.opacity === 1),
+          ),
+          "Reduced More close has no intermediate animation",
+        );
+      await page.waitForFunction(
+        () =>
+          !document.body.classList.contains("admin-mobile-nav-open") &&
+          !document.querySelector(".admin-main").inert,
+      );
+      if (action === "Close navigation") {
+        assert.deepEqual(
+          await page.evaluate(() => ({
+            body: document.body.style.overflow,
+            main: document.querySelector(".admin-main").style.overflowY,
+          })),
+          baseline,
+        );
+        assert.ok(await more.evaluate((node) => node === document.activeElement));
+      } else {
+        const dialog = page.getByRole("dialog", {
+          name: action === "Search" ? "Admin command palette" : "Ask AI",
+          exact: true,
+        });
+        await page.waitForFunction(
+          (name) => document.activeElement?.closest(`[role="dialog"][aria-label="${name}"]`),
+          action === "Search" ? "Admin command palette" : "Ask AI",
+        );
+        await page.screenshot({
+          path: `${output}/mobile-more-${action === "Search" ? "search" : "ai"}-${reducedMotion}.png`,
+        });
+        await dialog
+          .getByRole("button", {
+            name: action === "Search" ? "Close search" : "Close AI panel",
+            exact: true,
+          })
+          .click();
+        await dialog.waitFor({ state: "detached" });
+        await page.waitForFunction(
+          () => document.activeElement?.getAttribute("aria-label") === "Open More",
+        );
+      }
+    }
+    await openDrawer();
+    await page.keyboard.press("Control+k");
+    const palette = page.getByRole("dialog", { name: "Admin command palette", exact: true });
+    await palette.waitFor();
+    assert.equal(await drawer.count(), 0, "Search shortcut waits for More removal");
+    await palette.getByRole("button", { name: "Close search" }).click();
+    await palette.waitFor({ state: "detached" });
+    await openDrawer();
+    await drawer.locator('a[href$="/work"]').click();
+    await page.waitForURL(/\/work$/);
+    await drawer.waitFor({ state: "detached" });
+    await page.waitForFunction(
+      () => document.querySelector(".admin-main h1") === document.activeElement,
+    );
+    await page.screenshot({ path: `${output}/mobile-more-route-${reducedMotion}.png` });
+    results.push(
+      `${reducedMotion}: More retains scroll, inertness and focus through close; Search, Ask AI and keyboard handoffs wait for removal; navigation focuses its destination`,
+    );
+    assert.deepEqual(errors, [], "Mobile navigation browser errors");
+    await context.close();
+  }
+  await writeFile(
+    `${output}/mobile-navigation-exit-frames.json`,
+    JSON.stringify(drawerSamples, null, 2),
+  );
   // Delay only their fictional reads; no authenticated service is contacted.
   const themes = JSON.parse(
     await readFile(new URL("../src/lib/admin/themes.json", import.meta.url), "utf8"),

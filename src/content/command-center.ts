@@ -156,7 +156,7 @@ export const capabilities: Capability[] = [
     title: "Tasks and commitments",
     promise: "Give work a title, date and source context so the team can follow it through.",
     detail:
-      "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. Ask AI can prepare task reopening and description edits for review, with stale-change checks before execution. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
+      "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. The inspector edits instructions, keeps its task link through reload, opens related records and offers read recovery while preserving failed edit drafts. Ask AI can prepare task reopening and description edits for review, with stale-change checks before execution. Onboarding and meeting workflows can create assigned checklists linked to their source records. A client follow-up appears beside its activity and refreshes the task views in Work and Today.",
   },
   {
     id: "notes",
@@ -164,7 +164,7 @@ export const capabilities: Capability[] = [
     title: "Customer notes",
     promise: "Keep useful customer details attached to a shared record.",
     detail:
-      "Save notes where the team can find them alongside the relationship history. Inspect the original source when a note affects a decision or commitment.",
+      "Save notes where the team can find them alongside the relationship history. Inspect the original source when a note affects a decision or commitment. Client records load independently of their history, retain your edits during refreshes, and offer a separate retry for each failed section.",
   },
   {
     id: "custom-fields",
@@ -218,7 +218,7 @@ export const capabilities: Capability[] = [
     promise:
       "Draft and edit pages with AI help, preview them at phone and desktop widths, and publish only a revision you have reviewed.",
     detail:
-      "New forks start with an editable, neutral product homepage and a fictional demo that needs no credentials. Guided setup connects your own workspace; save a contact and task before adding optional providers. Create your own pages, connect published forms to reviewed intake, and choose an AI model by provider and price or edit manually. Drafts stay private until published, with revision history and optional owner-only ChatGPT access through the same editor services.",
+      "New forks include an editable, neutral homepage and a fictional demo. Connect published forms to workspace intake, choose models by provider and price, and cancel pending suggestions without losing edits. Save, reload and import run one at a time, failed reloads retain local edits, and unverified confirmations keep the original retry. Revision history supports rollback; installation owners can connect ChatGPT through the same editor services. Private drafts preview at real phone, tablet and desktop widths, with public page styling and inactive links and forms. Private workspace drafts retain typed titles through failed refreshes and require a fresh read after uncertain saves or discards. Try private creation, renaming and discard in the fictional demo, with separate drafts per business and clearly labeled AI examples.",
   },
   {
     id: "social-marketing",
@@ -404,9 +404,9 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "The web workspace",
     promise:
-      "Today leads with sourced decisions and follow-up; the same tasks and approvals stay editable in Work.",
+      "Today connects sourced business findings to the next action; the same tasks and approvals stay editable in Work.",
     detail:
-      "Eight primary destinations group the workspace around Today, Work, Records, Conversations, Knowledge, Coworkers, Apps and Settings. Personal and shared Today arrangements keep view tools under More, wide desktop layouts keep independent columns, and Search and Ask AI stay available while you scroll. The mobile dock keeps the three daily destinations within reach.",
+      "Nine business groups explain where to review the operation, manage customers, deliver client work, follow billing, communicate, use AI, connect Apps and adjust settings. Personal and shared Today arrangements keep view tools under More, wide desktop layouts keep independent columns, and Search and Ask AI stay available while you scroll. The mobile dock keeps the three daily destinations within reach and waits for notifications to finish closing before returning. Dismissing notifications returns focus to the bell; following a notification keeps focus with the destination. Notification panels skip animation under reduced motion. More keeps the page paused through closing, then opens Search or Ask AI with keyboard focus. Following a menu link focuses the destination heading.",
   },
   {
     id: "chat",
@@ -466,7 +466,7 @@ export const capabilities: Capability[] = [
     promise:
       "Choose one of nine appearances or preview a custom palette, typography, and corner style, then save it for the workspace.",
     detail:
-      "Text contrast is checked before a theme saves, density is adjustable independently, and a theme follows the same permissions and revision checks as other branding. Demo choices stay separate from the live workspace.",
+      "Text contrast is checked before a theme saves, density is adjustable independently, and a theme follows the same permissions and revision checks as other branding. Delete, discard and archive confirmations use the theme's danger appearance. Nested confirmations dim the editor beneath them and reveal it again when closed. Phone navigation returns after the last dialog finishes closing. Dialogs open and close immediately under reduced motion. Demo choices stay separate from the live workspace.",
   },
 
   // ── Govern: control and the record ────────────────────────────────────

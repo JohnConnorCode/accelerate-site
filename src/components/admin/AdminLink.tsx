@@ -10,6 +10,7 @@ import { useCallback, useMemo, type AnchorHTMLAttributes } from "react";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import {
   useNavigationRuntime,
+  useAppNavigation,
   type NavigationScroll,
 } from "@/components/navigation/NavigationRuntime";
 
@@ -32,6 +33,7 @@ export default function AdminLink({ href, ...props }: AdminLinkProps) {
 
 export function useAdminNavigation() {
   const router = useRouter();
+  const { replaceSearch } = useAppNavigation();
   const pathname = usePathname();
   const demo = useAdminDemo();
   const { beginNavigation } = useNavigationRuntime();
@@ -59,7 +61,8 @@ export function useAdminNavigation() {
       replace: (href: string, scroll: NavigationScroll = "top") =>
         navigate("replace", href, scroll),
       resolve,
+      replaceSearch,
     }),
-    [navigate, resolve],
+    [navigate, resolve, replaceSearch],
   );
 }

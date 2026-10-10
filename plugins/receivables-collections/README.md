@@ -303,3 +303,5 @@ against controlled transports; the shared demo tests cover all six businesses.
 These are local proofs, not a production credential or deployment receipt.
 Invoice tracking/refresh tools, invoice-page generation/revocation tools and
 legacy proposal authoring parity remain on `admin-ai-parity-commerce`.
+
+The admin workspace groups this workflow under **Billing & payments**. The [connected walkthroughs](/docs/start/daily-path) explain its starting situation, review controls, saved result and recovery.

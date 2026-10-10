@@ -13,6 +13,22 @@ export const websiteCommandSchema = z.discriminatedUnion("operation", [
   z.object({ ...envelope, operation: z.literal("unpublish") }).strict(),
 ]);
 export type WebsiteCommand = z.infer<typeof websiteCommandSchema>;
+/** Validate saved editor state before replacing local work or rendering its preview. */
+export const websiteStateSchema = z
+  .object({
+    version: z.number().int().nonnegative().max(2_147_483_647),
+    draft: z
+      .object({
+        id: z.uuid(),
+        checksum: z.string().max(128),
+        createdAt: z.iso.datetime({ offset: true }),
+        document: websiteDocumentSchema,
+      })
+      .strict()
+      .nullable(),
+    publishedRevisionId: z.uuid().nullable(),
+  })
+  .strict();
 export const websiteReceiptSchema = z
   .object({
     requestKey: z.uuid(),

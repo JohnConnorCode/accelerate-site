@@ -86,3 +86,5 @@ Keep provider effects in reviewed native adapters. Regenerate with
 `npm run test:plugin-workflow-contract`. An upgrade to guest or host contracts
 invalidates pending previews, which must be prepared again. Follow the
 [documentation contract](../../docs/contracts/PLUGIN-DOCUMENTATION.md).
+
+The admin workspace groups this workflow under **Billing & payments**. The [connected walkthroughs](/docs/start/daily-path) explain its starting situation, review controls, saved result and recovery.

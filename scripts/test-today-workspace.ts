@@ -11,13 +11,21 @@ import {
   attentionKey,
 } from "../src/lib/admin/today-workspace";
 import { projectOperatorAttention } from "../src/lib/revenue-os/operator-attention";
-import { todayEvidence, todayFacts, validateTodayBrief } from "../src/lib/admin/today-data";
+import {
+  todayBusinessReview,
+  type TodaySnapshot,
+  todayEvidence,
+  todayFacts,
+  validateTodayBrief,
+} from "../src/lib/admin/today-data";
 import { toOpenRouterTools } from "../src/lib/revenue-os/ai-tools";
 const now = new Date("2026-09-09T12:00:00Z");
 const source = projectOperatorAttention([
   {
     id: "task:one",
-    title: "Prepare proposal",
+    title: "Confirm customer kickoff",
+    entityType: "client",
+    entityId: "client-one",
     summary: "Review the request",
     kind: "task",
     urgency: "normal",
@@ -126,3 +134,104 @@ for (const name of [
 console.log(
   "Today contracts: validation, migration defaults, filters, pins, changed-evidence resurfacing, brief provenance and AI discovery passed.",
 );
+
+const region = <T>(data: T) => ({ state: "ready" as const, data, observedAt: now.toISOString() });
+const reviewSnapshot: TodaySnapshot = {
+  generatedAt: now.toISOString(),
+  attention: region(source),
+  facts: region(facts),
+  handling: region([]),
+  activity: region([]),
+  apps: region([]),
+  metrics: region(null),
+  brief: region(null),
+};
+const review = todayBusinessReview(reviewSnapshot);
+assert.equal(review.find((domain) => domain.id === "sales")?.items[0]?.sourceId, "two");
+assert.equal(
+  review.find((domain) => domain.id === "delivery")?.items[0]?.href,
+  "/admin/work?task=one",
+);
+assert.match(
+  review.find((domain) => domain.id === "money")!.message,
+  /Collections is not included/,
+);
+assert.equal(
+  todayBusinessReview({
+    ...reviewSnapshot,
+    attention: { ...reviewSnapshot.attention, state: "unavailable", data: [] },
+  }).every((domain) => domain.state === "unavailable"),
+  true,
+);
+const collectionItem = {
+  id: "case",
+  title: "Customer USD",
+  detail: "Review overdue invoice",
+  href: "/admin/collections?case=case",
+  sourceType: "collection_case",
+  sourceId: "case",
+  observedAt: now.toISOString(),
+};
+const withCollections = {
+  ...reviewSnapshot,
+  apps: region([
+    {
+      id: "receivables-collections",
+      name: "Collections",
+      href: "/admin/collections",
+      state: "ready" as const,
+      items: [collectionItem],
+    },
+  ]),
+};
+assert.equal(
+  todayBusinessReview(withCollections).find((domain) => domain.id === "money")?.items[0]?.sourceId,
+  "case",
+);
+assert.equal(
+  todayBusinessReview({
+    ...withCollections,
+    apps: { ...withCollections.apps, state: "partial" },
+  }).find((domain) => domain.id === "money")?.state,
+  "partial",
+);
+assert.equal(
+  reviewSnapshot.attention.data[0]?.sourceId,
+  "one",
+  "Review projection never mutates source work",
+);
+const unlinked = {
+  ...source[0]!,
+  sourceId: "unlinked-task",
+  entityType: undefined,
+  entityId: undefined,
+};
+const unlinkedReview = todayBusinessReview({ ...reviewSnapshot, attention: region([unlinked]) });
+assert.equal(
+  unlinkedReview.some((domain) => domain.items.some((item) => item.sourceId === "unlinked-task")),
+  false,
+  "Unknown task relationships stay in Needs you instead of inventing a business category",
+);
+assert.equal(
+  todayBusinessReview({
+    ...reviewSnapshot,
+    attention: region([{ ...source[0]!, entityType: "contact" }]),
+  }).find((domain) => domain.id === "customers")?.items[0]?.sourceId,
+  "one",
+);
+console.log(
+  "Business review: exact source identities, missing Collections, partial and unavailable data passed.",
+);
+
+const proposalWithCustomer = { ...source[1]!, entityType: "contact", entityId: "customer-one" };
+const singleSourceReview = todayBusinessReview({
+  ...reviewSnapshot,
+  attention: region([proposalWithCustomer]),
+});
+assert.equal(
+  singleSourceReview.filter((domain) => domain.items.some((item) => item.sourceId === "two"))
+    .length,
+  1,
+  "Related customer context must not duplicate a proposal across business categories",
+);
+assert.equal(singleSourceReview.find((domain) => domain.id === "sales")?.items[0]?.sourceId, "two");

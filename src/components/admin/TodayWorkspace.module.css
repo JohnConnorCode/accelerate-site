@@ -675,8 +675,8 @@
   }
   .viewSelect {
     max-width: none;
-    flex: 1 1 0;
-    min-width: 0;
+    flex: 1 1 180px;
+    min-width: min(180px, 100%);
     padding-inline: 10px 8px;
     font-size: 12px;
   }
@@ -736,5 +736,101 @@
   }
   .briefMeta {
     font-size: var(--admin-text-caption);
+  }
+}
+
+.businessReview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+.reviewDomain {
+  padding: 16px;
+  border-radius: var(--admin-control-radius);
+  background: var(--admin-surface-subtle);
+  min-width: 0;
+}
+.reviewDomainHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.reviewDomain h3,
+.workflowGrid h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  text-wrap: balance;
+}
+.reviewFinding {
+  margin-top: 14px;
+  font-size: var(--admin-text-label);
+  line-height: 1.6;
+}
+.reviewFinding > strong {
+  display: block;
+  font-weight: 600;
+}
+.reviewFinding p {
+  margin: 5px 0;
+}
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 8px;
+}
+.reviewActions a,
+.reviewActions button {
+  min-height: 40px;
+  text-align: left;
+}
+.reviewSource {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--admin-text-caption);
+  color: var(--admin-muted);
+}
+.walkthroughs {
+  margin-top: 18px;
+  padding: 14px 18px;
+  border-radius: var(--admin-control-radius);
+  background: var(--admin-surface-subtle);
+}
+.walkthroughs > summary {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.walkthroughs > summary::before {
+  content: "+";
+  margin-right: 10px;
+  color: var(--admin-muted);
+}
+.walkthroughs[open] > summary::before {
+  content: "−";
+}
+.workflowGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  padding: 14px 0 4px;
+}
+@media (max-width: 700px) {
+  .businessReview,
+  .workflowGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .businessReview {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

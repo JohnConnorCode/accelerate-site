@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, CircleAlert, Sparkles, User } from "lucide-react";
 import Link from "@/components/admin/AdminLink";
+import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { CollectionCaseLinks } from "@/components/admin/CollectionsWorkspace";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
@@ -105,7 +106,17 @@ export default function ContactTimelinePage() {
 
       <PageHeader
         title={recordName}
-        subtitle="Next step, open work, conversations, and history in one place."
+        subtitle={
+          contact
+            ? `${contact.lifecycle_stage.replaceAll("_", " ")} · ${contact.communication_status.replaceAll("_", " ")}. Review the customer’s current history before following up.`
+            : "Review this customer’s next step, conversations and assigned work."
+        }
+        guidance={{
+          ...adminPageGuidance.contacts!,
+          startHint: contact?.next_action
+            ? `Current next step: ${contact.next_action}. Open the related work below to act.`
+            : "Read the recent conversation, then open existing work or prepare a customer follow-up.",
+        }}
       />
       <AdminReadBody
         loading={relationship.isPending}

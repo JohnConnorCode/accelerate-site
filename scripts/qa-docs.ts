@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { expect } from "playwright/test";
@@ -6,6 +7,7 @@ import { navItems, footerLinks } from "../src/content/navigation";
 
 const base = process.env.DOCS_QA_URL ?? "http://localhost:3025";
 const output = process.env.DOCS_QA_OUTPUT ?? "/tmp/accelerate-docs-takeover-qa";
+const figureVersions = new Map<string, string>();
 const routes = [
   "/docs",
   "/docs/recipes",
@@ -104,6 +106,50 @@ async function main() {
           if (route === "/docs/delivery/resources") {
             await expect(page.locator("main")).toContainText("loaded page of downloads");
           }
+          for (const [figureIndex, figure] of (
+            await page.locator('main figure:has(a[href^="/images/docs/"])').all()
+          ).entries()) {
+            const link = figure.locator("a").first();
+            const href = await link.getAttribute("href");
+            if (!href?.startsWith("/images/docs/")) continue;
+            const fullSize = new URL(href, base);
+            let revision = figureVersions.get(fullSize.pathname);
+            if (!revision) {
+              const source = await page.request.get(new URL(fullSize.pathname, base).href);
+              assert.equal(source.status(), 200);
+              revision = createHash("sha256")
+                .update(await source.body())
+                .digest("hex")
+                .slice(0, 12);
+              figureVersions.set(fullSize.pathname, revision);
+            }
+            const image = figure.locator("img");
+            const imageSrc = await image.getAttribute("src");
+            assert.ok(imageSrc);
+            const optimized = new URL(imageSrc, base);
+            const original = new URL(optimized.searchParams.get("url") ?? imageSrc, base);
+            assert.equal(original.pathname, fullSize.pathname);
+            assert.equal(
+              fullSize.searchParams.get("v"),
+              revision,
+              `${route}: stale full-size figure`,
+            );
+            assert.equal(
+              original.searchParams.get("v"),
+              revision,
+              `${route}: stale figure cache key`,
+            );
+            await figure.scrollIntoViewIfNeeded();
+            await page.waitForFunction(
+              (image) =>
+                image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+              await image.elementHandle(),
+            );
+            await page.screenshot({
+              path: `${output}/${viewport.width}-figure-${route.replaceAll("/", "_")}-${figureIndex}.png`,
+            });
+          }
+          await page.locator("main h1").scrollIntoViewIfNeeded();
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
           });
@@ -219,6 +265,12 @@ async function main() {
         const page = await context.newPage();
         page.on("pageerror", (error) => failures.push(error.message));
         await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+        // The header enables its mobile controls after hydration at every viewport width.
+        await page.waitForFunction(
+          () =>
+            document.querySelector<HTMLButtonElement>('button[aria-label="Open navigation menu"]')
+              ?.disabled === false,
+        );
         if (width >= 1280) {
           const nav = page.getByRole("navigation", { name: "Primary", exact: true });
           const product = nav.getByRole("button", { name: "Command Center", exact: true });

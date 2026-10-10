@@ -1,4 +1,5 @@
 import fs from "fs";
+import { createHash } from "node:crypto";
 import path from "path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
@@ -10,6 +11,16 @@ import {
 } from "@/content/docs/manifest";
 
 const DOCS_DIR = path.join(process.cwd(), "src/content/docs");
+
+/** Updated screenshot bytes need a new optimizer key, even when their public URL stays the same. */
+export function docsFigureSource(src: string, publicRoot = path.join(process.cwd(), "public")) {
+  if (!src.startsWith("/images/docs/") || src.includes("?") || src.includes("..")) return src;
+  const revision = createHash("sha256")
+    .update(fs.readFileSync(path.join(publicRoot, src)))
+    .digest("hex")
+    .slice(0, 12);
+  return `${src}?v=${revision}`;
+}
 
 export interface DocsFrontmatter {
   title: string;

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import * as Dialog from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 import { adminDialogTransition } from "@/lib/admin/motion";
@@ -55,20 +55,23 @@ export function AdminDialog({
   maxWidth = "md",
   align = "center",
 }: AdminDialogProps) {
+  const reducedMotion = useReducedMotion();
+  const transition = reducedMotion ? { duration: 0 } : adminDialogTransition;
   // A centered dialog remains a dialog at every width. Side editors and the
   // command palette opt into their own deliberate layouts below; ordinary
   // confirmations do not pretend to be draggable bottom sheets on phones.
   const mobileDialog = align === "center";
   const returnFocus = useRef<HTMLElement[]>([]);
-  useEffect(() => {
-    if (!open) return;
+  // Hold workspace controls until the presence owner removes the layer.
+  const holdWorkspace = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
     openDialogCount += 1;
     document.body.classList.add("admin-dialog-open");
     return () => {
       openDialogCount = Math.max(0, openDialogCount - 1);
       if (openDialogCount === 0) document.body.classList.remove("admin-dialog-open");
     };
-  }, [open]);
+  }, []);
 
   return (
     <Dialog.Root
@@ -80,88 +83,116 @@ export function AdminDialog({
       <AnimatePresence mode="sync">
         {open && (
           <Dialog.Portal forceMount>
-            <Dialog.Overlay asChild forceMount>
-              <motion.div
-                className="admin-overlay-token-scope admin-overlay-backdrop fixed inset-0 z-[200]"
-                data-admin-overlay="backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={adminDialogTransition}
-              />
-            </Dialog.Overlay>
+            {/* Keep each backdrop above earlier panels, including during exit. */}
             <div
-              className={cn(
-                "admin-overlay-token-scope pointer-events-none fixed inset-0 z-[210] flex overflow-y-auto px-4 py-5 sm:px-6",
-                align === "right"
-                  ? "items-stretch justify-end p-0 sm:p-0"
-                  : align === "top"
-                    ? "items-start justify-center pt-[10vh]"
-                    : "items-center justify-center",
-              )}
+              className="pointer-events-none fixed inset-0 z-[210] isolate"
+              data-admin-overlay="layer"
+              ref={holdWorkspace}
             >
-              <Dialog.Content
-                asChild
-                forceMount
-                aria-describedby={undefined}
-                onOpenAutoFocus={(event) => {
-                  const opener =
-                    document.activeElement instanceof HTMLElement ? document.activeElement : null;
-                  const parentDialog = opener?.closest<HTMLElement>(
-                    '[data-admin-overlay="dialog"]',
-                  );
-                  returnFocus.current = opener
-                    ? [opener, ...(parentDialog ? (dialogOpeners.get(parentDialog) ?? []) : [])]
-                    : [];
-                  if (event.target instanceof HTMLElement)
-                    dialogOpeners.set(event.target, returnFocus.current);
-                  const initial =
-                    event.target instanceof HTMLElement
-                      ? event.target.querySelector<HTMLElement>('[data-admin-autofocus="true"]')
-                      : null;
-                  if (initial) {
-                    event.preventDefault();
-                    initial.focus();
-                  }
-                }}
-                onCloseAutoFocus={(event) => {
-                  // This shared controlled dialog has no Radix Trigger. Restore the
-                  // actual opener, including the previous dialog in a review stack.
-                  const opener = returnFocus.current.find((element) => element.isConnected);
-                  if (opener) {
-                    event.preventDefault();
-                    opener.focus({ preventScroll: true });
-                  }
-                }}
-              >
+              <Dialog.Overlay asChild forceMount>
                 <motion.div
-                  {...(labelledBy ? { "aria-labelledby": labelledBy } : {})}
-                  {...(ariaLabel ? { "aria-label": ariaLabel } : {})}
-                  className={cn(
-                    "pointer-events-auto relative w-full",
-                    widths[maxWidth],
-                    mobileDialog && "max-h-[calc(100dvh-2rem)] overflow-y-auto",
-                    className,
-                  )}
-                  data-admin-overlay="dialog"
-                  data-admin-overlay-align={align}
-                  initial={
-                    align === "right" ? { opacity: 0, x: 20 } : { opacity: 0, y: 8, scale: 0.985 }
-                  }
-                  animate={
-                    align === "right" ? { opacity: 1, x: 0 } : { opacity: 1, y: 0, scale: 1 }
-                  }
-                  exit={
-                    align === "right" ? { opacity: 0, x: 12 } : { opacity: 0, y: 4, scale: 0.99 }
-                  }
-                  transition={adminDialogTransition}
+                  className="admin-overlay-token-scope admin-overlay-backdrop fixed inset-0 z-0"
+                  data-admin-overlay="backdrop"
+                  initial={reducedMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={transition}
+                />
+              </Dialog.Overlay>
+              <div
+                className={cn(
+                  "admin-overlay-token-scope pointer-events-none fixed inset-0 z-10 flex overflow-y-auto px-4 py-5 sm:px-6",
+                  align === "right"
+                    ? "items-stretch justify-end p-0 sm:p-0"
+                    : align === "top"
+                      ? "items-start justify-center pt-[10vh]"
+                      : "items-center justify-center",
+                )}
+              >
+                <Dialog.Content
+                  asChild
+                  forceMount
+                  aria-describedby={undefined}
+                  onOpenAutoFocus={(event) => {
+                    const opener =
+                      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+                    const parentDialog = opener?.closest<HTMLElement>(
+                      '[data-admin-overlay="dialog"]',
+                    );
+                    returnFocus.current = opener
+                      ? [opener, ...(parentDialog ? (dialogOpeners.get(parentDialog) ?? []) : [])]
+                      : [];
+                    if (event.target instanceof HTMLElement)
+                      dialogOpeners.set(event.target, returnFocus.current);
+                    const initial =
+                      event.target instanceof HTMLElement
+                        ? event.target.querySelector<HTMLElement>('[data-admin-autofocus="true"]')
+                        : null;
+                    if (initial) {
+                      event.preventDefault();
+                      initial.focus();
+                    }
+                  }}
+                  onCloseAutoFocus={(event) => {
+                    event.preventDefault();
+                    // Navigation or the user may already have focused another surface.
+                    const active = document.activeElement;
+                    if (
+                      active instanceof HTMLElement &&
+                      active !== document.body &&
+                      active !== document.documentElement &&
+                      (!(event.target instanceof HTMLElement) || !event.target.contains(active))
+                    )
+                      return;
+                    // This shared controlled dialog has no Radix Trigger. Restore the
+                    // actual opener, including the previous dialog in a review stack.
+                    const opener = returnFocus.current.find((element) => element.isConnected);
+                    if (opener) {
+                      opener.focus({ preventScroll: true });
+                    }
+                  }}
                 >
-                  <Dialog.Title asChild>
-                    <span className="sr-only">{title}</span>
-                  </Dialog.Title>
-                  {children}
-                </motion.div>
-              </Dialog.Content>
+                  <motion.div
+                    {...(labelledBy ? { "aria-labelledby": labelledBy } : {})}
+                    {...(ariaLabel ? { "aria-label": ariaLabel } : {})}
+                    className={cn(
+                      "pointer-events-auto relative w-full",
+                      widths[maxWidth],
+                      mobileDialog && "max-h-[calc(100dvh-2rem)] overflow-y-auto",
+                      className,
+                    )}
+                    data-admin-overlay="dialog"
+                    data-admin-overlay-align={align}
+                    initial={
+                      reducedMotion
+                        ? false
+                        : align === "right"
+                          ? { opacity: 0, x: 20 }
+                          : { opacity: 0, y: 8, scale: 0.985 }
+                    }
+                    animate={
+                      reducedMotion
+                        ? { opacity: 1 }
+                        : align === "right"
+                          ? { opacity: 1, x: 0 }
+                          : { opacity: 1, y: 0, scale: 1 }
+                    }
+                    exit={
+                      reducedMotion
+                        ? { opacity: 0 }
+                        : align === "right"
+                          ? { opacity: 0, x: 12 }
+                          : { opacity: 0, y: 4, scale: 0.99 }
+                    }
+                    transition={transition}
+                  >
+                    <Dialog.Title asChild>
+                      <span className="sr-only">{title}</span>
+                    </Dialog.Title>
+                    {children}
+                  </motion.div>
+                </Dialog.Content>
+              </div>
             </div>
           </Dialog.Portal>
         )}

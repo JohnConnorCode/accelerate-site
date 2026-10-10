@@ -1796,10 +1796,9 @@
         "@/lib/site-studio/database-store",
         "@/lib/site-studio/drafts",
         "@/lib/site-studio/revision",
-        "next/server",
-        "zod"
+        "next/server"
       ],
-      "sourceSha256": "d1b109ec287325688acdd544984e10a0d91a0742dd5be50af106ce2950317692"
+      "sourceSha256": "f7e547c8e1baf242021191bb7e4e934ff1dba0707c3b205795901a09b3888f74"
     },
     {
       "source": "src/app/api/admin/site/drafts/[id]/sections/route.ts",
@@ -1837,15 +1836,12 @@
         "@/lib/admin/module-guard",
         "@/lib/rate-limit",
         "@/lib/site-studio/database-store",
-        "@/lib/site-studio/document",
         "@/lib/site-studio/drafts",
         "@/lib/site-studio/generate",
-        "@/lib/site-studio/models",
         "@/lib/site-studio/openrouter-adapter",
-        "next/server",
-        "zod"
+        "next/server"
       ],
-      "sourceSha256": "38ece6df30f16a0f108d76702b6bf75b340fd8616d2477b561c0c3cc78cd1579"
+      "sourceSha256": "a3f163bcf2b4db06fd18c711da058cee46c61ec0161163e823101be85c53e717"
     },
     {
       "source": "src/app/api/admin/site/models/route.ts",
@@ -1897,7 +1893,7 @@
         "@/lib/site-studio/website-store",
         "next/server"
       ],
-      "sourceSha256": "f45ad05f4f39f1d62fe55f328fe7a354d29c2e4af8eb15bd3e34f6b0ff8e46f4"
+      "sourceSha256": "0012a5f62a698e1e605226b5ac7ad1795a6f919aba971febe5c3143df87b293c"
     },
     {
       "source": "src/app/api/admin/social-history/route.ts",

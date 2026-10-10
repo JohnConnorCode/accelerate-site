@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { CheckSquare, Circle, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import Link from "@/components/admin/AdminLink";
+import { taskSourceLink } from "@/lib/admin/work-presentation";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { TaskQuickAdd } from "./TaskQuickAdd";
@@ -128,6 +129,7 @@ export function TaskWidget() {
 
         <div className="space-y-1">
           {tasks.map((task, i) => {
+            const sourceLink = taskSourceLink(task);
             const isOverdue = task.due_date ? task.due_date < today : false;
 
             return (
@@ -163,20 +165,19 @@ export function TaskWidget() {
                         {task.due_time || "Today"}
                       </span>
                     )}
-                    {task.related_name && (
-                      <Link
-                        href={
-                          task.related_type === "lead"
-                            ? "/admin/leads"
-                            : task.related_type === "client"
-                              ? `/admin/clients/${task.related_id}`
-                              : `/admin/contacts/${encodeURIComponent(task.related_name)}`
-                        }
-                        className="text-[10px] text-white-muted hover:text-gold-light transition-colors truncate"
-                      >
-                        {task.related_name}
-                      </Link>
-                    )}
+                    {task.related_name &&
+                      (sourceLink ? (
+                        <Link
+                          href={sourceLink.href}
+                          className="text-[10px] text-white-muted hover:text-gold-light transition-colors truncate"
+                        >
+                          {task.related_name}
+                        </Link>
+                      ) : (
+                        <span className="truncate text-[10px] text-white-muted">
+                          {task.related_name}
+                        </span>
+                      ))}
                   </div>
                 </div>
 

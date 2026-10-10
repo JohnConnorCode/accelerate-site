@@ -39,10 +39,15 @@ export async function POST(request: Request) {
     );
   }
   try {
-    return NextResponse.json(await proposeWebsitePage(auth, input), {
+    return NextResponse.json(await proposeWebsitePage(auth, input, request.signal), {
       headers: { "Cache-Control": "private, no-store" },
     });
   } catch (error) {
+    if (request.signal.aborted)
+      return NextResponse.json(
+        { error: "Suggestion canceled. Your page is unchanged." },
+        { status: 499, headers: { "Cache-Control": "no-store" } },
+      );
     if (error instanceof WebsiteGenerationLimitError)
       return NextResponse.json(
         { error: error.message },

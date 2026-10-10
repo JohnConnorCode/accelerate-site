@@ -6,6 +6,7 @@ type Confirmation = {
   description: string;
   confirmLabel: string;
   cancelLabel?: string;
+  destructive?: boolean;
 };
 const Context = createContext<((request: Confirmation) => Promise<boolean>) | null>(null);
 export function useAdminConfirm() {
@@ -49,11 +50,19 @@ export function AdminConfirmationProvider({ children }: { children: React.ReactN
         <div className="admin-dialog-surface bg-[var(--admin-surface)] p-6 text-[var(--admin-ink)]">
           <h2 className="admin-dialog-title">{request?.title}</h2>
           <p className="admin-copy mt-3 text-sm leading-6">{request?.description}</p>
-          <div className="mt-6 flex justify-end gap-2">
-            <button type="button" className="admin-theme-button" onClick={() => finish(false)}>
+          <div className="mt-6 flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              className="admin-button admin-button--secondary"
+              onClick={() => finish(false)}
+            >
               {request?.cancelLabel ?? "Cancel"}
             </button>
-            <button type="button" className="admin-theme-button" onClick={() => finish(true)}>
+            <button
+              type="button"
+              className={`admin-button ${request?.destructive ? "admin-button--danger" : "admin-button--primary"}`}
+              onClick={() => finish(true)}
+            >
               {request?.confirmLabel}
             </button>
           </div>

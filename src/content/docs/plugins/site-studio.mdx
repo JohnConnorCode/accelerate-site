@@ -1,27 +1,33 @@
 ---
 title: "Draft public pages with Site Studio"
 description: "Create and edit website pages, review AI suggestions, and publish saved revisions."
-updated: "2026-10-02"
+updated: "2026-10-06"
 ---
 
-A website change needs a private place to prepare copy, inspect the layout and review the version to publish. Open **Site Studio → Edit installation website** for that workflow. Installation owners manage the public website; other workspace admins can use their private page drafts.
+A website change needs a private place to prepare copy, inspect the layout and review the version to publish. Open **Apps & connections → Website & pages → Edit installation website** for that workflow. Installation owners manage the public website; other workspace admins can use their private page drafts.
 
 <DocsFigure
   src="/images/docs/plugins/site-studio.png"
   width={1440}
   height={1000}
-  alt="Site Studio, with the website editor entry point and private page drafts in the fictional Northline Roofing workspace."
-  caption="Site Studio, with the website editor entry point and private page drafts. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+  alt="Website & pages in fictional SuperDebate, showing the private draft form and installation editor entry point."
+  caption="Website & pages in fictional SuperDebate, with the private draft brief and installation website editor entry point."
 />
 
 ## Create and edit a page
 
 A new full-repository fork starts with an editable Command Center homepage. Use Identity and Theme to make it your own, then customize the homepage sections or add pages. Agency content stays disabled unless the installer explicitly selects the branded distribution. Saved drafts and published revisions remain unchanged when the deployment profile changes.
 
-1. Select **Add page**, enter a title and page address, and choose a service, landing or article starter. **Clone page** copies the current page into a new address.
+1. Select **Add page**, enter a title and page address, and choose a service, landing or article starter. The title suggests an address until you edit the address yourself; later title changes preserve your custom address. **Clone page** copies the current page into a new address.
 2. Edit the page fields and search description. Open a section to change its text or appearance; add, reorder, hide supported native sections, or remove sections as needed. Article controls support headings, paragraphs, formatted text, lists, quotes, code and images.
-3. Use **Ask AI** to improve copy while retaining the layout, or generate a new layout and copy. Describe the result you want, choose a model, and prepare a suggestion. Review the changes and choose **Apply to draft**. Preparing or applying a suggestion does not publish it.
+3. Use **Ask AI** to improve copy while retaining the layout, or generate a new layout and copy. Describe the result you want, choose a model, and prepare a suggestion. Use **Review changes** for the text comparison and **Preview suggestion** to inspect the proposed page at Phone, Tablet and Desktop widths. Choose **Apply to draft** when the result is ready. Preparing or applying a suggestion does not publish it.
 4. Check the live preview at Phone, Tablet and Desktop widths. **Undo** and **Redo** recover local edits. Select **Save draft** to create a private, versioned snapshot.
+
+The section count shows the current limit: 40 sections for a generated document or 100 for a native page. At the limit, remove a section before adding another.
+
+While AI prepares a suggestion, **Cancel suggestion**, **Close AI editor** or Escape stops the request and keeps your draft. Provider charges may still apply. You can revise the instruction and prepare another suggestion. A late reply from a canceled request cannot replace the new suggestion.
+
+If you edit the page after preparing a suggestion, the review asks you to prepare a fresh suggestion before applying. This protects your newer edits. Switching pages starts a separate AI review for the selected page. If a suggestion changes only layout or appearance, use **Preview suggestion** to inspect it even when the text comparison is empty.
 
 ### Example: draft a bookkeeping service page
 
@@ -55,11 +61,11 @@ Public pages reuse the published revision between visits. Publishing, rollback a
 
 When you want to describe a website change in conversation, the installation owner can connect a supported ChatGPT web workspace to the same editor services after the installer configures OAuth. Custom MCP apps are currently unavailable in the ChatGPT phone app. The connection covers pages, sections, copy, layouts, search metadata, navigation, branding, assets, collections, portable documents, publication and history. For example, ask it to clone Ledgerstone's bookkeeping page, revise its introduction and save a private draft, then review the returned changes before requesting publication. Check [OpenAI's current MCP availability](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt) before setup.
 
-Ask the installer to follow the [ChatGPT connection setup](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/SITE-STUDIO-CHATGPT.md), then open **Site Studio → Connect ChatGPT** to review access. The connection lasts 30 days and can be revoked from that screen. The five editor tools read current content, prepare an exact preview, stage it, execute it under your delegation, and optionally request an AI suggestion. An outdated version requires a fresh preview, so concurrent edits remain protected.
+Ask the installer to follow the [ChatGPT connection setup](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/SITE-STUDIO-CHATGPT.md), then open **Website & pages → Connect ChatGPT** to review access. The connection lasts 30 days and can be revoked from that screen. The five editor tools read current content, prepare an exact preview, stage it, execute it under your delegation, and optionally request an AI suggestion. An outdated version requires a fresh preview, so concurrent edits remain protected.
 
 ChatGPT manages its write confirmations, while the server records which owner and connection delegated the action. Delegation permits saving, deleting content, publishing, unpublishing and restoring website revisions. Its scope excludes workspace records and the separate tenant-owned page draft list. Legacy workspace MCP keys retain their proposal-only write behavior. AI suggestions use the same model budget, price ceilings and generation limit as the editor; manual edits make no model request.
 
-If the network drops after a write, use **Retry same save** or the corresponding publication retry. It reuses the original request, avoiding duplicate revisions. An edit conflict preserves your local fields. **Export draft** before **Reload saved draft** if you want to retain a copy; reload asks before replacing local edits. Save and publish errors remain visible until resolved.
+If the network drops after a write, use **Retry same save** or the corresponding publication retry. It reuses the original request, avoiding duplicate revisions. An edit conflict preserves your local fields. **Export draft** before **Reload saved draft** if you want to retain a copy; reload asks before replacing local edits. While a save, reload or import is running, editing and competing actions pause so one result cannot replace another. Failed reloads keep your local edits and undo history. Editing or using **Undo** and **Redo** clears success messages from the previous draft state. If the first load fails, choose **Retry loading website**. An incomplete or mismatched confirmation keeps the change pending for the same retry. Leaving the editor stops pending requests and prevents late replies from replacing the next screen.
 
 Open **Website tools** for reload, import, export and the saved preview. On phones, switch between **Edit content** and **Preview page**, and use **Editing** to choose the content area. **Unpublish** is available inside **History**.
 
@@ -81,9 +87,17 @@ Choose **Import draft** in your own installation, review the imported content, t
 
 ## Private workspace drafts and the fictional demo
 
-The original Site Studio draft list remains available for tenant-owned service drafts. Enter a brief, choose a built-in template or AI model, attach approved catalogue photography and create a draft. Its preview supports rename and discard. These drafts are separate from the installation website and do not publish from that screen. Section regeneration is available through its authenticated API with a required checksum and a supported model ID.
+Workspace admins can create private service-page drafts in a connected workspace. Enter a service name, audience and outcome, choose a built-in template or AI model, and open **Browse image catalogue** to optionally attach up to eight approved images. Choose **Create draft** or press Enter in a brief field. Fields stay fixed while creation is pending. A successful result opens the saved draft's preview. These records are separate from the installation website and do not publish from this screen.
 
-In the [full admin demo](/demo/command-center), open the installation website editor to try creation, fictional AI suggestions, saving, publication receipts and rollback. Changes remain in that business scenario's browser session. They do not publish a live website, contact a provider or mutate production records. Switching scenarios isolates their drafts; resetting removes the scenario's changes.
+Use **Phone**, **Tablet** or **Desktop** in **Page preview** to check the saved page at 390, 768 or 1440 pixels. The preview scales to fit your screen while keeping the selected page width, including its responsive layout and typography. It uses public page styling in a separate frame. Links and forms are inactive, so you stay in the editor; FAQ answers can still be opened. **All drafts** returns to the list.
+
+To rename a draft, enter **Draft title** and choose **Save title**. **Title saved** confirms the result. If the draft changed elsewhere or a save cannot be confirmed, your title text stays available. Choose **Load latest draft**, review the current preview and title, then save again if needed. A failed refresh retains the preview and your text; retry the read before saving or discarding. If the draft was removed, copy the retained **Unsaved title** before returning to the list.
+
+**Discard draft** asks for a second click; **Keep draft** cancels that choice. A failed or uncertain discard requires **Load latest draft** and another review. Discard affects only this private working copy.
+
+If creation cannot be confirmed, choose **Refresh drafts** before retrying. Check the list for the saved copy first; another create is enabled only after a successful refresh. Section regeneration remains available through the authenticated API with a required checksum and supported model ID.
+
+In the [full admin demo](/demo/command-center), open **Apps & connections → Website & pages** and create a private draft for Northline Roofing. Try renaming it, reload to check the saved title, then choose **Discard draft** or **Keep draft**. **AI example (simulated)** uses the service template, so you can try the workflow without a model connection. Drafts and simulated activity receipts stay in that business's browser session. Switching businesses keeps their drafts separate; resetting a business clears its changes. Open the installation website editor to try publication receipts and rollback.
 
 ## What to check
 

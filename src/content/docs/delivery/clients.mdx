@@ -1,7 +1,7 @@
 ---
 title: "Review client accounts"
 description: "Find an account, check what it's worth, and open its delivery record."
-updated: "2026-09-19"
+updated: "2026-10-06"
 ---
 
 A customer account needs attention when onboarding stalls, responsibilities change or the agreed commercial details look wrong. Open **Clients** to review the account, inspect its history and record the follow-up your team needs to complete.
@@ -19,9 +19,16 @@ A customer account needs attention when onboarding stalls, responsibilities chan
 1. Check the workspace you are in, then use the status filter to narrow the list.
 2. Click the row or its arrow to open the client record. The business name is a keyboard-accessible link; the contact name opens contact history.
 3. Compare the contact, status and commercial details with the agreement your team accepted.
-4. Use **Add follow-up** inside the client record, enter a title, date and priority, and select **Add**. The saved follow-up appears on the record; open it to review or complete it in Work.
+4. Review **Follow-ups** beside **Activity**, then use **Add follow-up**, enter a title, date and priority, and select **Add** or press Enter. The task appears in both sections and is available in Work and Today. Open its link to review or complete it in [Work](/docs/command-center/work).
+5. Edit the status, contract dates, values or notes, then choose **Save Changes**. Values accept cents and must be zero or higher. While saving, the form holds the submitted values until the result returns.
 
 Use the list to spot accounts that need attention, such as an onboarding account that has not progressed or an active account with an unexpected monthly value. The figure describes the recorded agreement; it does not prove payment arrived.
+
+## Refresh and recover
+
+Choose **Refresh client** to check the latest record, follow-ups and activity while keeping your unsaved edits in place. Activity and follow-ups load separately, so a delay in one section leaves the client form usable. When a refresh fails, previously loaded information stays visible with a **Retry** button for that section. An initial read failure offers Retry instead of saying the account is missing.
+
+If a save fails, your edits stay in the form so you can try again. A failed follow-up keeps its title, date and priority; review the draft before submitting again. Pending submissions disable the fields and buttons to keep the submitted draft fixed.
 
 ## When the account is missing
 
@@ -35,7 +42,7 @@ For an unexpected total, use [Revenue](/docs/pipeline/revenue) to identify which
 
 Open a won opportunity in [Pipeline](/docs/pipeline/board), then choose **Hand off to delivery**. The review shows the linked customer, a versioned onboarding template, an optional originating proposal, and the milestones it would create; choose the source you reviewed and confirm, and note that this step never sends a message to the client on its own.
 
-That handoff creates exactly one client engagement for the opportunity. Its milestones use the shared task service, with due dates set relative to when the engagement starts. A template can name a responsible role or supply an explicit workspace member ID for assignment, though a role label alone is a placeholder rather than an actual person, so review the recorded assignees with your team afterward. The current Work inspector edits a task's title, due date, and priority, but does not include an assignment control itself; an installation administrator can configure explicit member assignments in the template for future handoffs instead.
+That handoff creates exactly one client engagement for the opportunity. Its milestones use the shared task service, with due dates set relative to when the engagement starts. A template can name a responsible role or supply an explicit workspace member ID for assignment, though a role label alone is a placeholder rather than an actual person, so review the recorded assignees with your team afterward. The current Work inspector edits a task's title, instructions, due date and priority, but does not include an assignment control itself; an installation administrator can configure explicit member assignments in the template for future handoffs instead.
 
 The opportunity's **Delivery** section shows engagement status, the next milestone, overdue commitments, and the handoff receipt. "Complete" on that receipt means task creation finished, which is a meaningfully smaller claim than the customer's actual work being delivered, so complete each task separately as its real work gets done.
 

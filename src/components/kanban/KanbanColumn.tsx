@@ -108,6 +108,7 @@ function ColumnMenu({
         title: "Delete this column?",
         description: `“${columnLabel}” is empty. Deleting it cannot be undone.`,
         confirmLabel: "Delete column",
+        destructive: true,
       }))
     )
       return;

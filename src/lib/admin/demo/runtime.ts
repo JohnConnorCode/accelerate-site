@@ -1,4 +1,9 @@
 import {
+  createDemoSiteDraftState,
+  handleDemoSiteDrafts,
+  type DemoSiteDraftState,
+} from "./site-draft-runtime";
+import {
   demoAgentSnapshotSchema,
   demoAgentProposalSchema,
   type DemoAgentProposal,
@@ -141,6 +146,7 @@ type DemoSubscriptionsState = {
 };
 export type DemoState = {
   website?: DemoWebsiteState;
+  siteDrafts?: DemoSiteDraftState;
   todayViews?: TodayViews;
   todayViewReceipts?: Record<string, { fingerprint: string; result: unknown }>;
   deliveryHandoffs?: Record<
@@ -674,6 +680,7 @@ export function auditHistory(
   pack: DemoScenarioPack,
   params: URLSearchParams,
   business?: DemoBusinessState,
+  siteDrafts?: DemoSiteDraftState,
 ) {
   const founder = pack.tenant.founder.email;
   const system = pack.tenant.founder.systemActorEmail;
@@ -762,6 +769,20 @@ export function auditHistory(
       before: null,
       after: { operation: receipt.operation },
       metadata: { simulated: true, sourceType: receipt.sourceType, sourceId: receipt.sourceId },
+      createdAt: receipt.at,
+    })),
+  );
+  entries.unshift(
+    ...(siteDrafts?.receipts ?? []).map((receipt) => ({
+      id: receipt.id,
+      actorEmail: founder,
+      action: "demo.simulated",
+      entityType: "site_draft",
+      entityId: receipt.draftId,
+      source: "demo",
+      before: null,
+      after: { operation: `site.draft.${receipt.operation}` },
+      metadata: { simulated: true, sourceType: "site_draft", sourceId: receipt.draftId },
       createdAt: receipt.at,
     })),
   );
@@ -871,6 +892,8 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
     .slice(0, 20)
     .map((item, index) => ({
       id: `task:${item.id}`,
+      entityType: item.related_type || undefined,
+      entityId: item.related_id || undefined,
       kind: index % 2 === 0 ? "task" : "follow_up",
       title: item.title,
       summary: "Linked to the latest conversation and opportunity context.",
@@ -2590,6 +2613,34 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         return jsonResponse({ error: "Blocked by the fictional demo runtime" }, 403);
       return nativeFetch(input, init);
     }
+    if (path === "/api/admin/site/drafts" || /^\/api\/admin\/site\/drafts\/[^/]+$/.test(path)) {
+      if (state.moduleOverrides["site-studio"] === false)
+        return jsonResponse(
+          { error: "Site Studio is disabled for this fictional workspace." },
+          403,
+        );
+      let body: unknown = {};
+      try {
+        if (typeof init?.body === "string") body = JSON.parse(init.body);
+        else if (input instanceof Request && !["GET", "DELETE"].includes(method))
+          body = await input.clone().json();
+      } catch {
+        return jsonResponse({ error: "Request body must be JSON", simulated: true }, 400);
+      }
+      state.siteDrafts ??= createDemoSiteDraftState();
+      const headers = new Headers(
+        init?.headers ?? (input instanceof Request ? input.headers : undefined),
+      );
+      const response = await handleDemoSiteDrafts(
+        state.siteDrafts,
+        method,
+        body,
+        path === "/api/admin/site/drafts" ? undefined : path.split("/").at(-1),
+        headers.get("If-Match"),
+      );
+      if (method !== "GET" && response.ok) saveState(scenarioId, state);
+      return response;
+    }
     const body =
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
@@ -2972,7 +3023,6 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         source: "bundled",
       });
     }
-    if (path === "/api/admin/site/drafts" && method === "GET") return jsonResponse({ drafts: [] });
     if (path === "/api/admin/site/website" || path === "/api/admin/site/website/suggest") {
       if (state.moduleOverrides["site-studio"] === false)
         return jsonResponse(
@@ -3023,7 +3073,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       // The fixture is intentionally shaped like the canonical queue. Keep the
       // boundary explicit so fixture literals do not widen its discriminants.
       const attention = projectOperatorAttention(queue(pack, state) as OperatorQueueItem[]);
-      const history = auditHistory(pack, new URLSearchParams(), business).entries;
+      const history = auditHistory(pack, new URLSearchParams(), business, state.siteDrafts).entries;
       const activity = history.slice(0, 12).map((row) => ({
         id: row.id,
         title: row.action.replaceAll(".", " ").replaceAll("_", " "),
@@ -4967,7 +5017,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       });
     }
     if (path === "/api/admin/activity") {
-      const history = auditHistory(pack, url.searchParams, business);
+      const history = auditHistory(pack, url.searchParams, business, state.siteDrafts);
       return jsonResponse({
         ...history,
         canonical: {

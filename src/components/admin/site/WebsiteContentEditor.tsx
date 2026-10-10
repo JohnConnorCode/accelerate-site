@@ -28,6 +28,7 @@ export function WebsiteContentEditor({
       />
     );
   const rows = content.kind === "native" ? content.sections : content.document.root;
+  const sectionLimit = content.kind === "native" ? 100 : 40;
   const templates =
     content.kind === "native"
       ? Object.keys(nativeTemplateDefaults)
@@ -192,6 +193,9 @@ export function WebsiteContentEditor({
           )}
         </details>
       ))}
+      <p className="text-xs text-[var(--admin-muted)]" role="status">
+        {rows.length} of {sectionLimit} sections
+      </p>
       <div className="flex gap-2">
         <select
           aria-label="Section template"
@@ -209,7 +213,7 @@ export function WebsiteContentEditor({
         <button
           type="button"
           className={button}
-          disabled={!starter || rows.length >= 100}
+          disabled={!starter || rows.length >= sectionLimit}
           onClick={() => {
             const id = `section-${crypto.randomUUID().slice(0, 8)}`;
             if (content.kind === "native") {

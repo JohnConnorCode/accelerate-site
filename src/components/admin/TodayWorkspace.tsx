@@ -42,7 +42,14 @@ import {
   type TodayDocument,
   type TodaySavedState,
 } from "@/lib/admin/today-workspace";
-import type { TodaySnapshot, TodayFact, TodayRegion } from "@/lib/admin/today-data";
+import {
+  todayBusinessReview,
+  todaySourceName,
+  type TodaySnapshot,
+  type TodayFact,
+  type TodayRegion,
+} from "@/lib/admin/today-data";
+import { demoWorkflows } from "@/content/demo-workflows";
 import type { OperatorAttentionItem } from "@/lib/revenue-os/operator-attention";
 import styles from "./TodayWorkspace.module.css";
 
@@ -212,7 +219,7 @@ export function TodayWorkspace() {
     current.view.density === standard.density &&
     JSON.stringify(current.view.modules) === JSON.stringify(standard.modules);
   const visibleModules = isStandard
-    ? ["attention", "changes", "brief", "upcoming", "handling", "apps"].flatMap((type) => {
+    ? ["brief", "attention", "handling", "changes", "upcoming", "apps", "ai"].flatMap((type) => {
         const instance = current.view.modules.find((entry) => entry.type === type);
         if (
           !instance ||
@@ -225,9 +232,12 @@ export function TodayWorkspace() {
         return [
           {
             ...instance,
-            width: ["attention", "changes", "apps"].includes(type)
-              ? ("primary" as const)
-              : ("support" as const),
+            width:
+              type === "brief"
+                ? ("full" as const)
+                : ["attention", "changes", "apps", "ai"].includes(type)
+                  ? ("primary" as const)
+                  : ("support" as const),
           },
         ];
       })
@@ -455,9 +465,7 @@ export function TodayWorkspace() {
                         )}
                       <span className={styles.rowMeta}>
                         {kind === "attention" && (
-                          <span className={styles.badge}>
-                            {item.sourceType.replaceAll("_", " ")}
-                          </span>
+                          <span className={styles.badge}>{todaySourceName(item.sourceType)}</span>
                         )}
                         {kind !== "attention" && (
                           <span
@@ -472,7 +480,7 @@ export function TodayWorkspace() {
                                 ? "Urgent"
                                 : item.attentionKind === "work"
                                   ? "Your work"
-                                  : item.sourceType.replaceAll("_", " ")}
+                                  : todaySourceName(item.sourceType)}
                           </span>
                         )}
                         {item.dueAt && <span>{dateLabel(item.dueAt)}</span>}
@@ -525,8 +533,78 @@ export function TodayWorkspace() {
           <div className={styles.briefTop}>
             <h2>
               <ChartNoAxesCombined size={18} aria-hidden="true" />
-              Business overview
+              Business review
             </h2>
+          </div>
+          <p className={styles.muted}>
+            Use the inspected records to choose the next business action. Updated{" "}
+            {dateLabel(snapshot.generatedAt, {
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+            .
+          </p>
+          <div className={styles.businessReview}>
+            {todayBusinessReview(snapshot).map((domain) => (
+              <article
+                key={domain.id}
+                className={styles.reviewDomain}
+                data-business-review={domain.id}
+              >
+                <div className={styles.reviewDomainHeading}>
+                  <h3>{domain.title}</h3>
+                  <Link href={domain.href} className={styles.textLink}>
+                    Open <ArrowRight size={13} aria-hidden="true" />
+                  </Link>
+                </div>
+                <p className={styles.muted}>{domain.why}</p>
+                {domain.items.slice(0, 1).map((item) => (
+                  <div key={item.id} className={styles.reviewFinding}>
+                    <strong>{item.title}</strong>
+                    <p>{item.detail}</p>
+                    <div className={styles.reviewActions}>
+                      <Link href={item.href} className={styles.textLink}>
+                        {item.nextStep} <ArrowRight size={13} aria-hidden="true" />
+                      </Link>
+                      <button
+                        type="button"
+                        className={styles.textLink}
+                        onClick={() =>
+                          ask(
+                            `Help me decide the next step for ${item.title}. Read ${item.sourceType} ${item.sourceId} (${item.href}). The inspected evidence says: ${item.detail}. Check current source status, explain what matters and propose the next action for review.`,
+                          )
+                        }
+                      >
+                        Ask AI
+                      </button>
+                    </div>
+                    <span className={styles.reviewSource}>
+                      Source: {todaySourceName(item.sourceType)} ·{" "}
+                      {dateLabel(item.observedAt, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                ))}
+                {domain.message !== "From the currently inspected records." && (
+                  <p
+                    className={styles.muted}
+                    role={
+                      domain.state === "unavailable" || domain.state === "partial"
+                        ? "status"
+                        : undefined
+                    }
+                  >
+                    {domain.message}
+                  </p>
+                )}
+              </article>
+            ))}
           </div>
           <SourceState region={snapshot.metrics} />
           <div className={styles.briefFacts}>
@@ -551,6 +629,11 @@ export function TodayWorkspace() {
               </strong>
             </Link>
           </div>
+          <p className={styles.muted}>
+            Pipeline value is the recorded estimate on open opportunities. Check invoices for money
+            collected.
+          </p>
+          <SourceState region={snapshot.brief} />
           {interpretations.map((entry, i) => (
             <div key={i} className={styles.sourceBox}>
               <p className={"admin-eyebrow"}>AI INTERPRETATION</p>
@@ -799,7 +882,7 @@ export function TodayWorkspace() {
     >
       <PageHeader
         title="Today"
-        subtitle=""
+        subtitle="Understand what needs attention across customers, delivery and money."
         eyebrow={false}
         compact
         utilityActions={
@@ -888,6 +971,32 @@ export function TodayWorkspace() {
           </>
         }
       />
+      <details className={styles.walkthroughs}>
+        <summary>How do I get work done?</summary>
+        <p className={styles.muted}>
+          Choose a worked example with a clear saved result. The demo uses fictional business
+          records.
+        </p>
+        <div className={styles.workflowGrid}>
+          {demoWorkflows.map((workflow) => (
+            <article key={workflow.id}>
+              <h3>{workflow.label}</h3>
+              <p className={styles.muted}>{workflow.problem}</p>
+              <div className={styles.reviewActions}>
+                <Link href={`/docs/start/daily-path#${workflow.id}`} className={styles.textLink}>
+                  Read the walkthrough
+                </Link>
+                <Link
+                  href={`/demo/command-center/${workflow.scenario}/${workflow.steps[0]?.route ?? "today"}`}
+                  className={styles.textLink}
+                >
+                  Try the fictional example <ArrowRight size={13} aria-hidden="true" />
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      </details>
       {(error || query.error || viewsQuery.error) && (
         <div className={styles.error} role="alert">
           {error || query.error?.message || viewsQuery.error?.message}{" "}
@@ -1041,7 +1150,7 @@ export function TodayWorkspace() {
           {selected && (
             <>
               <div className={styles.toolbarGroup}>
-                <span className={"admin-eyebrow"}>{selected.sourceType.replaceAll("_", " ")}</span>
+                <span className={"admin-eyebrow"}>{todaySourceName(selected.sourceType)}</span>
                 <button
                   type="button"
                   className={cn("admin-icon-button", "ml-auto")}
@@ -1239,7 +1348,7 @@ export function TodayWorkspace() {
               <h3>Next step</h3>
               <p>{fact.nextStep}</p>
               <div className={styles.sourceBox}>
-                {fact.sourceType.replaceAll("_", " ")} · observed {dateLabel(fact.observedAt)}
+                {todaySourceName(fact.sourceType)} · observed {dateLabel(fact.observedAt)}
                 <br />
                 <Link href={fact.href} className={styles.textLink}>
                   Inspect source <ArrowRight size={13} />

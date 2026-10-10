@@ -139,6 +139,23 @@ try {
     id,
   );
   results.push("Same-column mouse reorder");
+  const firstReceipt = page.locator(".admin-toast").last();
+  await firstReceipt.waitFor();
+  await page.mouse.move(0, 0);
+  await page.evaluate(() => {
+    // Model a browser that does not notify React when a focused control is removed.
+    window.__qaToastFocusout = (event) => {
+      if (event.target.matches(".admin-toast-dismiss")) event.stopImmediatePropagation();
+    };
+    document.addEventListener("focusout", window.__qaToastFocusout, true);
+  });
+  await firstReceipt.getByRole("button", { name: /^Dismiss:/ }).focus();
+  await page.keyboard.press("Enter");
+  await firstReceipt.waitFor({ state: "hidden" });
+  await page.evaluate(() => {
+    document.removeEventListener("focusout", window.__qaToastFocusout, true);
+    delete window.__qaToastFocusout;
+  });
   const writes = await page.evaluate(() => window.__qaWrites.length);
   await move(
     page,
@@ -160,6 +177,10 @@ try {
     "column-contacted",
   );
   results.push("Cross-column stage and order save");
+  const nextReceipt = page.locator(".admin-toast").last();
+  await nextReceipt.waitFor();
+  await nextReceipt.waitFor({ state: "hidden" });
+  results.push("Keyboard dismissal without a blur event does not leave later feedback paused");
   await page.evaluate(() => (window.__qaFailure = "reorder"));
   await move(
     page,
@@ -174,6 +195,21 @@ try {
     "column-qualified",
   );
   assert.match(await page.locator(".admin-toast-region").innerText(), /Stage changed/);
+  const feedback = page.locator(".admin-toast").filter({ hasText: "Stage changed;" });
+  await feedback.hover();
+  await page.waitForTimeout(7100);
+  assert.equal(await feedback.isVisible(), true, "Reading feedback must pause its expiry");
+  const dismissFeedback = feedback.getByRole("button", { name: /^Dismiss:/ });
+  const dismissBounds = await dismissFeedback.boundingBox();
+  assert.ok(dismissBounds.width >= 44 && dismissBounds.height >= 44);
+  await dismissFeedback.focus();
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(7100);
+  assert.equal(await feedback.isVisible(), true, "Keyboard focus must keep feedback available");
+  await page.screenshot({ path: `${output}/feedback-desktop.png` });
+  await page.locator(".admin-help-trigger").focus();
+  await feedback.waitFor({ state: "hidden" });
+  results.push("Feedback pauses for reading and focus, then resumes its remaining time");
   results.push("Partial save reconciles committed stage after order failure");
   await page.reload();
   await page.locator(`[data-opportunity-id="${id}"]`).waitFor();
@@ -250,7 +286,7 @@ try {
     .first()
     .getByRole("button", { name: /^Edit / });
   await edit.click();
-  const dialog = page.locator('[data-admin-overlay="dialog"]').last();
+  const dialog = page.getByRole("dialog", { name: "Feature details", includeHidden: true });
   await dialog.waitFor();
   assert.ok(
     await dialog.evaluate((e) => e.contains(document.activeElement)),
@@ -261,10 +297,60 @@ try {
   const originalTitle = await title.inputValue();
   await title.fill(originalTitle + " edited");
   await page.keyboard.press("Escape");
-  await page.getByRole("dialog", { name: "Discard card edits?" }).waitFor();
-  await page.getByRole("button", { name: "Cancel", exact: true }).last().click();
+  const confirmation = page.getByRole("dialog", { name: "Discard card edits?" });
+  await confirmation.waitFor();
+  const keepEditing = confirmation.getByRole("button", { name: "Keep editing", exact: true });
+  const discardEdits = confirmation.getByRole("button", { name: "Discard edits", exact: true });
+  assert.ok(await keepEditing.evaluate((node) => node === document.activeElement));
+  assert.notEqual(
+    await keepEditing.evaluate((node) => getComputedStyle(node).backgroundColor),
+    await discardEdits.evaluate((node) => getComputedStyle(node).backgroundColor),
+    "Destructive action is visually distinct from keeping the draft",
+  );
+  await page.waitForFunction(() => {
+    const dialogs = document.querySelectorAll('[role="dialog"]');
+    const current = dialogs[dialogs.length - 1];
+    return current && getComputedStyle(current).opacity === "1";
+  });
+  const coveredTitle = await title.evaluate((node) => {
+    const bounds = node.getBoundingClientRect();
+    const hit = document.elementFromPoint(
+      bounds.x + bounds.width / 2,
+      bounds.y + bounds.height / 2,
+    );
+    const layers = document.querySelectorAll('[data-admin-overlay="layer"]');
+    return hit === layers[layers.length - 1]?.querySelector('[data-admin-overlay="backdrop"]');
+  });
+  assert.ok(coveredTitle, "Confirmation backdrop covers the editor and blocks pointer access");
+  await page.screenshot({ path: `${output}/confirmation-desktop.png` });
+  await page.keyboard.press("Shift+Tab");
+  assert.ok(await discardEdits.evaluate((node) => node === document.activeElement));
+  await page.keyboard.press("Tab");
+  assert.ok(await keepEditing.evaluate((node) => node === document.activeElement));
+  await page.keyboard.press("Enter");
+  await confirmation.waitFor({ state: "hidden" });
+  assert.equal(
+    await page.locator('[data-admin-overlay="layer"]').count(),
+    1,
+    "Only the editor layer remains after cancellation",
+  );
   assert.equal(await title.inputValue(), originalTitle + " edited");
-  results.push("Themed discard confirmation retains draft on cancel");
+  assert.ok(
+    await title.evaluate((node) => {
+      const bounds = node.getBoundingClientRect();
+      return (
+        document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2) ===
+        node
+      );
+    }),
+    "Closing the confirmation reveals the editable draft again",
+  );
+  results.push(
+    "Nested confirmation dims and blocks the editor, then reveals the retained draft on cancel",
+  );
+  results.push(
+    "Confirmation distinguishes destructive action and keeps keyboard focus on the safe choice",
+  );
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Discard edits", exact: true }).click();
   await page.waitForFunction(() => !document.querySelector('[data-admin-overlay="dialog"]'));
@@ -277,6 +363,31 @@ try {
     "Focus returns to card opener",
   );
   results.push("Card close/discard/reopen restores saved content and focus");
+  await edit.click();
+  await dialog.waitFor();
+  const handoff = await dialog.evaluate(async (node) => {
+    document.activeElement.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    await new Promise(requestAnimationFrame);
+    const next = document.querySelector(".admin-help-trigger");
+    next.focus({ preventScroll: true });
+    return {
+      exiting: node.isConnected,
+      focused: next === document.activeElement,
+      held: document.body.classList.contains("admin-dialog-open"),
+    };
+  });
+  assert.ok(handoff.exiting && handoff.focused, "Focus moves while the panel exits");
+  assert.ok(handoff.held, "Workspace controls remain held during the dialog exit");
+  await page.waitForFunction(() => !document.querySelector('[data-admin-overlay="dialog"]'));
+  assert.ok(
+    await page.locator(".admin-help-trigger").evaluate((node) => node === document.activeElement),
+  );
+  assert.ok(!(await page.evaluate(() => document.body.classList.contains("admin-dialog-open"))));
+  results.push(
+    "Closing a dialog holds workspace controls through exit and preserves focus already moved elsewhere",
+  );
   const clearFilters = page.getByRole("button", { name: "Clear filters", exact: true });
   if (await clearFilters.count()) await clearFilters.click();
   const featureColumns = page.locator(".kanban-scroller > section");

@@ -77,7 +77,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["start", "business-owners"],
         title: "For business owners",
         description:
-          "Decide whether it fits, run a small pilot, and know what to check before you rely on it.",
+          "Review the business, assign the next step and verify the result before expanding a connected workspace.",
       },
       {
         slug: ["start", "agencies"],
@@ -87,9 +87,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["start", "daily-path"],
-        title: "Your first workflow",
+        title: "Three workflows to learn the workspace",
         description:
-          "Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.",
+          "Answer an inquiry, start client work and prepare an invoice, then check the saved result and next step.",
       },
       {
         slug: ["start", "first-value"],
@@ -402,7 +402,7 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["sources", "leads"],
-        title: "Review leads and chat handoffs",
+        title: "Review website inquiries and chat handoffs",
         description:
           "Qualify a new inquiry, check whether it's someone you already know, and record what's next.",
       },

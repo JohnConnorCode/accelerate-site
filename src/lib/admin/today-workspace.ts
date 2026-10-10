@@ -11,8 +11,8 @@ export const TODAY_TOOL_NAMES = [
 export const TODAY_MODULES = [
   {
     id: "brief",
-    name: "Business overview",
-    description: "Open opportunities and pipeline value with direct links.",
+    name: "Business review",
+    description: "Review sourced findings across sales, customer follow-up, delivery and money.",
     icon: "sun",
   },
   {

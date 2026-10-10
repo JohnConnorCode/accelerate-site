@@ -2,6 +2,150 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "ai-reading-continuity",
+    slug: "ai-reading-continuity",
+    title: "Read AI answers at your own pace",
+    description:
+      "Ask AI keeps your place when you scroll up during a response. Jump to latest resumes following new text, and another question or a conversation change returns to the latest message. The composer grows for multiline questions and waits for input-method composition to finish before Enter can send. Starting guidance now explains what to ask without repeating the evidence and approval summary.",
+    category: "fix",
+    publishedAt: "2026-10-08",
+  },
+  {
+    id: "mobile-navigation-handoffs",
+    slug: "mobile-navigation-handoffs",
+    title: "Keep phone navigation and tool handoffs steady",
+    description:
+      "More keeps scrolling and background controls paused until its menu finishes closing. Search, Ask AI and the search shortcut wait for that removal before opening their panel. Dismissal returns focus to More, while navigation focuses the destination heading once the workspace is available. Reduced motion opens and closes the menu immediately.",
+    category: "fix",
+    publishedAt: "2026-10-08",
+  },
+  {
+    id: "notification-close-continuity",
+    slug: "notification-close-continuity",
+    title: "Close notifications without losing your place",
+    description:
+      "The phone dock stays paused until the notification sheet finishes closing. Dismissal returns focus to the bell after the panel leaves, while notification links keep focus with their destination. Desktop and phone panels skip animation under reduced motion.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "dialog-exit-continuity",
+    slug: "dialog-exit-continuity",
+    title: "Keep the workspace steady while dialogs close",
+    description:
+      "The phone navigation dock and embedded previews stay hidden while a dialog fades out, and sidebar controls remain paused until the last dialog leaves the screen. Closing a nested confirmation keeps the editor's hold in place. Reduced motion releases the workspace as soon as the dialog is removed.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "nested-dialog-layering",
+    slug: "nested-dialog-layering",
+    title: "Keep nested confirmations in focus",
+    description:
+      "A confirmation now dims and blocks the editor beneath it. Each dialog keeps its panel and backdrop together through entry and exit, so closing a confirmation reveals the retained draft with the same soft transition or immediate reduced-motion response.",
+    category: "fix",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "dialog-decision-polish",
+    slug: "dialog-decision-polish",
+    title: "Make the confirmation choice clear",
+    description:
+      "Delete, discard and archive confirmations use the shared danger appearance while the safer cancel choice receives initial keyboard focus. Keep editing returns to an unsaved card draft, and the action row wraps on small screens. Dialogs and backdrops open and close immediately under reduced motion, including nested confirmations, while normal motion keeps the existing soft transitions. Closing preserves focus already moved to another page control.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "action-feedback-polish",
+    slug: "action-feedback-polish",
+    title: "Read action feedback at your own pace",
+    description:
+      "Brief confirmations and warnings pause while you hover over them or focus their dismiss control, then resume with their remaining reading time. Larger dismiss targets and visible keyboard focus make messages easier to clear. Stacked messages settle smoothly when one disappears; reduced motion shows and clears feedback without animation.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "page-help-interaction-polish",
+    slug: "page-help-interaction-polish",
+    title: "Read page guidance without losing your place",
+    description:
+      "How this works opens a compact panel with workflow steps, saved results and clearly separated guide actions. Open and close transitions reverse when you change your mind; reduced motion skips them. Keyboard focus enters the panel, while Close help and Escape return to the page controls. Guide links keep their position on hover and provide larger touch targets. Today and Contacts starting instructions now name the specific first action.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "owner-business-workspace",
+    slug: "owner-business-workspace",
+    title: "Find the business question and follow it into work",
+    description:
+      "Nine sidebar groups explain where to manage the business. Core page headers show a starting instruction, with expanded steps and saved-result context. Today begins with sourced findings across sales, customer follow-up, delivery and money, links each finding to its record and prepares contextual AI questions. Connected walkthroughs teach answering an inquiry, starting client work and following an invoice through its recorded result. Existing custom views, permissions and business records remain intact.",
+    category: "improvement",
+    publishedAt: "2026-10-06",
+  },
+  {
+    id: "task-inspector-context-recovery",
+    slug: "task-inspector-context-recovery",
+    title: "Keep task details attached to the right work",
+    description:
+      "Task links reopen the same inspector after reload, load independently and offer retry on read failures. Switching links cannot reuse another task’s fields or let a late save close the next task. Edit instructions beside title, date and priority, and open the related client, contact or opportunity. Pending changes lock the form and close control, failed edits retain the draft, and completed tasks remain available for reference. Legacy Today links use stored record identifiers.",
+    category: "fix",
+    publishedAt: "2026-10-06",
+  },
+  {
+    id: "client-workspace-recovery",
+    slug: "client-workspace-recovery",
+    title: "Keep client records, activity and follow-ups connected",
+    description:
+      "Client records, activity and follow-ups load independently and offer scoped retries. Failed refreshes retain loaded information and unsaved edits. Follow-ups sit beside activity and refresh Work and Today after creation. Pending submissions hold the draft fixed, failed submissions retain edits, and client values accept cents with nonnegative form validation.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "website-editor-operation-recovery",
+    slug: "website-editor-operation-recovery",
+    title: "Keep website edits safe during saves, reloads and imports",
+    description:
+      "Website editing pauses while a save, reload or import finishes, so competing actions cannot overwrite local work. Failed reloads retain your edits and undo history, and initial loading failures offer a direct retry. Incomplete or mismatched confirmations keep the exact pending change for retry. Leaving the editor stops pending requests and ignores late responses. Editing, Undo and Redo clear outdated success messages.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "private-draft-responsive-preview",
+    slug: "private-draft-responsive-preview",
+    title: "Check private drafts in real responsive viewports",
+    description:
+      "Preview saved private drafts at 390, 768 and 1440 pixels. Each size gives the page its own viewport, so responsive layouts and typography match the selected width even on a small admin screen. The preview uses public page styling, keeps links and forms inactive, and lets you open FAQ answers without leaving the editor.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "private-page-draft-demo",
+    slug: "private-page-draft-demo",
+    title: "Try private page drafts in the demo",
+    description:
+      "Create, preview, rename and discard private page drafts in each fictional business. Saved titles survive reloads, businesses keep separate copies, and confirmed changes appear as simulated activity. AI example mode uses the service template without a provider call. Drafts remain in browser-session storage until discarded or the business is reset. Preview centering preserves the gap before rename controls.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "private-page-draft-recovery",
+    slug: "private-page-draft-recovery",
+    title: "Recover private page drafts without losing your title",
+    description:
+      "Failed refreshes retain your preview and typed title. Load the latest copy after a stale or uncertain save or discard, review it, then retry. Creation keeps its brief fixed while pending, supports Enter submission, and requires a successful list refresh after an unclear result. Late replies cannot move you away from another page, and Keep draft cancels a discard choice. The optional image catalogue opens on demand and shows the eight-image selection limit.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
+    id: "website-ai-review-recovery",
+    slug: "website-ai-review-recovery",
+    title: "Preview and recover AI website edits",
+    description:
+      "Review proposed pages at phone, tablet and desktop widths before applying them. Cancel a pending suggestion without changing your draft, and prepare a fresh suggestion when newer edits need protection. AI review stays with its page, custom addresses survive title changes, and visible section limits keep pages valid and saveable.",
+    category: "fix",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "homepage-dimensional-identity",
     slug: "homepage-dimensional-identity",
     title: "A new visual direction for the homepage",

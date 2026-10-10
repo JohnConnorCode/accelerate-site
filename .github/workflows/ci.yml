@@ -318,8 +318,9 @@ jobs:
     needs: scope
     if: ${{ !inputs.admin_design_only && !inputs.cold_start_only }}
     runs-on: ubuntu-latest
-    # Full browser coverage can take 30 minutes before evidence and cache uploads.
-    timeout-minutes: 45
+    # Full browser coverage includes owner workflows and isolated navigation
+    # checks; leave time to retain their evidence and compiler cache.
+    timeout-minutes: 60
     env:
       # Preserve explicit coverage for the original agency installation.
       NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
@@ -342,6 +343,7 @@ jobs:
             ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-
       # next build includes TypeScript validation. Never ignore build errors.
       - name: Build and typecheck
+        id: production-build
         run: npm run build
 
       # A public-only verification can supply a local production preview when
@@ -374,6 +376,7 @@ jobs:
         run: node scripts/check-plugin-host-package.mjs
 
       - name: Install browser for first-run verification
+        id: browser-install
         run: npx playwright install --with-deps chromium webkit
       - name: Verify native homepage and cached mobile motion
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
@@ -499,6 +502,7 @@ jobs:
             /tmp/accelerate-configuration-server.log
 
       - name: Verify credential-free first-run journey
+        if: ${{ !cancelled() && steps.production-build.outcome == 'success' && steps.browser-install.outcome == 'success' }}
         env:
           # NextURL canonicalizes loopback IPs to localhost. Keep the server's
           # initURL on that same origin so demo rewrites never become self-proxies.
@@ -527,12 +531,15 @@ jobs:
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
+            node scripts/qa-owner-workspace.mjs
+            node scripts/qa-command-center-daily-work.mjs
             npx tsx scripts/qa-site-studio.ts
             node scripts/qa-campaign-duplicate.mjs
             node scripts/qa-delivery-handoff.mjs
             node scripts/qa-leads-bulk.mjs
             node scripts/qa-website-editor.mjs
             node scripts/qa-website-authoring.mjs
+            node scripts/qa-website-ai-recovery.mjs
             node scripts/qa-analytics-workspace.mjs --demo
             node scripts/qa-radar-workspace.mjs
             node scripts/qa-command-center-offline-store.mjs
@@ -581,10 +588,27 @@ jobs:
             if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
           fi
           if [ "$PUBLIC_PAGES_ONLY" != "true" ] && [ "$DOCS_ONLY" != "true" ]; then
+            if ! node scripts/qa-navigation-runtime.mjs; then browser_status=1; fi
+            if ! node scripts/qa-navigation-filmstrip.mjs; then browser_status=1; fi
             if ! node scripts/qa-contact-import-source-review.mjs; then browser_status=1; fi
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
+      - name: Retain owner workspace and guide evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: owner-workspace-browser-evidence
+          path: |
+            /tmp/accelerate-owner-workspace/
+            /tmp/accelerate-site-studio-qa/
+            /tmp/accelerate-daily-work-qa/
+            /tmp/accelerate-today-workspace/
+            /tmp/accelerate-docs-takeover-qa/
+            /tmp/accelerate-navigation-runtime/
+            /tmp/accelerate-navigation-filmstrip/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -596,6 +620,7 @@ jobs:
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-website-editor/
             /tmp/accelerate-website-authoring/
+            /tmp/accelerate-website-ai-recovery/
             /tmp/accelerate-campaign-duplicate/
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
@@ -619,6 +644,8 @@ jobs:
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
             /tmp/accelerate-client-interactions/
+            /tmp/accelerate-owner-workspace/
+            /tmp/accelerate-daily-work-qa/
             /tmp/accelerate-admin-language/
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/

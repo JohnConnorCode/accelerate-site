@@ -36,6 +36,11 @@ routing or creating surface-specific history systems.
 - Query and hash changes preserve the caller's explicit scroll policy. Layout
   growth after a history traversal must not permanently displace the restored
   position.
+- Client-owned inspector selection uses the shared navigation hook's
+  `replaceSearch` method. It keeps the current document, pathname, hash and
+  history entry while Next's native History API adapter updates search params.
+  Opening or closing an inspector does not fetch another route or lose prepared
+  fields such as a keyboard snooze date.
 - The runtime must merge its entry key into the existing Next.js history state,
   never overwrite framework-owned fields.
 - Scroll receipts are a bounded 64-entry LRU held in memory during navigation.
@@ -45,6 +50,12 @@ routing or creating surface-specific history systems.
   synchronous storage work block every navigation frame.
 
 ## Motion, loading, and focus
+
+- Route focus waits while the registered page viewport is inert. Its existing
+  destination observer follows removal of that attribute, so a closing modal
+  can release the page before its heading receives focus. The mobile More menu
+  retains scroll, keyboard and background protection through its exit; Search
+  and Ask AI handoffs run after removal instead of using a fixed delay.
 
 - A valid admin navigation intent must produce visible feedback in the same
   frame as activation. The destination may show a pending state, but

@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I preview an AI page change before applying it?",
+    answer:
+      "Yes. In Site Studio, choose Ask AI, prepare a suggestion and use Preview suggestion to inspect phone, tablet and desktop layouts. Review changes shows the text comparison. Apply to draft updates your local draft; saving and publishing are separate steps. Cancel suggestion stops a pending request and preserves your edits, though provider charges may still apply. If the page changes after preparation, prepare a fresh suggestion before applying.",
+  },
+  {
     question: "Can I run work by talking to an agent?",
     answer:
       "Yes. Ask AI and authenticated member MCP connections can read records, prepare exact changes and start an ordered job with saved progress. Review proposals inside chat, or open the focused review link from an external agent. Background work needs an active scheduler and a finite AI call budget. You can pause, resume or cancel future steps. Interrupted work keeps its receipts for reconciliation instead of replaying effects.",
@@ -24,7 +29,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Where do I find invoices and create a new one?",
     answer:
-      "With Stripe invoicing enabled, open Invoices directly from the sidebar or the mobile Menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Choose an existing customer, enter line items and review the draft before requesting approval.",
+      "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Choose an existing customer, enter line items and review the draft before requesting approval.",
   },
   {
     question: "What should I do when an inquiry update needs attention?",
@@ -89,7 +94,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I actually work with clients in the demo?",
     answer:
-      "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Work or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",
+      "Yes. Search or filter clients, open an account, save notes and add a follow-up. Follow-ups appear beside activity and refresh Work and Today after creation. Open a saved follow-up in Work or follow the timeline to its specific conversation or opportunity. Failed reads offer scoped retries, and failed saves keep your edits. Changes persist in that fictional business session and never contact customers.",
   },
   {
     question: "Can I try Command Center before setting it up?",
@@ -104,7 +109,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we create our own workspace theme?",
     answer:
-      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Nine built-in appearances have distinct palettes, typography, corners and depth, including matte Material, silver macOS and the Capy-inspired graphite-and-seafoam theme. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing, touch controls stay easy to reach, and transitions respect reduced motion. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
+      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Nine built-in appearances have distinct palettes, typography, corners and depth, including matte Material, silver macOS and the Capy-inspired graphite-and-seafoam theme. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing and touch controls stay easy to reach. Delete, discard and archive confirmations distinguish the action from the safer cancel choice. Nested confirmations dim the editor beneath them and reveal it again when closed. Phone navigation returns after the last dialog finishes closing. Dialogs, notification panels and the phone More menu open and close immediately under reduced motion. More keeps the page paused until its menu closes, then hands focus to Search, Ask AI or the selected destination. The phone dock stays paused until notifications finish closing, and dismissal returns focus to the bell without overriding focus moved to another control. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
   },
   {
     question: "How does the whole system fit together?",
@@ -119,7 +124,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can the AI change my live website without me?",
     answer:
-      "No. Creating a draft, applying an AI suggestion, and saving all keep the work private, and an installation owner reviews and publishes a saved revision separately. You can preview the copy at phone and desktop widths, choose a model by provider and price, and roll back from history. Private drafts stay separate from the published site.",
+      "No. Creating a draft, applying an AI suggestion, and saving all keep the work private, and an installation owner reviews and publishes a saved revision separately. You can preview the copy at phone, tablet and desktop widths, choose a model by provider and price, and roll back from history. The installation editor pauses competing actions during save, reload and import. Failed reloads retain your edits and undo history; an uncertain confirmation keeps the original retry. Private drafts stay separate from the published site. Their previews keep the selected page width even on a small screen, use public page styling, and disable links and form submissions while keeping FAQ answers interactive. If a private draft save or discard cannot be confirmed, load its latest copy and review before retrying; your typed title is retained. After uncertain creation, refresh the draft list to find a saved copy before creating another. In the fictional demo, private drafts stay in each business’s browser session. You can create, rename and discard them; AI example mode uses a template without a provider call.",
   },
   {
     question: "What does a completed delivery handoff actually mean?",
@@ -129,7 +134,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do Today and Work fit together?",
     answer:
-      "Today puts sourced decisions and follow-up first, then business changes and operational alerts. Pipeline facts, upcoming commitments and automation are supporting context. Automation details and completed results expand on demand. More contains view customization, creation, duplication, deletion and the classic-view recovery option. Search and Ask AI stay available in the desktop workspace toolbar. Work opens on your open tasks, with team work one filter away; saved views sit behind Save view. It provides task editing, dated snooze and the same approvals, with list, board and calendar layouts over the same saved tasks. The list supports j/k movement and keyboard review. Ask AI can also prepare task reopening and description edits; review the proposal in Approvals, then check its recorded result. Layout, fields and filters stay in this browser and are separated by workspace and signed-in member. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
+      "Today starts with a Business review of Sales, Customer follow-up, Delivery and Money from inspected sources. Each finding opens its source and next action, with a contextual Ask AI prompt. Missing or partial sources stay visible, and pipeline estimates remain separate from payment status. Needs you, upcoming commitments and recorded automation results follow. Automation details and completed results expand on demand. More contains view customization, creation, duplication, deletion and the classic-view recovery option. Search and Ask AI stay available in the desktop workspace toolbar. Work opens on your open tasks, with team work one filter away; saved views sit behind Save view. Its task inspector edits instructions, retains its link after reload, opens related records and offers scoped retries. It provides task editing, dated snooze and the same approvals, with list, board and calendar layouts over the same saved tasks. The list supports j/k movement and keyboard review. Ask AI can also prepare task reopening and description edits; review the proposal in Approvals, then check its recorded result. Layout, fields and filters stay in this browser and are separated by workspace and signed-in member. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change. Start here explains the first action on core pages. How this works opens the steps, saved result and guide actions in a keyboard-accessible panel; Close help or Escape returns to the page controls. The three connected walkthroughs teach an inquiry, a client handoff and an invoice from situation to saved result.",
   },
   {
     question: "Can we build a completely different App or interface?",

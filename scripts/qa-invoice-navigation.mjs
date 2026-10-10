@@ -65,11 +65,11 @@ async function openInvoices(page, mobile) {
   const documentId = await page.evaluate(() => window.__accelerateInvoiceNavigationDocument);
   if (mobile) await page.getByRole("button", { name: "Open More", exact: true }).click();
   const navigation = page.locator('nav[aria-label="Admin navigation"]:visible');
-  const invoices = navigation.getByRole("link", { name: "Invoices", exact: true });
+  const invoices = navigation.getByRole("link", { name: "Billing & payments", exact: true });
   assert.equal(
     await invoices.count(),
     1,
-    "Invoices must be a visible destination without expanding Records",
+    "Billing must be a visible destination without expanding Customers & sales",
   );
   const destination = new URL(await invoices.getAttribute("href"), page.url());
   assert.equal(
@@ -107,7 +107,7 @@ try {
       if (!mobile) {
         await page.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
         assert.equal(
-          await page.locator('[data-admin-sidebar] a[aria-label="Invoices"]').count(),
+          await page.locator('[data-admin-sidebar] a[aria-label="Billing & payments"]').count(),
           1,
         );
         await page.getByRole("button", { name: "Expand sidebar", exact: true }).click();
@@ -228,6 +228,8 @@ try {
     const dialog = await search(page, "create invoice");
     await dialog.getByPlaceholder("Search people, pages, or run a command…").press("Enter");
     await page.getByRole("heading", { name: "Connect your Stripe account", exact: true }).waitFor();
+    await dialog.waitFor({ state: "hidden" });
+    await settle(page);
     assert.equal(
       await page.getByRole("button", { name: "Prepare invoice", exact: true }).count(),
       0,

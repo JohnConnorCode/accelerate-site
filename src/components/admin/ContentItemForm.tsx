@@ -122,6 +122,7 @@ export function ContentItemForm({
         title: "Discard content edits?",
         description: "Your unsaved changes will be lost.",
         confirmLabel: "Discard edits",
+        destructive: true,
         cancelLabel: "Keep editing",
       }))
     )
