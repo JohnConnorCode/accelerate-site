@@ -105,6 +105,7 @@ try {
         await route.abort();
       });
       await page.goto(`${base}/demo/command-center/northline-roofing/proposals`);
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
       await page.getByRole("heading", { name: "Proposals", exact: true }).waitFor();
       const rows = await page.evaluate(async () => {
         const { proposals } = await (await fetch("/api/admin/proposals")).json();

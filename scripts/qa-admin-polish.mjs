@@ -104,6 +104,7 @@ try {
     assert.ok(geometry.width >= 270, JSON.stringify(geometry));
     assert.notEqual(geometry.radius, "0px");
     assert.equal(await page.locator("html").getAttribute("data-theme"), theme.id);
+    await page.emulateMedia({ reducedMotion: "reduce" });
     const accessibility = await new AxeBuilder({ page })
       .include(".admin-shell")
       .withRules(["color-contrast"])
@@ -114,6 +115,7 @@ try {
     );
     assert.deepEqual(accessibility.violations, [], `${theme.id}: contrast audit`);
     await page.screenshot({ path: `${output}/${theme.id}-desktop.png` });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(200);
     assert.ok(
@@ -132,6 +134,7 @@ try {
       await page.locator("h1").first().waitFor();
       if (route !== "today") await page.locator("[data-kanban-card]").first().waitFor();
       await page.waitForTimeout(400);
+      await page.emulateMedia({ reducedMotion: "reduce" });
       const audit = await new AxeBuilder({ page })
         .include(".admin-shell")
         .withRules(["color-contrast"])
@@ -141,6 +144,7 @@ try {
         JSON.stringify(audit.violations, null, 2),
       );
       await page.screenshot({ path: `${output}/${theme.id}-${route}.png` });
+      await page.emulateMedia({ reducedMotion: "no-preference" });
       surfaces.push({ route, violations: audit.violations.length });
       if (route !== "today") await measureBoard(page, theme.id, route);
     }
