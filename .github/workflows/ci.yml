@@ -89,6 +89,9 @@ jobs:
           node --test scripts/test-admin-ai-inventory.mjs
           node scripts/admin-ai-inventory.mjs --check
 
+      - name: Verify account recovery boundaries
+        run: npm run test:password-recovery
+
       - name: Verify admin route inventory
         run: npm run test:admin-route-inventory
 

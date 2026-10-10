@@ -8,6 +8,8 @@ on:
       - package.json
       - package-lock.json
       - scripts/qa-connected-fork.mjs
+      - scripts/qa-password-recovery.mjs
+      - scripts/test-password-recovery.mjs
       - scripts/qa-native-workspace-mcp-oauth.ts
       - scripts/workspace-setup.mjs
       - scripts/lib/workspace-setup.mjs
@@ -16,6 +18,10 @@ on:
       - scripts/test-storage-recovery.mjs
       - scripts/test-release-restore-upgrade-proof.ts
       - src/app/admin/contacts/**
+      - src/app/admin/login/**
+      - src/app/admin/update-password/**
+      - src/app/auth/callback/**
+      - src/app/api/admin/password-reset/**
       - src/app/api/admin/contacts/**
       - src/lib/revenue-os/identity.ts
       - src/lib/revenue-os/tasks.ts
@@ -76,6 +82,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run test:password-recovery
       - uses: supabase/setup-cli@v3
         with:
           version: 2.72.7
@@ -102,7 +109,16 @@ jobs:
         run: |
           npm run build
           npx playwright install --with-deps chromium
+          npm run resources:run -- node scripts/qa-password-recovery.mjs
           node scripts/qa-connected-fork.mjs run
+      - name: Retain controlled password recovery evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: password-recovery-browser-evidence
+          path: ${{ runner.temp }}/accelerate-password-recovery/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain fictional connected-fork evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

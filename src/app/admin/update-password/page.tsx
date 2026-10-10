@@ -5,6 +5,7 @@ import { LockKeyhole } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { AdminAuthLayout } from "@/components/admin/AdminAuthLayout";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import Link from "@/components/admin/AdminLink";
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("");
@@ -26,21 +27,28 @@ export default function UpdatePasswordPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
-    const { error: updateError } = await supabase.auth.updateUser({
-      password,
-    });
+    try {
+      const { error: updateError } = await createClient().auth.updateUser({ password });
+      if (updateError) {
+        setError(
+          updateError.name === "AuthSessionMissingError" ||
+            ["session_not_found", "refresh_token_not_found"].includes(updateError.code || "")
+            ? "Your recovery session has expired. Request a new reset link to continue."
+            : updateError.code === "same_password"
+              ? "Choose a password different from your current password."
+              : "Your password could not be updated. Try again, or request a new reset link.",
+        );
+        return;
+      }
 
-    if (updateError) {
-      setError(updateError.message);
+      // A full navigation makes the server read the updated session cookie.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = "/admin";
+    } catch {
+      setError("Your password could not be updated. Try again, or request a new reset link.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // A full navigation forces the server to re-read the fresh auth cookie;
-    // a client-side route push can render the admin shell against stale auth state.
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.href = "/admin";
   };
 
   return (
@@ -97,9 +105,17 @@ export default function UpdatePasswordPage() {
             </div>
 
             {error && (
-              <p className="text-sm text-error" role="alert">
-                {error}
-              </p>
+              <div className="space-y-2">
+                <p className="text-sm text-error" role="alert">
+                  {error}
+                </p>
+                <Link
+                  href="/admin/login?error=reset_failed"
+                  className="admin-secondary-control min-h-11 px-4"
+                >
+                  Request a new reset link
+                </Link>
+              </div>
             )}
 
             <button

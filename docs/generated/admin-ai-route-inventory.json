@@ -957,7 +957,7 @@
         "@supabase/ssr",
         "next/server"
       ],
-      "sourceSha256": "dc53ffddab805408244303c6a22e09169f8260f0106d24a0d5aab7af0711b945"
+      "sourceSha256": "bb099e845be631686d48927bf313f0319ca0b83274abd86cfae2ce58a227366a"
     },
     {
       "source": "src/app/api/admin/plausible/route.ts",

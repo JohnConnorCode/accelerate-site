@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
 import { createServerClient } from "@supabase/ssr";
 import { activateInvitedTenantMembership } from "@/lib/tenancy/lifecycle";
 import { commandCenterOrigin } from "@/lib/command-center/runtime";
@@ -45,107 +46,90 @@ export async function GET(request: NextRequest) {
     type === "recovery" ? "/admin/update-password" : "/workspace",
   );
 
-  // `type=recovery` is not consistently retained when Supabase exchanges a
-  // PKCE code. Preserve the intended destination in the allowed callback URL
-  // instead, with `type` retained as a compatibility fallback for older links.
-  if (code) {
-    const response = NextResponse.redirect(new URL(safeNext, origin));
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            for (const { name, value, options } of cookiesToSet) {
-              response.cookies.set(name, value, options);
-            }
-          },
-        },
-      },
-    );
-
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return response;
-  }
-
-  if (tokenHash && type === "recovery") {
-    const response = NextResponse.redirect(new URL(safeNext, origin));
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            for (const { name, value, options } of cookiesToSet) {
-              response.cookies.set(name, value, options);
-            }
-          },
-        },
-      },
-    );
-    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
-    if (!error) return response;
-  }
-
+  const error =
+    type === "recovery" || safeNext === "/admin/update-password" ? "reset_failed" : "auth_failed";
+  const failure = NextResponse.redirect(new URL(`/admin/login?error=${error}`, origin));
+  failure.headers.set("Cache-Control", "private, no-store");
   if (
+    !isSupabasePublicConfigured(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    )
+  ) {
+    const response = NextResponse.redirect(new URL("/admin/login?error=not_configured", origin));
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
+  }
+
+  const invitation =
     tokenHash &&
     (type === "invite" || type === "magiclink") &&
     validTenantId(tenantId) &&
-    validTenantSlug(workspace)
-  ) {
-    const response = NextResponse.redirect(new URL(`/t/${workspace}/admin/today`, origin));
+    validTenantSlug(workspace);
+  const recovery = tokenHash && type === "recovery";
+  if (!code && !recovery && !invitation) return failure;
+
+  const response = NextResponse.redirect(
+    new URL(invitation && !code ? `/t/${workspace}/admin/today` : safeNext, origin),
+  );
+  response.headers.set("Cache-Control", "private, no-store");
+  try {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
+        global: {
+          fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(10_000) }),
+        },
         cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            for (const { name, value, options } of cookiesToSet)
+          getAll: () => request.cookies.getAll(),
+          setAll: (cookies) => {
+            for (const { name, value, options } of cookies)
               response.cookies.set(name, value, options);
           },
         },
       },
     );
-    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
-    if (!error) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user?.email) {
-        try {
+
+    // PKCE callbacks may omit type=recovery; next retains the intended page.
+    if (code) {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error) return response;
+    } else if (recovery) {
+      const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash!, type: "recovery" });
+      if (!error) return response;
+    } else if (invitation) {
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash!,
+        type: type as "invite" | "magiclink",
+      });
+      if (error) {
+        failure.headers.set("Location", new URL("/admin/login?error=invite_failed", origin).href);
+      } else {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user?.email) {
           await activateInvitedTenantMembership({
-            tenantId,
-            tenantSlug: workspace,
+            tenantId: tenantId!,
+            tenantSlug: workspace!,
             userId: user.id,
             email: user.email,
           });
           return response;
-        } catch {
-          return copyResponseCookies(
-            response,
-            NextResponse.redirect(new URL("/admin/login?error=invite_unavailable", origin)),
-          );
         }
+        failure.headers.set("Location", new URL("/admin/login?error=invite_failed", origin).href);
       }
     }
-    return copyResponseCookies(
-      response,
-      NextResponse.redirect(new URL("/admin/login?error=invite_failed", origin)),
-    );
+  } catch {
+    // Provider details, codes and tokens do not belong in the redirect or logs.
+    if (invitation && !code)
+      failure.headers.set(
+        "Location",
+        new URL("/admin/login?error=invite_unavailable", origin).href,
+      );
   }
-
-  // Recovery links and sign-in callbacks need different failure guidance.
-  const error =
-    type === "recovery" || safeNext === "/admin/update-password" ? "reset_failed" : "auth_failed";
-  return NextResponse.redirect(new URL(`/admin/login?error=${error}`, origin));
+  // Failed PKCE exchanges can clear verifier cookies. Preserve those changes
+  // on the failure redirect so a fresh recovery request starts cleanly.
+  return copyResponseCookies(response, failure);
 }
