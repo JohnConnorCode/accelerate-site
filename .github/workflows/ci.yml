@@ -248,6 +248,8 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
+          npm run test:content-calendar-actions
+          PATH="$(pg_config --bindir):$PATH" npm run test:content-calendar-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning
           PATH="$(pg_config --bindir):$PATH" npm run test:ai-readiness
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
@@ -585,6 +587,7 @@ jobs:
             node scripts/qa-client-interactions.mjs
             node scripts/qa-owner-workspace.mjs
             node scripts/qa-command-center-daily-work.mjs
+            node scripts/qa-content-calendar.mjs
             npx tsx scripts/qa-site-studio.ts
             node scripts/qa-campaign-duplicate.mjs
             node scripts/qa-delivery-handoff.mjs
@@ -689,6 +692,7 @@ jobs:
             /tmp/accelerate-website-authoring/
             /tmp/accelerate-website-ai-recovery/
             /tmp/accelerate-campaign-duplicate/
+            /tmp/accelerate-content-calendar/
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
             /tmp/accelerate-turnkey-qa/

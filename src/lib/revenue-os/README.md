@@ -333,3 +333,9 @@ recovery, and `scripts/test-collection-policy.ts` for authority/freshness proof.
 Google checks and bounded sync reuse `google.ts` and durable job/source receipts. Partial work stops further sources, preserves completed records and fails the action with a progress receipt. The direct admin API reports incomplete work as an error. Credential entry, OAuth consent, ingest/MCP key creation and installation environment remain secure human handoffs; configuration tools cannot elevate access or return secrets.
 
 The fictional transport shares the same command and semantic preview contract, persists configuration and proposals in its existing session store and uses `ActionReviewDialog`. It simulates effects without calling providers or a model. See [operation matrix](../../../docs/verification/WORKSPACE-CONFIGURATION-2026-09-29.md) for boundaries and checks.
+
+Content calendar lifecycle commands are owned by `content-calendar.ts` and the
+strict shared `content-calendar-contract.ts`. Admin controls and approved AI/MCP
+use the same atomic calendar/audit function. See the
+[operation matrix](../../../docs/verification/CONTENT-CALENDAR-LIFECYCLE-2026-10-06.md)
+for bounds, retry behavior and remaining content-domain gaps.

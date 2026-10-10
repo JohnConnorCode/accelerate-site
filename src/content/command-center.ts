@@ -159,6 +159,15 @@ export const capabilities: Capability[] = [
       "Work starts with your open tasks and can show team work when needed. Use the same tasks as a list, status board or date calendar; filter and save a personal or workspace view; then edit, snooze or complete work through its existing task service. The list supports keyboard triage. The inspector edits instructions, keeps its task link through reload, opens related records and offers read recovery while preserving failed edit drafts. Ask AI can prepare task reopening and description edits for review, with stale-change checks before execution. Onboarding and meeting workflows can create assigned checklists linked to their source records. A client follow-up appears beside its activity and refreshes the task views in Work and Today.",
   },
   {
+    id: "content-calendar",
+    category: "organize",
+    title: "Editorial calendar",
+    promise:
+      "Keep each brief, owner and editorial stage visible as content moves toward publication.",
+    detail:
+      "Create and edit items in Content, clear optional details, and move work between current columns. Ask AI or a connected MCP assistant can prepare creation, edits, permanent deletion and moves for review in Approvals. Saving checks current access and refuses changed items. Calendar status tracks the work; publication remains in the publishing destination.",
+  },
+  {
     id: "notes",
     category: "organize",
     title: "Customer notes",

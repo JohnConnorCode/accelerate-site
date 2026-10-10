@@ -553,6 +553,14 @@
       "module": "content"
     },
     {
+      "tool": "preview_content_calendar_change",
+      "module": "content"
+    },
+    {
+      "tool": "propose_content_calendar_change",
+      "module": "content"
+    },
+    {
       "tool": "run_business_pulse",
       "module": "business-pulse"
     },

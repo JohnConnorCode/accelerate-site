@@ -47,7 +47,7 @@ import {
 } from "./tasks";
 import { applyLayoutChange } from "./admin-layout";
 import { captureFounderNote } from "./notes";
-import { executeContentCalendarUpdate } from "./content-calendar";
+import { executeContentCalendarUpdate, executeContentCalendarCommand } from "./content-calendar";
 
 function stringValue(
   payload: Record<string, unknown>,
@@ -218,6 +218,11 @@ export async function approveAndExecuteAction(
       case "update_content_calendar_item": {
         if (mode !== "approved") throw new Error("Content calendar edits require human approval");
         result = await executeContentCalendarUpdate(supabase, payload, actorEmail);
+        break;
+      }
+      case "content_calendar_change": {
+        if (mode !== "approved") throw new Error("Content calendar changes require human approval");
+        result = await executeContentCalendarCommand(supabase, payload, actorEmail);
         break;
       }
       case "today_view_change": {
