@@ -142,8 +142,13 @@ try {
     await opportunityLink.waitFor();
     if (width === 1440) {
       const records = page.locator('section[data-nav-section="Customers & sales"]:visible');
-      await records.getByRole("link", { name: "Website inquiries", exact: true }).waitFor();
-      assert.ok((await records.innerText()).includes("Understand each relationship"));
+      const inquiries = records.getByRole("link", { name: "Website inquiries", exact: true });
+      await inquiries.waitFor();
+      assert.equal(
+        new URL(await inquiries.getAttribute("href"), base).pathname,
+        "/demo/command-center/northline-roofing/leads",
+        "Website inquiries must stay in the active fictional workspace",
+      );
     }
     await page.screenshot({ path: `${output}/contact-${width}.png`, fullPage: false });
     assert.equal(
