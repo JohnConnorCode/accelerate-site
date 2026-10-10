@@ -4,6 +4,7 @@ import { readPublicWebsite } from "@/lib/site-studio/website-public";
 import { tenant } from "@/config/tenant";
 
 import type { MetadataRoute } from "next";
+import { businessAreas } from "@/content/command-center-business";
 import { getAllArticles, getAllCategories, getAllTags } from "@/lib/mdx";
 import { verticals } from "@/content/verticals";
 import { publicWorkProjects } from "@/content/work";
@@ -39,7 +40,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/chicago", priority: 0.85, freq: "monthly", lastMod: "2026-09-19" },
     { path: "", priority: 1, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
     { path: "/services", priority: 0.9, freq: "monthly", lastMod: "2026-02-15" },
-    { path: "/command-center", priority: 0.9, freq: "monthly", lastMod: "2026-09-20" },
+    { path: "/command-center", priority: 0.9, freq: "monthly", lastMod: "2026-10-10" },
+    { path: "/command-center/features", priority: 0.8, freq: "monthly", lastMod: "2026-10-10" },
+    { path: "/command-center/compare", priority: 0.7, freq: "monthly", lastMod: "2026-10-10" },
+    ...businessAreas.map((area) => ({
+      path: `/command-center/features/${area.id}`,
+      priority: 0.7,
+      freq: "monthly" as const,
+      lastMod: "2026-10-10",
+    })),
     { path: "/ai-readiness", priority: 0.85, freq: "monthly", lastMod: "2026-09-20" },
     { path: "/open-source", priority: 0.8, freq: "monthly", lastMod: "2026-09-19" },
     { path: "/roofing", priority: 0.9, freq: "monthly", lastMod: "2026-08-16" },

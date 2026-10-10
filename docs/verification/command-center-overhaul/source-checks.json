@@ -1,0 +1,61 @@
+{
+  "result": "passed",
+  "checks": [
+    {
+      "command": "npm run verify:agent-contract",
+      "result": "passed"
+    },
+    {
+      "command": "npm run verify:docs",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:docs-coverage",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:product-story",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:command-center-demo-contract",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:search",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:house-style-copy",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:no-fabricated-claims",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:open-source-stats",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:neutral-runtime-distribution",
+      "result": "passed"
+    },
+    {
+      "command": "npm run docs:llms:check",
+      "result": "passed"
+    },
+    {
+      "command": "npm run format:check",
+      "result": "passed"
+    },
+    {
+      "command": "node --conditions=react-server --import tsx scripts/test-admin-language.ts",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/test-neutral-export.mjs",
+      "result": "passed"
+    }
+  ]
+}

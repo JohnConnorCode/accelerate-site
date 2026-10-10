@@ -1,0 +1,58 @@
+{
+  "proof": [
+    {
+      "width": 1440,
+      "keyboardRetry": true,
+      "cachedWarning": true,
+      "emptyDistinct": true,
+      "clientEditReconciles": true,
+      "reducedMotion": false
+    },
+    {
+      "width": 390,
+      "reducedMotionComputed": {
+        "reduced": true,
+        "widths": [
+          {
+            "fill": 322,
+            "track": 322
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "keyboardRetry": true,
+      "cachedWarning": true,
+      "emptyDistinct": true,
+      "clientEditReconciles": true,
+      "reducedMotion": true
+    },
+    {
+      "scenario": "northline-roofing",
+      "clientTotalsAgree": true
+    },
+    {
+      "scenario": "alder-ridge-law",
+      "clientTotalsAgree": true
+    },
+    {
+      "scenario": "ledgerstone-advisory",
+      "clientTotalsAgree": true
+    },
+    {
+      "scenario": "hearthline-realty",
+      "clientTotalsAgree": true
+    },
+    {
+      "scenario": "common-table-network",
+      "clientTotalsAgree": true
+    },
+    {
+      "scenario": "superdebate",
+      "clientTotalsAgree": true
+    }
+  ],
+  "errors": [],
+  "escaped": []
+}

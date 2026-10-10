@@ -32,8 +32,12 @@ assert.ok(
 assert.match(marketingPositioning.coreOffer, /free up time/i);
 assert.match(marketingPositioning.coreOffer, /increase revenue/i);
 assert.match(marketingPositioning.coreOffer, /advise, build, integrate, and run/i);
-assert.match(marketingPositioning.commandCenter.description, /For some businesses/i);
-assert.match(marketingPositioning.commandCenter.description, /For others/i);
+assert.match(marketingPositioning.commandCenter.description, /open-source platform/i);
+assert.match(
+  marketingPositioning.commandCenter.description,
+  /focused workflow, integration or tool/i,
+);
+assert.match(marketingPositioning.commandCenter.description, /when that better fits the job/i);
 
 const systems = readFileSync("src/components/home/Systems.tsx", "utf8");
 assert.deepEqual(

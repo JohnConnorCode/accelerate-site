@@ -169,7 +169,10 @@ try {
         await page.keyboard.press("Enter");
         await page.waitForURL(base + "/demo/command-center");
         await page
-          .getByRole("heading", { level: 1, name: "Tell your agent what needs doing." })
+          .getByRole("heading", {
+            level: 1,
+            name: /^Follow the customer\.\s*See the business work\.$/,
+          })
           .waitFor();
         assert.equal(new URL(page.url()).pathname, "/demo/command-center");
         assert.equal(

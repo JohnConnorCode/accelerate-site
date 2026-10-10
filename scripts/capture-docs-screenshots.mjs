@@ -36,6 +36,24 @@ const only = onlyArg ? process.argv[process.argv.indexOf(onlyArg) + 1] : null;
  */
 const SHOTS = [
   {
+    id: "plugins/client-onboarding",
+    scenario: "northline-roofing",
+    route: "client-onboarding",
+    wait: { role: "heading", name: "Client onboarding" },
+  },
+  {
+    id: "plugins/collections",
+    scenario: "northline-roofing",
+    route: "collections",
+    wait: { role: "heading", name: "Collections" },
+  },
+  {
+    id: "plugins/site-studio",
+    scenario: "northline-roofing",
+    route: "site",
+    wait: { role: "heading", name: "Website & pages" },
+  },
+  {
     id: "command-center/today",
     scenario: "northline-roofing",
     route: "today",
@@ -147,7 +165,7 @@ const SHOTS = [
     id: "sources/leads",
     scenario: "northline-roofing",
     route: "leads",
-    wait: { role: "heading", name: /lead/i },
+    wait: { role: "heading", name: "Website inquiries" },
   },
   {
     id: "workspace/settings",
@@ -183,6 +201,7 @@ const SHOTS = [
     id: "plugins/example-inventory",
     scenario: "northline-roofing",
     route: "example-inventory",
+    module: "example-inventory",
     wait: { role: "heading", name: /inventory/i },
   },
   {
@@ -227,6 +246,22 @@ async function main() {
     if (only && shot.id !== only) continue;
     const url = `${base}/demo/command-center/${shot.scenario}/${shot.route}`;
     try {
+      if (shot.module) {
+        // Enable this optional example through the same simulated settings operation as the UI.
+        await page.goto(`${base}/demo/command-center/${shot.scenario}/today`, {
+          waitUntil: "networkidle",
+          timeout: 30_000,
+        });
+        const enabled = await page.evaluate(async (moduleId) => {
+          const response = await fetch("/api/admin/tenant/modules", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ moduleId, enabled: true }),
+          });
+          return response.ok;
+        }, shot.module);
+        if (!enabled) throw new Error(`Could not enable fictional module ${shot.module}`);
+      }
       await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
       await page.locator(".admin-shell").waitFor({ timeout: 15_000 });
       await page

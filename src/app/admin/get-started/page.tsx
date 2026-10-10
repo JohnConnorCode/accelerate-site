@@ -4,6 +4,7 @@ import Link from "@/components/admin/AdminLink";
 import { adminPageName } from "@/lib/admin/navigation";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { BusinessWorkflowStarts } from "@/components/admin/BusinessWorkflowStarts";
 import { Button } from "@/components/ui/Button";
 import type { FirstUseProgress } from "@/lib/revenue-os/first-use";
 export default function GetStartedPage() {
@@ -31,16 +32,17 @@ export default function GetStartedPage() {
     <div className="space-y-6">
       <PageHeader
         title={adminPageName("get-started")}
-        subtitle="Turn one inquiry into a completed next step, then carry a reviewed correction into later work."
+        subtitle="Choose a useful customer, sales, delivery, billing or marketing job, then connect the capabilities it needs."
       />
+      <BusinessWorkflowStarts />
       <AdminSurface padding="lg">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold">Start with one real inquiry</h2>
+            <h2 className="text-xl font-semibold">Your first inquiry workflow</h2>
             <p className="mt-2 max-w-2xl text-sm text-[var(--admin-muted)]">
-              This path works for invited workspaces and self-hosted installations. Start with
-              manual tasks; connect AI and email when you need drafting or sending. Progress comes
-              from saved records and survives reloads.
+              This checklist follows the first saved inquiry through an assigned follow-up. Start
+              with manual tasks, then add AI or email when the job needs it. Completed steps come
+              from existing records and survive reloads.
             </p>
           </div>
           <Button disabled={loading} onClick={load}>
@@ -82,22 +84,26 @@ export default function GetStartedPage() {
       </AdminSurface>
       {progress && (
         <AdminSurface padding="lg">
-          <h2 className="text-lg font-semibold">What has been verified</h2>
-          <p className="mt-2 text-sm text-[var(--admin-muted)]">
-            Connections, background work, model execution and useful outcomes are checked
-            separately.
-          </p>
-          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-            {progress.readiness.map((item) => (
-              <div key={item.label} className="rounded-xl bg-[var(--admin-surface-subtle)] p-4">
-                <dt className="font-medium">{item.label}</dt>
-                <dd className="mt-1 text-sm">
-                  <span className="font-medium capitalize">{item.state}</span>
-                  <p className="mt-1 text-[var(--admin-muted)]">{item.detail}</p>
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <details>
+            <summary className="min-h-11 cursor-pointer text-base font-semibold">
+              Connection and workflow checks
+            </summary>
+            <p className="mt-2 text-sm text-[var(--admin-muted)]">
+              Inspect connection readiness, background work and recorded outcomes when configuring
+              or troubleshooting a workflow.
+            </p>
+            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+              {progress.readiness.map((item) => (
+                <div key={item.label} className="rounded-xl bg-[var(--admin-surface-subtle)] p-4">
+                  <dt className="font-medium">{item.label}</dt>
+                  <dd className="mt-1 text-sm">
+                    <span className="font-medium capitalize">{item.state}</span>
+                    <p className="mt-1 text-[var(--admin-muted)]">{item.detail}</p>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </details>
         </AdminSurface>
       )}
     </div>

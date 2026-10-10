@@ -268,20 +268,21 @@ try {
         await page.screenshot({ path: `${output}/${width}-docs-recovery.png` });
       }
     }
-    await page.goto(`${base}/command-center`);
-    const reportingAnswer = page
-      .locator("summary")
-      .filter({ hasText: "What do the Revenue figures measure?" });
-    await reportingAnswer.scrollIntoViewIfNeeded();
-    await reportingAnswer.focus();
+    await page.goto(`${base}/docs/billing`);
+    const reportingGuide = page
+      .locator("main .prose-docs")
+      .getByRole("link", { name: "Revenue", exact: true });
+    await reportingGuide.focus();
     await page.keyboard.press("Enter");
-    await expect(page.locator("details[open]")).toContainText(
-      "Monthly Recurring sums current active client agreements",
+    await page.waitForURL(`${base}/docs/pipeline/revenue`);
+    await expect(page.locator("main")).toContainText("Monthly values on active client records");
+    await expect(page.locator("main")).toContainText(
+      "Confirm collected cash through provider receipts.",
     );
     await page
-      .locator("details[open]")
-      .evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
-    await page.screenshot({ path: `${output}/${width}-product-revenue-faq.png` });
+      .getByRole("heading", { name: "What the figures mean", exact: true })
+      .scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/${width}-billing-revenue-guide.png` });
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
       true,

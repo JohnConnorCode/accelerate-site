@@ -233,6 +233,7 @@ function MessageActions({ message, onRetry }: { message: AdminAIMessage; onRetry
 
 export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
   const ai = useAdminAI();
+  const reviewInProgress = Boolean(ai.reviewedAction) || ai.reviewing;
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -253,7 +254,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
       lastUserRef.current = latestUserId;
       followingRef.current = true;
     }
-    if (followingRef.current && scrollRef.current) {
+    if (followingRef.current && !reviewInProgress && scrollRef.current) {
       const scroll = scrollRef.current;
       scroll.scrollTop = scroll.scrollHeight;
       scrollSizeRef.current = { viewport: scroll.clientHeight, content: scroll.scrollHeight };
@@ -266,6 +267,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
     ai.workProgress,
     ai.loadingHistory,
     latestUserId,
+    reviewInProgress,
   ]);
 
   useEffect(() => {
@@ -273,13 +275,13 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
     const content = contentRef.current;
     if (!scroll || !content) return;
     const observer = new ResizeObserver(() => {
-      if (followingRef.current) scroll.scrollTop = scroll.scrollHeight;
+      if (followingRef.current && !reviewInProgress) scroll.scrollTop = scroll.scrollHeight;
       scrollSizeRef.current = { viewport: scroll.clientHeight, content: scroll.scrollHeight };
     });
     observer.observe(scroll);
     observer.observe(content);
     return () => observer.disconnect();
-  }, []);
+  }, [reviewInProgress]);
 
   useEffect(() => {
     const composer = composerRef.current;
@@ -294,13 +296,14 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
     // Measuring the input temporarily enlarges the conversation viewport.
     // Restore its position after sizing, including when the final height is unchanged.
     if (conversation) {
-      conversation.scrollTop = followingRef.current ? conversation.scrollHeight : conversationTop;
+      conversation.scrollTop =
+        followingRef.current && !reviewInProgress ? conversation.scrollHeight : conversationTop;
       scrollSizeRef.current = {
         viewport: conversation.clientHeight,
         content: conversation.scrollHeight,
       };
     }
-  }, [ai.draft]);
+  }, [ai.draft, reviewInProgress]);
   const submit = (event: FormEvent) => {
     event.preventDefault();
     void ai.send();
@@ -451,13 +454,14 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             // through layout changes without treating them as a reader scrolling up.
             if (
               followingRef.current &&
+              !reviewInProgress &&
               (scroll.clientHeight !== scrollSizeRef.current.viewport ||
                 scroll.scrollHeight !== scrollSizeRef.current.content)
             )
               scroll.scrollTop = scroll.scrollHeight;
             scrollSizeRef.current = { viewport: scroll.clientHeight, content: scroll.scrollHeight };
             const nearBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight <= 48;
-            followingRef.current = nearBottom;
+            followingRef.current = nearBottom && !reviewInProgress;
             setReadingPosition((current) =>
               current.key === readingKey && current.away === !nearBottom
                 ? current

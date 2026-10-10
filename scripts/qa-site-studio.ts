@@ -593,7 +593,7 @@ async function main() {
           });
           const reference = page
             .locator("summary")
-            .filter({ hasText: "Browse and search the complete capability reference" });
+            .filter({ hasText: "Open the searchable reference" });
           await reference.focus();
           await page.keyboard.press("Enter");
           const search = page.getByLabel("Find a capability", { exact: true });

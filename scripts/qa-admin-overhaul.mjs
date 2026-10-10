@@ -244,7 +244,7 @@ try {
           waitUntil: "networkidle",
           timeout: 60000,
         });
-        await assertIdentity("Email Sequences", "Messages & marketing");
+        await assertIdentity("Email Sequences", "Marketing");
         const palette = await search("Architect");
         const result = palette
           .getByRole("option")
@@ -255,10 +255,10 @@ try {
           (url) =>
             url.pathname === `${prefix}/ai` && url.searchParams.get("purpose") === "architect",
         );
-        await assertIdentity("Architect", "AI & knowledge");
+        await assertIdentity("Architect", "Apps & AI");
         await page.screenshot({ path: `${output}/${label}-architect.png` });
         await page.goBack({ waitUntil: "networkidle" });
-        await assertIdentity("Email Sequences", "Messages & marketing");
+        await assertIdentity("Email Sequences", "Marketing");
         await setCampaigns(false);
         await page.waitForFunction(
           () => !document.querySelector('a.admin-nav-link[href$="/email-sequences"]'),
@@ -272,7 +272,7 @@ try {
         await disabledPalette.waitFor({ state: "detached" });
         await setCampaigns(true);
         await page.reload({ waitUntil: "networkidle" });
-        await assertIdentity("Email Sequences", "Messages & marketing");
+        await assertIdentity("Email Sequences", "Marketing");
         const restoredPalette = await search("Email Sequences");
         await restoredPalette.getByText("Email Sequences", { exact: true }).waitFor();
         await page.keyboard.press("Escape");

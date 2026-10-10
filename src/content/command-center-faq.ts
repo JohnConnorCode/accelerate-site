@@ -2,6 +2,21 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "What is Command Center?",
+    answer:
+      "Command Center is an open-source AI business platform you can make your own. It connects customer history with sales, delivery, billing and marketing, and provides shared services for custom workflows and Apps. Your team can use the workspace directly, or your developers and coding agents can adapt it for your operation.",
+  },
+  {
+    question: "What business work can we do with it?",
+    answer:
+      "Capture and qualify inquiries, assign sales follow-up, prepare proposals, organize client onboarding and tasks, prepare invoices, follow unpaid accounts, and manage website content and outreach. Features share customer context where supported. Optional Apps and connected email, payment or AI services need their own setup; the feature guides explain those requirements.",
+  },
+  {
+    question: "How does AI help with the work?",
+    answer:
+      "Ask AI to summarize a customer relationship, find quiet opportunities, prepare a reply, inspect outstanding work or explain a report. It can use the records and tools available in your workspace, then propose supported changes. Review the target, content and action result according to that action's policy. A configured model is required for live AI requests.",
+  },
+  {
     question: "Can I preview an AI page change before applying it?",
     answer:
       "Yes. In Site Studio, choose Ask AI, prepare a suggestion and use Preview suggestion to inspect phone, tablet and desktop layouts. Review changes shows the text comparison. Apply to draft updates your local draft; saving and publishing are separate steps. Cancel suggestion stops a pending request and preserves your edits, though provider charges may still apply. If the page changes after preparation, prepare a fresh suggestion before applying.",
@@ -231,10 +246,11 @@ export const commandCenterFaqs: FAQ[] = [
 /** The buying questions shown on the product page and in its structured data. */
 export const productFaqs = commandCenterFaqs.filter((faq) =>
   [
-    "What do the Revenue figures measure?",
+    "What is Command Center?",
+    "What business work can we do with it?",
+    "How does AI help with the work?",
     "Can I try Command Center before setting it up?",
     "What should I connect first?",
-    "Can Ask AI check the content calendar?",
     "Can we build a completely different App or interface?",
     "Can AI create Apps inside Command Center?",
     "How can an agent help set up my business workflow?",

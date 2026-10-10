@@ -160,19 +160,26 @@ async function main() {
             fullPage: route === "/docs/self-hosting/permissions",
           });
           if (route === "/docs/extend/first-change") {
-            await expect(page.locator("main")).toContainText("Give an agent the first assignment");
+            await expect(page.locator("main")).toContainText(
+              "npm run example:followup -- --days 7",
+            );
+            await expect(page.locator("main")).toContainText(
+              "npm run example:followup -- --days 3",
+            );
             const brief = page.locator("[data-docs-content]").getByRole("link", {
-              name: "Build Apps with a coding agent",
+              name: "business brief",
               exact: true,
             });
             await expect(brief).toHaveAttribute("href", "/docs/extend/ai-authoring");
-            const recovery = page.getByRole("heading", {
-              name: "Recover a repository setup refusal",
+            const exercise = page.getByRole("heading", {
+              name: "Change the useful rule",
               exact: true,
             });
-            await recovery.scrollIntoViewIfNeeded();
-            await page.screenshot({ path: `${output}/${viewport.width}-repository-recovery.png` });
-            checks.push(`${viewport.width}: contributor repository recovery instructions render`);
+            await exercise.scrollIntoViewIfNeeded();
+            await page.screenshot({ path: `${output}/${viewport.width}-followup-exercise.png` });
+            checks.push(
+              `${viewport.width}: real report adaptation and verification instructions render`,
+            );
           }
           if (route === "/docs/extend/ai-authoring") {
             await expect(page.locator("main")).toContainText("Review what work it saves");
@@ -186,13 +193,7 @@ async function main() {
               path: `${output}/${viewport.width}-agent-workflow-review.png`,
             });
           }
-          if (
-            [
-              "/docs/extend/first-change",
-              "/docs/extend/ai-authoring",
-              "/docs/extend/modules",
-            ].includes(route)
-          ) {
+          if (["/docs/extend/ai-authoring", "/docs/extend/modules"].includes(route)) {
             await expect(page.locator("main")).toContainText("Codex");
             await expect(page.locator("main")).toContainText("Claude Code");
             if (route === "/docs/extend/modules") {
@@ -344,7 +345,7 @@ async function main() {
           await search.press("Escape");
           const mobile = page.locator("main details").first();
           await mobile.locator("summary").click();
-          await mobile.locator('a[href="/docs/start"]').click();
+          await mobile.getByRole("link", { name: "Start", exact: true }).click();
           await page.waitForURL("**/docs/start");
           await page.waitForFunction(
             () => !document.querySelector("main details")?.hasAttribute("open"),
@@ -477,7 +478,7 @@ async function main() {
           .click();
         await page.waitForURL("**/docs");
         await page
-          .getByRole("heading", { level: 1, name: "From inquiry to recorded result." })
+          .getByRole("heading", { level: 1, name: "Run customer operations. Build your own Apps." })
           .waitFor();
         await page.waitForLoadState("networkidle");
         await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
@@ -493,7 +494,7 @@ async function main() {
         await homeDocs.click();
         await page.waitForURL("**/docs");
         for (const [route, label, destination] of [
-          ["/command-center", "Build on the platform", "/docs/extend"],
+          ["/command-center", "Make your first useful change", "/docs/extend/first-change"],
           ["/open-source", "Start with your coding agent", "/docs/extend/first-change"],
         ] as const) {
           await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });

@@ -96,7 +96,7 @@ assert.match(
 console.log("admin breadcrumb contract passed");
 
 const businessGroups = groupAdminNavLinks(adminNavSections);
-assert.equal(businessGroups.length, 9);
+assert.equal(businessGroups.length, 7);
 const presentedIds = businessGroups.flatMap((group) => [
   group.primary!.id,
   ...group.links.map((link) => link.id),

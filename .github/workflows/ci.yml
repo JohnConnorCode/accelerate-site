@@ -668,6 +668,7 @@ jobs:
             node scripts/qa-client-interactions.mjs
             node scripts/qa-owner-workspace.mjs
             node scripts/qa-command-center-daily-work.mjs
+            PRODUCT_STORY_QA_OUTPUT=/tmp/accelerate-product-story node scripts/qa-command-center-product-story.mjs
             node scripts/qa-content-calendar.mjs
             npx tsx scripts/qa-site-studio.ts
             node scripts/qa-campaign-duplicate.mjs
@@ -806,6 +807,7 @@ jobs:
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
             /tmp/accelerate-turnkey-qa/
+            /tmp/accelerate-product-story/
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/
             /tmp/accelerate-invoice-navigation/

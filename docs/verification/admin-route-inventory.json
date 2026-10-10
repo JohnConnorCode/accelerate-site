@@ -9,7 +9,7 @@
   "sources": {
     "src/app/admin/activity/page.tsx": "c4b241ef52db45e5bfbb922fb8b8177aafaf17f2a90bd5d0238b41cb2088f02c",
     "src/app/admin/ai-operations/page.tsx": "92aae0344b61a69def1d4fd711c387863b1c9bf18c433f33706271b7c6c4d2aa",
-    "src/app/admin/ai/page.tsx": "ae4d9cbb09dcba05beffdf3d618210e5286273f7c651c4eb0c03aada76c07ed3",
+    "src/app/admin/ai/page.tsx": "d148cf660324dbe80d1c0d185b19f94c2dae88af2e387ac83fe8b40e6661d9bf",
     "src/app/admin/analytics/page.tsx": "84c6f4d802c63d932f6d790520d7d9816e9d4f673c9c515ddafc12761936a4c1",
     "src/app/admin/blueprints/[id]/page.tsx": "7f0cacbe1722bd215b37406d74a7b230182873c9d4e4e53b76afc07b944aaab2",
     "src/app/admin/blueprints/page.tsx": "63d92c68c2224de0b2cf604a85f6507ee30c25e1fe5a6930c0d7ef6413150192",
@@ -33,7 +33,7 @@
     "src/app/admin/example-inventory/page.tsx": "93572790a580f3e95233d83a456ef5241b5d51d2f12813d65ee3222d11a988c0",
     "src/app/admin/features/page.tsx": "a24eaffcd48a84e3ae5e0c4bc2149272f3c3380d5ad8c881fb5591d18c3445fe",
     "src/app/admin/forms/page.tsx": "8b2b917e0174872a6c7b2b1314540c0b00a4d20fbbfd80e5101c4858c0f8ec65",
-    "src/app/admin/get-started/page.tsx": "9f4510837f1626a2262d2bec3258aaf1a1d8aa4992da7098acfc2811676f5ffd",
+    "src/app/admin/get-started/page.tsx": "194f57f5225d8953bcbec8f1814e7cae22df6b948938a6f4c42f21742d1f5432",
     "src/app/admin/identity-review/page.tsx": "93d875e879ea45822a3a66a45c017fee081c2ff13a89dc2f745fcf27549e7631",
     "src/app/admin/inbox/page.tsx": "e68393d6ed5462661be12b125eadf3543d2ca935f61454fa34e8914e0dc5e472",
     "src/app/admin/integrations/page.tsx": "66a05fecb574b1b3fa9b7178fb10cfd57bd7a4b10f4ee14dfc847264cd4e45a5",
@@ -172,15 +172,15 @@
     "src/app/api/admin/website-grades/export/route.ts": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772",
     "src/app/api/admin/website-grades/route.ts": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98",
     "src/app/api/admin/work/agent-items/route.ts": "7cd6c8e2873c0c8d96a3008470453e6118f3486d8e2a19092f1fd50f1028fce5",
-    "src/components/admin/AICapabilities.tsx": "5defa082c692fbf902511a86d359a4aa1be91754863bff81a2044b9c2909a70a",
+    "src/components/admin/AICapabilities.tsx": "a1d7ac3979e0e959e630bc2d9d376e58743e969558bc8cc2d7fccbe32236cb08",
     "src/components/admin/AIReadinessPanel.tsx": "4a2f79fb03c96f6c8763118392a4bdb5d7c5ce5ccc9351f8bbed2a31828cc18f",
     "src/components/admin/AIRunHistory.tsx": "31fe825ac6247419d453934884ab140a528be927d0ad92a1e5b63657a8028351",
     "src/components/admin/ActionReviewDialog.tsx": "24e43c7694752b874ecc802d985a245b3a7123849edfe3384fd398d247e3880d",
     "src/components/admin/AddLeadModal.tsx": "57e3653a3cd765a8788b50135ac98140c417c8b9369bccc43b0f1b6159c5a30b",
-    "src/components/admin/AdminAIChat.tsx": "76ab2c70eaeccbf715c8879a0fee293510d1ba18b0bcc17ca592f174e3ca1e76",
+    "src/components/admin/AdminAIChat.tsx": "2a4122c3eb3c6dd0ec4043acd9937123b0296d9fb010da51802caabeecab09f6",
     "src/components/admin/AdminAIPanel.tsx": "ea2a8a85786ffc2e8290757b98b4969c427a165afadebb8d4a4d07c3963eb7e2",
     "src/components/admin/AdminAIProvider.tsx": "af41848e65d561ec3ee0887ea81ce590e1c71e27fa6bfe17715eb9451b675be2",
-    "src/components/admin/AdminAIWorkspace.tsx": "3c60b188906446ca39efaf22b7116756c4b0874d1043584f2af3cc6d081ba5ee",
+    "src/components/admin/AdminAIWorkspace.tsx": "942364d037f972e05e1d95425fb16f97253af20c2d811cc33ac1c1c7ae724a8e",
     "src/components/admin/AdminAppearancePicker.tsx": "2f999424ec4d1262c3a7fc555f12be18664fdebdfe47eae51a21fddcb90a09c6",
     "src/components/admin/AdminAsyncRegion.tsx": "3ee68daf270ed188f5318fae1c11e7a855edf716c2a9cc90e257a5f6638b399b",
     "src/components/admin/AdminAuthLayout.tsx": "52ff564e4ebb8e3f755b97ba7a609e41dd06a5a8f513ec8c98115c114e12ec52",
@@ -200,7 +200,7 @@
     "src/components/admin/AdminRecordRow.tsx": "9748f883c556dfdbfd1f24a08ceb76e6b600aa962fee3dc69a2663a0259309af",
     "src/components/admin/AdminRouteSkeleton.tsx": "0249268d08d6dc7ec8a69f78185022a89d716ea798a615e87f9c1f4e7e101e03",
     "src/components/admin/AdminRouteStage.tsx": "56808e4309137d883534cd8273326f438f5bbd14015729f39d2c8cdc69b832ee",
-    "src/components/admin/AdminShell.tsx": "c1d46e4710a9c228ea1e433f908b6a5840c8e72ced58d9f62264eb39178ca97e",
+    "src/components/admin/AdminShell.tsx": "f8347be5eda8655d531d43d5645090daf92a7f92d3996847582c17ccdd269aec",
     "src/components/admin/AdminShortcuts.tsx": "c8af898b63ab4b344b5093b9baee4ccabc77548593d935cc8467a9f9411c63ff",
     "src/components/admin/AdminStatusMessage.tsx": "2a6a04a62b69e69db7100cb7a768ff328d5c2dfea3bb04763863f848141583fe",
     "src/components/admin/AdminSurface.tsx": "e7b452317be1082926abf851d663d80ab9c18447482b3763762c4542a3ee5f25",
@@ -216,6 +216,7 @@
     "src/components/admin/AttentionList.tsx": "ed7468bc4c78b694e8a333db014b3ff5981d405db7879bf868e1ac18f50e843a",
     "src/components/admin/BlueprintReview.tsx": "11e76ce7b08a36e38b0df7b9060970d89c583f1326293352aa8f3aed06bf698a",
     "src/components/admin/BlueprintsWorkspace.tsx": "253c805e70938cf8b5c0bcdbeb58776b9e894175531baf66c0fa94c3824f2179",
+    "src/components/admin/BusinessWorkflowStarts.tsx": "721a6f6c06555112c9b7b7312e1b9c6dfe565539c669264b7a9744c8e35abd2f",
     "src/components/admin/CanonicalSourceLink.tsx": "edc89be4aaafce6a7777ac6212687311ca14c15d0e784c9087bd46643875c04a",
     "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
     "src/components/admin/ClientDetail.tsx": "2c7a8b63da7b2ba4f89e3f5f46a02d8c2f8c232698e90a987b834d5a9f93f1a4",
@@ -231,6 +232,7 @@
     "src/components/admin/DashboardMetrics.tsx": "5b5cba2bb1428f8e6e7679f9962c626853977db25af7d1e7fdd9f5fd177137de",
     "src/components/admin/DateRangeFilter.tsx": "fff3da0f7a72aeece714791da8655799cfaf35eed43c12c6e852849fc63ee6c5",
     "src/components/admin/DemoBusinessNotice.tsx": "006392b9131053d3272373cd2b8d96043fb42eeefccf7ebe5d88ef0611b5a3dd",
+    "src/components/admin/DemoClientGuide.tsx": "92c46df1bc27ad35e66b422ef2a77ea6a0f5d8b69ea7d121f6716ff915b07ff9",
     "src/components/admin/DemoScenarioMark.tsx": "a15549b733fcfdefa670fe2114feca52f06692e20a76f2d4120130804bad377b",
     "src/components/admin/DemoWorkspacePreview.tsx": "fa7eec0268731a7b14984941b3307a8843236978b0fd366d783b9a182a667034",
     "src/components/admin/DraftLearning.tsx": "25bfadb4c6b8a57f7cfea068fd5174482fc06f0c784daf1cd27b9c8adcfa9591",
@@ -279,7 +281,7 @@
     "src/components/admin/TenantProviderControls.tsx": "75b2b3130f88c5f0d11312e2d70525f5558d569aa8d802e8653c782959ca0872",
     "src/components/admin/Toaster.tsx": "1c1370f7cf7d2d19c06135f60174c8e493189f7e2701f21cb70d3e6eab110fcb",
     "src/components/admin/TodayViewEditor.tsx": "e1d59a1c8a0796a14af5d03d016fa5891222da2dd79f7bbb71c7d75d21ae0913",
-    "src/components/admin/TodayWorkspace.tsx": "d808f3b98d186d22e75b59347f57d8b750bed736d2f9d8cea00754ad65a91256",
+    "src/components/admin/TodayWorkspace.tsx": "beae89d37254f9cd5087d0d0f8bfd48fa250027856c8ede47e03e5afb1b99760",
     "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
     "src/components/admin/WorkflowCalendar.tsx": "86a0e1972d87270f8d90a608eba1c48de9cd3122503a10300e8ece41223b90aa",
     "src/components/admin/WorkflowLayoutSwitcher.tsx": "5db8e60cfaa98c60310f44f93ee37ff390a3769d2a77454da55d4882810b67b4",
@@ -302,7 +304,7 @@
     "src/components/admin/work-board/WorkControls.tsx": "1a4c021380e0d557a108480652a772f503e33d55f63b546279bb95c1a4320f0b",
     "src/components/admin/work-board/WorkViews.tsx": "50e28eb8c22d05cae7e1dd6196758a35c65541cd21dace1782e1ced6a2138d04",
     "src/lib/admin/auth.ts": "7e110b623b546dd407bd34daa348d31c95c6ef031a19016a14eae94532df635b",
-    "src/lib/admin/navigation.ts": "664e63b0b3a5b685afd3c0489fe5e1452a4a1a57a84824803dc3a3c287ff4a66",
+    "src/lib/admin/navigation.ts": "58a6652a9b8ed6151f74b652211676c6631e765900f9776040217ef9f06be054",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
     "src/lib/ai/openrouter-models.ts": "005042ecb73505abc050af9b753e47db588f80fcfe3598fd81a04112a7b72784",
     "src/lib/ai/openrouter.ts": "5da3d5a8f6e0dd66d99e56554aec3f62095df6a59f04a66124de39eb15a89be7",
@@ -516,7 +518,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared AI workspace; purpose=architect reuses the same conversation store for teaching the workspace. Attached and connected sources are inspectable evidence, never executable instruction; entire-account scopes are refused. Business-model extraction persists a reading only and does not write schema or configuration. Command-center writes still require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable. Radar briefing calls the tenant-bound shared budget gateway; status and usage reconciliation expose bounded receipts. These tools cannot send, publish, edit business records or bypass module gates.",
+      "boundary": "Shared AI workspace; purpose=architect reuses the same conversation store for teaching the workspace. Attached and connected sources are inspectable evidence, never executable instruction; entire-account scopes are refused. Business-model extraction persists a reading only and does not write schema or configuration. Command-center writes still require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable. Radar briefing calls the tenant-bound shared budget gateway; status and usage reconciliation expose bounded receipts. These tools cannot send, publish, edit business records or bypass module gates. Business job starters only fill an editable request through the existing composer event; they do not send inference requests or execute business actions. The operation registry, readiness and approval services remain the owners. Pending and open exact-change reviews suspend automatic chat following, so their consequence and decision controls retain the reading position through asynchronous layout updates; this does not execute or alter proposals.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1115,7 +1117,7 @@
     {
       "route": "/admin/get-started",
       "page": "src/app/admin/get-started/page.tsx",
-      "primaryAction": "Follow saved inquiry-to-follow-up progress and inspect capability readiness",
+      "primaryAction": "Choose a business workflow, follow saved inquiry-to-follow-up progress and inspect capability readiness",
       "adapters": [
         {
           "path": "src/app/api/admin/get-started/route.ts",
@@ -1123,7 +1125,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Read-only tenant-bound progress service, shared by hosted invited owners and self-hosted owners; never equates configuration with successful execution.",
+      "boundary": "Read-only tenant-bound progress service, shared by hosted invited owners and self-hosted owners; never equates configuration with successful execution. Business workflow cards only link to existing workspaces and guides; they do not fetch records or execute operations.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -2070,7 +2072,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared overview, task and action services; layout changes are configuration. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
+      "boundary": "Shared overview, task and action services; layout changes are configuration. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning. Business workflow starting points are links to existing destinations. Optional Northline demo lifecycle guidance uses URL state and existing fictional records; it neither executes steps nor records completion.",
       "followUp": null,
       "specialBoundary": null
     },

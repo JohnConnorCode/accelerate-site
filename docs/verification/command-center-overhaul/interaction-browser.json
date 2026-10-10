@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "results": [
+    {
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "clientRecovery": "passed",
+      "retainedActivity": "passed",
+      "searchRecoveryAndRace": "passed",
+      "recordDetailNavigation": "passed: work, opportunities, clients, proposals",
+      "taskDetailCacheAndRecovery": "passed",
+      "selectionMotion": true,
+      "panels": "passed",
+      "retainedAIDraft": "passed",
+      "keyboard": "passed",
+      "protectedRequests": 0
+    },
+    {
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "clientRecovery": "passed",
+      "retainedActivity": "passed",
+      "searchRecoveryAndRace": "passed",
+      "recordDetailNavigation": "passed: work, opportunities, clients, proposals",
+      "taskDetailCacheAndRecovery": "passed",
+      "selectionMotion": false,
+      "panels": "passed",
+      "retainedAIDraft": "passed",
+      "keyboard": "passed",
+      "protectedRequests": 0
+    },
+    {
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "clientRecovery": "passed",
+      "retainedActivity": "passed",
+      "searchRecoveryAndRace": "passed",
+      "recordDetailNavigation": "passed: work, opportunities, clients, proposals",
+      "taskDetailCacheAndRecovery": "passed",
+      "selectionMotion": true,
+      "panels": "passed",
+      "retainedAIDraft": "passed",
+      "keyboard": "passed",
+      "protectedRequests": 0
+    },
+    {
+      "width": 390,
+      "reducedMotion": "reduce",
+      "clientRecovery": "passed",
+      "retainedActivity": "passed",
+      "searchRecoveryAndRace": "passed",
+      "recordDetailNavigation": "passed: work, opportunities, clients, proposals",
+      "taskDetailCacheAndRecovery": "passed",
+      "selectionMotion": false,
+      "panels": "passed",
+      "retainedAIDraft": "passed",
+      "keyboard": "passed",
+      "protectedRequests": 0
+    }
+  ]
+}

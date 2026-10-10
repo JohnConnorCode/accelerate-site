@@ -3,19 +3,21 @@
 [![CI](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml/badge.svg)](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Accelerate is an **agent-first, open-source starting point for business software**. Give Claude Code or Codex the repository, describe what your team needs, and have the agent set it up, extend it and verify the result. Customer records, conversations, next actions and governed AI services give it a shared foundation to build on.
+Command Center is an **open-source AI business platform you can make your own**. Manage customers, sales, delivery, billing and marketing with a shared customer history. Use AI to work with that context, and build the workflows and Apps your business needs on the existing foundation.
 
-Open the record behind a suggestion, review the proposed change when its policy requires it, and check the recorded result. Build your own screens, reports and workflows on the same identity, permissions and action services.
+**Run your business:** give an inquiry an owner and next action, hand a won opportunity into client onboarding, prepare an invoice and follow unpaid accounts. [Explore the business areas](https://www.acceleratewith.us/command-center/features), or [follow one fictional customer](https://www.acceleratewith.us/demo/command-center/northline-roofing/today?workflow=client).
+
+**Build for your team or clients:** give Claude Code or Codex the repository and a concrete business task. Add screens, reports and workflows using the existing customer identity, permissions and business services. [Adapt a working follow-up report](https://www.acceleratewith.us/docs/extend/first-change) before starting a larger custom App.
 
 Try six fictional businesses without an account or provider keys. When you are ready for your own team, connect a Supabase project and provider accounts you control. The application source is MIT licensed; hosting and provider usage have their normal costs.
 
 **Have an agent build your workflow:** describe the repeated work, the records it uses and the result your team needs. A coding agent can handle setup, source changes, extension registration and checks while you review the working result. Reusing customer identity, permissions and business services saves rebuilding that foundation for every custom screen. Start with [an agent-ready business brief](https://www.acceleratewith.us/docs/extend/ai-authoring).
 
-**Explore available examples:** [ten plugin guides](https://www.acceleratewith.us/docs/plugins) cover reports, onboarding checklists, invoicing, Collections and Opportunity Radar. Each explains what works today, how to try it and how an agent can adapt the pattern.
+**Explore available Apps:** [the App and plugin guides](https://www.acceleratewith.us/docs/plugins) cover follow-up reports, onboarding, invoicing, collections, websites, forms and other specialized workflows. Each explains the current behavior, setup and an example you can try. [Compare alternatives](https://www.acceleratewith.us/command-center/compare) when deciding between a CRM, a business suite and a custom development platform.
 
 [Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [How it works](https://www.acceleratewith.us/docs/start/how-it-works) · [Architecture](docs/self-hosting/ARCHITECTURE.md) · [Self-hosting](docs/self-hosting/SELF-HOSTING.md) · [Developer start](docs/contributing/DEVELOPER-START.md) · [All docs](docs/README.md) · [Roadmap](#roadmap)
 
-![The Today command center, showing a founder's priority queue, open pipeline value, and pending approvals for a fictional roofing company workspace.](docs/images/command-center-workspace.png)
+![Today showing sales, customer follow-up, delivery and billing reviews, plus recorded pipeline value in a fictional roofing workspace.](docs/images/command-center-workspace.png)
 
 > **Start here:** The fictional demo works with zero setup and no provider credentials. A connected workspace needs your own Supabase project. Verify sign-in, saved records, tenant isolation and backups before importing real customer data.
 
@@ -76,9 +78,9 @@ Never copy production credentials into a fork.
 
 **Analytics** ties revenue back to its source, by channel, campaign, and stage, and shows where attribution data is genuinely missing instead of quietly treating it as zero.
 
-**The AI layer is grounded, not generic.** Every model call runs against bounded, retrieved context with source citations, and every write it proposes goes through the same approval queue and audit trail as a human action. It doesn't get a side door around the rules everyone else follows.
+**AI can work with business records.** It can retrieve bounded customer context, link findings to source records and use registered operations to prepare or execute permitted work. Actions follow the existing permissions, impact tiers and audit trail. Consequential actions require approval.
 
-**Tenancy is structural, not bolted on.** One shared database, explicit tenant context on every request, isolated records, and a workspace can connect its own OpenRouter key so AI spend is billed to that tenant, not to you. Six fictional demo workspaces let you explore the entire product, including a live drag-and-drop feature-board kanban, with no setup at all.
+**Workspace records stay isolated.** Business requests use explicit workspace context and tenant-isolated records. A workspace can connect its own OpenRouter key; provider usage follows the configured credential owner. Six fictional demo workspaces let you explore the product, including a live drag-and-drop feature-board kanban, with no setup at all.
 
 See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 
@@ -100,7 +102,7 @@ Every run is traced in `agent_runs` and `agent_run_events` and readable at `/adm
 
 ## Connect your own assistant
 
-The repository ships a Model Context Protocol server. Claude Desktop, Claude Code, ChatGPT's native Connectors, Cursor, and Antigravity connect to a workspace and get the same registered tools, the same impact tiers, and the same approval queue as the interface. Ask it what's on today's queue, or to mark a task done, snooze it, or move an opportunity's stage: reads return bounded, sourced data, and every write it proposes lands in the same review queue you'd see from a human editing the record by hand.
+The repository ships a Model Context Protocol server. Claude Desktop, Claude Code, ChatGPT's native Connectors, Cursor, and Antigravity connect to a workspace and get the same registered tools, impact tiers and approval controls as the interface. Ask it what's on today's queue, or to mark a task done, snooze it or move an opportunity's stage. Reads return bounded, sourced data. Permissioned routine changes can execute under the existing action rules; consequential actions use the same approval queue as the interface.
 
 Setup for each client is in [docs/self-hosting/MCP-SETUP.md](docs/self-hosting/MCP-SETUP.md).
 
@@ -165,7 +167,7 @@ detail (`agent:go`); see [Natural-language agent execution](docs/contributing/NA
 
 [**/roadmap**](https://www.acceleratewith.us/roadmap) renders that manifest publicly, with every card's real description and acceptance criteria, no signup required. Each card has a stable shareable `/roadmap#roadmap-<seed-key>` link. A curated, dependency-satisfied subset — cards ready to pick up without waiting on other work — is also mirrored to [GitHub Issues labeled `help wanted`](https://github.com/JohnConnorCode/accelerate-site/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) via `npm run mirror:feature-board-issues -- --apply`.
 
-You can also explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
+You can also explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **Workspace → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
 
 For exactly what changed and when, read [CHANGELOG.md](CHANGELOG.md) or the commit history rather than a second, hand-written summary here.
 

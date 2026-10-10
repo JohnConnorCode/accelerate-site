@@ -416,7 +416,7 @@ try {
           checks.push({ route, width, theme, height, status: "passed" });
         }
         await page.goto(`${base}/command-center`, { waitUntil: "load" });
-        const reference = page.getByText("Browse and search the complete capability reference", {
+        const reference = page.getByText("Open the searchable reference", {
           exact: true,
         });
         await reference.focus();
@@ -427,10 +427,10 @@ try {
         await search.fill("no-such-capability-93857");
         await page.getByRole("button", { name: "Clear filters" }).click();
         assert((await page.locator("#capabilities details details").count()) > 10);
-        await page.getByRole("button", { name: "Capture", exact: true }).click();
+        await page.getByRole("button", { name: "Sales & follow-up", exact: true }).click();
         assert.equal(
           await page
-            .getByRole("button", { name: "Capture", exact: true })
+            .getByRole("button", { name: "Sales & follow-up", exact: true })
             .getAttribute("aria-pressed"),
           "true",
         );

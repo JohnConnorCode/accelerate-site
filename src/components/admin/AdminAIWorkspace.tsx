@@ -62,11 +62,6 @@ export function AdminAIWorkspace() {
     <div className="pb-10">
       <PageHeader
         title={purpose === "architect" ? adminPageName("architect") : adminPageName("ai")}
-        subtitle={
-          purpose === "architect"
-            ? "Keep business instructions, preferences, and source material together for your AI coworkers."
-            : "Ask with live business context, inspect the evidence, and approve every consequential action."
-        }
       />
       <AdminViewSwitcher
         label="AI workspace views"

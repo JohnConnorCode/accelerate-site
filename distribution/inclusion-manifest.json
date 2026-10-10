@@ -3,6 +3,8 @@
   "profile": "neutral-starter",
   "description": "Authoritative neutral export: omitted protected media and agency marketing collections, explicit empty/sample replacements, shared runtime and product documentation. No private environment or hosting account is copied.",
   "excludePrefixes": [
+    "scripts/prepare-command-center-content-draft.ts",
+    "docs/verification/command-center-overhaul/site-studio-draft.json",
     "public/",
     "distribution/neutral-starter/",
     "deployment-target.json",
@@ -91,6 +93,7 @@
     "public/site-assets/",
     "public/docs-llms.txt",
     "src/content/command-center-contract.ts",
+    "src/content/command-center-business.ts",
     "src/content/docs/",
     "src/content/intake-questions.ts",
     "src/content/integrations.ts",

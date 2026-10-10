@@ -1,55 +1,46 @@
 ---
-title: "From a customer question to a clear next step"
-description: "See the customer history, decide what happens next, and build on an open-source workspace you control."
-updated: "2026-10-08"
+title: "An AI business platform you can make your own"
+description: "Manage customers, sales, delivery, billing and marketing, then build workflows and Apps around your business."
+updated: "2026-10-10"
 ---
 
-A customer calls to ask when their project starts. Whoever picks up needs the thread from last spring, the proposal they accepted, and the date your team promised, and today those three things usually live in three different places: an inbox, a spreadsheet, and someone's memory. Command Center puts them in one workspace, so the person answering can review the available history before responding.
+Command Center combines everyday customer operations with an open-source foundation you can extend. Your team can manage relationships, opportunities, proposals, commitments, invoices and marketing work in the same application. AI can use the available business context to answer questions and prepare supported actions.
 
-That single workspace is also what AI needs to be useful rather than generic. An assistant that can only see the message in front of it can draft a plausible reply. An assistant that can see the deal, the history, and what your team already promised can prepare a reply using that context, and tell you why it drafted it that way.
+For a roofing company, that means the office can find an inspection request, record its callback, prepare the offer, hand the won job to the crew and follow up on billing. A builder can adapt that process with an industry-specific report or App while reusing customer identity and existing services.
 
 <DocsFigure
-  src="/images/open-source/slide-today-paper.png"
-  alt="Today in a fictional roofing business, with a priority queue and actions awaiting review."
+  src="/images/docs/command-center/today.png"
   width={1440}
   height={1000}
-  caption="Today, in the fictional Northline Roofing workspace: the work that needs a decision, ranked, with the reason attached. This is the real Command Center interface using fictional demo data."
+  alt="Northline Roofing's fictional business review with customer, sales, delivery and money findings."
+  caption="Today in the actual interface, using fictional Northline Roofing records. Open a finding to reach the work behind it."
 />
 
-## Know where to begin
+## Find the business area you need
 
-Open **Business overview → Today** to review Sales, Customer follow-up, Delivery and Money from the available sources. A finding links to its record and next action, so you can follow the business question into the screen where the work happens. **Tasks & approvals** holds the assigned next steps and proposed changes; the other sidebar groups name the customer, delivery, billing or communication job you want to do.
+- [Customers and conversations](/docs/contacts): find relationship history and prepare a response with the relevant context.
+- [Sales and follow-up](/docs/pipeline): give inquiries an owner, manage opportunities and follow customer proposals.
+- [Delivery and commitments](/docs/delivery): start engagements and give agreed work an owner and date.
+- [Billing and collections](/docs/billing): prepare invoices, offer recurring plans and follow up on selected outstanding balances.
+- [Marketing and publishing](/docs/outreach): prepare website pages, campaigns, sequences and supported social posts.
+- [Custom Apps and AI](/docs/extend): adapt reports, connect assistants and build the process your business needs.
 
-Every core destination has a visible starting instruction beside its page controls. Open **How this works** for the steps, saved result and relevant guide. Keyboard focus enters the panel, and **Close help** or Escape returns you to the page controls without moving your reading position. Use [the three connected walkthroughs](/docs/start/daily-path) to practice with fictional records. The [owner’s guide](/docs/start/business-owners) explains how to review the operation and assign the next move, while the developer reading path remains available for people building and running an installation.
+Core records provide the shared foundation. Optional Apps add capabilities such as invoicing, Collections, forms and client onboarding. Connections supply email, calendar, payments or model access where the chosen workflow needs them.
 
-Brief status messages sit above phone navigation. They stay visible while you hover over them or focus their dismiss control, so you can read a confirmation or warning before continuing.
+## Choose your starting path
 
-Open the bell to review **Notifications**. On phones, the navigation dock stays out of the way until the sheet finishes closing. **Close notifications** and Escape return keyboard focus to the bell. Following a notification keeps focus with the destination. Notification panels open and close immediately when your device requests reduced motion.
+For everyday use, follow [a connected client lifecycle](/docs/start/daily-path) in the fictional Northline workspace. The demo needs no account and simulates business effects. [For business owners](/docs/start/business-owners) helps you choose a first workflow and agree who will operate it.
 
-Use **More** on phones to reach the full navigation, **Search** and **Ask AI**. The menu keeps the page still until it finishes closing. Search and Ask AI then receive focus in their own panel; selecting a destination places focus on that page's heading. **Close navigation** and Escape return you to More. Reduced motion opens and closes the menu immediately.
+For builders and agencies, [adapt the follow-up report](/docs/extend/first-change). Then use [App design](/docs/extend/apps) and a [coding-agent brief](/docs/extend/ai-authoring) to add your own records, rules and interface.
 
-When you close a card with unsaved changes, **Keep editing** returns to your draft and **Discard edits** restores the saved card. Delete, discard and archive confirmations distinguish the action from the safer cancel choice, which receives keyboard focus first. A confirmation dims the editor beneath it so the current choice stays clear. Closing the confirmation reveals your draft again. On phones, the navigation dock returns after the last dialog finishes closing. Dialogs open and close immediately when your device requests reduced motion. Closing returns focus to the opener unless you or navigation have already placed it on another control.
+## Work with AI in context
 
-## What the shared context makes possible
+Ask AI about a selected customer or give it a specific job, such as preparing a reply and callback task. It uses registered operations and the records your workspace can access. Eligible internal actions can use bounded permission; consequential actions retain their required review. [Working with AI](/docs/intelligence/workspace) explains the controls.
 
-A customer record can carry the conversation, opportunity and promised work together. Your team can inspect that history before replying, while AI can use available records to explain the situation or prepare a supported next step. The [industry recipes](/docs/recipes) show practical combinations, from a roofing inquiry to a client kickoff checklist.
+## Connect your own business
 
-Review the exact work where its action policy requires a decision, then inspect the saved result. For eligible actions, a configured trust policy can propose a higher level of autonomy after sufficient approval history. A person confirms that change, and hard safety floors remain in force. Read [Approvals](/docs/command-center/approvals) for the current rules and [AI tools](/docs/intelligence/tools) for the registered operations.
-
-## One workspace, built to be extended
-
-The application ships with the records a service business runs on: customer contacts, conversations, a pipeline, campaigns, proposals, tasks, and analytics. You turn on the modules you need and leave the rest off. Bundled plugins provide reusable examples and show working patterns, from a read-only report that flags overdue commitments to a full Collections workspace that tracks a payment promise against a verified invoice balance. The [plugin examples](/docs/plugins) walk through what each one does, not what it might one day do.
-
-When none of that fits, you extend it. A coding assistant can build a new report, a new workflow, or a new AI tool using the same records, permissions, and approval queue the rest of the application already runs on, so a maintenance company can add an equipment-service workspace tied to its existing customers without re-inventing identity resolution or the approval flow underneath it. [Build on it](/docs/extend) is the starting brief.
-
-## Try it before you connect anything
-
-Open the [fictional demo](/demo/command-center) and pick one of six businesses, roofing to a law firm to a nonprofit, then follow [your first workflow](/docs/start/daily-path). It needs no account and no provider keys, and nothing it does reaches a real customer. Look at Today, open a conversation, and review an approval to see how the pieces connect to each other before you decide whether any of this is worth setting up for real.
-
-When you are ready to use your own data, [installation](/docs/self-hosting/installation) and [workspace setup](/docs/workspace/setup) walk through connecting your own database and provider accounts. You own the deployment. The providers you connect, email, calendar, your model of choice, still process what you send them under their own terms, and hosting, email, and AI usage can cost real money once you are past the demo.
+A self-hosted installation uses infrastructure and provider accounts you control. An implemented workspace needs agreed setup, ownership, operating responsibilities and costs. Follow [installation](/docs/self-hosting/installation) and [workspace setup](/docs/workspace/setup) before importing customer data.
 
 ## What to check
 
-- The source is MIT licensed and self-hostable, but a capability listed in the [reference](/docs/command-center/capabilities) is not proof your workspace has connected and verified that provider. Confirm a capability is live in your own [Setup](/docs/workspace/setup) before you promise a workflow to your team.
-- An extensible foundation gives you room to build; it does not mean an integration you have not built yet is already running. Check [Build on it](/docs/extend) for what exists today versus what you would need to write.
-- For the complete map from a piece of source data to a reviewed action, a recorded receipt, and a reusable extension, read [How Accelerate works](/docs/start/how-it-works).
+Use the [capability reference](/docs/command-center/capabilities) for current behavior, then verify the connections needed for your workflow. Custom Apps currently use source development with an external coding agent. General-purpose in-app App generation remains planned.

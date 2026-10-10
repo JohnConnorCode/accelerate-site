@@ -30,9 +30,18 @@ let the team focus on the decisions, relationships, and work that matter most.
 
 ## The Command Center
 
-The Command Center is one integrated solution Accelerate can build when a
-business benefits from a shared operating layer and durable context. It is not
-the company, the default deliverable, or a requirement for working with us.
+Command Center is an open-source AI business platform you can make your own.
+It connects customers, sales, delivery, billing and marketing, and provides a
+foundation for custom workflows and Apps. Describe the useful business work
+before setup, permissions or the technical architecture.
+
+Business operators and developers or agencies have equal entry points:
+run the workflows, or build on the platform. Preserve that balance in the
+product hero, feature pages, docs and demo. Shared discovery metadata lives in
+`src/content/command-center-business.ts`; runtime owners still decide availability.
+
+The Command Center is one integrated solution within Accelerate's broader offer
+for businesses that benefit from shared context and connected workflows.
 
 Other valid solutions include a focused workflow, an AI agent, an integration,
 a custom internal tool, training, or managed execution. Recommend the smallest
@@ -79,9 +88,14 @@ If any answer is unclear, the copy is incomplete.
 ## Public product documentation
 
 The product docs and open-source README explain Command Center in its own right:
-an open-source AI workspace for connected business context, reviewed actions and
-business-specific extensions. Lead with ownership, useful workflows and concrete
+an open-source AI business platform with shared customer context, business workflows
+and custom Apps. Lead with practical business value, ownership and concrete
 examples of what readers can build. This product positioning does not change the
 broader agency offer described above. State current capabilities and distinguish
 custom development from a built-in integration or planned automation. Follow
 `docs/contributing/DOCUMENTATION-STYLE.md` for examples and visual evidence.
+
+Competitor comparisons must explain both the alternative's strength and the
+reason to choose Command Center. Use dated, official sources and separate public
+claims from independently verified behavior. Do not imply unique superiority,
+feature parity, lower total cost or a complete ERP without supporting evidence.

@@ -11,8 +11,10 @@ const industryLinks = verticals
 
 const commandCenterLinks = [
   { label: "Overview", href: "/command-center" },
+  { label: "Features", href: "/command-center/features" },
+  { label: "Compare alternatives", href: "/command-center/compare" },
   { label: "Try the demo", href: "/demo/command-center" },
-  { label: "Open source", href: "/open-source" },
+  { label: "Build on the platform", href: "/open-source" },
   { label: "Roadmap", href: "/roadmap" },
   { label: "Changelog", href: "/changelog" },
 ];

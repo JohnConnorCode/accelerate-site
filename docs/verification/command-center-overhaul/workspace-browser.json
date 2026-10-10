@@ -1,0 +1,77 @@
+{
+  "result": "passed",
+  "checks": [
+    {
+      "command": "node scripts/qa-owner-workspace.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-command-center-daily-work.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-content-calendar.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node --import tsx scripts/qa-site-studio.ts",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-campaign-duplicate.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-delivery-handoff.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-leads-bulk.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-website-editor.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-website-authoring.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-website-ai-recovery.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-analytics-workspace.mjs --demo",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-radar-workspace.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-command-center-offline-store.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-operator-workspace.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-today-workspace.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-booking-mode.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:work-completion -- --browser-fixtures",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-work-completion.mjs",
+      "result": "passed"
+    }
+  ]
+}

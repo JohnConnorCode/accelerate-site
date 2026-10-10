@@ -64,6 +64,7 @@ import { AdminAIPanel } from "@/components/admin/AdminAIPanel";
 import { EmailComposeModal } from "@/components/admin/EmailComposeModal";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminRouteStage } from "@/components/admin/AdminRouteStage";
+import { DemoClientGuide } from "@/components/admin/DemoClientGuide";
 import { AdminAppearancePicker } from "@/components/admin/AdminAppearancePicker";
 import { Logo } from "@/components/ui/Logo";
 import { LogoMark } from "@/components/ui/LogoMark";
@@ -927,6 +928,7 @@ export default function AdminShell({
                     data-navigation-pending={routeIsPending ? "true" : "false"}
                   >
                     <AdminRouteStage routeKey={routeKey}>
+                      {scenarioId === "northline-roofing" && <DemoClientGuide />}
                       <AdminErrorBoundary key={routeKey}>
                         {moduleDisabled ? <ModuleDisabledNotice module={owningModule} /> : children}
                       </AdminErrorBoundary>

@@ -6,7 +6,7 @@ export const marketingPositioning = {
     "We find where AI and automation can free up time or increase revenue, then build and run the right custom solution.",
   outcomes: ["Free up time", "Increase revenue", "Focus on what matters"],
   docsBlurb:
-    "Practical guides for working with Accelerate and running the Command Center: start with your business, then run follow-up that never loses an inquiry.",
+    "Practical guides for running Command Center's customer, sales, delivery, billing and marketing workflows, and building your own business Apps.",
   engagementModes: [
     {
       key: "strategy",
@@ -47,8 +47,8 @@ export const marketingPositioning = {
   ],
   commandCenter: {
     label: "One integrated solution",
-    title: "When the work needs one place to run.",
+    title: "A business platform you can make your own.",
     description:
-      "For some businesses, the right answer is a Command Center that connects the work, records, and decisions in one operating layer. For others, it is a focused workflow, AI agent, integration, custom tool, or training. We recommend the smallest solution that solves the problem.",
+      "Command Center brings customers, sales, delivery, billing, marketing and AI into an open-source platform that can be adapted to your business. We can implement it with your team or build a focused workflow, integration or tool when that better fits the job.",
   },
 } as const;

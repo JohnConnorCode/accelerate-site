@@ -107,6 +107,17 @@ try {
       await review.focus();
       await page.keyboard.press("Enter");
       await page.locator('[data-review-decision="approve"]').waitFor();
+      await page.waitForFunction(() =>
+        document.activeElement?.matches('section[aria-label="Review exact changes"]'),
+      );
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      });
+      // A real viewport resize must preserve the exact review's reading position.
+      const size = page.viewportSize();
+      await page.setViewportSize({ ...size, height: size.height - 16 });
+      await page.setViewportSize(size);
       assert.equal(
         await page.getByRole("button", { name: "Jump to latest" }).count(),
         0,
@@ -138,27 +149,33 @@ try {
           }),
           `The ${decision} decision is visible in the chat viewport`,
         );
-      assert.ok(
-        await page
-          .getByRole("region", { name: "Review exact changes" })
-          .getByText(/Creates a task on your queue\./)
-          .evaluate((consequence) => {
-            const bounds = consequence.getBoundingClientRect();
-            const log = consequence.closest('[role="log"]').getBoundingClientRect();
-            const decision = consequence
-              .closest('section[aria-label="Review exact changes"]')
-              .querySelector('[data-review-decision="approve"]')
-              .getBoundingClientRect();
-            return (
+      const consequencePosition = await page
+        .getByRole("region", { name: "Review exact changes" })
+        .getByText(/Creates a task on your queue\./)
+        .evaluate((consequence) => {
+          const bounds = consequence.getBoundingClientRect();
+          const log = consequence.closest('[role="log"]').getBoundingClientRect();
+          const decision = consequence
+            .closest('section[aria-label="Review exact changes"]')
+            .querySelector('[data-review-decision="approve"]')
+            .getBoundingClientRect();
+          return {
+            visible:
               bounds.top >= Math.max(0, log.top) &&
-              bounds.bottom <= Math.min(innerHeight, decision.top)
-            );
-          }),
-        "The consequence is visible alongside both decisions",
+              bounds.bottom <= Math.min(innerHeight, decision.top),
+            consequenceTop: bounds.top,
+            consequenceBottom: bounds.bottom,
+            logTop: log.top,
+            decisionTop: decision.top,
+          };
+        });
+      assert.ok(
+        consequencePosition.visible,
+        `The consequence is visible alongside both decisions: ${JSON.stringify(consequencePosition)}`,
       );
       await page.screenshot({
         path: `${out}/${scenario}-${mobile ? "mobile" : "desktop"}-review.png`,
-        fullPage: true,
+        fullPage: false,
       });
       // Only a directly opened exact proposal can accept a typed human decision.
       await input.fill(mobile ? "reject" : "approve");
@@ -221,14 +238,24 @@ try {
     activePage = page;
     await context.route("**/api/analytics/events", (route) => route.fulfill({ status: 204 }));
     await page.goto(`${base}/demo/command-center`);
-    await page.getByRole("heading", { name: "Tell your agent what needs doing." }).waitFor();
+    await page
+      .getByRole("heading", {
+        level: 1,
+        name: /^Follow the customer\.\s*See the business work\.$/,
+      })
+      .waitFor();
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
       "Chooser has no horizontal overflow",
     );
     await page.screenshot({ path: `${out}/chooser-${viewport}.png`, fullPage: true });
     await page.screenshot({ path: `${out}/chooser-${viewport}-top.png` });
-    await page.getByRole("link", { name: "Try the AI agent", exact: true }).click();
+    await page
+      .getByRole("link", {
+        name: "Explore Northline Roofing & Exteriors demo workspace",
+        exact: true,
+      })
+      .click();
     await page.getByRole("textbox", { name: "Ask the business" }).waitFor();
     // With no funded inference setup the actual endpoint must refuse, not invent a run.
     await page.getByRole("button", { name: "Send AI command" }).first().click();
@@ -252,7 +279,7 @@ try {
   );
 } catch (error) {
   if (activePage && !activePage.isClosed())
-    await activePage.screenshot({ path: `${out}/failure.png`, fullPage: true }).catch(() => {});
+    await activePage.screenshot({ path: `${out}/failure.png`, fullPage: false }).catch(() => {});
   await writeFile(
     `${out}/receipt.json`,
     JSON.stringify({ status: "failed", checks, error: String(error) }, null, 2),
