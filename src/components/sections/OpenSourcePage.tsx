@@ -145,25 +145,24 @@ export function OpenSourcePageContent() {
               </HeroEntranceItem>
               <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                  Start with a customer record, its conversation and the next action in one place.
-                  Your team and AI can work from the same context, with permissions and recorded
-                  results. The MIT-licensed source runs our own agency workspace. Fork it for your
-                  business, or have us build and operate your version.
+                  Give Claude Code or Codex the repository and describe what your business needs.
+                  Your agent can set it up and build custom screens, reports and workflows on the
+                  customer records, permissions and business services already here. Your team spends
+                  less time copying context between tools, and your agent has less foundation to
+                  rebuild. You own the MIT-licensed source and your installation.
                 </p>
               </HeroEntranceItem>
               <HeroEntranceItem step={4}>
                 <div className="mt-9 flex flex-wrap items-center gap-6">
-                  <a
-                    href="https://github.com/JohnConnorCode/accelerate-site"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href="/docs/extend/first-change"
                     data-cursor="link"
-                    onClick={() => trackConversion("Open Source Hero GitHub Click")}
+                    onClick={() => trackConversion("Open Source Agent Start Click")}
                     className="btn"
                   >
-                    View the repository
+                    Start with your coding agent
                     <ArrowUpRight className="h-4 w-4" />
-                  </a>
+                  </Link>
                   <Link
                     href="/demo/command-center"
                     data-cursor="link"
@@ -185,11 +184,11 @@ export function OpenSourcePageContent() {
       <Section width="wide">
         <Eyebrow className="mb-6">two ways to run it</Eyebrow>
         <Heading size={2} as="h2" className="mb-3 max-w-2xl">
-          Run it yourself, or let us run it with you.
+          Choose who operates your installation.
         </Heading>
         <p className="mb-10 max-w-2xl text-base leading-relaxed text-white-muted">
-          Either way, start with one workflow your team needs. Self-host on your own infrastructure
-          or work with the team that builds and operates this system.
+          Your coding agent can build on infrastructure you control. Our team can also configure,
+          operate and improve an agreed workflow with you.
         </p>
         <div className="grid items-stretch gap-6 md:grid-cols-2 lg:gap-8">
           {OPEN_SOURCE_PATHS.map((path, index) => (
@@ -202,14 +201,14 @@ export function OpenSourcePageContent() {
       <Section width="wide" divide>
         <div className="grid min-w-0 items-start gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
           <div className="min-w-0">
-            <Eyebrow className="mb-6">try it locally</Eyebrow>
+            <Eyebrow className="mb-6">your first assignment</Eyebrow>
             <Heading size={2} as="h2" className="max-w-md">
-              Four commands to the site and demo.
+              Ask your agent to get it running.
             </Heading>
             <p className="mt-5 max-w-md text-base leading-relaxed text-white-muted">
-              Explore the public site and fictional business workflows without an account or
-              provider keys. To save work for your own team, connect a Supabase project you control
-              and follow the installation guide.
+              Start with the fictional demo, then describe one workflow to build. The agent handles
+              setup and checks; you review the working result. For your own team, provide authorized
+              access to the accounts needed for a connected installation.
             </p>
             <Link
               href="/docs/self-hosting"
@@ -219,11 +218,35 @@ export function OpenSourcePageContent() {
               Read the self-hosting docs
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
+            <Link
+              href="/docs/extend/ai-authoring"
+              data-cursor="link"
+              className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+            >
+              Describe the workflow you want built
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <AnimateOnScroll as="div" delay={0.08} className="min-w-0">
-            <CodeBlock language="bash" title="terminal">
-              {QUICK_START}
+          <AnimateOnScroll
+            as="div"
+            delay={0.08}
+            className="min-w-0 [&_code]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap"
+          >
+            <CodeBlock language="text" title="Give Claude Code or Codex this assignment">
+              {`Set up https://github.com/JohnConnorCode/accelerate-site.
+Read docs/NORTHSTAR.md, then AGENTS.md.
+Preserve existing unfinished work.
+Run the fictional demo and show me what works.
+Then build the workflow I describe, reusing existing services.
+Verify the result and show the exact source changes.
+Hand off deployment separately.`}
             </CodeBlock>
+            <details className="mt-5 min-w-0 text-sm text-white-secondary">
+              <summary className="cursor-pointer py-3">Local setup commands for your agent</summary>
+              <CodeBlock language="bash" title="Run from the cloned repository">
+                {QUICK_START}
+              </CodeBlock>
+            </details>
             <div className="mt-8 flex flex-wrap gap-2">
               {TECH_STACK.map((tech) => (
                 <span
@@ -275,8 +298,8 @@ export function OpenSourcePageContent() {
                 body: "Your data lives in a Supabase project you own and can move. Connect your own OpenRouter key and model usage bills to you at provider cost.",
               },
               {
-                title: "Extend it without forking it",
-                body: "A module registers from a manifest: navigation, routes, and AI tools, inheriting the approval queue and audit ledger without touching core.",
+                title: "Have an agent build your next workflow",
+                body: "Describe the business rules and review a working screen. The agent implements and registers the extension, reusing shared services for customer identity, access and governed actions.",
               },
             ].map((item, i) => (
               <li

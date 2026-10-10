@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-07
+
+- Make copyable agent briefs recover clearly when clipboard access is unavailable, retain the full text for manual copying, and provide mobile-sized Copy controls. Pending copies disable repeated requests; settled feedback belongs to the mounted screen and reset timers are cleaned up. Agent entrypoint checks name missing instruction files instead of throwing file errors; regression cases cover missing files and conflicting pickup policy. Repository identity recognizes standard SSH port 22 while keeping custom ports distinct.
+- Integrate contributor repository validation and approved-source recovery. Preserve the matching recovery in the natural-language runner's next step instead of suggesting credential setup for missing or mismatched source.
+- Make setup and extension entry points agent-first. Owners give Claude Code or Codex a business brief and review the working result; agents handle configuration, implementation, registration and verification. Guides explain the work saved by shared records and services, distinguish proposed Apps from bundled features, and remove claims that registration automatically implements approvals or audit behavior.
+- Retain a focused contributor-guide screenshot artifact alongside the complete browser evidence, so reviewers can inspect agent setup and extension guidance without downloading unrelated journeys.
+- Align Claude's entrypoint with the canonical explicit-backlog rule and verify that it preserves the user's latest scope. Generic completion requests continue the current task. Contributor review captures wait for reveal readiness and finish finite animations before saving readable desktop evidence.
+
 Notable changes to this repository — the codebase, tooling, and open-source infrastructure. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Product-facing updates (features, fixes, and improvements to the live application) are tracked separately at [/changelog](https://www.acceleratewith.us/changelog) and [src/content/changelog.ts](src/content/changelog.ts).
@@ -28,6 +36,7 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 - The fictional Site Studio demo now supports private draft creation, renaming and checksum-checked discard through shared draft rules. Scenario-local receipts appear in Activity; AI examples use the template without a provider call.
 
 - Site Studio previews AI suggestions before applying, forwards cancellation through the existing model gateway, and rejects late or stale replies. Page-scoped tools preserve custom addresses and enforce validated section limits.
+- Contributor pickup identifies the blocked card and separates missing approved commits, unavailable branches, ancestry mismatches and fetch failures before claiming. Recovery guidance preserves the approved source and directs card corrections through revision-checked edits.
 
 - A newly connected workspace can add a contact directly from Contacts and create a follow-up from that contact's record. The task is linked to the contact timeline and refuses cross-workspace contact IDs. The fictional demo persists newly added contacts instead of claiming success without saving them.
 

@@ -38,8 +38,8 @@ export const docsTracks: DocsTrack[] = [
   },
   {
     id: "builder",
-    title: "Build and run it yourself",
-    description: "For a developer or coding assistant: plugins, extension points, self-hosting.",
+    title: "Build with your agent",
+    description: "Give a coding agent the business brief, setup reference and extension contracts.",
   },
 ];
 
@@ -596,7 +596,7 @@ export const docsManifest: DocsSection[] = [
     track: "builder",
     title: "Build on it",
     description:
-      "For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.",
+      "Describe the business workflow, have a coding agent implement it, and review the result on the shared workspace foundation.",
     pages: [
       {
         slug: ["extend", "overview"],
@@ -624,15 +624,15 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["extend", "ai-authoring"],
-        title: "Build Apps with a coding assistant",
+        title: "Build Apps with a coding agent",
         description:
-          "A concrete brief to hand a coding assistant today, plus where the in-app builder is headed.",
+          "Turn a recurring business task into an App, using a clear brief and the existing workspace services.",
       },
       {
         slug: ["extend", "first-change"],
-        title: "Your first developer change",
+        title: "Your first agent-built change",
         description:
-          "Run the demo, learn where code lives, and make one small, safe extension change.",
+          "Describe one business workflow, have a coding agent build it, and review the working result.",
       },
       {
         slug: ["extend", "modules"],

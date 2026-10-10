@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "agent-first-setup-and-extensions",
+    slug: "agent-first-setup-and-extensions",
+    title: "Start and extend your workspace with a coding agent",
+    description:
+      "Setup and extension guides now start with a business brief for Claude Code or Codex. The agent handles configuration, source changes, registration and checks while the owner reviews the working workflow. Examples explain how shared customer records and services reduce repeated setup and status chasing, with proposed Apps kept distinct from available features. Copy controls fit mobile and show pending requests, successful copies and manual-copy recovery. Claude's entrypoint keeps generic continuation requests on the current task and reserves backlog pickup for explicit requests.",
+    category: "improvement",
+    publishedAt: "2026-10-07",
+  },
+  {
+    id: "contributor-approved-source-recovery",
+    slug: "contributor-approved-source-recovery",
+    title: "Clearer recovery when contributor pickup cannot use its approved source",
+    description:
+      "Contributor pickup now names the blocked card and distinguishes a missing commit, unavailable branch, commit outside the approved branch history and failed fetch. Each message gives the relevant recovery step before ownership is claimed. Existing source, repository identity checks and revision-checked assignment remain in place. This source change still requires review and release before hosted activation.",
+    category: "fix",
+    publishedAt: "2026-10-06",
+  },
+  {
+    id: "contributor-repository-readiness",
+    slug: "contributor-repository-readiness",
+    title: "Clearer recovery when contributor pickup cannot use a repository",
+    description:
+      "Contributor pickup identifies the affected card and explains whether its repository address needs a maintainer edit or the checkout needs to use the approved clone. Standard SSH addresses with explicit port 22 match their default-port aliases, while custom ports remain distinct. Unsafe addresses stay unclaimed, credentials stay hidden, and the approved branch, source commit and work history stay intact.",
+    category: "fix",
+    publishedAt: "2026-10-06",
+  },
+  {
     id: "command-destination-focus",
     slug: "command-destination-focus",
     title: "Keep typing when a command opens setup",

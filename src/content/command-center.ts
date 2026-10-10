@@ -485,7 +485,7 @@ export const capabilities: Capability[] = [
     promise:
       "A plain-language request is enough for a coding agent to pick up a task, prepare an isolated workspace, and carry it through verification and commit.",
     detail:
-      "The agent does not need a ticket key or a provider-specific command, and it never asks you to paste credentials. With recovery enabled, a replacement agent can resume an interrupted task from its saved state. Verification renews the active claim, and checkpoints include safe unfinished source while excluding credentials and generated output.",
+      "Coding-agent instructions reserve pickup for explicit backlog requests and keep ordinary continuation requests on the current task. The agent does not need a ticket key or a provider-specific command, and it never asks you to paste credentials. If pickup cannot use the approved source, it names the blocked card and the recovery step before claiming. With recovery enabled, a replacement agent can resume an interrupted task from its saved state. Verification renews the active claim, and checkpoints include safe unfinished source while excluding credentials and generated output.",
   },
   {
     id: "audit",
@@ -531,11 +531,11 @@ export const capabilities: Capability[] = [
   {
     id: "ownership",
     category: "govern",
-    title: "An open-source foundation",
+    title: "Build on an agent-first foundation",
     promise:
-      "Run and extend the MIT-licensed application with infrastructure and provider accounts you control.",
+      "Have a coding agent set up and extend the MIT-licensed workspace using accounts you control.",
     detail:
-      "Use the neutral starter and self-hosting guides for your own installation. Review the documented content exports, data ownership and support arrangements when planning a handoff.",
+      "Give Claude Code or Codex the business workflow and review its working result. The agent follows setup and extension contracts, reusing customer identity, permissions and business services so each custom screen needs less shared infrastructure. Review its exact source and checks before release, and keep account ownership and recovery responsibilities clear.",
   },
 ];
 

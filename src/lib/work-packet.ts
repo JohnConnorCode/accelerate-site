@@ -1,4 +1,5 @@
 /** Presentation of canonical work contracts. SQL remains the readiness authority. */
+import { repositoryIdentity } from "./work-repository.mjs";
 export type WorkPacketCard = {
   id: string;
   seed_key?: string | null;
@@ -147,6 +148,7 @@ export function demoPacketProblems(input: Record<string, unknown> = {}): string[
     { baseCommit?: string; baseBranch?: string; url?: string } | undefined;
   if (!/^[a-f0-9]{40}$/.test(repo?.baseCommit ?? "") || !text(repo?.baseBranch) || !text(repo?.url))
     reasons.push("missing_repository");
+  else if (!repositoryIdentity(repo?.url)) reasons.push("invalid_repository_url");
   const environments = EVIDENCE_ENVIRONMENTS as readonly string[];
   if (Array.isArray(s.acceptance)) {
     const ids = new Set();

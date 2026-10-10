@@ -1,10 +1,12 @@
 ---
 title: "Connect your installation"
 description: "Create the owner account, apply the ordered schema, and sign in to a workspace you control."
-updated: "2026-09-29"
+updated: "2026-10-07"
 ---
 
-This walkthrough turns a local demo into a connected installation you control: database, authentication, and a real owner account. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email; complete [the local quickstart](/docs/self-hosting) first if you haven't already.
+Once the demo shows a workflow your team wants to use, a coding agent can follow this walkthrough to connect your own database, sign-in and owner account. The guided setup reuses the migration catalog and owner verification, which saves assembling those steps separately and gives the next maintainer a repeatable installation path.
+
+Give Claude Code or Codex a working checkout, authorized access to a new empty Supabase project and the chosen owner email. The agent handles private configuration, the read-only setup plan and verification. You own the accounts and complete any account authorization or credential-entry step that requires you. Start with [the local quickstart](/docs/self-hosting) to review the demo together.
 
 Use the installation instructions shipped with your checkout when upgrading an older version. This guide follows the repository's `docs/self-hosting/SELF-HOSTING.md` sequence. The setup command below changes the project you configure.
 
@@ -18,7 +20,7 @@ In the repository root, copy the example file:
 cp .env.example .env.local
 ```
 
-Edit `.env.local` in your editor. Keep it private and out of commits. Fill in the actual values from the new project:
+The agent configures `.env.local` through the authorized local setup, keeping it private and out of commits. Supply credentials through secure configuration rather than chat. It uses the actual values from the new project:
 
 | Configuration                                                                      | Purpose                                                           |
 | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |

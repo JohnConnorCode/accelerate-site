@@ -3,13 +3,15 @@
 [![CI](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml/badge.svg)](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Accelerate is an **open-source workspace for customer work**. When an inquiry arrives, its conversation, customer record and next action can stay together. Your team sees what needs attention, and AI can use the same context to prepare supported work.
+Accelerate is an **agent-first, open-source starting point for business software**. Give Claude Code or Codex the repository, describe what your team needs, and have the agent set it up, extend it and verify the result. Customer records, conversations, next actions and governed AI services give it a shared foundation to build on.
 
 Open the record behind a suggestion, review the proposed change when its policy requires it, and check the recorded result. Build your own screens, reports and workflows on the same identity, permissions and action services.
 
 Try six fictional businesses without an account or provider keys. When you are ready for your own team, connect a Supabase project and provider accounts you control. The application source is MIT licensed; hosting and provider usage have their normal costs.
 
-**See what you can build:** [ten plugin examples](https://www.acceleratewith.us/docs/plugins), from Business Pulse reports and onboarding checklists to Stripe invoicing, Collections and Opportunity Radar. Each guide explains what works today, how to try it and how to adapt the pattern. You can use a coding assistant to develop extensions against those examples and the shared contracts.
+**Have an agent build your workflow:** describe the repeated work, the records it uses and the result your team needs. A coding agent can handle setup, source changes, extension registration and checks while you review the working result. Reusing customer identity, permissions and business services saves rebuilding that foundation for every custom screen. Start with [an agent-ready business brief](https://www.acceleratewith.us/docs/extend/ai-authoring).
+
+**Explore available examples:** [ten plugin guides](https://www.acceleratewith.us/docs/plugins) cover reports, onboarding checklists, invoicing, Collections and Opportunity Radar. Each explains what works today, how to try it and how an agent can adapt the pattern.
 
 [Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [How it works](https://www.acceleratewith.us/docs/start/how-it-works) · [Architecture](docs/self-hosting/ARCHITECTURE.md) · [Self-hosting](docs/self-hosting/SELF-HOSTING.md) · [Developer start](docs/contributing/DEVELOPER-START.md) · [All docs](docs/README.md) · [Roadmap](#roadmap)
 
@@ -18,6 +20,19 @@ Try six fictional businesses without an account or provider keys. When you are r
 > **Start here:** The fictional demo works with zero setup and no provider credentials. A connected workspace needs your own Supabase project. Verify sign-in, saved records, tenant isolation and backups before importing real customer data.
 
 ## Quick start
+
+Give Claude Code or Codex this assignment:
+
+```text
+Set up https://github.com/JohnConnorCode/accelerate-site.
+Read docs/NORTHSTAR.md, then AGENTS.md. Preserve existing unfinished work.
+Install dependencies, run the fictional demo and show me what works.
+Then build the business workflow I describe using the existing services.
+Run the required checks and show the exact tested source changes.
+Hand off deployment separately.
+```
+
+The agent handles the commands below. You provide the business rules, authorized account access for connected services and feedback on the working result. [Your first agent-built change](https://www.acceleratewith.us/docs/extend/first-change) explains the handoff.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJohnConnorCode%2Faccelerate-site&project-name=my-revenue-os&repository-name=my-revenue-os&demo-title=Accelerate%20Revenue%20OS&demo-description=Self-hosted%20revenue%20operations%2C%20CRM%2C%20and%20AI%20workspace&demo-url=https%3A%2F%2Fwww.acceleratewith.us%2Fdemo%2Fcommand-center)
 
@@ -90,11 +105,11 @@ Setup for each client is in [docs/self-hosting/MCP-SETUP.md](docs/self-hosting/M
 
 ## Extend it without forking it
 
-Modules are the unit a workspace turns on and off. A third party registers one from a JSON manifest in [`extensions/`](extensions/README.md) that declares its navigation, routes, AI tools, and Setup Center checks. The build validates every manifest and compiles it into a typed constant, so nothing in that directory is ever executed.
+For example, an agent can build a client review queue around your existing customer records so the team can find the latest revision and outstanding decision together. That queue is an example to build, rather than a bundled feature. Give the agent the review rules and ask it to demonstrate the complete workflow with fictional records.
 
-A registered module inherits the approval queue, the audit ledger, module gating, and MCP exposure without asking for any of them. Disable it and its navigation disappears, its routes fail closed, and its AI tools report unavailable to the agent and to MCP alike.
+The agent implements the business behavior and registers a module, the unit a workspace turns on and off. Its JSON manifest in [`extensions/`](extensions/README.md) declares navigation, routes, AI tools and Setup Center checks. The build validates the manifest as data. The implementation must use shared domain and action services for authorization, approvals and recorded results; registration alone does not implement those operations.
 
-[docs/contributing/EXTENDING.md](docs/contributing/EXTENDING.md) covers all three extension points: modules, integration adapters, and AI tools. `extensions/example-inventory.module.json` is a complete working example.
+[docs/contributing/EXTENDING.md](docs/contributing/EXTENDING.md) gives the agent the module, integration adapter and AI tool contracts. `extensions/example-inventory.module.json` demonstrates page registration and workspace enablement. Start with [your first agent-built change](https://www.acceleratewith.us/docs/extend/first-change), then review the source and verification evidence before release.
 
 ## Technology
 

@@ -32,8 +32,12 @@ const setup = args.includes("--setup");
 const cardIndex = args.indexOf("--card");
 const card = cardIndex >= 0 ? args[cardIndex + 1] : undefined;
 
-function fail(message: string, status: RunnerStatus = "PREFLIGHT_BLOCKED"): never {
-  const result = { status, message, next: setupInstructions() };
+function fail(
+  message: string,
+  status: RunnerStatus = "PREFLIGHT_BLOCKED",
+  next = setupInstructions(),
+): never {
+  const result = { status, message, next };
   if (json) console.log(JSON.stringify(result, null, 2));
   else console.error(`${status}: ${message}\n${result.next}`);
   process.exit(1);
@@ -94,7 +98,23 @@ function runDispatch(profile: Profile | null) {
   if (child.status !== 0) {
     const message = (child.stderr || child.stdout || "Work-board pickup failed").trim();
     const noReady = /No ready Now\/Next ticket/i.test(message);
-    fail(message, noReady ? "NO_READY_WORK" : "PREFLIGHT_BLOCKED");
+    const repositoryProblem =
+      /Card .*: (invalid repository address|this checkout's origin)|invalid_repository_url/.test(
+        message,
+      );
+    const sourceProblem =
+      /Card [a-zA-Z0-9_-]+: (ticket needs an approved repository|cannot fetch approved branch|approved (commit|branch)|(?:retained worktree|existing ticket branch) does not contain approved commit)/.test(
+        message,
+      );
+    fail(
+      message,
+      noReady ? "NO_READY_WORK" : "PREFLIGHT_BLOCKED",
+      repositoryProblem
+        ? "Read the named card with agent:show. Use its approved clone, or have the maintainer repair the repository address with a revision-checked edit while retaining its approved branch and exact base. No work was claimed."
+        : sourceProblem
+          ? "Read the named card with agent:show and follow the approved-source recovery in the error. Preserve its existing remote and retained work; have the maintainer reconcile unpublished or mismatched source through a revision-checked edit. No work was claimed."
+          : setupInstructions(),
+    );
   }
   try {
     return JSON.parse(child.stdout);
