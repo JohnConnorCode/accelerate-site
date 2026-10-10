@@ -107,6 +107,9 @@ try {
       await review.focus();
       await page.keyboard.press("Enter");
       await page.locator('[data-review-decision="approve"]').waitFor();
+      await page.waitForFunction(() =>
+        document.activeElement?.matches('section[aria-label="Review exact changes"]'),
+      );
       assert.equal(
         await page.getByRole("button", { name: "Jump to latest" }).count(),
         0,
@@ -221,14 +224,24 @@ try {
     activePage = page;
     await context.route("**/api/analytics/events", (route) => route.fulfill({ status: 204 }));
     await page.goto(`${base}/demo/command-center`);
-    await page.getByRole("heading", { name: "Tell your agent what needs doing." }).waitFor();
+    await page
+      .getByRole("heading", {
+        level: 1,
+        name: /^Follow the customer\.\s*See the business work\.$/,
+      })
+      .waitFor();
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
       "Chooser has no horizontal overflow",
     );
     await page.screenshot({ path: `${out}/chooser-${viewport}.png`, fullPage: true });
     await page.screenshot({ path: `${out}/chooser-${viewport}-top.png` });
-    await page.getByRole("link", { name: "Try the AI agent", exact: true }).click();
+    await page
+      .getByRole("link", {
+        name: "Explore Northline Roofing & Exteriors demo workspace",
+        exact: true,
+      })
+      .click();
     await page.getByRole("textbox", { name: "Ask the business" }).waitFor();
     // With no funded inference setup the actual endpoint must refuse, not invent a run.
     await page.getByRole("button", { name: "Send AI command" }).first().click();

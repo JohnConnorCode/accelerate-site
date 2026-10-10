@@ -127,13 +127,14 @@ async function readStablePageState(page) {
     failures.push("launcher: missing fictional-data disclosure");
   if (
     !(await page
-      .getByRole("heading", { level: 1, name: "Tell your agent what needs doing." })
+      .getByRole("heading", {
+        level: 1,
+        name: /^Follow the customer\.\s*See the business work\.$/,
+      })
       .count())
   )
     failures.push("launcher: current workflow-led heading is missing");
-  if (
-    !(await page.getByRole("heading", { name: "Start with a request. Review the result." }).count())
-  )
+  if (!(await page.getByRole("group", { name: "Choose a workflow", exact: true }).count()))
     failures.push("launcher: complete-workflow showcase is missing");
   if (await page.getByText("Command Center overview", { exact: false }).count())
     failures.push("launcher: duplicate local navigation chrome remains");

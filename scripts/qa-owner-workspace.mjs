@@ -174,17 +174,21 @@ try {
       await page.setViewportSize({ width, height: 1000 });
       await page.waitForFunction(() => document.activeElement?.matches(".admin-help-trigger"));
       assert.equal(await how.getAttribute("aria-expanded"), "false");
-      const walkthroughs = page
+      const workflows = page
         .locator("details")
-        .filter({ has: page.getByText("How do I get work done?", { exact: true }) });
-      await walkthroughs.locator("summary").focus();
+        .filter({ has: page.getByText("Start a business workflow", { exact: true }) });
+      await workflows.locator("summary").focus();
       await page.keyboard.press("Enter");
       assert.equal(
-        await walkthroughs.getByRole("link", { name: "Read the walkthrough", exact: true }).count(),
-        3,
+        await workflows.getByRole("link", { name: "Guide and setup", exact: true }).count(),
+        6,
       );
-      await walkthroughs.locator("summary").click();
-      await walkthroughs.locator("summary").evaluate((element) => element.blur());
+      assert.equal(
+        await workflows.getByRole("link", { name: "Open workspace", exact: true }).count(),
+        6,
+      );
+      await workflows.locator("summary").click();
+      await workflows.locator("summary").evaluate((element) => element.blur());
       await stable(page);
       await page.screenshot({ path: `${output}/today-${width}.png` });
       if (width === 1440) {
