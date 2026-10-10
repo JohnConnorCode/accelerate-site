@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, writeFileSync, rmSync, mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { build } from "esbuild";
 import { tmpdir } from "node:os";
@@ -297,6 +297,61 @@ test("publication requires complete exact-source CI, never PR merge or partial s
   assert.throws(() =>
     verifyReleaseCi(sha, ["ci.yml", "connected-fork.yml"], [{ workflow: "ci.yml", run, jobs }]),
   );
+});
+test("first-release CLI accepts empty sources and preserves input and clean-source checks", () => {
+  const root = mkdtempSync(join(tmpdir(), "accelerate-first-release-"));
+  const dir = join(root, "source");
+  const cli = join(process.cwd(), "scripts/core-release.mjs");
+  const output = join(root, "accelerate-release.json");
+  const git = (args) =>
+    execFileSync("git", args, { cwd: dir, stdio: "pipe", encoding: "utf8" }).trim();
+  const run = (args) => execFileSync(process.execPath, [cli, ...args], { cwd: dir, stdio: "pipe" });
+  try {
+    mkdirSync(dir);
+    for (const name of ["migrations", "supabase", "release-policy.json"])
+      cpSync(join(process.cwd(), name), join(dir, name), { recursive: true });
+    mkdirSync(join(dir, "extensions"));
+    cpSync(
+      join(process.cwd(), "extensions/module-manifest.schema.json"),
+      join(dir, "extensions/module-manifest.schema.json"),
+    );
+    writeFileSync(
+      join(dir, "package.json"),
+      JSON.stringify({ version: "0.1.0", engines: { node: ">=22.16.0" } }),
+    );
+    writeFileSync(join(dir, "notes.md"), "Reviewed first-release fixture.");
+    git(["init", "-q"]);
+    git(["config", "user.email", "fictional@example.test"]);
+    git(["config", "user.name", "Fictional installer"]);
+    git(["add", "."]);
+    git(["commit", "-qm", "reviewed source"]);
+    const args = [
+      "prepare",
+      "--version",
+      "v0.1.0",
+      "--notes",
+      join(dir, "notes.md"),
+      "--output",
+      output,
+    ];
+    run([...args, "--sources", ""]);
+    const prepared = parseReleaseMetadata(JSON.parse(readFileSync(output, "utf8")));
+    assert.deepEqual(prepared.supportedSourceVersions, []);
+    assert.equal(prepared.sourceCommit, git(["rev-parse", "HEAD"]));
+    for (const invalid of [
+      ["--sources"],
+      ["--sources", "--version"],
+      ["--version", ""],
+      ["--notes", ""],
+      ["--output", ""],
+      ["--sources", "v0.0.1-rc.1"],
+    ])
+      assert.throws(() => run([...args, ...invalid]));
+    writeFileSync(join(dir, "unreviewed"), "uncommitted change");
+    assert.throws(() => run([...args, "--sources", ""]), /Release source must be clean/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 test("installed core and customized fork commit remain distinct", () => {
   const dir = mkdtempSync(join(tmpdir(), "accelerate-release-identity-"));

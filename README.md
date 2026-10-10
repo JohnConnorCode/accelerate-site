@@ -5,7 +5,7 @@
 
 Command Center is an **open-source AI business platform you can make your own**. Manage customers, sales, delivery, billing and marketing with a shared customer history. Use AI to work with that context, and build the workflows and Apps your business needs on the existing foundation.
 
-**Run your business:** give an inquiry an owner and next action, hand a won opportunity into client onboarding, prepare an invoice and follow unpaid accounts. [Explore the business areas](https://www.acceleratewith.us/command-center/features), or [follow one fictional customer](https://www.acceleratewith.us/demo/command-center/northline-roofing/today?workflow=client).
+**Run your business:** give an inquiry an owner and next action, hand a won opportunity into client onboarding, prepare an invoice and follow unpaid accounts. [Explore the business areas](docs/planning/COMMAND-CENTER-POSITIONING-2026-10-10.md#six-business-areas), or [follow one fictional customer](https://www.acceleratewith.us/demo/command-center/northline-roofing/today?workflow=client).
 
 **Build for your team or clients:** give Claude Code or Codex the repository and a concrete business task. Add screens, reports and workflows using the existing customer identity, permissions and business services. [Adapt a working follow-up report](https://www.acceleratewith.us/docs/extend/first-change) before starting a larger custom App.
 
@@ -13,7 +13,7 @@ Try six fictional businesses without an account or provider keys. When you are r
 
 **Have an agent build your workflow:** describe the repeated work, the records it uses and the result your team needs. A coding agent can handle setup, source changes, extension registration and checks while you review the working result. Reusing customer identity, permissions and business services saves rebuilding that foundation for every custom screen. Start with [an agent-ready business brief](https://www.acceleratewith.us/docs/extend/ai-authoring).
 
-**Explore available Apps:** [the App and plugin guides](https://www.acceleratewith.us/docs/plugins) cover follow-up reports, onboarding, invoicing, collections, websites, forms and other specialized workflows. Each explains the current behavior, setup and an example you can try. [Compare alternatives](https://www.acceleratewith.us/command-center/compare) when deciding between a CRM, a business suite and a custom development platform.
+**Explore available Apps:** [the App and plugin guides](https://www.acceleratewith.us/docs/plugins) cover follow-up reports, onboarding, invoicing, collections, websites, forms and other specialized workflows. Each explains the current behavior, setup and an example you can try. [Compare alternatives](docs/planning/COMMAND-CENTER-POSITIONING-2026-10-10.md#what-the-competition-teaches-us) when deciding between a CRM, a business suite and a custom development platform.
 
 [Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [How it works](https://www.acceleratewith.us/docs/start/how-it-works) · [Architecture](docs/self-hosting/ARCHITECTURE.md) · [Self-hosting](docs/self-hosting/SELF-HOSTING.md) · [Developer start](docs/contributing/DEVELOPER-START.md) · [All docs](docs/README.md) · [Roadmap](#roadmap)
 

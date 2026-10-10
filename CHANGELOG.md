@@ -30,6 +30,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- First-release preparation accepts an explicitly empty supported-version list. The CLI still refuses missing option values, empty required inputs, invalid source tags and unreviewed source; a clean-repository regression exercises the actual preparation command.
+
 - Keep exact-change AI reviews at their reading position through pending reads and chat resizes. Automatic following pauses until review ends, preserving the visible consequence and decision controls. Browser acceptance resizes the real viewport and verifies all six fictional businesses on desktop and mobile.
 
 - Feature-page images and enlargement links reuse the docs' content-hash cache keys. Refreshed gallery images use new filenames so optimized copies do not obscure interface changes; previously published assets remain available.
