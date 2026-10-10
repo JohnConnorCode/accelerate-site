@@ -7,6 +7,8 @@ jobs:
   focus-diagnostic:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
     steps:
       - uses: actions/checkout@v7
         with:
@@ -24,7 +26,7 @@ jobs:
         run: |
           mkdir -p /tmp/accelerate-full-admin-demo
           set -o pipefail
-          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-full-admin-demo/server.log 2>&1 &
+          setsid npm run start:qa -- --hostname localhost --port 3018 > /tmp/accelerate-full-admin-demo/server.log 2>&1 &
           server_pid=$!
           trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
           ready=false
