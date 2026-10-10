@@ -14,7 +14,8 @@
     {
       "command": "npm run resources:run -- npm run test:core",
       "result": "passed",
-      "commands": 87
+      "commands": 87,
+      "sourceCommit": "2d65ca51d0e67bdf8c3d72eb562185de77a87ed8"
     },
     {
       "command": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded npm run build",
@@ -33,6 +34,66 @@
     {
       "command": "npm run lint -- --max-warnings=0",
       "result": "passed"
+    },
+    {
+      "command": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded npm run build",
+      "result": "passed",
+      "phase": "after review scroll correction",
+      "typescript": "passed",
+      "generatedPages": 570
+    },
+    {
+      "command": "npm run test:admin-route-inventory",
+      "result": "passed",
+      "pages": 67,
+      "sourceFingerprints": 409
+    },
+    {
+      "command": "npm run verify:admin-tokens",
+      "result": "passed"
+    },
+    {
+      "command": "node --conditions=react-server --import tsx scripts/test-navigation-runtime.ts",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-owner-workspace.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "transport": "fictional business adapter"
+    },
+    {
+      "command": "node scripts/qa-admin-demo.mjs --one",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/qa-conversational-agent.mjs",
+      "result": "passed",
+      "businessViewportJourneys": 12,
+      "successfulRunsAfterScrollCorrection": 2,
+      "reviewViewportResize": true,
+      "realInference": false
+    },
+    {
+      "command": "node scripts/qa-command-center-interactions.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "motion": ["no-preference", "reduce"]
+    },
+    {
+      "command": "node --import tsx scripts/qa-site-studio.ts",
+      "result": "passed",
+      "transport": "controlled adapter and fictional demo"
+    },
+    {
+      "command": "npm run resources:run -- npm run lint -- --max-warnings=0",
+      "result": "passed",
+      "phase": "final source"
     }
-  ]
+  ],
+  "initialApplicationCommit": "2d65ca51d0e67bdf8c3d72eb562185de77a87ed8",
+  "followUpApplicationInput": {
+    "file": "src/components/admin/AdminAIChat.tsx",
+    "sha256": "2a4122c3eb3c6dd0ec4043acd9937123b0296d9fb010da51802caabeecab09f6"
+  }
 }

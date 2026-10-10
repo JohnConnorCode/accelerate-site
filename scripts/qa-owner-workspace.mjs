@@ -12,13 +12,18 @@ async function ready(page, scenario) {
   await page.locator(".admin-main h1").waitFor();
 }
 async function stable(page) {
-  await page.locator("[data-admin-route-stage]").evaluate(async (root) => {
-    await Promise.all(
-      root
-        .getAnimations({ subtree: true })
-        .filter((animation) => Number.isFinite(animation.effect.getComputedTiming().endTime))
-        .map((animation) => animation.finished.catch(() => {})),
-    );
+  // Collapsing native details can remove a transition while its captured
+  // finished promise stays pending. Inspect the current animation timeline.
+  await page.waitForFunction(() => {
+    const root = document.querySelector("[data-admin-route-stage]");
+    return root
+      ?.getAnimations({ subtree: true })
+      .every(
+        (animation) =>
+          !Number.isFinite(animation.effect.getComputedTiming().endTime) ||
+          animation.playState === "finished" ||
+          animation.playState === "idle",
+      );
   });
   assert.equal(
     await page.evaluate(() => {

@@ -40,6 +40,21 @@ passed all six fictional scenarios on desktop and mobile. It exercises actual
 admin components and the browser-session business adapter, including invoice,
 collections, publishing and campaign operations.
 
+The existing owner-workspace and admin-demo checks also passed. Owner acceptance
+covers inquiry replies, onboarding and invoicing, including failed operations and
+reload. Site Studio acceptance covers private draft recovery and the changed
+public reference links through controlled adapters and the fictional demo.
+
+Repeating the conversational journey exposed an existing automatic-scroll race:
+a pending or open exact-change review could jump to the latest message and hide
+its consequence. The shared chat now suspends automatic following during review.
+A fresh production build and two successful runs cover all twelve business and
+viewport combinations, including an actual resize while the review is open.
+Opened viewport screenshots confirm the consequence and both decisions remain
+visible. Shared Command Center interactions also pass at both widths with normal
+and reduced motion. The route inventory records the reviewed boundary; its
+fingerprint check and the stricter color-token budget pass.
+
 Twenty-nine documentation screenshots and seven gallery screenshots were captured
 from the real demo interface. They include delivery, collections and publishing.
 The optional inventory example was enabled through the simulated module-settings
@@ -52,6 +67,12 @@ scenario coverage. Their recorded base commit identifies the starting checkout;
 the implementation candidate is the PR head containing this receipt.
 
 All local handoff checks passed:
+
+The complete 87-command local core run used application commit `2d65ca51`. The
+later application change is confined to `AdminAIChat.tsx`. Its source fingerprint,
+fresh build, strict lint, navigation contract and browser acceptance are recorded
+in [the handoff checks](handoff-checks.json). PR CI verifies the final candidate
+separately; the PR also retains the current preview-platform status.
 
 | Verification                                                          | Result                                                            |
 | --------------------------------------------------------------------- | ----------------------------------------------------------------- |

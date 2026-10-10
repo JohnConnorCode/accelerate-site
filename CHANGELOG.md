@@ -30,6 +30,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Keep exact-change AI reviews at their reading position through pending reads and chat resizes. Automatic following pauses until review ends, preserving the visible consequence and decision controls. Browser acceptance resizes the real viewport and verifies all six fictional businesses on desktop and mobile.
+
 - Feature-page images and enlargement links reuse the docs' content-hash cache keys. Refreshed gallery images use new filenames so optimized copies do not obscure interface changes; previously published assets remain available.
 
 - Work task selection now keeps its exact URL and independent read/retry lifecycle. Editable instructions reuse the existing task writer; pending edits lock the form, failed confirmations retain drafts, and late reads or saves cannot target the next inspector. Source links use stored identifiers in Work and legacy Today.

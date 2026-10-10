@@ -817,6 +817,9 @@ for (const scenario of scenarios) {
         .getByRole("group", { name: "AI workspace views", exact: true })
         .getByRole("button", { name: "Capabilities", exact: true })
         .click();
+      await page
+        .getByText("Search all registered operations and technical details", { exact: true })
+        .click();
       await page.getByRole("heading", { name: "Reads and reports", exact: true }).waitFor();
       if (!page.url().includes("/demo/command-center/northline-roofing/ai?view=capabilities"))
         failures.push("AI workspace: tab navigation escaped the public demo URL");
