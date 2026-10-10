@@ -127,7 +127,10 @@ try {
       await page
         .getByRole("heading", { name: "We couldn’t load this information", exact: true })
         .waitFor();
-      assert.equal(await page.getByRole("heading", { name: "Client Not Found" }).count(), 0);
+      assert.equal(
+        await page.getByRole("heading", { name: "Client not found", exact: true }).count(),
+        0,
+      );
       await page.screenshot({
         path: `${output}/client-error-${width}-${reducedMotion}.png`,
         style: "nextjs-portal{visibility:hidden}",
@@ -138,9 +141,7 @@ try {
       await page.getByRole("button", { name: "Retry", exact: true }).focus();
       await page.keyboard.press("Enter");
       await page.getByRole("heading", { name: client.business_name, exact: true }).waitFor();
-      const activity = page
-        .getByRole("heading", { name: "Activity Timeline", exact: true })
-        .locator("..");
+      const activity = page.getByRole("region", { name: "Client activity", exact: true });
       await activity
         .getByRole("heading", { name: "We couldn’t load this information", exact: true })
         .waitFor();
@@ -166,7 +167,7 @@ try {
       await page.evaluate(() => {
         window.__qa.clientFailure = true;
       });
-      await page.getByRole("button", { name: /Save Changes/i }).click();
+      await page.getByRole("button", { name: "Refresh client", exact: true }).click();
       await page.waitForFunction(() => document.querySelectorAll('[role="alert"]').length >= 2);
       assert(
         await page.getByRole("heading", { name: client.business_name, exact: true }).isVisible(),
@@ -179,7 +180,7 @@ try {
         window.__qa.clientFailure = false;
         window.__qa.timelineFailure = false;
       });
-      await page.getByRole("button", { name: "Retry", exact: true }).first().click();
+      await page.getByRole("button", { name: "Refresh client", exact: true }).click();
       await page.waitForFunction(
         () =>
           ![...document.querySelectorAll("p")].some(
@@ -188,7 +189,7 @@ try {
       );
       for (const missing of ["missing-client", "missing-client-404"]) {
         await page.goto(route(`clients/${missing}`));
-        await page.getByRole("heading", { name: "Client Not Found", exact: true }).waitFor();
+        await page.getByRole("heading", { name: "Client not found", exact: true }).waitFor();
         assert.equal(
           await page
             .getByRole("heading", { name: "We couldn’t load this information", exact: true })

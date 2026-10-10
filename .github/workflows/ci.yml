@@ -35,10 +35,18 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-full-admin-demo/server.log; exit 1; fi
-          node scripts/qa-admin-demo.mjs --one 2>&1 | tee /tmp/accelerate-full-admin-demo/runner.log
+          qa_status=0
+          for qa in qa-invoice-navigation qa-command-center-interactions qa-home-polish qa-demo-business-workflows qa-proposal-editor-recovery qa-contact-review-copy qa-demo-marketing qa-theme-persistence; do
+            if ! node "scripts/$qa.mjs" 2>&1 | tee "/tmp/accelerate-full-admin-demo/$qa.log"; then qa_status=1; fi
+          done
+          exit "$qa_status"
       - uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
           name: release-admin-diagnostic
-          path: /tmp/accelerate-full-admin-demo/
+          path: |
+            /tmp/accelerate-full-admin-demo/
+            /tmp/accelerate-invoice-navigation/
+            /tmp/accelerate-command-interactions/
+            /tmp/accelerate-proposal-editor-recovery/
           if-no-files-found: warn

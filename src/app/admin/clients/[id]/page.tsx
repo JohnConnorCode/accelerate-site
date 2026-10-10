@@ -12,7 +12,7 @@ import { ClientDetail, type Client } from "@/components/admin/ClientDetail";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { TaskQuickAdd } from "@/components/admin/TaskQuickAdd";
-import { fetchJson } from "@/lib/admin/fetchJson";
+import { AdminRequestError, fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
 interface TimelineItem {
@@ -34,6 +34,10 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     { placeholderData: undefined },
   );
   const client = record.data?.client;
+  const missingClient =
+    !client &&
+    (record.data?.client === null ||
+      (record.error instanceof AdminRequestError && record.error.status === 404));
   const email = client?.contact_email || "";
   const history = useAdminQuery<{ timeline: TimelineItem[] }>(
     ["admin", "contact-relationship", email],
@@ -85,8 +89,8 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       />
       <AdminReadBody
         loading={record.isPending}
-        hasData={record.data !== undefined}
-        error={record.error?.message}
+        hasData={record.data !== undefined || missingClient}
+        error={missingClient ? undefined : record.error?.message}
         refreshing={record.isFetching}
         onRetry={() => void record.refetch()}
         loadingFallback={<LoadingSkeleton variant="page" />}
@@ -184,7 +188,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
             </div>
           </>
         ) : (
-          record.data && (
+          missingClient && (
             <AdminSurface tone="subtle">
               <h2 className="text-sm font-semibold text-[var(--admin-ink)]">Client not found</h2>
               <p className="mt-1 text-sm text-[var(--admin-muted)]">
