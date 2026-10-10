@@ -65,13 +65,14 @@ async function openInvoices(page, mobile) {
   const documentId = await page.evaluate(() => window.__accelerateInvoiceNavigationDocument);
   if (mobile) await page.getByRole("button", { name: "Open More", exact: true }).click();
   const navigation = page.locator('nav[aria-label="Admin navigation"]:visible');
-  const invoices = navigation.getByRole("link", { name: "Invoices", exact: true });
+  const invoices = navigation.getByRole("link", { name: "Billing & payments", exact: true });
   assert.equal(
     await invoices.count(),
     1,
-    "Invoices must be a visible destination without expanding Records",
+    "Invoices must be reachable through Billing & payments without expanding Customers & sales",
   );
   const destination = new URL(await invoices.getAttribute("href"), page.url());
+  assert.equal(destination.pathname, new URL("./invoicing", page.url()).pathname);
   assert.equal(
     destination.origin,
     new URL(page.url()).origin,
@@ -107,7 +108,7 @@ try {
       if (!mobile) {
         await page.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
         assert.equal(
-          await page.locator('[data-admin-sidebar] a[aria-label="Invoices"]').count(),
+          await page.locator('[data-admin-sidebar] a[aria-label="Billing & payments"]').count(),
           1,
         );
         await page.getByRole("button", { name: "Expand sidebar", exact: true }).click();

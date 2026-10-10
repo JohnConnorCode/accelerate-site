@@ -85,3 +85,16 @@ providing an explicit accessible name. The journey now selects the exact
 `Capabilities` button inside `AI workspace views` and the current `Reads and
 reports` heading. Its navigation, simulated action, workspace isolation, appearance,
 refresh and reset assertions remain intact.
+
+The completed first-run matrix passed the shared admin language checks across 153
+route, width and theme cases, plus the owner, Site Studio, calendar, conversational,
+work-board, collections and navigation recovery journeys. Two older tests still
+used the former invoice navigation name and timeline wrapper. They now target
+`Billing & payments` and the existing `Client activity` region, preserving keyboard
+navigation and retained-data recovery checks. Client refresh failures use the
+explicit `Refresh client` control; confirmed saves keep their authoritative receipt.
+Inspection also found that the newer client query owner treated a missing-record
+HTTP 404 as a retryable read failure. It now shares the existing null-record empty
+state while other read failures keep their recovery behavior. The existing browser
+journey covers both null and HTTP 404 missing records. Full acceptance is required
+on this final combined source.
