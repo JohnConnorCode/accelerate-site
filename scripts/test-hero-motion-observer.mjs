@@ -55,6 +55,7 @@ try {
       "delayed-read",
       "delayed-delivery",
       "delayed-delivery-finished",
+      "delayed-ready-finished",
       "collapsed",
       "misordered",
       "missing",
@@ -80,6 +81,17 @@ try {
           hero.classList.add("in");
           // Resolve real CSS animation clocks before arranging observer delay.
           const animations = hero.getAnimations({ subtree: true });
+          if (mode === "delayed-ready-finished") {
+            hero
+              .querySelector(".home-hero-word")
+              .getAnimations()[0]
+              .ready.then(() => {
+                const until = performance.now() + 700;
+                while (performance.now() < until) {
+                  /* Fixture-only delayed readiness callback. */
+                }
+              });
+          }
           Promise.all(animations.map((animation) => animation.ready)).then(() => {
             if (mode === "stale") {
               window.__heroForwardArmedAt = performance.now();
@@ -108,7 +120,14 @@ try {
       }));
       const sequence = hasPerceptibleHeroSequence(observation.phases);
       const fresh = hasFreshHeroEntrance(observation.entrance);
-      if (["delayed-read", "delayed-delivery", "delayed-delivery-finished"].includes(mode)) {
+      if (
+        [
+          "delayed-read",
+          "delayed-delivery",
+          "delayed-delivery-finished",
+          "delayed-ready-finished",
+        ].includes(mode)
+      ) {
         assert(sequence, `${label}/${mode}: actual stagger was lost`);
         assert(fresh, `${label}/${mode}: captured fresh entrance was lost`);
         assert.equal(
@@ -119,6 +138,12 @@ try {
         if (mode.startsWith("delayed-delivery")) {
           const gap = observation.phases[1].observedAt - observation.phases[0].observedAt;
           assert(gap < 30, `Fixture must reproduce bunched event delivery, got ${gap}ms`);
+        }
+        if (mode === "delayed-ready-finished") {
+          assert(
+            observation.entrance.clockReadyAt - observation.entrance.startTime > 520,
+            "Fixture must delay readiness observation past the native animation end",
+          );
         }
       } else if (["collapsed", "misordered", "missing"].includes(mode)) {
         assert.equal(sequence, false, `${label}/${mode}: genuine sequence defect was accepted`);
