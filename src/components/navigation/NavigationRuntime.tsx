@@ -321,11 +321,15 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       const focusTarget = heading || root;
       if (!restoresHistory && focusTarget) {
         const active = document.activeElement;
+        // The deferred first handoff can run after the operator has already
+        // entered a destination field or opened another dialog. Those controls
+        // now own focus, including when streamed content replaces the heading.
+        const operatorHasFocus =
+          (active !== root && active !== focusTarget && root?.contains(active)) ||
+          active?.closest('[data-admin-overlay="dialog"][data-state="open"]');
         const canRefocus =
-          !focusedTarget ||
-          active === document.body ||
-          active === focusedTarget ||
-          !document.contains(focusedTarget);
+          !operatorHasFocus &&
+          (!focusedTarget || active === document.body || active === focusedTarget);
         if (canRefocus) {
           if (!focusTarget.hasAttribute("tabindex")) focusTarget.setAttribute("tabindex", "-1");
           focusTarget.focus({ preventScroll: true });
