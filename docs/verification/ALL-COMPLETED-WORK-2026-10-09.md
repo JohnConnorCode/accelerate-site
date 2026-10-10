@@ -52,3 +52,36 @@ Production Supabase API identity matches the approved database target. Its ledge
 contains 124 matching historical checksums with eight pending release migrations.
 No historical migration differs and no unknown migration exists. Schema changes
 wait for combined verification. Secrets and production configuration stay ignored.
+
+## Integration verification repairs
+
+The restored client detail page uses the current client-workspace owner, including
+shared queries, recovery and task linking. Source-bound admin language and TypeScript
+checks pass. No other tracked source file is empty.
+
+The first combined run exposed two verification integration requirements. Shared
+focus compares current owners with the main baseline, so the build job must fetch
+that source commit rather than use a depth-one checkout. The focused Linux run
+[38016056342](https://github.com/JohnConnorCode/accelerate-site/actions/runs/38016056342)
+passes against the unchanged release application owners. Startup logs are now retained
+alongside its evidence. Native recovery from the pinned prior source must expect
+`platform_owner_user_id: null` on older action rows after the new privacy migration,
+while preserving every existing field. The strict populated-data comparison remains.
+Final combined CI and native recovery must pass on the corrected head.
+
+The next combined run passed all non-browser jobs and the actual homepage,
+Chromium/WebKit mobile, public-loading and core-discovery browser checks. Its
+broader admin-demo journey still selected the former `Work` navigation group;
+the test now exercises the current `Tasks & approvals` disclosure with the same
+open/close/reopen, active-link and browser-history assertions. The contributor
+browser check also exposed missing supported-agent names in the newer business-first
+guides. Their commissioning steps now name Codex and Claude Code without restoring
+older engineering-heavy introductions. Source documentation checks pass; final
+compiled browser acceptance remains required on the updated head.
+
+The following run reached AI run history on desktop and mobile. The Capabilities
+selector still included an old description despite the shared view switcher now
+providing an explicit accessible name. The journey now selects the exact
+`Capabilities` button inside `AI workspace views` and the current `Reads and
+reports` heading. Its navigation, simulated action, workspace isolation, appearance,
+refresh and reset assertions remain intact.

@@ -431,10 +431,14 @@ NOTIFY pgrst,'reload schema';`,
       currentCatalog.length > priorCatalog.length,
       "The pinned prior source must exercise pending migrations",
     );
-    // The conversational runtime migration adds these columns to older work.
-    // Existing fields must match; the new defaults must not invent an agent plan.
+    // The runtime and command-privacy migrations add columns to older rows.
+    // Existing fields must match; new defaults must invent neither plans nor owners.
     const expectedAfterUpgrade = {
       ...expected,
+      action_queue: expected.action_queue.map((row: Record<string, unknown>) => ({
+        ...row,
+        platform_owner_user_id: null,
+      })),
       work_items: expected.work_items.map((row: Record<string, unknown>) => ({
         ...row,
         agent_plan: null,

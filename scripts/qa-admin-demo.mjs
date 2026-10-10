@@ -625,7 +625,7 @@ for (const scenario of scenarios) {
 
         if (scenario === "northline-roofing") {
           const workToggle = controlsScope.getByRole("button", {
-            name: /^(Expand|Collapse) Work links$/,
+            name: /^(Expand|Collapse) Tasks & approvals links$/,
           });
           const workPanelId = await workToggle.getAttribute("aria-controls");
           const workPanel = controlsScope.locator(`[id="${workPanelId}"]`);
@@ -633,13 +633,17 @@ for (const scenario of scenarios) {
           await workToggle.click();
           await workPanel.waitFor();
           if ((await workPanel.getAttribute("aria-hidden")) !== "false")
-            failures.push(`${scenario} ${label}: Work disclosure did not expose its links`);
+            failures.push(
+              `${scenario} ${label}: Tasks & approvals disclosure did not expose its links`,
+            );
           await workToggle.click();
           if ((await workPanel.getAttribute("aria-hidden")) !== "true")
-            failures.push(`${scenario} ${label}: Work disclosure did not hide its links`);
+            failures.push(
+              `${scenario} ${label}: Tasks & approvals disclosure did not hide its links`,
+            );
           await workToggle.click();
           if ((await workPanel.getAttribute("aria-hidden")) !== "false")
-            failures.push(`${scenario} ${label}: Work disclosure did not reopen`);
+            failures.push(`${scenario} ${label}: Tasks & approvals disclosure did not reopen`);
 
           const inboxHref = `/demo/command-center/${scenario}/inbox`;
           const todayHref = `/demo/command-center/${scenario}/today`;
@@ -808,9 +812,10 @@ for (const scenario of scenarios) {
       await page.screenshot({ path: `${output}/ai-run-history-mobile.png`, fullPage: true });
       await page.setViewportSize(viewport);
       await page
-        .getByRole("button", { name: /Capabilities Understand tools and safeguards/ })
+        .getByRole("group", { name: "AI workspace views", exact: true })
+        .getByRole("button", { name: "Capabilities", exact: true })
         .click();
-      await page.getByRole("heading", { name: "Read capabilities", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Reads and reports", exact: true }).waitFor();
       if (!page.url().includes("/demo/command-center/northline-roofing/ai?view=capabilities"))
         failures.push("AI workspace: tab navigation escaped the public demo URL");
       const mutation = await page.evaluate(async () => {

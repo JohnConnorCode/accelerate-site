@@ -6,7 +6,7 @@ permissions:
 jobs:
   focus-diagnostic:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
@@ -17,16 +17,26 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Exercise the exact release shared owners
+      - run: npm run build:qa
+      - name: Exercise the corrected release admin journey
         env:
-          QA_FOCUS_BASELINE_REF: c2b090e51ec74c0433d368adde9c150686686b2f
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
         run: |
-          mkdir -p /tmp/accelerate-admin-focus-handoff
+          mkdir -p /tmp/accelerate-full-admin-demo
           set -o pipefail
-          node scripts/qa-admin-focus-handoff.mjs 2>&1 | tee /tmp/accelerate-admin-focus-handoff/runner.log
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-full-admin-demo/server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-full-admin-demo/server.log; exit 1; fi
+          node scripts/qa-admin-demo.mjs --one 2>&1 | tee /tmp/accelerate-full-admin-demo/runner.log
       - uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
-          name: release-focus-diagnostic
-          path: /tmp/accelerate-admin-focus-handoff/
+          name: release-admin-diagnostic
+          path: /tmp/accelerate-full-admin-demo/
           if-no-files-found: warn
