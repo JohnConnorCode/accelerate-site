@@ -362,6 +362,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
@@ -417,7 +419,10 @@ jobs:
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         env:
           QA_FOCUS_BASELINE_REF: ${{ github.event.pull_request.base.sha }}
-        run: node scripts/qa-admin-focus-handoff.mjs
+        run: |
+          mkdir -p /tmp/accelerate-admin-focus-handoff
+          set -o pipefail
+          node scripts/qa-admin-focus-handoff.mjs 2>&1 | tee /tmp/accelerate-admin-focus-handoff/runner.log
       - name: Retain shared focus handoff evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
         uses: actions/upload-artifact@v7
