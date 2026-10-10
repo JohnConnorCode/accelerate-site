@@ -340,6 +340,7 @@ strict shared `content-calendar-contract.ts`. Admin controls and approved AI/MCP
 use the same atomic calendar/audit function. See the
 [operation matrix](../../../docs/verification/CONTENT-CALENDAR-LIFECYCLE-2026-10-06.md)
 for bounds, retry behavior and remaining content-domain gaps.
+
 ## Private founder command context
 
 `platform-command-context.ts` owns fresh founder authentication and the private

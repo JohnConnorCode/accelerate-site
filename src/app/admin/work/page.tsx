@@ -7,7 +7,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminRecordRow } from "@/components/admin/AdminRecordRow";

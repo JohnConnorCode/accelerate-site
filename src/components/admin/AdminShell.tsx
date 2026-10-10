@@ -45,6 +45,7 @@ import {
   Search,
   Settings,
   User,
+  UsersRound,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";

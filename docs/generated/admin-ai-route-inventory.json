@@ -7,13 +7,13 @@
     "Server-action and client-write candidates are static discovery only; indirect client writes and third-party plugin entrypoints still require semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 130,
-  "mutationHandlerCount": 115,
+  "routeCount": 133,
+  "mutationHandlerCount": 118,
   "semantic": {
     "complete": false,
     "unreviewedSourceBindings": [],
     "meaning": "Reviewed command-to-transport bindings with executable verification references. No coverage percentage or universal runtime acceptance is asserted.",
-    "registeredTools": 132,
+    "registeredTools": 136,
     "unreviewedToolBindings": [
       "activate_tool_bundle",
       "bootstrap_business_pulse_coworker",
@@ -205,6 +205,92 @@
       },
       {
         "definition": {
+          "id": "content.preview-calendar-change",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/content/commands",
+              "method": "POST",
+              "variant": "preview"
+            }
+          ],
+          "verification": [
+            "scripts/test-content-calendar-actions.ts",
+            "scripts/test-content-calendar-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.content-calendar",
+        "tools": [
+          "preview_content_calendar_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "content.propose-calendar-change",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/content/commands",
+              "method": "POST",
+              "variant": "propose"
+            }
+          ],
+          "verification": [
+            "scripts/test-content-calendar-actions.ts",
+            "scripts/test-content-calendar-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.content-calendar",
+        "tools": [
+          "propose_content_calendar_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "knowledge.read-source-authority",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/source-authority",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-source-authority.ts",
+            "scripts/test-source-authority-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.knowledge-retrieval",
+        "tools": [
+          "list_source_authorities"
+        ]
+      },
+      {
+        "definition": {
+          "id": "knowledge.register-source-authority",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/source-authority",
+              "method": "POST"
+            }
+          ],
+          "verification": [
+            "scripts/test-source-authority.ts",
+            "scripts/test-source-authority-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.memory-write",
+        "tools": [
+          "register_source_authority"
+        ]
+      },
+      {
+        "definition": {
           "id": "revenue.export-report",
           "version": 1,
           "scope": "workspace",
@@ -332,6 +418,7 @@
       "GET /api/admin/search",
       "GET /api/admin/settings",
       "GET /api/admin/setup",
+      "GET /api/admin/setup/release",
       "GET /api/admin/site/delegations",
       "GET /api/admin/site/drafts",
       "GET /api/admin/site/drafts/[id]",
@@ -414,6 +501,7 @@
       "POST /api/admin/blueprints",
       "POST /api/admin/blueprints/[id]/apply",
       "POST /api/admin/blueprints/[id]/approve",
+      "POST /api/admin/blueprints/[id]/generate-operations",
       "POST /api/admin/clients",
       "POST /api/admin/collections",
       "POST /api/admin/collections/reminders",
@@ -1425,6 +1513,21 @@
       "sourceSha256": "fa6c3fd345c40b8ded3ece2a747c0f3adc14cd55e62980eb759e802807d6ebaf"
     },
     {
+      "source": "src/app/api/admin/blueprints/[id]/generate-operations/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/workspace-architect-generated-operations",
+        "next/server"
+      ],
+      "sourceSha256": "0b3ed795dcfa91e211ded4f69b8fadd4daacfeadb967b4839a8f6970a1419a70"
+    },
+    {
       "source": "src/app/api/admin/blueprints/[id]/route.ts",
       "handlers": [
         "GET"
@@ -1432,11 +1535,12 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/revenue-os/workspace-architect-generated-operations",
         "@/lib/revenue-os/workspace-blueprint",
         "@/lib/revenue-os/workspace-blueprint-compiler",
         "next/server"
       ],
-      "sourceSha256": "0f320be38283c086d60f7bc49c8138abba4e99ca967b14c90c20bb2a7047f67f"
+      "sourceSha256": "55e534d37af37a4b8ebe48748681fe883722e2c9c7ed5d4068b4eb25dd414dff"
     },
     {
       "source": "src/app/api/admin/blueprints/route.ts",
@@ -1620,6 +1724,22 @@
       "sourceSha256": "be72a39a9eda48dd24aaa9085ed351b49f89a534d1e86ccc86db782bb0e69404"
     },
     {
+      "source": "src/app/api/admin/content/commands/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/content-calendar",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "7c9a300d78875de6235f0b44fd8b8412f304bfb855a11e4a14142f69292429e1"
+    },
+    {
       "source": "src/app/api/admin/content/route.ts",
       "handlers": [
         "DELETE",
@@ -1638,7 +1758,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "e53f5044795f2009c4c6276358f3476bd2d6fe675a5061409e9433177d8e1ec2"
+      "sourceSha256": "5a1103a276c845a3fd945304f11b90e3bc9d0acc857944fd0273cb25e5e14fef"
     },
     {
       "source": "src/app/api/admin/corrections/detect/route.ts",
@@ -3287,6 +3407,22 @@
         "zod"
       ],
       "sourceSha256": "3ed15ebef11c14c15ca17526cf2e03f1296cafb4090cbb20bb83593f6864a57c"
+    },
+    {
+      "source": "src/app/api/admin/source-authority/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/source-authority",
+        "next/server"
+      ],
+      "sourceSha256": "af5a44fb2059eb2beb6cab547e6b443c53368aed68665f855c2c4aaf5567c8a7"
     },
     {
       "source": "src/app/api/admin/subscribers/export/route.ts",

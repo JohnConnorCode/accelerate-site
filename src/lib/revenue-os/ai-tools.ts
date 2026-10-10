@@ -1104,6 +1104,16 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "read",
     confirmationRequired: false,
+    operation: {
+      id: "content.preview-calendar-change",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/content/commands", method: "POST", variant: "preview" }],
+      verification: [
+        "scripts/test-content-calendar-actions.ts",
+        "scripts/test-content-calendar-postgres.mjs",
+      ],
+    },
     execute: ({ supabase }, input) => {
       const parsed = contentCalendarCommandPreviewSchema.parse(input);
       if (parsed.command.operation === "reorder" && parsed.command.updates.length > 10)
@@ -1122,6 +1132,16 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
+    operation: {
+      id: "content.propose-calendar-change",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/content/commands", method: "POST", variant: "propose" }],
+      verification: [
+        "scripts/test-content-calendar-actions.ts",
+        "scripts/test-content-calendar-postgres.mjs",
+      ],
+    },
     execute: ({ supabase, actorEmail }, input) => {
       const parsed = contentCalendarCommandProposalSchema.parse(input);
       if (parsed.command.operation === "reorder" && parsed.command.updates.length > 10)
@@ -3524,6 +3544,16 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "read",
     confirmationRequired: false,
+    operation: {
+      id: "knowledge.read-source-authority",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/source-authority", method: "GET" }],
+      verification: [
+        "scripts/test-source-authority.ts",
+        "scripts/test-source-authority-postgres.mjs",
+      ],
+    },
     execute: async ({ supabase }) => {
       const { listSourceAuthorities } = await import("./source-authority");
       return listSourceAuthorities(supabase, { limit: 100 });
@@ -3573,6 +3603,16 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
+    operation: {
+      id: "knowledge.register-source-authority",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/source-authority", method: "POST" }],
+      verification: [
+        "scripts/test-source-authority.ts",
+        "scripts/test-source-authority-postgres.mjs",
+      ],
+    },
     execute: async ({ supabase, actorEmail }, input) => {
       const { prepareSourceAuthorityCommand } = await import("./source-authority");
       const command = prepareSourceAuthorityCommand(input);
