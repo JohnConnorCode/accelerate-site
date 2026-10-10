@@ -25,6 +25,14 @@
     {
       "command": "git diff --check",
       "result": "passed"
+    },
+    {
+      "command": "npm run verify:oss",
+      "result": "passed"
+    },
+    {
+      "command": "npm run lint -- --max-warnings=0",
+      "result": "passed"
     }
   ]
 }
