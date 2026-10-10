@@ -33,6 +33,7 @@ Hand off deployment separately.
 ```
 
 The agent handles the commands below. You provide the business rules, authorized account access for connected services and feedback on the working result. [Your first agent-built change](https://www.acceleratewith.us/docs/extend/first-change) explains the handoff.
+For version identity and upgrade planning, see [Core releases and fork upgrades](docs/self-hosting/RELEASES.md). Run `npm run release:check` to inspect verified stable metadata; applying an upgrade remains maintainer work.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJohnConnorCode%2Faccelerate-site&project-name=my-revenue-os&repository-name=my-revenue-os&demo-title=Accelerate%20Revenue%20OS&demo-description=Self-hosted%20revenue%20operations%2C%20CRM%2C%20and%20AI%20workspace&demo-url=https%3A%2F%2Fwww.acceleratewith.us%2Fdemo%2Fcommand-center)
 

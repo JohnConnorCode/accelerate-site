@@ -3583,6 +3583,17 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       catalog.summary.attention = catalog.summary.degraded + catalog.summary.action;
       return jsonResponse(catalog);
     }
+    if (method === "GET" && path === "/api/admin/setup/release") {
+      return jsonResponse({
+        status: "unknown",
+        message:
+          "This fictional workspace has no installed core release. Check releases from your own connected installation.",
+        checkedAt: new Date().toISOString(),
+        installed: { coreVersion: null, coreCommit: null, forkCommit: null, customized: null },
+        path: [],
+        target: null,
+      });
+    }
     if (method === "GET" && path === "/api/admin/setup") {
       const snapshot = setup(pack);
       const google = business.configuration?.providers.find(

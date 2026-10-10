@@ -535,7 +535,7 @@ export const capabilities: Capability[] = [
     promise:
       "Have a coding agent set up and extend the MIT-licensed workspace using accounts you control.",
     detail:
-      "Give Claude Code or Codex the business workflow and review its working result. The agent follows setup and extension contracts, reusing customer identity, permissions and business services so each custom screen needs less shared infrastructure. Review its exact source and checks before release, and keep account ownership and recovery responsibilities clear.",
+      "Give Claude Code or Codex the business workflow and review its working result. The agent follows setup and extension contracts, reusing customer identity, permissions and business services so each custom screen needs less shared infrastructure. Review its exact source and checks before release, and keep account ownership and recovery responsibilities clear. Setup shows the recorded core version separately from your fork commit and checks the supported stable upgrade path.",
   },
 ];
 

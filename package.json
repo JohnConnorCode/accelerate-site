@@ -368,7 +368,10 @@
     "test:site-draft-recovery": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-site-draft-recovery.mjs",
     "test:site-draft-demo": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded tsx scripts/test-site-draft-demo.ts",
     "test:work-repository": "npx tsx scripts/test-work-repository.ts",
-    "test:operational-read-routes": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-operational-read-routes.ts"
+    "test:operational-read-routes": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-operational-read-routes.ts",
+    "release:check": "node scripts/core-release.mjs check",
+    "release:adopt": "node scripts/core-release.mjs adopt",
+    "test:fork-release-contract": "node scripts/test-fork-release-contract.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

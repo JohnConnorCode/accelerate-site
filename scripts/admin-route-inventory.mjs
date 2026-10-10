@@ -38,6 +38,8 @@ function adapterEvidence(path, root) {
 // Run only after reviewing changed routes and editing their human-authored boundaries.
 export function refreshEvidence(inventory, root = process.cwd()) {
   const sources = new Set([
+    "src/lib/admin/auth.ts",
+    "src/lib/supabase/configuration.mjs",
     "src/lib/admin/navigation.ts",
     "src/lib/revenue-os/modules.ts",
     "src/lib/revenue-os/README.md",
@@ -50,7 +52,7 @@ export function refreshEvidence(inventory, root = process.cwd()) {
     for (const adapter of row.adapters) {
       sources.add(adapter.path);
       for (const imported of adapter.domainImports)
-        sources.add(imported.replace("@/", "src/") + ".ts");
+        sources.add(imported.replace("@/", "src/") + (/\.(?:ts|mjs)$/.test(imported) ? "" : ".ts"));
     }
   }
   inventory.sources = Object.fromEntries(
