@@ -29,6 +29,7 @@ function schedule(id: string, timer: ToastTimer) {
 }
 
 export function pauseToasts() {
+  console.info("toast-debug", JSON.stringify({event:"pause",paused,count:timers.size,active:document.activeElement?.tagName,focusInside:!!document.activeElement?.closest(".admin-toast-region"),hovered:document.querySelector(".admin-toast-region")?.matches(":hover")}));
   if (paused) return;
   paused = true;
   for (const timer of timers.values()) {
@@ -39,6 +40,7 @@ export function pauseToasts() {
 }
 
 export function resumeToasts() {
+  console.info("toast-debug", JSON.stringify({event:"resume",paused,count:timers.size,active:document.activeElement?.tagName,focusInside:!!document.activeElement?.closest(".admin-toast-region"),hovered:document.querySelector(".admin-toast-region")?.matches(":hover")}));
   if (!paused) return;
   paused = false;
   for (const [id, timer] of timers) schedule(id, timer);
