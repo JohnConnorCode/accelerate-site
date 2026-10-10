@@ -18,7 +18,7 @@
     "src/app/admin/campaigns/page.tsx": "ea15218c5addc8408fa198309a63880db147fcf091b40386f2a459c51a53000a",
     "src/app/admin/chat-leads/page.tsx": "5c617455bdbf887e15af3fee42d2ca2f951753f358adb72737313292e203ef56",
     "src/app/admin/client-onboarding/page.tsx": "4d5539fa0198edaabf7dd3494d3d5b8c6b0dd20957b2cf1b9fc95c8624f12ca8",
-    "src/app/admin/clients/[id]/page.tsx": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/app/admin/clients/[id]/page.tsx": "20fc58714d9c8cd0c187494620b0baffd17d4e9ed8e3e7761163a359e0c11769",
     "src/app/admin/clients/page.tsx": "e62ffcaddf13cd03612aeab53a1513fec092e6fef40c08834d58e53534ce348b",
     "src/app/admin/collections/page.tsx": "0564cde5a5e31bd65faeb64668a47ce9fbef778d7d6d0b0570fc93e9471e8482",
     "src/app/admin/contact-imports/page.tsx": "43c5b88d4be32405b784c2e538d8277ff41834c00b248b57da471ecb1c2b43e7",
