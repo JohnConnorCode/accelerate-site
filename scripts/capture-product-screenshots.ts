@@ -1,5 +1,6 @@
 /** Refresh the public product gallery from the exact local fictional demo.
  * Run with the resource-gated local QA owner: QA_FOCUS=product npm run qa:admin-polish.
+ * For one screen, pass --only followed by its exact demo path to this script.
  * No customer records, external providers or authenticated admin API are used. */
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
@@ -10,6 +11,11 @@ import { PRODUCT_SCREENSHOTS } from "../src/content/product-screenshots";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3045";
 const origin = new URL(base).origin;
 assert.ok(["localhost", "127.0.0.1"].includes(new URL(base).hostname));
+const onlyIndex = process.argv.indexOf("--only");
+const only = onlyIndex < 0 ? null : process.argv[onlyIndex + 1];
+assert.ok(onlyIndex < 0 || only, "--only requires an exact demo path");
+const shots = PRODUCT_SCREENSHOTS.filter((shot) => !only || shot.demoHref === only);
+assert.ok(shots.length, "No product screenshot matches the selected demo path");
 const themes: Record<string, string> = {
   Paper: "light",
   Night: "dark",
@@ -20,7 +26,7 @@ const themes: Record<string, string> = {
 async function main() {
   const browser = await chromium.launch({ headless: true });
   try {
-    for (const shot of PRODUCT_SCREENSHOTS) {
+    for (const shot of shots) {
       const scenario = shot.demoHref.split("/")[3];
       const label = shot.caption?.split(" · ")[1]?.replace(" theme", "") || "";
       const theme = themes[label];

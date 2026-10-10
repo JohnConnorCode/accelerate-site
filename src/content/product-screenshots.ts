@@ -15,8 +15,8 @@ export type ProductScreenshot = WorkImage & {
 export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   {
     kind: "image",
-    src: "/images/open-source/slide-today-paper-20261010.png",
-    alt: "Today, the operator priority queue and approval decisions, in the Paper appearance for a fictional roofing business.",
+    src: "/images/open-source/slide-today-paper-20261010-review.png",
+    alt: "Today, with sales, customer follow-up, delivery and billing reviews in the Paper appearance for a fictional roofing business.",
     caption: "Today · Paper theme",
     width: 1400,
     height: 875,

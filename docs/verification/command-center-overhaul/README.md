@@ -82,12 +82,25 @@ The compact browser evidence files beside this receipt retain the outcomes and
 scenario coverage. Their recorded base commit identifies the starting checkout;
 the implementation candidate is the PR head containing this receipt.
 
-All local handoff checks passed:
+Recorded local handoff checks:
 
 The complete 87-command local core run used application commit `2d65ca51`. The
-later application change is confined to `AdminAIChat.tsx`. Its source fingerprint,
+shared-chat change is confined to `AdminAIChat.tsx`. Its source fingerprint,
 fresh build, strict lint, navigation contract and browser acceptance are recorded
-in [the handoff checks](handoff-checks.json). PR CI verifies the final candidate
+in [the handoff checks](handoff-checks.json). The later Today change removes one
+repeated instruction while retaining the update timestamp. Its actual gallery,
+docs and README captures were refreshed, with a new gallery filename and a
+regenerated private Site Studio draft. Screenshot descriptions now match the
+visible reviews. The README also names the current Workspace group and correctly
+distinguishes permissioned routine changes from consequential approvals.
+
+All eighteen remaining workspace checks pass against the complete local build
+after the Today cleanup. They include publishing and AI recovery, calendar,
+delivery, analytics, offline state, bookings and work completion. The final
+screenshot-alt metadata edit compiled and passed TypeScript, but the machine
+memory gate stopped static rendering at 12% available memory; the required
+minimum is 20%. The previous full build generated all 570 pages. PR CI verifies
+the exact final candidate's complete build and browser acceptance
 separately; the PR also retains the current preview-platform status.
 
 | Verification                                                          | Result                                                            |

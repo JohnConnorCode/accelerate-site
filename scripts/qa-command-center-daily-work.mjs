@@ -141,7 +141,11 @@ try {
     if (width === 1440) {
       const records = page.locator('section[data-nav-section="Customers & sales"]:visible');
       await records.getByRole("link", { name: "Website inquiries", exact: true }).waitFor();
-      assert.ok((await records.innerText()).includes("Understand each relationship"));
+      assert.ok(
+        (await records.innerText()).includes(
+          "Find the customer history, answer inquiries and win the next engagement.",
+        ),
+      );
     }
     await page.screenshot({ path: `${output}/contact-${width}.png`, fullPage: false });
     assert.equal(

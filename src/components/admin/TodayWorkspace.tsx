@@ -537,7 +537,7 @@ export function TodayWorkspace() {
             </h2>
           </div>
           <p className={styles.muted}>
-            Use the inspected records to choose the next business action. Updated{" "}
+            Updated{" "}
             {dateLabel(snapshot.generatedAt, {
               month: "short",
               day: "numeric",
