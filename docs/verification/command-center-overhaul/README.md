@@ -45,6 +45,13 @@ covers inquiry replies, onboarding and invoicing, including failed operations an
 reload. Site Studio acceptance covers private draft recovery and the changed
 public reference links through controlled adapters and the fictional demo.
 
+Revenue acceptance passes on desktop and mobile, including all six demo totals,
+editing and reconciliation, failed reads, keyboard retry, cached warnings and
+empty results. Its keyboard journey now follows the Billing guide's Revenue link
+and checks that current agreement values remain distinct from collected cash.
+The definitions live in the operating guide rather than the product page's buying
+questions. The mobile guide screenshot was opened and reviewed.
+
 Repeating the conversational journey exposed an existing automatic-scroll race:
 a pending or open exact-change review could jump to the latest message and hide
 its consequence. The shared chat now suspends automatic following during review.

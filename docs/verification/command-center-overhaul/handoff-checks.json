@@ -89,6 +89,14 @@
       "command": "npm run resources:run -- npm run lint -- --max-warnings=0",
       "result": "passed",
       "phase": "final source"
+    },
+    {
+      "command": "node scripts/qa-revenue.mjs",
+      "result": "passed",
+      "viewports": [1440, 390],
+      "scenarios": 6,
+      "keyboardGuidePath": "/docs/billing -> /docs/pipeline/revenue",
+      "transport": "fictional business adapter"
     }
   ],
   "initialApplicationCommit": "2d65ca51d0e67bdf8c3d72eb562185de77a87ed8",
