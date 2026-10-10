@@ -543,12 +543,20 @@ await staticPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 
 // Poll from the test process so computed-style checks cover the rendered hero.
 let stylesReady = false;
 for (let attempt = 0; attempt < 100 && !stylesReady; attempt++) {
-  stylesReady = await staticPage.evaluate(
-    () => getComputedStyle(document.querySelector(".home-hero-poster")).position === "absolute",
-  );
+  stylesReady = await staticPage.evaluate(() => {
+    const poster = document.querySelector(".home-hero-poster");
+    return (
+      getComputedStyle(poster).position === "absolute" &&
+      poster instanceof HTMLImageElement &&
+      poster.complete &&
+      poster.naturalWidth > 1 &&
+      poster.naturalHeight > 1
+    );
+  });
   if (!stylesReady) await staticPage.waitForTimeout(100);
 }
-if (!stylesReady) failures.push("No-JavaScript hero stylesheet did not load");
+if (!stylesReady) failures.push("No-JavaScript hero stylesheet or poster did not load");
+await staticPage.waitForLoadState("networkidle");
 const staticHero = await staticPage.evaluate(() => ({
   heading: document.querySelector(".home-hero-heading")?.textContent?.replace(/\s+/g, " "),
   cta: getComputedStyle(document.querySelector(".home-hero-cta")).opacity,
@@ -558,7 +566,9 @@ const staticHero = await staticPage.evaluate(() => ({
   backgroundStatic:
     document.querySelector(".home-hero-artwork").dataset.artworkReady === "false" &&
     getComputedStyle(document.querySelector(".home-hero-poster")).opacity === "1" &&
-    document.querySelectorAll(".home-hero-poster path").length > 0,
+    document.querySelector(".home-hero-poster").complete &&
+    document.querySelector(".home-hero-poster").naturalWidth > 1 &&
+    document.querySelector(".home-hero-poster").naturalHeight > 1,
   allContentReadable: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -575,6 +585,12 @@ if (
   !staticHero.allContentReadable
 )
   failures.push("No-JavaScript hero did not remain complete and static");
+// The image and local fonts can be fetched but still await decoding/painting.
+// Capture their settled no-script presentation, not the network's first paint.
+await staticPage.evaluate(async () => {
+  await document.fonts.ready;
+  await document.querySelector(".home-hero-poster").decode();
+});
 await staticPage.screenshot({ caret: "initial", path: `${output}/desktop-no-js.png` });
 await noJS.close();
 const gpuFallbacks = [];
@@ -603,19 +619,27 @@ for (const mode of ["unavailable", "context-lost"]) {
     await page.waitForFunction(
       () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "false",
     );
-    await page.evaluate(() => document.documentElement.classList.toggle("dark"));
+    await page.evaluate(() => {
+      const root = document.documentElement;
+      root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+    });
     await page.waitForTimeout(600);
   }
   const fallback = await page.evaluate(() => ({
     ready: document.querySelector(".home-hero-artwork").dataset.artworkReady,
     state: document.querySelector(".home-hero-artwork").dataset.motionState,
     poster: getComputedStyle(document.querySelector(".home-hero-poster")).opacity,
+    posterLoaded:
+      document.querySelector(".home-hero-poster").complete &&
+      document.querySelector(".home-hero-poster").naturalWidth > 1 &&
+      document.querySelector(".home-hero-poster").naturalHeight > 1,
     booking: getComputedStyle(document.querySelector(".home-hero-actions")).opacity,
   }));
   if (
     fallback.ready !== "false" ||
     fallback.state !== "paused" ||
     fallback.poster !== "1" ||
+    !fallback.posterLoaded ||
     fallback.booking !== "1"
   )
     failures.push(`${mode}: GPU failure hid the poster or booking action`);
@@ -646,7 +670,29 @@ for (const [label, viewport, touch] of [
   });
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.waitForTimeout(3500);
-  const ready = await page.locator(".home-hero-artwork").getAttribute("data-artwork-ready");
+  // Shader initialization follows the finite entrance. Inspect the handoff
+  // together: separate protocol calls can straddle the poster-to-canvas swap.
+  await page.evaluate(async () => {
+    const animations = document.querySelector(".home-hero").getAnimations({ subtree: true });
+    await Promise.all(
+      animations
+        .filter((animation) => animation.animationName?.startsWith("home-hero-"))
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
+  const artworkState = await page.locator(".home-hero-artwork").evaluate((element) => {
+    const poster = element.querySelector(".home-hero-poster");
+    return {
+      ready: element.dataset.artworkReady,
+      posterVisible:
+        getComputedStyle(poster).opacity === "1" &&
+        poster instanceof HTMLImageElement &&
+        poster.complete &&
+        poster.naturalWidth > 1 &&
+        poster.naturalHeight > 1,
+    };
+  });
+  const { ready } = artworkState;
   const canvas = page.locator(".home-hero-canvas");
   if (ready === "true") {
     const first = await canvas.screenshot();
@@ -658,17 +704,8 @@ for (const [label, viewport, touch] of [
     await page.waitForTimeout(600);
     if (!paused.equals(await canvas.screenshot()))
       failures.push(`${label}: pause does not freeze the artwork`);
-  } else {
-    if (
-      !(await page
-        .locator(".home-hero-poster")
-        .evaluate(
-          (element) =>
-            getComputedStyle(element).opacity === "1" &&
-            element.querySelectorAll("path").length > 0,
-        ))
-    )
-      failures.push(`${label}: unavailable GPU has no visible poster`);
+  } else if (!artworkState.posterVisible) {
+    failures.push(`${label}: unavailable GPU has no visible poster`);
   }
   if (!(await page.locator(".home-hero-cta").isVisible()))
     failures.push(`${label}: booking is unavailable`);

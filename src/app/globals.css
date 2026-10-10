@@ -6333,8 +6333,7 @@ body.modal-open [data-dock] {
   }
 }
 
-/* The hero's flowing contours extend the paper-and-ink identity. Text stays
-   readable throughout the entrance; decoration only animates composited layers. */
+/* A composed, monochrome kinetic identity beside the editorial headline. */
 .home-hero {
   --hero-ease: cubic-bezier(0.25, 0.5, 0.25, 1);
   position: relative;
@@ -6401,6 +6400,12 @@ body.modal-open [data-dock] {
 .home-hero-canvas {
   opacity: 0;
 }
+.home-hero-poster {
+  object-fit: contain;
+}
+[data-theme="dark"] .home-hero-poster {
+  filter: invert(1);
+}
 .home-hero-artwork[data-artwork-ready="true"] .home-hero-canvas {
   opacity: 1;
 }
@@ -6411,7 +6416,7 @@ body.modal-open [data-dock] {
   position: absolute;
   right: 9%;
   left: 9%;
-  bottom: 6%;
+  bottom: -1%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -6649,8 +6654,8 @@ body.modal-open [data-dock] {
   }
   .home-hero-artwork-caption {
     left: auto;
-    right: 38px;
-    bottom: 14%;
+    right: 0;
+    bottom: 0;
   }
   .home-hero-artwork-caption > span {
     display: none;
@@ -6737,19 +6742,20 @@ body.modal-open [data-dock] {
   }
   .home-hero-artwork {
     top: auto;
-    bottom: 28px;
+    bottom: 70px;
     right: -20px;
     width: 70vw;
-    height: 32svh;
+    height: 28svh;
   }
   .home-hero-canvas,
   .home-hero-poster {
-    transform: translateY(-36px);
+    transform: translateY(-12px);
   }
   .home-hero-artwork-caption {
-    left: auto;
-    right: 38px;
-    bottom: 14%;
+    /* Align the control to the page gutter, beside the smaller sculpture. */
+    left: calc(2px - 30vw);
+    right: auto;
+    bottom: 0;
   }
   .home-hero-artwork-caption > span {
     display: none;

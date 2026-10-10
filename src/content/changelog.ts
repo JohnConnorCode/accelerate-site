@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-kinetic-identity",
+    slug: "homepage-kinetic-identity",
+    title: "A kinetic identity for the homepage",
+    description:
+      "Accelerate's wordmark and chevrons travel around layered dimensional bands, with narrow ribbons moving in the opposite direction. The composition adapts the Tower study in Dominik Fojcik's Kinetic Images series. Motion runs independently of the cursor, with Pause/Play controls and a matching static image when animation or graphics are unavailable. Mobile artwork and controls have separate space below booking. This change is included in this source release; production publication is separate.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "invoice-design-revisions",
     slug: "invoice-design-revisions",
     title: "Refine customer invoice pages with AI",
