@@ -145,8 +145,8 @@ try {
       const inquiries = records.getByRole("link", { name: "Website inquiries", exact: true });
       await inquiries.waitFor();
       assert.equal(
-        new URL(await inquiries.getAttribute("href"), base).pathname,
-        "/demo/command-center/northline-roofing/leads",
+        new URL(await inquiries.getAttribute("href"), base).href,
+        route("leads"),
         "Website inquiries must stay in the active fictional workspace",
       );
     }
