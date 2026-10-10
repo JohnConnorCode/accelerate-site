@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "fork-customization-preservation",
+    slug: "fork-customization-preservation",
+    title: "Keep installation settings separate from core updates",
+    description:
+      "Fork hosting now uses a local target file that survives upstream source changes, with overwrite refusal and the existing account checks. A local Git preflight reports unfinished work, conflicts, legacy configuration edits and independent export history without applying an update. Starter identity follows environment settings, while saved branding, pages and plugins keep their existing owners. Backup, migration and provider verification remain part of each installation's release process.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "fork-core-release-contract",
     slug: "fork-core-release-contract",
     title: "Verified core versions for self-hosted forks",

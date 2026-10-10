@@ -133,6 +133,10 @@ Then prove tenant isolation using controlled fictional tenants. Do not invite re
 
 Follow [Backup and recovery](BACKUP-RECOVERY.md) to retain database records, uploaded files and encryption configuration, then restore them into an isolated target. Free-tier database access does not establish a backup or availability guarantee.
 
+## Keep customization through updates
+
+Use the existing saved Branding, appearance and Site Studio controls for normal customization. Keep hosting IDs in ignored `deployment-target.local.json`, credentials in your own environment, and custom source in uniquely named extensions. Before merging a fetched upstream revision, run `npm run fork:check -- --ref <commit-or-tag>`. This inspects local history without applying an update. Follow [fork customization and updates](FORK-UPGRADES.md) for conflicts, legacy edits and reduced exports.
+
 ## 6. Deploy
 
 The application can run on Vercel or another platform that supports Next.js server routes. Vercel users can link their own project and use the commands in `DEPLOY.md`. Set production variables in the hosting provider's secret manager, never in the repository.

@@ -62,6 +62,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -109,6 +111,10 @@ jobs:
       - name: Verify full-product neutral fork and connected website forms
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:full-product-fork
+
+      - name: Verify customized forks survive upstream source updates
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:fork-upgrade-preservation
 
       - name: Verify admin design token contract
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}

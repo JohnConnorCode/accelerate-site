@@ -108,6 +108,12 @@ and set `SOCIAL_MARKETING_ENABLED=true` before running `npm run stack:up`. The r
 and routes them through one HTTPS proxy. Postiz requires no second installation.
 See the repository `deployment/README.md` for DNS, updates and retained data.
 
+## Keep your changes through an update
+
+Configure your business through the existing Branding, appearance and Site Studio controls so that everyday changes stay with your installation. Set `NEXT_PUBLIC_BUSINESS_NAME` and `NEXT_PUBLIC_SITE_URL` in your private environment for the public bootstrap identity. For Vercel, the repository's hosting generator creates an ignored `deployment-target.local.json` containing your project identity; keep that file with your installation backup.
+
+Before merging a fetched upstream commit or tag, run `npm run fork:check -- --ref <commit-or-tag>`. It checks local Git ancestry and reports unfinished work, source conflicts or legacy configuration edits while preserving your checkout. A clean source merge still needs backup, migration review and isolated verification. Follow the repository's [fork update guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/FORK-UPGRADES.md) for the exact sequence and for adopting a reduced export with independent Git history.
+
 ## Protect your saved work
 
 Before importing customer records, keep recovery copies of the database, uploaded files and encryption configuration, then test restoring them into an isolated installation. Follow the repository's [backup and recovery guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/BACKUP-RECOVERY.md) and record the result so the next maintainer can repeat it.

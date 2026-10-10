@@ -48,6 +48,8 @@ What every extension inherits automatically:
 
 ---
 
+For fork ownership and source updates, follow [fork customization and updates](../self-hosting/FORK-UPGRADES.md). Keep custom source in uniquely named modules and regenerate extension outputs after a merge. Plugin activation and migration remain governed by the existing `plugin-install-lifecycle` work, not the Git preflight.
+
 ## 1. Add a module
 
 A module is the unit a workspace turns on and off. Its registration names the

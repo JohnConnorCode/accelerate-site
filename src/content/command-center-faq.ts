@@ -187,6 +187,11 @@ export const commandCenterFaqs: FAQ[] = [
       "Usually the tool was fine and there was no rule about when to use it. This one gives you one place to go each morning and a short list of decisions sitting there. If that is not going to change anything for you, we would rather work that out on the session than after you have paid for a build.",
   },
   {
+    question: "Can we keep our customization when core updates arrive?",
+    answer:
+      "Saved branding, appearance and website revisions belong to your installation, alongside your business records and provider settings. Fork hosting uses a local configuration file. The repository's fork:check command inspects a fetched source update without applying it and reports conflicts, unfinished work and legacy configuration edits. Custom modules use their own source paths and regenerated registrations. Back up and verify migrations, plugins and providers before deploying; a reduced export with independent Git history follows the manual adoption guide.",
+  },
+  {
     question: "Where does our data live?",
     answer:
       "A managed Command Center uses tenant-scoped records, active membership and an audit trail to separate business workspaces. A self-hosted installation uses the database and provider accounts you control. For a managed implementation, agree on export, backup and handoff responsibilities in the written scope.",
