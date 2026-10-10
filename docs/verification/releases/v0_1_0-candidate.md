@@ -16,6 +16,8 @@ package version alone does not establish a supported release.
 - A product hub and six business-area pages explain the job, saved result,
   working example, setup and extension path. The comparison guide covers ten
   competing products using their official descriptions.
+- The README's business-area and comparison links use the checked-in research
+  while the new public routes await deployment.
 - Documentation has business and builder paths. The customer guide follows
   existing fictional records; the builder exercise changes Pipeline Watch's
   quiet-deal threshold from seven days to three and verifies the result.
