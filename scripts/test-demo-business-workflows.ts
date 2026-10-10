@@ -5,7 +5,6 @@ import {
   handleDemoBusinessRequest,
   DEMO_BUSINESS_MODULES,
 } from "../src/lib/admin/demo/business-runtime";
-import { defaultInvoiceDesign } from "../src/lib/revenue-os/invoice-page-contract";
 import { workspaceBrandSchema } from "../src/lib/revenue-os/branding-contract";
 async function main() {
   for (const pack of Object.values(DEMO_SCENARIOS)) {
@@ -111,10 +110,20 @@ async function main() {
     });
     assert.equal(generated.simulated, true);
     assert.equal(generated.design.introduction, pack.business.introduction);
+    const revised = await request("/api/admin/invoicing/pages", {
+      mode: "generate",
+      creationActionId: action.id,
+      brief: "Editorial layout, serif typography, compact spacing, and #164e63",
+      currentDesign: { ...generated.design, heading: "Keep this heading" },
+    });
+    assert.equal(revised.design.heading, "Keep this heading");
+    assert.equal(revised.design.font, "serif");
+    assert.equal(revised.design.spacing, "compact");
+    assert.equal(revised.design.accentColor, "#164e63");
     const page = await request("/api/admin/invoicing/pages", {
       mode: "preview",
       creationActionId: action.id,
-      design: defaultInvoiceDesign,
+      design: revised.design,
     });
     const publication = await request("/api/admin/invoicing/pages", {
       mode: "propose",
@@ -129,6 +138,11 @@ async function main() {
       "PATCH",
     );
     const pages = await request("/api/admin/invoicing/pages?creationActionId=" + action.id);
+    const designer = await request(
+      "/api/admin/invoicing/pages?view=designer&creationActionId=" + action.id,
+    );
+    assert.deepEqual(designer.preview.design, revised.design);
+    assert.equal(designer.preview.document.total, preview.payload.total);
     const token = pages.pages[0].token;
     assert.equal(
       (await request("/api/admin/invoicing/pages?token=" + token)).document.total,

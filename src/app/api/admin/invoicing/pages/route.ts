@@ -10,13 +10,14 @@ import {
   listInvoicePages,
   revokeInvoicePage,
 } from "@/lib/revenue-os/invoice-pages";
-import { invoiceDesignSchema } from "@/lib/revenue-os/invoice-page-contract";
+import { invoiceDesignSchema, defaultInvoiceDesign } from "@/lib/revenue-os/invoice-page-contract";
 const schema = z.discriminatedUnion("mode", [
   z
     .object({
       mode: z.literal("generate"),
       creationActionId: z.uuid(),
       brief: z.string().trim().min(1).max(1000),
+      currentDesign: invoiceDesignSchema.optional(),
     })
     .strict(),
   z
@@ -37,16 +38,25 @@ export async function GET(request: Request) {
   const auth = await requireAdminForModule("stripe-invoicing");
   if (auth instanceof NextResponse) return auth;
   try {
+    const url = new URL(request.url);
+    const creationActionId = z.uuid().parse(url.searchParams.get("creationActionId"));
+    const pages = await listInvoicePages(auth.database, creationActionId);
+    const currentDesign =
+      pages.find((page) => !page.revokedAt && Date.parse(page.expiresAt) > Date.now())?.design ||
+      defaultInvoiceDesign;
     return NextResponse.json({
-      pages: await listInvoicePages(
-        auth.database,
-        z.uuid().parse(new URL(request.url).searchParams.get("creationActionId")),
-      ),
+      pages,
       tenantSlug: auth.tenant.slug,
+      ...(url.searchParams.get("view") === "designer"
+        ? { preview: await previewInvoicePage(auth.database, creationActionId, currentDesign) }
+        : {}),
     });
   } catch {
     console.error("[invoice-pages] Read failed");
-    return NextResponse.json({ error: "Published pages could not be read" }, { status: 422 });
+    return NextResponse.json(
+      { error: "Invoice page could not be loaded. Try again." },
+      { status: 422 },
+    );
   }
 }
 export async function POST(request: Request) {
@@ -62,7 +72,13 @@ export async function POST(request: Request) {
           error: "Invoice design limit reached. Try again later.",
         });
       return NextResponse.json(
-        await generateInvoiceDesign(auth.database, input.creationActionId, input.brief, actor),
+        await generateInvoiceDesign(
+          auth.database,
+          input.creationActionId,
+          input.brief,
+          actor,
+          input.currentDesign,
+        ),
       );
     }
     if (input.mode === "preview")

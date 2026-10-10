@@ -32,6 +32,11 @@ export const commandCenterFaqs: FAQ[] = [
       "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Choose an existing customer, enter line items and review the draft before requesting approval.",
   },
   {
+    question: "Can AI redesign a customer invoice?",
+    answer:
+      "Yes. For a workspace-created invoice, choose Design customer page in Invoice operations. Describe changes to the current design, then Apply AI changes. Try a style starter, check the Phone preview, and use Undo changes or Redo changes; layout, typography, spacing, color and wording are also directly editable. Stripe supplies the amounts and payment state. Preview the final design before requesting publication approval. The approved customer page gets a new link; Stripe’s hosted payment form and PDF keep their own design settings.",
+  },
+  {
     question: "What should I do when an inquiry update needs attention?",
     answer:
       "Read the named result in Leads because part of the change may already be saved. Use Retry incomplete updates to finish the affected records; successful rows remain saved. A new inquiry whose setup is incomplete stays in its original form with Retry setup, while an uncertain save offers Retry save. Retrying the same change reuses its existing follow-up or client engagement. Check the linked Pipeline record after recovery, and review an identity conflict or stale change before trying again.",

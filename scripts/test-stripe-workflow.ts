@@ -24,7 +24,10 @@ import {
   readPublicInvoicePage,
   revokeInvoicePage,
 } from "../src/lib/revenue-os/invoice-pages";
-import { defaultInvoiceDesign } from "../src/lib/revenue-os/invoice-page-contract";
+import {
+  defaultInvoiceDesign,
+  invoiceDesignSchema,
+} from "../src/lib/revenue-os/invoice-page-contract";
 import { stripeBillingChoices } from "../src/lib/revenue-os/stripe-invoicing";
 async function main() {
   assert.equal(formatInvoiceAmount(1200, undefined), "Unknown amount");
@@ -88,6 +91,7 @@ async function main() {
     failLines = false;
   let invalidDesign = false,
     providerCalls = 0;
+  let designPrompt: { currentDesign: unknown } | undefined;
   const cache = new Map<string, unknown>();
   const customer = {
     id: "cus_fixture",
@@ -100,6 +104,10 @@ async function main() {
     const parsed = new URL(String(url));
     if (parsed.origin === "https://openrouter.ai") {
       assert.equal(String(init?.body).includes("billing@example.example"), false);
+      const request = JSON.parse(String(init?.body));
+      designPrompt = JSON.parse(
+        request.messages.find((m: { role: string }) => m.role === "user").content,
+      );
       return new Response(
         JSON.stringify({
           id: "generation-fixture",
@@ -109,7 +117,9 @@ async function main() {
               message: {
                 role: "assistant",
                 content: JSON.stringify(
-                  invalidDesign ? { ...defaultInvoiceDesign, total: 1 } : defaultInvoiceDesign,
+                  invalidDesign
+                    ? { ...defaultInvoiceDesign, total: 1 }
+                    : designPrompt!.currentDesign,
                 ),
               },
             },
@@ -320,8 +330,22 @@ async function main() {
         ),
       },
     });
-    const generated = await generateInvoiceDesign(db, proposed.id, "A clear professional invoice");
-    assert.equal(generated.design.heading, "Invoice");
+    const currentDesign = {
+      ...defaultInvoiceDesign,
+      heading: "Retainer invoice",
+      accentColor: "#164e63",
+      font: "serif" as const,
+      spacing: "compact" as const,
+    };
+    const generated = await generateInvoiceDesign(
+      db,
+      proposed.id,
+      "Keep my wording and refine the layout",
+      "qa@example.example",
+      currentDesign,
+    );
+    assert.deepEqual(designPrompt!.currentDesign, currentDesign);
+    assert.deepEqual(generated.design, currentDesign);
     assert.ok(generated.provenance.runId);
     assert.equal(
       mem.rows("agent_runs").find((row) => row.id === generated.provenance.runId)?.status,
@@ -334,6 +358,18 @@ async function main() {
     );
     invalidDesign = false;
     assert.equal(mem.rows("agent_runs").at(-1)?.status, "failed");
+    assert.throws(() =>
+      invoiceDesignSchema.parse({ ...currentDesign, accentColor: "url(https://example.com)" }),
+    );
+    assert.throws(() =>
+      invoiceDesignSchema.parse({ ...currentDesign, paymentUrl: "https://example.com" }),
+    );
+    (tenant.config as { modules: Record<string, boolean> }).modules["stripe-invoicing"] = false;
+    await assert.rejects(
+      () => generateInvoiceDesign(db, proposed.id, "Edit disabled invoice"),
+      /disabled/,
+    );
+    (tenant.config as { modules: Record<string, boolean> }).modules["stripe-invoicing"] = true;
     const pagePreview = (
       await executeRegisteredRevenueTool(toolContext, "preview_invoice_page", {
         creationActionId: proposed.id,

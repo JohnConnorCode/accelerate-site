@@ -27,10 +27,27 @@ receiving payment.
    created a Stripe invoice.
 4. Use the separate reviewed send control when ready. Inspect its receipt before
    retrying. A sent invoice is not proof of payment.
-5. Use the invoice presentation controls and workspace branding for a customer
-   page. Review AI-assisted design before the separate publication approval;
-   revoke the public page when required. Never put secrets or private notes in
+5. Choose **Design customer page** in **Invoice operations** for a workspace-created
+   invoice. The live preview opens the latest active published design or the workspace
+   defaults. Enter **Describe your changes**, then **Apply AI changes** to refine the
+   current draft. For example: “Keep my wording. Use editorial layout, serif typography,
+   compact spacing, and #164e63.” **Undo changes** and **Redo changes** navigate up to 40 editing steps, including AI
+   revisions and manual edits. Consecutive typing in one field is one step.
+   Layout, typography, spacing, accent color and wording are also directly editable.
+   Logo and business identity remain workspace branding. **Workspace**, **Editorial**,
+   and **Minimal** style starters preserve your wording and accent color. Choose
+   **Phone** to check a narrow customer view, then **Full width** to return. Draft
+   edits last until you close the editor; publish a reviewed version to save it.
+6. Choose **Preview page**, then **Request publication approval**. Edits invalidate
+   that review. After execution, refresh published links, then open the customer page or copy its link.
+   Each publication creates a new link; existing links keep their approved design.
+   **Edit this design** reuses a saved version. Revoke an old link explicitly.
+   Publishing does not email the customer. Never put secrets or private notes in
    public invoice presentation content.
+
+The custom page links to Stripe for secure payment. Its layout does not replace
+Stripe's hosted payment form or invoice PDF; those retain Stripe's own settings.
+Invoice identity, amounts, due dates and payment state remain provider facts.
 
 For a fictional example, select a demo contact and prepare one consulting line,
 quantity 1, unit price `125.00` in USD. Expect a USD 125.00 draft after simulated
@@ -55,9 +72,10 @@ Credentials belong in the existing encrypted connection path, not module setting
 ## Disable and recover
 
 Disable in **Apps → Pluggable Modules** to prevent later plugin execution. Existing provider
-invoices, payments, local receipts and published pages are not automatically
-undone. Revoke public pages using their explicit controls; do not assume a toggle
-removes something already published.
+invoices and payments are not reversed, and local receipts and published pages
+remain stored. Customer-page links stop resolving while the module is disabled;
+re-enabling restores unexpired, unrevoked links. Revoke pages explicitly to end
+sharing instead of relying on a temporary disable.
 
 If the connection or contact is unavailable, correct it and preview again.
 If no Stripe customer matches the contact’s billing email, correct or add the
@@ -88,3 +106,7 @@ invalidates pending previews, which must be prepared again. Follow the
 [documentation contract](../../docs/contracts/PLUGIN-DOCUMENTATION.md).
 
 The admin workspace groups this workflow under **Billing & payments**. The [connected walkthroughs](/docs/start/daily-path) explain its starting situation, review controls, saved result and recovery.
+The design contract adds optional per-invoice appearance fields; existing published
+designs without these fields retain workspace typography, color and comfortable
+spacing. No database migration is needed. Pending plugin previews must still be
+prepared again after the host-contract upgrade.
