@@ -20,22 +20,26 @@ export function installHeroMotionObserver() {
       .find((animation) => animation.animationName === "home-hero-word-enter");
     if (!animation) return;
     pendingArm = armedAt;
-    // Readiness is resolved when the browser assigns the animation clock,
-    // before animationstart event delivery. A queued event can arrive after
-    // that clock has finished; retain this first observation instead.
+    // Retain the first actual state before waiting for the native clock. Even
+    // a readiness callback can be delayed past the complete entrance.
+    const entry = {
+      kind: document.documentElement.dataset.navigationKind,
+      animated: getComputedStyle(word).animationName,
+      immediate: hero.classList.contains("reveal-immediate"),
+      playState: animation.playState,
+      currentTime: animation.currentTime,
+      endTime: animation.effect.getComputedTiming().endTime,
+      action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
+      armedAt,
+      observedAt: performance.now(),
+    };
     void animation.ready.then(() => {
       if (window.__heroForwardArmedAt !== armedAt || window.__heroForward) return;
       window.__heroForward = {
-        kind: document.documentElement.dataset.navigationKind,
-        animated: getComputedStyle(word).animationName,
-        immediate: hero.classList.contains("reveal-immediate"),
-        playState: animation.playState,
-        currentTime: animation.currentTime,
-        endTime: animation.effect.getComputedTiming().endTime,
-        action: Number(getComputedStyle(hero.querySelector(".home-hero-actions")).opacity),
+        ...entry,
+        immediate: entry.immediate || hero.classList.contains("reveal-immediate"),
         startTime: animation.startTime,
-        armedAt,
-        observedAt: performance.now(),
+        clockReadyAt: performance.now(),
       };
       window.__heroForwardOnEntry?.();
     });

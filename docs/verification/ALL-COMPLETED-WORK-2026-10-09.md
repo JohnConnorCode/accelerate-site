@@ -106,3 +106,11 @@ used an old command-search placeholder and generic toast dismissal labels. They 
 use the `Search workspace` combobox and each toast's descriptive dismissal name.
 Task failure recovery now verifies that the requested inspector remains open with
 an inline retry and no stale editable task fields, matching the current shared owner.
+
+The full native homepage run also exposed a late readiness callback: the native
+animation started after the armed navigation, but the callback ran after its end.
+The shared observer now retains the first actual animation state before awaiting
+the assigned native start clock. It does not replace entry with a later frame or
+relax immediate, stale, missing, collapsed or misordered counterexamples. A new
+browser fixture deliberately delays the readiness callback beyond the native end;
+that fixture and actual homepage navigation must pass before release.
