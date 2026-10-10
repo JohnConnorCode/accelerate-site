@@ -47,7 +47,7 @@ Before importing real contacts, confirm that you can sign in to the intended wor
 
 ## Keep your installation maintainable
 
-Use the installation and upgrade instructions shipped with your version. Back up your database before upgrades. Keep server credentials in local or hosting-provider secret configuration, not in source control.
+Use the installation and upgrade instructions shipped with your version. Before importing customer records or upgrading, make recovery copies of the database, actual uploaded files and encryption configuration, then test a separate restoration. The [recovery guide](/docs/self-hosting/recovery) explains the file-copy commands and receipt review before reconnecting providers. Keep server credentials in local or hosting-provider secret configuration, not in source control.
 
 Before planning an update, use **Check stable releases** in Setup or `npm run release:check` in your checkout. [Connect your installation](/docs/self-hosting/installation#check-core-releases) explains how an unversioned fork adopts its first published core release and how to read a supported upgrade path.
 

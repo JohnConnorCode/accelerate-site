@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "workspace-file-recovery",
+    slug: "workspace-file-recovery",
+    title: "Recover uploaded files with a checked restore plan",
+    description:
+      "Self-hosters can copy uploaded file bytes with a private checksum manifest, inspect a read-only restore plan, and resume interrupted restoration without overwriting matching files. Conflicting files, bucket settings and corrupt copies are refused. The recovery guide covers database and encryption configuration separately, with provider-receipt review before reconnecting external actions. An isolated native drill exercises restored Auth, tenant permissions, files and upgrades; hosted recovery remains installation-specific.",
+    category: "improvement",
+    publishedAt: "2026-10-05",
+  },
+  {
     id: "fork-customization-preservation",
     slug: "fork-customization-preservation",
     title: "Keep installation settings separate from core updates",

@@ -79,7 +79,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I run the workspace for my own business?",
     answer:
-      "Yes. Fork the complete repository: it starts with a neutral Command Center homepage, the full workspace, and fictional demos. Explore without credentials, then follow guided setup to connect your own Supabase project and owner account. Save a contact and task before connecting optional email or AI providers. Fork deployments include no scheduled jobs by default. Edit or replace the homepage in Site Studio. Agency content remains in the source and is disabled unless you explicitly enable the branded profile. A separate export remains available when you want to omit protected agency assets entirely. The self-hosting guide explains setup and recovery.",
+      "Yes. Fork the complete repository: it starts with a neutral Command Center homepage, the full workspace, and fictional demos. Explore without credentials, then follow guided setup to connect your own Supabase project and owner account. Save a contact and task before connecting optional email or AI providers. Fork deployments include no scheduled jobs by default. Edit or replace the homepage in Site Studio. Agency content remains in the source and is disabled unless you explicitly enable the branded profile. A separate export remains available when you want to omit protected agency assets entirely. Before importing customer records, use the self-hosting recovery guide to preserve the database, uploaded bytes and encryption configuration, verify an isolated restore and review action receipts before reconnecting providers.",
   },
   {
     question: "If I change what it is allowed to do, do I have to approve it again?",
