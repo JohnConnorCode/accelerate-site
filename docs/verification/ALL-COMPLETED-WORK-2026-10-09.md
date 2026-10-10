@@ -114,3 +114,13 @@ the assigned native start clock. It does not replace entry with a later frame or
 relax immediate, stale, missing, collapsed or misordered counterexamples. A new
 browser fixture deliberately delays the readiness callback beyond the native end;
 that fixture and actual homepage navigation must pass before release.
+
+The corrected observer passes all 18 counterexamples and complete actual homepage
+acceptance. Invoice navigation passes 12 cases; Command Center recovery passes all
+four desktop/mobile and motion combinations. Proposal recovery then exposed a real
+shared feedback defect: dismissing a focused toast while other messages remain can
+lose its blur/leave events, leaving every timer paused even after focus and hover
+move elsewhere. An isolated trace confirmed that state. The shared toaster now
+reconciles outside interaction on document focus/pointer changes and when feedback
+count changes, preserving pause while reading and the remaining expiry time.
+Proposal recovery and shared feedback interaction checks must pass on this owner.

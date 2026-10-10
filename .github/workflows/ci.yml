@@ -36,7 +36,7 @@ jobs:
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-full-admin-demo/server.log; exit 1; fi
           qa_status=0
-          for qa in qa-proposal-editor-recovery; do
+          for qa in qa-proposal-editor-recovery qa-admin-polish-interactions; do
             if ! node "scripts/$qa.mjs" 2>&1 | tee "/tmp/accelerate-full-admin-demo/$qa.log"; then qa_status=1; fi
           done
           exit "$qa_status"
@@ -51,4 +51,5 @@ jobs:
             /tmp/accelerate-proposal-editor-recovery/
             /tmp/accelerate-home-hero-timing/
             /tmp/accelerate-hero-motion-observer/
+            /tmp/accelerate-admin-polish-interactions/
           if-no-files-found: warn

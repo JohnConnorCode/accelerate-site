@@ -93,7 +93,6 @@ try {
         });
       });
       const page = await context.newPage();
-      page.on("console", message => { if (message.text().startsWith("toast-debug")) console.log(message.text()); });
       page.setDefaultTimeout(30000);
       const errors = [],
         escaped = [];
@@ -233,7 +232,6 @@ try {
       // before asserting their normal expiry after the send receipt.
       await page.mouse.move(0, 0);
       await title.focus();
-      console.log("toast-debug-outside", await page.evaluate(() => ({active:document.activeElement?.tagName,focusInside:!!document.activeElement?.closest(".admin-toast-region"),hovered:document.querySelector(".admin-toast-region")?.matches(":hover")})));
       await page
         .getByRole("button", { name: /^Dismiss: / })
         .first()

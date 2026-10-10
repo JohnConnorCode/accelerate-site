@@ -24,6 +24,26 @@ export function Toaster() {
   const reducedMotion = useReducedMotion();
   const regionRef = useRef<HTMLDivElement>(null);
   useEffect(() => () => resumeToasts(), []);
+  useEffect(() => {
+    if (toasts.length === 0) {
+      resumeToasts();
+      return;
+    }
+    // Removing a focused toast can lose its blur/leave events. Reconcile the
+    // real interaction state when attention moves elsewhere or feedback changes.
+    const resumeIfOutside = () => {
+      const region = regionRef.current;
+      if (region && !region.contains(document.activeElement) && !region.matches(":hover"))
+        resumeToasts();
+    };
+    document.addEventListener("focusin", resumeIfOutside);
+    document.addEventListener("pointermove", resumeIfOutside, { passive: true });
+    resumeIfOutside();
+    return () => {
+      document.removeEventListener("focusin", resumeIfOutside);
+      document.removeEventListener("pointermove", resumeIfOutside);
+    };
+  }, [toasts.length]);
 
   return (
     <div
