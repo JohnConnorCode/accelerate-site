@@ -99,6 +99,8 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260923-workspace-blueprints.sql",
   "migrations/20260923-work-saved-views.sql",
   "migrations/20260924-workspace-blueprint-applies.sql",
+  "migrations/20260925-workspace-generated-operations.sql",
+  "migrations/20261008183625_workspace_operations_atomic.sql",
   "migrations/20260925-stripe-subscriptions.sql",
   "migrations/20260926-stripe-billing-server-only.sql",
   "migrations/20260909012125-installation-website-revisions.sql",

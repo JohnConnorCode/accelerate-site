@@ -382,7 +382,10 @@
     "test:fork-release-contract": "node scripts/test-fork-release-contract.mjs",
     "test:password-recovery": "node scripts/test-password-recovery.mjs",
     "test:platform-command-context": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-platform-command-context.ts",
-    "test:platform-command-context:postgres": "node scripts/test-platform-command-context-postgres.mjs"
+    "test:platform-command-context:postgres": "node scripts/test-platform-command-context-postgres.mjs",
+    "test:workspace-operations": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-workspace-architect-generated-operations.ts",
+    "test:workspace-operations-postgres": "node scripts/test-workspace-operations-postgres.mjs",
+    "qa:workspace-operations": "node scripts/qa-workspace-operations.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

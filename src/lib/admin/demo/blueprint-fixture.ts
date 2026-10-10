@@ -1,5 +1,7 @@
-/** Fictional Blueprint detail. Generated — do not hand-edit. See scripts/gen-blueprint-demo-fixture.ts. */
+/** Fictional Blueprint detail and operating setup, checked against the domain planner. */
+import type { WorkspaceOperationsPlan } from "@/lib/revenue-os/workspace-architect-generated-operations";
 export interface DemoBlueprintDetail {
+  operations?: WorkspaceOperationsPlan;
   blueprintId: string;
   title: string;
   status: string;
@@ -39,7 +41,10 @@ export const DEMO_BLUEPRINT_DETAIL: DemoBlueprintDetail = {
         quote: "After we finish samples, the customer approves them before we run production.",
       },
     ],
-    assumptions: ["Deposits are required before production for new clients"],
+    assumptions: [
+      "Deposits are required before production for new clients",
+      "Sales reviews quotes before sending proposals",
+    ],
     unresolvedQuestions: ["Who approves discounts over 10%?"],
     navigation: [
       {
@@ -147,6 +152,11 @@ export const DEMO_BLUEPRINT_DETAIL: DemoBlueprintDetail = {
             key: "new",
             label: "New",
             lifecycleStates: ["new"],
+          },
+          {
+            key: "quote_review",
+            label: "Quote review",
+            lifecycleStates: ["quote_review"],
           },
           {
             key: "proposal",
@@ -297,7 +307,7 @@ export const DEMO_BLUEPRINT_DETAIL: DemoBlueprintDetail = {
       {
         ref: "board:sales_pipeline",
         title: "Sales Pipeline",
-        detail: "Projects opportunity.stage across 3 columns",
+        detail: "Projects opportunity.stage across 4 columns",
         status: "ready",
         statusReason: null,
         impact: "structural",
@@ -451,4 +461,190 @@ export const DEMO_BLUEPRINT_DETAIL: DemoBlueprintDetail = {
     appEnablements: 0,
     destructiveOperations: 0,
   },
+};
+
+DEMO_BLUEPRINT_DETAIL.operations = {
+  navigation: [
+    {
+      ref: "navigation:Sales",
+      label: "Sales",
+      targetType: "board",
+      targetKey: "sales_pipeline",
+      status: "ready",
+      reason: null,
+    },
+    {
+      ref: "navigation:Production",
+      label: "Production",
+      targetType: "board",
+      targetKey: "production",
+      status: "ready",
+      reason: null,
+    },
+    {
+      ref: "navigation:Money",
+      label: "Money",
+      targetType: "module",
+      targetKey: "invoicing",
+      status: "ready",
+      reason: null,
+    },
+  ],
+  boards: [
+    {
+      ref: "board:production",
+      blueprintBoardKey: "production",
+      name: "Production",
+      sourceType: "production_order",
+      targetBoardKey: null,
+      columns: [
+        {
+          columnKey: "sampling",
+          label: "Sampling",
+          lifecycleStates: ["sampling"],
+        },
+        {
+          columnKey: "client_review",
+          label: "Client Review",
+          lifecycleStates: ["client_review"],
+        },
+        {
+          columnKey: "production",
+          label: "Production",
+          lifecycleStates: ["production"],
+        },
+        {
+          columnKey: "qa",
+          label: "QA",
+          lifecycleStates: ["qa"],
+        },
+        {
+          columnKey: "shipping",
+          label: "Shipping",
+          lifecycleStates: ["shipping"],
+        },
+        {
+          columnKey: "delivered",
+          label: "Delivered",
+          lifecycleStates: ["delivered"],
+        },
+      ],
+      status: "blocked",
+      reason: "Board source type is not a registered entity",
+    },
+    {
+      ref: "board:sales_pipeline",
+      blueprintBoardKey: "sales_pipeline",
+      name: "Sales Pipeline",
+      sourceType: "opportunity",
+      targetBoardKey: "pipeline",
+      columns: [
+        {
+          columnKey: "new",
+          label: "New",
+          lifecycleStates: ["new"],
+        },
+        {
+          columnKey: "quote_review",
+          label: "Quote review",
+          lifecycleStates: ["quote_review"],
+        },
+        {
+          columnKey: "proposal",
+          label: "Proposal",
+          lifecycleStates: ["proposal"],
+        },
+        {
+          columnKey: "won",
+          label: "Won",
+          lifecycleStates: ["won"],
+        },
+      ],
+      status: "ready",
+      reason: null,
+    },
+  ],
+  views: [],
+  workflows: [
+    {
+      ref: "workflow:won_opportunity_onboarding",
+      key: "won_opportunity_onboarding",
+      name: "Won opportunity to production onboarding",
+      triggerRef: "opportunity.stage -> won",
+      steps: [
+        {
+          key: "create_project",
+          kind: "deterministic",
+          capabilityKey: "orders.create",
+          status: "blocked",
+          reason: "Capability not registered",
+        },
+        {
+          key: "draft_welcome",
+          kind: "ai_judgment",
+          capabilityKey: "email.draft",
+          status: "ready",
+          reason: null,
+        },
+        {
+          key: "send_welcome",
+          kind: "action",
+          capabilityKey: "email.send",
+          status: "ready",
+          reason: null,
+        },
+      ],
+      approvalRequired: true,
+      status: "blocked",
+      dedupeKey: "generate-ops:workflow:won_opportunity_onboarding",
+    },
+  ],
+  coworkers: [
+    {
+      ref: "coworker:operations",
+      key: "operations",
+      name: "Operations",
+      purpose: "Keep production orders moving and escalate stuck client reviews",
+      requiredCapabilities: ["orders.read"],
+      missingCapabilities: ["orders.read"],
+      autonomyPolicy: "ask_until_trusted",
+      status: "blocked",
+      dedupeKey: "generate-ops:coworker:operations",
+    },
+  ],
+  customAppBriefs: [
+    {
+      id: "brief:workflow:won_opportunity_onboarding/step:create_project:orders.create",
+      title: "Custom App Brief for orders.create",
+      missingKey: "orders.create",
+      why: "Capability not registered",
+      boundary:
+        "Keep using existing primitives. Do not generate SQL, migrations or a second runtime. A bounded Custom App can be designed later if this requirement stays unsupported.",
+    },
+    {
+      id: "brief:workflow:won_opportunity_onboarding:drive",
+      title: "Custom App Brief for drive",
+      missingKey: "drive",
+      why: "Integration capability not registered",
+      boundary:
+        "Keep using existing primitives. Do not generate SQL, migrations or a second runtime. A bounded Custom App can be designed later if this requirement stays unsupported.",
+    },
+    {
+      id: "brief:integration:drive",
+      title: "Custom App Brief for drive",
+      missingKey: "drive",
+      why: "Integration capability not registered",
+      boundary:
+        "Keep using existing primitives. Do not generate SQL, migrations or a second runtime. A bounded Custom App can be designed later if this requirement stays unsupported.",
+    },
+    {
+      id: "brief:coworker:operations:orders.read",
+      title: "Custom App Brief for orders.read",
+      missingKey: "orders.read",
+      why: "Capability not registered",
+      boundary:
+        "Keep using existing primitives. Do not generate SQL, migrations or a second runtime. A bounded Custom App can be designed later if this requirement stays unsupported.",
+    },
+  ],
+  canApply: false,
 };
