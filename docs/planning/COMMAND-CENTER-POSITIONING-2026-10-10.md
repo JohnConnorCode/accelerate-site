@@ -58,9 +58,10 @@ the particular workflow a buyer needs.
 
 The shared discovery model assigns each catalog capability to one area and
 links it to a real guide and demo destination. It cannot enable a module or
-change runtime permissions. The admin has a seventh organizational group,
-Workspace, for setup and administration, and Daily work for the cross-business
-operating queue.
+change runtime permissions. The admin combines customer context and sales in
+Customers & sales. Daily work provides the cross-business operating queue, while
+Workspace holds setup and administration. Together these form seven navigation
+groups.
 
 ## Evidence and claim boundaries
 
