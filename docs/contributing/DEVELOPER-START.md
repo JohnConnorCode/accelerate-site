@@ -8,6 +8,13 @@ Read [the north star](../NORTHSTAR.md), then [AGENTS.md](../../AGENTS.md). The l
 
 ## Start with the right checkout
 
+For your own extension, give Codex or Claude Code the business outcome and ask it
+to follow [your first agent-built change](https://www.acceleratewith.us/docs/extend/first-change).
+The assistant can prepare local setup and source changes, then show the checks
+and remaining connected-workspace steps. The [App brief](https://www.acceleratewith.us/docs/extend/ai-authoring)
+adds the inputs, lifecycle and recovery needed for a real business workflow.
+Assigned repository work still follows the live packet and dispatch path below.
+
 Use published `main` for the control checkout. The integration owner supplies its
 exact verified commit; fetch it before starting. Temporary `agent/*` branches are
 implementation or integration candidates, not a second permanent baseline. Active

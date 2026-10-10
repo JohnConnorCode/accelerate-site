@@ -638,7 +638,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["extend", "modules"],
         title: "Add a module",
         description:
-          "Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed.",
+          "Register a workspace feature with its pages, operator guide and shared availability controls.",
       },
       {
         slug: ["extend", "adapters"],
