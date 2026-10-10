@@ -186,12 +186,12 @@ try {
           exact: true,
         })
         .locator("..")
-        .getByRole("button", { name: "Dismiss", exact: true })
+        .getByRole("button", { name: /^Dismiss: / })
         .click();
       await page
         .getByText("Link copied", { exact: true })
         .locator("..")
-        .getByRole("button", { name: "Dismiss", exact: true })
+        .getByRole("button", { name: /^Dismiss: / })
         .click();
       await page.screenshot({ path: `${output}/save-failure-${width}-${reducedMotion}.png` });
       await page.evaluate(() => {
@@ -229,7 +229,7 @@ try {
         .getByRole("button", { name: "Mark Sent", exact: true })
         .waitFor({ state: "hidden" });
       await page
-        .getByRole("button", { name: "Dismiss", exact: true })
+        .getByRole("button", { name: /^Dismiss: / })
         .first()
         .waitFor({ state: "hidden" });
       await page.evaluate(() => {
@@ -244,7 +244,9 @@ try {
       assert.equal(await title.inputValue(), revisedTitle);
       assert((await link.inputValue()).endsWith("/proposal/fictional-revised-draft"));
       await page.getByText(`Proposal saved: ${revisedTitle}`, { exact: true }).waitFor();
-      await page.getByRole("button", { name: "Dismiss", exact: true }).click();
+      await page
+        .getByRole("button", { name: `Dismiss: Proposal saved: ${revisedTitle}`, exact: true })
+        .click();
       await page
         .getByText(`Proposal saved: ${revisedTitle}`, { exact: true })
         .waitFor({ state: "hidden" });

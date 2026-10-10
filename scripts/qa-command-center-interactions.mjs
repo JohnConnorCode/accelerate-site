@@ -387,21 +387,20 @@ try {
           .getByRole("dialog", { name: "Admin command palette" })
           .waitFor({ state: "hidden" });
         if (record.kind === "Work") {
+          const details = page.getByRole("dialog", { name: "Task details", exact: true });
+          await details.waitFor();
           if (record.repeatTask) {
-            const alert = page
+            const alert = details
               .getByRole("alert")
               .filter({ hasText: "We couldn’t load this information" });
             await alert.waitFor();
-            await page
-              .getByRole("dialog", { name: "Task details", exact: true })
-              .waitFor({ state: "hidden" });
+            assert(await details.isVisible(), "task recovery keeps the requested inspector open");
+            assert.equal(await details.getByLabel("Title", { exact: true }).count(), 0);
             await page.evaluate(() => {
               window.__qa.taskFailure = false;
             });
             await alert.getByRole("button", { name: "Retry", exact: true }).click();
           }
-          const details = page.getByRole("dialog", { name: "Task details", exact: true });
-          await details.waitFor();
           assert.equal(
             await details.getByLabel("Title", { exact: true }).inputValue(),
             record.label,
