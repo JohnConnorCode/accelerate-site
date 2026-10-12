@@ -20,6 +20,82 @@ const failures = [];
 const results = [];
 const entranceFrames = [];
 
+// Stillness concerns rendered geometry and paint, not subpixel raster quantization.
+// Capture every graphical node and reject any live CSS or SVG motion at rest.
+async function renderedState(artwork) {
+  return artwork.evaluate((element) => {
+    const root = element.getBoundingClientRect();
+    const round = (number) => Math.round(number * 100000) / 100000;
+    return {
+      route: element.dataset.routeState,
+      activeAnimations: element
+        .getAnimations({ subtree: true })
+        .filter((animation) => animation.playState === "running").length,
+      svgAnimations: element.querySelectorAll("animate, animateMotion, animateTransform").length,
+      nodes: [
+        element,
+        ...element.querySelectorAll(
+          "svg, g, path, circle, ellipse, stop, linearGradient, radialGradient, .home-system-port",
+        ),
+      ].map((node) => {
+        const box = node.getBoundingClientRect(),
+          style = getComputedStyle(node);
+        return {
+          tag: node.tagName,
+          attributes: [...node.attributes].map((attribute) => [attribute.name, attribute.value]),
+          box: [round(box.x - root.x), round(box.y - root.y), round(box.width), round(box.height)],
+          paint: [
+            "transform",
+            "opacity",
+            "fill",
+            "fillOpacity",
+            "stroke",
+            "strokeOpacity",
+            "strokeDashoffset",
+            "color",
+            "backgroundColor",
+            "boxShadow",
+            "filter",
+          ].map((property) => style[property]),
+        };
+      }),
+    };
+  });
+}
+
+async function observeRest(artwork, label) {
+  const beforeState = await renderedState(artwork);
+  const first = await artwork.screenshot();
+  await artwork.page().waitForTimeout(750);
+  const second = await artwork.screenshot();
+  const afterState = await renderedState(artwork);
+  const stable =
+    JSON.stringify(beforeState) === JSON.stringify(afterState) &&
+    beforeState.activeAnimations === 0 &&
+    beforeState.svgAnimations === 0;
+  const pixelsEqual = await sameRenderedPixels(first, second, artwork, label);
+  return { stable, pixelsEqual, beforeState, afterState };
+}
+
+function armPacketObservation() {
+  window.__heroPacketObservation = new Promise((resolve) => {
+    const deadline = performance.now() + 4000;
+    let started = null;
+    const points = [];
+    const sample = (now) => {
+      const circle = document.querySelector(".home-system-packets circle");
+      if (circle) {
+        started ??= now;
+        const matrix = circle.getCTM();
+        points.push({ time: now, x: matrix.e, y: matrix.f });
+      }
+      if (now >= deadline || (started !== null && now - started >= 900)) resolve(points);
+      else requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
+}
+
 // Compare decoded pixels: PNG encoding/chunks are not proof of visible movement.
 // Any real pixel difference retains both frames and computed geometry for diagnosis.
 async function sameRenderedPixels(first, second, artwork, label) {
@@ -86,18 +162,15 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
   );
   if (!controlsReady) failures.push(`${label}: controls lack names or 48px targets`);
   await page.mouse.move(0, 0);
-  const initial = await artwork.screenshot();
-  await page.waitForTimeout(250);
-  const idlePixelsStable = await sameRenderedPixels(
-    initial,
-    await artwork.screenshot(),
-    artwork,
-    `${label}-idle`,
-  );
-  if (!idlePixelsStable) failures.push(`${label}: idle artwork pixels change`);
+  await controls.evaluateAll((buttons) => buttons.forEach((button) => button.blur()));
+  await page.waitForTimeout(450);
+  const idle = await observeRest(artwork, `${label}-idle`);
+  if (!idle.stable)
+    failures.push(`${label}: idle rendered geometry/paint moves or has active animations`);
   const journeys = [];
   for (let index = 0; index < 3; index++) {
     const control = controls.nth(index);
+    if (!reduced) await page.evaluate(armPacketObservation);
     if (touch) await control.tap();
     else if (index === 1) {
       await control.focus();
@@ -118,25 +191,19 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
       )
         failures.push(`${label}: reduced-motion action is not immediate and static`);
     } else {
-      const position = () =>
-        artwork
-          .locator(".home-system-packets circle")
-          .first()
-          .evaluate((circle) => {
-            const matrix = circle.getCTM();
-            return { x: matrix.e, y: matrix.f };
-          });
       const motion = artwork.locator(".home-system-packets animateMotion").first();
       const startTime = await motion.evaluate((animation) => animation.getStartTime());
       await controls.nth((index + 1) % 3).focus();
       if (!touch) await controls.nth((index + 1) % 3).hover();
       if ((await motion.evaluate((animation) => animation.getStartTime())) !== startTime)
         failures.push(`${label}: hover/focus restarts the active packet`);
-      const before = await position();
-      await page.waitForTimeout(180);
-      const after = await position();
-      if (Math.hypot(after.x - before.x, after.y - before.y) < 2)
-        failures.push(`${label}: input ${index} did not move its signal through the actual path`);
+      const points = await page.evaluate(() => window.__heroPacketObservation);
+      const first = points[0];
+      const travelled = first
+        ? Math.max(...points.map((point) => Math.hypot(point.x - first.x, point.y - first.y)))
+        : 0;
+      if (travelled < 2)
+        failures.push(`${label}: input ${index} has no observed rendered packet travel`);
     }
     await page.waitForFunction(
       () => document.querySelector(".home-system-artwork").dataset.routeState === "complete",
@@ -157,18 +224,12 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
     await page.screenshot({ caret: "initial", path: `${output}/${label}-route-${index}.png` });
   }
   await page.mouse.move(0, 0);
-  await controls.last().evaluate((element) => element.blur());
+  await controls.evaluateAll((buttons) => buttons.forEach((button) => button.blur()));
   await page.waitForTimeout(450);
-  const settled = await artwork.screenshot();
-  await page.waitForTimeout(250);
-  const completedPixelsStable = await sameRenderedPixels(
-    settled,
-    await artwork.screenshot(),
-    artwork,
-    `${label}-completed`,
-  );
-  if (!completedPixelsStable) failures.push(`${label}: completed artwork pixels change`);
-  return { journeys, controlsReady, idlePixelsStable, completedPixelsStable, reduced };
+  const completed = await observeRest(artwork, `${label}-completed`);
+  if (!completed.stable)
+    failures.push(`${label}: completed rendered geometry/paint moves or has active animations`);
+  return { journeys, controlsReady, idle, completed, reduced };
 }
 
 // Inspect actual rendered frames, not just animation names or a changed transform.
