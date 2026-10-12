@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "operator-task-deadline-precedence",
+    slug: "operator-task-deadline-precedence",
+    title: "Keep overdue commitments ahead of on-time tasks",
+    description:
+      "Overdue tasks retain critical urgency at every task priority. Marking an overdue commitment High now preserves its deadline ordering in the shared queue used by Today, notifications, offline summaries and AI reads. The six fictional demos use the same ordering and report their actual critical counts. The queue still explains each item's reason and next action. This source change has focused regression coverage; production publication is separate.",
+    category: "fix",
+    publishedAt: "2026-10-12",
+  },
+  {
     id: "command-center-business-platform",
     slug: "command-center-business-platform",
     title: "Explore Command Center by the business work it supports",

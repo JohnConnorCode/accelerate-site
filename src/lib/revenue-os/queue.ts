@@ -4,31 +4,8 @@ import type { OperatorQueueItem } from "./types";
 import { loadOperationalHealth } from "./health";
 import { triageReason } from "./triage";
 import { listDebateProductions } from "./debate-bookings";
-
-const URGENCY_RANK = { critical: 0, high: 1, normal: 2, low: 3 } as const;
-const KIND_RANK: Record<OperatorQueueItem["kind"], number> = {
-  reply: 0,
-  approval: 1,
-  task: 2,
-  follow_up: 3,
-  meeting: 4,
-  proposal: 5,
-  system: 6,
-};
-
-export function sortOperatorQueue(items: OperatorQueueItem[]): OperatorQueueItem[] {
-  return [...items].sort((a, b) => {
-    const urgency = URGENCY_RANK[a.urgency] - URGENCY_RANK[b.urgency];
-    if (urgency) return urgency;
-    const deadline = (a.dueAt ?? "9999").localeCompare(b.dueAt ?? "9999");
-    if (deadline) return deadline;
-    const kind = KIND_RANK[a.kind] - KIND_RANK[b.kind];
-    if (kind) return kind;
-    const source = a.sourceTimestamp.localeCompare(b.sourceTimestamp);
-    if (source) return source;
-    return a.id.localeCompare(b.id);
-  });
-}
+import { operatorTaskUrgency, sortOperatorQueue } from "./operator-queue-policy";
+export { sortOperatorQueue } from "./operator-queue-policy";
 
 export function summarizeOperatorQueue(items: OperatorQueueItem[]) {
   const byKind = {
@@ -225,12 +202,7 @@ export async function loadOperatorQueue(
       kind: task.related_type === "lead" ? "follow_up" : presentation.kind,
       title: task.title,
       summary: task.description || "An operator task is due.",
-      urgency:
-        task.priority === "high"
-          ? "high"
-          : task.due_date && task.due_date < now.slice(0, 10)
-            ? "critical"
-            : "normal",
+      urgency: operatorTaskUrgency(task, now.slice(0, 10)),
       dueAt: task.due_date,
       sourceTimestamp: task.created_at,
       priorityReason: presentation.priorityReason,
