@@ -450,8 +450,8 @@ for (const [label, viewport] of [
   await delayedPage.goto(baseUrl, { waitUntil: "commit", timeout: 60_000 });
   await delayedPage.waitForFunction(
     () =>
-      document.querySelector(".home-hero-poster") &&
-      getComputedStyle(document.querySelector(".home-hero-poster")).position === "absolute",
+      document.querySelector(".home-system-diagram") &&
+      getComputedStyle(document.querySelector(".home-system-scene")).position === "absolute",
   );
   const pending = await delayedPage.evaluate(() => ({
     state: document.querySelector(".home-hero").dataset.revealState,
@@ -519,8 +519,8 @@ await latePage.route("**/_next/static/**/*.js*", async (route) => {
 await latePage.goto(baseUrl, { waitUntil: "commit", timeout: 60_000 });
 await latePage.waitForFunction(
   () =>
-    document.querySelector(".home-hero-poster") &&
-    getComputedStyle(document.querySelector(".home-hero-poster")).position === "absolute",
+    document.querySelector(".home-system-diagram") &&
+    getComputedStyle(document.querySelector(".home-system-scene")).position === "absolute",
 );
 await latePage.waitForFunction(() => !document.documentElement.classList.contains("motion-ready"));
 const lateReadable = await latePage
@@ -553,6 +553,13 @@ if (
   failures.push(
     "Late hydration left input controls unavailable or concealed readable foreground again",
   );
+await latePage.locator(".home-system-input").first().click();
+await latePage.waitForFunction(
+  () =>
+    document.querySelector(".home-system-artwork").dataset.source === "0" &&
+    document.querySelector(".home-system-artwork").dataset.routeState === "complete",
+);
+lateRecovery.inputResponded = true;
 delayedResults.push({ label: "watchdog-then-hydration", lateReadable, ...lateRecovery });
 await latePage.screenshot({ caret: "initial", path: `${output}/desktop-late-runtime.png` });
 await lateRuntime.close();
