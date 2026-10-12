@@ -253,7 +253,7 @@ export function HeroArtwork() {
             key={label}
             type="button"
             className="home-system-port home-system-input"
-            style={{ left: `${x / 6}%`, top: `${y / 6}%` } as CSSProperties}
+            style={{ "--port-x": `${x / 6}%`, "--port-y": `${y / 6}%` } as CSSProperties}
             aria-label={label}
             aria-pressed={selected === index}
             onClick={() => activate(index)}
@@ -270,7 +270,7 @@ export function HeroArtwork() {
           <span
             key={index}
             className="home-system-port home-system-output"
-            style={{ left: `${x / 6}%`, top: `${y / 6}%` } as CSSProperties}
+            style={{ "--port-x": `${x / 6}%`, "--port-y": `${y / 6}%` } as CSSProperties}
             data-connected={route?.outputs.some((output) => output === index) ?? false}
             data-complete={
               completed &&

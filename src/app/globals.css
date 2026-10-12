@@ -6456,13 +6456,14 @@ body.modal-open [data-dock] {
    All movement is a finite response to an action; the idle sculpture is still. */
 .home-system-artwork {
   pointer-events: none;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
 }
 .home-system-scene {
-  position: absolute;
-  top: 50%;
+  position: relative;
   width: 100%;
   aspect-ratio: 1;
-  transform: translateY(-50%);
 }
 .home-system-diagram {
   display: block;
@@ -6475,15 +6476,17 @@ body.modal-open [data-dock] {
   position: absolute;
   display: grid;
   place-items: center;
-  width: clamp(48px, 5vw, 64px);
-  height: clamp(48px, 5vw, 64px);
+  --port-size: clamp(48px, 5vw, 64px);
+  width: var(--port-size);
+  height: var(--port-size);
+  left: calc(var(--port-x) - var(--port-size) / 2);
+  top: calc(var(--port-y) - var(--port-size) / 2);
   border-radius: 14px;
   color: var(--fg);
   background: var(--bg);
   box-shadow:
     var(--card-shadow),
     0 6px 0 -1px color-mix(in srgb, var(--fg) 9%, var(--bg));
-  transform: translate(-50%, -50%);
   transition:
     background-color 180ms ease,
     color 180ms ease,
@@ -6794,6 +6797,38 @@ body.modal-open [data-dock] {
   }
   .home-hero-artwork-caption > span {
     display: none;
+  }
+}
+
+/* Integer layout avoids independently composited fractional card rasters.
+   The fallback above retains the same geometry in older CSS engines. */
+@supports (width: round(nearest, 10px, 2px)) {
+  .home-hero-artwork.home-system-artwork {
+    width: round(nearest, min(44vw, 630px), 2px);
+    height: round(nearest, min(75svh, 700px), 2px);
+  }
+  .home-system-port {
+    --port-size: round(nearest, clamp(48px, 5vw, 64px), 2px);
+    left: round(nearest, calc(var(--port-x) - var(--port-size) / 2), 1px);
+    top: round(nearest, calc(var(--port-y) - var(--port-size) / 2), 1px);
+  }
+  @media (min-width: 641px) and (max-width: 1000px) {
+    .home-hero-artwork.home-system-artwork {
+      top: auto;
+      width: round(nearest, 40vw, 2px);
+      height: round(nearest, 35svh, 2px);
+    }
+  }
+  @media (max-width: 640px) {
+    .home-hero-artwork.home-system-artwork {
+      top: auto;
+      width: round(nearest, max(70vw, 260px), 2px);
+      height: round(nearest, 28svh, 2px);
+    }
+    .home-system-port svg {
+      width: 22px;
+      height: 22px;
+    }
   }
 }
 

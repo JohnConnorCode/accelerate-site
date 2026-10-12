@@ -77,7 +77,13 @@ async function observeRest(artwork, label) {
     beforeState.activeAnimations === 0 &&
     beforeState.svgAnimations === 0;
   const pixelsEqual = await sameRenderedPixels(first, second, artwork, label);
-  return { stable, pixelsEqual, beforeState, afterState };
+  return {
+    stable: stable && pixelsEqual,
+    geometryStable: stable,
+    pixelsEqual,
+    beforeState,
+    afterState,
+  };
 }
 
 function armPacketObservation() {
@@ -575,7 +581,7 @@ for (const [label, viewport] of [
   await delayedPage.waitForFunction(
     () =>
       document.querySelector(".home-system-diagram") &&
-      getComputedStyle(document.querySelector(".home-system-scene")).position === "absolute",
+      getComputedStyle(document.querySelector(".home-system-scene")).position === "relative",
   );
   const pending = await delayedPage.evaluate(() => ({
     state: document.querySelector(".home-hero").dataset.revealState,
@@ -644,7 +650,7 @@ await latePage.goto(baseUrl, { waitUntil: "commit", timeout: 60_000 });
 await latePage.waitForFunction(
   () =>
     document.querySelector(".home-system-diagram") &&
-    getComputedStyle(document.querySelector(".home-system-scene")).position === "absolute",
+    getComputedStyle(document.querySelector(".home-system-scene")).position === "relative",
 );
 await latePage.waitForFunction(() => !document.documentElement.classList.contains("motion-ready"));
 const lateReadable = await latePage
@@ -730,7 +736,7 @@ for (let attempt = 0; attempt < 100 && !stylesReady; attempt++) {
     return Boolean(
       svg &&
       svg.getBoundingClientRect().width > 100 &&
-      getComputedStyle(document.querySelector(".home-system-scene")).position === "absolute",
+      getComputedStyle(document.querySelector(".home-system-scene")).position === "relative",
     );
   });
   if (!stylesReady) await staticPage.waitForTimeout(100);
