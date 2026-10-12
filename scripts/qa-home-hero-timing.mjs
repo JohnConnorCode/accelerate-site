@@ -7,7 +7,7 @@ import {
 } from "./lib/hero-motion-observer.mjs";
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
-const output = "/tmp/accelerate-home-hero-timing";
+const output = process.env.HERO_QA_OUTPUT || "/tmp/accelerate-home-hero-timing";
 await mkdir(output, { recursive: true });
 // Exercise WebGL on GPU-less Linux CI through Chromium's documented GL driver.
 // These are disposable test browsers; application fallback behavior is tested below.
@@ -18,6 +18,92 @@ const browser = await chromium.launch({
 const failures = [];
 const results = [];
 const entranceFrames = [];
+
+async function exerciseArtwork(page, label, touch = false, reduced = false) {
+  const artwork = page.locator(".home-system-artwork");
+  const controls = artwork.locator(".home-system-input");
+  if ((await controls.count()) !== 3 || (await artwork.locator("canvas, svg text").count()) !== 0)
+    failures.push(`${label}: missing input controls or rejected canvas/visible text`);
+  const controlsReady = await controls.evaluateAll((buttons) =>
+    buttons.every((button) => {
+      const box = button.getBoundingClientRect();
+      return (
+        box.width >= 47 &&
+        box.height >= 47 &&
+        button.textContent.trim() === "" &&
+        button.getAttribute("aria-label")
+      );
+    }),
+  );
+  if (!controlsReady) failures.push(`${label}: controls lack names or 48px targets`);
+  await page.mouse.move(0, 0);
+  const initial = await artwork.screenshot();
+  await page.waitForTimeout(250);
+  if (!initial.equals(await artwork.screenshot())) failures.push(`${label}: idle artwork moves`);
+  const journeys = [];
+  for (let index = 0; index < 3; index++) {
+    const control = controls.nth(index);
+    if (touch) await control.tap();
+    else if (index === 1) {
+      await control.focus();
+      await page.keyboard.press("Enter");
+    } else if (index === 2) {
+      await control.focus();
+      await page.keyboard.press("Space");
+    } else await control.click();
+    if (
+      (await artwork.getAttribute("data-source")) !== String(index) ||
+      (await control.getAttribute("aria-pressed")) !== "true"
+    )
+      failures.push(`${label}: input ${index} did not select its workflow`);
+    if (reduced) {
+      if (
+        (await artwork.getAttribute("data-route-state")) !== "complete" ||
+        (await artwork.locator("animateMotion").count())
+      )
+        failures.push(`${label}: reduced-motion action is not immediate and static`);
+    } else {
+      const position = () =>
+        artwork
+          .locator(".home-system-packets circle")
+          .first()
+          .evaluate((circle) => {
+            const matrix = circle.getCTM();
+            return { x: matrix.e, y: matrix.f };
+          });
+      const before = await position();
+      await page.waitForTimeout(180);
+      const after = await position();
+      if (Math.hypot(after.x - before.x, after.y - before.y) < 2)
+        failures.push(`${label}: input ${index} did not move its signal through the actual path`);
+    }
+    await page.waitForFunction(
+      () => document.querySelector(".home-system-artwork").dataset.routeState === "complete",
+    );
+    const destinations = await artwork
+      .locator(".home-system-output")
+      .evaluateAll((ports) => ports.map((port) => port.dataset.complete === "true"));
+    const expected = [
+      [true, true, false],
+      [false, true, true],
+      [true, false, true],
+    ][index];
+    if (JSON.stringify(destinations) !== JSON.stringify(expected))
+      failures.push(`${label}: input ${index} reached wrong outcomes`);
+    if (!(await artwork.getByRole("status").textContent()))
+      failures.push(`${label}: result has no accessible announcement`);
+    journeys.push({ index, destinations });
+    await page.screenshot({ caret: "initial", path: `${output}/${label}-route-${index}.png` });
+  }
+  await page.mouse.move(0, 0);
+  await controls.last().evaluate((element) => element.blur());
+  await page.waitForTimeout(450);
+  const settled = await artwork.screenshot();
+  await page.waitForTimeout(250);
+  if (!settled.equals(await artwork.screenshot()))
+    failures.push(`${label}: finite action keeps moving after completion`);
+  return { journeys, controlsReady, noIdleAnimation: true, reduced };
+}
 
 // Inspect actual rendered frames, not just animation names or a changed transform.
 for (const [label, viewport] of [
@@ -139,7 +225,7 @@ for (const [label, viewport] of [
       .filter((animation) => animation.effect.target.matches(".home-hero-artwork"))
       .forEach((animation) => (animation.currentTime = 0));
   });
-  await page.getByRole("button", { name: "Pause hero animation" }).focus();
+  await page.locator(".home-system-input").first().focus();
   const focusedArtwork = await page.locator(".home-hero-artwork").evaluate((element) => ({
     visible: getComputedStyle(element).opacity === "1",
     bookingFirst: Boolean(
@@ -151,7 +237,7 @@ for (const [label, viewport] of [
   }));
   if (!focusedArtwork.visible || !focusedArtwork.bookingFirst)
     failures.push(
-      `${label}: motion control has concealed focus or precedes booking in the reading order`,
+      `${label}: input control has concealed focus or precedes booking in the reading order`,
     );
   await context.close();
 }
@@ -257,49 +343,7 @@ for (const [label, viewport, colorScheme] of [
   await page.waitForFunction(
     () => document.querySelector(".home-hero").dataset.heroActive === "true",
   );
-  const artwork = page.locator(".home-hero-artwork");
-  const canvas = page.locator(".home-hero-canvas");
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
-  );
-  const start = await canvas.screenshot();
-  await page.waitForTimeout(3000);
-  const moving = await canvas.screenshot();
-  if (start.equals(moving))
-    failures.push(`${label}: rendered artwork is static during a three-second visit`);
-  await page.getByRole("button", { name: "Pause hero animation" }).click();
-  await page.waitForTimeout(300);
-  const paused = await canvas.screenshot();
-  if (touch) {
-    const bounds = await canvas.boundingBox();
-    await page.touchscreen.tap(bounds.x + bounds.width * 0.65, bounds.y + bounds.height * 0.4);
-  } else await page.mouse.move(viewport.width * 0.85, 320);
-  await page.waitForTimeout(800);
-  const resting = await canvas.screenshot();
-  if (!paused.equals(resting) || (await artwork.getAttribute("data-motion-state")) !== "paused")
-    failures.push(
-      `${label}: pause does not stop actual pixels, or pointer movement changes the composition`,
-    );
-  await page.getByRole("button", { name: "Play hero animation" }).click();
-  await page.waitForTimeout(800);
-  if (resting.equals(await canvas.screenshot()))
-    failures.push(`${label}: play does not resume rendered motion`);
-  const artworkMotion = await canvas.evaluate((element) => ({
-    width: element.width,
-    height: element.height,
-    density: element.width / element.getBoundingClientRect().width,
-    state: element.parentElement.dataset.motionState,
-  }));
-  if (artworkMotion.density > 1.51)
-    failures.push(`${label}: artwork exceeds its pixel-density budget`);
-  await page.locator("#selected-work").evaluate((element) => element.scrollIntoView());
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero-artwork").dataset.motionState === "paused",
-  );
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero-artwork").dataset.motionState === "playing",
-  );
+  const artworkMotion = await exerciseArtwork(page, label, touch);
   await page.screenshot({ caret: "initial", path: `${output}/${label}-settled.png` });
   if (label === "desktop" || label === "mobile") {
     const booking = page.locator(".home-hero-cta");
@@ -365,7 +409,7 @@ const reduced = await page.evaluate(() => ({
   wordsStatic: [...document.querySelectorAll(".home-hero-word")].every(
     (word) => getComputedStyle(word).animationName === "none",
   ),
-  backgroundStatic: document.querySelector(".home-hero-artwork").dataset.motionState === "paused",
+  backgroundStatic: document.querySelector(".home-hero-artwork").dataset.routeState === "idle",
   allContentStatic: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -374,13 +418,7 @@ const reduced = await page.evaluate(() => ({
       getComputedStyle(element).animationName === "none",
   ),
 }));
-await page.touchscreen.tap(370, 140);
-const reducedCanvas = page.locator(".home-hero-canvas");
-await page.waitForTimeout(500);
-const reducedFrame = await reducedCanvas.screenshot();
-await page.waitForTimeout(800);
-if (!reducedFrame.equals(await reducedCanvas.screenshot()))
-  failures.push("Reduced motion changes the rendered artwork");
+await exerciseArtwork(page, "mobile-reduced", true, true);
 if (
   !reduced.heading ||
   reduced.animation !== "none" ||
@@ -464,7 +502,7 @@ for (const [label, viewport] of [
   delayedResults.push({ label, pending, complete });
   await delayed.close();
 }
-// A real late runtime must recover ambient artwork after the four-second
+// A real late runtime must recover interactive artwork after the four-second
 // fail-open watchdog, without concealing foreground content a second time.
 const lateRuntime = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 const latePage = await lateRuntime.newPage();
@@ -496,12 +534,19 @@ const lateRecovery = await latePage.locator(".home-hero").evaluate((hero) => ({
   wordsStatic: [...hero.querySelectorAll(".home-hero-word")].every(
     (element) => element.getAnimations().length === 0,
   ),
-  moving:
-    hero.querySelector(".home-hero-artwork").dataset.motionState === "playing" &&
+  interactive:
+    hero.querySelectorAll(".home-system-input").length === 3 &&
     hero.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
 }));
-if (!lateReadable || !lateRecovery.readable || !lateRecovery.wordsStatic || !lateRecovery.moving)
-  failures.push("Late hydration left artwork static or concealed readable foreground again");
+if (
+  !lateReadable ||
+  !lateRecovery.readable ||
+  !lateRecovery.wordsStatic ||
+  !lateRecovery.interactive
+)
+  failures.push(
+    "Late hydration left input controls unavailable or concealed readable foreground again",
+  );
 delayedResults.push({ label: "watchdog-then-hydration", lateReadable, ...lateRecovery });
 await latePage.screenshot({ caret: "initial", path: `${output}/desktop-late-runtime.png` });
 await lateRuntime.close();
@@ -544,18 +589,16 @@ await staticPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 
 let stylesReady = false;
 for (let attempt = 0; attempt < 100 && !stylesReady; attempt++) {
   stylesReady = await staticPage.evaluate(() => {
-    const poster = document.querySelector(".home-hero-poster");
-    return (
-      getComputedStyle(poster).position === "absolute" &&
-      poster instanceof HTMLImageElement &&
-      poster.complete &&
-      poster.naturalWidth > 1 &&
-      poster.naturalHeight > 1
+    const svg = document.querySelector(".home-system-diagram");
+    return Boolean(
+      svg &&
+      svg.getBoundingClientRect().width > 100 &&
+      getComputedStyle(document.querySelector(".home-system-scene")).position === "absolute",
     );
   });
   if (!stylesReady) await staticPage.waitForTimeout(100);
 }
-if (!stylesReady) failures.push("No-JavaScript hero stylesheet or poster did not load");
+if (!stylesReady) failures.push("No-JavaScript hero stylesheet or server SVG did not load");
 await staticPage.waitForLoadState("networkidle");
 const staticHero = await staticPage.evaluate(() => ({
   heading: document.querySelector(".home-hero-heading")?.textContent?.replace(/\s+/g, " "),
@@ -564,11 +607,8 @@ const staticHero = await staticPage.evaluate(() => ({
     (word) => getComputedStyle(word).animationName === "none",
   ),
   backgroundStatic:
-    document.querySelector(".home-hero-artwork").dataset.artworkReady === "false" &&
-    getComputedStyle(document.querySelector(".home-hero-poster")).opacity === "1" &&
-    document.querySelector(".home-hero-poster").complete &&
-    document.querySelector(".home-hero-poster").naturalWidth > 1 &&
-    document.querySelector(".home-hero-poster").naturalHeight > 1,
+    document.querySelector(".home-system-diagram") instanceof SVGElement &&
+    document.querySelectorAll(".home-system-packets, .home-hero-canvas").length === 0,
   allContentReadable: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -589,67 +629,12 @@ if (
 // Capture their settled no-script presentation, not the network's first paint.
 await staticPage.evaluate(async () => {
   await document.fonts.ready;
-  await document.querySelector(".home-hero-poster").decode();
 });
 await staticPage.screenshot({ caret: "initial", path: `${output}/desktop-no-js.png` });
 await noJS.close();
-const gpuFallbacks = [];
-for (const mode of ["unavailable", "context-lost"]) {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  if (mode === "unavailable")
-    await context.addInitScript(() => {
-      const original = HTMLCanvasElement.prototype.getContext;
-      HTMLCanvasElement.prototype.getContext = function (type, ...args) {
-        return type === "webgl" ? null : original.call(this, type, ...args);
-      };
-    });
-  const page = await context.newPage();
-  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.waitForTimeout(3500);
-  if (mode === "context-lost") {
-    await page.waitForFunction(
-      () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
-    );
-    const lost = await page.locator(".home-hero-canvas").evaluate((element) => {
-      const extension = element.getContext("webgl").getExtension("WEBGL_lose_context");
-      extension?.loseContext();
-      return Boolean(extension);
-    });
-    if (!lost) failures.push("GPU loss test could not induce a real lost context");
-    await page.waitForFunction(
-      () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "false",
-    );
-    await page.evaluate(() => {
-      const root = document.documentElement;
-      root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
-    });
-    await page.waitForTimeout(600);
-  }
-  const fallback = await page.evaluate(() => ({
-    ready: document.querySelector(".home-hero-artwork").dataset.artworkReady,
-    state: document.querySelector(".home-hero-artwork").dataset.motionState,
-    poster: getComputedStyle(document.querySelector(".home-hero-poster")).opacity,
-    posterLoaded:
-      document.querySelector(".home-hero-poster").complete &&
-      document.querySelector(".home-hero-poster").naturalWidth > 1 &&
-      document.querySelector(".home-hero-poster").naturalHeight > 1,
-    booking: getComputedStyle(document.querySelector(".home-hero-actions")).opacity,
-  }));
-  if (
-    fallback.ready !== "false" ||
-    fallback.state !== "paused" ||
-    fallback.poster !== "1" ||
-    !fallback.posterLoaded ||
-    fallback.booking !== "1"
-  )
-    failures.push(`${mode}: GPU failure hid the poster or booking action`);
-  await page.screenshot({ path: `${output}/gpu-${mode}.png` });
-  gpuFallbacks.push({ mode, ...fallback });
-  await context.close();
-}
 await browser.close();
 
-// WebKit verifies the actual canvas or an explicit GPU-unavailable poster.
+// Native touch and SVG motion are also checked in WebKit.
 const webkitArtwork = [];
 const webkitBrowser = await webkit.launch({ headless: true });
 for (const [label, viewport, touch] of [
@@ -659,63 +644,11 @@ for (const [label, viewport, touch] of [
   const context = await webkitBrowser.newContext({ viewport, hasTouch: touch, isMobile: touch });
   const page = await context.newPage();
   page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
-  page.on("console", (message) => {
-    if (
-      message.type() === "error" &&
-      !message
-        .text()
-        .includes("was delivered in report-only mode, but does not specify a 'report-to'")
-    )
-      failures.push(`${label}: ${message.text()}`);
-  });
-  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForTimeout(3500);
-  // Shader initialization follows the finite entrance. Inspect the handoff
-  // together: separate protocol calls can straddle the poster-to-canvas swap.
-  await page.evaluate(async () => {
-    const animations = document.querySelector(".home-hero").getAnimations({ subtree: true });
-    await Promise.all(
-      animations
-        .filter((animation) => animation.animationName?.startsWith("home-hero-"))
-        .map((animation) => animation.finished.catch(() => {})),
-    );
-  });
-  const artworkState = await page.locator(".home-hero-artwork").evaluate((element) => {
-    const poster = element.querySelector(".home-hero-poster");
-    return {
-      ready: element.dataset.artworkReady,
-      posterVisible:
-        getComputedStyle(poster).opacity === "1" &&
-        poster instanceof HTMLImageElement &&
-        poster.complete &&
-        poster.naturalWidth > 1 &&
-        poster.naturalHeight > 1,
-    };
-  });
-  const { ready } = artworkState;
-  const canvas = page.locator(".home-hero-canvas");
-  if (ready === "true") {
-    const first = await canvas.screenshot();
-    await page.waitForTimeout(1500);
-    if (first.equals(await canvas.screenshot())) failures.push(`${label}: GPU artwork is static`);
-    await page.getByRole("button", { name: "Pause hero animation" }).click();
-    await page.waitForTimeout(300);
-    const paused = await canvas.screenshot();
-    await page.waitForTimeout(600);
-    if (!paused.equals(await canvas.screenshot()))
-      failures.push(`${label}: pause does not freeze the artwork`);
-  } else if (!artworkState.posterVisible) {
-    failures.push(`${label}: unavailable GPU has no visible poster`);
-  }
-  if (!(await page.locator(".home-hero-cta").isVisible()))
-    failures.push(`${label}: booking is unavailable`);
+  const journey = await exerciseArtwork(page, label, touch);
   await page.screenshot({ path: `${output}/${label}-settled.png` });
-  webkitArtwork.push({
-    label,
-    viewport,
-    ready,
-    mode: ready === "true" ? "WebGL" : "static GPU fallback",
-  });
+  webkitArtwork.push({ label, viewport, ...journey });
   await context.close();
 }
 await webkitBrowser.close();
@@ -731,7 +664,6 @@ await writeFile(
       watchdog,
       staticHero,
       webkitArtwork,
-      gpuFallbacks,
       failures,
     },
     null,
