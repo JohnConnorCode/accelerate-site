@@ -188,7 +188,9 @@ for (const [engine, launcher] of Object.entries(engines)) {
             );
             input.focus();
             return (
-              !input.checkVisibility() && !input.contains(hit) && document.activeElement !== input
+              !input.checkVisibility({ visibilityProperty: true }) &&
+              !input.contains(hit) &&
+              document.activeElement !== input
             );
           }),
       );
