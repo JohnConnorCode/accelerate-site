@@ -55,6 +55,7 @@ export function HeroArtwork() {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const current = running ? selected : (preview ?? selected);
   const route = current === null ? undefined : inputs[current];
+  const selectedInput = selected === null ? undefined : inputs[selected];
   const completed = selected !== null && current === selected && !running;
 
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -204,11 +205,11 @@ export function HeroArtwork() {
               />
             ))}
           </g>
-          {running && (
+          {running && selectedInput && (
             <g key={run} className="home-system-packets" fill="var(--fg)">
               <circle r="4">
                 <animateMotion
-                  path={inputs[selected!].path}
+                  path={selectedInput.path}
                   begin="indefinite"
                   ref={(node) => (node as SVGAnimationElement | null)?.beginElement()}
                   dur=".7s"
@@ -216,7 +217,7 @@ export function HeroArtwork() {
                   fill="freeze"
                 />
               </circle>
-              {inputs[selected!].outputs.map((output) => (
+              {selectedInput.outputs.map((output) => (
                 <circle key={output} r="4" opacity="0">
                   <animate
                     attributeName="opacity"
@@ -264,9 +265,7 @@ export function HeroArtwork() {
             className="home-system-port home-system-output"
             style={{ left: `${x / 6}%`, top: `${y / 6}%` } as CSSProperties}
             data-connected={route?.outputs.some((output) => output === index) ?? false}
-            data-complete={
-              completed && inputs[selected!].outputs.some((output) => output === index)
-            }
+            data-complete={completed && selectedInput?.outputs.some((output) => output === index)}
             aria-hidden="true"
           >
             <Icon strokeWidth={1.4} />
@@ -276,7 +275,7 @@ export function HeroArtwork() {
       </div>
       <span className="sr-only" role="status" aria-live="polite">
         {completed
-          ? inputs[selected!].result
+          ? selectedInput?.result
           : running
             ? "Routing example through the intelligence layer."
             : "Choose an input to run an example automation."}
