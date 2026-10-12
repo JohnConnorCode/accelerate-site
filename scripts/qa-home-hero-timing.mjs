@@ -71,6 +71,12 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
             const matrix = circle.getCTM();
             return { x: matrix.e, y: matrix.f };
           });
+      const motion = artwork.locator(".home-system-packets animateMotion").first();
+      const startTime = await motion.evaluate((animation) => animation.getStartTime());
+      await controls.nth((index + 1) % 3).focus();
+      if (!touch) await controls.nth((index + 1) % 3).hover();
+      if ((await motion.evaluate((animation) => animation.getStartTime())) !== startTime)
+        failures.push(`${label}: hover/focus restarts the active packet`);
       const before = await position();
       await page.waitForTimeout(180);
       const after = await position();

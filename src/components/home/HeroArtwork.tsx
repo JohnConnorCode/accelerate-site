@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { CalendarDays, FileText, ListChecks, Mail, Send, UserRound } from "lucide-react";
 
 // Reuse the site's monochrome materials and dimensional chevron mark. The
@@ -56,7 +56,14 @@ export function HeroArtwork() {
   const current = running ? selected : (preview ?? selected);
   const route = current === null ? undefined : inputs[current];
   const selectedInput = selected === null ? undefined : inputs[selected];
-  const completed = selected !== null && current === selected && !running;
+  const completed = selected !== null && !running;
+  // Stable refs start once per keyed run; hover/focus renders never restart a packet.
+  const startPacket = useCallback((node: SVGElement | null) => {
+    (node as SVGAnimationElement | null)?.beginElement();
+  }, []);
+  const startOutputPacket = useCallback((node: SVGElement | null) => {
+    (node as SVGAnimationElement | null)?.beginElementAt(0.7);
+  }, []);
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -211,7 +218,7 @@ export function HeroArtwork() {
                 <animateMotion
                   path={selectedInput.path}
                   begin="indefinite"
-                  ref={(node) => (node as SVGAnimationElement | null)?.beginElement()}
+                  ref={startPacket}
                   dur=".7s"
                   repeatCount="1"
                   fill="freeze"
@@ -222,7 +229,7 @@ export function HeroArtwork() {
                   <animate
                     attributeName="opacity"
                     begin="indefinite"
-                    ref={(node) => (node as SVGAnimationElement | null)?.beginElement()}
+                    ref={startPacket}
                     values="0;1;1;0"
                     keyTimes="0;.47;.95;1"
                     dur="1.5s"
@@ -231,7 +238,7 @@ export function HeroArtwork() {
                   <animateMotion
                     path={outputs[output].path}
                     begin="indefinite"
-                    ref={(node) => (node as SVGAnimationElement | null)?.beginElementAt(0.7)}
+                    ref={startOutputPacket}
                     dur=".75s"
                     repeatCount="1"
                     fill="freeze"
@@ -250,9 +257,9 @@ export function HeroArtwork() {
             aria-label={label}
             aria-pressed={selected === index}
             onClick={() => activate(index)}
-            onMouseEnter={() => setPreview(index)}
+            onMouseEnter={() => !running && setPreview(index)}
             onMouseLeave={() => setPreview(null)}
-            onFocus={() => setPreview(index)}
+            onFocus={() => !running && setPreview(index)}
             onBlur={() => setPreview(null)}
           >
             <Icon aria-hidden="true" strokeWidth={1.4} />
@@ -265,7 +272,11 @@ export function HeroArtwork() {
             className="home-system-port home-system-output"
             style={{ left: `${x / 6}%`, top: `${y / 6}%` } as CSSProperties}
             data-connected={route?.outputs.some((output) => output === index) ?? false}
-            data-complete={completed && selectedInput?.outputs.some((output) => output === index)}
+            data-complete={
+              completed &&
+              current === selected &&
+              selectedInput?.outputs.some((output) => output === index)
+            }
             aria-hidden="true"
           >
             <Icon strokeWidth={1.4} />
