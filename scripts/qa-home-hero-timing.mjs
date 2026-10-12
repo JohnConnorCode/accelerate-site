@@ -7,11 +7,32 @@ import {
   hasFreshHeroEntrance,
 } from "./lib/hero-motion-observer.mjs";
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
+const hosted = process.env.HERO_QA_TARGET_URL;
+if (hosted) {
+  const target = new URL(hosted);
+  if (
+    target.protocol !== "https:" ||
+    target.username ||
+    target.password ||
+    target.pathname !== "/" ||
+    target.search ||
+    target.hash ||
+    !(
+      target.hostname === "www.acceleratewith.us" ||
+      /^accelerate-site-[a-z0-9]+-john-connors-projects-d9df1dfe\.vercel\.app$/.test(
+        target.hostname,
+      )
+    )
+  )
+    throw new Error("Hosted hero QA requires an exact authorized Accelerate homepage URL.");
+}
+const baseUrl = (hosted || process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010").replace(
+  /\/$/,
+  "",
+);
 const output = process.env.HERO_QA_OUTPUT || "/tmp/accelerate-home-hero-timing";
 await mkdir(output, { recursive: true });
-// Exercise WebGL on GPU-less Linux CI through Chromium's documented GL driver.
-// These are disposable test browsers; application fallback behavior is tested below.
+// Reuse the existing native Chromium/WebKit CI lane for rendered interaction QA.
 const browser = await chromium.launch({
   headless: true,
   args: process.platform === "linux" ? ["--use-gl=angle", "--use-angle=swiftshader"] : [],
@@ -20,8 +41,8 @@ const failures = [];
 const results = [];
 const entranceFrames = [];
 
-// Stillness concerns rendered geometry and paint, not subpixel raster quantization.
-// Capture every graphical node and reject any live CSS or SVG motion at rest.
+// Normal mode must move. Reduced motion must retain strict settled geometry and
+// decoded-pixel checks; invisible offscreen/menu states must stop their frame work.
 async function renderedState(artwork) {
   return artwork.evaluate((element) => {
     const root = element.getBoundingClientRect();
@@ -92,11 +113,13 @@ function armPacketObservation() {
     let started = null;
     const points = [];
     const sample = (now) => {
-      const circle = document.querySelector(".home-system-packets circle");
+      const circle = [...document.querySelectorAll(".home-system-signal")].find(
+        (node) => node.getAttribute("opacity") === "1",
+      );
       if (circle) {
         started ??= now;
-        const matrix = circle.getCTM();
-        points.push({ time: now, x: matrix.e, y: matrix.f });
+        const box = circle.getBoundingClientRect();
+        points.push({ time: now, x: box.x + box.width / 2, y: box.y + box.height / 2 });
       }
       if (now >= deadline || (started !== null && now - started >= 900)) resolve(points);
       else requestAnimationFrame(sample);
@@ -156,9 +179,17 @@ async function sameRenderedPixels(first, second, artwork, label) {
 async function exerciseArtwork(page, label, touch = false, reduced = false) {
   const artwork = page.locator(".home-system-artwork");
   const controls = artwork.locator(".home-system-input");
-  if ((await controls.count()) !== 3 || (await artwork.locator("canvas, svg text").count()) !== 0)
-    failures.push(`${label}: missing input controls or rejected canvas/visible text`);
-  const controlsReady = await controls.evaluateAll((buttons) =>
+  const handle = artwork.locator(".home-system-handle");
+  await page.waitForFunction(
+    () => document.querySelector(".home-system-artwork").dataset.artworkReady === "true",
+  );
+  if (
+    (await controls.count()) !== 3 ||
+    (await handle.count()) !== 1 ||
+    (await artwork.locator("canvas, svg text, .home-hero-artwork-pause").count()) !== 0
+  )
+    failures.push(`${label}: controls missing or rejected canvas, words, or pause UI present`);
+  const controlsReady = await artwork.locator("button").evaluateAll((buttons) =>
     buttons.every((button) => {
       const box = button.getBoundingClientRect();
       return (
@@ -171,11 +202,27 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
   );
   if (!controlsReady) failures.push(`${label}: controls lack names or 48px targets`);
   await page.mouse.move(0, 0);
-  await controls.evaluateAll((buttons) => buttons.forEach((button) => button.blur()));
   await page.waitForTimeout(450);
-  const idle = await observeRest(artwork, `${label}-idle`);
-  if (!idle.stable)
-    failures.push(`${label}: idle rendered geometry/paint moves or has active animations`);
+  let idle;
+  if (reduced) {
+    idle = await observeRest(artwork, `${label}-reduced-rest`);
+    if (!idle.stable)
+      failures.push(`${label}: reduced-motion geometry or decoded pixels move at rest`);
+  } else {
+    const before = await renderedState(artwork),
+      first = await artwork.screenshot();
+    await page.waitForTimeout(750);
+    const second = await artwork.screenshot(),
+      after = await renderedState(artwork);
+    const pixelsEqual = await sameRenderedPixels(first, second, artwork, `${label}-live`);
+    idle = {
+      live: await artwork.getAttribute("data-motion"),
+      geometryChanges: JSON.stringify(before) !== JSON.stringify(after),
+      pixelsEqual,
+    };
+    if (idle.live !== "live" || !idle.geometryChanges || pixelsEqual)
+      failures.push(`${label}: system does not visibly run without activation`);
+  }
   const journeys = [];
   for (let index = 0; index < 3; index++) {
     const control = controls.nth(index);
@@ -193,33 +240,28 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
       (await control.getAttribute("aria-pressed")) !== "true"
     )
       failures.push(`${label}: input ${index} did not select its workflow`);
+    let travelled = 0;
     if (reduced) {
       if (
-        (await artwork.getAttribute("data-route-state")) !== "complete" ||
-        (await artwork.locator("animateMotion").count())
+        (await artwork.getAttribute("data-motion")) !== "reduced" ||
+        (await artwork.getAttribute("data-route-state")) !== "settled"
       )
-        failures.push(`${label}: reduced-motion action is not immediate and static`);
+        failures.push(`${label}: reduced-motion selection is not immediate`);
     } else {
-      const motion = artwork.locator(".home-system-packets animateMotion").first();
-      const startTime = await motion.evaluate((animation) => animation.getStartTime());
-      await controls.nth((index + 1) % 3).focus();
-      if (!touch) await controls.nth((index + 1) % 3).hover();
-      if ((await motion.evaluate((animation) => animation.getStartTime())) !== startTime)
-        failures.push(`${label}: hover/focus restarts the active packet`);
       const points = await page.evaluate(() => window.__heroPacketObservation);
       const first = points[0];
-      const travelled = first
-        ? Math.max(...points.map((point) => Math.hypot(point.x - first.x, point.y - first.y)))
+      travelled = first
+        ? Math.max(...points.map((p) => Math.hypot(p.x - first.x, p.y - first.y)))
         : 0;
-      if (travelled < 2)
-        failures.push(`${label}: input ${index} has no observed rendered packet travel`);
+      if (travelled < 8)
+        failures.push(`${label}: input ${index} has no observed rendered signal travel`);
+      await page.waitForFunction(
+        () => document.querySelectorAll('.home-system-output[data-complete="true"]').length === 2,
+      );
     }
-    await page.waitForFunction(
-      () => document.querySelector(".home-system-artwork").dataset.routeState === "complete",
-    );
     const destinations = await artwork
       .locator(".home-system-output")
-      .evaluateAll((ports) => ports.map((port) => port.dataset.complete === "true"));
+      .evaluateAll((ports) => ports.map((port) => port.dataset.connected === "true"));
     const expected = [
       [true, true, false],
       [false, true, true],
@@ -228,17 +270,111 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
     if (JSON.stringify(destinations) !== JSON.stringify(expected))
       failures.push(`${label}: input ${index} reached wrong outcomes`);
     if (!(await artwork.getByRole("status").textContent()))
-      failures.push(`${label}: result has no accessible announcement`);
-    journeys.push({ index, destinations });
+      failures.push(`${label}: selected workflow has no accessible announcement`);
+    journeys.push({ index, destinations, travelled });
     await page.screenshot({ caret: "initial", path: `${output}/${label}-route-${index}.png` });
   }
+  const base = artwork.locator(".home-system-base");
+  const pose = async () => (await artwork.getAttribute("data-pose")).split(",").map(Number);
+  const neutral = await base.getAttribute("d");
+  const bounds = await artwork.locator(".home-system-scene").boundingBox();
+  let hover = null;
+  if (!touch) {
+    await page.mouse.move(bounds.x + bounds.width * 0.82, bounds.y + bounds.height * 0.32);
+    await page.waitForTimeout(300);
+    hover = { pose: await pose(), shapeChanged: neutral !== (await base.getAttribute("d")) };
+    if (!hover.shapeChanged || Math.abs(hover.pose[0]) < 5)
+      failures.push(`${label}: pointer steering does not manipulate geometry`);
+  }
+  const beforeDrag = {
+    pose: await pose(),
+    base: await base.getAttribute("d"),
+    wire: await artwork.locator(".home-system-wire").first().getAttribute("d"),
+  };
+  const grip = await handle.boundingBox();
+  const start = { x: grip.x + grip.width / 2, y: grip.y + grip.height / 2 };
+  const nativeTouch = touch && page.context().browser().browserType().name() === "chromium";
+  if (nativeTouch) {
+    const session = await page.context().newCDPSession(page);
+    await session.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [start] });
+    for (let i = 1; i <= 6; i++) {
+      await session.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [{ x: start.x + i * 6, y: start.y + i * 3 }],
+      });
+      await page.waitForTimeout(32);
+    }
+    await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await session.detach();
+  } else {
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.down();
+    await page.mouse.move(start.x + 36, start.y + 18, { steps: 8 });
+    await page.mouse.up();
+  }
+  await page.waitForTimeout(reduced ? 0 : 400);
+  const manipulation = {
+    nativeTouch,
+    pose: await pose(),
+    shapeChanged: beforeDrag.base !== (await base.getAttribute("d")),
+    connectionsChanged:
+      beforeDrag.wire !== (await artwork.locator(".home-system-wire").first().getAttribute("d")),
+  };
+  if (
+    !manipulation.shapeChanged ||
+    !manipulation.connectionsChanged ||
+    Math.hypot(
+      manipulation.pose[0] - beforeDrag.pose[0],
+      manipulation.pose[1] - beforeDrag.pose[1],
+    ) < 8
+  )
+    failures.push(`${label}: dragging does not move the core and reshape its connections`);
+  await page.screenshot({ caret: "initial", path: `${output}/${label}-manipulated.png` });
   await page.mouse.move(0, 0);
-  await controls.evaluateAll((buttons) => buttons.forEach((button) => button.blur()));
+  await handle.focus();
+  await page.keyboard.press("Home");
+  await page.waitForTimeout(reduced ? 0 : 400);
+  const centered = await pose();
+  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.press("ArrowUp");
+  await page.waitForTimeout(reduced ? 0 : 400);
+  const keyboard = await pose();
+  if (Math.hypot(...centered) > 2 || keyboard[0] > -10 || keyboard[1] > -10)
+    failures.push(`${label}: Home/arrows do not provide equivalent core manipulation`);
+  await page.keyboard.press("Home");
+  await handle.evaluate((button) => button.blur());
   await page.waitForTimeout(450);
-  const completed = await observeRest(artwork, `${label}-completed`);
-  if (!completed.stable)
-    failures.push(`${label}: completed rendered geometry/paint moves or has active animations`);
-  return { journeys, controlsReady, idle, completed, reduced };
+  let completed;
+  if (reduced) {
+    completed = await observeRest(artwork, `${label}-reduced-selected`);
+    if (!completed.stable)
+      failures.push(`${label}: reduced-motion selection or manipulation does not settle`);
+  } else {
+    await page.evaluate(() => window.scrollTo({ top: innerHeight * 2, behavior: "instant" }));
+    await page.waitForFunction(
+      () => document.querySelector(".home-system-artwork").dataset.motion === "suspended",
+    );
+    const before = await renderedState(artwork);
+    await page.waitForTimeout(300);
+    const after = await renderedState(artwork);
+    completed = { suspended: JSON.stringify(before) === JSON.stringify(after) };
+    if (!completed.suspended) failures.push(`${label}: offscreen system continues updating`);
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForFunction(
+      () => document.querySelector(".home-system-artwork").dataset.motion === "live",
+    );
+  }
+  return {
+    journeys,
+    controlsReady,
+    idle,
+    hover,
+    manipulation,
+    centered,
+    keyboard,
+    completed,
+    reduced,
+  };
 }
 
 // Inspect actual rendered frames, not just animation names or a changed transform.
@@ -538,6 +674,9 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+await page.waitForFunction(
+  () => document.querySelector(".home-system-artwork").dataset.motion === "reduced",
+);
 const reduced = await page.evaluate(() => ({
   heading: document.querySelector(".home-hero-heading")?.textContent?.trim(),
   animation: getComputedStyle(document.querySelector(".home-hero-heading")).animationName,
@@ -545,7 +684,7 @@ const reduced = await page.evaluate(() => ({
   wordsStatic: [...document.querySelectorAll(".home-hero-word")].every(
     (word) => getComputedStyle(word).animationName === "none",
   ),
-  backgroundStatic: document.querySelector(".home-hero-artwork").dataset.routeState === "idle",
+  backgroundStatic: document.querySelector(".home-hero-artwork").dataset.motion === "reduced",
   allContentStatic: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -687,7 +826,7 @@ await latePage.locator(".home-system-input").first().click();
 await latePage.waitForFunction(
   () =>
     document.querySelector(".home-system-artwork").dataset.source === "0" &&
-    document.querySelector(".home-system-artwork").dataset.routeState === "complete",
+    document.querySelector(".home-system-artwork").dataset.motion === "live",
 );
 lateRecovery.inputResponded = true;
 delayedResults.push({ label: "watchdog-then-hydration", lateReadable, ...lateRecovery });
@@ -751,7 +890,10 @@ const staticHero = await staticPage.evaluate(() => ({
   ),
   backgroundStatic:
     document.querySelector(".home-system-diagram") instanceof SVGElement &&
-    document.querySelectorAll(".home-system-packets, .home-hero-canvas").length === 0,
+    document.querySelectorAll(".home-hero-canvas").length === 0 &&
+    [...document.querySelectorAll(".home-system-signal")].every(
+      (signal) => signal.getAttribute("opacity") === "0",
+    ),
   allContentReadable: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(

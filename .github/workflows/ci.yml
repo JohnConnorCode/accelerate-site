@@ -11,6 +11,10 @@ on:
         description: Verify public pages and docs without repeating unrelated workspace suites
         type: boolean
         default: false
+      hero_target_url:
+        description: Optional exact Accelerate staging or canonical URL for real hosted homepage QA
+        type: string
+        default: ""
       admin_design_only:
         description: Capture admin appearance evidence without the full CI suite
         type: boolean
@@ -489,6 +493,7 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
           PUBLIC_PAGES_ONLY: ${{ inputs.public_pages_only }}
+          HERO_QA_TARGET_URL: ${{ inputs.hero_target_url }}
         run: |
           setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-mobile-motion-server.log 2>&1 &
           server_pid=$!

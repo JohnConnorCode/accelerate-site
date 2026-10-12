@@ -6452,8 +6452,8 @@ body.modal-open [data-dock] {
   outline: 2px solid var(--fg);
   outline-offset: 3px;
 }
-/* Input controls route concrete work through the chevron intelligence layer.
-   All movement is a finite response to an action; the idle sculpture is still. */
+/* A live intelligence mechanism: inputs, processing layers and branched actions
+   share a steerable geometry. Direct touch manipulation belongs to the core. */
 .home-system-artwork {
   pointer-events: none;
   display: grid;
@@ -6464,6 +6464,7 @@ body.modal-open [data-dock] {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
+  pointer-events: auto;
 }
 .home-system-diagram {
   display: block;
@@ -6541,37 +6542,31 @@ body.modal-open [data-dock] {
   border-radius: 1px;
   opacity: 1;
 }
-.home-system-layer {
-  transform: translateY(calc(var(--layer) * -46px));
-  transition: transform 400ms cubic-bezier(0.2, 0, 0, 1);
+.home-system-handle {
+  position: absolute;
+  width: 42%;
+  height: 42%;
+  left: calc(var(--core-x, 50%) - 21%);
+  top: calc(var(--core-y, 50%) - 21%);
+  border: 0;
+  padding: 0;
+  border-radius: 32%;
+  background: transparent;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.home-system-core[data-energized="true"] .home-system-layer {
-  transform: translateY(calc(var(--layer) * -54px - 5px));
+.home-system-artwork[data-dragging="true"] .home-system-handle {
+  cursor: grabbing;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .home-system-trace {
-    stroke-dasharray: 1;
-    animation: home-system-route-enter 700ms cubic-bezier(0.2, 0, 0, 1) both;
-  }
-  .home-system-trace-out {
-    animation-delay: 700ms;
-  }
-}
-@keyframes home-system-route-enter {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
+.home-system-handle:focus-visible {
+  outline: 1px dashed var(--fg);
+  outline-offset: 4px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-system-port,
-  .home-system-layer {
+  .home-system-port {
     transition: none;
-  }
-  .home-system-core[data-energized="true"] .home-system-layer {
-    transform: translateY(calc(var(--layer) * -46px));
   }
   .home-system-packets {
     display: none;
