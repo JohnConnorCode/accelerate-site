@@ -6575,7 +6575,7 @@ body.modal-open [data-dock] {
   }
 }
 @media (max-width: 640px) {
-  .home-system-artwork {
+  .home-hero-artwork.home-system-artwork {
     right: 8px;
     width: max(70vw, 260px);
   }
