@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { chromium, webkit } from "playwright";
+import sharp from "sharp";
 import {
   installHeroMotionObserver,
   hasPerceptibleHeroSequence,
@@ -18,6 +19,54 @@ const browser = await chromium.launch({
 const failures = [];
 const results = [];
 const entranceFrames = [];
+
+// Compare decoded pixels: PNG encoding/chunks are not proof of visible movement.
+// Any real pixel difference retains both frames and computed geometry for diagnosis.
+async function sameRenderedPixels(first, second, artwork, label) {
+  const decode = (frame) => sharp(frame).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const [a, b] = await Promise.all([decode(first), decode(second)]);
+  const same =
+    a.info.width === b.info.width && a.info.height === b.info.height && a.data.equals(b.data);
+  if (!same) {
+    await writeFile(`${output}/${label}-before.png`, first);
+    await writeFile(`${output}/${label}-after.png`, second);
+    let changed = 0,
+      maxDelta = 0;
+    if (a.data.length === b.data.length) {
+      for (let i = 0; i < a.data.length; i++) {
+        const delta = Math.abs(a.data[i] - b.data[i]);
+        if (delta) changed++;
+        maxDelta = Math.max(maxDelta, delta);
+      }
+    }
+    const geometry = await artwork.evaluate((element) => ({
+      state: element.dataset.routeState,
+      animations: element.getAnimations({ subtree: true }).map((animation) => ({
+        state: animation.playState,
+        properties: animation.effect.getKeyframes(),
+      })),
+      layers: [...element.querySelectorAll(".home-system-layer")].map(
+        (layer) => getComputedStyle(layer).transform,
+      ),
+      box: element.getBoundingClientRect().toJSON(),
+    }));
+    await writeFile(
+      `${output}/${label}-pixel-diff.json`,
+      JSON.stringify(
+        {
+          changedChannels: changed,
+          maxDelta,
+          width: a.info.width,
+          height: a.info.height,
+          geometry,
+        },
+        null,
+        2,
+      ),
+    );
+  }
+  return same;
+}
 
 async function exerciseArtwork(page, label, touch = false, reduced = false) {
   const artwork = page.locator(".home-system-artwork");
@@ -39,7 +88,13 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
   await page.mouse.move(0, 0);
   const initial = await artwork.screenshot();
   await page.waitForTimeout(250);
-  if (!initial.equals(await artwork.screenshot())) failures.push(`${label}: idle artwork moves`);
+  const idlePixelsStable = await sameRenderedPixels(
+    initial,
+    await artwork.screenshot(),
+    artwork,
+    `${label}-idle`,
+  );
+  if (!idlePixelsStable) failures.push(`${label}: idle artwork pixels change`);
   const journeys = [];
   for (let index = 0; index < 3; index++) {
     const control = controls.nth(index);
@@ -106,9 +161,14 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
   await page.waitForTimeout(450);
   const settled = await artwork.screenshot();
   await page.waitForTimeout(250);
-  if (!settled.equals(await artwork.screenshot()))
-    failures.push(`${label}: finite action keeps moving after completion`);
-  return { journeys, controlsReady, noIdleAnimation: true, reduced };
+  const completedPixelsStable = await sameRenderedPixels(
+    settled,
+    await artwork.screenshot(),
+    artwork,
+    `${label}-completed`,
+  );
+  if (!completedPixelsStable) failures.push(`${label}: completed artwork pixels change`);
+  return { journeys, controlsReady, idlePixelsStable, completedPixelsStable, reduced };
 }
 
 // Inspect actual rendered frames, not just animation names or a changed transform.
