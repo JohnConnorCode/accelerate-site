@@ -43,7 +43,10 @@ async function renderedState(artwork) {
         return {
           tag: node.tagName,
           attributes: [...node.attributes].map((attribute) => [attribute.name, attribute.value]),
-          box: [round(box.x - root.x), round(box.y - root.y), round(box.width), round(box.height)],
+          box:
+            node instanceof SVGGraphicsElement || node instanceof HTMLElement
+              ? [round(box.x - root.x), round(box.y - root.y), round(box.width), round(box.height)]
+              : null,
           paint: [
             "transform",
             "opacity",
