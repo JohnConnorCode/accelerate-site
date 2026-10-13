@@ -2023,6 +2023,13 @@ body[data-mobile-navigation="open"] .chat-widget-root {
   visibility: hidden;
 }
 
+/* AnimatePresence retains the dismissed dock during its exit. Once its shared
+   visibility flag is off, it must neither cover nor intercept the page below. */
+body:not([data-mcta="on"]) [data-dock] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .chat-widget-root {
   right: max(1rem, var(--safe-right));
   bottom: max(1rem, var(--safe-bottom));

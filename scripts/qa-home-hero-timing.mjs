@@ -131,25 +131,112 @@ async function observeRest(artwork, label) {
   };
 }
 
-function armPacketObservation() {
+function armPacketObservation(index) {
   window.__heroPacketObservation = new Promise((resolve) => {
-    const deadline = performance.now() + 4000;
+    const control = document.querySelectorAll(".home-system-input")[index];
+    const circle = document.querySelectorAll(".home-system-signal")[index];
+    let deadline = performance.now() + 4000;
+    let activated = false;
     let started = null;
     const points = [];
+    const activate = () => {
+      activated = true;
+      deadline = performance.now() + 4000;
+    };
+    // Pointer, native touch and keyboard activation all dispatch click. Begin
+    // with that real event, then follow one incoming signal from this workflow.
+    // Never spend the observation window on the previous workflow's tail.
+    control.addEventListener("click", activate, { once: true });
     const sample = (now) => {
-      const circle = [...document.querySelectorAll(".home-system-signal")].find(
-        (node) => node.getAttribute("opacity") === "1",
-      );
-      if (circle) {
+      if (activated && circle.getAttribute("opacity") === "1") {
         started ??= now;
         const box = circle.getBoundingClientRect();
         points.push({ time: now, x: box.x + box.width / 2, y: box.y + box.height / 2 });
       }
-      if (now >= deadline || (started !== null && now - started >= 900)) resolve(points);
-      else requestAnimationFrame(sample);
+      if (now >= deadline || (started !== null && now - started >= 900)) {
+        control.removeEventListener("click", activate);
+        resolve(points);
+      } else requestAnimationFrame(sample);
     };
     requestAnimationFrame(sample);
   });
+}
+
+async function exerciseDockDismissal(page, label) {
+  const samples = [];
+  for (const rapid of [false, true]) {
+    await page.evaluate(() => window.scrollTo({ top: innerHeight * 2, behavior: "instant" }));
+    await page.waitForFunction(() => document.body.dataset.mcta === "on");
+    await page.locator("[data-dock] a").focus();
+    await page.evaluate(async (rapid) => {
+      if (rapid) {
+        window.scrollTo({ top: 0, behavior: "instant" });
+        await new Promise(requestAnimationFrame);
+        window.scrollTo({ top: innerHeight * 2, behavior: "instant" });
+        await new Promise(requestAnimationFrame);
+      }
+      window.__dockReturnedAt = performance.now();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }, rapid);
+    for (const delay of [50, 400]) {
+      await page.waitForTimeout(delay);
+      const sample = await page.evaluate(() => {
+        const dock = document.querySelector("[data-dock]");
+        const targets = [...document.querySelectorAll(".home-system-port, .home-hero-cta")].map(
+          (target) => {
+            const box = target.getBoundingClientRect();
+            const left = Math.max(0, box.left),
+              right = Math.min(innerWidth, box.right);
+            const top = Math.max(0, box.top),
+              bottom = Math.min(innerHeight, box.bottom);
+            const point =
+              right > left && bottom > top
+                ? { x: (left + right) / 2, y: (top + bottom) / 2 }
+                : null;
+            const hit = point && document.elementFromPoint(point.x, point.y);
+            return {
+              name: target.getAttribute("aria-label") || target.className,
+              box: box.toJSON(),
+              point,
+              hit: !point || target.contains(hit),
+              hitTarget: hit?.getAttribute("class") || hit?.tagName || null,
+            };
+          },
+        );
+        return {
+          elapsed: performance.now() - window.__dockReturnedAt,
+          sharedVisible: document.body.dataset.mcta === "on",
+          retained: Boolean(dock),
+          visible: Boolean(dock?.checkVisibility({ visibilityProperty: true })),
+          focused: Boolean(dock?.contains(document.activeElement)),
+          targets,
+        };
+      });
+      if (
+        sample.sharedVisible ||
+        sample.visible ||
+        sample.focused ||
+        sample.targets.some((target) => !target.hit)
+      )
+        failures.push(
+          `${label}: dismissed booking dock obscures or retains focus on ${rapid ? "rapid" : "normal"} scroll return`,
+        );
+      samples.push({ rapid, ...sample });
+    }
+    const hiddenFocus = await page.evaluate(() => {
+      const link = document.querySelector("[data-dock] a");
+      link?.focus();
+      return Boolean(link && document.activeElement === link);
+    });
+    if (hiddenFocus) failures.push(`${label}: dismissed booking dock still accepts focus`);
+    await page.locator(".home-hero-cta").focus();
+    await page.keyboard.press("Tab");
+    if (await page.evaluate(() => Boolean(document.activeElement?.closest("[data-dock]"))))
+      failures.push(`${label}: keyboard enters the dismissed booking dock`);
+    await page.evaluate(() => document.activeElement?.blur());
+  }
+  await writeFile(`${output}/${label}-dock-dismissal.json`, JSON.stringify(samples, null, 2));
+  return samples;
 }
 
 // Compare decoded pixels: PNG encoding/chunks are not proof of visible movement.
@@ -268,7 +355,7 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
   const journeys = [];
   for (let index = 0; index < 3; index++) {
     const control = controls.nth(index);
-    if (!reduced) await page.evaluate(armPacketObservation);
+    if (!reduced) await page.evaluate(armPacketObservation, index);
     if (touch) await control.tap();
     else if (index === 1) {
       await control.focus();
@@ -295,6 +382,10 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
       travelled = first
         ? Math.max(...points.map((p) => Math.hypot(p.x - first.x, p.y - first.y)))
         : 0;
+      await writeFile(
+        `${output}/${label}-route-${index}-signal-observation.json`,
+        JSON.stringify({ index, points, travelled }, null, 2),
+      );
       if (travelled < 8)
         failures.push(`${label}: input ${index} has no observed rendered signal travel`);
       await page.waitForFunction(
@@ -470,10 +561,9 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
           const bubble = document.querySelector(
             '.chat-widget-root:not(.is-open) [aria-label="Open chat"]',
           );
-          if (!bubble) return { present: false, overlaps: false };
-          const launcherVisible = bubble.checkVisibility({ visibilityProperty: true });
-          const clearance = bubble.closest(".chat-widget-root").dataset.heroClearance;
-          const launcher = bubble.getBoundingClientRect();
+          const launcherVisible = Boolean(bubble?.checkVisibility({ visibilityProperty: true }));
+          const clearance = bubble?.closest(".chat-widget-root")?.dataset.heroClearance ?? null;
+          const launcher = bubble?.getBoundingClientRect();
           const targets = [
             ...element.querySelectorAll(".home-system-port"),
             ...document.querySelectorAll(".home-hero-cta"),
@@ -497,6 +587,11 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
               point,
               hit: !visible || port.contains(hit),
               hitTarget: hit?.getAttribute("class") || hit?.tagName || null,
+              hitOwner: hit?.closest("[data-dock]")
+                ? "dock"
+                : hit?.closest(".chat-widget-root")
+                  ? "chat"
+                  : null,
               overlaps:
                 launcherVisible &&
                 launcher.left < box.right &&
@@ -506,23 +601,24 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
             };
           });
           return {
-            present: true,
+            present: Boolean(bubble),
             launcherVisible,
             clearance,
-            launcher: launcher.toJSON(),
+            launcher: launcher?.toJSON() ?? null,
             targets,
             overlaps:
-              (!launcherVisible && clearance !== "hidden") ||
+              (Boolean(bubble) && !launcherVisible && clearance !== "hidden") ||
               targets.some((port) => port.visible && (port.overlaps || !port.hit)),
           };
         });
         if (sample.overlaps)
-          failures.push(`${label}: closed chat obscures a hero target after scroll return`);
+          failures.push(`${label}: overlay obscures a hero target after scroll return`);
         clearance.push(sample);
       }
       completed.chatClearance = clearance;
     }
   }
+  completed.dockDismissal = await exerciseDockDismissal(page, label);
   return {
     journeys,
     controlsReady,
