@@ -277,7 +277,7 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
   const base = artwork.locator(".home-system-base");
   const pose = async () => (await artwork.getAttribute("data-pose")).split(",").map(Number);
   const neutral = await base.getAttribute("d");
-  const bounds = await artwork.locator(".home-system-scene").boundingBox();
+  const bounds = await handle.boundingBox();
   let hover = null;
   if (!touch) {
     await page.mouse.move(bounds.x + bounds.width * 0.82, bounds.y + bounds.height * 0.32);

@@ -360,7 +360,7 @@ export function HeroArtwork() {
         onPointerMove={(event) => {
           if (event.pointerType !== "mouse" || event.buttons) return;
           const p = coordinates(event);
-          controller.current?.steer((p.x - 300) * 0.1, (p.y - 300) * 0.075);
+          controller.current?.steer((p.x - 300) * 0.24, (p.y - 300) * 0.18);
         }}
         onPointerLeave={() => controller.current?.steer(0, 0)}
       >

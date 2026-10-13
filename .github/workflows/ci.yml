@@ -355,7 +355,7 @@ jobs:
 
   build:
     needs: scope
-    if: ${{ !inputs.admin_design_only && !inputs.cold_start_only }}
+    if: ${{ !inputs.admin_design_only && !inputs.cold_start_only && !inputs.hero_target_url }}
     runs-on: ubuntu-latest
     # Full browser coverage includes owner workflows and isolated navigation
     # checks; leave time to retain their evidence and compiler cache.
@@ -839,6 +839,33 @@ jobs:
             /tmp/accelerate-import-source-review/
             /tmp/accelerate-policy-browser/
           if-no-files-found: ignore
+          retention-days: 7
+
+  # Reuse the same browser suite against an immutable deployment or canonical
+  # release. A hosted check needs no local build, server, credentials or secrets.
+  hosted-homepage:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.public_pages_only && inputs.hero_target_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Verify actual hosted homepage
+        env:
+          HERO_QA_TARGET_URL: ${{ inputs.hero_target_url }}
+        run: node scripts/qa-home-hero-timing.mjs
+      - name: Retain actual hosted homepage evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: hosted-homepage-browser-evidence
+          path: /tmp/accelerate-home-hero-timing/
+          if-no-files-found: warn
           retention-days: 7
 
   full-product-fork:

@@ -6464,7 +6464,8 @@ body.modal-open [data-dock] {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  pointer-events: auto;
+  /* Keep transparent parts of the stage from covering nearby copy or CTAs. */
+  pointer-events: none;
 }
 .home-system-diagram {
   display: block;
@@ -6476,6 +6477,7 @@ body.modal-open [data-dock] {
 .home-system-port {
   position: absolute;
   display: grid;
+  pointer-events: auto;
   place-items: center;
   --port-size: clamp(48px, 5vw, 64px);
   width: var(--port-size);
