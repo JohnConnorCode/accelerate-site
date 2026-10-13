@@ -6506,6 +6506,10 @@ body.modal-open [data-dock] {
   cursor: pointer;
   touch-action: manipulation;
 }
+.home-system-output {
+  /* Cache the symbolic cards independently of the changing SVG beneath them. */
+  transform: translateZ(0);
+}
 .home-system-input:hover,
 .home-system-input:focus-visible {
   box-shadow:
