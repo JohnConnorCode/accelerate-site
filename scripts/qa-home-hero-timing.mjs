@@ -331,6 +331,41 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
     failures.push(`${label}: dragging does not move the core and reshape its connections`);
   await page.screenshot({ caret: "initial", path: `${output}/${label}-manipulated.png` });
   await page.mouse.move(0, 0);
+  // Review found that the transparent drag target could cover a workflow port
+  // at the lower-left limit. Exercise actual hits and activations at both limits.
+  const limitTargets = [];
+  for (const [horizontal, vertical] of [
+    ["ArrowLeft", "ArrowDown"],
+    ["ArrowRight", "ArrowUp"],
+  ]) {
+    await handle.focus();
+    await page.keyboard.press("Home");
+    for (let step = 0; step < 6; step++) await page.keyboard.press(horizontal);
+    for (let step = 0; step < 4; step++) await page.keyboard.press(vertical);
+    await page.waitForTimeout(reduced ? 0 : 450);
+    const limitPose = await pose(),
+      hits = [];
+    for (let index = 0; index < 3; index++) {
+      const control = controls.nth(index);
+      await control.scrollIntoViewIfNeeded();
+      const hittable = await control.evaluate((button) => {
+        const bounds = button.getBoundingClientRect();
+        return button.contains(
+          document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2),
+        );
+      });
+      if (touch) await control.tap();
+      else await control.click();
+      const responded = (await artwork.getAttribute("data-source")) === String(index);
+      if (!hittable || !responded)
+        failures.push(
+          `${label}: workflow ${index} is covered or unusable at ${horizontal}/${vertical} limit`,
+        );
+      hits.push({ index, hittable, responded });
+    }
+    limitTargets.push({ limitPose, hits });
+  }
+  await page.mouse.move(0, 0);
   await handle.focus();
   await page.keyboard.press("Home");
   await page.waitForTimeout(reduced ? 0 : 400);
@@ -370,6 +405,7 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
     idle,
     hover,
     manipulation,
+    limitTargets,
     centered,
     keyboard,
     completed,

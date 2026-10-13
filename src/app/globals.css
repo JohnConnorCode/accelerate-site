@@ -6476,6 +6476,7 @@ body.modal-open [data-dock] {
 }
 .home-system-port {
   position: absolute;
+  z-index: 2;
   display: grid;
   pointer-events: auto;
   place-items: center;
@@ -6546,6 +6547,7 @@ body.modal-open [data-dock] {
 }
 .home-system-handle {
   position: absolute;
+  z-index: 1;
   width: 42%;
   height: 42%;
   left: calc(var(--core-x, 50%) - 21%);
