@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "operator-task-selection-before-limits",
+    slug: "operator-task-selection-before-limits",
+    title: "Keep urgent work visible in large task lists",
+    description:
+      "Eligible tasks are selected by the shared urgency, deadline and work-kind policy before the queue's 75-item limit. Later-stored overdue commitments and recovery replies can displace earlier on-time work; future snoozes do not occupy selection slots. AI snapshots disclose when their shorter queue list leaves items out. Selection remains bounded and read-only. This source change has focused regression coverage; production publication is separate.",
+    category: "fix",
+    publishedAt: "2026-10-13",
+  },
+  {
     id: "operator-task-deadline-precedence",
     slug: "operator-task-deadline-precedence",
     title: "Keep overdue commitments ahead of on-time tasks",
