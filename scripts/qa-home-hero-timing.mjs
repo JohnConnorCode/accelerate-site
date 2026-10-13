@@ -98,6 +98,11 @@ async function observeRest(artwork, label) {
     beforeState.activeAnimations === 0 &&
     beforeState.svgAnimations === 0;
   const pixelsEqual = await sameRenderedPixels(first, second, artwork, label);
+  if (!stable)
+    await writeFile(
+      `${output}/${label}-geometry-diff.json`,
+      JSON.stringify({ beforeState, afterState }, null, 2),
+    );
   return {
     stable: stable && pixelsEqual,
     geometryStable: stable,
@@ -180,6 +185,8 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
   const artwork = page.locator(".home-system-artwork");
   const controls = artwork.locator(".home-system-input");
   const handle = artwork.locator(".home-system-handle");
+  // Settled-state checks begin after the actual fonts and header layout settle.
+  await page.evaluate(() => document.fonts.ready);
   await page.waitForFunction(
     () => document.querySelector(".home-system-artwork").dataset.artworkReady === "true",
   );
@@ -393,6 +400,11 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
     await page.waitForTimeout(300);
     const after = await renderedState(artwork);
     completed = { suspended: JSON.stringify(before) === JSON.stringify(after) };
+    if (!completed.suspended)
+      await writeFile(
+        `${output}/${label}-suspended-diff.json`,
+        JSON.stringify({ before, after }, null, 2),
+      );
     if (!completed.suspended) failures.push(`${label}: offscreen system continues updating`);
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     await page.waitForFunction(
@@ -729,7 +741,7 @@ const reduced = await page.evaluate(() => ({
       getComputedStyle(element).animationName === "none",
   ),
 }));
-await exerciseArtwork(page, "mobile-reduced", true, true);
+reduced.artworkMotion = await exerciseArtwork(page, "mobile-reduced", true, true);
 if (
   !reduced.heading ||
   reduced.animation !== "none" ||

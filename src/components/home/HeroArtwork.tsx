@@ -297,11 +297,18 @@ export function HeroArtwork() {
         anchor.x = clamp(target.x + x, -72, 72);
         anchor.y = clamp(target.y + y, -55, 55);
         setTarget(anchor.x, anchor.y);
+        // Keyboard manipulation is precise and immediate even between frames.
+        pose.x = target.x;
+        pose.y = target.y;
+        paint();
       },
       reset() {
         anchor.x = 0;
         anchor.y = 0;
         setTarget(0, 0);
+        pose.x = 0;
+        pose.y = 0;
+        paint();
       },
     };
     choose(0);

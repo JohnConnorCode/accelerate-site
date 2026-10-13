@@ -6564,6 +6564,9 @@ body.modal-open [data-dock] {
 .home-system-artwork[data-dragging="true"] .home-system-handle {
   cursor: grabbing;
 }
+.home-system-artwork[data-motion="suspended"] .home-system-port {
+  transition: none;
+}
 .home-system-handle:focus-visible {
   outline: 1px dashed var(--fg);
   outline-offset: 4px;
