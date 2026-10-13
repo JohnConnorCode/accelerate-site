@@ -254,7 +254,12 @@ try {
     );
     assert.match(
       workflow,
-      /build:\s+needs: scope\s+if: \$\{\{ !inputs\.admin_design_only && !inputs\.cold_start_only \}\}/,
+      /build:\s+needs: scope\s+if: \$\{\{ !inputs\.admin_design_only && !inputs\.cold_start_only && !inputs\.hero_target_url \}\}/,
+    );
+    assert.match(workflow, /hero_target_url:[\s\S]*?type: string\s+default: ""/);
+    assert.match(
+      workflow,
+      /hosted-homepage:\s+if: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.public_pages_only && inputs\.hero_target_url \}\}/,
     );
     for (const job of ["checks", "full-product-fork", "neutral-starter"])
       assert.match(

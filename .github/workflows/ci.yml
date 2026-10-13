@@ -11,6 +11,10 @@ on:
         description: Verify public pages and docs without repeating unrelated workspace suites
         type: boolean
         default: false
+      hero_target_url:
+        description: Optional exact Accelerate staging or canonical URL for real hosted homepage QA
+        type: string
+        default: ""
       admin_design_only:
         description: Capture admin appearance evidence without the full CI suite
         type: boolean
@@ -194,6 +198,12 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:core
 
+      - name: Verify canonical queue selection and AI command runtime
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          npm run test:priority-selector
+          npm run test:ai-command-runtime
+
       - name: Measure independent cold plugin evaluations
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: |
@@ -351,7 +361,7 @@ jobs:
 
   build:
     needs: scope
-    if: ${{ !inputs.admin_design_only && !inputs.cold_start_only }}
+    if: ${{ !inputs.admin_design_only && !inputs.cold_start_only && !inputs.hero_target_url }}
     runs-on: ubuntu-latest
     # Full browser coverage includes owner workflows and isolated navigation
     # checks; leave time to retain their evidence and compiler cache.
@@ -489,6 +499,7 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
           PUBLIC_PAGES_ONLY: ${{ inputs.public_pages_only }}
+          HERO_QA_TARGET_URL: ${{ inputs.hero_target_url }}
         run: |
           setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-mobile-motion-server.log 2>&1 &
           server_pid=$!
@@ -836,6 +847,45 @@ jobs:
             /tmp/accelerate-import-source-review/
             /tmp/accelerate-policy-browser/
           if-no-files-found: ignore
+          retention-days: 7
+
+  # Reuse the same browser suite against an immutable deployment or canonical
+  # release. A hosted check needs no local build, server, credentials or secrets.
+  hosted-homepage:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.public_pages_only && inputs.hero_target_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Verify actual hosted homepage
+        env:
+          HERO_QA_TARGET_URL: ${{ inputs.hero_target_url }}
+        run: node scripts/qa-home-hero-timing.mjs
+      - name: Retain actual hosted homepage evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: hosted-homepage-browser-evidence
+          path: /tmp/accelerate-home-hero-timing/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Verify actual hosted mobile gestures and frame budgets
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.hero_target_url }}
+        run: node scripts/qa-mobile-motion.mjs --webkit
+      - name: Retain actual hosted mobile evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: hosted-mobile-browser-evidence
+          path: /tmp/accelerate-mobile-motion/
+          if-no-files-found: warn
           retention-days: 7
 
   full-product-fork:
