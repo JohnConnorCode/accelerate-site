@@ -4,30 +4,58 @@ import type { OperatorQueueItem } from "./types";
 import { loadOperationalHealth } from "./health";
 import { triageReason } from "./triage";
 import { listDebateProductions } from "./debate-bookings";
+import { operatorTaskUrgency, sortOperatorQueue } from "./operator-queue-policy";
+export { sortOperatorQueue } from "./operator-queue-policy";
 
-const URGENCY_RANK = { critical: 0, high: 1, normal: 2, low: 3 } as const;
-const KIND_RANK: Record<OperatorQueueItem["kind"], number> = {
-  reply: 0,
-  approval: 1,
-  task: 2,
-  follow_up: 3,
-  meeting: 4,
-  proposal: 5,
-  system: 6,
-};
+const OPERATOR_QUEUE_LIMIT = 75;
 
-export function sortOperatorQueue(items: OperatorQueueItem[]): OperatorQueueItem[] {
-  return [...items].sort((a, b) => {
-    const urgency = URGENCY_RANK[a.urgency] - URGENCY_RANK[b.urgency];
-    if (urgency) return urgency;
-    const deadline = (a.dueAt ?? "9999").localeCompare(b.dueAt ?? "9999");
-    if (deadline) return deadline;
-    const kind = KIND_RANK[a.kind] - KIND_RANK[b.kind];
-    if (kind) return kind;
-    const source = a.sourceTimestamp.localeCompare(b.sourceTimestamp);
-    if (source) return source;
-    return a.id.localeCompare(b.id);
-  });
+async function loadTaskQueueCandidates(supabase: SupabaseClient, today: string, horizon: string) {
+  // A row below the top75 of its urgency/kind group cannot enter the global top75.
+  // Query those groups in canonical deadline/source/ID order instead of scanning all tasks.
+  const results = await Promise.all(
+    (["overdue", "high", "normal"] as const).flatMap((urgency) =>
+      (["reply", "task", "follow_up"] as const).map((kind) => {
+        let query = supabase
+          .from("tasks")
+          .select(
+            "id,title,description,priority,due_date,snoozed_until,related_type,related_id,opportunity_id,source,created_at,assigned_to",
+          )
+          .in("status", ["pending", "snoozed"])
+          .lte("due_date", horizon)
+          .or(`snoozed_until.is.null,snoozed_until.lte.${today}`);
+        if (urgency === "overdue") query = query.lt("due_date", today);
+        else {
+          query = query.gte("due_date", today);
+          query =
+            urgency === "high"
+              ? query.eq("priority", "high")
+              : query.or("priority.is.null,priority.neq.high");
+        }
+        if (kind === "follow_up") query = query.eq("related_type", "lead");
+        else {
+          query = query.or("related_type.is.null,related_type.neq.lead");
+          query =
+            kind === "reply" ? query.eq("source", "recovery") : query.neq("source", "recovery");
+        }
+        return query
+          .order("due_date", { ascending: true })
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true })
+          .limit(OPERATOR_QUEUE_LIMIT);
+      }),
+    ),
+  );
+  const failed = results.find((result) => result.error);
+  const data = results.flatMap((result) => result.data ?? []);
+  if (!failed && new Set(data.map((task) => task.id)).size !== data.length)
+    return {
+      data: null,
+      error: { message: "Tasks changed during priority selection; refresh the queue" },
+    };
+  return {
+    data: failed ? null : data,
+    error: failed?.error ?? null,
+  };
 }
 
 export function summarizeOperatorQueue(items: OperatorQueueItem[]) {
@@ -130,14 +158,7 @@ export async function loadOperatorQueue(
         .eq("status", "pending")
         .or(`expires_at.is.null,expires_at.gt.${now}`)
         .limit(50),
-      supabase
-        .from("tasks")
-        .select(
-          "id,title,description,priority,due_date,snoozed_until,related_type,related_id,opportunity_id,source,created_at,assigned_to",
-        )
-        .in("status", ["pending", "snoozed"])
-        .lte("due_date", inSevenDays.slice(0, 10))
-        .limit(50),
+      loadTaskQueueCandidates(supabase, now.slice(0, 10), inSevenDays.slice(0, 10)),
       supabase
         .from("conversations")
         .select("id,subject,unread_count,last_message_at,intent")
@@ -225,12 +246,7 @@ export async function loadOperatorQueue(
       kind: task.related_type === "lead" ? "follow_up" : presentation.kind,
       title: task.title,
       summary: task.description || "An operator task is due.",
-      urgency:
-        task.priority === "high"
-          ? "high"
-          : task.due_date && task.due_date < now.slice(0, 10)
-            ? "critical"
-            : "normal",
+      urgency: operatorTaskUrgency(task, now.slice(0, 10)),
       dueAt: task.due_date,
       sourceTimestamp: task.created_at,
       priorityReason: presentation.priorityReason,
@@ -381,5 +397,5 @@ export async function loadOperatorQueue(
       href: "/admin/setup",
       entityType: concern.kind,
     });
-  return sortOperatorQueue(validateOperatorQueue(items)).slice(0, 75);
+  return sortOperatorQueue(validateOperatorQueue(items)).slice(0, OPERATOR_QUEUE_LIMIT);
 }

@@ -1,415 +1,544 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { CalendarDays, FileText, ListChecks, Mail, Send, UserRound } from "lucide-react";
 
-type Point = [number, number, number];
-
-// Art direction: Dominik Fojcik's Kinetic Images / Tower (Codrops, July 2025).
-// Adapt its stacked cylindrical image bands, counter-running narrow ribbons and
-// fixed low-perspective camera to Accelerate's own type and chevrons. No source
-// photographs, models, textures or implementation code are imported.
-// https://tympanus.net/codrops/2025/07/09/how-to-create-kinetic-image-animations-with-react-three-fiber/
-const vertex = `
-attribute vec3 position;
-attribute vec3 normal;
-attribute vec2 uv;
-uniform mat4 model;
-uniform vec2 viewport;
-uniform float phase;
-varying vec3 surface;
-varying vec3 point;
-varying vec2 printUV;
-void main() {
-  vec4 p = model * vec4(position, 1.0);
-  point = p.xyz;
-  surface = mat3(model) * normal;
-  printUV = vec2(uv.x + phase, uv.y);
-  float camera = 9.0 - p.z;
-  float aspect = viewport.x / viewport.y;
-  float scale = min(3.45, aspect * 4.5);
-  gl_Position = vec4(p.x * scale / aspect, p.y * scale, camera * 1.002 - 0.2002, camera);
-}`;
-const fragment = `
-precision highp float;
-uniform sampler2D print;
-uniform float dark;
-uniform float ribbon;
-varying vec3 surface;
-varying vec3 point;
-varying vec2 printUV;
-void main() {
-  vec3 n = normalize(surface);
-  vec3 eye = normalize(vec3(0.0, 0.0, 9.0) - point);
-  float facing = dot(n, eye);
-  float light = 0.76 + 0.24 * max(dot(n, normalize(vec3(-0.5, 1.5, 3.0))), 0.0);
-  float paper = texture2D(print, printUV).r;
-  paper = mix(paper, 1.0 - paper, ribbon);
-  // The reverse is unprinted ink. The broad frontal paper stays warm white;
-  // side falloff and a narrow cut edge give the printed bands real depth.
-  if (facing < 0.0) paper = 0.045;
-  float edge = smoothstep(0.0, 0.018, min(printUV.y, 1.0 - printUV.y));
-  paper *= mix(0.48, 1.0, edge);
-  float color = mix(0.035, light, paper);
-  color = mix(color, 1.0 - color, dark);
-  gl_FragColor = vec4(vec3(color), 1.0);
-}`;
-
-function pose(yaw: number, pitch: number, roll: number, height: number) {
-  const cy = Math.cos(yaw),
-    sy = Math.sin(yaw);
-  const cx = Math.cos(pitch),
-    sx = Math.sin(pitch);
-  const cz = Math.cos(roll),
-    sz = Math.sin(roll);
-  const rotate = ([x, y, z]: Point): Point => {
-    const a = cy * x + sy * z,
-      b = -sy * x + cy * z;
-    const c = cx * y - sx * b,
-      d = sx * y + cx * b;
-    return [cz * a - sz * c, sz * a + cz * c, d];
+// Concrete work enters a shared intelligence layer and branches into actions.
+// The sculpture, connections and signals all respond to the same steerable pose.
+const inputs = [
+  {
+    icon: Mail,
+    x: 94,
+    y: 180,
+    outputs: [0, 1],
+    label: "Select customer inquiry workflow",
+    result: "Example inquiry selected: prepare a reply and update a customer record.",
+  },
+  {
+    icon: CalendarDays,
+    x: 66,
+    y: 310,
+    outputs: [1, 2],
+    label: "Select meeting workflow",
+    result: "Example meeting selected: update a customer record and create a follow-up task.",
+  },
+  {
+    icon: FileText,
+    x: 108,
+    y: 448,
+    outputs: [0, 2],
+    label: "Select invoice workflow",
+    result: "Example invoice selected: prepare a reminder and create a follow-up task.",
+  },
+] as const;
+const outputs = [
+  { icon: Send, x: 490, y: 180 },
+  { icon: UserRound, x: 532, y: 310 },
+  { icon: ListChecks, x: 492, y: 448 },
+] as const;
+type Point = { x: number; y: number };
+type Source = 0 | 1 | 2;
+type Curve = [Point, Point, Point, Point];
+type Controller = {
+  select: (index: number) => void;
+  steer: (x: number, y: number) => void;
+  drag: (x: number, y: number) => void;
+  release: () => boolean;
+  nudge: (x: number, y: number) => void;
+  reset: () => void;
+};
+// LogoMark's exact six-point chevron, centered and scaled into a physical plane.
+const outline = [
+  [-44, -64],
+  [12, -64],
+  [44, 0],
+  [12, 64],
+  [-44, 64],
+  [-12, 0],
+] as const;
+const baseOutline = [
+  [-92, -92],
+  [92, -92],
+  [92, 92],
+  [-92, 92],
+] as const;
+const directions: Record<string, readonly [number, number]> = {
+  ArrowLeft: [-14, 0],
+  ArrowRight: [14, 0],
+  ArrowUp: [0, -14],
+  ArrowDown: [0, 14],
+};
+const clamp = (number: number, min: number, max: number) => Math.max(min, Math.min(max, number));
+const point = ({ x, y }: Point) => `${x.toFixed(2)} ${y.toFixed(2)}`;
+const polygon = (points: Point[]) => `M${points.map(point).join("L")}Z`;
+const curvePath = ([a, b, c, d]: Curve) => `M${point(a)}C${point(b)} ${point(c)} ${point(d)}`;
+function onCurve([a, b, c, d]: Curve, t: number): Point {
+  const s = 1 - t;
+  return {
+    x: s ** 3 * a.x + 3 * s ** 2 * t * b.x + 3 * s * t ** 2 * c.x + t ** 3 * d.x,
+    y: s ** 3 * a.y + 3 * s ** 2 * t * b.y + 3 * s * t ** 2 * c.y + t ** 3 * d.y,
   };
-  return new Float32Array([
-    ...rotate([1, 0, 0]),
-    0,
-    ...rotate([0, 1, 0]),
-    0,
-    ...rotate([0, 0, 1]),
-    0,
-    ...rotate([0, height, 0]),
-    1,
+}
+function geometry(pose: Point, phase: number, live: boolean) {
+  const center = { x: 300 + pose.x, y: 372 + pose.y };
+  const yaw = -0.22 + pose.x / 185;
+  const pitch = pose.y / 340;
+  const project = (x: number, y: number, z: number): Point => {
+    const u = x * Math.cos(yaw) - y * Math.sin(yaw);
+    const v = x * Math.sin(yaw) + y * Math.cos(yaw);
+    const w = v * Math.cos(pitch) - z * Math.sin(pitch);
+    const h = v * Math.sin(pitch) + z * Math.cos(pitch);
+    return { x: center.x + (u - w) * 1.12, y: center.y + (u + w) * 0.55 - h * 0.94 };
+  };
+  const bloom = live ? Math.sin(clamp((phase - 0.26) / 0.55, 0, 1) * Math.PI) : 0;
+  const layers = [0, 1, 2].map((layer) => {
+    const z = 42 + layer * (39 + bloom * 15) + bloom * 6;
+    const top = outline.map(([x, y]) => project(x, y, z));
+    const bottom = outline.map(([x, y]) => project(x, y, z - 16));
+    return {
+      top: polygon(top),
+      sides: top.map((p, i) => polygon([p, top[(i + 1) % 6]!, bottom[(i + 1) % 6]!, bottom[i]!])),
+    };
+  });
+  const base = baseOutline.map(([x, y]) => project(x, y, 0));
+  const baseLower = baseOutline.map(([x, y]) => project(x, y, -12));
+  const socketIn = project(-76, 24, 8),
+    socketOut = project(76, -24, 8);
+  const incoming = inputs.map(({ x, y }): Curve => [
+    { x, y },
+    { x: x + 80, y },
+    { x: socketIn.x - 60, y: socketIn.y },
+    socketIn,
   ]);
-}
-
-// One continuous surface per band. All motion changes its print coordinates;
-// there are no per-frame geometry allocations or pointer-dependent poses.
-const vertices: number[] = [];
-for (let i = 0; i < 128; i++) {
-  const segment = (column: number, top: boolean) => {
-    const angle = (column / 128) * Math.PI * 2;
-    return [
-      Math.sin(angle),
-      top ? 0.5 : -0.5,
-      Math.cos(angle),
-      Math.sin(angle),
-      0,
-      Math.cos(angle),
-      column / 128,
-      top ? 0 : 1,
-    ];
+  const outgoing = outputs.map(({ x, y }): Curve => [
+    socketOut,
+    { x: socketOut.x + 60, y: socketOut.y },
+    { x: x - 80, y },
+    { x, y },
+  ]);
+  return {
+    layers,
+    base: polygon(base),
+    baseEdge: polygon([base[1]!, base[2]!, base[3]!, baseLower[3]!, baseLower[2]!, baseLower[1]!]),
+    incoming,
+    outgoing,
+    pins: [0, 1, 2, 3, 4].map((pin) => project(88, 48 - pin * 19, 1)),
+    center,
   };
-  [
-    segment(i, false),
-    segment(i + 1, false),
-    segment(i + 1, true),
-    segment(i, false),
-    segment(i + 1, true),
-    segment(i, true),
-  ].forEach((point) => vertices.push(...point));
 }
-
-function createPrint(hero: HTMLElement, ribbon: boolean) {
-  const sheet = document.createElement("canvas");
-  sheet.width = 2048;
-  sheet.height = ribbon ? 128 : 512;
-  const ink = sheet.getContext("2d");
-  if (!ink) return null;
-  ink.fillStyle = "#fff";
-  ink.fillRect(0, 0, sheet.width, sheet.height);
-  ink.fillStyle = "#080808";
-  const family = getComputedStyle(hero).getPropertyValue("--display").trim() || "sans-serif";
-  if (ribbon) {
-    ink.font = `500 72px ${family}`;
-    ink.textBaseline = "middle";
-    for (let copy = 0; copy < 2; copy++)
-      ink.fillText("STRATEGY  /  SYSTEMS  /  EXECUTION  /", copy * 1024 + 24, 68, 976);
-    return sheet;
-  }
-  ink.font = `600 260px ${family}`;
-  ink.textBaseline = "middle";
-  for (let arrow = 0; arrow < 3; arrow++) {
-    ink.save();
-    ink.translate(40 + arrow * 76, 172);
-    ink.scale(1.6, 1.6);
-    ink.beginPath();
-    [
-      [0, 0],
-      [27, 0],
-      [51, 52],
-      [27, 104],
-      [0, 104],
-      [24, 52],
-    ].forEach(([x, y], i) => (i ? ink.lineTo(x!, y!) : ink.moveTo(x!, y!)));
-    ink.closePath();
-    ink.fill();
-    ink.restore();
-  }
-  ink.fillText("ACCELERATE", 360, 270, 1640);
-  return sheet;
-}
+const initial = geometry({ x: 0, y: 0 }, 0, false);
 
 export function HeroArtwork() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const elapsed = useRef(0);
-  const [paused, setPaused] = useState(false);
+  const id = useId().replaceAll(":", "");
+  const scene = useRef<HTMLDivElement>(null);
+  const controller = useRef<Controller | null>(null);
+  const suppressClick = useRef(false);
+  const [announcement, setAnnouncement] = useState("");
+
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const hero = canvas?.closest<HTMLElement>(".home-hero");
-    if (!canvas || !hero) return;
-    const stage = canvas.parentElement!;
-    stage.dataset.motionState = "paused";
-    // Shader compilation can block on software renderers. Let the readable
-    // entrance finish first; the server poster occupies the same stage meanwhile.
-    let cancelled = false;
-    let queued = false;
-    let dispose: (() => void) | undefined;
-    const render = () => {
-      const gl = canvas.getContext("webgl", {
-        alpha: true,
-        antialias: true,
-        powerPreference: "low-power",
+    const element = scene.current;
+    if (!element) return;
+    const root = element.parentElement!;
+    const get = <T extends Element>(selector: string) => element.querySelector<T>(selector)!;
+    const faces = [...element.querySelectorAll<SVGPathElement>(".home-system-layer path")];
+    const wires = [...element.querySelectorAll<SVGPathElement>(".home-system-wire")];
+    const signals = [...element.querySelectorAll<SVGCircleElement>(".home-system-signal")];
+    const pins = [...element.querySelectorAll<SVGCircleElement>(".home-system-pin")];
+    const ports = [...element.querySelectorAll<HTMLElement>(".home-system-port")];
+    const handle = get<HTMLButtonElement>(".home-system-handle");
+    const base = get<SVGPathElement>(".home-system-base"),
+      baseEdge = get<SVGPathElement>(".home-system-base-edge");
+    const media = matchMedia("(prefers-reduced-motion: reduce)");
+    const coarse = matchMedia("(pointer: coarse)").matches;
+    const pose = { x: 0, y: 0 },
+      target = { x: 0, y: 0 },
+      anchor = { x: 0, y: 0 };
+    let selected: Source = 0;
+    let manual = false,
+      dragging = false,
+      moved = false;
+    let dragStart = { x: 0, y: 0 },
+      dragPose = { x: 0, y: 0 };
+    let visible = true,
+      reduced = media.matches,
+      frame = 0,
+      elapsed = 0,
+      previous = 0,
+      painted = 0,
+      cycle = -1;
+
+    function choose(index: number) {
+      selected = clamp(Math.floor(index), 0, 2) as Source;
+      root.dataset.source = String(index);
+      ports.forEach((port, i) => {
+        if (i < 3) port.setAttribute("aria-pressed", String(i === selected));
+        else
+          port.dataset.connected = String(
+            inputs[selected].outputs.some((output) => output === i - 3),
+          );
       });
-      if (!gl) {
-        stage.dataset.artworkReady = "false";
-        return;
-      }
-      const shaders: WebGLShader[] = [];
-      const compile = (type: number, source: string) => {
-        const shader = gl.createShader(type);
-        if (!shader) return null;
-        shaders.push(shader);
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
-      };
-      const program = gl.createProgram();
-      const vs = compile(gl.VERTEX_SHADER, vertex),
-        fs = compile(gl.FRAGMENT_SHADER, fragment);
-      if (!program || !vs || !fs) {
-        shaders.forEach((shader) => gl.deleteShader(shader));
-        if (program) gl.deleteProgram(program);
-        stage.dataset.artworkReady = "false";
-        return;
-      }
-      gl.attachShader(program, vs);
-      gl.attachShader(program, fs);
-      gl.linkProgram(program);
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        shaders.forEach((shader) => gl.deleteShader(shader));
-        gl.deleteProgram(program);
-        stage.dataset.artworkReady = "false";
-        return;
-      }
-      const buffer = gl.createBuffer();
-      if (!buffer) {
-        shaders.forEach((shader) => gl.deleteShader(shader));
-        gl.deleteProgram(program);
-        stage.dataset.artworkReady = "false";
-        return;
-      }
-      gl.useProgram(program);
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-      for (const [name, offset] of [
-        ["position", 0],
-        ["normal", 12],
-        ["uv", 24],
-      ] as const) {
-        const attribute = gl.getAttribLocation(program, name);
-        gl.enableVertexAttribArray(attribute);
-        gl.vertexAttribPointer(attribute, name === "uv" ? 2 : 3, gl.FLOAT, false, 32, offset);
-      }
-      const textures: WebGLTexture[] = [];
-      for (const narrow of [false, true]) {
-        const sheet = createPrint(hero, narrow);
-        const texture = gl.createTexture();
-        if (texture) textures.push(texture);
-        if (!sheet || !texture) {
-          textures.forEach((item) => gl.deleteTexture(item));
-          gl.deleteBuffer(buffer);
-          gl.deleteProgram(program);
-          shaders.forEach((shader) => gl.deleteShader(shader));
-          stage.dataset.artworkReady = "false";
-          return;
-        }
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sheet);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      }
-      gl.enable(gl.DEPTH_TEST);
-      const model = gl.getUniformLocation(program, "model");
-      const viewport = gl.getUniformLocation(program, "viewport");
-      const theme = gl.getUniformLocation(program, "dark");
-      const phase = gl.getUniformLocation(program, "phase");
-      const ribbon = gl.getUniformLocation(program, "ribbon");
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-      let frame = 0,
-        last = 0,
-        painted = 0,
-        active = false,
-        lostContext = false;
-      const draw = () => {
-        if (lostContext) return;
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.uniform2f(viewport, canvas.width, canvas.height);
-        gl.uniform1f(theme, Number(document.documentElement.dataset.theme === "dark"));
-        const t = reduced.matches ? 0 : elapsed.current;
-        for (let i = 0; i < 5; i++) {
-          const narrow = i % 2 === 1;
-          const height = (2 - i) * 0.66;
-          const matrix = pose(-0.22, -0.18, -0.2 + (narrow ? 0.075 : 0), height);
-          // Broad image cylinders and slim counter-running banners follow the
-          // reference's two interleaved rhythms. Their silhouettes stay composed.
-          const radius = narrow ? 2.035 : 2.0;
-          const breadth = narrow ? 0.145 : 1.015;
-          for (let axis = 0; axis < 3; axis++) {
-            matrix[axis]! *= radius;
-            matrix[4 + axis]! *= breadth;
-            matrix[8 + axis]! *= radius;
-          }
-          gl.uniformMatrix4fv(model, false, matrix);
-          gl.uniform1f(phase, i * 0.19 + t * (narrow ? -0.027 : 0.018));
-          gl.uniform1f(ribbon, Number(narrow));
-          gl.bindTexture(gl.TEXTURE_2D, textures[Number(narrow)]!);
-          gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 8);
-        }
-        stage.dataset.artworkReady = "true";
-      };
-      const tick = (now: number) => {
-        if (!active) return;
-        if (last) elapsed.current += Math.min(now - last, 100) / 1000;
-        last = now;
-        if (now - painted >= 1000 / 30) {
-          draw();
-          painted = now;
-        }
-        frame = requestAnimationFrame(tick);
-      };
-      const sync = () => {
-        cancelAnimationFrame(frame);
-        last = 0;
-        active =
-          !lostContext &&
-          !paused &&
-          !reduced.matches &&
-          !document.hidden &&
-          hero.dataset.heroActive === "true" &&
-          document.body.dataset.mobileNavigation !== "open";
-        stage.dataset.motionState = active ? "playing" : "paused";
-        draw();
-        if (active) frame = requestAnimationFrame(tick);
-      };
-      const resize = () => {
-        const bounds = canvas.getBoundingClientRect();
-        const density = Math.min(devicePixelRatio || 1, 1.5);
-        canvas.width = Math.max(1, Math.round(bounds.width * density));
-        canvas.height = Math.max(1, Math.round(bounds.height * density));
-        sync();
-      };
-      const size = new ResizeObserver(resize);
-      size.observe(canvas);
-      const state = new MutationObserver(sync);
-      state.observe(hero, { attributes: true, attributeFilter: ["data-hero-active"] });
-      state.observe(document.body, {
-        attributes: true,
-        attributeFilter: ["data-mobile-navigation"],
+    }
+    function paint() {
+      const phase = reduced ? 0 : (elapsed % 3200) / 3200;
+      const shape = geometry(pose, phase, !reduced);
+      shape.layers.forEach((layer, i) => {
+        layer.sides.forEach((d, side) => faces[i * 7 + side]!.setAttribute("d", d));
+        faces[i * 7 + 6]!.setAttribute("d", layer.top);
       });
-      state.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["data-theme"],
+      base.setAttribute("d", shape.base);
+      baseEdge.setAttribute("d", shape.baseEdge);
+      const paths = [...shape.incoming, ...shape.outgoing];
+      paths.forEach((path, i) => {
+        const active =
+          i < 3 ? i === selected : inputs[selected].outputs.some((output) => output === i - 3);
+        wires[i]!.setAttribute("d", curvePath(path));
+        wires[i]!.setAttribute("stroke-opacity", active ? ".6" : ".13");
+        // Signals enter, the layers separate to process, and two actions leave.
+        const t = i < 3 ? phase / 0.48 : (phase - 0.52) / 0.48;
+        const signal = signals[i]!,
+          p = onCurve(path, clamp(t, 0, 1));
+        signal.setAttribute("cx", p.x.toFixed(2));
+        signal.setAttribute("cy", p.y.toFixed(2));
+        signal.setAttribute("opacity", !reduced && active && t > 0 && t < 1 ? "1" : "0");
       });
-      const lost = (event: Event) => {
-        event.preventDefault();
-        lostContext = true;
-        active = false;
-        cancelAnimationFrame(frame);
-        stage.dataset.artworkReady = "false";
-        stage.dataset.motionState = "paused";
-      };
-      // A lost GPU keeps the server-rendered poster. It never hides the content.
-      canvas.addEventListener("webglcontextlost", lost);
-      reduced.addEventListener("change", sync);
-      document.addEventListener("visibilitychange", sync);
-      resize();
-      return () => {
-        active = false;
-        cancelAnimationFrame(frame);
-        size.disconnect();
-        state.disconnect();
-        reduced.removeEventListener("change", sync);
-        document.removeEventListener("visibilitychange", sync);
-        canvas.removeEventListener("webglcontextlost", lost);
-        textures.forEach((texture) => gl.deleteTexture(texture));
-        gl.deleteBuffer(buffer);
-        gl.deleteProgram(program);
-        shaders.forEach((shader) => gl.deleteShader(shader));
-      };
-    };
-    const prepare = () => {
-      if (
-        queued ||
-        (hero.dataset.revealState !== "visible" &&
-          document.documentElement.classList.contains("motion-ready"))
-      )
-        return;
-      queued = true;
-      entrance.disconnect();
-      const animations = hero
-        .getAnimations({ subtree: true })
-        .filter(
-          (animation) =>
-            animation instanceof CSSAnimation && animation.animationName.startsWith("home-hero-"),
+      shape.pins.forEach((p, i) => {
+        pins[i]!.setAttribute("cx", p.x.toFixed(2));
+        pins[i]!.setAttribute("cy", p.y.toFixed(2));
+        pins[i]!.setAttribute(
+          "opacity",
+          reduced || Math.abs(phase - (0.36 + i * 0.065)) < 0.075 ? ".85" : ".18",
         );
-      void Promise.all(animations.map((animation) => animation.finished.catch(() => {}))).then(
-        () => {
-          if (!cancelled) dispose = render();
-        },
-      );
+      });
+      ports.slice(3).forEach((port, i) => {
+        port.dataset.complete = String(
+          inputs[selected].outputs.some((output) => output === i) && (reduced || phase > 0.9),
+        );
+      });
+      handle.style.setProperty("--core-x", `${shape.center.x / 6}%`);
+      handle.style.setProperty("--core-y", `${(shape.center.y - 72) / 6}%`);
+      root.dataset.pose = `${pose.x.toFixed(2)},${pose.y.toFixed(2)}`;
+      root.dataset.phase = phase.toFixed(3);
+    }
+    function blocked() {
+      return !visible || document.hidden || document.body.dataset.mobileNavigation === "open";
+    }
+    function tick(now: number) {
+      frame = 0;
+      if (reduced || blocked()) return;
+      const delta = previous ? Math.min(now - previous, 64) : 0;
+      previous = now;
+      elapsed += delta;
+      const nextCycle = Math.floor(elapsed / 6400);
+      if (!manual && cycle !== nextCycle) {
+        cycle = nextCycle;
+        choose(nextCycle % 3);
+      }
+      if (now - painted >= (coarse ? 32 : 16)) {
+        const follow = 1 - Math.exp(-Math.max(now - painted, 16) / 85);
+        pose.x += (target.x - pose.x) * follow;
+        pose.y += (target.y - pose.y) * follow;
+        paint();
+        painted = now;
+      }
+      frame = requestAnimationFrame(tick);
+    }
+    function sync() {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      previous = 0;
+      root.dataset.motion = reduced ? "reduced" : blocked() ? "suspended" : "live";
+      root.dataset.routeState = reduced ? "settled" : "running";
+      if (reduced) {
+        pose.x = target.x;
+        pose.y = target.y;
+        paint();
+      } else if (!blocked()) frame = requestAnimationFrame(tick);
+    }
+    function setTarget(x: number, y: number) {
+      target.x = clamp(x, -72, 72);
+      target.y = clamp(y, -55, 55);
+      if (reduced) {
+        pose.x = target.x;
+        pose.y = target.y;
+        paint();
+      }
+    }
+    controller.current = {
+      select(index) {
+        manual = true;
+        elapsed = 0;
+        choose(index);
+        paint();
+      },
+      steer(x, y) {
+        if (!dragging) setTarget(anchor.x + x, anchor.y + y);
+      },
+      drag(x, y) {
+        if (!dragging) {
+          dragging = true;
+          moved = false;
+          dragStart = { x, y };
+          dragPose = { ...pose };
+          root.dataset.dragging = "true";
+        }
+        const dx = x - dragStart.x,
+          dy = y - dragStart.y;
+        moved ||= Math.hypot(dx, dy) > 4;
+        setTarget(dragPose.x + dx, dragPose.y + dy);
+      },
+      release() {
+        dragging = false;
+        anchor.x = target.x;
+        anchor.y = target.y;
+        root.dataset.dragging = "false";
+        return moved;
+      },
+      nudge(x, y) {
+        anchor.x = clamp(target.x + x, -72, 72);
+        anchor.y = clamp(target.y + y, -55, 55);
+        setTarget(anchor.x, anchor.y);
+        // Keyboard manipulation is precise and immediate even between frames.
+        pose.x = target.x;
+        pose.y = target.y;
+        paint();
+      },
+      reset() {
+        anchor.x = 0;
+        anchor.y = 0;
+        setTarget(0, 0);
+        pose.x = 0;
+        pose.y = 0;
+        paint();
+      },
     };
-    const entrance = new MutationObserver(prepare);
-    entrance.observe(hero, { attributes: true, attributeFilter: ["class", "data-reveal-state"] });
-    prepare();
+    choose(0);
+    paint();
+    sync();
+    root.dataset.artworkReady = "true";
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? false;
+      sync();
+    });
+    observer.observe(root);
+    const menu = new MutationObserver(sync);
+    menu.observe(document.body, { attributes: true, attributeFilter: ["data-mobile-navigation"] });
+    const onMotion = () => {
+      reduced = media.matches;
+      sync();
+    };
+    media.addEventListener("change", onMotion);
+    document.addEventListener("visibilitychange", sync);
     return () => {
-      cancelled = true;
-      stage.dataset.motionState = "paused";
-      entrance.disconnect();
-      dispose?.();
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      menu.disconnect();
+      media.removeEventListener("change", onMotion);
+      document.removeEventListener("visibilitychange", sync);
+      controller.current = null;
     };
-  }, [paused]);
+  }, []);
+
+  function select(index: number) {
+    const input = inputs[index];
+    if (!input) return;
+    controller.current?.select(index);
+    setAnnouncement(input.result);
+  }
+  function coordinates(event: PointerEvent): Point {
+    const bounds = scene.current!.getBoundingClientRect();
+    return {
+      x: ((event.clientX - bounds.x) * 600) / bounds.width,
+      y: ((event.clientY - bounds.y) * 600) / bounds.height,
+    };
+  }
   return (
     <div
-      className="home-hero-artwork"
-      data-artwork-design="kinetic-bands"
+      className="home-hero-artwork home-system-artwork"
+      data-artwork-design="live-intelligence-routing"
       data-artwork-ready="false"
-      data-motion-state="paused"
+      data-source="0"
+      data-route-state="settled"
+      data-motion="fallback"
+      role="group"
+      aria-label="Interactive automation system. Select a workflow or steer the intelligence core."
     >
-      <Image
-        className="home-hero-poster"
-        src="/images/home/hero-kinetic-poster.png"
-        alt=""
-        fill
-        loading="eager"
-        unoptimized
-      />
-      <canvas ref={canvasRef} className="home-hero-canvas" aria-hidden="true" />
-      <div className="home-hero-artwork-caption">
-        <span aria-hidden="true">Accelerate / 01</span>
+      <div
+        ref={scene}
+        className="home-system-scene"
+        onPointerMove={(event) => {
+          if (event.pointerType !== "mouse" || event.buttons) return;
+          const p = coordinates(event);
+          controller.current?.steer((p.x - 300) * 0.24, (p.y - 300) * 0.18);
+        }}
+        onPointerLeave={() => controller.current?.steer(0, 0)}
+      >
+        <svg className="home-system-diagram" viewBox="0 0 600 600" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient
+              id={`${id}-metal`}
+              x1="180"
+              y1="150"
+              x2="420"
+              y2="380"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="var(--bg)" />
+              <stop offset=".45" stopColor="var(--bg)" />
+              <stop offset="1" stopColor="color-mix(in srgb, var(--fg) 18%, var(--bg))" />
+            </linearGradient>
+            <linearGradient
+              id={`${id}-edge`}
+              x1="220"
+              y1="250"
+              x2="400"
+              y2="400"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="color-mix(in srgb, var(--fg) 28%, var(--bg))" />
+              <stop offset="1" stopColor="color-mix(in srgb, var(--fg) 65%, var(--bg))" />
+            </linearGradient>
+            <radialGradient id={`${id}-light`}>
+              <stop stopColor="var(--fg)" stopOpacity=".075" />
+              <stop offset="1" stopColor="var(--fg)" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse cx="300" cy="378" rx="234" ry="166" fill={`url(#${id}-light)`} />
+          <g stroke="var(--fg)" strokeOpacity=".055" strokeWidth="1">
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((line) => (
+              <g key={line}>
+                <path d={`M${60 + line * 30} ${270 + line * 15}l240 120`} />
+                <path d={`M${60 + line * 30} ${390 - line * 15}l240-120`} />
+              </g>
+            ))}
+          </g>
+          <g stroke="var(--fg)" strokeWidth="1.4">
+            {[...initial.incoming, ...initial.outgoing].map((path, index) => (
+              <path
+                key={index}
+                className="home-system-wire"
+                d={curvePath(path)}
+                strokeOpacity={index === 0 || index === 3 || index === 4 ? ".6" : ".13"}
+              />
+            ))}
+          </g>
+          <path
+            className="home-system-base-edge"
+            d={initial.baseEdge}
+            fill={`url(#${id}-edge)`}
+            stroke="var(--fg)"
+            strokeOpacity=".35"
+          />
+          <path
+            className="home-system-base"
+            d={initial.base}
+            fill={`url(#${id}-metal)`}
+            stroke="var(--fg)"
+            strokeOpacity=".3"
+          />
+          <g
+            className="home-system-core"
+            stroke="var(--fg)"
+            strokeWidth="1.1"
+            strokeLinejoin="round"
+          >
+            {initial.layers.map((layer, index) => (
+              <g key={index} className="home-system-layer">
+                {layer.sides.map((d, side) => (
+                  <path key={side} d={d} fill={`url(#${id}-edge)`} strokeOpacity=".38" />
+                ))}
+                <path d={layer.top} fill={`url(#${id}-metal)`} strokeOpacity=".7" />
+              </g>
+            ))}
+          </g>
+          <g fill="var(--fg)">
+            {initial.pins.map((p, index) => (
+              <circle
+                className="home-system-pin"
+                key={index}
+                cx={p.x}
+                cy={p.y}
+                r="2.2"
+                opacity=".18"
+              />
+            ))}
+          </g>
+          <g className="home-system-packets" fill="var(--fg)">
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <circle className="home-system-signal" key={index} r="3.8" opacity="0" />
+            ))}
+          </g>
+        </svg>
+        {inputs.map(({ icon: Icon, x, y, label }, index) => (
+          <button
+            key={label}
+            type="button"
+            className="home-system-port home-system-input"
+            style={{ "--port-x": `${x / 6}%`, "--port-y": `${y / 6}%` } as CSSProperties}
+            aria-label={label}
+            aria-pressed={index === 0}
+            onClick={() => select(index)}
+          >
+            <Icon aria-hidden="true" strokeWidth={1.4} />
+            <span className="home-system-port-dot" aria-hidden="true" />
+          </button>
+        ))}
+        {outputs.map(({ icon: Icon, x, y }, index) => (
+          <span
+            key={index}
+            className="home-system-port home-system-output"
+            style={{ "--port-x": `${x / 6}%`, "--port-y": `${y / 6}%` } as CSSProperties}
+            data-connected={index !== 2}
+            data-complete="false"
+            aria-hidden="true"
+          >
+            <Icon strokeWidth={1.4} />
+            <span className="home-system-port-dot" />
+          </span>
+        ))}
         <button
           type="button"
-          className="home-hero-artwork-pause"
-          onClick={() => setPaused(!paused)}
-          aria-label={paused ? "Play hero animation" : "Pause hero animation"}
-        >
-          <span aria-hidden="true">{paused ? "▶" : "Ⅱ"}</span>
-          {paused ? "Play motion" : "Pause motion"}
-        </button>
+          className="home-system-handle"
+          aria-label="Steer automation core. Drag to reshape connections, use arrow keys to move, Home to center, or Enter to change workflow."
+          onPointerDown={(event) => {
+            const p = coordinates(event);
+            suppressClick.current = false;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            controller.current?.drag(p.x, p.y);
+          }}
+          onPointerMove={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            const p = coordinates(event);
+            controller.current?.drag(p.x, p.y);
+          }}
+          onPointerUp={(event) => {
+            suppressClick.current = controller.current?.release() ?? false;
+            if (event.currentTarget.hasPointerCapture(event.pointerId))
+              event.currentTarget.releasePointerCapture(event.pointerId);
+          }}
+          onPointerCancel={() => {
+            suppressClick.current = true;
+            controller.current?.release();
+          }}
+          onClick={(event) => {
+            if (event.detail && suppressClick.current) return;
+            select((Number(scene.current?.parentElement?.dataset.source ?? 0) + 1) % 3);
+          }}
+          onKeyDown={(event) => {
+            const direction = directions[event.key];
+            if (direction) {
+              event.preventDefault();
+              controller.current?.nudge(direction[0], direction[1]);
+            }
+            if (event.key === "Home") {
+              event.preventDefault();
+              controller.current?.reset();
+            }
+          }}
+        />
       </div>
+      <span className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </span>
     </div>
   );
 }

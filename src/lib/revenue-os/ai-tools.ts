@@ -1953,7 +1953,7 @@ const registry: AiToolRegistration[] = [
             awaitingReapproval: item.version !== item.approved_version,
           })),
         openProposals: (proposals.data ?? []).slice(0, SNAPSHOT_DETAIL_LIMIT),
-        truncated: rows.length >= SNAPSHOT_ROW_LIMIT,
+        truncated: queue.length > 15 || rows.length >= SNAPSHOT_ROW_LIMIT,
       };
     },
   },
