@@ -867,6 +867,18 @@ jobs:
           path: /tmp/accelerate-home-hero-timing/
           if-no-files-found: warn
           retention-days: 7
+      - name: Verify actual hosted mobile gestures and frame budgets
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.hero_target_url }}
+        run: node scripts/qa-mobile-motion.mjs --webkit
+      - name: Retain actual hosted mobile evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: hosted-mobile-browser-evidence
+          path: /tmp/accelerate-mobile-motion/
+          if-no-files-found: warn
+          retention-days: 7
 
   full-product-fork:
     needs: scope
