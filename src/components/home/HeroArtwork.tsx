@@ -47,13 +47,14 @@ type Controller = {
   nudge: (x: number, y: number) => void;
   reset: () => void;
 };
+// LogoMark's exact six-point chevron, centered and scaled into a physical plane.
 const outline = [
-  [-58, -46],
-  [19, -46],
-  [67, 0],
-  [19, 46],
-  [-58, 46],
-  [-10, 0],
+  [-44, -64],
+  [12, -64],
+  [44, 0],
+  [12, 64],
+  [-44, 64],
+  [-12, 0],
 ] as const;
 const baseOutline = [
   [-92, -92],
