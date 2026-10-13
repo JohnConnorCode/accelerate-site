@@ -12,6 +12,7 @@ if (hosted) {
   const target = new URL(hosted);
   if (
     target.protocol !== "https:" ||
+    target.port ||
     target.username ||
     target.password ||
     target.pathname !== "/" ||
@@ -49,6 +50,7 @@ async function renderedState(artwork) {
     const round = (number) => Math.round(number * 100000) / 100000;
     return {
       route: element.dataset.routeState,
+      rootBox: [round(root.x), round(root.y), round(root.width), round(root.height)],
       activeAnimations: element
         .getAnimations({ subtree: true })
         .filter((animation) => animation.playState === "running").length,
@@ -98,6 +100,19 @@ async function observeRest(artwork, label) {
     beforeState.activeAnimations === 0 &&
     beforeState.svgAnimations === 0;
   const pixelsEqual = await sameRenderedPixels(first, second, artwork, label);
+  if (!pixelsEqual) {
+    // Diagnose cold paint separately, without changing the original strict gate.
+    await artwork.page().waitForTimeout(750);
+    const third = await artwork.screenshot();
+    await artwork.page().waitForTimeout(750);
+    const fourth = await artwork.screenshot();
+    const secondThird = await sameRenderedPixels(second, third, artwork, `${label}-later-1`);
+    const thirdFourth = await sameRenderedPixels(third, fourth, artwork, `${label}-later-2`);
+    await writeFile(
+      `${output}/${label}-paint-sequence.json`,
+      JSON.stringify({ firstSecond: pixelsEqual, secondThird, thirdFourth }, null, 2),
+    );
+  }
   if (!stable)
     await writeFile(
       `${output}/${label}-geometry-diff.json`,
@@ -283,14 +298,27 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
   }
   const base = artwork.locator(".home-system-base");
   const pose = async () => (await artwork.getAttribute("data-pose")).split(",").map(Number);
+  await page.mouse.move(0, 0);
+  await handle.focus();
+  await page.keyboard.press("Home");
+  await handle.evaluate((button) => button.blur());
+  const neutralPose = await pose();
   const neutral = await base.getAttribute("d");
   const bounds = await handle.boundingBox();
   let hover = null;
   if (!touch) {
     await page.mouse.move(bounds.x + bounds.width * 0.82, bounds.y + bounds.height * 0.32);
     await page.waitForTimeout(300);
-    hover = { pose: await pose(), shapeChanged: neutral !== (await base.getAttribute("d")) };
-    if (!hover.shapeChanged || Math.abs(hover.pose[0]) < 5)
+    hover = {
+      startPose: neutralPose,
+      pointer: { x: bounds.x + bounds.width * 0.82, y: bounds.y + bounds.height * 0.32 },
+      pose: await pose(),
+      shapeChanged: neutral !== (await base.getAttribute("d")),
+    };
+    if (
+      !hover.shapeChanged ||
+      Math.hypot(hover.pose[0] - neutralPose[0], hover.pose[1] - neutralPose[1]) < 8
+    )
       failures.push(`${label}: pointer steering does not manipulate geometry`);
   }
   const beforeDrag = {
@@ -406,10 +434,52 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
         JSON.stringify({ before, after }, null, 2),
       );
     if (!completed.suspended) failures.push(`${label}: offscreen system continues updating`);
+    if (touch)
+      await page
+        .getByRole("button", { name: "Open chat", exact: true })
+        .waitFor({ state: "visible", timeout: 10_000 });
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     await page.waitForFunction(
       () => document.querySelector(".home-system-artwork").dataset.motion === "live",
     );
+    if (touch) {
+      const clearance = [];
+      for (const delay of [50, 400]) {
+        await page.waitForTimeout(delay);
+        const sample = await artwork.evaluate((element) => {
+          const bubble = document.querySelector(
+            '.chat-widget-root:not(.is-open) [aria-label="Open chat"]',
+          );
+          if (!bubble || !bubble.checkVisibility({ visibilityProperty: true }))
+            return { present: false, overlaps: false };
+          const launcher = bubble.getBoundingClientRect();
+          const outputs = [...element.querySelectorAll(".home-system-output")].map((port) => {
+            const box = port.getBoundingClientRect();
+            return {
+              visible: box.top < innerHeight && box.bottom > 0,
+              hit: port.contains(
+                document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2),
+              ),
+              overlaps:
+                launcher.left < box.right &&
+                launcher.right > box.left &&
+                launcher.top < box.bottom &&
+                launcher.bottom > box.top,
+            };
+          });
+          return {
+            present: true,
+            launcher: launcher.toJSON(),
+            outputs,
+            overlaps: outputs.some((port) => port.visible && (port.overlaps || !port.hit)),
+          };
+        });
+        if (sample.overlaps)
+          failures.push(`${label}: closed chat obscures a business output after scroll return`);
+        clearance.push(sample);
+      }
+      completed.chatClearance = clearance;
+    }
   }
   return {
     journeys,

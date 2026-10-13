@@ -53,6 +53,72 @@ export function ChatWidget() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Preserve the launcher's usual position, moving it into the empty left
+  // gutter only when its normal mobile position would cover a hero output.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || pathname !== "/" || isOpen || !hasScrolled) return;
+    let frame = 0,
+      until = 0;
+    const update = (now: number) => {
+      frame = 0;
+      const bubble = root.querySelector<HTMLElement>('[aria-label="Open chat"]');
+      const artwork = document.querySelector<HTMLElement>(".home-system-artwork");
+      if (!bubble || !artwork || innerWidth > 1023 || root.querySelector(".chat-panel")) {
+        delete root.dataset.heroClearance;
+        root.style.removeProperty("--hero-chat-shift");
+      } else {
+        const rect = bubble.getBoundingClientRect();
+        // The child moves without changing the fixed anchor or its layout box.
+        const shift =
+          root.dataset.heroClearance === "true"
+            ? Number.parseFloat(root.style.getPropertyValue("--hero-chat-shift")) || 0
+            : 0;
+        const left = rect.left - shift,
+          right = rect.right - shift;
+        const overlap = [...artwork.querySelectorAll<HTMLElement>(".home-system-output")].some(
+          (port) => {
+            const box = port.getBoundingClientRect();
+            return (
+              box.bottom > 0 &&
+              box.top < innerHeight &&
+              left < box.right + 12 &&
+              right > box.left - 12 &&
+              rect.top < box.bottom + 12 &&
+              rect.bottom > box.top - 12
+            );
+          },
+        );
+        const clearance = String(overlap);
+        if (root.dataset.heroClearance !== clearance) root.dataset.heroClearance = clearance;
+        if (overlap)
+          root.style.setProperty(
+            "--hero-chat-shift",
+            `${Math.max(16, artwork.getBoundingClientRect().left - rect.width - 12) - left}px`,
+          );
+        else root.style.removeProperty("--hero-chat-shift");
+      }
+      if (now < until) frame = requestAnimationFrame(update);
+    };
+    const schedule = () => {
+      until = performance.now() + 350;
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    const dock = new MutationObserver(schedule);
+    dock.observe(document.body, { attributes: true, attributeFilter: ["data-mcta"] });
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    schedule();
+    return () => {
+      cancelAnimationFrame(frame);
+      dock.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      delete root.dataset.heroClearance;
+      root.style.removeProperty("--hero-chat-shift");
+    };
+  }, [pathname, isOpen, hasScrolled]);
+
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -185,7 +251,7 @@ export function ChatWidget() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.86 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="origin-bottom-right"
+              className="chat-launcher-placement origin-bottom-right"
             >
               <ChatBubble onClick={openChat} />
             </motion.div>

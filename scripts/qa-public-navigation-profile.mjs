@@ -262,10 +262,19 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
   });
 
   await page.addInitScript(() => {
-    window.__accelerateServicesQa = { longTasks: [] };
+    window.__accelerateServicesQa = { longTasks: [], taskDetails: [] };
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         window.__accelerateServicesQa.longTasks.push(entry.duration);
+        window.__accelerateServicesQa.taskDetails.push({
+          start: entry.startTime,
+          duration: entry.duration,
+          attribution: entry.attribution.map((item) => ({
+            name: item.name,
+            type: item.containerType,
+            source: item.containerSrc,
+          })),
+        });
       }
     }).observe({ type: "longtask", buffered: true });
   });
@@ -387,6 +396,7 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
   await page.locator("footer").screenshot({ path: join(output, `services-${label}-footer.png`) });
   const longTasks = await page.evaluate(() => window.__accelerateServicesQa.longTasks);
   const longestTaskMs = Math.max(0, ...longTasks);
+  const taskDetails = await page.evaluate(() => window.__accelerateServicesQa.taskDetails);
 
   await page.screenshot({ path: join(output, `services-${label}.png`), fullPage: true });
   await context.close();
@@ -401,6 +411,7 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
     reachedQuickNav,
     focusOutline,
     longestTaskMs,
+    taskDetails,
     revealedSections,
   };
 }

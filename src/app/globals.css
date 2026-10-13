@@ -2027,6 +2027,17 @@ body[data-mobile-navigation="open"] .chat-widget-root {
   right: max(1rem, var(--safe-right));
   bottom: max(1rem, var(--safe-bottom));
 }
+.chat-widget-root:not(.is-open) {
+  pointer-events: none;
+}
+.chat-launcher-placement {
+  pointer-events: auto;
+}
+@media (max-width: 1023px) {
+  .chat-widget-root[data-hero-clearance="true"]:not(.is-open) .chat-launcher-placement {
+    translate: var(--hero-chat-shift) 0;
+  }
+}
 .chat-widget-root.is-open {
   inset: 0;
   z-index: 1000;
@@ -6506,9 +6517,11 @@ body.modal-open [data-dock] {
   cursor: pointer;
   touch-action: manipulation;
 }
-.home-system-output {
-  /* Cache the symbolic cards independently of the changing SVG beneath them. */
-  transform: translateZ(0);
+.home-system-output svg {
+  stroke: var(--fg);
+}
+.home-system-output[data-complete="true"] svg {
+  stroke: var(--bg);
 }
 .home-system-input:hover,
 .home-system-input:focus-visible {
@@ -6592,8 +6605,8 @@ body.modal-open [data-dock] {
     border-radius: 12px;
   }
   .home-system-port svg {
-    width: 21px;
-    height: 21px;
+    width: 24px;
+    height: 24px;
   }
 }
 .home-hero-bottom {
@@ -6832,8 +6845,8 @@ body.modal-open [data-dock] {
       height: round(nearest, 28svh, 2px);
     }
     .home-system-port svg {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
     }
   }
 }
