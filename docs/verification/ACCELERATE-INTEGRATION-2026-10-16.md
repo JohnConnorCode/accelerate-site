@@ -74,6 +74,20 @@ A fresh comparison confirmed all 133 retained checkouts still match the recorded
 HEAD, changed paths and tracked-diff hash. The two owned checkouts bring the current
 count to 135 worktrees and 715 local branches. Foreign edits remain intact.
 
+Candidate `c82157a3` passed its canonical core suite, event service/PostgreSQL checks,
+both complete-product fork builds and the connected fork's desktop/mobile journeys.
+Its source checks found stale route fingerprints and five copy-style violations;
+the neutral export omitted the workshop defaults, and the recovery upgrade caught
+an unwanted change to a customized bootstrap configuration. Subsequent commits
+refresh the reviewed fingerprints, correct the copy, supply fictional neutral
+defaults and restrict automatic event seeding to Accelerate's configured name and
+domain. Native PostgreSQL regression proves fork settings remain intact.
+
+Application source `8051723d` passes the branded and actual exported-neutral builds,
+the six workshop browser scenarios and desktop/mobile neutral event/confirmation
+checks. Final lint, formatting, route and copy checks pass. Exact-head CI and native
+recovery remain separate merge gates; earlier successes do not replace them.
+
 Read-only production preflight found the intended Accelerate tenant active and
 email configuration present, with no connected tenant Stripe account. The workshop
 schema has not been applied. No live payment, email, deployment or sales publication

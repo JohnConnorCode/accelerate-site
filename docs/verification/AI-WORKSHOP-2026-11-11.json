@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "preparedAt": "2026-10-16T22:07:43.982074+00:00",
+  "preparedAt": "2026-10-16T22:28:23.129626+00:00",
   "base": "a0ceb2aba4d6290e4a24513787db978c6d26b0c0",
   "integrationAncestor": "525da731fde95aa7956c0a631652df6b02feaded",
   "workshop": {
@@ -22,10 +22,10 @@
   },
   "localEvidence": {
     "eventService": "18 reported checks passed with deterministic Stripe/Resend transport; additional approval expiry, foreign-tenant, rejected, autonomous and module-disabled refusals asserted.",
-    "postgres": "Native PostgreSQL 17, isolated temporary database: replay, concurrent capacity, request dedupe, immutable snapshots, role/tenant refusal, mode/account/amount/quantity checks, refund replay/release, provider-absence grace and provider email receipt prerequisite passed.",
+    "postgres": "Native PostgreSQL 17 isolated temporary database passed concurrent capacity, dedupe, immutable snapshots, role/tenant/account/mode/amount/quantity refusal, refund/release and email-receipt checks. Migration replay leaves a fork and customized bootstrap configuration unchanged, then creates only the original Accelerate draft and preserves it on replay.",
     "core": "Every command in the canonical test:core list passed. Failed checkpoints were repaired and execution resumed from their boundary; CI will rerun the full list on the final head.",
     "contracts": "Final agent contract, guardrails (including positioning and work portfolio), strict docs coverage (129 pages, zero errors/warnings) and diff checks passed. Extension manifests, module route guards, schema verification and existing subscription tests also passed during feature verification.",
-    "build": "Credential-free branded production build and TypeScript validation passed on applicationBuildSource (573 generated pages).",
+    "build": "Branded production build (573 generated pages) and actual neutral starter export build (310 generated pages), including TypeScript, passed on applicationBuildSource. The local export reuses compatible lockfile-pinned dependencies and an explicit source release identity; CI also verifies fresh dependencies and source history.",
     "browser": {
       "result": "passed",
       "evidence": "Compiled Next pages against isolated read-only REST; browser-controlled payment responses; actual shared fictional admin. No live provider or production data.",
@@ -113,7 +113,9 @@
       "admin-1440.png",
       "admin-390.png",
       "approval-1440.png",
-      "approval-390.png"
+      "approval-390.png",
+      "admin-price-1440.png",
+      "admin-price-390.png"
     ],
     "screenshotDirectory": "/tmp/accelerate-event-ticketing/",
     "copyButtonGeometry": {
@@ -159,10 +161,32 @@
       "artifact": "/tmp/accelerate-workshop-docs-qa/results.json",
       "sha256": "4f1744839715999cdb12eb3eb85f4e6f5690120109e88399068c4cb38b29c1e9"
     },
-    "lint": "Final npm run lint passed."
+    "lint": "Final eslint --max-warnings=0 and full Prettier format check passed on applicationBuildSource.",
+    "neutralExportBrowser": {
+      "result": "passed",
+      "exportSource": "8051723dfcd71bfe296a01c2b6d34a473efa9aae",
+      "widths": [1440, 390],
+      "checks": [
+        "neutral workshop renders with empty team data",
+        "no agency presenters or structured metadata",
+        "private confirmation omits agency contact",
+        "no horizontal overflow"
+      ],
+      "providerEffects": false,
+      "screenshotsOpened": [
+        "/tmp/accelerate-workshop-neutral-event-qa/registration-390.png",
+        "/tmp/accelerate-workshop-neutral-event-qa/confirmation-1440.png"
+      ]
+    },
+    "additionalChecks": [
+      "Reviewed route inventory: 68 pages, 414 source fingerprints and seven regression cases passed.",
+      "House style: 708 copy files checked, no violations.",
+      "Neutral starter export and rendered identity checks passed.",
+      "Extensions remain in sync."
+    ]
   },
   "pendingEvidence": [
-    "Required verify CI on final combined head; completion, merge SHA and tree parity will be recorded on PR #263."
+    "Required verify and connected recovery CI on final combined head; completion, merge SHA and tree parity will be recorded on PR #263."
   ],
   "production": {
     "changed": false,
@@ -175,11 +199,12 @@
     "observedCanonicalDeployment": "dpl_FknAs2hkLC84ek1MjaRZeSBrHFjV",
     "observedCanonicalState": "Ready",
     "readOnlyReadiness": {
-      "checkedAt": "2026-10-16T22:03:57.233Z",
+      "checkedAt": "2026-10-16T22:16:09.933Z",
       "productionWrites": false,
       "providerEffects": "Read-only configuration and schema checks; no payments or messages",
       "supabaseHost": "skjypuwkceoiunyhhqlm.supabase.co",
       "tenant": "Expected Accelerate bootstrap tenant is active",
+      "workshopSeedIdentityMatches": true,
       "stripeSetup": {
         "moduleSetting": null,
         "connectionPresent": false,
@@ -212,14 +237,41 @@
     ]
   },
   "review": "Implementing-agent review; no independent user or live-provider acceptance claimed.",
-  "applicationBuildSource": "5bfd4e4a68a222870d05f2a0b0995c95d61e7f2b",
+  "applicationBuildSource": "8051723dfcd71bfe296a01c2b6d34a473efa9aae",
   "retainedSourceComparison": {
-    "checkedAt": "2026-10-16T21:51:50.901858+00:00",
+    "checkedAt": "2026-10-16T22:22:15.892982+00:00",
     "comparisonTo": "docs/verification/ACCELERATE-INTEGRATION-2026-10-16.json",
+    "statusNormalization": "Whole stdout trim matches the initial inventory serialization.",
     "retainedCheckouts": 133,
     "matchingRecordedHeadPathsAndTrackedDiff": 133,
     "changes": [],
     "currentWorktreeCount": 135,
     "currentLocalBranchCount": 715
-  }
+  },
+  "ciHistory": [
+    {
+      "run": 38973879733,
+      "head": "c82157a37279f2059619810f51f652caaeddbbee",
+      "passed": [
+        "canonical core suite",
+        "event service and native PostgreSQL",
+        "both full-product fork builds"
+      ],
+      "failures": [
+        "new workshop content missing from neutral export",
+        "stale navigation/page route fingerprints",
+        "five house-style copy violations"
+      ],
+      "disposition": "Repaired in subsequent source commits; exact-head CI required."
+    },
+    {
+      "run": 38973879738,
+      "head": "c82157a37279f2059619810f51f652caaeddbbee",
+      "passed": ["connected-fork native desktop/mobile journeys"],
+      "failures": [
+        "customized bootstrap configuration changed by automatic workshop seed during recovery upgrade"
+      ],
+      "disposition": "Seed now requires the original configured business name and domain; isolated PostgreSQL regression passed. Native recovery must pass on final head."
+    }
+  ]
 }
