@@ -144,7 +144,7 @@ export function EventCheckout({
           <button type="submit" className={styles.primary} disabled={busy}>
             {busy
               ? "Opening secure checkout…"
-              : `Get ${quantity === 1 ? "a ticket" : `${quantity} tickets`} — ${ticketMoney(event.price_cents * quantity)}`}
+              : `Get ${quantity === 1 ? "a ticket" : `${quantity} tickets`} (${ticketMoney(event.price_cents * quantity)})`}
           </button>
           <p className={styles.small}>
             Pay securely with Stripe. You do not need an Accelerate account. Tickets are confirmed

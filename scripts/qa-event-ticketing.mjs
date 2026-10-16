@@ -267,7 +267,7 @@ try {
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
     await page.getByLabel("Number of tickets").selectOption("2");
-    const buy = page.getByRole("button", { name: "Get 2 tickets — $100" });
+    const buy = page.getByRole("button", { name: "Get 2 tickets ($100)" });
     await buy.focus();
     await page.keyboard.press("Enter");
     await page.getByRole("alert").filter({ hasText: "Retry with the same details" }).waitFor();

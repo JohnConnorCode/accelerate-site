@@ -394,9 +394,9 @@ export default function EventsPage() {
                 onChange={(e) => change("status", e.target.value as EventDefinition["status"])}
               >
                 <option value="draft">Draft</option>
-                <option value="published">Published — open sales</option>
-                <option value="paused">Paused — retain public page</option>
-                <option value="closed">Closed — end sales</option>
+                <option value="published">Published: open sales</option>
+                <option value="paused">Paused: retain public page</option>
+                <option value="closed">Closed: end sales</option>
               </select>
             </label>
             {(
