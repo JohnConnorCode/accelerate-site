@@ -56,6 +56,11 @@ export async function sendRecordedEmail(
     subject: string;
     text: string;
     html?: string;
+    attachments?: Array<{ filename: string; content: string; contentType?: string }>;
+    /** Trusted domain opt-in; the same body/key/connection may retry a failed
+     * receipt within 23 hours of creation, below Resend's 24-hour key lifetime. */
+    retryFailedWithSameKey?: boolean;
+    idempotencyBinding?: string;
     actorEmail?: string;
     contactId?: string;
     opportunityId?: string;
@@ -74,6 +79,21 @@ export async function sendRecordedEmail(
     throw new Error("Subject and message body are required");
   if (input.idempotencyKey && input.idempotencyKey.length > 256)
     throw new Error("Email idempotency keys must be 256 characters or fewer");
+  const attachments =
+    input.attachments === undefined
+      ? undefined
+      : z
+          .array(
+            z
+              .object({
+                filename: z.string().regex(/^[A-Za-z0-9_.-]{1,100}$/),
+                content: z.string().min(1).max(32768),
+                contentType: z.string().max(100).optional(),
+              })
+              .strict(),
+          )
+          .max(3)
+          .parse(input.attachments);
 
   const cc = z
     .array(z.object({ contactId: z.uuid(), email: z.email() }).strict())
@@ -94,6 +114,8 @@ export async function sendRecordedEmail(
         subject: input.subject.trim(),
         text: input.text,
         html: input.html ?? null,
+        ...(attachments ? { attachments } : {}),
+        ...(input.idempotencyBinding ? { idempotencyBinding: input.idempotencyBinding } : {}),
         from: input.from?.trim() ?? null,
         replyTo: input.replyTo?.trim() ?? null,
         contactId: input.contactId ?? null,
@@ -105,10 +127,12 @@ export async function sendRecordedEmail(
       }),
     )
     .digest("hex");
+  let retryMessageId: string | null = null;
+  let retainedConversationId: string | undefined;
   if (input.idempotencyKey) {
     const { data: existing, error } = await supabase
       .from("messages")
-      .select("id,provider_id,status,conversation_id,metadata")
+      .select("id,provider_id,status,conversation_id,metadata,created_at")
       .eq("idempotency_key", input.idempotencyKey)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -124,7 +148,19 @@ export async function sendRecordedEmail(
         messageId: existing.id,
         conversationId: existing.conversation_id,
       };
-    if (existing)
+    const age = existing ? Date.now() - Date.parse(existing.created_at) : NaN;
+    if (
+      existing &&
+      input.retryFailedWithSameKey &&
+      input.idempotencyBinding &&
+      existing.status === "failed" &&
+      existing.metadata?.request_hash === requestHash &&
+      age >= 0 &&
+      age < 23 * 3600000
+    ) {
+      retryMessageId = existing.id;
+      retainedConversationId = existing.conversation_id;
+    } else if (existing)
       throw new Error(
         `This email already has a ${existing.status || "non-success"} receipt; reconcile it before retrying`,
       );
@@ -165,7 +201,7 @@ export async function sendRecordedEmail(
       : input.actorEmail || process.env.ADMIN_EMAIL || undefined);
   if (replyTo && !replyAddress(replyTo)) throw new Error("A valid reply-to inbox is required");
 
-  let conversationId = input.conversationId;
+  let conversationId = input.conversationId || retainedConversationId;
   if (conversationId && cc.length) {
     const current = await supabase
       .from("conversations")
@@ -262,8 +298,8 @@ export async function sendRecordedEmail(
     }
   }
 
-  const claimId = crypto.randomUUID();
-  const { error: claimError } = await supabase.from("messages").insert({
+  const claimId = retryMessageId || crypto.randomUUID();
+  const claim = {
     id: claimId,
     conversation_id: conversationId,
     idempotency_key: input.idempotencyKey || null,
@@ -281,7 +317,19 @@ export async function sendRecordedEmail(
       request_hash: requestHash,
       dispatch_attempted: false,
     },
-  });
+  };
+  const claimResult = retryMessageId
+    ? await supabase
+        .from("messages")
+        .update({ status: "processing", metadata: claim.metadata })
+        .eq("id", claimId)
+        .eq("status", "failed")
+        .select("id")
+        .maybeSingle()
+    : await supabase.from("messages").insert(claim);
+  const claimError = claimResult.error;
+  if (retryMessageId && !claimResult.data && !claimError)
+    throw new Error("The failed email receipt is already being reconciled");
   if (claimError)
     throw new Error(
       claimError.code === "23505" ? "This email has already been claimed" : claimError.message,
@@ -326,6 +374,7 @@ export async function sendRecordedEmail(
         subject: input.subject.trim(),
         text: deliveredText,
         html: deliveredHtml,
+        ...(attachments ? { attachments } : {}),
         headers: unsubscribeUrl
           ? {
               "List-Unsubscribe": `<${unsubscribeUrl}>`,

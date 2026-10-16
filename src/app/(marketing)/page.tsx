@@ -1,4 +1,6 @@
 import { distributionProfile } from "@/lib/distribution/profile";
+import { Suspense } from "react";
+import { WorkshopPromotion } from "@/components/events/WorkshopPromotion";
 import { neutralPublicIdentity } from "@/lib/distribution/public-identity";
 import { tenant } from "@/config/tenant";
 import { createNeutralWebsite } from "@/lib/site-studio/neutral-website";
@@ -103,7 +105,13 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <Studio />
+      <Studio
+        promotion={
+          <Suspense fallback={null}>
+            <WorkshopPromotion />
+          </Suspense>
+        }
+      />
     </>
   );
 }

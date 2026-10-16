@@ -2,6 +2,20 @@
  * checked against the marketing route tree so migrations cannot omit a page. */
 export const installationRoutes = [
   {
+    path: "/events/[slug]",
+    source: "src/app/(marketing)/events/[slug]/page.tsx",
+    kind: "application",
+    collection: null,
+    preserve: "Published workshop details and tenant-scoped ticket checkout",
+  },
+  {
+    path: "/events/[slug]/confirmation",
+    source: "src/app/(marketing)/events/[slug]/confirmation/page.tsx",
+    kind: "application",
+    collection: null,
+    preserve: "Private order confirmation and calendar download",
+  },
+  {
     path: "/ai-readiness",
     source: "src/app/(marketing)/ai-readiness/page.tsx",
     kind: "application",

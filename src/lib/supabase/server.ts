@@ -214,6 +214,35 @@ export async function callCollectionHostRpc(
 }
 
 const MODEL_BUDGET_RPCS = ["reserve_model_call", "complete_model_call"] as const;
+/** Event edits use the existing fresh-membership bridge; public order RPCs
+ * remain on their explicitly scoped system database. */
+export async function callTicketEventRpc(
+  database: SupabaseClient,
+  operation:
+    | "save_ticket_event"
+    | "observe_event_payment"
+    | "release_uncreated_ticket_order"
+    | "record_ticket_confirmation",
+  args: Record<string, unknown>,
+) {
+  if (
+    ![
+      "save_ticket_event",
+      "observe_event_payment",
+      "release_uncreated_ticket_order",
+      "record_ticket_confirmation",
+    ].includes(operation)
+  )
+    throw new Error("Ticket host operation is not allowed");
+  const context = getTenantRequestContext();
+  if (
+    operation === "save_ticket_event" &&
+    (context?.kind !== "actor" || args.p_actor_email !== context.user.email)
+  )
+    throw new Error("A verified event administrator is required");
+  return callVerifiedHostRpc(database, operation, args);
+}
+
 /** Form commands cross the same fresh-membership host boundary as Site Studio. */
 export async function callFormBuilderRpc(
   database: SupabaseClient,

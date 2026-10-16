@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { createHash } from "node:crypto";
 import { adminEmail, fromEmail } from "@/config/tenant";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptSecret, isEncryptedSecret } from "@/lib/revenue-os/encryption";
@@ -7,6 +8,29 @@ import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
 
 let _resend: Resend | null = null;
+/** Opaque server-only connection binding for an exact idempotent retry. A
+ * rotated connection cannot replay a key against a different provider account. */
+export async function getTenantResendBinding(database: SupabaseClient): Promise<string> {
+  const tenantId = tenantIdForDatabase(database);
+  if (!tenantId) throw new Error("Tenant-bound email connection required");
+  const { data, error } = await database
+    .from("integration_connections")
+    .select("status,credential_version,encrypted_credentials,environment_fallback_allowed")
+    .eq("provider", "resend")
+    .maybeSingle();
+  if (error) throw new Error("Email connection could not be verified");
+  const fallback =
+    tenantId === ACCELERATE_TENANT_ID && (!data || data.environment_fallback_allowed);
+  return createHash("sha256")
+    .update(
+      JSON.stringify([
+        tenantId,
+        data ?? null,
+        fallback ? (process.env.RESEND_API_KEY ?? null) : null,
+      ]),
+    )
+    .digest("hex");
+}
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function getResend(): Resend {

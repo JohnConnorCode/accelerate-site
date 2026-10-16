@@ -215,6 +215,26 @@ export async function tenantStripeClient(db: SupabaseClient) {
       await assertCurrentConnection();
       return stripeRequest(apiKey, "/checkout/sessions", body, key);
     },
+    retrieveCheckoutSession: (id: string) => {
+      if (!/^cs_[A-Za-z0-9_]{1,200}$/.test(id)) throw new Error("Invalid Stripe checkout session");
+      return stripeRequest(apiKey, `/checkout/sessions/${id}?expand[]=line_items`);
+    },
+    checkoutSessionsSince: (created: number) => {
+      if (!Number.isSafeInteger(created) || created < 0)
+        throw new Error("Invalid checkout receipt window");
+      return stripeRequest(
+        apiKey,
+        `/checkout/sessions?${new URLSearchParams({ limit: "100", "created[gte]": String(created) })}`,
+      );
+    },
+    paymentIntent: (id: string) => {
+      if (!/^pi_[A-Za-z0-9]{1,120}$/.test(id)) throw new Error("Invalid Stripe payment intent");
+      return stripeRequest(apiKey, `/payment_intents/${id}`);
+    },
+    charge: (id: string) => {
+      if (!/^ch_[A-Za-z0-9]{1,120}$/.test(id)) throw new Error("Invalid Stripe charge");
+      return stripeRequest(apiKey, `/charges/${id}`);
+    },
     subscription: (id: string) => {
       if (!/^sub_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe subscription");
       return stripeRequest(apiKey, `/subscriptions/${id}`);

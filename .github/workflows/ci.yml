@@ -267,6 +267,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
           npm run test:content-calendar-actions
           PATH="$(pg_config --bindir):$PATH" npm run test:content-calendar-postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:event-ticketing:postgres
           npm run test:workspace-operations
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-operations-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning
@@ -670,6 +671,7 @@ jobs:
             node scripts/qa-command-center-daily-work.mjs
             PRODUCT_STORY_QA_OUTPUT=/tmp/accelerate-product-story node scripts/qa-command-center-product-story.mjs
             node scripts/qa-content-calendar.mjs
+            node --import tsx scripts/qa-event-ticketing.mjs
             npx tsx scripts/qa-site-studio.ts
             node scripts/qa-campaign-duplicate.mjs
             node scripts/qa-delivery-handoff.mjs
@@ -804,6 +806,7 @@ jobs:
             /tmp/accelerate-website-ai-recovery/
             /tmp/accelerate-campaign-duplicate/
             /tmp/accelerate-content-calendar/
+            /tmp/accelerate-event-ticketing/
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
             /tmp/accelerate-turnkey-qa/

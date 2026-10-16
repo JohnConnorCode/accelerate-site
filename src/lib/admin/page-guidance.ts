@@ -143,6 +143,17 @@ export const adminPageGuidance: Record<string, AdminPageGuidance> = {
     ],
     guideHref: "/docs/outreach/campaigns",
   },
+  events: {
+    description:
+      "Sell workshop admission and follow paid orders, available places, refunds, and confirmation delivery.",
+    steps: [
+      "Edit an event draft and review its date, venue, ticket price, capacity, and refund terms.",
+      "Publish when its Stripe and email connections are ready, then share its public registration page.",
+    ],
+    savedOutcome:
+      "New orders use the published terms. Existing orders retain their original price and payment history.",
+    guideHref: "/docs/plugins/event-ticketing",
+  },
   recovery: {
     description: "Find past inquiries worth another conversation and prepare relevant follow-up.",
     steps: [

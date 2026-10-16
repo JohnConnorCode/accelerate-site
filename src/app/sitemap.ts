@@ -1,3 +1,4 @@
+import { WORKSHOP_EVENT_ID } from "@/content/workshops";
 import { distributionProfile } from "@/lib/distribution/profile";
 export const dynamic = "force-dynamic";
 import { readPublicWebsite } from "@/lib/site-studio/website-public";
@@ -10,6 +11,9 @@ import { verticals } from "@/content/verticals";
 import { publicWorkProjects } from "@/content/work";
 import { docsManifest, flattenDocsPages } from "@/content/docs/manifest";
 import { TEAM_MEMBERS } from "@/content/team";
+import { loadPublicTicketEvent } from "@/lib/revenue-os/event-ticketing";
+import { eventPath } from "@/lib/revenue-os/event-ticketing-contract";
+import { ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
 
 const BASE_URL = tenant.brand.siteUrl.replace(/\/$/, "");
 
@@ -170,6 +174,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       entry,
     ]),
   );
+  const workshop = await loadPublicTicketEvent(
+    ACCELERATE_TENANT_SLUG,
+    { eventId: WORKSHOP_EVENT_ID },
+    true,
+  ).catch(() => null);
+  if (workshop && workshop.status === "published" && Date.parse(workshop.starts_at) > Date.now())
+    entries.set(`${BASE_URL}${eventPath(ACCELERATE_TENANT_SLUG, workshop.slug)}`, {
+      url: `${BASE_URL}${eventPath(ACCELERATE_TENANT_SLUG, workshop.slug)}`,
+      lastModified: new Date(workshop.updated_at),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    });
   if (website.mode === "published") {
     for (const page of [
       ...website.document.pages,

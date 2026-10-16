@@ -162,6 +162,16 @@ Verify the shared demo at desktop/mobile widths with fictional data and no live
 side effects. Authentication-only steps are explicitly classified secure human
 handoffs; missing business tools stay visible as implementation gaps.
 
+Event ticketing also classifies buyer registration as a secure human handoff.
+`get_ticket_events` returns the public registration path alongside bounded event
+and order context. The buyer chooses tickets and pays in Stripe, then supplies
+optional business context using their private confirmation link. These reviewed
+public transports carry `audience: secure-human-handoff` in the operation
+inventory. The administrator's AI never purchases tickets, accepts payment
+details, or receives the buyer's private order key. Event edits, publication,
+reservation reconciliation and confirmation retries use the normal governed
+admin command and human approval path.
+
 ## Current implementation boundary
 
 Use the generated inventory and live capability catalogue for current counts.

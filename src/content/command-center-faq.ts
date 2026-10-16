@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I sell tickets to a workshop?",
+    answer:
+      "Yes, with Events & Tickets enabled and the intended Stripe and Resend connections configured. Open Marketing → Events to edit the page, admission price, schedule, capacity and refund terms. Buyers can purchase several tickets without creating an account. Payment confirms admission; a return from checkout alone does not. Existing orders keep their agreed price, and you can inspect confirmations, export buyer records and review refunds in Stripe.",
+  },
+  {
     question: "What is Command Center?",
     answer:
       "Command Center is an open-source AI business platform you can make your own. It connects customer history with sales, delivery, billing and marketing, and provides shared services for custom workflows and Apps. Your team can use the workspace directly, or your developers and coding agents can adapt it for your operation.",

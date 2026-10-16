@@ -1,4 +1,5 @@
 import { handleDemoContentCalendar } from "./content-calendar-runtime";
+import { handleDemoEventTickets } from "./event-ticketing-runtime";
 import {
   createDemoSiteDraftState,
   handleDemoSiteDrafts,
@@ -2665,6 +2666,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    const eventTickets = handleDemoEventTickets(
+      scenarioId,
+      state,
+      business,
+      path,
+      method,
+      body,
+      url.searchParams,
+      () => {
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+      },
+    );
+    if (eventTickets) return eventTickets;
     const calendar = await handleDemoContentCalendar(
       scenarioId,
       state,

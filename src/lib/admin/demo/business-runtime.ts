@@ -1,4 +1,5 @@
 import { handleDemoSocial, type DemoSocialState } from "./social-runtime";
+import type { DemoEventTicketState } from "./event-ticketing-runtime";
 import { handleDemoConfiguration, type DemoConfigurationState } from "./configuration-runtime";
 import { getLayoutScope } from "@/lib/admin/layout-scopes";
 import { validateAdminTheme } from "@/lib/admin/theme-definition";
@@ -75,6 +76,7 @@ type Page = {
   design: InvoiceDesign;
 };
 export type DemoBusinessState = {
+  eventTickets?: DemoEventTicketState;
   configuration?: DemoConfigurationState;
   social?: DemoSocialState;
   radar?: DemoRadarState;

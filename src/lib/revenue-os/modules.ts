@@ -136,6 +136,20 @@ export interface RevenueOSModule {
  * Core module registry. Always present, never overridable by an extension.
  */
 const CORE_MODULES: readonly RevenueOSModule[] = [
+  {
+    id: "event-ticketing",
+    name: "Events & Tickets",
+    description:
+      "Publish paid workshops, control capacity, and track buyer confirmations through Stripe.",
+    category: "revenue",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["events"],
+    routes: ["/admin/events"],
+    aiToolNames: ["get_ticket_events", "propose_event_ticketing"],
+    aiToolPacks: ["core"],
+    docsUrl: "/docs/outreach",
+  },
   // --- Core Modules (Always Enabled) ---
   {
     id: "core-command",

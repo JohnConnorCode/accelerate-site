@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "event-workshop-ticketing",
+    slug: "event-workshop-ticketing",
+    title: "Sell workshop tickets and manage registrations",
+    description:
+      "An optional Events workspace edits workshop details, ticket prices, capacity and refund terms. Buyers use guest Stripe checkout for one or several tickets. Shared reservations protect availability, paid orders retain their price, and confirmations include a calendar attachment. Operators can inspect refunds, export buyers, reconcile expired reservations and prepare reviewed changes with AI. This capability is included in the source; production activation remains separate.",
+    category: "feature",
+    publishedAt: "2026-10-16",
+  },
+  {
     id: "operator-task-selection-before-limits",
     slug: "operator-task-selection-before-limits",
     title: "Keep urgent work visible in large task lists",

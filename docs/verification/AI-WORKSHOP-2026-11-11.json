@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "preparedAt": "2026-10-16T21:35:59.836413+00:00",
+  "base": "a0ceb2aba4d6290e4a24513787db978c6d26b0c0",
+  "integrationAncestor": "525da731fde95aa7956c0a631652df6b02feaded",
+  "workshop": {
+    "title": "AI for Your Business: A Practical Strategy Workshop",
+    "presenters": ["John Connor", "Matthew Rolnick"],
+    "start": "2026-11-11T12:00:00-06:00",
+    "end": "2026-11-11T13:30:00-06:00",
+    "timezone": "America/Chicago",
+    "venue": "Ferris & Co.",
+    "address": "1 W Monroe Street, Chicago, IL 60603",
+    "venueSource": "https://ferrischicago.com/",
+    "currency": "USD",
+    "priceCents": 5000,
+    "priceEditableInAdmin": true,
+    "capacity": 40,
+    "refundCutoff": "2026-11-09T12:00:00-06:00",
+    "initialStatus": "draft",
+    "registrationPath": "/events/ai-strategy-workshop-chicago-2026"
+  },
+  "localEvidence": {
+    "eventService": "18 reported checks passed with deterministic Stripe/Resend transport; additional approval expiry, foreign-tenant, rejected, autonomous and module-disabled refusals asserted.",
+    "postgres": "Native PostgreSQL 17, isolated temporary database: replay, concurrent capacity, request dedupe, immutable snapshots, role/tenant refusal, mode/account/amount/quantity checks, refund replay/release, provider-absence grace and provider email receipt prerequisite passed.",
+    "core": "Every command in the canonical test:core list passed. Failed checkpoints were repaired and execution resumed from their boundary; CI will rerun the full list on the final head.",
+    "contracts": "Agent, guardrails, docs source, extension manifests, module route guards, schema verification and existing subscription service tests passed."
+  },
+  "pendingEvidence": [
+    "Final production build",
+    "Opened desktop/mobile screenshots and browser journeys",
+    "Docs Copy button geometry diagnosis from failed baseline CI",
+    "Required verify CI on final combined head"
+  ],
+  "production": {
+    "changed": false,
+    "migrationApplied": false,
+    "salesOpened": false,
+    "realPaymentsCreated": false,
+    "emailsOrMarketingSent": false,
+    "releaseRequiresFounderInstruction": true,
+    "targetAccess": "Vercel CLI johnconnorcode; project prj_w46n3AgV4L4IGEJZ0WzCBCZhDTot, team team_aoXdtupaCmY2LDwBtCd4d7If verified; billing active. PR Vercel status separately reports Account is blocked.",
+    "observedCanonicalDeployment": "dpl_FknAs2hkLC84ek1MjaRZeSBrHFjV",
+    "observedCanonicalState": "Ready"
+  },
+  "review": "Implementing-agent review; no independent user or live-provider acceptance claimed."
+}
