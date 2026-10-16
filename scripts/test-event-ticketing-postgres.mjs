@@ -119,7 +119,22 @@ try {
     "t",
     "Forks retain the optional module's disabled default",
   );
-  sql(`UPDATE tenants SET config='{"brand":{"domain":"acceleratewith.us"}}' WHERE id='${a}'`);
+  sql(
+    `UPDATE tenants SET config='{"brand":{"name":"Recovery proof","domain":"acceleratewith.us"}}' WHERE id='${a}'`,
+  );
+  sql(migration);
+  assert.equal(
+    sql("SELECT count(*) FROM ticket_events"),
+    "0",
+    "A customized bootstrap identity remains unchanged",
+  );
+  assert.equal(
+    sql(`SELECT config->'modules'->>'event-ticketing' IS NULL FROM tenants WHERE id='${a}'`),
+    "t",
+  );
+  sql(
+    `UPDATE tenants SET config='{"brand":{"name":"Accelerate","domain":"acceleratewith.us"}}' WHERE id='${a}'`,
+  );
   sql(migration);
   sql(migration);
   assert.equal(sql(`SELECT count(*) FROM ticket_events WHERE id='${WORKSHOP_EVENT_ID}'`), "1");
