@@ -75,6 +75,14 @@ export function EventCheckout({
       const payload = await response.json();
       if (!response.ok) {
         if (response.status === 409) {
+          if (payload.restartCheckout === true) {
+            attempt.current = { fingerprint: "", key: "" };
+            try {
+              sessionStorage.removeItem(`ticket-checkout:${tenantSlug}:${event.id}`);
+            } catch {
+              /* In-page recovery remains available if storage is blocked. */
+            }
+          }
           const refreshed = await fetch(endpoint, { cache: "no-store" });
           if (refreshed.ok) {
             const next = (await refreshed.json()).event as TicketEvent;

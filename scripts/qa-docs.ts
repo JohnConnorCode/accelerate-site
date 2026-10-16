@@ -524,10 +524,29 @@ async function main() {
               await assignment.elementHandle(),
             );
             const copy = assignment.getByRole("button");
+            // Measure the settled touch target. Translating entrance frames
+            // can report 43.999969px for a 44px layout box in Chromium.
+            await page.waitForFunction(
+              (element) => {
+                for (let owner: Element | null = element; owner; owner = owner.parentElement)
+                  if (
+                    owner
+                      .getAnimations()
+                      .some(
+                        (animation) =>
+                          animation.playState === "running" &&
+                          animation.effect?.getTiming().iterations !== Infinity,
+                      )
+                  )
+                    return false;
+                return true;
+              },
+              await copy.elementHandle(),
+            );
             const target = await copy.boundingBox();
             assert.ok(
               target && target.width >= 44 && target.height >= 44,
-              "Copy needs a touch-sized target",
+              `Copy needs a touch-sized target: ${JSON.stringify(target)}`,
             );
             const prompt = await assignment.locator("pre code").textContent();
             assert.ok(

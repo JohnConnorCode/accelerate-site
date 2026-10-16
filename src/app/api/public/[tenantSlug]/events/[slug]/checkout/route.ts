@@ -4,7 +4,7 @@ import { siteUrl } from "@/config/tenant";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { resolveActiveTenantSystemContext } from "@/lib/tenancy/system";
-import { createTicketCheckout } from "@/lib/revenue-os/event-ticketing";
+import { createTicketCheckout, TicketCheckoutClosedError } from "@/lib/revenue-os/event-ticketing";
 import { consumeRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(
@@ -53,6 +53,7 @@ export async function POST(
     const conflict = /changed|remain|closed|no longer|already used/.test(message);
     return NextResponse.json(
       {
+        restartCheckout: error instanceof TicketCheckoutClosedError,
         error: conflict
           ? message
           : "Checkout could not be started. Your admission is not confirmed. Retry with the same details; if payment already succeeded, use your confirmation link.",

@@ -1076,7 +1076,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "c7134f2d6978dd54aacee246b1130221a7d98c60648f40642e029fd33a25c4a6"
+      "sourceSha256": "e2de2c98d49e9521bfdcdb72553da4d2d636041354c44d8ee36161ad7afb9f95"
     },
     {
       "source": "src/app/api/public/[tenantSlug]/events/[slug]/route.ts",

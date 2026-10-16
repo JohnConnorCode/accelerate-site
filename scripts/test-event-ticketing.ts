@@ -8,6 +8,7 @@ import { encryptTenantSecret } from "../src/lib/revenue-os/encryption";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/constants";
 import {
   createTicketCheckout,
+  TicketCheckoutClosedError,
   processTicketStripeWebhook,
   sendTicketConfirmation,
   readPublicTicketOrder,
@@ -402,6 +403,10 @@ async function serviceProof() {
     );
     assert.equal(providerCreates, 1);
     assert.equal(providerSends, 1);
+    await assert.rejects(
+      createTicketCheckout(db, event.slug, input, "https://workshop.example.test", "accelerate"),
+      TicketCheckoutClosedError,
+    );
   } finally {
     globalThis.fetch = realFetch;
   }

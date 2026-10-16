@@ -43,6 +43,12 @@ import {
 type StripeClient = Awaited<ReturnType<typeof tenantStripeClient>>;
 type ProviderObject = Record<string, unknown>;
 class TicketingUnavailableError extends Error {}
+export class TicketCheckoutClosedError extends Error {
+  constructor() {
+    super("This checkout is no longer available. Review availability and start a new purchase.");
+    this.name = "TicketCheckoutClosedError";
+  }
+}
 function scope(db: SupabaseClient) {
   const id = tenantIdForDatabase(db);
   if (!id) throw new Error("Event ticketing requires an explicit workspace");
@@ -338,13 +344,21 @@ export async function createTicketCheckout(
     p_livemode: client.mode === "live",
   });
   if (order.state === "expired" || order.state === "refunded")
-    throw new Error("This checkout is no longer available; start a new purchase");
+    throw new TicketCheckoutClosedError();
   if (order.state === "paid")
     return {
       confirmed: true,
       url: `${origin}${eventPath(tenantSlug, slug)}/confirmation?order=${order.id}&key=${order.request_id}`,
     };
   const attached = await attachCheckout(db, order, client, origin, tenantSlug);
+  // The webhook can settle the order before checkout creation returns.
+  if (attached.state === "paid")
+    return {
+      confirmed: true,
+      url: `${origin}${eventPath(tenantSlug, slug)}/confirmation?order=${attached.id}&key=${attached.request_id}`,
+    };
+  if (attached.state === "expired" || attached.state === "refunded")
+    throw new TicketCheckoutClosedError();
   return { url: attached.stripe_checkout_url, orderId: order.id, expiresAt: attached.expires_at };
 }
 function object(value: unknown): ProviderObject {

@@ -85,7 +85,7 @@ let serverLog = "",
 try {
   server = spawn(
     process.execPath,
-    ["scripts/next-release.mjs", "start", "--hostname", "127.0.0.1", "--port", String(port)],
+    ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", String(port)],
     {
       env: {
         ...process.env,
@@ -153,7 +153,7 @@ try {
     page.on("console", (message) => {
       if (
         message.type() === "error" &&
-        !(message.location().url.startsWith(api) && /\b(?:422|503)\b/.test(message.text()))
+        !(message.location().url.startsWith(api) && /\b(?:409|422|503)\b/.test(message.text()))
       )
         errors.push(message.text());
     });
@@ -182,7 +182,16 @@ try {
                 status: 503,
                 json: { error: "Checkout could not be started. Retry with the same details." },
               }
-            : { json: { url: "https://checkout.stripe.com/c/pay/cs_controlled", orderId } },
+            : checkoutAttempts === 2
+              ? {
+                  status: 409,
+                  json: {
+                    error:
+                      "This reservation expired. Review availability and start a new purchase.",
+                    restartCheckout: true,
+                  },
+                }
+              : { json: { url: "https://checkout.stripe.com/c/pay/cs_controlled", orderId } },
         );
       }
       if (request.method() === "PATCH") {
@@ -245,9 +254,12 @@ try {
       accessibility.violations.map((item) => ({ id: item.id, impact: item.impact })),
       [],
     );
-    await page.screenshot({ path: `${output}/public-${theme}-${width}.png`, fullPage: true });
+    await page.locator("main").screenshot({ path: `${output}/public-${theme}-${width}.png` });
     await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
-    await page.getByLabel("Email address", { exact: true }).fill("buyer@workshop.example");
+    await page
+      .getByRole("complementary", { name: "Workshop tickets" })
+      .getByLabel("Email address", { exact: true })
+      .fill("buyer@workshop.example");
     await page.getByLabel("Number of tickets").selectOption("2");
     const buy = page.getByRole("button", { name: "Get 2 tickets — $100" });
     await buy.focus();
@@ -259,16 +271,23 @@ try {
     );
     await page.reload();
     await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
-    await page.getByLabel("Email address", { exact: true }).fill("buyer@workshop.example");
+    await page
+      .getByRole("complementary", { name: "Workshop tickets" })
+      .getByLabel("Email address", { exact: true })
+      .fill("buyer@workshop.example");
     await page.getByLabel("Number of tickets").selectOption("2");
     assert.equal(
       await page.evaluate(() => JSON.stringify(sessionStorage).includes("buyer@workshop.example")),
       false,
     );
     await buy.click();
+    await page.getByRole("alert").filter({ hasText: "This reservation expired" }).waitFor();
+    await buy.click();
     await page.waitForURL("https://checkout.stripe.com/**");
-    assert.equal(purchases.length, 2);
+    assert.equal(purchases.length, 3);
     assert.deepEqual(purchases[0], purchases[1]);
+    assert.notEqual(purchases[1].requestId, purchases[2].requestId);
+    assert.deepEqual({ ...purchases[1], requestId: null }, { ...purchases[2], requestId: null });
     assert.equal(purchases[0].quantity, 2);
     assert.equal(purchases[0].attribution.utm_source, "venue");
     assert.equal("price_cents" in purchases[0], false);
