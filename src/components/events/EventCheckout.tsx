@@ -147,8 +147,8 @@ export function EventCheckout({
               : `Get ${quantity === 1 ? "a ticket" : `${quantity} tickets`} (${ticketMoney(event.price_cents * quantity)})`}
           </button>
           <p className={styles.small}>
-            Pay securely with Stripe. You do not need an Accelerate account. Tickets are confirmed
-            after successful payment.
+            Pay securely with Stripe. No account is needed. Tickets are confirmed after successful
+            payment.
           </p>
         </form>
       ) : (
