@@ -451,7 +451,9 @@ try {
       false,
     );
     await page.screenshot({ path: `${output}/admin-${width}.png`, fullPage: true });
-    await page.getByLabel("Ticket price (USD)").scrollIntoViewIfNeeded();
+    await page
+      .getByLabel("Ticket price (USD)")
+      .evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
     await page.screenshot({ path: `${output}/admin-price-${width}.png`, fullPage: true });
     const current = await page.evaluate(async () => (await fetch("/api/admin/events")).json());
     const command = {
