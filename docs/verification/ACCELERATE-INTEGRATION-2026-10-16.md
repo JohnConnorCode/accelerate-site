@@ -22,6 +22,13 @@ The two completed queue changes are now applied independently:
 
 The focused priority-selector check passes all eighteen reported checks,
 including partition failures, source movement, deadline precedence and demo parity.
+The existing partition-faithful agent-loop fixture from PR #261 is also included.
+Its older mock ignored filters and repeated the same tasks across all nine
+partitions, producing a short unavailable result instead of the oversized native
+queue the transcript-budget assertion intended to test. The shared memory adapter
+now proves the 75-item queue, the size precondition and the unchanged truncation
+assertion. The agent-loop check passes all fifteen reported scenarios.
+The reviewed route inventory refresh changes only the AI-tool and queue hashes.
 The cumulative source is retained once; the queue scope in draft PR #261 must
 not be merged a second time.
 
@@ -41,3 +48,8 @@ verification check and the fresh base. Integration, verification, merge and
 production publication are separate outcomes. This receipt does not authorize
 or claim a production release. The workshop feature builds on this reconciled
 source and has its own payment, capacity, tenant and browser acceptance.
+
+Local full verification stopped at the unchanged memory gate (19% available;
+20% required). The existing GitHub CI runner provides full verification. The
+initial CI receipt is run 38960313389; its formatting, stale route evidence and
+non-partitioned loop fixture failures are preserved and corrected in this head.

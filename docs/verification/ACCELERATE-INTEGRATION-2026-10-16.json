@@ -2,13 +2,7 @@
   "checkedAt": "2026-10-16T20:03:37.958897+00:00",
   "base": "a0ceb2aba4d6290e4a24513787db978c6d26b0c0",
   "previousAudit": "docs/verification/release-source-audit-2026-10-09.json",
-  "mergedBaselineReceipts": [
-    251,
-    255,
-    258,
-    259,
-    260
-  ],
+  "mergedBaselineReceipts": [251, 255, 258, 259, 260],
   "included": [
     {
       "source": "494e133e",
@@ -38,9 +32,7 @@
       "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/accelerate-site",
       "head": "41b126d2aef2cfc13d330fb8fc05130eb2d51b44",
       "branch": "agent/command-center-copy-rewrite",
-      "changedPaths": [
-        "?? .tmp-probe/"
-      ],
+      "changedPaths": ["?? .tmp-probe/"],
       "trackedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "disposition": "retained-without-mutation"
     },
@@ -324,10 +316,7 @@
       "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/command-center-capy-theme-589b5230-94e8-4797-b463-7b4db17dd158",
       "head": "517b5f2c9f25b51b0e45eaef425910d1c4b325bc",
       "branch": "agent/command-center-capy-theme-589b5230-94e8-4797-b463-7b4db17dd158",
-      "changedPaths": [
-        "M src/app/admin-themes.css",
-        " M src/lib/admin/themes.json"
-      ],
+      "changedPaths": ["M src/app/admin-themes.css", " M src/lib/admin/themes.json"],
       "trackedDiffSha256": "037b511bb93d035e0d1f5ce8def4570a89a62487c9d4dc4c8aafd7ee0efe3e62",
       "disposition": "retained-without-mutation"
     },
@@ -701,9 +690,7 @@
       "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/release-restore-upgrade-proof-17430177-f561-4836-a95f-258c348654d2",
       "head": "35a2ea1464221094da37fd6db54fb0e268c654d4",
       "branch": "agent/release-restore-upgrade-proof-17430177-f561-4836-a95f-258c348654d2",
-      "changedPaths": [
-        "M tsconfig.json"
-      ],
+      "changedPaths": ["M tsconfig.json"],
       "trackedDiffSha256": "072abfa0825da9f801a00b53483dd9d8a809db64315245a9be5ce621e919c597",
       "disposition": "retained-without-mutation"
     },
@@ -931,10 +918,7 @@
       "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/control-main",
       "head": "f15d82706c8210a6afe9d5466b9fb9aa3c1a4e7a",
       "branch": "detached",
-      "changedPaths": [
-        "M scripts/feature-backlog-data.mjs",
-        " M scripts/work-board-import.ts"
-      ],
+      "changedPaths": ["M scripts/feature-backlog-data.mjs", " M scripts/work-board-import.ts"],
       "trackedDiffSha256": "facbb0c801883262040b51ff85de2294a45acd9c1706a09a2828efb631906abf",
       "disposition": "retained-without-mutation"
     },
@@ -942,9 +926,7 @@
       "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/control-main-20260926-release",
       "head": "d486c2d9874e7b198cb7d98dea16bd5b1c84a215",
       "branch": "detached",
-      "changedPaths": [
-        "M package-lock.json"
-      ],
+      "changedPaths": ["M package-lock.json"],
       "trackedDiffSha256": "46bdd445d4c96da6d6d7d9544669033332a9d4d0b12dd81eb4b27096f6a1bfd6",
       "disposition": "retained-without-mutation"
     },
