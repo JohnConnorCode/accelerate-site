@@ -205,7 +205,7 @@ export function eventCalendar(event: EventDefinition, orderId: string) {
     `DTEND:${stamp(event.ends_at)}`,
     `SUMMARY:${escape(event.title)}`,
     `LOCATION:${escape(`${event.venue_name}, ${event.venue_address}`)}`,
-    `DESCRIPTION:${escape("Your admission is confirmed. Bring your business questions and an example of work you would like AI to help with.")}`,
+    `DESCRIPTION:${escape("Check your ticket confirmation for current admission status. Bring your business questions and an example of work you would like AI to help with.")}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ];

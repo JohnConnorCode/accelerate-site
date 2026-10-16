@@ -146,7 +146,8 @@ try {
       contexts = [];
     let checkoutAttempts = 0,
       contextAttempts = 0,
-      receiptState = "checkout";
+      receiptState = "checkout",
+      receiptTestMode = false;
     const orderId = randomUUID(),
       key = randomUUID();
     page.on("pageerror", (error) => errors.push(error.message));
@@ -212,7 +213,7 @@ try {
             state: receiptState,
             event,
             emailStatus: "attention",
-            testMode: false,
+            testMode: receiptTestMode,
           },
         });
       return route.continue();
@@ -221,6 +222,7 @@ try {
       waitUntil: "networkidle",
     });
     await page.getByRole("heading", { level: 1, name: event.headline }).waitFor();
+    assert.equal(await page.locator("main").count(), 1, "Use the route's single main landmark");
     assert.match(await page.title(), /AI for Your Business/);
     const structured = await page.locator('script[type="application/ld+json"]').allTextContents();
     const listing = structured
@@ -265,6 +267,20 @@ try {
     await buy.focus();
     await page.keyboard.press("Enter");
     await page.getByRole("alert").filter({ hasText: "Retry with the same details" }).waitFor();
+    const errorAccessibility = await new AxeBuilder({ page })
+      .include('[role="alert"]')
+      .withRules(["color-contrast"])
+      .analyze();
+    assert.deepEqual(
+      errorAccessibility.violations.map((violation) => ({
+        id: violation.id,
+        nodes: violation.nodes.map((node) => ({
+          target: node.target,
+          summary: node.failureSummary,
+        })),
+      })),
+      [],
+    );
     assert.equal(
       await page.getByLabel("Your name", { exact: true }).inputValue(),
       "Workshop Buyer",
@@ -321,6 +337,13 @@ try {
       await page.getByRole("button", { name: "Add the workshop to your calendar" }).count(),
       0,
     );
+    receiptState = "paid";
+    receiptTestMode = true;
+    await page.reload();
+    await page.getByRole("heading", { name: "Test registration complete." }).waitFor();
+    await page.getByRole("status").filter({ hasText: "no live admission is confirmed" }).waitFor();
+    await page.getByText("Test amount", { exact: true }).waitFor();
+    assert.equal(await page.locator("main").count(), 1);
     assert.deepEqual(errors, []);
     results.push({
       width,

@@ -12,5 +12,7 @@ export async function generateMetadata({ params, searchParams }: Props) {
 }
 export default async function WorkshopPage({ params, searchParams }: Props) {
   const { tenantSlug, slug } = await params;
-  return ticketEventPage(tenantSlug, slug, (await searchParams).preview === "1");
+  return (
+    <main>{await ticketEventPage(tenantSlug, slug, (await searchParams).preview === "1")}</main>
+  );
 }

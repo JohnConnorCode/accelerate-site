@@ -14,11 +14,13 @@ export default async function ConfirmationPage({
   const { tenantSlug, slug } = await params;
   const query = await searchParams;
   return (
-    <TicketConfirmation
-      tenantSlug={tenantSlug}
-      slug={slug}
-      orderId={query.order || ""}
-      orderKey={query.key || ""}
-    />
+    <main>
+      <TicketConfirmation
+        tenantSlug={tenantSlug}
+        slug={slug}
+        orderId={query.order || ""}
+        orderKey={query.key || ""}
+      />
+    </main>
   );
 }

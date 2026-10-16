@@ -479,7 +479,12 @@ export async function sendTicketConfirmation(
       attachments: [
         {
           filename: "workshop.ics",
-          content: Buffer.from(eventCalendar(event, order.id)).toString("base64"),
+          content: Buffer.from(
+            eventCalendar(
+              order.livemode ? event : { ...event, title: `[Test] ${event.title}` },
+              order.id,
+            ),
+          ).toString("base64"),
           contentType: "text/calendar",
         },
       ],

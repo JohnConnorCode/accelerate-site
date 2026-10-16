@@ -17,7 +17,7 @@ export function WorkshopContent({
 }) {
   const timing = eventTiming(event);
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <div className={styles.wrap}>
         {preview && (
           <p className={styles.preview} role="status">
@@ -183,6 +183,6 @@ export function WorkshopContent({
           <EventCheckout event={event} tenantSlug={tenantSlug} preview={preview} />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

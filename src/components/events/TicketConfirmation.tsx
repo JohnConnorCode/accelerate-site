@@ -89,9 +89,19 @@ export function TicketConfirmation({
   function calendar() {
     if (!receipt) return;
     const url = URL.createObjectURL(
-      new Blob([eventCalendar(receipt.event, receipt.reference)], {
-        type: "text/calendar;charset=utf-8",
-      }),
+      new Blob(
+        [
+          eventCalendar(
+            receipt.testMode
+              ? { ...receipt.event, title: `[Test] ${receipt.event.title}` }
+              : receipt.event,
+            receipt.reference,
+          ),
+        ],
+        {
+          type: "text/calendar;charset=utf-8",
+        },
+      ),
     );
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -102,7 +112,7 @@ export function TicketConfirmation({
   const paid = receipt?.state === "paid";
   const when = receipt ? eventTiming(receipt.event) : null;
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <div className={`${styles.wrap} ${styles.confirmation}`}>
         <p className={styles.eyebrow}>Workshop registration</p>
         <h1>
@@ -154,7 +164,7 @@ export function TicketConfirmation({
                 <dd className={styles.reference}>{receipt.reference}</dd>
               </div>
               <div>
-                <dt>Total paid</dt>
+                <dt>{receipt.testMode ? "Test amount" : "Total paid"}</dt>
                 <dd>{ticketMoney(receipt.totalCents)}</dd>
               </div>
             </dl>
@@ -164,7 +174,7 @@ export function TicketConfirmation({
                 : "The confirmation email still needs attention. Keep this order reference and contact us if the email does not arrive."}
             </p>
             <button className={styles.primary} onClick={calendar}>
-              Add the workshop to your calendar
+              {receipt.testMode ? "Download test calendar" : "Add the workshop to your calendar"}
             </button>
             <section className={styles.section}>
               <h2>Help us make the examples useful.</h2>
@@ -220,6 +230,6 @@ export function TicketConfirmation({
           )}
         </p>
       </div>
-    </main>
+    </div>
   );
 }

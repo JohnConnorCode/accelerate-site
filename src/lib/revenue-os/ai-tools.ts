@@ -763,6 +763,8 @@ const registry: AiToolRegistration[] = [
           eventId: order.event_id,
           buyerName: order.buyer_name,
           buyerEmail: order.buyer_email,
+          company: order.company,
+          businessNeed: order.business_need,
           quantity: order.quantity,
           state: order.state,
           totalCents: order.total_cents,
