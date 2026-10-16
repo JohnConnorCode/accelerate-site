@@ -561,6 +561,7 @@ export const adminBusinessGroups = [
     primaryId: "campaigns",
     icon: MessageSquareText,
     members: [
+      "events",
       "emails",
       "campaigns",
       "delivery-runs",

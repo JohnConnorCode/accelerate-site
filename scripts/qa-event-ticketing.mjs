@@ -333,6 +333,7 @@ try {
     await page.getByRole("button", { name: "Save my answers" }).click();
     await page.getByRole("status").filter({ hasText: "Your answers are saved" }).waitFor();
     assert.deepEqual(contexts[0], contexts[1]);
+    assert.equal(await page.locator("[data-dock]").count(), 0);
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     await page.locator("main").screenshot({ path: `${output}/confirmation-${theme}-${width}.png` });
     receiptState = "refunded";
@@ -403,10 +404,11 @@ try {
       .getByLabel("End", { exact: true })
       .fill(await page.getByLabel("Start", { exact: true }).inputValue());
     await page.getByRole("button", { name: "Save event", exact: true }).click();
-    await page.getByRole("alert").filter({ hasText: "End time must follow start time" }).waitFor();
-    assert.ok(
-      (await page.getByRole("alert").textContent()).startsWith("End time must follow start time"),
-    );
+    const validationAlert = page
+      .getByRole("alert")
+      .filter({ hasText: "End time must follow start time" });
+    await validationAlert.waitFor();
+    assert.ok((await validationAlert.textContent()).startsWith("End time must follow start time"));
     await page.getByLabel("End", { exact: true }).fill(originalEnd);
     await page.getByLabel("Ticket price (USD)").fill("75.00");
     await page.getByRole("button", { name: "Save event", exact: true }).click();
@@ -449,6 +451,8 @@ try {
       false,
     );
     await page.screenshot({ path: `${output}/admin-${width}.png`, fullPage: true });
+    await page.getByLabel("Ticket price (USD)").scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/admin-price-${width}.png`, fullPage: true });
     const current = await page.evaluate(async () => (await fetch("/api/admin/events")).json());
     const command = {
       operation: "save_event",
