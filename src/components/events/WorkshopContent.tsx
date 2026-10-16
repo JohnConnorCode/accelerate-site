@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTeamMember } from "@/content/team";
 import { eventTiming, type TicketEvent } from "@/lib/revenue-os/event-ticketing-contract";
 import { ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
+import { distributionProfile } from "@/lib/distribution/profile";
 import { EventCheckout } from "./EventCheckout";
 import styles from "./workshop.module.css";
 
@@ -16,6 +17,10 @@ export function WorkshopContent({
   preview?: boolean;
 }) {
   const timing = eventTiming(event);
+  const branded = distributionProfile() === "branded" && tenantSlug === ACCELERATE_TENANT_SLUG;
+  const presenters = branded
+    ? ["john-connor", "matthew-rolnick"].map(getTeamMember).filter((member) => member !== null)
+    : [];
   return (
     <div className={styles.page}>
       <div className={styles.wrap}>
@@ -127,12 +132,12 @@ export function WorkshopContent({
                 ))}
               </ol>
             </section>
-            {tenantSlug === ACCELERATE_TENANT_SLUG && (
+            {presenters.length > 0 && (
               <section className={styles.section} aria-labelledby="presenters">
                 <h2 id="presenters">Your presenters.</h2>
                 <div className={styles.speakers}>
-                  {["john-connor", "matthew-rolnick"].map((slug) => {
-                    const member = getTeamMember(slug)!;
+                  {presenters.map((member) => {
+                    const slug = member.slug;
                     return (
                       <article key={slug}>
                         <Image
@@ -164,7 +169,7 @@ export function WorkshopContent({
             <section className={styles.support} aria-labelledby="support">
               <h2 id="support">Support beyond the workshop.</h2>
               <p>{event.support_description}</p>
-              {tenantSlug === ACCELERATE_TENANT_SLUG && (
+              {branded && (
                 <Link href="/contact">
                   Talk with us about implementation <span aria-hidden="true">↗</span>
                 </Link>

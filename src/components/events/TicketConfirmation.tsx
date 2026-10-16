@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { distributionProfile } from "@/lib/distribution/profile";
+import { ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
 import {
   eventCalendar,
   eventPath,
@@ -222,7 +224,7 @@ export function TicketConfirmation({
         )}
         <p>
           <Link href={eventPath(tenantSlug, slug)}>Workshop details</Link>
-          {tenantSlug === "accelerate" && (
+          {distributionProfile() === "branded" && tenantSlug === ACCELERATE_TENANT_SLUG && (
             <>
               {" "}
               · <a href="mailto:john@acceleratewith.us">Contact John</a>

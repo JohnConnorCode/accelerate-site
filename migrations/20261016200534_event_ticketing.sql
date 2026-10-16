@@ -287,8 +287,10 @@ INSERT INTO public.ticket_events(id,tenant_id,slug,title,headline,description,st
  'Full refunds are available for requests received by noon Chicago time on November 9, 2026. Contact john@acceleratewith.us with your order reference. If Accelerate cancels the workshop, all tickets will be refunded in full.',
  'Want help putting your strategy into practice? Optional one-on-one implementation support is available after the workshop and is priced separately from admission.',
  'draft' FROM public.tenants WHERE id='acce1e8e-0000-4000-8000-000000000001'
+ AND lower(btrim(config#>>'{brand,domain}')) IN ('acceleratewith.us','www.acceleratewith.us')
  ON CONFLICT(tenant_id,slug) DO NOTHING;
 UPDATE public.tenants SET config=jsonb_set(coalesce(config,'{}'::jsonb),'{modules}',
  coalesce(config->'modules','{}'::jsonb)||'{"event-ticketing":true}'::jsonb,true)
- WHERE id='acce1e8e-0000-4000-8000-000000000001' AND config->'modules'->'event-ticketing' IS NULL;
+ WHERE id='acce1e8e-0000-4000-8000-000000000001' AND config->'modules'->'event-ticketing' IS NULL
+ AND lower(btrim(config#>>'{brand,domain}')) IN ('acceleratewith.us','www.acceleratewith.us');
 COMMIT;

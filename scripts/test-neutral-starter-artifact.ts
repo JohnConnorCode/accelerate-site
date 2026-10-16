@@ -14,6 +14,8 @@ import {
   nativeTemplateSchemas,
 } from "../src/lib/site-studio/native-templates";
 import type { DigitalGrowthPlan } from "../src/lib/types";
+import { WORKSHOP_EVENT } from "../src/content/workshops";
+import { eventDefinitionSchema } from "../src/lib/revenue-os/event-ticketing-contract";
 assert.equal(
   tenant.brand.name,
   "Harbor Operations",
@@ -76,6 +78,11 @@ for (const path of [
 ])
   assert.equal(existsSync(path), false, path);
 assert.doesNotMatch(readFileSync("src/content/team.ts", "utf8"), /John Connor|linkedin\.com/);
+eventDefinitionSchema.parse(WORKSHOP_EVENT);
+assert.doesNotMatch(
+  JSON.stringify(WORKSHOP_EVENT),
+  /Accelerate|acceleratewith\.us|John Connor|Matthew Rolnick|Ferris/i,
+);
 assert.equal(
   DocsFigure({
     src: "/images/docs/workspace/setup.png",

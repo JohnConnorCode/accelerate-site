@@ -17,6 +17,14 @@ sender and reply inbox. Apply the installation's ordered migrations first. The
 Accelerate upgrade creates its November 11 workshop as a draft; it does not open
 sales automatically. Other installations enable the optional module themselves.
 
+Use the same Stripe mode for the API key, account and signing secret. In Stripe,
+configure `/api/public/{tenant}/webhooks/stripe` for
+`checkout.session.completed`, `checkout.session.expired` and `charge.refunded`.
+For this workshop the tenant is `accelerate`. The API key needs permission to
+create and read Checkout sessions and read payment intents and charges, alongside
+the account access checked when connecting. Verify those permissions with a
+controlled test event before accepting live registrations.
+
 Stripe processing and Resend usage are billed by those providers. Event editing
 and buyer records stay within the workspace's existing permissions. Test payments
 are labelled and do not increase live sales totals or consume live ticket capacity.

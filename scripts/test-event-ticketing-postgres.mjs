@@ -106,12 +106,20 @@ try {
     GRANT USAGE ON SCHEMA private TO authenticated,service_role;
     GRANT SELECT,INSERT ON public.audit_log TO service_role;
     GRANT SELECT ON public.tenants TO service_role;
-    INSERT INTO public.tenants VALUES('${a}','active','{}'),('${b}','active','{"modules":{"event-ticketing":true}}');
+    INSERT INTO public.tenants VALUES('${a}','active','{"brand":{"domain":"harbor.example"}}'),('${b}','active','{"modules":{"event-ticketing":true}}');
     INSERT INTO public.tenant_memberships VALUES('${a}','11111111-1111-4111-8111-111111111111','active');`);
   const migration = readFileSync(
     new URL("../migrations/20261016200534_event_ticketing.sql", import.meta.url),
     "utf8",
   );
+  sql(migration);
+  assert.equal(sql("SELECT count(*) FROM ticket_events"), "0", "Forks retain no agency event seed");
+  assert.equal(
+    sql(`SELECT config->'modules'->>'event-ticketing' IS NULL FROM tenants WHERE id='${a}'`),
+    "t",
+    "Forks retain the optional module's disabled default",
+  );
+  sql(`UPDATE tenants SET config='{"brand":{"domain":"acceleratewith.us"}}' WHERE id='${a}'`);
   sql(migration);
   sql(migration);
   assert.equal(sql(`SELECT count(*) FROM ticket_events WHERE id='${WORKSHOP_EVENT_ID}'`), "1");

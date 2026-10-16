@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { siteUrl, tenant } from "@/config/tenant";
 import { requireAdmin } from "@/lib/admin/auth";
 import { ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
+import { distributionProfile } from "@/lib/distribution/profile";
 import { loadPublicTicketEvent, readTicketEvent } from "./event-ticketing";
 import { eventPath, eventTiming, ticketMoney } from "./event-ticketing-contract";
 import { WorkshopContent } from "@/components/events/WorkshopContent";
@@ -41,7 +42,7 @@ export async function ticketEventPage(tenantSlug: string, slug: string, preview:
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     location: { "@type": "Place", name: event.venue_name, address: event.venue_address },
-    ...(tenantSlug === ACCELERATE_TENANT_SLUG
+    ...(distributionProfile() === "branded" && tenantSlug === ACCELERATE_TENANT_SLUG
       ? {
           organizer: { "@type": "Organization", name: tenant.brand.name, url: siteUrl() },
           performer: ["John Connor", "Matthew Rolnick"].map((name) => ({
