@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "preparedAt": "2026-10-16T22:28:23.129626+00:00",
+  "preparedAt": "2026-10-16T22:54:27.777826+00:00",
   "base": "a0ceb2aba4d6290e4a24513787db978c6d26b0c0",
   "integrationAncestor": "525da731fde95aa7956c0a631652df6b02feaded",
   "workshop": {
@@ -25,16 +25,19 @@
     "postgres": "Native PostgreSQL 17 isolated temporary database passed concurrent capacity, dedupe, immutable snapshots, role/tenant/account/mode/amount/quantity refusal, refund/release and email-receipt checks. Migration replay leaves a fork and customized bootstrap configuration unchanged, then creates only the original Accelerate draft and preserves it on replay.",
     "core": "Every command in the canonical test:core list passed. Failed checkpoints were repaired and execution resumed from their boundary; CI will rerun the full list on the final head.",
     "contracts": "Final agent contract, guardrails (including positioning and work portfolio), strict docs coverage (129 pages, zero errors/warnings) and diff checks passed. Extension manifests, module route guards, schema verification and existing subscription tests also passed during feature verification.",
-    "build": "Branded production build (573 generated pages) and actual neutral starter export build (310 generated pages), including TypeScript, passed on applicationBuildSource. The local export reuses compatible lockfile-pinned dependencies and an explicit source release identity; CI also verifies fresh dependencies and source history.",
+    "build": "Final branded production build and TypeScript passed on applicationBuildSource with controlled public analytics IDs. The actual neutral export build on 8051723dfcd71bfe296a01c2b6d34a473efa9aae passed earlier; final CI rebuilds both distributions on the exact head.",
     "browser": {
       "result": "passed",
       "evidence": "Compiled Next pages against isolated read-only REST; browser-controlled payment responses; actual shared fictional admin. No live provider or production data.",
+      "marketingTracking": "Public SDKs active against controlled stubs; direct and already-paid confirmation documents exclude both SDKs.",
       "results": [
         {
           "width": 1440,
           "theme": "light",
           "reducedMotion": "no-preference",
           "publicPage": true,
+          "privateDocument": true,
+          "trackingExcluded": true,
           "keyboardCheckout": true,
           "identicalRetry": true,
           "pendingToConfirmed": true,
@@ -49,6 +52,8 @@
           "theme": "light",
           "reducedMotion": "reduce",
           "publicPage": true,
+          "privateDocument": true,
+          "trackingExcluded": true,
           "keyboardCheckout": true,
           "identicalRetry": true,
           "pendingToConfirmed": true,
@@ -63,6 +68,8 @@
           "theme": "dark",
           "reducedMotion": "reduce",
           "publicPage": true,
+          "privateDocument": true,
+          "trackingExcluded": true,
           "keyboardCheckout": true,
           "identicalRetry": true,
           "pendingToConfirmed": true,
@@ -77,6 +84,8 @@
           "theme": "dark",
           "reducedMotion": "no-preference",
           "publicPage": true,
+          "privateDocument": true,
+          "trackingExcluded": true,
           "keyboardCheckout": true,
           "identicalRetry": true,
           "pendingToConfirmed": true,
@@ -182,10 +191,23 @@
       "Reviewed route inventory: 68 pages, 414 source fingerprints and seven regression cases passed.",
       "House style: 708 copy files checked, no violations.",
       "Neutral starter export and rendered identity checks passed.",
-      "Extensions remain in sync."
-    ]
+      "Extensions remain in sync.",
+      "Pure navigation contract and private confirmation path matcher passed. An initial unstarted localhost:3010 browser invocation was refused; owned-server full navigation verification remains pending, with no native-browser fallback."
+    ],
+    "confirmationPrivacy": {
+      "result": "passed",
+      "configuration": "G-CONTROLLEDWORKSHOP and a fictional Meta ID; external SDK requests fulfilled by local browser stubs, with no live collection.",
+      "checks": [
+        "Public sales document actually loads both configured SDKs.",
+        "Private direct-return documents load neither SDK and expose neither global.",
+        "Already-paid checkout recovery creates a new document; the original document marker is absent and neither tracking global exists.",
+        "All four public desktop/mobile and light/dark scenarios retain checkout, receipt and recovery acceptance."
+      ],
+      "primaryReference": "https://developers.google.com/analytics/devguides/collection/ga4/views?technology=websites"
+    }
   },
   "pendingEvidence": [
+    "Owned-server complete navigation runtime suite on the final application tree.",
     "Required verify and connected recovery CI on final combined head; completion, merge SHA and tree parity will be recorded on PR #263."
   ],
   "production": {
@@ -237,7 +259,7 @@
     ]
   },
   "review": "Implementing-agent review; no independent user or live-provider acceptance claimed.",
-  "applicationBuildSource": "8051723dfcd71bfe296a01c2b6d34a473efa9aae",
+  "applicationBuildSource": "0f072bf15477a59c33cdeb19fc9627aee2bc0ab2",
   "retainedSourceComparison": {
     "checkedAt": "2026-10-16T22:22:15.892982+00:00",
     "comparisonTo": "docs/verification/ACCELERATE-INTEGRATION-2026-10-16.json",
@@ -272,6 +294,23 @@
         "customized bootstrap configuration changed by automatic workshop seed during recovery upgrade"
       ],
       "disposition": "Seed now requires the original configured business name and domain; isolated PostgreSQL regression passed. Native recovery must pass on final head."
+    },
+    {
+      "run": 38975980924,
+      "head": "7d1de0b7bbcd30b0bacd66fb1e3be10b5726e0af",
+      "passed": [
+        "all source checks including complete core and PostgreSQL suites",
+        "both complete-product forks",
+        "actual neutral starter",
+        "homepage motion and cached mobile checks"
+      ],
+      "disposition": "Superseded by confirmation privacy hardening. Final exact-head CI remains required."
+    },
+    {
+      "run": 38975981002,
+      "head": "7d1de0b7bbcd30b0bacd66fb1e3be10b5726e0af",
+      "passed": ["connected fork native journeys", "native restore and upgrade recovery"],
+      "disposition": "Passed completely before the client confirmation privacy change."
     }
   ]
 }

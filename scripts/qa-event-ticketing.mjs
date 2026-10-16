@@ -586,6 +586,9 @@ try {
         result: "passed",
         evidence:
           "Compiled Next pages against isolated read-only REST; browser-controlled payment responses; actual shared fictional admin. No live provider or production data.",
+        marketingTracking: controlledTracking
+          ? "Public SDKs active against controlled stubs; direct and already-paid confirmation documents exclude both SDKs."
+          : "Private document exclusions verified without configured marketing SDKs.",
         results,
       },
       null,
