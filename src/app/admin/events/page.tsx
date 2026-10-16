@@ -1,6 +1,7 @@
 "use client";
 import { WORKSHOP_EVENT } from "@/content/workshops";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ZodError } from "zod";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import {
@@ -155,7 +156,13 @@ export default function EventsPage() {
         "Event saved. New checkouts use this price; existing orders and checkout sessions retain their agreed amount.",
       );
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Event could not be saved");
+      setError(
+        cause instanceof ZodError
+          ? cause.issues[0]?.message || "Review the event details before saving"
+          : cause instanceof Error
+            ? cause.message
+            : "Event could not be saved",
+      );
     } finally {
       setBusy(false);
     }

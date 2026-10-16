@@ -83,12 +83,16 @@ let serverLog = "",
   browser,
   server;
 try {
+  const artifactConfig = JSON.parse(
+    await readFile(`${process.env.NEXT_DIST_DIR || ".next"}/required-server-files.json`, "utf8"),
+  ).config;
   server = spawn(
     process.execPath,
     ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", String(port)],
     {
       env: {
         ...process.env,
+        NEXT_DEPLOYMENT_ID: artifactConfig.deploymentId,
         NEXT_PUBLIC_DISTRIBUTION_PROFILE: "branded",
         NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${fixturePort}`,
         NEXT_PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_controlled_workshop_fixture",
@@ -329,7 +333,8 @@ try {
     await page.getByRole("button", { name: "Save my answers" }).click();
     await page.getByRole("status").filter({ hasText: "Your answers are saved" }).waitFor();
     assert.deepEqual(contexts[0], contexts[1]);
-    await page.screenshot({ path: `${output}/confirmation-${theme}-${width}.png`, fullPage: true });
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.locator("main").screenshot({ path: `${output}/confirmation-${theme}-${width}.png` });
     receiptState = "refunded";
     await page.reload();
     await page.getByRole("heading", { name: "Your order has been refunded." }).waitFor();
@@ -393,6 +398,16 @@ try {
     await page.goto(`${root}/events`);
     await page.getByRole("heading", { level: 1, name: "Events", exact: true }).waitFor();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const originalEnd = await page.getByLabel("End", { exact: true }).inputValue();
+    await page
+      .getByLabel("End", { exact: true })
+      .fill(await page.getByLabel("Start", { exact: true }).inputValue());
+    await page.getByRole("button", { name: "Save event", exact: true }).click();
+    await page.getByRole("alert").filter({ hasText: "End time must follow start time" }).waitFor();
+    assert.ok(
+      (await page.getByRole("alert").textContent()).startsWith("End time must follow start time"),
+    );
+    await page.getByLabel("End", { exact: true }).fill(originalEnd);
     await page.getByLabel("Ticket price (USD)").fill("75.00");
     await page.getByRole("button", { name: "Save event", exact: true }).click();
     await page.getByRole("status").filter({ hasText: "Event saved" }).waitFor();
@@ -460,6 +475,7 @@ try {
     const review = page.getByRole("dialog", { name: proposed.action.title, exact: true });
     const exact = review.getByRole("region", { name: "Exact event operation" });
     await exact.getByText("$90", { exact: true }).waitFor();
+    await exact.getByText("$90", { exact: true }).scrollIntoViewIfNeeded();
     await exact.getByText("40 tickets", { exact: true }).waitFor();
     await page.keyboard.press("Tab");
     assert.equal(
@@ -469,6 +485,11 @@ try {
     await page.screenshot({ path: `${output}/approval-${width}.png`, fullPage: true });
     await review.getByRole("button", { name: "Approve", exact: true }).click();
     await review.waitFor({ state: "hidden" });
+    await page.waitForURL(
+      (url) => url.pathname === new URL(`${root}/work`).pathname && !url.searchParams.has("action"),
+    );
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
     const approved = await page.evaluate(async () => (await fetch("/api/admin/events")).json());
     assert.equal(approved.events[0].price_cents, 9000);
     assert.equal(
