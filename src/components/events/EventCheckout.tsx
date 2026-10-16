@@ -1,6 +1,5 @@
 "use client";
 import { useRef, useState } from "react";
-import { useAppNavigation } from "@/components/navigation/NavigationRuntime";
 import { ticketMoney, type TicketEvent } from "@/lib/revenue-os/event-ticketing-contract";
 import styles from "./workshop.module.css";
 
@@ -18,7 +17,6 @@ export function EventCheckout({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const attempt = useRef({ fingerprint: "", key: "" });
-  const navigation = useAppNavigation();
   const available = Math.min(40, event.available_tickets ?? event.capacity);
   const open =
     !preview &&
@@ -95,8 +93,10 @@ export function EventCheckout({
       if (typeof payload.url !== "string")
         throw new Error("Checkout is unavailable. Your admission is not confirmed.");
       const url = new URL(payload.url);
+      // A fresh private document cannot inherit marketing SDKs already loaded
+      // on this public page. Its own chrome excludes those scripts.
       if (payload.confirmed && url.origin === window.location.origin)
-        navigation.push(url.pathname + url.search);
+        window.location.assign(url.href);
       else if (url.protocol === "https:" && url.hostname === "checkout.stripe.com")
         window.location.assign(url.href);
       else throw new Error("Checkout returned an unexpected address");

@@ -12,6 +12,7 @@ import AxeBuilder from "@axe-core/playwright";
 // transport. Browser requests model provider failures; SQL/service tests prove
 // real persistence, payment verification and idempotency separately.
 const output = process.env.EVENT_TICKETING_QA_OUTPUT || "/tmp/accelerate-event-ticketing";
+const controlledTracking = process.env.EVENT_TICKETING_QA_TRACKING === "controlled";
 await mkdir(output, { recursive: true });
 const tenant = {
   id: "acce1e8e-0000-4000-8000-000000000001",
@@ -171,6 +172,17 @@ try {
           body: "<h1>Controlled Stripe handoff</h1>",
         });
       if (url.origin !== base) {
+        if (
+          controlledTracking &&
+          ((url.hostname === "www.googletagmanager.com" &&
+            url.pathname === "/gtag/js" &&
+            url.searchParams.get("id") === "G-CONTROLLEDWORKSHOP") ||
+            (url.hostname === "connect.facebook.net" && url.pathname === "/en_US/fbevents.js"))
+        )
+          return route.fulfill({
+            contentType: "application/javascript",
+            body: "/* Controlled tracking SDK stub. No network collection. */",
+          });
         escaped.push(url.origin + url.pathname);
         return route.abort();
       }
@@ -196,7 +208,14 @@ try {
                     restartCheckout: true,
                   },
                 }
-              : { json: { url: "https://checkout.stripe.com/c/pay/cs_controlled", orderId } },
+              : checkoutAttempts === 3
+                ? { json: { url: "https://checkout.stripe.com/c/pay/cs_controlled", orderId } }
+                : {
+                    json: {
+                      confirmed: true,
+                      url: `${base}/events/${event.slug}/confirmation?order=${orderId}&key=${key}`,
+                    },
+                  },
         );
       }
       if (request.method() === "PATCH") {
@@ -226,6 +245,10 @@ try {
       waitUntil: "networkidle",
     });
     await page.getByRole("heading", { level: 1, name: event.headline }).waitFor();
+    if (controlledTracking) {
+      await page.locator("#gtag-init").waitFor({ state: "attached" });
+      await page.locator("#meta-pixel").waitFor({ state: "attached" });
+    }
     assert.equal(await page.locator("main").count(), 1, "Use the route's single main landmark");
     assert.match(await page.title(), /AI for Your Business/);
     const structured = await page.locator('script[type="application/ld+json"]').allTextContents();
@@ -312,6 +335,9 @@ try {
     assert.equal(purchases[0].attribution.utm_source, "venue");
     assert.equal("price_cents" in purchases[0], false);
     await page.goto(`${base}/events/${event.slug}/confirmation?order=${orderId}&key=${key}`);
+    assert.equal(await page.locator("#gtag-init, #meta-pixel").count(), 0);
+    assert.equal(await page.evaluate(() => typeof window.gtag), "undefined");
+    assert.equal(await page.evaluate(() => typeof window.fbq), "undefined");
     await page.getByRole("button", { name: "Check payment status", exact: true }).waitFor();
     assert.equal(await page.getByRole("heading", { name: "You’re registered." }).count(), 0);
     receiptState = "paid";
@@ -350,12 +376,34 @@ try {
     await page.getByRole("status").filter({ hasText: "no live admission is confirmed" }).waitFor();
     await page.getByText("Test amount", { exact: true }).waitFor();
     assert.equal(await page.locator("main").count(), 1);
+    receiptTestMode = false;
+    await page.goto(`${base}/events/${event.slug}?utm_source=venue&utm_campaign=workshop`, {
+      waitUntil: "networkidle",
+    });
+    await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
+    await page
+      .getByRole("complementary", { name: "Workshop tickets" })
+      .getByLabel("Email address", { exact: true })
+      .fill("buyer@workshop.example");
+    await page.getByLabel("Number of tickets").selectOption("2");
+    await page.evaluate(() => {
+      window.__ticketOriginalDocument = true;
+    });
+    await page.getByRole("button", { name: "Get 2 tickets ($100)" }).click();
+    await page.waitForURL(`**/confirmation?order=${orderId}&key=${key}`);
+    await page.getByRole("heading", { name: "You’re registered." }).waitFor();
+    assert.equal(await page.evaluate(() => window.__ticketOriginalDocument), undefined);
+    assert.equal(await page.locator("#gtag-init, #meta-pixel").count(), 0);
+    assert.equal(await page.evaluate(() => typeof window.gtag), "undefined");
+    assert.equal(await page.evaluate(() => typeof window.fbq), "undefined");
     assert.deepEqual(errors, []);
     results.push({
       width,
       theme,
       reducedMotion,
       publicPage: true,
+      privateDocument: true,
+      trackingExcluded: true,
       keyboardCheckout: true,
       identicalRetry: true,
       pendingToConfirmed: true,

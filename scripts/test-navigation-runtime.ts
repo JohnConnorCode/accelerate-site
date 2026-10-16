@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { isTicketConfirmationPath } from "../src/lib/navigation/public-chrome";
+
+for (const path of [
+  "/events/workshop/confirmation",
+  "/events/workshop/confirmation/",
+  "/t/another-business/events/workshop/confirmation",
+])
+  assert.equal(isTicketConfirmationPath(path), true, path);
+for (const path of ["/events/workshop", "/contact", "/docs"])
+  assert.equal(isTicketConfirmationPath(path), false, path);
 
 const runtime = readFileSync("src/components/navigation/NavigationRuntime.tsx", "utf8");
 const pageTransition = readFileSync("src/components/layout/PageTransition.tsx", "utf8");

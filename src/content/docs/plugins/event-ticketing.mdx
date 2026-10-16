@@ -127,6 +127,10 @@ their own tickets, pay in Stripe, and enter optional business context on their
 private confirmation page. The assistant never needs a buyer's order key or
 payment details.
 
+Private confirmation pages exclude third-party marketing scripts. Returning to
+an already paid order opens a fresh private page, so advertising scripts from
+the sales page cannot inherit its order credentials.
+
 ## Fictional demo and extension boundary
 
 The module is off by default in fictional scenarios. Enable it in Apps to explore

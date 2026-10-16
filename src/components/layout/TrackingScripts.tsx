@@ -1,10 +1,14 @@
 "use client";
 
 import Script from "next/script";
+import { usePathname } from "next/navigation";
+import { isTicketConfirmationPath } from "@/lib/navigation/public-chrome";
 
 export function TrackingScripts() {
+  const pathname = usePathname();
   const gtagId = process.env.NEXT_PUBLIC_GTAG_ID;
   const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  if (isTicketConfirmationPath(pathname)) return null;
 
   return (
     <>

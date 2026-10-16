@@ -8,3 +8,8 @@ export function isApplicationWorkspace(pathname: string) {
   if (path === "/admin" || path.startsWith("/admin/")) return true;
   return /^\/demo\/command-center\/[^/]+(?:\/|$)/.test(path);
 }
+
+/** Guest admission links contain private order credentials. */
+export function isTicketConfirmationPath(pathname: string) {
+  return /^\/(?:t\/[^/]+\/)?events\/[^/]+\/confirmation\/?$/.test(pathname);
+}
