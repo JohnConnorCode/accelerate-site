@@ -66,6 +66,7 @@ const providerSchema = z.discriminatedUnion("action", [
       "hubspot",
       "stripe",
       "postiz",
+      "xero",
     ]),
   }),
 ]);

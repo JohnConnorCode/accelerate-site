@@ -30,7 +30,7 @@
     "src/app/admin/debates/page.tsx": "43633143ac79702fdbcde7bd556f3abf00a23815f1de9a01afffb6647671f065",
     "src/app/admin/email-sequences/page.tsx": "a0653d19827ea87cffd77c12501180118ce97099238e09ed1617c27e23aaa881",
     "src/app/admin/emails/page.tsx": "69e80ff73f18e7c8f8b210755fa5f4c0264bd6930b7de4f12bb9d96e7061562d",
-    "src/app/admin/events/page.tsx": "26675aa43542efdb714a874bc7206caabf27d1107470f193e18b0437b394720a",
+    "src/app/admin/events/page.tsx": "9c439db706db4d0b5b60337b39ee93f9a1493cbec93a17c044ff5ddacbd77e75",
     "src/app/admin/example-inventory/page.tsx": "93572790a580f3e95233d83a456ef5241b5d51d2f12813d65ee3222d11a988c0",
     "src/app/admin/features/page.tsx": "a24eaffcd48a84e3ae5e0c4bc2149272f3c3380d5ad8c881fb5591d18c3445fe",
     "src/app/admin/forms/page.tsx": "8b2b917e0174872a6c7b2b1314540c0b00a4d20fbbfd80e5101c4858c0f8ec65",
@@ -74,7 +74,7 @@
     "src/app/admin/today/page.tsx": "cbbba1645450b9ecc3bce1771bd06029306e62c33025bff07d5b7b1a30d13a4c",
     "src/app/admin/update-password/page.tsx": "a4958cdde6065cb8b147ca23e380f829df4221e92e92e18c421f3a4ba82105d1",
     "src/app/admin/website-grades/page.tsx": "d519f5bbde93a82914777fe500b4538e963bd8b1573f345c853ea7cec6ae5b6a",
-    "src/app/admin/work/page.tsx": "768134e692cc83bd07c564790676f0a11c64043e74871b387cad88b64a329f3c",
+    "src/app/admin/work/page.tsx": "ef2b2a35406754f76866f912cbcaba360c3c3c965a3ac7d921d4fc5caf2a26d8",
     "src/app/api/admin/activity/route.ts": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f",
     "src/app/api/admin/blueprints/[id]/route.ts": "55e534d37af37a4b8ebe48748681fe883722e2c9c7ed5d4068b4eb25dd414dff",
     "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
@@ -170,11 +170,13 @@
     "src/app/api/admin/tasks/route.ts": "a8dcf117107438acfd5642593039fa9b95d320ef557faa81359f9e549357b5ce",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
     "src/app/api/admin/tenant/modules/route.ts": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1",
-    "src/app/api/admin/tenant/providers/route.ts": "a744234fa9e797b76b10dc20f26451f9ee7b1b894b614e0836e175464e211b17",
+    "src/app/api/admin/tenant/providers/route.ts": "8f925911d4dc327e5e0f4cdd4d5547bfffcb069d8348d2a5f308c78fd582af58",
     "src/app/api/admin/tenants/route.ts": "803a84e5a2aba7ce93591c13bfc27e2e746bbfd0e615b315fea7328e0f4bea6a",
     "src/app/api/admin/website-grades/export/route.ts": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772",
     "src/app/api/admin/website-grades/route.ts": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98",
     "src/app/api/admin/work/agent-items/route.ts": "7cd6c8e2873c0c8d96a3008470453e6118f3486d8e2a19092f1fd50f1028fce5",
+    "src/app/api/admin/xero/authorize/route.ts": "c485eae5248aa23586105452f27cc00d2147edcfda82cbf7eeed2cc469a89797",
+    "src/app/api/admin/xero/callback/route.ts": "58d2f11ef972c0e3d855a2ee838d17b64ead26611be9a0dc75485e5495ef4e3c",
     "src/components/admin/AICapabilities.tsx": "a1d7ac3979e0e959e630bc2d9d376e58743e969558bc8cc2d7fccbe32236cb08",
     "src/components/admin/AIReadinessPanel.tsx": "4a2f79fb03c96f6c8763118392a4bdb5d7c5ce5ccc9351f8bbed2a31828cc18f",
     "src/components/admin/AIRunHistory.tsx": "31fe825ac6247419d453934884ab140a528be927d0ad92a1e5b63657a8028351",
@@ -310,7 +312,7 @@
     "src/lib/admin/navigation.ts": "d97ec65ce455e087e201a2827c71accc7ef2a5ed43a6495010611b03662f533d",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
     "src/lib/ai/openrouter-models.ts": "005042ecb73505abc050af9b753e47db588f80fcfe3598fd81a04112a7b72784",
-    "src/lib/ai/openrouter.ts": "5da3d5a8f6e0dd66d99e56554aec3f62095df6a59f04a66124de39eb15a89be7",
+    "src/lib/ai/openrouter.ts": "dec47ca536d7aa6965c127cedd66a6f07ccdeb4c80f1b909f2e3c13624a08adf",
     "src/lib/ai/proposal-draft.ts": "29261d2c18f3327e757c9755a16ad2b198e6022387479d24fd7db69084fd251a",
     "src/lib/email/blocks.ts": "694fecaa691755074a7eafa07f2cb8170af100bb2b2c0614e70f5a344eec2e0b",
     "src/lib/email/booking.ts": "b6559df14564fd4d7a208c11c246f711f1f410023301494655a9c7b4856b034a",
@@ -356,7 +358,7 @@
     "src/lib/revenue-os/first-use.ts": "11163b96f7b92f510ac70dced96d1159e975c11fcc3d2f7d51a00d0e17fc6ded",
     "src/lib/revenue-os/form-builder-contract.ts": "a2a3403c5b9aff4d70c55a64cb3b672bb84484f81fcba33d5ab2deee015d280a",
     "src/lib/revenue-os/form-builder.ts": "3f2c181efe1dca678ccd9457e8f76d309657770badb16429cc70a27fc835f862",
-    "src/lib/revenue-os/google.ts": "748bf626071a1c8a500dc2d2ddbe3079393f87a796e0774232be7753a8fab65a",
+    "src/lib/revenue-os/google.ts": "60ecfb038506e4895e092a24334e3711c5b4e09e22ee3f490c41d789d54fb1f4",
     "src/lib/revenue-os/health.ts": "674d80b48a05c5dbe3451b265342ae6d5cdf6d2b3db2e2dd0bc2f2a14fe93f15",
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
     "src/lib/revenue-os/identity.ts": "cb0b7bbff0e3efd674652a9e84000e6f8db56fe2033763541e6068ae4be0a6ed",
@@ -392,7 +394,7 @@
     "src/lib/revenue-os/stage-history.ts": "83ce2f34e57acab509375b99ef6042d3cd77605a859923974aecd871692608a9",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/subscriptions-contract.ts": "aeeafdd05eb69cdfe1a9c7d67670d33fbc289a60452cb2f0021a8df1a68418c0",
-    "src/lib/revenue-os/subscriptions.ts": "a5374feac98e97cf8d8d4849f5fbf5dfd427d958f4c22c744c7a95d56184c317",
+    "src/lib/revenue-os/subscriptions.ts": "abfc177809576e63dbe0bb12c1a7d8fc4d9fd110ee1434ee7e68a5536960badb",
     "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
     "src/lib/revenue-os/types.ts": "7c2ef713990b2180acd4c76507e708431288fd46d98fab1072cc6451a15e44bd",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
@@ -401,8 +403,10 @@
     "src/lib/revenue-os/workspace-architect-generated-operations.ts": "052b53334e27e1c888b42e881d3a42fd9927a495d61e11733408129c528b5a28",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
     "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
-    "src/lib/revenue-os/workspace-configuration.ts": "e31e6ccc812f890bf9f10515332e8c062c0349e7a533edc5626c95330713f5b6",
+    "src/lib/revenue-os/workspace-configuration.ts": "fddf1f9ed1c50ee85d6d92c7ebda12c4fec808f3de3dcad98634199f9012aaef",
     "src/lib/revenue-os/workspace-mcp-oauth.ts": "9073501451d28a00dad04577404eefdc5c85c51a50890bf243eda505528b1753",
+    "src/lib/revenue-os/xero-oauth.ts": "8063440d016d01600b8c21a2478b99a2c6ca2747d41f6fb48db2ad676803fd05",
+    "src/lib/revenue-os/xero.ts": "13a931c198d848a90516d068944e47f89579caf6b6a6ee3b97bbd72dee8d671a",
     "src/lib/site-studio/database-store.ts": "58a4234f1af081f015727ba72c527e6b7ac78e110a868d0dc5b18c895e674842",
     "src/lib/site-studio/delegation.ts": "a0e55a813bb33b3a791c6b84be69e3f3a6c8f6a38ed52372c5dc3e85416fe4e9",
     "src/lib/site-studio/document.ts": "fa1e5a9b58b02ca02dfe7310087274e52d1e3112119f4c995cd405c71a7af8f8",
@@ -1263,9 +1267,23 @@
             "@/lib/tenancy/context"
           ],
           "directTables": ["integration_connections"]
+        },
+        {
+          "path": "src/app/api/admin/xero/authorize/route.ts",
+          "domainImports": ["@/lib/revenue-os/xero", "@/lib/revenue-os/xero-oauth"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/xero/callback/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/audit",
+            "@/lib/revenue-os/xero",
+            "@/lib/revenue-os/xero-oauth"
+          ],
+          "directTables": []
         }
       ],
-      "boundary": "Integration, module and tenant provider services have separate ownership. Registered plugin settings reuse a reviewed schema and reject credentials in public configuration. Radar requires complete public profile fields before enablement; saved model preferences do not enable workers. Radar source briefs enforce them through shared atomic budget reservations and a pinned single-attempt model gateway. Module documentation links are manifest data. A targeted module setup query filters to its existing enable switch. Search and tab state do not enable a module or change provider configuration; the existing module and provider APIs remain the mutation boundary.",
+      "boundary": "Integration, module and tenant provider services have separate ownership. Registered plugin settings reuse a reviewed schema and reject credentials in public configuration. Radar requires complete public profile fields before enablement; saved model preferences do not enable workers. Radar source briefs enforce them through shared atomic budget reservations and a pinned single-attempt model gateway. Module documentation links are manifest data. A targeted module setup query filters to its existing enable switch. Search and tab state do not enable a module or change provider configuration; the existing module and provider APIs remain the mutation boundary. Xero authorization is a human-only OAuth handoff with an intended-workspace precondition and signed tenant-bound callback; encrypted tokens bind the workspace, provider and token field. Initial organization mapping must be unambiguous, reconnect preserves the prior mapping, and refresh success requires a durable revision-fenced save. Accounting sync remains planned. Google retries only replayable reads, never sends or draft creates; AI retries honor bounded provider pacing without changing approval or execution policy.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -2169,7 +2187,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
+      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning. Task selection and dismissal share the URL owner, including same-task reopening; record identity and late-save navigation checks remain in the inspector.",
       "followUp": null,
       "specialBoundary": null
     }

@@ -7,7 +7,7 @@
     "Server-action and client-write candidates are static discovery only; indirect client writes and third-party plugin entrypoints still require semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 135,
+  "routeCount": 137,
   "mutationHandlerCount": 119,
   "semantic": {
     "complete": false,
@@ -55,7 +55,6 @@
       "get_today_workspace",
       "get_workspace_brand",
       "get_workspace_capabilities",
-      "get_workspace_configuration",
       "list_content_calendar",
       "list_forms",
       "list_knowledge_documents",
@@ -389,6 +388,34 @@
         "serviceTarget": "revenue-os.analytics",
         "tools": [
           "get_revenue_report"
+        ]
+      },
+      {
+        "definition": {
+          "id": "workspace.configuration.secure-setup",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/xero/authorize",
+              "method": "GET",
+              "audience": "secure-human-handoff"
+            },
+            {
+              "path": "/api/admin/xero/callback",
+              "method": "GET",
+              "audience": "secure-human-handoff"
+            }
+          ],
+          "verification": [
+            "scripts/test-xero-oauth.ts",
+            "scripts/test-ai-workspace-configuration.ts",
+            "scripts/test-workspace-configuration-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.workspace-configuration",
+        "tools": [
+          "get_workspace_configuration"
         ]
       }
     ],
@@ -3708,7 +3735,7 @@
         "node:crypto",
         "zod"
       ],
-      "sourceSha256": "a744234fa9e797b76b10dc20f26451f9ee7b1b894b614e0836e175464e211b17"
+      "sourceSha256": "8f925911d4dc327e5e0f4cdd4d5547bfffcb069d8348d2a5f308c78fd582af58"
     },
     {
       "source": "src/app/api/admin/tenants/route.ts",
@@ -3789,6 +3816,39 @@
         "zod"
       ],
       "sourceSha256": "b941c95457b8971316af37f48030aa82126b7b599eb1886f432beac7657c819a"
+    },
+    {
+      "source": "src/app/api/admin/xero/authorize/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/command-center/runtime",
+        "@/lib/revenue-os/xero",
+        "@/lib/revenue-os/xero-oauth",
+        "next/server",
+        "node:crypto"
+      ],
+      "sourceSha256": "c485eae5248aa23586105452f27cc00d2147edcfda82cbf7eeed2cc469a89797"
+    },
+    {
+      "source": "src/app/api/admin/xero/callback/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/command-center/runtime",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/xero",
+        "@/lib/revenue-os/xero-oauth",
+        "next/headers",
+        "next/server"
+      ],
+      "sourceSha256": "58d2f11ef972c0e3d855a2ee838d17b64ead26611be9a0dc75485e5495ef4e3c"
     }
   ]
 }

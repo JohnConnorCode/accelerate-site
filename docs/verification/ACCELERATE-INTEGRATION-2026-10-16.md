@@ -92,3 +92,45 @@ Read-only production preflight found the intended Accelerate tenant active and
 email configuration present, with no connected tenant Stripe account. The workshop
 schema has not been applied. No live payment, email, deployment or sales publication
 is claimed by these local checks.
+
+## Authorized launch continuation
+
+PR #263 merged the workshop and queue work as `9a420f2e`, with the identical
+`300361f6` source tree. Its required CI run 38990017736 and connected/recovery
+run 38990017837 passed. The founder subsequently authorized production publication
+and the existing Super Debate Stripe account, including dedicated restricted
+live/test keys and an installation-specific webhook.
+
+The launch candidate includes the remaining homepage scope from #261 and the
+production dependencies from #265. Native diagnosis found that a temporary
+focus-only animation override restarted the booking action's delay after blur.
+The hero now retains that action's completed state until a fresh entrance.
+Workshop sections use the shared motion owners; Events reveals and focuses its
+editor while preserving typing focus. Shared-account checkouts without workspace
+subscription metadata are ignored before creating billing receipts. Exact-head
+CI and final native journeys remain required before this continuation merges.
+
+The development-tool update in #264 remains separate because its new lint rules
+fail existing source. No validation policy is weakened to include it. A fresh
+comparison confirms all 133 retained source checkouts are unchanged. Only the
+owned integration branch advanced; there are 136 worktrees and 716 local branches.
+
+The ordered ticketing migration is now applied to the verified production
+project. Its ledger contains 133 migrations, ticket tables have RLS, and the
+November 11 workshop remains a $50, forty-place draft. This supersedes the
+historical no-schema preflight above. Production deployment, provider acceptance
+and sales publication are still pending at this source receipt.
+
+The first launch CI run found a Site Studio markup comparison treating React's
+tree-position-specific SVG identifiers as a layout difference. The comparison
+now canonicalizes only those identifiers, preserves their reference relationships,
+and retains the complete markup equality check. A broken SVG reference still
+fails, and the scoped source/native renderer test passes. The final build and
+focused contract, lint, subscription, event and documentation checks passed.
+
+The live Stripe key identifies the selected Super Debate account with charges
+enabled. The older production runtime could not save it because the encryption
+setting was absent. No existing encrypted records were found; a fresh server-only
+production Secret is now configured for the new deployment. No key value is
+included in this receipt. Local final browser QA stopped at the unchanged 20%
+memory gate; remote final-head browser verification remains required.

@@ -2,6 +2,60 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "audit-ledger-append-only",
+    slug: "audit-ledger-append-only",
+    title: "Audit history is append-only for signed-in clients",
+    description:
+      "A catalogued database upgrade makes the shared audit ledger refuse client-role updates, deletes and truncation of recorded history. Existing tenant and private-owner policies, the trusted server writer and normal retention are preserved; signed-in members keep reading and appending receipts. Coding agents can run the documented disposable PostgreSQL check instead of changing grants by hand. Apply the migration before relying on client-role mutation protection in a connected installation.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
+    id: "provider-retry-recovery",
+    slug: "provider-retry-recovery",
+    title: "Recover from temporary provider errors",
+    description:
+      "Google Workspace reads retry temporary provider errors, and AI retries account for provider timing hints. Message sending retains its existing confirmation and recovery controls.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
+    id: "initial-payment-check-feedback",
+    slug: "initial-payment-check-feedback",
+    title: "Keep payment checks clear while confirmations load",
+    description:
+      "Ticket confirmation pages show that a check is in progress from the start. The payment re-check becomes available when the initial request finishes.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
+    id: "readable-focused-forms",
+    slug: "readable-focused-forms",
+    title: "Keep focused forms and feedback readable",
+    description:
+      "Form fields and keyboard focus finish their section's entrance immediately. Pointer actions keep their position until the click arrives, and validation and payment feedback stay fully readable.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
+    id: "task-inspector-reopening",
+    slug: "task-inspector-reopening",
+    title: "Reopen a task after saving or snoozing",
+    description:
+      "Work keeps the selected task aligned with its link. After saving or snoozing, reopening that task shows its current details. Changes that finish later still leave the task you opened in place.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
+    id: "workshop-and-homepage-motion",
+    slug: "workshop-and-homepage-motion",
+    title: "Explore a connected workflow and book your workshop place",
+    description:
+      "The homepage illustrates how messages, scheduling and invoices become useful business actions. Choose a workflow by touch or keyboard, or steer the moving core. Workshop pages use staged introductions, readable section entrances and a ticket form that stays within reach on phones. Events opens the selected editor in view and keeps your focus while you type. Booking bars release keyboard focus as soon as they withdraw. Reduced-motion preferences are respected throughout.",
+    category: "improvement",
+    publishedAt: "2026-10-16",
+  },
+  {
     id: "event-workshop-ticketing",
     slug: "event-workshop-ticketing",
     title: "Sell workshop tickets and manage registrations",

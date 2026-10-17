@@ -105,6 +105,37 @@ export function useRevealLifecycle<T extends HTMLElement>({
     const onPreference = () => {
       if (reduced.matches) reveal(true);
     };
+    const revealFocused = (activated = false) => {
+      const active = document.activeElement;
+      if (
+        !element.classList.contains("reveal-immediate") &&
+        active instanceof HTMLElement &&
+        element.contains(active) &&
+        active.matches(
+          'a[href], button, input, select, textarea, summary, [contenteditable="true"], [tabindex]:not([tabindex="-1"])',
+        ) &&
+        (activated ||
+          active.matches('input, select, textarea, [contenteditable="true"], :focus-visible'))
+      ) {
+        reveal(false);
+        // Finish the owned entrance without removing its animation recipe.
+        // CSS transitions and continuous decorative animations stay independent.
+        for (const animation of element.getAnimations({ subtree: true })) {
+          if (
+            animation instanceof CSSAnimation &&
+            Number.isFinite(animation.effect?.getComputedTiming().endTime)
+          )
+            animation.finish();
+        }
+      }
+    };
+    const onFocus = () => revealFocused();
+    const onClick = () => revealFocused(true);
+    // Pointer-focused actions settle after click targeting, so completing an
+    // ancestor transform cannot move a link away between pointer down and up.
+    element.addEventListener("focusin", onFocus);
+    element.addEventListener("click", onClick);
+    onFocus();
     window.addEventListener("pageshow", onPageShow);
     reduced.addEventListener("change", onPreference);
 
@@ -112,6 +143,8 @@ export function useRevealLifecycle<T extends HTMLElement>({
       observer.disconnect();
       cancelAnimationFrame(restoreFrame);
       removePending(element);
+      element.removeEventListener("focusin", onFocus);
+      element.removeEventListener("click", onClick);
       window.removeEventListener("pageshow", onPageShow);
       reduced.removeEventListener("change", onPreference);
     };

@@ -40,6 +40,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
   useLayoutEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
+    delete section.dataset.heroActionReady;
     const masks = [...section.querySelectorAll<HTMLElement>(".home-hero-word-mask")];
     // Read layout once. Words on the same responsive line share one clock,
     // so a line enters as a readable unit instead of a rapid word cascade.
@@ -110,7 +111,12 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
         </h1>
         <div className="home-hero-bottom">
           <p className="home-hero-support">{content.support}</p>
-          <div className="home-hero-actions">
+          <div
+            className="home-hero-actions"
+            onFocusCapture={() => {
+              if (sectionRef.current) sectionRef.current.dataset.heroActionReady = "true";
+            }}
+          >
             <Link
               href={content.ctaHref}
               data-booking-cta

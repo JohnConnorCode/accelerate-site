@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { isTicketConfirmationPath } from "../src/lib/navigation/public-chrome";
+import {
+  isTicketConfirmationPath,
+  observePublicDockScroll,
+} from "../src/lib/navigation/public-chrome";
 
 for (const path of [
   "/events/workshop/confirmation",
@@ -11,6 +14,77 @@ for (const path of [
   assert.equal(isTicketConfirmationPath(path), true, path);
 for (const path of ["/events/workshop", "/contact", "/docs"])
   assert.equal(isTicketConfirmationPath(path), false, path);
+
+// A browser may change its scroll offset before delivering the scroll event.
+// The visible dock must still withdraw, without leaving an idle polling loop.
+{
+  const names = ["window", "document"];
+  const originals = names.map((name) => Object.getOwnPropertyDescriptor(globalThis, name));
+  const frames = new Map<number, () => void>();
+  const listeners = new Map<string, () => void>();
+  const dataset: Record<string, string> = {};
+  const viewport = {
+    scrollY: 100,
+    addEventListener: (name: string, callback: () => void) => listeners.set(name, callback),
+    removeEventListener: (name: string) => listeners.delete(name),
+    setTimeout: (callback: () => void) => {
+      frames.set(++frameId, callback);
+      return frameId;
+    },
+    clearTimeout: (id: number) => frames.delete(id),
+  };
+  let frameId = 0;
+  let updates = 0;
+  const page = {
+    body: { dataset },
+    hidden: false,
+    addEventListener: viewport.addEventListener,
+    removeEventListener: viewport.removeEventListener,
+  };
+  const globals = [viewport, page];
+  const tick = () => {
+    assert.equal(frames.size, 1, "Only one visible-dock clock may run");
+    const callbacks = [...frames.values()];
+    frames.clear();
+    callbacks.forEach((callback) => callback());
+  };
+  try {
+    names.forEach((name, index) =>
+      Object.defineProperty(globalThis, name, { configurable: true, value: globals[index] }),
+    );
+    const scroll = observePublicDockScroll(() => {
+      updates++;
+      if (viewport.scrollY > 48) dataset.mcta = "on";
+      else delete dataset.mcta;
+    });
+    tick();
+    tick();
+    assert.equal(updates, 1, "Unchanged positions must not repeat DOM or React updates");
+    viewport.scrollY = 0;
+    tick();
+    assert.equal(updates, 2, "A deferred scroll event must not retain the dock");
+    assert.equal(dataset.mcta, undefined);
+    assert.equal(frames.size, 0, "Hidden docks must stop their position clock");
+    viewport.scrollY = 200;
+    listeners.get("scroll")!();
+    assert.equal(frames.size, 1, "A real scroll must restart the visible-dock clock");
+    page.hidden = true;
+    tick();
+    assert.equal(frames.size, 0, "Background tabs must stop their clock");
+    page.hidden = false;
+    listeners.get("visibilitychange")!();
+    assert.equal(frames.size, 1, "Returning to a visible dock must restart its clock");
+    scroll.disconnect();
+    assert.equal(frames.size, 0);
+    assert.equal(listeners.size, 0, "Route cleanup must remove every native listener");
+  } finally {
+    names.forEach((name, index) => {
+      const original = originals[index];
+      if (original) Object.defineProperty(globalThis, name, original);
+      else Reflect.deleteProperty(globalThis, name);
+    });
+  }
+}
 
 const runtime = readFileSync("src/components/navigation/NavigationRuntime.tsx", "utf8");
 const pageTransition = readFileSync("src/components/layout/PageTransition.tsx", "utf8");

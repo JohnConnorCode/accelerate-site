@@ -213,9 +213,11 @@
 .support h2 {
   font-size: 1.5rem;
 }
-.checkout {
+.checkoutWrap {
   position: sticky;
   top: 7rem;
+}
+.checkout {
   background: var(--bg-elevated);
   padding: 1.75rem;
   border-radius: 18px;
@@ -267,6 +269,15 @@
   padding: 0.7rem 0.8rem;
   font: inherit;
   font-size: 1rem;
+  transition:
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
+}
+.form input:focus,
+.form select:focus,
+.form textarea:focus {
+  border-color: var(--gold-base);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold-base) 12%, transparent);
 }
 .form textarea {
   min-height: 100px;
@@ -300,7 +311,7 @@
     opacity 0.15s,
     transform 0.15s;
 }
-.primary:hover {
+.primary:hover:not(:disabled) {
   opacity: 0.9;
 }
 .primary:active {
@@ -380,9 +391,11 @@
   .content {
     display: contents;
   }
-  .checkout {
+  .checkoutWrap {
     position: static;
     grid-row: 2;
+  }
+  .checkout {
     scroll-margin-top: 6rem;
   }
   .hero {
@@ -410,7 +423,10 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .primary {
+  .primary,
+  .form input,
+  .form select,
+  .form textarea {
     transition: none;
   }
   .primary:active {

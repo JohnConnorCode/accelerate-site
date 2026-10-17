@@ -791,7 +791,28 @@ async function main() {
               .getByRole("navigation", { name: "Explore the homepage" })
               .locator(`a[href="${href}"]`);
             await link.evaluate((element) => element.scrollIntoView({ block: "center" }));
-            await link.click();
+            let clickPosition: { x: number; y: number } | undefined;
+            if (theme === "light" && href === "#systems") {
+              await page.waitForFunction(() =>
+                document.querySelector(".hero-statement")?.classList.contains("in"),
+              );
+              // Keep the real entrance at an early frame. Pointer focus must
+              // not move its action before the native click reaches it.
+              await link.evaluate((element) => {
+                const owner = element.closest(".home-sequence")!;
+                for (const animation of owner.getAnimations({ subtree: true })) {
+                  const timing = animation.effect!.getTiming();
+                  animation.pause();
+                  animation.currentTime = (timing.delay ?? 0) + Number(timing.duration) * 0.05;
+                }
+              });
+              const size = await link.boundingBox();
+              assert.ok(size);
+              // Every part of the link must activate, including the lower edge
+              // that would move outside the pointer if focus settled it early.
+              clickPosition = { x: size.width / 2, y: size.height - 4 };
+            }
+            await link.click({ position: clickPosition });
             await page.waitForURL(`**/${href}`);
             assert.ok(await page.locator(href).count());
           }

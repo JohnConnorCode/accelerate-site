@@ -40,10 +40,10 @@ const a = "11111111-1111-4111-8111-111111111111",
 const prefix = (tenant = a, user = a) =>
   `SET ROLE authenticated; SET app.tenant='${tenant}'; SET app.actor_id='${user}'; `;
 const as = (query, tenant = a, user = a) => sql(prefix(tenant, user) + query);
-const expected = () =>
+const expected = (provider = "google") =>
   JSON.parse(
     sql(
-      `SELECT jsonb_build_object('id',id,'status',status,'accountEmail',account_email,'scopes',scopes,'credentialVersion',credential_version,'updatedAt',updated_at,'settings',settings) FROM integration_connections WHERE tenant_id='${a}' AND provider='google';`,
+      `SELECT jsonb_build_object('id',id,'status',status,'accountEmail',account_email,'scopes',scopes,'credentialVersion',credential_version,'updatedAt',updated_at,'settings',settings) FROM integration_connections WHERE tenant_id='${a}' AND provider='${provider}';`,
     ),
   );
 const call = (change, snapshot, actor = "admin@example.test") =>
@@ -180,6 +180,45 @@ INSERT INTO integration_connections(tenant_id,provider,status,account_email,scop
     ),
     "f",
   );
+  // The incoming app enum exposed Xero disconnect before its database allowlist did.
+  sql(`INSERT INTO integration_connections(tenant_id,provider,status,account_email,scopes,credential_version,updated_at,settings,encrypted_credentials,encrypted_access_token,encrypted_refresh_token,environment_fallback_allowed)
+    SELECT t,'xero','connected','fixture organisation',ARRAY['offline_access'],1,now(),'{"xero_tenant_id":"fixture-org"}','{}','encrypted-access','encrypted-refresh',false FROM unnest(ARRAY['${a}'::uuid,'${b}'::uuid]) t;`);
+  const xeroChange = { operation: "disconnect_provider", provider: "xero" };
+  const xeroBefore = expected("xero");
+  assert.throws(() => as(call(xeroChange, xeroBefore)), /Invalid provider change/);
+  const xeroMigration = readFileSync(
+    "migrations/20261017162039_xero_workspace_disconnect.sql",
+    "utf8",
+  );
+  sql(xeroMigration);
+  sql(xeroMigration);
+  assert.throws(() => as(call(xeroChange, xeroBefore), a, member), /administrator/);
+  assert.throws(() => as(call(xeroChange, xeroBefore), b, b), /changed/);
+  const xeroDisconnected = JSON.parse(as(call(xeroChange, xeroBefore)));
+  assert.equal(xeroDisconnected.after.credentialVersion, 2);
+  assert.equal(
+    sql(
+      `SELECT status||':'||coalesce(encrypted_refresh_token,'cleared')||':'||coalesce(encrypted_access_token,'cleared')||':'||environment_fallback_allowed::text FROM integration_connections WHERE tenant_id='${a}' AND provider='xero'`,
+    ),
+    "revoked:cleared:cleared:false",
+  );
+  assert.equal(
+    sql(
+      `SELECT status||':'||credential_version FROM integration_connections WHERE tenant_id='${b}' AND provider='xero'`,
+    ),
+    "connected:1",
+  );
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM audit_log WHERE tenant_id='${a}' AND action='workspace_configuration.disconnect_provider' AND entity_id='xero'`,
+    ),
+    "1",
+  );
+  assert.throws(() => as(call(xeroChange, xeroBefore)), /changed/);
+  assert.throws(
+    () => as(call({ operation: "disconnect_provider", provider: "unknown" }, null)),
+    /Invalid provider/,
+  );
   sql(`UPDATE tenant_memberships SET status='revoked' WHERE user_id='${a}'`);
   assert.throws(
     () =>
@@ -189,7 +228,7 @@ INSERT INTO integration_connections(tenant_id,provider,status,account_email,scop
     /administrator/,
   );
   console.log(
-    "PASS: real PostgreSQL configuration writes, RLS/admin boundary, exact stale/CAS refusal, simultaneous saves, audit rollback, secret removal, tenant isolation, invalid inputs and idempotent migration.",
+    "PASS: real PostgreSQL configuration writes, RLS/admin boundary, exact stale/CAS refusal, simultaneous saves, audit rollback, secret removal, tenant isolation, invalid inputs, Xero disconnect before/after proof and idempotent migrations.",
   );
 } finally {
   if (started) run("pg_ctl", ["-D", join(root, "data"), "-m", "immediate", "-w", "stop"]);

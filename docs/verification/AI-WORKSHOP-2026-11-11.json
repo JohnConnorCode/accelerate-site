@@ -312,5 +312,112 @@
       "passed": ["connected fork native journeys", "native restore and upgrade recovery"],
       "disposition": "Passed completely before the client confirmation privacy change."
     }
-  ]
+  ],
+  "launchContinuation": {
+    "checkedAt": "2026-10-17T02:47:48.176914+00:00",
+    "mergedWorkshop": {
+      "pr": 263,
+      "source": "1a7864af6fa5dc234e6d8babe1863b6254492a9c",
+      "main": "9a420f2e0848623481f61d950da4615d9041114a",
+      "identicalTree": "300361f65f2296df0dbf6ac4c9798f99c6bed7a1",
+      "requiredCi": 38990017736,
+      "connectedRecoveryCi": 38990017837
+    },
+    "founderAuthorization": "Publish the complete verified release and workshop, using the existing Super Debate Stripe account; dedicated live/test keys and webhook explicitly approved.",
+    "productionMigration": {
+      "project": "skjypuwkceoiunyhhqlm",
+      "migration": "20261016200534_event_ticketing.sql",
+      "applied": true,
+      "ledgerCount": 133,
+      "seedStatus": "draft",
+      "priceCents": 5000,
+      "capacity": 40,
+      "rlsEnabled": ["ticket_events", "ticket_orders", "ticket_order_receipts"],
+      "securityAdvisors": "No anonymous ticket exposure or ticket-function findings. Authenticated schema visibility is intentional; membership/context RLS protects records and the security-invoker availability view."
+    },
+    "launchCandidate": {
+      "base": "9a420f2e0848623481f61d950da4615d9041114a",
+      "includedSources": {
+        "homepage": "84eb3f93fe93881e47d81081b2ff269be89e0a1a",
+        "productionDependencies": "6cc899f595d1a40579dcb9c3ef1691676ccf7c74"
+      },
+      "changes": [
+        "Shared workshop hero and section entrances with reduced-motion behavior.",
+        "Editing an event focuses and reveals its form without moving focus while typing.",
+        "Homepage keyboard access remains visible after blur until a fresh entrance.",
+        "Shared-account checkouts without workspace subscription metadata are ignored before any subscription receipt is created.",
+        "Draft previews retain the administrator session on the workspace origin; public buyer and confirmation pages keep the public origin."
+      ],
+      "excluded": {
+        "pr": 264,
+        "reason": "New development-tool lint rules fail existing application source. No lint policy or validation is weakened."
+      },
+      "verification": "Local final build, focused lint, contract, subscription, event, workflow and docs checks passed. Exact-head CI found a homepage markup assertion comparing tree-position-specific React IDs. The comparison now canonicalizes only those IDs, preserves reference relationships, and still compares all layout/content bytes; a broken-reference regression and scoped SSR check pass. Required final CI and live provider/browser acceptance remain pending."
+    },
+    "retainedSourceComparison": {
+      "checkedAt": "2026-10-17T02:47:06.795535+00:00",
+      "retainedCheckouts": 133,
+      "matchingRecordedHeadPathsAndTrackedDiff": 133,
+      "changes": [],
+      "retainedBranches": 714,
+      "changedOwnedBranches": ["integrate/accelerate-workshop-20261016"],
+      "unexpectedBranchChanges": [],
+      "currentWorktreeCount": 136,
+      "currentLocalBranchCount": 716
+    },
+    "deploymentAndPublication": "Not performed at this receipt. A verified production release, payment/email proof and publication receipt must follow.",
+    "productionEncryption": {
+      "configuredInVercel": true,
+      "existingEncryptedRecordCount": 0,
+      "runtimeActivation": "Requires the new deployment; the prior production runtime refused the provider save because its encryption setting was absent."
+    },
+    "browserCorrection": {
+      "candidate": "5195d1de46c77370f885c13117dc684413a85010",
+      "ciRun": 38998595016,
+      "nativeEvidence": "/tmp/accelerate-launch-5195d1de-native/accelerate-home-hero-timing/results.json",
+      "findings": [
+        "Dismissed booking docks retained focus while React scheduled their exit; WebKit could retain the shared visible flag during rapid scroll reversal.",
+        "The moving sculpture grip could leave the pointer and reset steering on a narrow desktop."
+      ],
+      "corrections": [
+        "One native visibility and focus owner serves both public booking docks and Command Center utility navigation before React exit work.",
+        "The sculpture moves inside a stationary hit area; pointer, drag, keyboard and reduced-motion controls retain their existing assertions."
+      ],
+      "status": "pending exact-head browser verification",
+      "additionalFinding": "Linux WebKit changed scrollY immediately but deferred native scroll events and paint callbacks during fixed-layer animation. A visible-only timer reads scrollY and invokes the shared update only when position changes. It stops when the dock or document is hidden and is cleaned up on route unmount. Chat hit testing follows the shared visibility mutation immediately.",
+      "focusedRegression": "Navigation runtime regression proves deferred-event withdrawal, one clock, no unchanged-position updates, hidden/background clock shutdown, foreground recovery and complete cleanup. Existing native 50ms/400ms focus and hit-testing assertions remain intact."
+    },
+    "workshopBrowserAcceptance": {
+      "source": "4ac080a28c837336cc0c28e9048f574b9e7922db",
+      "result": "passed",
+      "scenarios": 6,
+      "evidence": "/tmp/accelerate-launch-event-ticketing/results.json",
+      "visualReview": "Public desktop/mobile, admin desktop/mobile and private confirmation screenshots inspected. Browser fixtures establish rendered behavior; actual provider payment, email and publication remain pending."
+    },
+    "providerPreflight": {
+      "stripeAccount": "acct_1SZo5APUTQWMxnFh",
+      "restrictedTestCheckoutPricesCents": [5000, 5700],
+      "inlinePricesAccepted": true,
+      "manualStripePriceChangesRequired": false,
+      "sessionsExpiredUnpaid": true,
+      "resendDomain": "acceleratewith.us",
+      "resendDomainStatus": "verified",
+      "liveChargesPerformed": false,
+      "applicationProviderConnection": "pending new runtime deployment"
+    },
+    "exactHeadNativeAcceptance": {
+      "candidate": "9374fa5f29d68e9bdda20f0db8c345aefdcf213d",
+      "ciRun": 39002345443,
+      "heroScenarios": 8,
+      "mobileScenarios": 18,
+      "result": "passed",
+      "artifact": 12090260322
+    },
+    "todayQaSynchronization": {
+      "ciRun": 39002345443,
+      "failure": "Today deadline-order QA compared the previous rendered order while Refresh was still applying the native snapshot. All fixture IDs already existed, so presence was not a freshness signal.",
+      "correction": "Wait for the entire refreshed source-ID sequence, then retain the exact array and count assertions. No product code or assertion is removed.",
+      "status": "pending focused and required exact-head verification"
+    }
+  }
 }

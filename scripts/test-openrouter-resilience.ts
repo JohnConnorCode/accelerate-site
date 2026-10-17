@@ -38,6 +38,8 @@ type StubResponse = {
   sse?: string;
   /** Delivered as separate network reads, as a real provider stream is. */
   sseChunks?: string[];
+  /** Extra response headers, e.g. a provider Retry-After hint. */
+  headers?: Record<string, string>;
 };
 const realFetch = globalThis.fetch;
 let calls: Array<{ body: Record<string, unknown>; signal?: AbortSignal | null }> = [];
@@ -85,7 +87,7 @@ function stubFetch(responses: StubResponse[]) {
     return {
       ok: spec.status >= 200 && spec.status < 300,
       status: spec.status,
-      headers: new Headers({ "x-request-id": `req-${index}` }),
+      headers: new Headers({ "x-request-id": `req-${index}`, ...(spec.headers ?? {}) }),
       body: stream,
       json: async () => spec.body ?? { error: { message: `status ${spec.status}` } },
     } as unknown as Response;
@@ -129,6 +131,43 @@ async function main() {
     const response = await openRouterChat(ask);
     assert.equal(response.choices[0]?.message.content, "OK");
     assert.equal(calls.length, 2, "expected exactly one retry");
+  });
+
+  await scenario("a provider Retry-After hint paces the retry", async () => {
+    // A rejected 429 carries retryAfterSeconds; only a real header may pace us.
+    stubFetch([
+      {
+        status: 429,
+        headers: { "retry-after": "1" },
+        body: { error: { code: 429, message: "slow down" } },
+      },
+      { status: 200, body: okBody },
+    ]);
+    const startedAt = Date.now();
+    const response = await openRouterChat(ask);
+    assert.equal(response.choices[0]?.message.content, "OK");
+    assert.equal(calls.length, 2, "expected exactly one retry");
+    assert.ok(
+      Date.now() - startedAt >= 950,
+      "the provider hint should pace the retry, not the fast exponential path",
+    );
+  });
+
+  await scenario("a rejected 429 without a header keeps the fast backoff", async () => {
+    // The parser defaults retryAfterSeconds to 60 for budget receipts. That
+    // default must never become an implicit 60s (or 10s) stall here.
+    stubFetch([
+      { status: 429, body: { error: { code: 429, message: "no header" } } },
+      { status: 200, body: okBody },
+    ]);
+    const startedAt = Date.now();
+    const response = await openRouterChat(ask);
+    assert.equal(response.choices[0]?.message.content, "OK");
+    assert.equal(calls.length, 2, "expected exactly one retry");
+    assert.ok(
+      Date.now() - startedAt < 950,
+      "a missing Retry-After header must not inject the 60s receipt default",
+    );
   });
 
   await scenario("a persistently failing provider gives up after three attempts", async () => {
