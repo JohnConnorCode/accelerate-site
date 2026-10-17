@@ -173,12 +173,16 @@ try {
       );
     await page.getByLabel("View actions", { exact: true }).selectOption("all");
     await page.getByRole("button", { name: "Refresh Today", exact: true }).click();
+    // These tasks already exist in the previous render. Wait for the refreshed
+    // native order, not merely their presence, before comparing the snapshot.
     await page.waitForFunction(
       (ids) =>
-        ids.every((id) =>
-          document.querySelector('[data-today-module="attention"] [data-source-id="' + id + '"]'),
-        ),
-      deadline.ids,
+        JSON.stringify(
+          [...document.querySelectorAll('[data-today-module="attention"] article')].map(
+            (row) => row.dataset.sourceId,
+          ),
+        ) === JSON.stringify(ids),
+      deadline.snapshot.attention.data.map((item) => item.sourceId),
     );
     const attention = page.locator('[data-today-module="attention"]');
     const renderedIds = await attention

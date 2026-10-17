@@ -404,6 +404,20 @@
       "resendDomainStatus": "verified",
       "liveChargesPerformed": false,
       "applicationProviderConnection": "pending new runtime deployment"
+    },
+    "exactHeadNativeAcceptance": {
+      "candidate": "9374fa5f29d68e9bdda20f0db8c345aefdcf213d",
+      "ciRun": 39002345443,
+      "heroScenarios": 8,
+      "mobileScenarios": 18,
+      "result": "passed",
+      "artifact": 12090260322
+    },
+    "todayQaSynchronization": {
+      "ciRun": 39002345443,
+      "failure": "Today deadline-order QA compared the previous rendered order while Refresh was still applying the native snapshot. All fixture IDs already existed, so presence was not a freshness signal.",
+      "correction": "Wait for the entire refreshed source-ID sequence, then retain the exact array and count assertions. No product code or assertion is removed.",
+      "status": "pending focused and required exact-head verification"
     }
   }
 }
