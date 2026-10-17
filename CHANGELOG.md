@@ -15,6 +15,7 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 ## [Unreleased]
 
 - Protect recorded audit entries from client-role updates, deletes and truncation through an additive database migration; retain canonical appends and trusted retention.
+- Add Xero to the existing atomic provider-disconnect database command so workspace owners can revoke the new OAuth connection and clear credentials with a durable audit entry.
 
 ### Added
 

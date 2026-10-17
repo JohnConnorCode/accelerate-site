@@ -108,7 +108,11 @@ export const WORKSPACE_CONFIGURATION_TOOLS = [
           audience: "secure-human-handoff",
         },
       ],
-      verification: ["scripts/test-xero-oauth.ts", "scripts/test-ai-workspace-configuration.ts"],
+      verification: [
+        "scripts/test-xero-oauth.ts",
+        "scripts/test-ai-workspace-configuration.ts",
+        "scripts/test-workspace-configuration-postgres.mjs",
+      ],
     },
   },
   {

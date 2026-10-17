@@ -409,7 +409,8 @@
           ],
           "verification": [
             "scripts/test-xero-oauth.ts",
-            "scripts/test-ai-workspace-configuration.ts"
+            "scripts/test-ai-workspace-configuration.ts",
+            "scripts/test-workspace-configuration-postgres.mjs"
           ]
         },
         "serviceTarget": "revenue-os.workspace-configuration",

@@ -4944,7 +4944,7 @@
     }
   ],
   "launchFollowupReview": {
-    "checkedAt": "2026-10-17T16:13:13.929561+00:00",
+    "checkedAt": "2026-10-17T16:22:04.497323+00:00",
     "releaseBase": "9a420f2e0848623481f61d950da4615d9041114a",
     "additionalAgentHeads": {
       "fix/event-ticketing-ci-race-20261017": "bc1daf9f814ffb14948c3e05432eaf5f9d4c5356",
@@ -4961,7 +4961,8 @@
       "Preserve native pointer activation while immediately settling keyboard focus and form fields.",
       "Refuse ambiguous Xero organisation mapping and workspace-copied credentials; credential refresh succeeds only after a fenced durable save.",
       "Provide authenticated tenant-bound OAuth setup through the existing redacted configuration read tool; accounting import remains planned.",
-      "Scope audit-ledger documentation to audit_log separately from canonical activities."
+      "Scope audit-ledger documentation to audit_log separately from canonical activities.",
+      "Register the additive Xero disconnect migration in the canonical catalog; the native PostgreSQL configuration proof reproduces the old refusal, then verifies revocation, secret clearing, exact stale checks, authorization, isolation and audit."
     ],
     "verification": {
       "lint": "passed",
@@ -4984,7 +4985,10 @@
       "workspaceConfiguration": "passed",
       "requiredExactHeadCI": "pending",
       "exactHeadBrowserAcceptance": "pending",
-      "productionDeployment": "pending"
+      "productionDeployment": "pending",
+      "core": "passed on 9881130a; subsequent changes are the isolated SQL allowlist migration, its PostgreSQL proof and reviewed metadata",
+      "workspaceConfigurationPostgres": "passed, old Xero refusal reproduced before upgrade and governed revocation verified after two migration applications",
+      "orderedMigrations": 135
     },
     "deferred": [
       {
