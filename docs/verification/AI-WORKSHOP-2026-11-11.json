@@ -351,7 +351,7 @@
         "pr": 264,
         "reason": "New development-tool lint rules fail existing application source. No lint policy or validation is weakened."
       },
-      "verification": "Required exact-head CI and production provider/browser acceptance remain pending at this source receipt."
+      "verification": "Local final build, focused lint, contract, subscription, event, workflow and docs checks passed. Exact-head CI found a homepage markup assertion comparing tree-position-specific React IDs. The comparison now canonicalizes only those IDs, preserves reference relationships, and still compares all layout/content bytes; a broken-reference regression and scoped SSR check pass. Required final CI and live provider/browser acceptance remain pending."
     },
     "retainedSourceComparison": {
       "checkedAt": "2026-10-17T02:47:06.795535+00:00",
@@ -364,6 +364,11 @@
       "currentWorktreeCount": 136,
       "currentLocalBranchCount": 716
     },
-    "deploymentAndPublication": "Not performed at this receipt. A verified production release, payment/email proof and publication receipt must follow."
+    "deploymentAndPublication": "Not performed at this receipt. A verified production release, payment/email proof and publication receipt must follow.",
+    "productionEncryption": {
+      "configuredInVercel": true,
+      "existingEncryptedRecordCount": 0,
+      "runtimeActivation": "Requires the new deployment; the prior production runtime refused the provider save because its encryption setting was absent."
+    }
   }
 }

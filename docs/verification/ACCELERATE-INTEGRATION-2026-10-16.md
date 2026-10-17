@@ -120,3 +120,17 @@ project. Its ledger contains 133 migrations, ticket tables have RLS, and the
 November 11 workshop remains a $50, forty-place draft. This supersedes the
 historical no-schema preflight above. Production deployment, provider acceptance
 and sales publication are still pending at this source receipt.
+
+The first launch CI run found a Site Studio markup comparison treating React's
+tree-position-specific SVG identifiers as a layout difference. The comparison
+now canonicalizes only those identifiers, preserves their reference relationships,
+and retains the complete markup equality check. A broken SVG reference still
+fails, and the scoped source/native renderer test passes. The final build and
+focused contract, lint, subscription, event and documentation checks passed.
+
+The live Stripe key identifies the selected Super Debate account with charges
+enabled. The older production runtime could not save it because the encryption
+setting was absent. No existing encrypted records were found; a fresh server-only
+production Secret is now configured for the new deployment. No key value is
+included in this receipt. Local final browser QA stopped at the unchanged 20%
+memory gate; remote final-head browser verification remains required.

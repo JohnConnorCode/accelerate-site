@@ -110,15 +110,32 @@ console.log(
 const bundled = createBundledWebsite();
 const home = bundled.pages[0];
 assert.ok(home);
+// useId includes the React tree position. Native sections and the source page
+// have different component trees; preserve identity/reference relationships
+// while comparing every other byte of their rendered layout.
+function normalizeReactIds(markup: string) {
+  const ids = new Map<string, string>();
+  return markup.replace(/_R_[A-Za-z0-9]+_/g, (id) => {
+    if (!ids.has(id)) ids.set(id, `_R_${ids.size}_`);
+    return ids.get(id)!;
+  });
+}
+assert.notEqual(
+  normalizeReactIds('<svg id="_R_a_"><path fill="url(#_R_a_)"/></svg>'),
+  normalizeReactIds('<svg id="_R_b_"><path fill="url(#_R_c_)"/></svg>'),
+  "Normalization must still reject a changed SVG reference",
+);
 assert.equal(
-  renderToStaticMarkup(
-    <WebsitePageContent
-      page={home}
-      assets={bundled.assets}
-      renderNative={renderNativeWebsiteSection}
-    />,
+  normalizeReactIds(
+    renderToStaticMarkup(
+      <WebsitePageContent
+        page={home}
+        assets={bundled.assets}
+        renderNative={renderNativeWebsiteSection}
+      />,
+    ),
   ),
-  renderToStaticMarkup(<Studio />),
+  normalizeReactIds(renderToStaticMarkup(<Studio />)),
   "Bundled homepage preserves the complete source-rendered layout",
 );
 console.log("PASS: all twelve homepage sections and hero grouping preserve bundled markup.");
