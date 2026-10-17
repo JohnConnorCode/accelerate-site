@@ -791,6 +791,7 @@ async function main() {
               .getByRole("navigation", { name: "Explore the homepage" })
               .locator(`a[href="${href}"]`);
             await link.evaluate((element) => element.scrollIntoView({ block: "center" }));
+            let clickPosition: { x: number; y: number } | undefined;
             if (theme === "light" && href === "#systems") {
               await page.waitForFunction(() =>
                 document.querySelector(".hero-statement")?.classList.contains("in"),
@@ -805,8 +806,13 @@ async function main() {
                   animation.currentTime = (timing.delay ?? 0) + Number(timing.duration) * 0.05;
                 }
               });
+              const size = await link.boundingBox();
+              assert.ok(size);
+              // Every part of the link must activate, including the lower edge
+              // that would move outside the pointer if focus settled it early.
+              clickPosition = { x: size.width / 2, y: size.height - 4 };
             }
-            await link.click();
+            await link.click({ position: clickPosition });
             await page.waitForURL(`**/${href}`);
             assert.ok(await page.locator(href).count());
           }

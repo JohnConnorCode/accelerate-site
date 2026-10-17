@@ -4962,7 +4962,8 @@
       "Refuse ambiguous Xero organisation mapping and workspace-copied credentials; credential refresh succeeds only after a fenced durable save.",
       "Provide authenticated tenant-bound OAuth setup through the existing redacted configuration read tool; accounting import remains planned.",
       "Scope audit-ledger documentation to audit_log separately from canonical activities.",
-      "Register the additive Xero disconnect migration in the canonical catalog; the native PostgreSQL configuration proof reproduces the old refusal, then verifies revocation, secret clearing, exact stale checks, authorization, isolation and audit."
+      "Register the additive Xero disconnect migration in the canonical catalog; the native PostgreSQL configuration proof reproduces the old refusal, then verifies revocation, secret clearing, exact stale checks, authorization, isolation and audit.",
+      "Include the final retry logger correction from 442bb93c; the final audit migration and 31-check fixture match 5498366c. The Xero note records prior gates that this integration resolves with secure human handoffs and canonical revocation."
     ],
     "verification": {
       "lint": "passed",
@@ -4988,7 +4989,9 @@
       "productionDeployment": "pending",
       "core": "passed on 9881130a; subsequent changes are the isolated SQL allowlist migration, its PostgreSQL proof and reviewed metadata",
       "workspaceConfigurationPostgres": "passed, old Xero refusal reproduced before upgrade and governed revocation verified after two migration applications",
-      "orderedMigrations": 135
+      "orderedMigrations": 135,
+      "runtimeBoundaries": "passed with final retry logger correction",
+      "nativeAnchorRegression": "Freeze the real entrance, then activate inside the lower edge of its link and await actual asynchronous navigation; central clicks alone do not prove this edge case."
     },
     "deferred": [
       {
@@ -4997,6 +5000,11 @@
         "reason": "Development dependency upgrade introduces widespread failing React compiler lint rules; not a completed passing handoff. Existing validation remains enforced."
       }
     ],
-    "sourcePreservation": "Original agent checkouts and frozen audit handoff remain unchanged. Cleanup follows successful deployment and payment acceptance."
+    "sourcePreservation": "Original agent checkouts and frozen audit handoff remain unchanged. Cleanup follows successful deployment and payment acceptance.",
+    "finalAgentHeads": {
+      "retryLogging": "442bb93c7ea24c2a5a22be25ad578dc5fbbe88ec",
+      "auditLedger": "5498366c4baf3953b78126cee2ccfb8725227aad",
+      "xeroFoundationNote": "6ac61c13beb26f8e77289d400c0a530664192030"
+    }
   }
 }

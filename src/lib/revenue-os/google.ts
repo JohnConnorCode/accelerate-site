@@ -129,8 +129,8 @@ export async function googleFetch<T>(url: string, init: RequestInit = {}): Promi
       // Release the unused body before waiting so the socket is not held open.
       try {
         await response.body?.cancel();
-      } catch {
-        /* recovery does not depend on draining the discarded body */
+      } catch (error) {
+        console.warn("[google/fetch] discarded body was not cancelled", safeErrorMessage(error));
       }
       await new Promise((resolve) => setTimeout(resolve, googleRetryDelayMs(response, attempt)));
       continue;
