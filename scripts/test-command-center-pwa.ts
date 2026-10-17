@@ -116,6 +116,24 @@ async function main() {
     "https://www.example.test/docs",
   );
   assert.equal((await visit("app.example.test", "/api/admin/login")).headers.get("location"), null);
+  for (const eventPath of ["/events/practical-ai", "/t/another-workspace/events/practical-ai"]) {
+    assert.equal(
+      (await visit("app.example.test", `${eventPath}?preview=1`)).headers.get("location"),
+      null,
+      "Draft previews retain the host-scoped administrator session",
+    );
+    assert.equal(
+      (await visit("app.example.test", eventPath)).headers.get("location"),
+      `https://www.example.test${eventPath}`,
+      "Buyer pages keep the public origin",
+    );
+  }
+  assert.equal(
+    (await visit("app.example.test", "/events/practical-ai/confirmation?preview=1")).headers.get(
+      "location",
+    ),
+    "https://www.example.test/events/practical-ai/confirmation?preview=1",
+  );
   assert.equal((await visit("www.example.test", "/")).headers.get("location"), null);
   assert.equal(
     (await visit("www.example.test", "/admin/login")).headers.get("location"),

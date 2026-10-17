@@ -14,6 +14,9 @@ export async function proxy(request: NextRequest) {
   const requestHost = request.headers.get("host") || request.nextUrl.host;
   if (commandCenterOrigin && requestHost === new URL(commandCenterOrigin).host) {
     const path = request.nextUrl.pathname;
+    const eventPreview =
+      request.nextUrl.searchParams.get("preview") === "1" &&
+      /^\/(?:t\/[a-z0-9-]+\/)?events\/[a-z0-9-]+$/.test(path);
     if (path === "/" && ["GET", "HEAD"].includes(request.method)) {
       return NextResponse.redirect(new URL("/workspace", commandCenterOrigin), 307);
     }
@@ -22,6 +25,9 @@ export async function proxy(request: NextRequest) {
       path === "/admin" ||
       path.startsWith("/admin/") ||
       /^\/t\/[a-z0-9]+(?:-[a-z0-9]+)*\/admin(?:\/|$)/.test(path) ||
+      // A draft preview needs the administrator's host-scoped session.
+      // The event page still requires active administrator membership.
+      eventPreview ||
       path === "/auth/callback" ||
       path === "/command-center-offline.html";
     const isPageRequest =

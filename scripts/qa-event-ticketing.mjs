@@ -334,7 +334,13 @@ try {
     assert.equal(purchases[0].quantity, 2);
     assert.equal(purchases[0].attribution.utm_source, "venue");
     assert.equal("price_cents" in purchases[0], false);
+    const initialReceipt = page.waitForResponse(
+      (response) =>
+        response.url().startsWith(`${api}?`) &&
+        new URL(response.url()).searchParams.get("order") === orderId,
+    );
     await page.goto(`${base}/events/${event.slug}/confirmation?order=${orderId}&key=${key}`);
+    assert.equal((await (await initialReceipt).json()).state, "checkout");
     assert.equal(await page.locator("#gtag-init, #meta-pixel").count(), 0);
     assert.equal(await page.evaluate(() => typeof window.gtag), "undefined");
     assert.equal(await page.evaluate(() => typeof window.fbq), "undefined");
@@ -593,6 +599,7 @@ try {
   );
   fixtureStatus = "draft";
   assert.equal((await fetch(`${base}/events/${event.slug}`)).status, 404);
+  assert.equal((await fetch(`${base}/events/${event.slug}?preview=1`)).status, 404);
   assert.deepEqual(escaped, []);
   await writeFile(
     `${output}/results.json`,

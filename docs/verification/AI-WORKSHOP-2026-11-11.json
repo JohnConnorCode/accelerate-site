@@ -345,7 +345,8 @@
         "Shared workshop hero and section entrances with reduced-motion behavior.",
         "Editing an event focuses and reveals its form without moving focus while typing.",
         "Homepage keyboard access remains visible after blur until a fresh entrance.",
-        "Shared-account checkouts without workspace subscription metadata are ignored before any subscription receipt is created."
+        "Shared-account checkouts without workspace subscription metadata are ignored before any subscription receipt is created.",
+        "Draft previews retain the administrator session on the workspace origin; public buyer and confirmation pages keep the public origin."
       ],
       "excluded": {
         "pr": 264,
