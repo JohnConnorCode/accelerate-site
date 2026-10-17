@@ -348,6 +348,11 @@ export function HeroArtwork() {
       y: ((event.clientY - bounds.y) * 600) / bounds.height,
     };
   }
+  function steer(event: PointerEvent) {
+    if (event.pointerType !== "mouse" || event.buttons) return;
+    const p = coordinates(event);
+    controller.current?.steer((p.x - 300) * 0.24, (p.y - 300) * 0.18);
+  }
   return (
     <div
       className="home-hero-artwork home-system-artwork"
@@ -362,11 +367,8 @@ export function HeroArtwork() {
       <div
         ref={scene}
         className="home-system-scene"
-        onPointerMove={(event) => {
-          if (event.pointerType !== "mouse" || event.buttons) return;
-          const p = coordinates(event);
-          controller.current?.steer((p.x - 300) * 0.24, (p.y - 300) * 0.18);
-        }}
+        onPointerEnter={steer}
+        onPointerMove={steer}
         onPointerLeave={() => controller.current?.steer(0, 0)}
       >
         <svg className="home-system-diagram" viewBox="0 0 600 600" fill="none" aria-hidden="true">

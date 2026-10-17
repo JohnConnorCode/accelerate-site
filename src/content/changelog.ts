@@ -2,11 +2,20 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "task-inspector-reopening",
+    slug: "task-inspector-reopening",
+    title: "Reopen a task after saving or snoozing",
+    description:
+      "Work keeps the selected task aligned with its link. After saving or snoozing, reopening that task shows its current details. Changes that finish later still leave the task you opened in place.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
     id: "workshop-and-homepage-motion",
     slug: "workshop-and-homepage-motion",
     title: "Explore a connected workflow and book your workshop place",
     description:
-      "The homepage illustrates how messages, scheduling and invoices become useful business actions. Choose a workflow by touch or keyboard, or pause the animation. Workshop pages use staged introductions, readable section entrances and a ticket form that stays within reach on phones. Events opens the selected editor in view and keeps your focus while you type. Booking bars release keyboard focus as soon as they withdraw. Reduced-motion preferences are respected throughout.",
+      "The homepage illustrates how messages, scheduling and invoices become useful business actions. Choose a workflow by touch or keyboard, or steer the moving core. Workshop pages use staged introductions, readable section entrances and a ticket form that stays within reach on phones. Events opens the selected editor in view and keeps your focus while you type. Booking bars release keyboard focus as soon as they withdraw. Reduced-motion preferences are respected throughout.",
     category: "improvement",
     publishedAt: "2026-10-16",
   },

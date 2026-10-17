@@ -118,7 +118,6 @@ export default function WorkPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [taskDraft, setTask] = useState<TaskRow | null>(null);
-  const [dismissedTaskId, setDismissedTaskId] = useState<string | null>(null);
   const taskOperation = useRef<string | null>(null);
   const [taskError, setTaskError] = useState<{ id: string; message: string } | null>(null);
   const [description, setDescription] = useState("");
@@ -296,14 +295,13 @@ export default function WorkPage() {
   const mismatchedTask =
     selectedTaskQuery.data?.tasks[0] && selectedTaskQuery.data.tasks[0].id !== requestedTask;
   useEffect(() => {
-    setDismissedTaskId(null);
     if (!requestedTask) {
       loadedTaskRef.current = null;
       setTask(null);
     }
   }, [requestedTask]);
   useEffect(() => {
-    if (!requestedTask || dismissedTaskId === requestedTask) return;
+    if (!requestedTask) return;
     const row = selectedTaskQuery.data?.tasks[0];
     if (row?.id !== requestedTask) return;
     setTask(row);
@@ -315,11 +313,9 @@ export default function WorkPage() {
     setPriority(row.priority === "normal" ? "medium" : row.priority);
     setSnoozeDate("");
     setTaskError(null);
-  }, [requestedTask, selectedTaskQuery.data, dismissedTaskId]);
+  }, [requestedTask, selectedTaskQuery.data]);
   const closeTask = () => {
-    setDismissedTaskId(requestedTask);
-    setTask(null);
-    loadedTaskRef.current = null;
+    // The URL owns selection and dismissal, including a rapid same-task reopen.
     if (requestedTask) {
       const next = new URLSearchParams(params.toString());
       next.delete("task");
@@ -369,7 +365,6 @@ export default function WorkPage() {
   };
   const edit = (row: TaskRow) => {
     loadedTaskRef.current = row.id;
-    setDismissedTaskId(null);
     setTask(row);
     setTitle(row.title);
     setDescription(row.description ?? "");
@@ -1185,7 +1180,7 @@ export default function WorkPage() {
         onReject={() => void decide("reject")}
       />
       <AdminDialog
-        open={Boolean(requestedTask) && dismissedTaskId !== requestedTask}
+        open={Boolean(requestedTask)}
         onClose={dismissTask}
         title="Task details"
         align="right"
