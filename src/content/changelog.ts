@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "audit-ledger-append-only",
+    slug: "audit-ledger-append-only",
+    title: "Audit history is append-only for signed-in clients",
+    description:
+      "A catalogued database upgrade makes the shared audit ledger refuse client-role updates, deletes and truncation of recorded history. Existing tenant and private-owner policies, the trusted server writer and normal retention are preserved; signed-in members keep reading and appending receipts. Coding agents can run the documented disposable PostgreSQL check instead of changing grants by hand. Apply the migration before relying on client-role mutation protection in a connected installation.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
     id: "event-workshop-ticketing",
     slug: "event-workshop-ticketing",
     title: "Sell workshop tickets and manage registrations",
