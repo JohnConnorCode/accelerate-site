@@ -38,29 +38,23 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   The pre-paint gate conceals complete words behind baseline-preserving masks,
   rather than moving already visible text. The eyebrow wipes in, responsive
   headline lines reveal as readable groups, then the explanation, booking
-  action and service index enter. The artwork is a bevelled, dimensional version
-  of the existing three-chevron identity, composed beside the text. A controlled
-  rotation and separation of the three forms change their studio-light
-  reflections. Pointer movement and touches do not steer the composition.
-  `HeroArtwork` owns a small native WebGL mesh and its server-rendered SVG poster.
-  Drawing is capped at 30fps and 1.5 device-pixel ratio, with geometry measured
-  only on resize. Graphics initialization follows the finite hero entrance so
-  shader compilation cannot collapse the headline sequence on software renderers.
-  The server poster stays visible during that wait. Its clock pauses offscreen, in hidden tabs, behind mobile
-  navigation, for reduced motion, and through the visible keyboard-accessible
-  Pause/Play control on desktop and mobile. Resuming preserves elapsed time.
-  Keyboard focus exposes the control without cancelling its entrance clock;
-  moving focus away must not restart the entrance or change paused pixels.
-  GPU initialization failure or context loss retains the static poster, including
-  after a theme change. Cleanup releases GPU resources and observers.
-  Ambient artwork uses its hydrated owner rather than the first-paint text gate,
-  so a late runtime resumes motion after the safety watchdog without concealing
-  readable text again.
+  action and service index enter. The artwork is an SVG automation system built from the existing three-chevron
+  identity. Customer inquiries, meetings and invoices connect through the core
+  to distinct example actions. One imperative controller owns SVG geometry,
+  signals, pointer steering, drag and keyboard controls. Static server geometry
+  remains readable without JavaScript. Drawing pauses offscreen, in hidden tabs,
+  behind mobile navigation, for reduced motion and through the shared motion
+  control. Coarse pointers receive bounded responses rather than continuous idle
+  animation. Selecting a workflow updates its pressed state and announces its
+  example result. Reduced motion applies interactions immediately without
+  ongoing frame work. Cleanup releases animation frames and observers.
+  The finite headline sequence retains one pre-paint entrance owner.
   Pending content must not flash.
   Reduced motion, unavailable JavaScript and the hydration watchdog show the
   complete static composition. Concealed booking actions do not accept pointer
-  clicks. Keyboard focus immediately exposes the booking
-  action; restoring an already visited history entry keeps the hero readable.
+  clicks. Keyboard focus immediately exposes the booking action and leaves it
+  available after focus moves away. Only a fresh entrance resets this override;
+  restoring an already visited history entry keeps the hero readable.
 - One inline root bootstrap arms every public reveal before first paint when
   JavaScript is available. A hydration watchdog removes that gate if the
   application runtime fails to start.
@@ -93,8 +87,8 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 `npm run test:work-portfolio` enforces the ownership boundary statically.
 `npm run qa:home-hero-timing` additionally checks concealed pending words and
 actions, rendered entrance frames, semantic timing, complete fallback states,
-keyboard activation, history restoration, actual changing and paused canvas pixels,
-GPU-unavailable/context-loss fallbacks, and desktop/mobile composition.
+keyboard activation, history restoration, perceptible SVG signal travel, distinct
+workflow actions, paused geometry and decoded pixels, and desktop/mobile composition.
 `npm run qa:mobile-motion` checks full-height mobile composition, repeated warm
 client visits, reloads, Back/Forward, document history restoration, complete
 chapter traversal, layout stability and reduced motion. Pass `-- --webkit` for

@@ -312,5 +312,58 @@
       "passed": ["connected fork native journeys", "native restore and upgrade recovery"],
       "disposition": "Passed completely before the client confirmation privacy change."
     }
-  ]
+  ],
+  "launchContinuation": {
+    "checkedAt": "2026-10-17T02:47:48.176914+00:00",
+    "mergedWorkshop": {
+      "pr": 263,
+      "source": "1a7864af6fa5dc234e6d8babe1863b6254492a9c",
+      "main": "9a420f2e0848623481f61d950da4615d9041114a",
+      "identicalTree": "300361f65f2296df0dbf6ac4c9798f99c6bed7a1",
+      "requiredCi": 38990017736,
+      "connectedRecoveryCi": 38990017837
+    },
+    "founderAuthorization": "Publish the complete verified release and workshop, using the existing Super Debate Stripe account; dedicated live/test keys and webhook explicitly approved.",
+    "productionMigration": {
+      "project": "skjypuwkceoiunyhhqlm",
+      "migration": "20261016200534_event_ticketing.sql",
+      "applied": true,
+      "ledgerCount": 133,
+      "seedStatus": "draft",
+      "priceCents": 5000,
+      "capacity": 40,
+      "rlsEnabled": ["ticket_events", "ticket_orders", "ticket_order_receipts"],
+      "securityAdvisors": "No anonymous ticket exposure or ticket-function findings. Authenticated schema visibility is intentional; membership/context RLS protects records and the security-invoker availability view."
+    },
+    "launchCandidate": {
+      "base": "9a420f2e0848623481f61d950da4615d9041114a",
+      "includedSources": {
+        "homepage": "84eb3f93fe93881e47d81081b2ff269be89e0a1a",
+        "productionDependencies": "6cc899f595d1a40579dcb9c3ef1691676ccf7c74"
+      },
+      "changes": [
+        "Shared workshop hero and section entrances with reduced-motion behavior.",
+        "Editing an event focuses and reveals its form without moving focus while typing.",
+        "Homepage keyboard access remains visible after blur until a fresh entrance.",
+        "Shared-account checkouts without workspace subscription metadata are ignored before any subscription receipt is created."
+      ],
+      "excluded": {
+        "pr": 264,
+        "reason": "New development-tool lint rules fail existing application source. No lint policy or validation is weakened."
+      },
+      "verification": "Required exact-head CI and production provider/browser acceptance remain pending at this source receipt."
+    },
+    "retainedSourceComparison": {
+      "checkedAt": "2026-10-17T02:47:06.795535+00:00",
+      "retainedCheckouts": 133,
+      "matchingRecordedHeadPathsAndTrackedDiff": 133,
+      "changes": [],
+      "retainedBranches": 714,
+      "changedOwnedBranches": ["integrate/accelerate-workshop-20261016"],
+      "unexpectedBranchChanges": [],
+      "currentWorktreeCount": 136,
+      "currentLocalBranchCount": 716
+    },
+    "deploymentAndPublication": "Not performed at this receipt. A verified production release, payment/email proof and publication receipt must follow."
+  }
 }

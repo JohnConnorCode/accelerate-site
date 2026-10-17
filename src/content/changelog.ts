@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "workshop-and-homepage-motion",
+    slug: "workshop-and-homepage-motion",
+    title: "Explore a connected workflow and book your workshop place",
+    description:
+      "The homepage illustrates how messages, scheduling and invoices become useful business actions. Choose a workflow by touch or keyboard, or pause the animation. Workshop pages use staged introductions, readable section entrances and a ticket form that stays within reach on phones. Events opens the selected editor in view and keeps your focus while you type. Reduced-motion preferences are respected throughout.",
+    category: "improvement",
+    publishedAt: "2026-10-16",
+  },
+  {
     id: "event-workshop-ticketing",
     slug: "event-workshop-ticketing",
     title: "Sell workshop tickets and manage registrations",

@@ -2024,9 +2024,31 @@ body[data-mobile-navigation="open"] .chat-widget-root {
   visibility: hidden;
 }
 
+/* AnimatePresence retains the dismissed dock during its exit. Once its shared
+   visibility flag is off, it must neither cover nor intercept the page below. */
+body:not([data-mcta="on"]) [data-dock] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .chat-widget-root {
   right: max(1rem, var(--safe-right));
   bottom: max(1rem, var(--safe-bottom));
+}
+.chat-widget-root:not(.is-open) {
+  pointer-events: none;
+}
+.chat-launcher-placement {
+  pointer-events: auto;
+}
+@media (max-width: 1023px) {
+  .chat-widget-root[data-hero-clearance="true"]:not(.is-open) .chat-launcher-placement {
+    translate: var(--hero-chat-shift) 0;
+  }
+  .chat-widget-root[data-hero-clearance="hidden"]:not(.is-open) .chat-launcher-placement {
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
 .chat-widget-root.is-open {
   inset: 0;
@@ -6453,6 +6475,152 @@ body.modal-open [data-dock] {
   outline: 2px solid var(--fg);
   outline-offset: 3px;
 }
+/* A live intelligence mechanism: inputs, processing layers and branched actions
+   share a steerable geometry. Direct touch manipulation belongs to the core. */
+.home-system-artwork {
+  pointer-events: none;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+}
+.home-system-scene {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  /* Keep transparent parts of the stage from covering nearby copy or CTAs. */
+  pointer-events: none;
+}
+.home-system-diagram {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.home-system-port {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  pointer-events: auto;
+  place-items: center;
+  --port-size: clamp(48px, 5vw, 64px);
+  width: var(--port-size);
+  height: var(--port-size);
+  left: calc(var(--port-x) - var(--port-size) / 2);
+  top: calc(var(--port-y) - var(--port-size) / 2);
+  border-radius: 14px;
+  color: var(--fg);
+  background: var(--bg);
+  box-shadow:
+    var(--card-shadow),
+    0 6px 0 -1px color-mix(in srgb, var(--fg) 9%, var(--bg));
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    scale 180ms ease;
+}
+.home-system-port svg {
+  width: 24px;
+  height: 24px;
+}
+.home-system-input {
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.home-system-output svg {
+  stroke: var(--fg);
+}
+.home-system-output[data-complete="true"] svg {
+  stroke: var(--bg);
+}
+.home-system-input:hover,
+.home-system-input:focus-visible {
+  box-shadow:
+    0 0 0 1px var(--fg),
+    var(--card-shadow-hover),
+    0 6px 0 -1px color-mix(in srgb, var(--fg) 18%, var(--bg));
+}
+.home-system-input:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 5px;
+}
+.home-system-input:active {
+  scale: 0.96;
+}
+.home-system-input[aria-pressed="true"],
+.home-system-output[data-complete="true"] {
+  background: var(--fg);
+  color: var(--bg);
+}
+.home-system-output[data-connected="true"]:not([data-complete="true"]) {
+  box-shadow:
+    0 0 0 1px var(--fg),
+    var(--card-shadow);
+}
+.home-system-port-dot {
+  position: absolute;
+  bottom: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+}
+.home-system-output[data-complete="true"] .home-system-port-dot {
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 1;
+}
+.home-system-handle {
+  position: absolute;
+  z-index: 1;
+  width: 42%;
+  height: 42%;
+  left: calc(var(--core-x, 50%) - 21%);
+  top: calc(var(--core-y, 50%) - 21%);
+  border: 0;
+  padding: 0;
+  border-radius: 32%;
+  background: transparent;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-system-artwork[data-dragging="true"] .home-system-handle {
+  cursor: grabbing;
+}
+.home-system-artwork[data-motion="suspended"] .home-system-port {
+  transition: none;
+}
+.home-system-handle:focus-visible {
+  outline: 1px dashed var(--fg);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-system-port {
+    transition: none;
+  }
+  .home-system-packets {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .home-hero-artwork.home-system-artwork {
+    right: 8px;
+    width: max(70vw, 260px);
+  }
+  .home-system-port {
+    border-radius: 12px;
+  }
+  .home-system-port svg {
+    width: 24px;
+    height: 24px;
+  }
+}
 .home-hero-bottom {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -6569,8 +6737,10 @@ body.modal-open [data-dock] {
   .motion-ready .home-hero.in .home-hero-index > span:nth-child(3) {
     --hero-entry-delay: calc(var(--hero-index-delay, 1480ms) + 200ms);
   }
-  /* Keyboard users can reach the booking action before its visual cue. */
-  .motion-ready .home-hero[data-reveal-state] .home-hero-actions:focus-within {
+  /* Keep a reached action visible after focus leaves, until a fresh entrance.
+     A transient focus-only override restarts its delayed animation on blur. */
+  .motion-ready .home-hero[data-reveal-state] .home-hero-actions:focus-within,
+  .motion-ready .home-hero[data-hero-action-ready="true"] .home-hero-actions {
     animation: none;
     opacity: 1;
     transform: none;
@@ -6660,6 +6830,38 @@ body.modal-open [data-dock] {
   }
   .home-hero-artwork-caption > span {
     display: none;
+  }
+}
+
+/* Integer layout avoids independently composited fractional card rasters.
+   The fallback above retains the same geometry in older CSS engines. */
+@supports (width: round(nearest, 10px, 2px)) {
+  .home-hero-artwork.home-system-artwork {
+    width: round(nearest, min(44vw, 630px), 2px);
+    height: round(nearest, min(75svh, 700px), 2px);
+  }
+  .home-system-port {
+    --port-size: round(nearest, clamp(48px, 5vw, 64px), 2px);
+    left: round(nearest, calc(var(--port-x) - var(--port-size) / 2), 1px);
+    top: round(nearest, calc(var(--port-y) - var(--port-size) / 2), 1px);
+  }
+  @media (min-width: 641px) and (max-width: 1000px) {
+    .home-hero-artwork.home-system-artwork {
+      top: auto;
+      width: round(nearest, 40vw, 2px);
+      height: round(nearest, 35svh, 2px);
+    }
+  }
+  @media (max-width: 640px) {
+    .home-hero-artwork.home-system-artwork {
+      top: auto;
+      width: round(nearest, max(70vw, 260px), 2px);
+      height: round(nearest, 28svh, 2px);
+    }
+    .home-system-port svg {
+      width: 24px;
+      height: 24px;
+    }
   }
 }
 

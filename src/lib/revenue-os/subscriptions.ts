@@ -626,6 +626,17 @@ export async function processStripeWebhook(db: SupabaseClient, event: ProviderOb
     .regex(/^evt_[A-Za-z0-9]{1,80}$/)
     .parse(event.id);
   const eventType = z.string().min(1).max(120).parse(event.type);
+  const checkoutMetadata = event.data?.object?.metadata;
+  if (
+    eventType === "checkout.session.completed" &&
+    !checkoutMetadata?.accelerate_tenant_id &&
+    !checkoutMetadata?.accelerate_user_id &&
+    !checkoutMetadata?.accelerate_plan_id
+  ) {
+    // An account can also serve another business. Its checkouts are not
+    // this workspace's subscription attempts and must not create failed receipts.
+    return { ignored: true };
+  }
   const { data: existing } = await db
     .from("billing_webhook_events")
     .select("status")

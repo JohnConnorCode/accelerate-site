@@ -447,6 +447,14 @@ try {
     await page.goto(`${root}/events`);
     await page.getByRole("heading", { level: 1, name: "Events", exact: true }).waitFor();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const editorHeading = page.getByRole("heading", { name: "Edit event", exact: true });
+    await editorHeading.waitFor();
+    assert.equal(
+      await editorHeading.evaluate((element) => element === document.activeElement),
+      true,
+    );
+    const editorBox = await editorHeading.boundingBox();
+    assert.ok(editorBox.y >= 0 && editorBox.y < 300, "Edit reveals the form in the admin viewport");
     const originalEnd = await page.getByLabel("End", { exact: true }).inputValue();
     await page
       .getByLabel("End", { exact: true })
@@ -459,6 +467,13 @@ try {
     assert.ok((await validationAlert.textContent()).startsWith("End time must follow start time"));
     await page.getByLabel("End", { exact: true }).fill(originalEnd);
     await page.getByLabel("Ticket price (USD)").fill("75.00");
+    assert.equal(
+      await page
+        .getByLabel("Ticket price (USD)")
+        .evaluate((element) => element === document.activeElement),
+      true,
+      "Typing keeps focus in the price field",
+    );
     await page.getByRole("button", { name: "Save event", exact: true }).click();
     await page.getByRole("status").filter({ hasText: "Event saved" }).waitFor();
     const data = await page.evaluate(async () => (await fetch("/api/admin/events")).json());
