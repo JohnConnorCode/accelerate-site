@@ -130,6 +130,16 @@ async function main() {
   assert.equal(capped.items.length, 20);
   assert.equal(capped.receipt.inspectedRows, 100);
   assert.equal(capped.receipt.truncated, true);
+  // The 64 KiB snapshot bound is the host's last resort against a runaway
+  // source and previously had no regression.
+  mem.tables.tasks = Array.from({ length: 100 }, (_, i) => ({
+    id: `big-${i}`,
+    tenant_id: tenantId,
+    title: "x".repeat(700),
+    status: "pending",
+    due_date: past,
+  }));
+  await assert.rejects(() => runReportPlugin(db, "commitment-watch", "qa"), /exceeds 64 KiB/);
   const original = EXTENSION_REPORTS["meeting-prep"]!.code;
   try {
     for (const code of [

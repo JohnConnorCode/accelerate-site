@@ -235,6 +235,12 @@ async function main() {
         () => prepareWorkflowPlugin(db, pluginId, { ...input, [sourceKey]: "x".repeat(36) }),
         /Invalid UUID/,
       );
+      // The host refuses an oversized input before it ever reaches the isolate.
+      // That bound is load-bearing and previously had no regression.
+      await assert.rejects(
+        () => prepareWorkflowPlugin(db, pluginId, { ...input, note: "x".repeat(33_000) }),
+        /Workflow input exceeds 32 KiB/,
+      );
     } finally {
       declaration.actions = originalActions;
       declaration.policy = originalPolicy;

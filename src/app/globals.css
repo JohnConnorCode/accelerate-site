@@ -26,7 +26,7 @@
   padding-block: 0.75rem;
 }
 .site-connected-form {
-  border-radius: var(--site-radius);
+  border-radius: var(--site-radius, 0.75rem);
 }
 .site-connected-form h2 {
   font-size: 1.75rem;
@@ -145,6 +145,11 @@
   --bg-subtle: var(--bg);
   --bg-section-warm: var(--bg);
   --bg-section-deep: var(--bg);
+  /* Muted surface behind quiet cards and the active docs track pill. Five
+     consumers referenced this token and it was never defined, so those
+     backgrounds resolved to nothing. Map it to the shared card material so it
+     follows the theme instead of the flattened page background. */
+  --bg-muted: var(--surface-bg);
 
   /* Accent (raw RGB channels for rgba() usage) — now ink, not lime */
   --accent-rgb: 11, 11, 11;
@@ -1505,7 +1510,7 @@ a.tag:active {
   overflow-x: auto;
   padding-top: 0;
   padding-bottom: 0;
-  scroll-padding-inline: max(20px, var(--page-pad));
+  scroll-padding-inline: max(20px, var(--page-pad, 1.5rem));
   scrollbar-width: none;
 }
 .services-subnav-rail::-webkit-scrollbar {
@@ -6192,7 +6197,7 @@ body.modal-open [data-dock] {
   font-size: clamp(1.15rem, 1.8vw, 1.5rem);
   letter-spacing: -0.03em;
   line-height: 1.1;
-  color: var(--heading);
+  color: var(--heading-color);
 }
 .cc-chapter-b {
   margin-left: auto;
@@ -6238,7 +6243,7 @@ body.modal-open [data-dock] {
   font-size: 1.2rem;
   line-height: 1.12;
   letter-spacing: -0.028em;
-  color: var(--heading);
+  color: var(--heading-color);
   text-wrap: balance;
 }
 .cc-feat-b {

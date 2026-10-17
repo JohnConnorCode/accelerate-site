@@ -298,3 +298,50 @@ console.log(
 const publicCss = readFileSync(join(root, "app/globals.css"), "utf8");
 if (/^\.admin-(?!demo-)[\w-]+[^{}]*\{/m.test(publicCss))
   throw new Error("Shared admin recipes belong in admin-components.css, not public globals.");
+
+// -----------------------------------------------------------------------------
+// Public CSS must not reference a custom property that nothing defines. Three
+// undefined tokens shipped this way (--bg-muted behind quiet cards and the docs
+// track pill, --heading in the command-center chapters, --page-pad on the
+// services rail) and silently resolved to nothing: the declaration is dropped
+// at computed-value time and the fallback is "whatever was inherited".
+//
+// The only allowed exceptions are names injected at runtime rather than
+// authored in a stylesheet: next/font variables, a Radix data attribute, and
+// per-element values written by component code. Everything else must be
+// defined somewhere in src, or carry an explicit var(..., fallback).
+// -----------------------------------------------------------------------------
+const RUNTIME_INJECTED_TOKENS = new Set([
+  "--accent", // written per published site by site-studio
+  "--font-inter", // next/font in src/app/layout.tsx
+  "--font-jost",
+  "--font-mono-face",
+  "--hero-chat-shift", // ChatWidget setProperty
+  "--port-x", // HeroArtwork inline style
+  "--port-y",
+  "--radix-accordion-content-height", // Radix accordion
+]);
+const definedPublic = new Set();
+for (const file of files) {
+  for (const match of readFileSync(file, "utf8").matchAll(/(--[a-z0-9-]+)\s*:/g))
+    definedPublic.add(match[1]);
+}
+const undefinedPublic = new Map();
+for (const file of files) {
+  if (!file.endsWith(".css")) continue;
+  for (const match of readFileSync(file, "utf8").matchAll(/var\(\s*(--[a-z0-9-]+)\s*\)/g)) {
+    const token = match[1];
+    if (definedPublic.has(token) || RUNTIME_INJECTED_TOKENS.has(token)) continue;
+    if (!undefinedPublic.has(token)) undefinedPublic.set(token, new Set());
+    undefinedPublic.get(token).add(relative(root, file));
+  }
+}
+if (undefinedPublic.size)
+  throw new Error(
+    `CSS variables referenced without a definition or fallback:\n${[...undefinedPublic]
+      .map(([token, where]) => `  ${token} (${[...where].sort().join(", ")})`)
+      .join("\n")}`,
+  );
+console.log(
+  `Public CSS contract passed: ${definedPublic.size} defined variables; every var() resolves or declares a fallback.`,
+);

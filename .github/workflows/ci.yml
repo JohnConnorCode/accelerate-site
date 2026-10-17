@@ -291,6 +291,9 @@ jobs:
           npm run test:workspace-mcp-oauth
           PATH="$(pg_config --bindir):$PATH" npm run test:form-builder:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:site-editor:postgres
+          # Plugin workflow RLS, cross-tenant refusal and replay uniqueness are
+          # only provable against real PostgreSQL; the in-memory suite cannot.
+          PATH="$(pg_config --bindir):$PATH" npm run test:plugin-workflow-postgres
 
       - name: Verify Social Marketing adapter and publication transactions
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -423,7 +426,7 @@ jobs:
 
       - name: Verify deployable plugin engine package
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
-        run: node scripts/check-plugin-host-package.mjs
+        run: npm run verify:plugin-package
 
       - name: Install browser for first-run verification
         id: browser-install

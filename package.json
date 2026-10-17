@@ -300,6 +300,7 @@
     "test:site-editor:postgres": "node scripts/test-site-editor-postgres.mjs",
     "test:workspace-mcp-oauth": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-workspace-mcp-oauth.ts",
     "test:plugin-cold-start": "node scripts/test-plugin-cold-start.mjs",
+    "verify:plugin-package": "node scripts/check-plugin-host-package.mjs",
     "agent:show": "npx tsx scripts/agent-dispatch.ts show",
     "backlog:audit": "npx tsx scripts/audit-backlog.ts",
     "backlog:snapshot": "npx tsx --env-file=.env.local scripts/snapshot-backlog.ts",
