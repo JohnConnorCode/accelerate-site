@@ -307,6 +307,18 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     setPendingHref(null);
     setPending(false);
 
+    const hashId =
+      !restoresHistory && nextIntent.scroll === "top" && !isAdminPath(pathname)
+        ? new URL(nextIntent.href, location.href).hash.slice(1)
+        : "";
+    let fragmentId = hashId;
+    try {
+      fragmentId = decodeURIComponent(hashId);
+    } catch {
+      // A malformed escape can still be a literal element ID.
+      fragmentId = hashId;
+    }
+
     const focusDestination = () => {
       const root = isAdminPath(pathname)
         ? adminScroller.current
@@ -314,23 +326,29 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       if (root?.inert) return false;
       if (root?.querySelector("[data-admin-route-loading]")) return false;
       const heading = root?.querySelector<HTMLElement>("h1, [data-route-heading]");
+      const fragment = fragmentId ? document.getElementById(fragmentId) : null;
       // Client admin pages may commit a local data placeholder before their
       // real page header exists. The heading is the semantic destination; the
       // persistent application viewport is not a successful forward handoff.
       if (isAdminPath(pathname) && !heading) return false;
-      const focusTarget = heading || root;
+      const focusTarget = fragment || heading || root;
       if (!restoresHistory && focusTarget) {
         const active = document.activeElement;
         // The deferred first handoff can run after the operator has already
         // entered a destination field or opened another dialog. Those controls
         // now own focus, including when streamed content replaces the heading.
         const operatorHasFocus =
-          (active !== root && active !== focusTarget && root?.contains(active)) ||
+          (active !== root &&
+            active !== focusTarget &&
+            active !== heading &&
+            root?.contains(active)) ||
           active?.closest('[data-admin-overlay="dialog"][data-state="open"]');
         const canRefocus =
           !operatorHasFocus &&
           (!focusedTarget || active === document.body || active === focusedTarget);
         if (canRefocus) {
+          if (fragment && focusedTarget !== fragment)
+            fragment.scrollIntoView({ block: "start", behavior: "instant" });
           if (!focusTarget.hasAttribute("tabindex")) focusTarget.setAttribute("tabindex", "-1");
           focusTarget.focus({ preventScroll: true });
           focusedTarget = focusTarget;

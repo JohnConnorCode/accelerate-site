@@ -87,7 +87,7 @@ export function WorkshopBanner({
     if (banner.current) banner.current.inert = true;
     const returnTo = Array.from(
       document.querySelectorAll<HTMLElement>(
-        'header a[href="/workshop"], header button[aria-controls="mobile-site-navigation"]',
+        'header [data-workshop-link], header button[aria-controls="mobile-site-navigation"]',
       ),
     ).find((element) => element.getClientRects().length > 0);
     returnTo?.focus({ preventScroll: true });

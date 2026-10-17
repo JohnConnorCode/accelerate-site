@@ -26,8 +26,9 @@ routing or creating surface-specific history systems.
 
 - Browser scroll restoration is manual while the runtime is mounted.
 - A new route starts at the top unless the caller explicitly requests preserved
-  scroll. Browser Back and Forward restore the recorded position for that exact
-  history entry.
+  scroll or links to a public section. A public fragment scrolls its destination
+  into view using that element's scroll margin and receives focus. Browser Back
+  and Forward restore the recorded position for that exact history entry.
 - Public pages scroll the document. Admin and full-demo pages scroll the shared
   `.admin-main` application viewport registered by `AdminShell`.
 - Nested board scroll regions register by stable board key with this same runtime.
@@ -141,7 +142,8 @@ routing or creating surface-specific history systems.
   shared-layout projection while the route DOM is committing. Cached navigation
   therefore cannot couple dock movement to route layout replacement.
 - After forward navigation, focus moves without additional scrolling to the
-  destination heading or main region and the route title is announced politely.
+  destination heading or main region, or to an explicitly linked public section,
+  and the route title is announced politely.
   History traversal restores reading position without stealing focus.
 - Deferred route focus yields when the operator has already entered a destination
   control or opened another dialog. A closing overlay restores its opener only

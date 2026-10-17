@@ -218,6 +218,7 @@
   top: 7rem;
 }
 .checkout {
+  scroll-margin-top: 7rem;
   background: var(--bg-elevated);
   padding: 1.75rem;
   border-radius: 18px;

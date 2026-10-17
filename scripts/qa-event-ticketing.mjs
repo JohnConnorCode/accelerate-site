@@ -318,7 +318,7 @@ try {
       exact: true,
     });
     const workshopLink = navigation.getByRole("link", { name: "Workshop", exact: true });
-    assert.equal(await workshopLink.getAttribute("href"), "/workshop");
+    assert.equal(await workshopLink.getAttribute("href"), `/events/${event.slug}`);
     await workshopLink.click();
     await page.waitForURL(`**/events/${event.slug}`);
     results.push({
@@ -732,8 +732,14 @@ try {
   event.slug = "controlled-workshop-renamed";
   const renamedContext = await browser.newContext();
   const renamedPage = await renamedContext.newPage();
-  await renamedPage.goto(`${base}/workshop`);
-  await renamedPage.waitForURL(`**/events/${event.slug}`);
+  await renamedPage.goto(`${base}/events/${event.slug}`);
+  assert.equal(
+    await renamedPage
+      .getByRole("navigation", { name: "Primary", exact: true })
+      .getByRole("link", { name: "Workshop", exact: true })
+      .getAttribute("href"),
+    `/events/${event.slug}`,
+  );
   await renamedPage.getByRole("heading", { level: 1, name: event.headline }).waitFor();
   await renamedContext.close();
   event.slug = originalSlug;
@@ -744,7 +750,6 @@ try {
     /Ticket sales are paused/,
   );
   fixtureStatus = "draft";
-  assert.equal((await fetch(`${base}/workshop`)).status, 404);
   assert.equal((await fetch(`${base}/events/${event.slug}`)).status, 404);
   assert.equal((await fetch(`${base}/events/${event.slug}?preview=1`)).status, 404);
   assert.deepEqual(escaped, []);

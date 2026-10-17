@@ -2,13 +2,6 @@
  * checked against the marketing route tree so migrations cannot omit a page. */
 export const installationRoutes = [
   {
-    path: "/workshop",
-    source: "src/app/(marketing)/workshop/page.tsx",
-    kind: "application",
-    collection: null,
-    preserve: "Stable workshop menu link follows the saved event URL",
-  },
-  {
     path: "/events/[slug]",
     source: "src/app/(marketing)/events/[slug]/page.tsx",
     kind: "application",

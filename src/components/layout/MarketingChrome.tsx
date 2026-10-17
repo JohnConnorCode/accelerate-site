@@ -14,9 +14,11 @@ import { createNeutralWebsite } from "@/lib/site-studio/neutral-website";
 
 export function MarketingChrome({
   children,
+  workshopHref,
   website = distributionProfile() === "neutral" ? createNeutralWebsite() : undefined,
 }: {
   children: React.ReactNode;
+  workshopHref?: string;
   website?: WebsiteDocument;
 }) {
   const logoSrc = website?.assets.find((asset) => asset.id === website.identity.logoAssetId)?.src;
@@ -34,6 +36,7 @@ export function MarketingChrome({
       <RevenueAnalyticsTracker />
       <ScrollProgress />
       <Header
+        workshopHref={workshopHref}
         content={website?.header}
         navLinks={website?.navigation}
         brandName={website?.identity.name}
