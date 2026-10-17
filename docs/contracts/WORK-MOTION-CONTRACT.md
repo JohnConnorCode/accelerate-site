@@ -89,7 +89,9 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   Delayed hydration preserves a stable pending frame instead of painting
   content visible and then pulling it backward into an entrance.
 - Keyboard focus and form-field focus finish their entrance owner immediately
-  and keep it settled after focus leaves. Pointer-activated actions settle when
+  and keep it settled after focus leaves. Interaction finishes finite CSS
+  entrances while retaining their Work animation recipe; CSS transitions and
+  continuous decorative animations stay independent. Pointer-activated actions settle when
   the click is dispatched, so a completed ancestor transform cannot move the
   target between pointer down and up. Validation and payment feedback retain
   full contrast. Programmatic route-heading focus does not finish the hero sequence.

@@ -116,8 +116,18 @@ export function useRevealLifecycle<T extends HTMLElement>({
         ) &&
         (activated ||
           active.matches('input, select, textarea, [contenteditable="true"], :focus-visible'))
-      )
-        reveal(true);
+      ) {
+        reveal(false);
+        // Finish the owned entrance without removing its animation recipe.
+        // CSS transitions and continuous decorative animations stay independent.
+        for (const animation of element.getAnimations({ subtree: true })) {
+          if (
+            animation instanceof CSSAnimation &&
+            Number.isFinite(animation.effect?.getComputedTiming().endTime)
+          )
+            animation.finish();
+        }
+      }
     };
     const onFocus = () => revealFocused();
     const onClick = () => revealFocused(true);
