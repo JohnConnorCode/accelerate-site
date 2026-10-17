@@ -74,7 +74,7 @@
     "src/app/admin/today/page.tsx": "cbbba1645450b9ecc3bce1771bd06029306e62c33025bff07d5b7b1a30d13a4c",
     "src/app/admin/update-password/page.tsx": "a4958cdde6065cb8b147ca23e380f829df4221e92e92e18c421f3a4ba82105d1",
     "src/app/admin/website-grades/page.tsx": "d519f5bbde93a82914777fe500b4538e963bd8b1573f345c853ea7cec6ae5b6a",
-    "src/app/admin/work/page.tsx": "768134e692cc83bd07c564790676f0a11c64043e74871b387cad88b64a329f3c",
+    "src/app/admin/work/page.tsx": "ef2b2a35406754f76866f912cbcaba360c3c3c965a3ac7d921d4fc5caf2a26d8",
     "src/app/api/admin/activity/route.ts": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f",
     "src/app/api/admin/blueprints/[id]/route.ts": "55e534d37af37a4b8ebe48748681fe883722e2c9c7ed5d4068b4eb25dd414dff",
     "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
@@ -2169,7 +2169,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
+      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning. Task selection and dismissal share the URL owner, including same-task reopening; record identity and late-save navigation checks remain in the inspector.",
       "followUp": null,
       "specialBoundary": null
     }
