@@ -6,6 +6,12 @@ import {
   previewContentCalendarUpdate,
 } from "@/lib/revenue-os/content-calendar";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import { runInNewContext } from "node:vm";
+import ts from "typescript";
+import { NextRequest, NextResponse } from "next/server";
 import { createAdminConfigurationFixture } from "./lib/admin-configuration-fixture";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { executeRegisteredRevenueTool } from "@/lib/revenue-os/ai-tools";
@@ -317,6 +323,69 @@ async function main() {
         /revoked/,
       );
     });
+    // Exercise the HTTP boundary without pre-seeding async-local authority.
+    fixture.mem.rows("tenant_memberships")[0]!.status = "active";
+    fixture.mem.tables.content_calendar = [
+      { ...row, tenant_id: fixture.tenantId, sort_order: 1000 },
+    ];
+    const require = createRequire(resolve("package.json"));
+    const route: Record<string, (request: NextRequest) => Promise<NextResponse>> = {};
+    let authorization: unknown = fixture.actor;
+    runInNewContext(
+      ts.transpileModule(readFileSync("src/app/api/admin/content/route.ts", "utf8"), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+      }).outputText,
+      {
+        exports: route,
+        console,
+        URL,
+        Error,
+        SyntaxError,
+        require: (name: string) =>
+          name === "@/lib/admin/module-guard"
+            ? { requireAdminForModule: async () => authorization }
+            : require(name.startsWith("@/") ? resolve("src", name.slice(2)) : name),
+      },
+    );
+    const post = () =>
+      route.POST!(
+        new NextRequest("https://example.test/api/admin/content", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: randomUUID(),
+            requestKey: randomUUID(),
+            title: "Draft from admin",
+          }),
+        }),
+      );
+    const created = await post();
+    assert.equal(created.status, 201, JSON.stringify(await created.json()));
+    const reordered = await route.PATCH!(
+      new NextRequest("https://example.test/api/admin/content", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestKey: randomUUID(),
+          reorder: [{ id: itemId, column_key: "review", sort_order: 1000 }],
+          expected: [{ id: itemId, revision: row.updated_at }],
+        }),
+      }),
+    );
+    assert.equal(reordered.status, 200, JSON.stringify(await reordered.json()));
+    const removed = await route.DELETE!(
+      new NextRequest(
+        `https://example.test/api/admin/content?id=${itemId}&requestKey=${randomUUID()}&expectedRevision=${encodeURIComponent(row.updated_at)}`,
+        { method: "DELETE" },
+      ),
+    );
+    assert.equal(removed.status, 200, JSON.stringify(await removed.json()));
+    const completedWrites = calls;
+    fixture.mem.rows("tenant_memberships")[0]!.status = "revoked";
+    assert.equal((await post()).status, 403);
+    authorization = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    assert.equal((await post()).status, 401);
+    assert.equal(calls, completedWrites, "revoked and unauthenticated HTTP writes are refused");
   } finally {
     fixture.restore();
   }
