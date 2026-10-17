@@ -5,7 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { trackConversion } from "@/lib/analytics";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
+import {
+  isApplicationWorkspace,
+  observePublicDockScroll,
+  setPublicDockVisibility,
+} from "@/lib/navigation/public-chrome";
 
 /**
  * Floating "book a call" dock — shows on desktop and mobile alike once the
@@ -43,32 +47,25 @@ export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }
       const y = window.scrollY;
       const doc = document.documentElement;
       const nearBottom = y + window.innerHeight >= doc.scrollHeight - 220;
-      setVisible(y > window.innerHeight * 0.55 && !nearBottom && visibleCalls.size === 0);
+      const next = y > window.innerHeight * 0.55 && !nearBottom && visibleCalls.size === 0;
+      setPublicDockVisibility(next);
+      setVisible(next);
     };
+    const scroll = observePublicDockScroll(onScroll);
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         if (entry.isIntersecting) visibleCalls.add(entry.target);
         else visibleCalls.delete(entry.target);
       }
-      onScroll();
+      scroll.refresh();
     });
     document.querySelectorAll("[data-booking-cta]").forEach((cta) => observer.observe(cta));
-    const raf = requestAnimationFrame(onScroll);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
     return () => {
       observer.disconnect();
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      scroll.disconnect();
+      setPublicDockVisibility(false);
     };
   }, [hiddenRoute, pathname]);
-
-  useEffect(() => {
-    if (visible && !hiddenRoute) document.body.setAttribute("data-mcta", "on");
-    else document.body.removeAttribute("data-mcta");
-    return () => document.body.removeAttribute("data-mcta");
-  }, [visible, hiddenRoute]);
 
   if (hiddenRoute) return null;
 

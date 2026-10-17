@@ -284,7 +284,25 @@ try {
       [],
     );
     await page.locator("main").screenshot({ path: `${output}/public-${theme}-${width}.png` });
+    // Hold the real entrance at an unreadable early frame. Interaction must
+    // expose the form immediately instead of waiting for its entrance clock.
+    if (reducedMotion === "no-preference")
+      await page.getByLabel("Your name", { exact: true }).evaluate((input) => {
+        const owner = input.closest(".ui-entrance");
+        for (const animation of owner.getAnimations()) {
+          const timing = animation.effect.getTiming();
+          animation.pause();
+          animation.currentTime = timing.delay + Number(timing.duration) * 0.05;
+        }
+      });
     await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
+    assert.equal(
+      await page
+        .getByLabel("Your name", { exact: true })
+        .evaluate((input) => getComputedStyle(input.closest(".ui-entrance")).opacity),
+      "1",
+      "Focused checkout must finish its entrance immediately",
+    );
     await page
       .getByRole("complementary", { name: "Workshop tickets" })
       .getByLabel("Email address", { exact: true })
@@ -334,7 +352,13 @@ try {
     assert.equal(purchases[0].quantity, 2);
     assert.equal(purchases[0].attribution.utm_source, "venue");
     assert.equal("price_cents" in purchases[0], false);
+    const initialReceipt = page.waitForResponse(
+      (response) =>
+        response.url().startsWith(`${api}?`) &&
+        new URL(response.url()).searchParams.get("order") === orderId,
+    );
     await page.goto(`${base}/events/${event.slug}/confirmation?order=${orderId}&key=${key}`);
+    assert.equal((await (await initialReceipt).json()).state, "checkout");
     assert.equal(await page.locator("#gtag-init, #meta-pixel").count(), 0);
     assert.equal(await page.evaluate(() => typeof window.gtag), "undefined");
     assert.equal(await page.evaluate(() => typeof window.fbq), "undefined");
@@ -447,6 +471,14 @@ try {
     await page.goto(`${root}/events`);
     await page.getByRole("heading", { level: 1, name: "Events", exact: true }).waitFor();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const editorHeading = page.getByRole("heading", { name: "Edit event", exact: true });
+    await editorHeading.waitFor();
+    assert.equal(
+      await editorHeading.evaluate((element) => element === document.activeElement),
+      true,
+    );
+    const editorBox = await editorHeading.boundingBox();
+    assert.ok(editorBox.y >= 0 && editorBox.y < 300, "Edit reveals the form in the admin viewport");
     const originalEnd = await page.getByLabel("End", { exact: true }).inputValue();
     await page
       .getByLabel("End", { exact: true })
@@ -459,6 +491,13 @@ try {
     assert.ok((await validationAlert.textContent()).startsWith("End time must follow start time"));
     await page.getByLabel("End", { exact: true }).fill(originalEnd);
     await page.getByLabel("Ticket price (USD)").fill("75.00");
+    assert.equal(
+      await page
+        .getByLabel("Ticket price (USD)")
+        .evaluate((element) => element === document.activeElement),
+      true,
+      "Typing keeps focus in the price field",
+    );
     await page.getByRole("button", { name: "Save event", exact: true }).click();
     await page.getByRole("status").filter({ hasText: "Event saved" }).waitFor();
     const data = await page.evaluate(async () => (await fetch("/api/admin/events")).json());
@@ -578,6 +617,7 @@ try {
   );
   fixtureStatus = "draft";
   assert.equal((await fetch(`${base}/events/${event.slug}`)).status, 404);
+  assert.equal((await fetch(`${base}/events/${event.slug}?preview=1`)).status, 404);
   assert.deepEqual(escaped, []);
   await writeFile(
     `${output}/results.json`,

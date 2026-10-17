@@ -223,6 +223,19 @@ async function serviceFlow() {
         },
       },
     };
+    const receiptCount = mem.rows("billing_webhook_events").length;
+    for (const mode of ["payment", "subscription"]) {
+      assert.deepEqual(
+        await processStripeWebhook(db, {
+          ...event,
+          id: `evt_otherbusiness${mode}`,
+          data: { object: { mode, metadata: { event_id: "another-business-event" } } },
+        }),
+        { ignored: true },
+        "Shared-account checkouts do not enter this workspace's subscription workflow",
+      );
+    }
+    assert.equal(mem.rows("billing_webhook_events").length, receiptCount);
     await assert.rejects(
       () =>
         processStripeWebhook(db, {

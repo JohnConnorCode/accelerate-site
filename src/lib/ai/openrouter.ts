@@ -107,6 +107,13 @@ export class OpenRouterError extends Error {
     public readonly inferenceRejected = false,
     public readonly retryAfterSeconds: number | null = null,
     public readonly retryable = true,
+    /**
+     * True only when the provider actually sent a `Retry-After` header.
+     * `retryAfterSeconds` also carries a conservative default (60s) for
+     * budget receipts, so the retry loop must not treat that default as a
+     * real pacing instruction.
+     */
+    public readonly retryAfterFromHeader = false,
   ) {
     super(message);
     this.name = "OpenRouterError";
@@ -143,8 +150,21 @@ function isRetryableStatus(status: number): boolean {
 
 const MAX_ATTEMPTS = 3;
 const BASE_BACKOFF_MS = 400;
+/** A provider hint is honoured, but never past this ceiling: a very long
+ * Retry-After must not stall an interactive turn between attempts. */
+const MAX_RETRY_AFTER_MS = 10_000;
 
-async function backoff(attempt: number): Promise<void> {
+async function backoff(attempt: number, retryAfterSeconds?: number | null): Promise<void> {
+  if (
+    typeof retryAfterSeconds === "number" &&
+    Number.isFinite(retryAfterSeconds) &&
+    retryAfterSeconds > 0
+  ) {
+    await new Promise((resolve) =>
+      setTimeout(resolve, Math.min(retryAfterSeconds * 1000, MAX_RETRY_AFTER_MS)),
+    );
+    return;
+  }
   // Exponential with jitter, so concurrent callers do not retry in lockstep.
   const ceiling = BASE_BACKOFF_MS * 2 ** (attempt - 1);
   await new Promise((resolve) => setTimeout(resolve, ceiling / 2 + Math.random() * (ceiling / 2)));
@@ -275,6 +295,7 @@ async function attemptChat(
         rejected,
         retryAfter,
         !response.ok,
+        Boolean(retryHeader),
       );
     }
     if (!Array.isArray(payload.choices) || !payload.choices[0]?.message) {
@@ -422,7 +443,7 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
         );
         throw error;
       }
-      await backoff(attempt);
+      await backoff(attempt, error.retryAfterFromHeader ? error.retryAfterSeconds : null);
     }
   }
   throw lastError ?? new OpenRouterError("OpenRouter request failed", 502);

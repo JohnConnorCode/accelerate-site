@@ -53,6 +53,76 @@ export function ChatWidget() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Preserve the usual position and use the left gutter only when it clears
+  // every hero target. Narrow screens keep chat available below the hero.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || pathname !== "/" || isOpen || !hasScrolled) return;
+    let frame = 0,
+      until = 0;
+    const update = (now: number) => {
+      frame = 0;
+      const bubble = root.querySelector<HTMLElement>('[aria-label="Open chat"]');
+      const artwork = document.querySelector<HTMLElement>(".home-system-artwork");
+      if (!bubble || !artwork || innerWidth > 1023 || root.querySelector(".chat-panel")) {
+        delete root.dataset.heroClearance;
+        root.style.removeProperty("--hero-chat-shift");
+      } else {
+        const rect = bubble.getBoundingClientRect();
+        // The child moves without changing the fixed anchor or its layout box.
+        const shift =
+          root.dataset.heroClearance === "true"
+            ? Number.parseFloat(root.style.getPropertyValue("--hero-chat-shift")) || 0
+            : 0;
+        const left = rect.left - shift;
+        const targets = [
+          ...artwork.querySelectorAll<HTMLElement>(".home-system-port, .home-system-handle"),
+          ...document.querySelectorAll<HTMLElement>(".home-hero-cta"),
+        ].map((target) => target.getBoundingClientRect());
+        const obstructs = (candidateLeft: number) =>
+          targets.some(
+            (box) =>
+              box.bottom > 0 &&
+              box.top < innerHeight &&
+              candidateLeft < box.right + 12 &&
+              candidateLeft + rect.width > box.left - 12 &&
+              rect.top < box.bottom + 12 &&
+              rect.bottom > box.top - 12,
+          );
+        const gutterLeft = Math.max(16, artwork.getBoundingClientRect().left - rect.width - 12);
+        const clearance = !obstructs(left) ? "false" : obstructs(gutterLeft) ? "hidden" : "true";
+        if (root.dataset.heroClearance !== clearance) root.dataset.heroClearance = clearance;
+        if (clearance === "true")
+          root.style.setProperty("--hero-chat-shift", `${gutterLeft - left}px`);
+        else root.style.removeProperty("--hero-chat-shift");
+      }
+      if (now < until) frame = requestAnimationFrame(update);
+    };
+    const schedule = () => {
+      // Cover the existing 380ms panel exit as well as the 300ms dock move.
+      until = performance.now() + 500;
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    const dock = new MutationObserver(() => {
+      // Hit testing must follow dock withdrawal even when Safari delays paint.
+      cancelAnimationFrame(frame);
+      until = performance.now() + 500;
+      update(performance.now());
+    });
+    dock.observe(document.body, { attributes: true, attributeFilter: ["data-mcta"] });
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    schedule();
+    return () => {
+      cancelAnimationFrame(frame);
+      dock.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      delete root.dataset.heroClearance;
+      root.style.removeProperty("--hero-chat-shift");
+    };
+  }, [pathname, isOpen, hasScrolled]);
+
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -185,7 +255,7 @@ export function ChatWidget() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.86 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="origin-bottom-right"
+              className="chat-launcher-placement origin-bottom-right"
             >
               <ChatBubble onClick={openChat} />
             </motion.div>

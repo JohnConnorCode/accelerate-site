@@ -25,6 +25,10 @@ create and read Checkout sessions and read payment intents and charges, alongsid
 the account access checked when connecting. Verify those permissions with a
 controlled test event before accepting live registrations.
 
+An account shared with another business should use a dedicated restricted key
+and webhook for this installation. Unrelated checkouts are acknowledged without
+creating workshop registrations or entering the workspace's subscription workflow.
+
 Stripe processing and Resend usage are billed by those providers. Event editing
 and buyer records stay within the workspace's existing permissions. Test payments
 are labelled and do not increase live sales totals or consume live ticket capacity.

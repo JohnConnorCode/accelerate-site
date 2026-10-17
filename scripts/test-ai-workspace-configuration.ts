@@ -116,6 +116,37 @@ async function main() {
     for (const pack of ["core", "pipeline", "outreach"] as const)
       for (const name of WORKSPACE_CONFIGURATION_TOOL_NAMES)
         assert.ok(toOpenRouterTools(pack).some((t) => t.function.name === name));
+    const scoped = bindTenantDatabase(f.mem.client, f.tenantId, true, "studio");
+    const beforeXero = [process.env.XERO_CLIENT_ID, process.env.XERO_CLIENT_SECRET];
+    try {
+      delete process.env.XERO_CLIENT_ID;
+      delete process.env.XERO_CLIENT_SECRET;
+      const unconfigured = await readWorkspaceConfiguration(scoped, {});
+      assert.equal(unconfigured.secureHandoffs.xeroConsent.available, false);
+      assert.equal(unconfigured.secureHandoffs.xeroConsent.accountingImport, "planned");
+      process.env.XERO_CLIENT_ID = "xero-private-client";
+      process.env.XERO_CLIENT_SECRET = "xero-private-secret";
+      const configured = await executeRegisteredRevenueTool(
+        { ...context, supabase: scoped },
+        "get_workspace_configuration",
+        {},
+      );
+      const output = configured.output as Awaited<ReturnType<typeof readWorkspaceConfiguration>>;
+      assert.equal(output.secureHandoffs.xeroConsent.available, true);
+      assert.equal(
+        output.secureHandoffs.xeroConsent.authorizePath,
+        "/api/admin/xero/authorize?tenant=studio",
+      );
+      assert.ok(!JSON.stringify(output).includes("xero-private"));
+      const unboundSlug = await readWorkspaceConfiguration(f.db, {});
+      assert.equal(unboundSlug.secureHandoffs.xeroConsent.authorizePath, null);
+      assert.equal(unboundSlug.secureHandoffs.xeroConsent.available, false);
+    } finally {
+      for (const [index, key] of ["XERO_CLIENT_ID", "XERO_CLIENT_SECRET"].entries()) {
+        if (beforeXero[index] === undefined) delete process.env[key];
+        else process.env[key] = beforeXero[index];
+      }
+    }
     const read = JSON.stringify(await readWorkspaceConfiguration(f.db, {}));
     for (const secret of [
       "private-key-do-not-return",

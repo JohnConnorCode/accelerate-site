@@ -365,7 +365,7 @@ function ShapesBand() {
   );
 }
 
-export function ServicesPageContent() {
+function ServicesQuickNav() {
   const [activeId, setActiveId] = useState<string>(SECTIONS[0]!.id);
   const quickNavRef = useRef<HTMLDivElement>(null);
 
@@ -407,6 +407,31 @@ export function ServicesPageContent() {
     rail.scrollTo({ left: Math.max(0, left), behavior: "auto" });
   }, [activeId]);
 
+  return (
+    <nav className="services-subnav sticky z-[80]" aria-label="Services page sections">
+      <div ref={quickNavRef} className="services-subnav-rail page-shell">
+        {SECTIONS.map((section) => {
+          const isActive = activeId === section.id;
+          return (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              data-cursor="link"
+              data-section-id={section.id}
+              onClick={() => setActiveId(section.id)}
+              aria-current={isActive ? "location" : undefined}
+              className={`services-subnav-link ${isActive ? "is-active" : ""}`}
+            >
+              {section.label}
+            </a>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+export function ServicesPageContent() {
   return (
     <>
       <PublicHeroEntrance className="page-offset-roomy relative flex min-h-[88vh] items-center overflow-hidden pb-20">
@@ -459,26 +484,7 @@ export function ServicesPageContent() {
       </PublicHeroEntrance>
 
       {/* Sticky section quick-nav. */}
-      <nav className="services-subnav sticky z-[80]" aria-label="Services page sections">
-        <div ref={quickNavRef} className="services-subnav-rail page-shell">
-          {SECTIONS.map((section) => {
-            const isActive = activeId === section.id;
-            return (
-              <a
-                key={section.id}
-                href={`#${section.id}`}
-                data-cursor="link"
-                data-section-id={section.id}
-                onClick={() => setActiveId(section.id)}
-                aria-current={isActive ? "location" : undefined}
-                className={`services-subnav-link ${isActive ? "is-active" : ""}`}
-              >
-                {section.label}
-              </a>
-            );
-          })}
-        </div>
-      </nav>
+      <ServicesQuickNav />
 
       <ProblemBand />
       <ModesBand />

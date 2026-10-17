@@ -48,6 +48,17 @@ export default function EventsPage() {
   const [notice, setNotice] = useState("");
   const [search, setSearch] = useState("");
   const attempt = useRef({ fingerprint: "", key: "" });
+  const editorHeading = useRef<HTMLHeadingElement>(null);
+  const focusEditor = useRef(false);
+  useEffect(() => {
+    if (!draft || !focusEditor.current) return;
+    focusEditor.current = false;
+    editorHeading.current?.focus({ preventScroll: true });
+    editorHeading.current?.scrollIntoView({
+      block: "start",
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    });
+  }, [draft]);
   const load = useCallback(async () => {
     const response = await fetch("/api/admin/events", { cache: "no-store" });
     const payload = await response.json();
@@ -73,6 +84,7 @@ export default function EventsPage() {
         .includes(search.toLowerCase()),
   );
   function choose(event: TicketEvent) {
+    focusEditor.current = true;
     setSelectedId(event.id);
     setDraft(editor(event));
     setPrice((event.price_cents / 100).toFixed(2));
@@ -80,6 +92,7 @@ export default function EventsPage() {
     setError("");
   }
   function create() {
+    focusEditor.current = true;
     setSelectedId(crypto.randomUUID());
     const start = Date.now() + 7 * 86400000;
     setDraft(
@@ -320,7 +333,9 @@ export default function EventsPage() {
       )}
       {draft && (
         <AdminSurface className="p-5 sm:p-6">
-          <h2 className="text-xl font-semibold">{selected ? "Edit event" : "New event draft"}</h2>
+          <h2 ref={editorHeading} tabIndex={-1} className="scroll-mt-24 text-xl font-semibold">
+            {selected ? "Edit event" : "New event draft"}
+          </h2>
           <p className="mt-2 text-sm opacity-70">
             Dates use the event’s time zone. Publishing opens paid checkout. Capacity includes paid
             tickets and active reservations.

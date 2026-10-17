@@ -14,6 +14,9 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Protect recorded audit entries from client-role updates, deletes and truncation through an additive database migration; retain canonical appends and trusted retention.
+- Add Xero to the existing atomic provider-disconnect database command so workspace owners can revoke the new OAuth connection and clear credentials with a durable audit entry.
+
 ### Added
 
 - Add `npm run example:followup` to exercise the actual Pipeline follow-up report against fixed fictional opportunities. The developer guide verifies the original seven-day rule and a three-day source adaptation without provider accounts.
@@ -29,6 +32,22 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 - Shared themed fields now govern Clients, Analytics, Campaigns, Integrations and Proposals; compact custom themes retain usable targets. Setup readiness inherits readable theme colors, and contact relationship failures offer retry instead of appearing empty.
 
 ### Fixed
+
+- Pointer-focused actions finish their entrance after native click targeting, preserving homepage anchor activation. Keyboard and form-field focus still expose full-contrast content immediately. The existing docs journey freezes the real entrance at an early frame and keeps its native anchor assertions.
+
+- Ticket confirmation starts in its checking state. Google reads retry transient provider responses without replaying sends, and AI retries account for bounded provider timing hints. The new Google and Xero checks join required core verification.
+
+- The internal Xero connection foundation refuses ambiguous organisation selection, preserves its recorded mapping on reconnect, binds encrypted credentials to the workspace/provider/field, and verifies credential persistence before reporting a successful refresh. It remains planned and does not claim invoice or payment import.
+
+- Public entrance owners settle immediately when a control receives focus, so form feedback keeps full contrast even during an early entrance frame. The workshop browser check holds the actual entrance at an early frame and verifies focused readability without removing its contrast assertions.
+
+- Work's task inspector uses its URL as the single selection owner. Saving or snoozing no longer leaves a dismissal flag that can hide a rapid reopening of the same task. The homepage's pointer steering also responds on entry, without requiring another movement after arrival.
+
+- Native homepage verification uses Chromium's normal SVG renderer instead of the former WebGL scene's forced software GL driver, which stalled screenshot capture. All motion, pixel, hit-testing and frame-time assertions remain unchanged.
+
+- Wait for Today's refreshed native order in deadline browser acceptance before comparing its complete sequence and count. Existing source IDs are not a freshness signal.
+
+- Withdraw public booking docks and Command Center utility navigation when Safari updates the scroll position before delivering its scroll event. A visible-only position check preserves focus and hit testing without running while the dock or browser tab is hidden.
 
 - First-release preparation accepts an explicitly empty supported-version list. The CLI still refuses missing option values, empty required inputs, invalid source tags and unreviewed source; a clean-repository regression exercises the actual preparation command.
 

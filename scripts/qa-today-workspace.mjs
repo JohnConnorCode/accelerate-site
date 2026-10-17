@@ -6,6 +6,18 @@ const output = process.env.TODAY_QA_OUTPUT || "/tmp/accelerate-today-workspace";
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const results = [];
+async function installFixtureFetch(page) {
+  await page.evaluate(() => {
+    const original = window.fetch;
+    window.__todayTestFetch = original;
+    window.fetch = async (input, init) => {
+      const path = new URL(typeof input === "string" ? input : input.url, location.origin).pathname;
+      if (path === "/api/admin/revenue-os/today" && window.__todayFixture)
+        return Response.json(window.__todayFixture);
+      return original(input, init);
+    };
+  });
+}
 try {
   for (const width of [1440, 1100, 820, 390]) {
     const context = await browser.newContext({
@@ -49,17 +61,7 @@ try {
         );
         throw error;
       });
-    await page.evaluate(() => {
-      const original = window.fetch;
-      window.__todayTestFetch = original;
-      window.fetch = async (input, init) => {
-        const path = new URL(typeof input === "string" ? input : input.url, location.origin)
-          .pathname;
-        if (path === "/api/admin/revenue-os/today" && window.__todayFixture)
-          return Response.json(window.__todayFixture);
-        return original(input, init);
-      };
-    });
+    await installFixtureFetch(page);
     const heading = page.locator(".admin-page-introduction");
     assert.equal(await heading.locator("[data-page-start-hint]").count(), 1);
     assert.equal(await page.locator("[data-business-review]").count(), 4);
@@ -119,6 +121,106 @@ try {
       (await window.__todayTestFetch("/api/admin/revenue-os/today")).json(),
     );
     assert.ok(original.attention.data.length);
+    // Use the real fictional task adapter and canonical queue before switching
+    // to presentation fixtures. Nothing reaches an authenticated workspace.
+    const deadline = await page.evaluate(async () => {
+      const key = "accelerate:admin-demo:northline-roofing:v3";
+      const saved = sessionStorage.getItem(key);
+      const fetch = window.__todayTestFetch;
+      const initial = await (await fetch("/api/admin/revenue-os/priority")).json();
+      const ids = initial.items
+        .filter((item) => item.id.startsWith("task:"))
+        .slice(0, 4)
+        .map((item) => item.id.slice(5));
+      if (ids.length !== 4) throw new Error("Deadline fixture requires four native demo tasks");
+      for (let index = 0; index < ids.length; index++) {
+        const response = await fetch("/api/admin/tasks", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: ids[index],
+            status: "pending",
+            title: ["Overdue High", "Overdue Medium", "Overdue Low", "On-time High"][index],
+            priority: ["high", "medium", "low", "high"][index],
+            due_date: new Date(Date.now() + (index < 3 ? -1 : 1) * 86400000)
+              .toISOString()
+              .slice(0, 10),
+          }),
+        });
+        if (!response.ok) throw new Error("Native demo task edit failed: " + response.status);
+      }
+      const beforeRead = sessionStorage.getItem(key);
+      const priority = await (await fetch("/api/admin/revenue-os/priority")).json();
+      const snapshot = await (await fetch("/api/admin/revenue-os/today")).json();
+      return {
+        key,
+        saved,
+        ids,
+        priority,
+        snapshot,
+        readOnly: beforeRead === sessionStorage.getItem(key),
+      };
+    });
+    assert.equal(deadline.readOnly, true, "Queue and Today reads change demo records");
+    assert.equal(deadline.priority.summary.total, deadline.priority.items.length);
+    for (const [metric, urgencies] of [
+      ["critical", ["critical"]],
+      ["urgent", ["critical", "high"]],
+    ])
+      assert.equal(
+        deadline.priority.summary[metric],
+        deadline.priority.items.filter((item) => urgencies.includes(item.urgency)).length,
+      );
+    await page.getByLabel("View actions", { exact: true }).selectOption("all");
+    await page.getByRole("button", { name: "Refresh Today", exact: true }).click();
+    // These tasks already exist in the previous render. Wait for the refreshed
+    // native order, not merely their presence, before comparing the snapshot.
+    await page.waitForFunction(
+      (ids) =>
+        JSON.stringify(
+          [...document.querySelectorAll('[data-today-module="attention"] article')].map(
+            (row) => row.dataset.sourceId,
+          ),
+        ) === JSON.stringify(ids),
+      deadline.snapshot.attention.data.map((item) => item.sourceId),
+    );
+    const attention = page.locator('[data-today-module="attention"]');
+    const renderedIds = await attention
+      .locator("article")
+      .evaluateAll((rows) => rows.map((row) => row.dataset.sourceId));
+    assert.deepEqual(
+      renderedIds,
+      deadline.snapshot.attention.data.map((item) => item.sourceId),
+    );
+    assert.equal(
+      Number(await attention.locator(":scope > header > span").innerText()),
+      deadline.snapshot.attention.data.length,
+      "Rendered attention count disagrees with its native source",
+    );
+    const onTime = renderedIds.indexOf(deadline.ids[3]);
+    for (const id of deadline.ids.slice(0, 3)) {
+      assert.ok(renderedIds.indexOf(id) < onTime, "An overdue task follows on-time High work");
+      assert.equal(
+        deadline.priority.items.find((item) => item.id === "task:" + id).urgency,
+        "critical",
+      );
+    }
+    await page.screenshot({ path: output + "/" + width + "-deadline-order.png", fullPage: true });
+    results.push({
+      width,
+      content: "native-deadline-order",
+      renderedIds,
+      summary: deadline.priority.summary,
+    });
+    // Restore this context's original fictional state for the existing layout
+    // and personal-view journeys; the reload also resets the native adapter.
+    await page.evaluate(({ key, saved }) => {
+      if (saved === null) sessionStorage.removeItem(key);
+      else sessionStorage.setItem(key, saved);
+    }, deadline);
+    await page.reload({ waitUntil: "networkidle" });
+    await page.locator('[data-today-module="brief"]').waitFor();
+    await installFixtureFetch(page);
     for (const content of ["busy", "sparse", "one", "uneven", "reported", "empty", "partial"]) {
       await page.evaluate(
         ({ original, content }) => {

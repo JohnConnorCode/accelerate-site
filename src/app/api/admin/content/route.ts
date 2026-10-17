@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import {
   listContentCalendarItems,
   updateContentCalendarItem,
@@ -43,90 +44,99 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-  if (!auth.user.email)
+  const actorEmail = auth.user.email;
+  if (!actorEmail)
     return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
-  try {
-    const { id, requestKey, ...values } = z
-      .record(z.string(), z.unknown())
-      .parse(await request.json());
-    const receipt = await writeContentCalendarCommand(
-      auth.database,
-      {
-        requestKey: z.uuid().parse(requestKey),
-        command: { operation: "create", id: z.uuid().parse(id), values },
-      },
-      auth.user.email,
-    );
-    return NextResponse.json({ receipt }, { status: 201 });
-  } catch (error) {
-    return failure(error);
-  }
+  return runWithTenantRequestContext(auth, async () => {
+    try {
+      const { id, requestKey, ...values } = z
+        .record(z.string(), z.unknown())
+        .parse(await request.json());
+      const receipt = await writeContentCalendarCommand(
+        auth.database,
+        {
+          requestKey: z.uuid().parse(requestKey),
+          command: { operation: "create", id: z.uuid().parse(id), values },
+        },
+        actorEmail,
+      );
+      return NextResponse.json({ receipt }, { status: 201 });
+    } catch (error) {
+      return failure(error);
+    }
+  });
 }
 
 export async function PATCH(request: NextRequest) {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-  if (!auth.user.email)
+  const actorEmail = auth.user.email;
+  if (!actorEmail)
     return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
-  try {
-    const body = z.record(z.string(), z.unknown()).parse(await request.json());
-    if (Array.isArray(body.reorder)) {
-      const input = z
-        .object({
-          requestKey: z.uuid(),
-          reorder: z.array(z.unknown()).min(1).max(250),
-          expected: z
-            .array(z.object({ id: z.uuid(), revision: z.string().min(1) }).strict())
-            .min(1)
-            .max(250),
-        })
-        .strict()
-        .parse(body);
-      const receipt = await writeContentCalendarCommand(
+  return runWithTenantRequestContext(auth, async () => {
+    try {
+      const body = z.record(z.string(), z.unknown()).parse(await request.json());
+      if (Array.isArray(body.reorder)) {
+        const input = z
+          .object({
+            requestKey: z.uuid(),
+            reorder: z.array(z.unknown()).min(1).max(250),
+            expected: z
+              .array(z.object({ id: z.uuid(), revision: z.string().min(1) }).strict())
+              .min(1)
+              .max(250),
+          })
+          .strict()
+          .parse(body);
+        const receipt = await writeContentCalendarCommand(
+          auth.database,
+          {
+            requestKey: input.requestKey,
+            command: { operation: "reorder", updates: input.reorder },
+          },
+          actorEmail,
+          input.expected,
+        );
+        return NextResponse.json({ success: true, affected: receipt.count, receipt });
+      }
+      const { id, expectedRevision, ...changes } = body;
+      const item = await updateContentCalendarItem(
         auth.database,
-        {
-          requestKey: input.requestKey,
-          command: { operation: "reorder", updates: input.reorder },
-        },
-        auth.user.email,
-        input.expected,
+        z.uuid().parse(id),
+        changes,
+        actorEmail,
+        z.string().min(1).parse(expectedRevision),
       );
-      return NextResponse.json({ success: true, affected: receipt.count, receipt });
+      return NextResponse.json({ item });
+    } catch (error) {
+      return failure(error);
     }
-    const { id, expectedRevision, ...changes } = body;
-    const item = await updateContentCalendarItem(
-      auth.database,
-      z.uuid().parse(id),
-      changes,
-      auth.user.email,
-      z.string().min(1).parse(expectedRevision),
-    );
-    return NextResponse.json({ item });
-  } catch (error) {
-    return failure(error);
-  }
+  });
 }
 
 export async function DELETE(request: NextRequest) {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-  if (!auth.user.email)
+  const actorEmail = auth.user.email;
+  if (!actorEmail)
     return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
-  try {
-    const params = new URL(request.url).searchParams;
-    const id = z.uuid().parse(params.get("id"));
-    const revision = z.string().min(1).parse(params.get("expectedRevision"));
-    const receipt = await writeContentCalendarCommand(
-      auth.database,
-      {
-        requestKey: z.uuid().parse(params.get("requestKey")),
-        command: { operation: "delete", id },
-      },
-      auth.user.email,
-      [{ id, revision }],
-    );
-    return NextResponse.json({ success: true, receipt });
-  } catch (error) {
-    return failure(error);
-  }
+  return runWithTenantRequestContext(auth, async () => {
+    try {
+      const params = new URL(request.url).searchParams;
+      const id = z.uuid().parse(params.get("id"));
+      const revision = z.string().min(1).parse(params.get("expectedRevision"));
+      const receipt = await writeContentCalendarCommand(
+        auth.database,
+        {
+          requestKey: z.uuid().parse(params.get("requestKey")),
+          command: { operation: "delete", id },
+        },
+        actorEmail,
+        [{ id, revision }],
+      );
+      return NextResponse.json({ success: true, receipt });
+    } catch (error) {
+      return failure(error);
+    }
+  });
 }

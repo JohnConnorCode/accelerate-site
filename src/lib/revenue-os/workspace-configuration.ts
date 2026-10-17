@@ -88,7 +88,7 @@ export async function readWorkspaceConfiguration(db: SupabaseClient, raw: unknow
       .select(providerColumns)
       .eq("tenant_id", tenantId)
       .in("provider", input.provider ? [input.provider] : [...WORKSPACE_PROVIDERS])
-      .limit(9),
+      .limit(WORKSPACE_PROVIDERS.length),
     db
       .from("admin_settings")
       .select(settingColumns)
@@ -113,6 +113,16 @@ export async function readWorkspaceConfiguration(db: SupabaseClient, raw: unknow
         "Enter credentials only in Integrations. Values and one-time keys never enter AI proposals.",
       googleConsent:
         "Open the Google connection control in Integrations to grant or renew OAuth permissions.",
+      xeroConsent: {
+        authorizePath: slug ? `/api/admin/xero/authorize?tenant=${encodeURIComponent(slug)}` : null,
+        available: Boolean(
+          slug &&
+          process.env.XERO_CLIENT_ID &&
+          process.env.XERO_CLIENT_SECRET &&
+          process.env.GOOGLE_TOKEN_ENCRYPTION_KEY,
+        ),
+        accountingImport: "planned",
+      },
       platformConfiguration:
         "Installation owner manages server environment, ADMIN_EMAIL, encryption keys and hosting outside workspace tools.",
     },

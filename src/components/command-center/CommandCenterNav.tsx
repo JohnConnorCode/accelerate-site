@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { trackConversion } from "@/lib/analytics";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { observePublicDockScroll, setPublicDockVisibility } from "@/lib/navigation/public-chrome";
 
 const SECTIONS = [
   { id: "demo", label: "Workspace" },
@@ -37,31 +38,21 @@ export function CommandCenterNav() {
       // This is the page's primary utility navigation, not a promotional
       // dock. Keep it available throughout the long page once the hero has
       // started to clear instead of withdrawing it near the footer.
-      setVisible((current) => {
-        const next = y > 48;
-        return current === next ? current : next;
-      });
+      const next = y > 48;
+      setPublicDockVisibility(next);
+      setVisible((current) => (current === next ? current : next));
     };
-    const raf = requestAnimationFrame(onScroll);
+    const scroll = observePublicDockScroll(onScroll);
     // Hash navigation can settle after the first animation frame without
     // dispatching another scroll event. Recheck once so the utility bar does
     // not remain hidden when someone lands directly on a deep section.
-    const settleTimer = window.setTimeout(onScroll, 500);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    const settleTimer = window.setTimeout(scroll.refresh, 500);
     return () => {
-      cancelAnimationFrame(raf);
+      scroll.disconnect();
       window.clearTimeout(settleTimer);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      setPublicDockVisibility(false);
     };
   }, []);
-
-  useEffect(() => {
-    if (visible) document.body.setAttribute("data-mcta", "on");
-    else document.body.removeAttribute("data-mcta");
-    return () => document.body.removeAttribute("data-mcta");
-  }, [visible]);
 
   // Scrollspy: a section is "active" once it has crossed the vertical
   // center of the viewport, so the highlighted pill matches what's actually
