@@ -6740,7 +6740,7 @@ body.modal-open [data-dock] {
   /* Keep a reached action visible after focus leaves, until a fresh entrance.
      A transient focus-only override restarts its delayed animation on blur. */
   .motion-ready .home-hero[data-reveal-state] .home-hero-actions:focus-within,
-  .motion-ready .home-hero[data-hero-action-ready="true"] .home-hero-actions {
+  .motion-ready .home-hero[data-reveal-state][data-hero-action-ready="true"] .home-hero-actions {
     animation: none;
     opacity: 1;
     transform: none;

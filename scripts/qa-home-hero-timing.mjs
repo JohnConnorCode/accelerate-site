@@ -194,17 +194,22 @@ async function exerciseDockDismissal(page, label) {
                 ? { x: (left + right) / 2, y: (top + bottom) / 2 }
                 : null;
             const hit = point && document.elementFromPoint(point.x, point.y);
+            const style = getComputedStyle(target);
             return {
               name: target.getAttribute("aria-label") || target.className,
               box: box.toJSON(),
               point,
               hit: !point || target.contains(hit),
               hitTarget: hit?.getAttribute("class") || hit?.tagName || null,
+              opacity: style.opacity,
+              pointerEvents: style.pointerEvents,
+              animation: style.animationName,
             };
           },
         );
         return {
           elapsed: performance.now() - window.__dockReturnedAt,
+          heroActionReady: document.querySelector(".home-hero")?.dataset.heroActionReady,
           sharedVisible: document.body.dataset.mcta === "on",
           retained: Boolean(dock),
           visible: Boolean(dock?.checkVisibility({ visibilityProperty: true })),
