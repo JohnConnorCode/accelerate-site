@@ -117,6 +117,9 @@ routing or creating surface-specific history systems.
   suppress an overlay's only entrance.
 - Reduced motion removes nonessential movement and blur while preserving all
   route, loading, and focus behavior.
+- The root `MotionRuntime` provides the public Framer Motion preference. Both
+  the full application and exported neutral starter wrap their children in this
+  owner. `AdminShell` retains its scoped preference for the workspace.
 - Nested admin segments may use React Suspense close to genuinely slow data so
   those regions can be streamed and interrupted. The root admin layout must not
   define a `loading.tsx`: navigation keeps the committed destination usable until

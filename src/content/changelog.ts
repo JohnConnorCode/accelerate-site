@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "public-reduced-motion",
+    slug: "public-reduced-motion",
+    title: "Respect reduced motion across public dialogs",
+    description:
+      "Public chat, search, resource forms and interactive sections follow your device's reduced-motion preference. The full application and exported starter share the same preference, while the Command Center keeps its existing motion controls.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
     id: "homepage-workshop-announcement",
     slug: "homepage-workshop-announcement",
     title: "Find the workshop from the homepage and menu",
