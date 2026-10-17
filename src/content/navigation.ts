@@ -33,6 +33,7 @@ const companyLinks = [
 /** Shared by desktop and mobile. Footer destinations reuse these groups. */
 export const navItems: NavItem[] = [
   { label: "Services", href: "/services" },
+  { label: "Workshop", href: "/workshop" },
   { label: "Command Center", href: "/command-center", children: commandCenterLinks },
   {
     label: "Industries",

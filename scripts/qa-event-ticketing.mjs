@@ -136,6 +136,18 @@ try {
   assert.equal(publicRead.status, 200);
   assert.equal((await publicRead.json()).event.price_cents, 5000);
   assert.equal(publicRead.headers.get("cache-control"), "no-store");
+  // Revalidate any build-time homepage snapshot against this isolated event.
+  // The production save path invalidates the homepage immediately.
+  let homePromotionReady = false;
+  for (let attempt = 0; attempt < 90; attempt++) {
+    const home = await (await fetch(base)).text();
+    if (home.includes('aria-label="Upcoming workshop"')) {
+      homePromotionReady = true;
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  assert.ok(homePromotionReady, "The published event must reach the homepage");
   browser = await chromium.launch({ headless: true });
   for (const [width, theme, reducedMotion] of [
     [1440, "light", "no-preference"],
@@ -143,7 +155,10 @@ try {
     [1440, "dark", "reduce"],
     [390, "dark", "no-preference"],
   ]) {
-    const context = await browser.newContext({ viewport: { width, height: 1000 }, reducedMotion });
+    const context = await browser.newContext({
+      viewport: { width, height: width === 390 ? 844 : 1000 },
+      reducedMotion,
+    });
     const page = await context.newPage();
     page.setDefaultTimeout(20000);
     const errors = [],
@@ -240,6 +255,80 @@ try {
           },
         });
       return route.continue();
+    });
+    await page.goto(base, { waitUntil: "domcontentloaded" });
+    const announcement = page.getByRole("complementary", { name: "Upcoming workshop" });
+    await announcement.waitFor({ state: "visible" });
+    assert.equal(await announcement.getByRole("heading").innerText(), event.headline);
+    const ticketCta = announcement.getByRole("link", { name: "Get tickets · $50" });
+    assert.equal(await ticketCta.getAttribute("href"), `/events/${event.slug}#tickets`);
+    const timer = announcement.getByRole("timer");
+    const originalClock = await timer.innerText();
+    await page.waitForFunction(
+      (previous) => document.querySelector('[role="timer"]')?.innerText !== previous,
+      originalClock,
+    );
+    const bounds = await announcement.boundingBox();
+    assert.ok(bounds.x >= 8 && bounds.x + bounds.width <= width - 8);
+    assert.ok(bounds.y >= 0 && bounds.y + bounds.height <= (width === 390 ? 844 : 1000));
+    const announcementAccessibility = await new AxeBuilder({ page })
+      .include("[data-workshop-announcement]")
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .analyze();
+    assert.deepEqual(
+      announcementAccessibility.violations.map((item) => item.id),
+      [],
+    );
+    await page.screenshot({ path: `${output}/homepage-workshop-${width}-${theme}.png` });
+    if (theme === "light") {
+      await ticketCta.click();
+      await page.waitForURL(`**/events/${event.slug}#tickets`);
+      await page.waitForFunction(() => {
+        const box = document.getElementById("tickets")?.getBoundingClientRect();
+        return box && box.top >= 0 && box.top < innerHeight / 2;
+      });
+      await page.goBack({ waitUntil: "domcontentloaded" });
+      await announcement.waitFor({ state: "visible" });
+    }
+    await page.evaluate(() => window.scrollTo(0, innerHeight * 1.4));
+    await page.waitForFunction(() => document.body.dataset.mcta !== "on");
+    assert.equal(await page.locator("[data-dock]").isVisible(), false);
+    assert.equal(await page.locator(".chat-widget-root").isVisible(), false);
+    const dismissAnnouncement = announcement.getByRole("button", {
+      name: "Dismiss workshop announcement",
+    });
+    if (width === 1440 && theme === "dark") {
+      await dismissAnnouncement.focus();
+      await page.keyboard.press("Escape");
+    } else await dismissAnnouncement.click();
+    await announcement.waitFor({ state: "hidden" });
+    assert.equal(
+      await page.evaluate(() => document.activeElement?.closest("header") !== null),
+      true,
+    );
+    assert.equal(await page.evaluate(() => document.body.dataset.workshopPromotion), undefined);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2800);
+    assert.equal(await announcement.count(), 0, "Dismissal lasts for this tab's session");
+    if (width === 390) {
+      await page.getByRole("button", { name: "Open navigation menu" }).click();
+    }
+    const navigation = page.getByRole("navigation", {
+      name: width === 390 ? "Mobile" : "Primary",
+      exact: true,
+    });
+    const workshopLink = navigation.getByRole("link", { name: "Workshop", exact: true });
+    assert.equal(await workshopLink.getAttribute("href"), "/workshop");
+    await workshopLink.click();
+    await page.waitForURL(`**/events/${event.slug}`);
+    results.push({
+      width,
+      theme,
+      homepageAnnouncement: true,
+      liveCountdown: true,
+      sessionDismissal: true,
+      workshopMenu: true,
+      noCompetingDocks: true,
     });
     await page.goto(`${base}/events/${event.slug}?utm_source=venue&utm_campaign=workshop`, {
       waitUntil: "networkidle",
@@ -439,6 +528,35 @@ try {
     });
     await context.close();
   }
+  const deadlineContext = await browser.newContext({
+    viewport: { width: 320, height: 720 },
+    reducedMotion: "reduce",
+  });
+  const deadlinePage = await deadlineContext.newPage();
+  await deadlinePage.clock.install({ time: new Date(Date.parse(event.starts_at) - 60000) });
+  await deadlinePage.goto(base, { waitUntil: "domcontentloaded" });
+  const deadlineBanner = deadlinePage.getByRole("complementary", { name: "Upcoming workshop" });
+  await deadlineBanner.waitFor({ state: "visible" });
+  assert.equal(
+    await deadlinePage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+    false,
+  );
+  await deadlinePage.screenshot({ path: `${output}/homepage-workshop-320.png` });
+  await deadlinePage.clock.fastForward(61000);
+  await deadlineBanner.waitFor({ state: "hidden" });
+  assert.equal(
+    await deadlinePage.evaluate(() => document.body.dataset.workshopPromotion),
+    undefined,
+  );
+  await deadlineContext.close();
+  results.push({ width: 320, countdownDeadline: true, noOverflow: true });
+  const staticContext = await browser.newContext({ javaScriptEnabled: false });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base, { waitUntil: "domcontentloaded" });
+  const staticPromotion = staticPage.getByRole("region", { name: "Upcoming workshop" });
+  await staticPromotion.getByRole("link", { name: /Workshop tickets/ }).waitFor();
+  await staticContext.close();
+  results.push({ homepageWithoutJavaScript: true });
   for (const width of [1440, 390]) {
     const context = await browser.newContext({
       viewport: { width, height: 1000 },
@@ -610,12 +728,23 @@ try {
     });
     await context.close();
   }
+  const originalSlug = event.slug;
+  event.slug = "controlled-workshop-renamed";
+  const renamedContext = await browser.newContext();
+  const renamedPage = await renamedContext.newPage();
+  await renamedPage.goto(`${base}/workshop`);
+  await renamedPage.waitForURL(`**/events/${event.slug}`);
+  await renamedPage.getByRole("heading", { level: 1, name: event.headline }).waitFor();
+  await renamedContext.close();
+  event.slug = originalSlug;
+  results.push({ workshopMenuFollowsRenamedEvent: true });
   fixtureStatus = "paused";
   assert.match(
     await (await fetch(`${base}/events/${event.slug}`)).text(),
     /Ticket sales are paused/,
   );
   fixtureStatus = "draft";
+  assert.equal((await fetch(`${base}/workshop`)).status, 404);
   assert.equal((await fetch(`${base}/events/${event.slug}`)).status, 404);
   assert.equal((await fetch(`${base}/events/${event.slug}?preview=1`)).status, 404);
   assert.deepEqual(escaped, []);

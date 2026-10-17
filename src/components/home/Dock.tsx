@@ -47,11 +47,20 @@ export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }
       const y = window.scrollY;
       const doc = document.documentElement;
       const nearBottom = y + window.innerHeight >= doc.scrollHeight - 220;
-      const next = y > window.innerHeight * 0.55 && !nearBottom && visibleCalls.size === 0;
+      const next =
+        y > window.innerHeight * 0.55 &&
+        !nearBottom &&
+        visibleCalls.size === 0 &&
+        document.body.dataset.workshopPromotion !== "on";
       setPublicDockVisibility(next);
       setVisible(next);
     };
     const scroll = observePublicDockScroll(onScroll);
+    const announcement = new MutationObserver(() => scroll.refresh());
+    announcement.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-workshop-promotion"],
+    });
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         if (entry.isIntersecting) visibleCalls.add(entry.target);
@@ -62,6 +71,7 @@ export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }
     document.querySelectorAll("[data-booking-cta]").forEach((cta) => observer.observe(cta));
     return () => {
       observer.disconnect();
+      announcement.disconnect();
       scroll.disconnect();
       setPublicDockVisibility(false);
     };

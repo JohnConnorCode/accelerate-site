@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-workshop-announcement",
+    slug: "homepage-workshop-announcement",
+    title: "Find the workshop from the homepage and menu",
+    description:
+      "Accelerate's homepage announces its upcoming workshop with a glass banner, a live countdown and a ticket link. The price, schedule and available places come from Events. Visitors can dismiss the announcement, and Workshop in the desktop and mobile menus keeps the event within reach. The announcement ends when the workshop starts and respects reduced-motion preferences.",
+    category: "improvement",
+    publishedAt: "2026-10-17",
+  },
+  {
     id: "audit-ledger-append-only",
     slug: "audit-ledger-append-only",
     title: "Audit history is append-only for signed-in clients",

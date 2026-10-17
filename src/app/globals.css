@@ -2036,6 +2036,13 @@ body:not([data-mcta="on"]) [data-dock] {
   pointer-events: none;
 }
 
+/* The event announcement owns the homepage's floating CTA while visible. */
+body[data-workshop-promotion="on"] [data-dock],
+body[data-workshop-promotion="on"] .chat-widget-root:not(.is-open) {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .chat-widget-root {
   right: max(1rem, var(--safe-right));
   bottom: max(1rem, var(--safe-bottom));
