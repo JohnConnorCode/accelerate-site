@@ -284,7 +284,25 @@ try {
       [],
     );
     await page.locator("main").screenshot({ path: `${output}/public-${theme}-${width}.png` });
+    // Hold the real entrance at an unreadable early frame. Interaction must
+    // expose the form immediately instead of waiting for its entrance clock.
+    if (reducedMotion === "no-preference")
+      await page.getByLabel("Your name", { exact: true }).evaluate((input) => {
+        const owner = input.closest(".ui-entrance");
+        for (const animation of owner.getAnimations()) {
+          const timing = animation.effect.getTiming();
+          animation.pause();
+          animation.currentTime = timing.delay + Number(timing.duration) * 0.05;
+        }
+      });
     await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
+    assert.equal(
+      await page
+        .getByLabel("Your name", { exact: true })
+        .evaluate((input) => getComputedStyle(input.closest(".ui-entrance")).opacity),
+      "1",
+      "Focused checkout must finish its entrance immediately",
+    );
     await page
       .getByRole("complementary", { name: "Workshop tickets" })
       .getByLabel("Email address", { exact: true })

@@ -30,6 +30,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Public entrance owners settle immediately when a control receives focus, so form feedback keeps full contrast even during an early entrance frame. The workshop browser check holds the actual entrance at an early frame and verifies focused readability without removing its contrast assertions.
+
 - Work's task inspector uses its URL as the single selection owner. Saving or snoozing no longer leaves a dismissal flag that can hide a rapid reopening of the same task. The homepage's pointer steering also responds on entry, without requiring another movement after arrival.
 
 - Native homepage verification uses Chromium's normal SVG renderer instead of the former WebGL scene's forced software GL driver, which stalled screenshot capture. All motion, pixel, hit-testing and frame-time assertions remain unchanged.

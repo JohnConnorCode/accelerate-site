@@ -88,6 +88,10 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 - Reduced motion and unavailable JavaScript show all content immediately.
   Delayed hydration preserves a stable pending frame instead of painting
   content visible and then pulling it backward into an entrance.
+- Focusing an interactive control finishes its entrance owner immediately and
+  keeps it settled after focus leaves. This also exposes validation and payment
+  feedback at full contrast. Programmatic route-heading focus does not finish
+  the hero sequence.
 - Homepage count animations retain the complete figure on history restoration.
   Unmounting or enabling reduced motion cancels their pending animation frame.
 

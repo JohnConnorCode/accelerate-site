@@ -105,6 +105,21 @@ export function useRevealLifecycle<T extends HTMLElement>({
     const onPreference = () => {
       if (reduced.matches) reveal(true);
     };
+    const onFocus = () => {
+      const active = document.activeElement;
+      if (
+        !element.classList.contains("reveal-immediate") &&
+        active instanceof HTMLElement &&
+        element.contains(active) &&
+        active.matches(
+          'a[href], button, input, select, textarea, summary, [contenteditable="true"], [tabindex]:not([tabindex="-1"])',
+        )
+      )
+        reveal(true);
+    };
+    // Focused controls and their feedback must never remain partly faded.
+    element.addEventListener("focusin", onFocus);
+    onFocus();
     window.addEventListener("pageshow", onPageShow);
     reduced.addEventListener("change", onPreference);
 
@@ -112,6 +127,7 @@ export function useRevealLifecycle<T extends HTMLElement>({
       observer.disconnect();
       cancelAnimationFrame(restoreFrame);
       removePending(element);
+      element.removeEventListener("focusin", onFocus);
       window.removeEventListener("pageshow", onPageShow);
       reduced.removeEventListener("change", onPreference);
     };

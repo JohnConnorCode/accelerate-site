@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "readable-focused-forms",
+    slug: "readable-focused-forms",
+    title: "Keep focused forms and feedback readable",
+    description:
+      "Focusing a form or link finishes its section's entrance immediately. Fields and payment feedback stay fully visible after focus moves, while the rest of the page keeps its usual motion and reduced-motion support.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
     id: "task-inspector-reopening",
     slug: "task-inspector-reopening",
     title: "Reopen a task after saving or snoozing",
