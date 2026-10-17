@@ -141,6 +141,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20261007200138_learning_proposals_least_privilege.sql",
   "migrations/20261008183625_workspace_operations_atomic.sql",
   "migrations/20261008230447_source_authority_atomic_receipts.sql",
+  "migrations/20261016200534_event_ticketing.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

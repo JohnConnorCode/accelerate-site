@@ -254,6 +254,7 @@ export const businessAreas: readonly BusinessArea[] = [
       "Fewer separate handoffs between preparing content, publishing it and following up with customers.",
     capabilityIds: [
       "campaigns",
+      "event-ticketing",
       "content-calendar",
       "site-studio",
       "social-marketing",

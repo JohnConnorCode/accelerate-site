@@ -25,6 +25,7 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const read = (relativePath) => readFileSync(join(repoRoot, relativePath), "utf8");
 
 const MODULE_API_DIRECTORIES = {
+  "event-ticketing": ["src/app/api/admin/events"],
   "social-marketing": ["src/app/api/admin/social"],
   "receivables-collections": ["src/app/api/admin/collections"],
   "form-builder": ["src/app/api/admin/forms"],

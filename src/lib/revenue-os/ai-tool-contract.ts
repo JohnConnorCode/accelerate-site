@@ -1,5 +1,5 @@
 /** Browser-safe discovery version shared by live and fictional workspaces. */
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v30";
+export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v31";
 export const AI_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type AiToolPackId = (typeof AI_TOOL_PACKS)[number];
 export type AiToolConnectionRequirement = "none" | "host_verified";
@@ -9,7 +9,13 @@ export interface AiAdminOperation {
   id: string;
   version: number;
   scope: "workspace" | "platform";
-  entrypoints: readonly { path: string; method: string; variant?: string }[];
+  entrypoints: readonly {
+    path: string;
+    method: string;
+    variant?: string;
+    /** The tool supplies the secure page; it cannot impersonate this human actor. */
+    audience?: "secure-human-handoff";
+  }[];
   sourceEntrypoints?: readonly {
     kind: "server_action" | "client_write";
     path: string;

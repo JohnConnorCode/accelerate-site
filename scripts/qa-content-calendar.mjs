@@ -233,6 +233,7 @@ try {
       await edit.waitFor({ state: "hidden" });
       await page.reload();
       await add.waitFor();
+      await page.waitForFunction((id) => window.__accelerateAdminDemoRuntime === id, scenario);
       assert.equal(
         (await items()).some((item) => item.id === created.id),
         false,

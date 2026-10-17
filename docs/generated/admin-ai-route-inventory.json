@@ -7,13 +7,13 @@
     "Server-action and client-write candidates are static discovery only; indirect client writes and third-party plugin entrypoints still require semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 133,
-  "mutationHandlerCount": 118,
+  "routeCount": 135,
+  "mutationHandlerCount": 119,
   "semantic": {
     "complete": false,
     "unreviewedSourceBindings": [],
     "meaning": "Reviewed command-to-transport bindings with executable verification references. No coverage percentage or universal runtime acceptance is asserted.",
-    "registeredTools": 136,
+    "registeredTools": 138,
     "unreviewedToolBindings": [
       "activate_tool_bundle",
       "bootstrap_business_pulse_coworker",
@@ -245,6 +245,71 @@
         "serviceTarget": "revenue-os.content-calendar",
         "tools": [
           "propose_content_calendar_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "events.change",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/events",
+              "method": "POST",
+              "variant": "save_event|retry_confirmation|reconcile"
+            }
+          ],
+          "verification": [
+            "scripts/test-event-ticketing.ts",
+            "scripts/test-event-ticketing-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.event-ticketing",
+        "tools": [
+          "propose_event_ticketing"
+        ]
+      },
+      {
+        "definition": {
+          "id": "events.read",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/events",
+              "method": "GET"
+            },
+            {
+              "path": "/api/admin/events/export",
+              "method": "GET"
+            },
+            {
+              "path": "/api/public/[tenantSlug]/events/[slug]",
+              "method": "GET",
+              "variant": "Public details or buyer-credential payment receipt",
+              "audience": "secure-human-handoff"
+            },
+            {
+              "path": "/api/public/[tenantSlug]/events/[slug]",
+              "method": "PATCH",
+              "variant": "Buyer supplies optional business context on their private confirmation page",
+              "audience": "secure-human-handoff"
+            },
+            {
+              "path": "/api/public/[tenantSlug]/events/[slug]/checkout",
+              "method": "POST",
+              "variant": "Buyer chooses tickets and opens secure Stripe checkout from the registration page",
+              "audience": "secure-human-handoff"
+            }
+          ],
+          "verification": [
+            "scripts/test-event-ticketing.ts",
+            "scripts/test-event-ticketing-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.event-ticketing",
+        "tools": [
+          "get_ticket_events"
         ]
       },
       {
@@ -994,6 +1059,45 @@
       "sourceSha256": "1a0658e79d50a01a870a811487fb170eb53ccef91d865ee5f3ff883a8527ae6b"
     },
     {
+      "source": "src/app/api/public/[tenantSlug]/events/[slug]/checkout/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/http/bounded-json",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/event-ticketing",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/system",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "e2de2c98d49e9521bfdcdb72553da4d2d636041354c44d8ee36161ad7afb9f95"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/events/[slug]/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/http/bounded-json",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/event-ticketing",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "ebaac37a651e6d57479198707d479fad6b7c3eceaae964ccc841ccb230ca470f"
+    },
+    {
       "source": "src/app/api/public/[tenantSlug]/intake/[surface]/route.ts",
       "handlers": [
         "POST"
@@ -1151,12 +1255,13 @@
         "POST"
       ],
       "imports": [
+        "@/lib/revenue-os/event-ticketing",
         "@/lib/revenue-os/subscriptions",
         "@/lib/supabase/server",
         "@/lib/tenancy/providers",
         "next/server"
       ],
-      "sourceSha256": "a419651d08a6dbf2177796a425fb2ecdf1b978eb417cacb4b5d8c241558e9052"
+      "sourceSha256": "99241e4a4cfcfcfaa935e642d77bfe7caecb843c0845e3464037246441a51112"
     },
     {
       "source": "src/app/api/public/[tenantSlug]/webhooks/whatsapp/route.ts",
@@ -1827,6 +1932,38 @@
         "next/server"
       ],
       "sourceSha256": "74e83fb3d54ac25280e13ef4282e852f2e597f639b820c834ec69a42c20dbd65"
+    },
+    {
+      "source": "src/app/api/admin/events/export/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/event-ticketing",
+        "@/lib/revenue-os/event-ticketing-contract",
+        "next/server"
+      ],
+      "sourceSha256": "ce5fdcc27c7cc9ae4eb89f83c53ec641891b3af0e75535e0f96548f4443d172b"
+    },
+    {
+      "source": "src/app/api/admin/events/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/event-ticketing",
+        "@/lib/revenue-os/event-ticketing-contract",
+        "next/server"
+      ],
+      "sourceSha256": "e47caf535a8ed689ca23be50e0c24c6a27aa2c27a356f4ce43c9bbfd085e5711"
     },
     {
       "source": "src/app/api/admin/features/agents/route.ts",

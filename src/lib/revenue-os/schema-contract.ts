@@ -8,6 +8,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-08.1";
 
 export const TENANT_SCOPED_TABLES = [
+  "ticket_events",
+  "ticket_orders",
+  "ticket_order_receipts",
   "internal_action_reservations",
   "ai_readiness_assessments",
   "ai_readiness_reports",
@@ -154,6 +157,38 @@ export const TENANT_SCOPED_TABLES = [
 const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
+  {
+    table: "ticket_events",
+    columns: [
+      "id",
+      "slug",
+      "price_cents",
+      "capacity",
+      "status",
+      "revision",
+      "starts_at",
+      "refund_policy",
+    ],
+  },
+  {
+    table: "ticket_orders",
+    columns: [
+      "id",
+      "event_id",
+      "request_id",
+      "quantity",
+      "total_cents",
+      "state",
+      "stripe_session_id",
+      "payment_intent_id",
+      "refund_cents",
+      "email_status",
+    ],
+  },
+  {
+    table: "ticket_order_receipts",
+    columns: ["id", "order_id", "external_id", "observation", "created_at"],
+  },
   {
     table: "billing_plans",
     columns: ["id", "name", "currency", "interval", "amount", "stripe_price_id", "active"],
@@ -895,6 +930,8 @@ export const REVENUE_SCHEMA_CONSTRAINTS = [
 ] as const;
 
 export const REVENUE_SCHEMA_INDEXES = [
+  "ticket_orders_inventory",
+  "ticket_event_request_receipt",
   "workspace_mcp_delegation_lookup",
   "workspace_mcp_one_active_delegation",
   "site_website_revision_history",
@@ -946,6 +983,30 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
+  {
+    name: "public.record_ticket_confirmation(uuid,text,text)",
+    migration: "migrations/20261016200534_event_ticketing.sql",
+  },
+  {
+    name: "public.save_ticket_event(uuid,integer,jsonb,uuid,text)",
+    migration: "migrations/20261016200534_event_ticketing.sql",
+  },
+  {
+    name: "public.reserve_event_order(text,uuid,integer,integer,text,text,text,jsonb,text,boolean)",
+    migration: "migrations/20261016200534_event_ticketing.sql",
+  },
+  {
+    name: "public.record_event_checkout(uuid,text,text,timestamp with time zone)",
+    migration: "migrations/20261016200534_event_ticketing.sql",
+  },
+  {
+    name: "public.observe_event_payment(uuid,text,jsonb)",
+    migration: "migrations/20261016200534_event_ticketing.sql",
+  },
+  {
+    name: "public.release_uncreated_ticket_order(uuid,text)",
+    migration: "migrations/20261016200534_event_ticketing.sql",
+  },
   {
     name: "public.generate_workspace_operations(uuid,uuid,integer,text,text,jsonb,jsonb)",
     migration: "migrations/20261008183625_workspace_operations_atomic.sql",
@@ -1057,6 +1118,9 @@ export const REVENUE_SCHEMA_FUNCTIONS = [
 ] as const;
 
 export const REVENUE_SCHEMA_POLICIES = [
+  { table: "ticket_events", name: "Tenant member ticket reads" },
+  { table: "ticket_orders", name: "Tenant member ticket reads" },
+  { table: "ticket_order_receipts", name: "Tenant member ticket reads" },
   { table: "site_drafts", name: "site_draft_read" },
   { table: "site_draft_revisions", name: "site_revision_read" },
   { table: "campaign_duplicate_receipts", name: "campaign_duplicate_receipt_read" },

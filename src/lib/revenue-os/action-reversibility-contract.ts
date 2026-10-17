@@ -11,6 +11,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "event_ticketing_change",
+    impact: "external_action",
+    reversibility: "compensable",
+    rationale:
+      "An administrator can pause sales or restore event details through a fresh revision. Paid orders, refund history, and delivered confirmations remain; publication and email require human review.",
+  },
+  {
     actionType: "internal_permission_change",
     impact: "internal_write",
     reversibility: "compensable",

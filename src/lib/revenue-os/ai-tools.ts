@@ -181,6 +181,8 @@ import { ADMIN_LAYOUT_SCOPES } from "@/lib/admin/layout-scopes";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
 import { proposeStripeInvoiceSend } from "./stripe-invoicing";
+import { readTicketWorkspace, proposeTicketAdminCommand } from "./event-ticketing";
+import { eventPath, ticketAdminCommandSchema } from "./event-ticketing-contract";
 import { previewInvoicePage, proposeInvoicePage } from "./invoice-pages";
 import {
   COLLECTION_AGENT_TOOLS,
@@ -670,6 +672,142 @@ const adminCoverageInputSchema = z
   .strict();
 
 const registry: AiToolRegistration[] = [
+  {
+    name: "get_ticket_events",
+    description:
+      "Read workshop details, admission prices, paid and reserved ticket counts, refunds, and a bounded buyer list. Return the public registration path to share with buyers. Buyers enter their own details, pay through Stripe, and supply optional context on their private confirmation page; this tool cannot purchase tickets or impersonate a buyer. Export links require the administrator's signed-in session. Test orders are labelled by livemode.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        eventId: { type: "string", format: "uuid" },
+        offset: { type: "integer", minimum: 0, maximum: 499 },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.event-ticketing",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "events.read",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        { path: "/api/admin/events", method: "GET" },
+        { path: "/api/admin/events/export", method: "GET" },
+        {
+          path: "/api/public/[tenantSlug]/events/[slug]",
+          method: "GET",
+          variant: "Public details or buyer-credential payment receipt",
+          audience: "secure-human-handoff",
+        },
+        {
+          path: "/api/public/[tenantSlug]/events/[slug]",
+          method: "PATCH",
+          variant: "Buyer supplies optional business context on their private confirmation page",
+          audience: "secure-human-handoff",
+        },
+        {
+          path: "/api/public/[tenantSlug]/events/[slug]/checkout",
+          method: "POST",
+          variant:
+            "Buyer chooses tickets and opens secure Stripe checkout from the registration page",
+          audience: "secure-human-handoff",
+        },
+      ],
+      verification: [
+        "scripts/test-event-ticketing.ts",
+        "scripts/test-event-ticketing-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase }, raw) => {
+      const input = z
+        .object({
+          eventId: z.uuid().optional(),
+          offset: z.number().int().min(0).max(499).default(0),
+        })
+        .strict()
+        .parse(raw);
+      const workspace = await readTicketWorkspace(supabase, input.eventId);
+      return {
+        events: workspace.events.map((event) => ({
+          ...(input.eventId
+            ? event
+            : {
+                id: event.id,
+                revision: event.revision,
+                slug: event.slug,
+                title: event.title,
+                status: event.status,
+                starts_at: event.starts_at,
+                ends_at: event.ends_at,
+                timezone: event.timezone,
+                price_cents: event.price_cents,
+                capacity: event.capacity,
+                paid_tickets: event.paid_tickets,
+                reserved_tickets: event.reserved_tickets,
+                available_tickets: event.available_tickets,
+                gross_cents: event.gross_cents,
+                refunded_cents: event.refunded_cents,
+              }),
+          registrationPath:
+            workspace.tenantSlug && event.status === "published"
+              ? eventPath(workspace.tenantSlug, event.slug)
+              : null,
+        })),
+        buyerHandoff:
+          "Share the public registration path. The buyer must complete checkout and enter optional business context themselves. Never ask for their private order key or payment details.",
+        orders: workspace.orders.slice(input.offset, input.offset + 5).map((order) => ({
+          id: order.id,
+          eventId: order.event_id,
+          buyerName: order.buyer_name,
+          buyerEmail: order.buyer_email,
+          company: order.company,
+          businessNeed: order.business_need,
+          quantity: order.quantity,
+          state: order.state,
+          totalCents: order.total_cents,
+          refundedCents: order.refund_cents,
+          confirmation: order.email_status,
+          livemode: order.livemode,
+        })),
+        nextOffset: input.offset + 5 < workspace.orders.length ? input.offset + 5 : null,
+        truncated: workspace.truncated,
+        exportPath: `/api/admin/events/export${input.eventId ? `?eventId=${input.eventId}` : ""}`,
+      };
+    },
+  },
+  {
+    name: "propose_event_ticketing",
+    description:
+      "Prepare an exact reviewed workshop edit, publication, reservation reconciliation, or paid-order confirmation retry. Read current event ID and revision first. Prices use USD cents. This creates a proposal only; it cannot approve or charge a buyer.",
+    inputSchema: z.toJSONSchema(ticketAdminCommandSchema),
+    parseInput: (input) => ticketAdminCommandSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.event-ticketing",
+    connectionRequirement: "none",
+    impact: "external_action",
+    confirmationRequired: true,
+    operation: {
+      id: "events.change",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        {
+          path: "/api/admin/events",
+          method: "POST",
+          variant: "save_event|retry_confirmation|reconcile",
+        },
+      ],
+      verification: [
+        "scripts/test-event-ticketing.ts",
+        "scripts/test-event-ticketing-postgres.mjs",
+      ],
+    },
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeTicketAdminCommand(supabase, input, actorEmail),
+  },
   {
     name: "get_admin_operation_coverage",
     description:
@@ -1953,7 +2091,7 @@ const registry: AiToolRegistration[] = [
             awaitingReapproval: item.version !== item.approved_version,
           })),
         openProposals: (proposals.data ?? []).slice(0, SNAPSHOT_DETAIL_LIMIT),
-        truncated: rows.length >= SNAPSHOT_ROW_LIMIT,
+        truncated: queue.length > 15 || rows.length >= SNAPSHOT_ROW_LIMIT,
       };
     },
   },

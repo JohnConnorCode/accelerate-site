@@ -318,7 +318,7 @@ export const docsManifest: DocsSection[] = [
     track: "operator",
     title: "Marketing and publishing",
     description: "Campaigns, email templates, and reactivation of past demand.",
-    modules: ["campaigns", "email-studio", "recovery"],
+    modules: ["campaigns", "email-studio", "recovery", "event-ticketing"],
     pages: [
       {
         slug: ["outreach", "overview"],
@@ -557,6 +557,12 @@ export const docsManifest: DocsSection[] = [
         title: "Form builder",
         description:
           "Publish shareable intake forms and review each response before it enters the pipeline.",
+      },
+      {
+        slug: ["plugins", "event-ticketing"],
+        title: "Events and tickets",
+        description:
+          "Publish a paid workshop, control its ticket capacity, and follow payments and buyer confirmations.",
       },
       {
         slug: ["plugins", "meeting-commitments"],

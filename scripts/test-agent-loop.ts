@@ -18,6 +18,9 @@
  *     across the run until it exhausted the context window mid-answer.
  */
 import assert from "node:assert/strict";
+import { MemorySupabase } from "./lib/memory-supabase";
+import { MAX_TOOL_RESULT_CONTEXT_CHARS } from "../src/lib/revenue-os/ai-context";
+import { loadOperatorQueue } from "../src/lib/revenue-os/queue";
 import {
   defaultCommandBundle,
   finalizeStagedAnswer,
@@ -119,8 +122,29 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
     ...tables,
   };
   const writes: Array<{ table: string; op: "insert" | "update"; payload: Row }> = [];
+  // Queue partitions need real filtering and limits. Reuse the shared read harness
+  // without changing this loop fixture's write receipts or live tenant objects.
+  const taskReads = new MemorySupabase({ tasks: seededTables.tasks ?? [] }).client as {
+    from: (table: string) => Record<string, unknown>;
+  };
 
   function query(table: string): Record<string, unknown> {
+    if (table === "tasks") {
+      const taskQuery = taskReads.from(table);
+      for (const op of ["insert", "update"] as const) {
+        const mutate = taskQuery[op] as (payload: Row) => Record<string, unknown>;
+        taskQuery[op] = (payload: Row) => {
+          writes.push({ table, op, payload });
+          return mutate(payload);
+        };
+      }
+      for (const op of ["delete", "upsert"]) {
+        taskQuery[op] = () => {
+          throw new Error(`Unexpected tasks.${op} in the agent-loop read fixture`);
+        };
+      }
+      return taskQuery;
+    }
     let pending: { op: "insert" | "update"; payload: Row } | null = null;
     let expectsSingle = false;
     const self: Record<string, unknown> = {};
@@ -692,6 +716,8 @@ async function main() {
   // point.
   const huge = Array.from({ length: 400 }, (_, index) => ({
     id: `task-${index}`,
+    tenant_id: ACCELERATE_TENANT_ID,
+    source: "manual",
     title: `A task with a fairly long title so the payload is genuinely large ${index}`,
     description: "x".repeat(200),
     priority: "high",
@@ -703,9 +729,23 @@ async function main() {
     created_at: "2026-08-24T12:00:00.000Z",
     status: "pending",
   }));
+  const oversizedFixture = stubSupabase({ tasks: huge, opportunities: huge });
+  const queue = await loadOperatorQueue(
+    bindTenantDatabaseForTest(oversizedFixture.client, ACCELERATE_TENANT_ID),
+  );
+  assert.equal(queue.length, 75, "Oversized fixture must produce the bounded native queue");
+  assert.ok(
+    JSON.stringify(queue.slice(0, 15)).length > MAX_TOOL_RESULT_CONTEXT_CHARS,
+    "The native snapshot queue alone must exceed the transcript budget",
+  );
   sent = [];
   stubOpenRouter(toolCallTurn);
-  await runAgent(stubSupabase({ tasks: huge, opportunities: huge }).client);
+  await runAgent(oversizedFixture.client);
+  assert.equal(
+    oversizedFixture.writes.some((write) => write.table === "tasks"),
+    false,
+    "Snapshot reads must never write tasks",
+  );
 
   const toolMessages = sent.at(-1)!.messages.filter((message) => message.role === "tool");
   assert.ok(

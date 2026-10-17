@@ -12,7 +12,8 @@ import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
  * visitor scrolls past the hero. Hidden near the page bottom (the footer CTA
  * covers that) and on routes where it's redundant (contact), wrong (admin),
  * or replaced by a page-scoped equivalent (command-center has its own bottom
- * nav with the booking button built in — see CommandCenterNav).
+ * nav with the booking button built in — see CommandCenterNav). Event pages
+ * keep their own registration and confirmation actions unobstructed.
  *
  * Coordinates with the chat bubble via `document.body[data-mcta]` — a CSS rule
  * in globals.css lifts the bubble above the dock on mobile while it's showing.
@@ -31,6 +32,7 @@ export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }
   const hiddenRoute =
     !content.visible ||
     isApplicationWorkspace(pathname) ||
+    /^\/(?:t\/[^/]+\/)?events(?:\/|$)/.test(pathname) ||
     pathname.startsWith("/contact") ||
     pathname.startsWith("/command-center");
 

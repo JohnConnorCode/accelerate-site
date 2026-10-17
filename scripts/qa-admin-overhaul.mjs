@@ -53,6 +53,24 @@ try {
       for (const destination of destinations) {
         const label = `${width}-${theme.id}-${destination.id}`;
         try {
+          if (destination.id === "events") {
+            // The exhaustive destination sweep exercises enabled workspaces.
+            // Events stays optional and disabled in the default demo fixture.
+            await page.goto(`${base}${demo}/today`, { waitUntil: "networkidle" });
+            await page.waitForFunction(
+              (id) => window.__accelerateAdminDemoRuntime === id,
+              scenario,
+            );
+            const enabled = await page.evaluate(async () => {
+              const response = await fetch("/api/admin/tenant/modules", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ moduleId: "event-ticketing", enabled: true }),
+              });
+              return response.ok && (await response.json()).enabled === true;
+            });
+            assert.equal(enabled, true, "Fictional Events module must enable for its route sweep");
+          }
           await page.goto(`${base}${destination.href.replace("/admin", demo)}`, {
             waitUntil: "networkidle",
             timeout: 60_000,

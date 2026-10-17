@@ -1,4 +1,5 @@
 import { handleDemoContentCalendar } from "./content-calendar-runtime";
+import { handleDemoEventTickets } from "./event-ticketing-runtime";
 import {
   createDemoSiteDraftState,
   handleDemoSiteDrafts,
@@ -40,6 +41,7 @@ import {
 } from "@/lib/admin/today-workspace";
 import { todayFacts, type TodaySnapshot, type TodayRegion } from "@/lib/admin/today-data";
 import { projectOperatorAttention } from "@/lib/revenue-os/operator-attention";
+import { operatorTaskUrgency, sortOperatorQueue } from "@/lib/revenue-os/operator-queue-policy";
 import type { OperatorQueueItem } from "@/lib/revenue-os/types";
 import type { HandoffReceipt } from "@/lib/revenue-os/delivery-handoff";
 import {
@@ -931,7 +933,7 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
       kind: index % 2 === 0 ? "task" : "follow_up",
       title: item.title,
       summary: "Linked to the latest conversation and opportunity context.",
-      urgency: item.priority === "high" ? "high" : "normal",
+      urgency: operatorTaskUrgency(item, dateOffset(0)),
       dueAt: item.due_date,
       sourceTimestamp: ago(index + 2),
       priorityReason:
@@ -943,7 +945,12 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
       recommendedNextAction: "Complete or snooze this task",
       href: "/admin/work",
     }));
-  return [...approvals, ...replies, ...proposals, ...commitments];
+  return sortOperatorQueue([
+    ...approvals,
+    ...replies,
+    ...proposals,
+    ...commitments,
+  ] as OperatorQueueItem[]);
 }
 export function priority(pack: DemoScenarioPack, state: DemoState) {
   const items = queue(pack, state);
@@ -951,8 +958,8 @@ export function priority(pack: DemoScenarioPack, state: DemoState) {
     status: "ready",
     summary: {
       total: items.length,
-      urgent: items.filter((item) => item.urgency === "high").length,
-      critical: 0,
+      urgent: items.filter((item) => item.urgency === "critical" || item.urgency === "high").length,
+      critical: items.filter((item) => item.urgency === "critical").length,
     },
     items,
   };
@@ -2659,6 +2666,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    const eventTickets = handleDemoEventTickets(
+      scenarioId,
+      state,
+      business,
+      path,
+      method,
+      body,
+      url.searchParams,
+      () => {
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+      },
+    );
+    if (eventTickets) return eventTickets;
     const calendar = await handleDemoContentCalendar(
       scenarioId,
       state,

@@ -220,6 +220,7 @@
    ======================================== */
 
 [data-theme="dark"] {
+  --error: #f28b82;
   --bg: var(--ink);
   --fg: var(--paper);
   --mid: #a8a8a4;

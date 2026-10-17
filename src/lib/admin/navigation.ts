@@ -132,6 +132,15 @@ export const adminNavSections: AdminNavSection[] = [
         moreGroup: "Revenue",
       },
       {
+        id: "events",
+        label: "Events",
+        href: "/admin/events",
+        icon: CalendarCheck,
+        description: "Manage workshop details, ticket availability, purchases, and confirmations.",
+        keywords: "tickets workshop admission Stripe buyers refunds",
+        moreGroup: "Revenue",
+      },
+      {
         id: "campaigns",
         label: "Campaigns",
         href: "/admin/campaigns",
@@ -462,6 +471,7 @@ const sectionTitles: Record<string, string> = {
   "More tools": "Other tools",
 };
 const marketingIds = new Set([
+  "events",
   "social-marketing",
   "emails",
   "campaigns",
@@ -551,6 +561,7 @@ export const adminBusinessGroups = [
     primaryId: "campaigns",
     icon: MessageSquareText,
     members: [
+      "events",
       "emails",
       "campaigns",
       "delivery-runs",

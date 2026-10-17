@@ -1,5 +1,10 @@
 "use client";
 import { contentCalendarCommandApprovalSchema } from "@/lib/revenue-os/content-calendar-contract";
+import {
+  ticketAdminCommandSchema,
+  eventTiming,
+  ticketMoney,
+} from "@/lib/revenue-os/event-ticketing-contract";
 import { useEffect, useRef } from "react";
 import { Check, ChevronDown, Loader2, TriangleAlert, X } from "lucide-react";
 import { AdminDialog } from "./AdminDialog";
@@ -37,6 +42,8 @@ function triageReason(triage: Record<string, unknown> | null | undefined): strin
  * before the button, not after.
  */
 const ACTION_CONSEQUENCE: Record<string, string> = {
+  event_ticketing_change:
+    "Applies the exact event operation below. Publishing opens ticket sales. Existing orders keep their agreed price and terms. Payment history remains unchanged.",
   content_calendar_change:
     "Applies only the exact calendar command below after checking current records and statuses. Delete permanently removes the calendar item. Website pages and approval history remain; no website content is published.",
   update_content_calendar_item:
@@ -108,7 +115,11 @@ const PAYLOAD_FIELD_ORDER = [
 const BODY_FIELDS = new Set(["body", "text", "message", "description"]);
 
 function payloadEntries(payload: Record<string, unknown> | null, actionType: string) {
-  if (!payload || actionType === "content_calendar_change")
+  if (
+    !payload ||
+    actionType === "content_calendar_change" ||
+    actionType === "event_ticketing_change"
+  )
     return { fields: [] as Array<[string, string]>, body: null as string | null };
   const fields: Array<[string, string]> = [];
   let body: string | null = null;
@@ -172,6 +183,8 @@ export function ActionReviewDialog({
     );
   }
   const isCalendar = action.action_type === "content_calendar_change";
+  const isTicket = action.action_type === "event_ticketing_change";
+  const ticket = isTicket ? ticketAdminCommandSchema.safeParse(action.payload) : null;
   const calendar = isCalendar
     ? contentCalendarCommandApprovalSchema.safeParse(action.payload)
     : null;
@@ -197,6 +210,15 @@ export function ActionReviewDialog({
   const layoutSummary =
     action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
   const consequence =
+    (ticket?.success
+      ? ticket.data.operation === "save_event"
+        ? ticket.data.event.status === "published"
+          ? "Saves these event settings and opens ticket sales. Existing orders retain their agreed price and refund terms."
+          : "Saves these event settings. New checkouts follow the saved sales status; existing orders retain their agreed price and terms."
+        : ticket.data.operation === "reconcile"
+          ? "Checks expired reservations against Stripe. Places are released only when the provider confirms expiry or the complete receipt lookup proves checkout was never created."
+          : "Checks the existing email receipt and retries an eligible failed confirmation using its original provider key. Paid admission remains recorded."
+      : null) ??
     (isConfiguration && typeof action.payload?.consequences === "string"
       ? action.payload.consequences
       : null) ??
@@ -391,6 +413,7 @@ export function ActionReviewDialog({
           {action.action_type === "content_calendar_change" && (
             <ContentCalendarReview payload={action.payload} />
           )}
+          {isTicket && <EventTicketReview command={ticket?.success ? ticket.data : null} />}
           {isToday && (
             <section className="grid gap-3 text-xs text-[var(--admin-ink)]">
               {todayPreview.isPending && <p>Loading the private exact preview…</p>}
@@ -580,6 +603,7 @@ export function ActionReviewDialog({
           )}
 
           {!isCalendar &&
+            !isTicket &&
             !isConfiguration &&
             !fields.length &&
             !body &&
@@ -663,7 +687,8 @@ export function ActionReviewDialog({
               disabled={
                 busy ||
                 Boolean(isToday && !todayPreview.data) ||
-                Boolean(isCalendar && !calendar?.success)
+                Boolean(isCalendar && !calendar?.success) ||
+                Boolean(isTicket && !ticket?.success)
               }
               onClick={onApprove}
               className={cn(
@@ -686,6 +711,73 @@ export function ActionReviewDialog({
         </div>
       </div>
     </Surface>
+  );
+}
+
+function EventTicketReview({
+  command,
+}: {
+  command: ReturnType<typeof ticketAdminCommandSchema.parse> | null;
+}) {
+  if (!command)
+    return (
+      <p role="alert">This event proposal is incomplete. Reject it and request a new proposal.</p>
+    );
+  const event = command.operation === "save_event" ? command.event : null;
+  const values: Array<[string, string]> = event
+    ? [
+        ["Event", event.title],
+        ["Page headline", event.headline],
+        ["Page address", event.slug],
+        ["Introduction", event.description],
+        ["When", `${eventTiming(event).date}, ${eventTiming(event).time}`],
+        ["Time zone", event.timezone],
+        ["Venue", `${event.venue_name}, ${event.venue_address}`],
+        ["Ticket price", ticketMoney(event.price_cents)],
+        ["Capacity", `${event.capacity} tickets`],
+        ["Sales status", event.status],
+        [
+          "Refund cutoff",
+          new Intl.DateTimeFormat("en-US", {
+            timeZone: event.timezone,
+            dateStyle: "medium",
+            timeStyle: "short",
+          }).format(new Date(event.refund_cutoff)),
+        ],
+        ["Refund terms", event.refund_policy],
+        ["Implementation support", event.support_description],
+        ["Expected revision", String(command.operation === "save_event" ? command.revision : "")],
+      ]
+    : [
+        [
+          "Operation",
+          command.operation === "reconcile"
+            ? "Check expired reservations against Stripe receipts"
+            : "Retry the recorded confirmation for this paid order",
+        ],
+        [
+          command.operation === "reconcile" ? "Event reference" : "Order reference",
+          command.operation === "reconcile"
+            ? command.eventId
+            : command.operation === "retry_confirmation"
+              ? command.orderId
+              : "",
+        ],
+      ];
+  return (
+    <section role="region" aria-label="Exact event operation">
+      <h3 className="font-semibold">
+        {event ? "Event settings to save" : "Requested ticket operation"}
+      </h3>
+      <dl className="mt-3 grid gap-3 text-xs">
+        {values.map(([label, value]) => (
+          <div className="grid gap-1 sm:grid-cols-[140px_1fr]" key={label}>
+            <dt className="text-[var(--admin-muted)]">{label}</dt>
+            <dd className="whitespace-pre-wrap break-words text-[var(--admin-ink)]">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 

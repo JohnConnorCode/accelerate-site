@@ -185,6 +185,13 @@ async function executeApprovedAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "event_ticketing_change": {
+        if (mode !== "approved")
+          throw new Error("Event publication and confirmation changes require human approval");
+        const { executeTicketAdminCommand } = await import("./event-ticketing");
+        result = await executeTicketAdminCommand(supabase, payload, actorEmail);
+        break;
+      }
       case "internal_permission_change": {
         if (mode !== "approved") throw new Error("Permission changes require exact human approval");
         result = await executeInternalPermission(supabase, id, payload, actorEmail);

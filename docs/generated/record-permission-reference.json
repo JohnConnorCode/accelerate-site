@@ -35,6 +35,12 @@
   ],
   "modules": [
     {
+      "id": "event-ticketing",
+      "name": "Events & Tickets",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
       "id": "core-command",
       "name": "Command Center & Inbox",
       "core": true,
@@ -240,6 +246,14 @@
     }
   ],
   "toolGrants": [
+    {
+      "tool": "get_ticket_events",
+      "module": "event-ticketing"
+    },
+    {
+      "tool": "propose_event_ticketing",
+      "module": "event-ticketing"
+    },
     {
       "tool": "preview_agent_work",
       "module": "core-command"

@@ -103,6 +103,17 @@ const capabilityDefinitions: Capability[] = [
     guideHref: "/docs/plugins/stripe-invoicing",
   },
   {
+    id: "event-ticketing",
+    category: "act",
+    title: "Workshop tickets",
+    promise:
+      "Publish a paid workshop and keep its capacity, purchases, and confirmations together.",
+    detail:
+      "Enable Events & Tickets and connect Stripe and Resend. Edit admission prices in Events, let buyers purchase several tickets, and confirm admission from verified payment. Existing orders retain their price. Refunds, buyer exports, reservation reconciliation and reviewed AI changes share the same workspace services.",
+    gated: true,
+    guideHref: "/docs/plugins/event-ticketing",
+  },
+  {
     id: "campaigns",
     category: "act",
     title: "Email campaigns",

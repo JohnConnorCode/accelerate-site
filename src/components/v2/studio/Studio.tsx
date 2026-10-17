@@ -1,4 +1,5 @@
 import { Hero } from "@/components/home/Hero";
+import type { ReactNode } from "react";
 import { HeroStatement } from "@/components/home/HeroStatement";
 import { Marquee } from "@/components/home/Marquee";
 import { Systems } from "@/components/home/Systems";
@@ -14,13 +15,14 @@ import { FinalCta } from "@/components/home/FinalCta";
 /** The homepage moves from the agency's work to its offer, then the product,
  * delivery process, sample plan and booking. Published Site Studio documents
  * retain their saved order; this is the bundled site's default composition. */
-export function Studio() {
+export function Studio({ promotion }: { promotion?: ReactNode } = {}) {
   return (
     <>
       {/* The hero keeps its message and CTA in the opening viewport. The
           explanatory beat follows before the marquee. */}
       <div className="hero-band">
         <Hero />
+        {promotion}
         <HeroStatement />
         <Marquee />
       </div>

@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 1,
+  "preparedAt": "2026-10-16T22:54:27.777826+00:00",
+  "base": "a0ceb2aba4d6290e4a24513787db978c6d26b0c0",
+  "integrationAncestor": "525da731fde95aa7956c0a631652df6b02feaded",
+  "workshop": {
+    "title": "AI for Your Business: A Practical Strategy Workshop",
+    "presenters": ["John Connor", "Matthew Rolnick"],
+    "start": "2026-11-11T12:00:00-06:00",
+    "end": "2026-11-11T13:30:00-06:00",
+    "timezone": "America/Chicago",
+    "venue": "Ferris & Co.",
+    "address": "1 W Monroe Street, Chicago, IL 60603",
+    "venueSource": "https://ferrischicago.com/",
+    "currency": "USD",
+    "priceCents": 5000,
+    "priceEditableInAdmin": true,
+    "capacity": 40,
+    "refundCutoff": "2026-11-09T12:00:00-06:00",
+    "initialStatus": "draft",
+    "registrationPath": "/events/ai-strategy-workshop-chicago-2026"
+  },
+  "localEvidence": {
+    "eventService": "18 reported checks passed with deterministic Stripe/Resend transport; additional approval expiry, foreign-tenant, rejected, autonomous and module-disabled refusals asserted.",
+    "postgres": "Native PostgreSQL 17 isolated temporary database passed concurrent capacity, dedupe, immutable snapshots, role/tenant/account/mode/amount/quantity refusal, refund/release and email-receipt checks. Migration replay leaves a fork and customized bootstrap configuration unchanged, then creates only the original Accelerate draft and preserves it on replay.",
+    "core": "Every command in the canonical test:core list passed. Failed checkpoints were repaired and execution resumed from their boundary; CI will rerun the full list on the final head.",
+    "contracts": "Final agent contract, guardrails (including positioning and work portfolio), strict docs coverage (129 pages, zero errors/warnings) and diff checks passed. Extension manifests, module route guards, schema verification and existing subscription tests also passed during feature verification.",
+    "build": "Final branded production build and TypeScript passed on applicationBuildSource with controlled public analytics IDs. The actual neutral export build on 8051723dfcd71bfe296a01c2b6d34a473efa9aae passed earlier; final CI rebuilds both distributions on the exact head.",
+    "browser": {
+      "result": "passed",
+      "evidence": "Compiled Next pages against isolated read-only REST; browser-controlled payment responses; actual shared fictional admin. No live provider or production data.",
+      "marketingTracking": "Public SDKs active against controlled stubs; direct and already-paid confirmation documents exclude both SDKs.",
+      "results": [
+        {
+          "width": 1440,
+          "theme": "light",
+          "reducedMotion": "no-preference",
+          "publicPage": true,
+          "privateDocument": true,
+          "trackingExcluded": true,
+          "keyboardCheckout": true,
+          "identicalRetry": true,
+          "pendingToConfirmed": true,
+          "paidDespiteEmailFailure": true,
+          "calendar": true,
+          "optionalContextRetry": true,
+          "refundedAdmission": true,
+          "accessibility": true
+        },
+        {
+          "width": 390,
+          "theme": "light",
+          "reducedMotion": "reduce",
+          "publicPage": true,
+          "privateDocument": true,
+          "trackingExcluded": true,
+          "keyboardCheckout": true,
+          "identicalRetry": true,
+          "pendingToConfirmed": true,
+          "paidDespiteEmailFailure": true,
+          "calendar": true,
+          "optionalContextRetry": true,
+          "refundedAdmission": true,
+          "accessibility": true
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "reducedMotion": "reduce",
+          "publicPage": true,
+          "privateDocument": true,
+          "trackingExcluded": true,
+          "keyboardCheckout": true,
+          "identicalRetry": true,
+          "pendingToConfirmed": true,
+          "paidDespiteEmailFailure": true,
+          "calendar": true,
+          "optionalContextRetry": true,
+          "refundedAdmission": true,
+          "accessibility": true
+        },
+        {
+          "width": 390,
+          "theme": "dark",
+          "reducedMotion": "no-preference",
+          "publicPage": true,
+          "privateDocument": true,
+          "trackingExcluded": true,
+          "keyboardCheckout": true,
+          "identicalRetry": true,
+          "pendingToConfirmed": true,
+          "paidDespiteEmailFailure": true,
+          "calendar": true,
+          "optionalContextRetry": true,
+          "refundedAdmission": true,
+          "accessibility": true
+        },
+        {
+          "adminWidth": 1440,
+          "priceEditable": true,
+          "originalOrderPrice": true,
+          "simulatedRetry": true,
+          "export": true,
+          "errorRecovery": true
+        },
+        {
+          "adminWidth": 390,
+          "priceEditable": true,
+          "originalOrderPrice": true,
+          "simulatedRetry": true,
+          "export": true,
+          "errorRecovery": true
+        }
+      ]
+    },
+    "screenshotsOpened": [
+      "public-light-1440.png",
+      "public-light-390.png",
+      "public-dark-1440.png",
+      "confirmation-light-1440.png",
+      "confirmation-dark-390.png",
+      "admin-1440.png",
+      "admin-390.png",
+      "approval-1440.png",
+      "approval-390.png",
+      "admin-price-1440.png",
+      "admin-price-390.png"
+    ],
+    "screenshotDirectory": "/tmp/accelerate-event-ticketing/",
+    "copyButtonGeometry": {
+      "diagnosis": "The CSS and layout target are 44px. Animated Chromium translation frames measured 43.999969482421875px. The unchanged >=44px assertion now waits for finite ancestor animations to settle.",
+      "widths": [1440, 1024, 390],
+      "artifact": "/tmp/accelerate-copy-geometry/results.json",
+      "measurements": [
+        {
+          "viewportWidth": 1440,
+          "settled": {
+            "width": 45.828125,
+            "height": 44
+          },
+          "minimumFrameHeight": 43.999969482421875,
+          "cssMinimumWidth": "44px",
+          "cssMinimumHeight": "44px"
+        },
+        {
+          "viewportWidth": 1024,
+          "settled": {
+            "width": 45.828125,
+            "height": 44
+          },
+          "minimumFrameHeight": 43.999969482421875,
+          "cssMinimumWidth": "44px",
+          "cssMinimumHeight": "44px"
+        },
+        {
+          "viewportWidth": 390,
+          "settled": {
+            "width": 44,
+            "height": 44
+          },
+          "minimumFrameHeight": 44,
+          "cssMinimumWidth": "44px",
+          "cssMinimumHeight": "44px"
+        }
+      ]
+    },
+    "docsBrowser": {
+      "result": "passed",
+      "checks": 139,
+      "artifact": "/tmp/accelerate-workshop-docs-qa/results.json",
+      "sha256": "4f1744839715999cdb12eb3eb85f4e6f5690120109e88399068c4cb38b29c1e9"
+    },
+    "lint": "Final eslint --max-warnings=0 and full Prettier format check passed on applicationBuildSource.",
+    "neutralExportBrowser": {
+      "result": "passed",
+      "exportSource": "8051723dfcd71bfe296a01c2b6d34a473efa9aae",
+      "widths": [1440, 390],
+      "checks": [
+        "neutral workshop renders with empty team data",
+        "no agency presenters or structured metadata",
+        "private confirmation omits agency contact",
+        "no horizontal overflow"
+      ],
+      "providerEffects": false,
+      "screenshotsOpened": [
+        "/tmp/accelerate-workshop-neutral-event-qa/registration-390.png",
+        "/tmp/accelerate-workshop-neutral-event-qa/confirmation-1440.png"
+      ]
+    },
+    "additionalChecks": [
+      "Reviewed route inventory: 68 pages, 414 source fingerprints and seven regression cases passed.",
+      "House style: 708 copy files checked, no violations.",
+      "Neutral starter export and rendered identity checks passed.",
+      "Extensions remain in sync.",
+      "Pure navigation contract and private confirmation path matcher passed. An initial unstarted localhost:3010 browser invocation was refused; owned-server full navigation verification remains pending, with no native-browser fallback."
+    ],
+    "confirmationPrivacy": {
+      "result": "passed",
+      "configuration": "G-CONTROLLEDWORKSHOP and a fictional Meta ID; external SDK requests fulfilled by local browser stubs, with no live collection.",
+      "checks": [
+        "Public sales document actually loads both configured SDKs.",
+        "Private direct-return documents load neither SDK and expose neither global.",
+        "Already-paid checkout recovery creates a new document; the original document marker is absent and neither tracking global exists.",
+        "All four public desktop/mobile and light/dark scenarios retain checkout, receipt and recovery acceptance."
+      ],
+      "primaryReference": "https://developers.google.com/analytics/devguides/collection/ga4/views?technology=websites"
+    }
+  },
+  "pendingEvidence": [
+    "Owned-server complete navigation runtime suite on the final application tree.",
+    "Required verify and connected recovery CI on final combined head; completion, merge SHA and tree parity will be recorded on PR #263."
+  ],
+  "production": {
+    "changed": false,
+    "migrationApplied": false,
+    "salesOpened": false,
+    "realPaymentsCreated": false,
+    "emailsOrMarketingSent": false,
+    "releaseRequiresFounderInstruction": true,
+    "targetAccess": "Vercel CLI johnconnorcode; project prj_w46n3AgV4L4IGEJZ0WzCBCZhDTot, team team_aoXdtupaCmY2LDwBtCd4d7If verified; billing active. PR Vercel status separately reports Account is blocked.",
+    "observedCanonicalDeployment": "dpl_FknAs2hkLC84ek1MjaRZeSBrHFjV",
+    "observedCanonicalState": "Ready",
+    "readOnlyReadiness": {
+      "checkedAt": "2026-10-16T22:16:09.933Z",
+      "productionWrites": false,
+      "providerEffects": "Read-only configuration and schema checks; no payments or messages",
+      "supabaseHost": "skjypuwkceoiunyhhqlm.supabase.co",
+      "tenant": "Expected Accelerate bootstrap tenant is active",
+      "workshopSeedIdentityMatches": true,
+      "stripeSetup": {
+        "moduleSetting": null,
+        "connectionPresent": false,
+        "connectionStatus": null,
+        "accountIdentifierConfigured": false,
+        "encryptedKeyConfigured": false,
+        "encryptedWebhookSecretConfigured": false,
+        "legacyEnvironmentKeyPresent": false
+      },
+      "stripe": {
+        "configured": false,
+        "reason": "Stripe invoicing is disabled or the workspace is unavailable"
+      },
+      "email": {
+        "configured": true,
+        "senderConfigured": true,
+        "replyInboxConfigured": true,
+        "deliveryTested": false
+      },
+      "workshop": {
+        "present": false,
+        "databaseErrorCode": "PGRST205"
+      }
+    },
+    "releaseSteps": [
+      "Connect and verify the tenant live Stripe account and signed webhook through existing workspace setup.",
+      "Obtain founder instruction for this concrete release.",
+      "Apply ordered additive migration to the verified project, build and deploy the exact verified merged commit, verify canonical identity and provider behavior.",
+      "Review and publish the draft event only after checkout and email readiness are verified."
+    ]
+  },
+  "review": "Implementing-agent review; no independent user or live-provider acceptance claimed.",
+  "applicationBuildSource": "0f072bf15477a59c33cdeb19fc9627aee2bc0ab2",
+  "retainedSourceComparison": {
+    "checkedAt": "2026-10-16T22:22:15.892982+00:00",
+    "comparisonTo": "docs/verification/ACCELERATE-INTEGRATION-2026-10-16.json",
+    "statusNormalization": "Whole stdout trim matches the initial inventory serialization.",
+    "retainedCheckouts": 133,
+    "matchingRecordedHeadPathsAndTrackedDiff": 133,
+    "changes": [],
+    "currentWorktreeCount": 135,
+    "currentLocalBranchCount": 715
+  },
+  "ciHistory": [
+    {
+      "run": 38973879733,
+      "head": "c82157a37279f2059619810f51f652caaeddbbee",
+      "passed": [
+        "canonical core suite",
+        "event service and native PostgreSQL",
+        "both full-product fork builds"
+      ],
+      "failures": [
+        "new workshop content missing from neutral export",
+        "stale navigation/page route fingerprints",
+        "five house-style copy violations"
+      ],
+      "disposition": "Repaired in subsequent source commits; exact-head CI required."
+    },
+    {
+      "run": 38973879738,
+      "head": "c82157a37279f2059619810f51f652caaeddbbee",
+      "passed": ["connected-fork native desktop/mobile journeys"],
+      "failures": [
+        "customized bootstrap configuration changed by automatic workshop seed during recovery upgrade"
+      ],
+      "disposition": "Seed now requires the original configured business name and domain; isolated PostgreSQL regression passed. Native recovery must pass on final head."
+    },
+    {
+      "run": 38975980924,
+      "head": "7d1de0b7bbcd30b0bacd66fb1e3be10b5726e0af",
+      "passed": [
+        "all source checks including complete core and PostgreSQL suites",
+        "both complete-product forks",
+        "actual neutral starter",
+        "homepage motion and cached mobile checks"
+      ],
+      "disposition": "Superseded by confirmation privacy hardening. Final exact-head CI remains required."
+    },
+    {
+      "run": 38975981002,
+      "head": "7d1de0b7bbcd30b0bacd66fb1e3be10b5726e0af",
+      "passed": ["connected fork native journeys", "native restore and upgrade recovery"],
+      "disposition": "Passed completely before the client confirmation privacy change."
+    }
+  ]
+}

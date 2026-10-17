@@ -48,10 +48,14 @@ function orPredicate(expression: string): (row: Row) => boolean {
           return value === "null" ? actual === null || actual === undefined : actual === value;
         case "eq":
           return String(actual) === value;
+        case "neq":
+          return actual !== null && actual !== undefined && String(actual) !== value;
         case "gt":
           return actual !== null && actual !== undefined && String(actual) > value;
         case "lt":
           return actual !== null && actual !== undefined && String(actual) < value;
+        case "lte":
+          return actual !== null && actual !== undefined && String(actual) <= value;
         default:
           throw new Error(`memory-supabase: unsupported or() operator "${op}" in "${clause}"`);
       }

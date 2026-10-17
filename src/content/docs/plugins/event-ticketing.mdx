@@ -1,0 +1,145 @@
+---
+title: Events and tickets
+description: Publish a paid workshop, control its ticket capacity, and follow payments and buyer confirmations.
+updated: "2026-10-16"
+---
+
+Events and tickets gives a workshop one public page, a secure Stripe checkout,
+and an Events workspace for the people running it. A buyer can purchase several
+tickets without an Accelerate account. Successful payment confirms admission;
+returning from checkout alone does not.
+
+## Before opening sales
+
+An active workspace administrator needs Events & Tickets enabled in Apps, Stripe
+invoicing enabled with the intended Stripe account connected, and a working Resend
+sender and reply inbox. Apply the installation's ordered migrations first. The
+Accelerate upgrade creates its November 11 workshop as a draft; it does not open
+sales automatically. Other installations enable the optional module themselves.
+
+Use the same Stripe mode for the API key, account and signing secret. In Stripe,
+configure `/api/public/{tenant}/webhooks/stripe` for
+`checkout.session.completed`, `checkout.session.expired` and `charge.refunded`.
+For this workshop the tenant is `accelerate`. The API key needs permission to
+create and read Checkout sessions and read payment intents and charges, alongside
+the account access checked when connecting. Verify those permissions with a
+controlled test event before accepting live registrations.
+
+Stripe processing and Resend usage are billed by those providers. Event editing
+and buyer records stay within the workspace's existing permissions. Test payments
+are labelled and do not increase live sales totals or consume live ticket capacity.
+The confirmation page and email explicitly identify a test payment; it does not
+confirm admission to the live event.
+Use a separate controlled event for provider testing.
+
+## Edit and publish a workshop
+
+1. Open **Marketing → Events** and choose **Edit**, or create an event draft.
+2. Set the event name, page headline, introduction, venue, and time zone. Start,
+   end, and refund-cutoff fields use that event time zone, even if your computer
+   uses another one.
+3. Enter the price in USD and the total ticket capacity. For example, $50 and
+   forty places allow up to $2,000 in gross sales before fees and expenses.
+4. Write the refund terms and describe any separately priced follow-on support.
+5. Save the draft and use **Preview page**. Preview requires administrator access
+   and cannot start a purchase.
+6. When the details and provider connections are ready, choose **Published: open
+   sales** and save. Share **View page** with buyers.
+
+Changing the price affects new checkouts. An existing checkout session and paid
+order keep their agreed price and refund terms. A buyer looking at an older page
+must review current details before a new checkout starts. A stale administrator
+edit is refused; reload saved data before trying again. The editor retains your
+typed values when a save fails.
+
+Orders also retain the event details agreed at purchase. If you change the date
+or venue, notify existing buyers separately using the order list or CSV export.
+This version does not send automatic event-change announcements.
+
+The bundled Accelerate homepage promotes its published, upcoming workshop. A
+custom Site Studio homepage keeps its saved composition; add the public workshop
+link through its existing editor when you want promotion there.
+
+## Capacity and purchase confirmation
+
+A checkout reserves its quantity for thirty-five minutes. Reserved and paid
+places cannot exceed capacity, including when several buyers check out together.
+A reservation is released after Stripe confirms expiration or the server verifies
+that an expired creation attempt has no provider session. An uncertain provider
+outcome remains reserved while it needs review.
+
+**Paused** stops new purchases while retaining the public page. **Closed** ends
+sales. Already created Stripe sessions retain their existing reservation until
+payment or expiration. Capacity cannot be reduced below paid and reserved places.
+
+Disabling Events & Tickets in Apps hides the Events workspace and public event
+pages and refuses new event operations. Existing provider sessions can still
+complete. Pause or close sales first, then reconcile outstanding reservations
+before disabling the module. Re-enable it to review retained orders and recover
+confirmations; disabling it does not delete buyer or payment records.
+
+The confirmation page shows the order reference, quantity, amount, venue, and
+schedule after payment is verified. The email includes a calendar attachment and
+refund instructions. Buyers may optionally describe their company and a business
+need after purchase. Those answers belong to the order; they do not subscribe
+the buyer to marketing emails.
+
+## Follow orders and handle refunds
+
+Use the event card to distinguish live paid tickets, reservations, availability,
+gross sales, and refunds. Search orders by buyer, company, or order reference.
+**Export CSV** downloads the selected event's buyer details and ticket quantities.
+Exports exclude private confirmation credentials and refuse an incomplete result;
+select an event with at most five hundred orders when the workspace list is larger.
+
+Choose **Review payment or refund in Stripe** to act on the actual provider
+payment. A full refund invalidates that order's admission and releases its places.
+A partial refund updates the refunded amount while retaining the tickets. Payment
+callbacks cannot undo a recorded refund.
+
+## Recover a checkout or email problem
+
+- If checkout setup loses its response, retry with the same buyer details. The
+  server reuses the existing reservation and provider key.
+- If a buyer has paid but status is pending, keep the confirmation link and choose
+  **Check payment status**. Payment verification and provider callbacks share one
+  fulfillment service. Buying again is unnecessary.
+- Use **Reconcile reservations** to check expired sessions. A complete provider
+  receipt can recover a lost response. A receipt lookup is bounded to one hundred
+  recent sessions; an incomplete listing or a changed Stripe account remains
+  explicit review work rather than releasing uncertain inventory.
+- A confirmation failure leaves admission paid. **Retry confirmation** reuses the
+  exact message, provider connection and key for a failed receipt within twenty-three
+  hours. Resend retains keys for twenty-four hours. Older, changed, or uncertain
+  in-progress receipts require provider review before another send. See
+  [Resend's idempotency guide](https://resend.com/docs/dashboard/emails/idempotency-keys).
+
+## Ask AI to prepare a change
+
+With the module enabled, ask the assistant to read event details or prepare an
+exact edit, publication, reservation reconciliation, or confirmation retry. Review
+the proposal before execution. Current administrator authority, module state and
+event revision are checked again. AI cannot charge a buyer or approve its own
+proposal.
+
+Ask for the event's public registration link when inviting buyers. Buyers choose
+their own tickets, pay in Stripe, and enter optional business context on their
+private confirmation page. The assistant never needs a buyer's order key or
+payment details.
+
+Private confirmation pages exclude third-party marketing scripts. Returning to
+an already paid order opens a fresh private page, so advertising scripts from
+the sales page cannot inherit its order credentials.
+
+## Fictional demo and extension boundary
+
+The module is off by default in fictional scenarios. Enable it in Apps to explore
+the same Events screen with fictional orders. Edits and confirmation retries save
+simulated receipts in that browser session; public checkout and real provider
+effects are unavailable.
+
+The domain owner is `src/lib/revenue-os/event-ticketing.ts`; browser-safe command
+schemas and formatting live in `event-ticketing-contract.ts`. UI, AI and provider
+callbacks use those services. Tenant-scoped SQL functions own concurrent
+reservation claims and payment transitions. Extend those owners when adding
+behavior rather than creating another payment or attendee store.
