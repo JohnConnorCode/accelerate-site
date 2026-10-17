@@ -1,9 +1,10 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
 import { commandCenterOrigin } from "@/lib/command-center/runtime";
 import { readBoundedJson } from "@/lib/http/bounded-json";
-import { decryptSecret, encryptSecret, isEncryptedSecret } from "./encryption";
+import { decryptTenantSecret, encryptTenantSecret, isTenantEncryptedSecret } from "./encryption";
 import { safeErrorMessage } from "./db";
 
 /**
@@ -18,8 +19,8 @@ import { safeErrorMessage } from "./db";
  * Xero specifics this module encodes:
  *  - tokens come from `identity.xero.com`, and data calls need the
  *    `xero-tenant-id` header for the chosen organisation;
- *  - the refresh token ROTATES on every refresh, so a failed save would break
- *    the connection permanently. The new value is always persisted.
+ *  - refresh tokens rotate. A refresh succeeds only after saving the new
+ *    credentials; Xero gives the previous token a bounded recovery window.
  */
 
 export const XERO_SCOPES = [
@@ -151,17 +152,38 @@ export async function listXeroOrganisations(accessToken: string): Promise<XeroOr
 
 export async function saveXeroConnection(supabase: SupabaseClient, tokens: XeroTokenResponse) {
   await assertActiveTenantExecution(supabase, "xero-connect");
+  const workspaceTenantId = tenantIdForDatabase(supabase);
+  if (!workspaceTenantId) throw new Error("Explicit tenant database context is required");
   const organisations = await listXeroOrganisations(tokens.access_token);
-  const primary = organisations.find((entry) => Boolean(entry?.tenantId));
-  if (!primary) throw new Error("Xero returned no authorised organisation for this connection.");
-  const { data: existing } = await supabase
+  const authorised = [
+    ...new Map(
+      organisations
+        .filter((entry) => typeof entry?.tenantId === "string" && entry.tenantId.trim())
+        .map((entry) => [entry.tenantId, entry]),
+    ).values(),
+  ];
+  if (!authorised.length)
+    throw new Error("Xero returned no authorised organisation for this connection.");
+  const { data: existing, error: readError } = await supabase
     .from("integration_connections")
-    .select("encrypted_refresh_token,connected_at,settings")
+    .select("connected_at,settings")
     .eq("provider", "xero")
     .maybeSingle();
-  if (!tokens.refresh_token && !existing?.encrypted_refresh_token)
-    throw new Error("Xero did not return a refresh token. Reconnect and grant offline access.");
+  if (readError)
+    throw new Error("The existing Xero connection could not be read", { cause: readError });
   const previousSettings = (existing?.settings ?? {}) as Record<string, unknown>;
+  const previousTenantId = previousSettings.xero_tenant_id;
+  const primary = previousTenantId
+    ? authorised.find((entry) => entry.tenantId === previousTenantId)
+    : authorised.length === 1
+      ? authorised[0]
+      : null;
+  if (!primary)
+    throw new Error(
+      "Xero requires an explicit organisation selection before saving this connection.",
+    );
+  if (!tokens.refresh_token)
+    throw new Error("Xero did not return a refresh token. Reconnect and grant offline access.");
   const settings: Record<string, unknown> = {
     ...previousSettings,
     xero_tenant_id: primary.tenantId,
@@ -175,10 +197,18 @@ export async function saveXeroConnection(supabase: SupabaseClient, tokens: XeroT
     {
       provider: "xero",
       account_email: (primary.tenantName ?? primary.tenantType ?? primary.tenantId).slice(0, 254),
-      encrypted_access_token: encryptSecret(tokens.access_token),
-      encrypted_refresh_token: tokens.refresh_token
-        ? encryptSecret(tokens.refresh_token)
-        : existing?.encrypted_refresh_token,
+      encrypted_access_token: encryptTenantSecret(
+        tokens.access_token,
+        workspaceTenantId,
+        "xero",
+        "access_token",
+      ),
+      encrypted_refresh_token: encryptTenantSecret(
+        tokens.refresh_token,
+        workspaceTenantId,
+        "xero",
+        "refresh_token",
+      ),
       token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
       scopes: tokens.scope ? tokens.scope.split(/\s+/).filter(Boolean) : [...XERO_SCOPES],
       status: "connected",
@@ -200,6 +230,8 @@ export async function getXeroAccessToken(
   supabase: SupabaseClient,
 ): Promise<{ token: string; tenantId: string; connection: Record<string, unknown> }> {
   await assertActiveTenantExecution(supabase, "xero");
+  const workspaceTenantId = tenantIdForDatabase(supabase);
+  if (!workspaceTenantId) throw new Error("Explicit tenant database context is required");
   const { data: connection, error } = await supabase
     .from("integration_connections")
     .select("*")
@@ -208,7 +240,8 @@ export async function getXeroAccessToken(
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!connection?.encrypted_refresh_token) throw new Error("Xero is not connected");
-  if (!isEncryptedSecret(connection.encrypted_refresh_token))
+  const refreshEnvelope = connection.encrypted_refresh_token;
+  if (!isTenantEncryptedSecret(refreshEnvelope))
     throw new Error("Xero refresh token is not in the encrypted envelope; reconnect Xero.");
   const tenantId = (connection.settings as { xero_tenant_id?: string } | null)?.xero_tenant_id;
   if (!tenantId) throw new Error("Xero organisation is not recorded; reconnect Xero.");
@@ -217,9 +250,18 @@ export async function getXeroAccessToken(
     connection.token_expires_at &&
     new Date(connection.token_expires_at).getTime() > Date.now() + 60000
   ) {
-    if (!isEncryptedSecret(connection.encrypted_access_token))
+    if (!isTenantEncryptedSecret(connection.encrypted_access_token))
       throw new Error("Xero access token is not in the encrypted envelope; reconnect Xero.");
-    return { token: decryptSecret(connection.encrypted_access_token), tenantId, connection };
+    return {
+      token: decryptTenantSecret(
+        connection.encrypted_access_token,
+        workspaceTenantId,
+        "xero",
+        "access_token",
+      ),
+      tenantId,
+      connection,
+    };
   }
 
   try {
@@ -227,22 +269,43 @@ export async function getXeroAccessToken(
       method: "POST",
       headers: { ...basicAuth(), "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        refresh_token: decryptSecret(connection.encrypted_refresh_token),
+        refresh_token: decryptTenantSecret(
+          refreshEnvelope,
+          workspaceTenantId,
+          "xero",
+          "refresh_token",
+        ),
         grant_type: "refresh_token",
       }),
     });
+    if (!refreshed.refresh_token) throw new Error("Xero did not return a rotated refresh token");
     const patch = {
-      encrypted_access_token: encryptSecret(refreshed.access_token),
-      // Xero rotates refresh tokens. Persisting the new value is not optional:
-      // the previous one is invalidated as soon as this response is issued.
-      encrypted_refresh_token: refreshed.refresh_token
-        ? encryptSecret(refreshed.refresh_token)
-        : connection.encrypted_refresh_token,
+      encrypted_access_token: encryptTenantSecret(
+        refreshed.access_token,
+        workspaceTenantId,
+        "xero",
+        "access_token",
+      ),
+      encrypted_refresh_token: encryptTenantSecret(
+        refreshed.refresh_token,
+        workspaceTenantId,
+        "xero",
+        "refresh_token",
+      ),
       token_expires_at: new Date(Date.now() + refreshed.expires_in * 1000).toISOString(),
       scopes: refreshed.scope ? refreshed.scope.split(/\s+/).filter(Boolean) : connection.scopes,
       last_error: null,
     };
-    await supabase.from("integration_connections").update(patch).eq("id", connection.id);
+    const { data: saved, error: saveError } = await supabase
+      .from("integration_connections")
+      .update(patch)
+      .eq("id", connection.id)
+      .eq("status", "connected")
+      .eq("encrypted_refresh_token", refreshEnvelope)
+      .select("id")
+      .maybeSingle();
+    if (saveError || !saved)
+      throw new Error("Refreshed Xero credentials could not be saved", { cause: saveError });
     return { token: refreshed.access_token, tenantId, connection: { ...connection, ...patch } };
   } catch (error) {
     const message = safeErrorMessage(error);
@@ -252,7 +315,9 @@ export async function getXeroAccessToken(
         status: /invalid_grant/i.test(message) ? "revoked" : "degraded",
         last_error: message,
       })
-      .eq("id", connection.id);
+      .eq("id", connection.id)
+      .eq("status", "connected")
+      .eq("encrypted_refresh_token", refreshEnvelope);
     throw error;
   }
 }

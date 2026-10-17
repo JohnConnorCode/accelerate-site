@@ -146,6 +146,20 @@ async function main() {
       ],
     },
   ];
+  await assert.rejects(
+    () => saveXeroConnection(database, tokens),
+    /explicit organisation selection/i,
+  );
+  assert.equal(memory.rows("integration_connections").length, 0);
+  checks.push("an ambiguous initial organisation is refused without saving credentials");
+
+  connectionsQueue = [
+    {
+      body: [
+        { id: "conn-1", tenantId: "org-1", tenantName: "Buckley & Co", tenantType: "ORGANISATION" },
+      ],
+    },
+  ];
   const saved = await saveXeroConnection(database, tokens);
   assert.equal(saved.tenantId, "org-1");
   assert.equal(saved.tenantName, "Buckley & Co");
@@ -153,16 +167,28 @@ async function main() {
   assert.equal(row.provider, "xero");
   assert.equal(row.status, "connected");
   assert.equal(row.account_email, "Buckley & Co");
-  assert.match(String(row.encrypted_access_token), /^v1\./);
+  assert.match(String(row.encrypted_access_token), /^v2\./);
   assert.notEqual(row.encrypted_access_token, "access-1", "the access token must be encrypted");
-  assert.match(String(row.encrypted_refresh_token), /^v1\./);
+  assert.match(String(row.encrypted_refresh_token), /^v2\./);
   const settings = row.settings as Record<string, unknown>;
   assert.equal(settings.xero_tenant_id, "org-1");
   assert.deepEqual(settings.xero_authorised_organisations, [
     { tenantId: "org-1", tenantName: "Buckley & Co" },
-    { tenantId: "org-2", tenantName: "Second Org" },
   ]);
   checks.push("connection save encrypts tokens and records the chosen organisation");
+
+  connectionsQueue = [
+    {
+      body: [
+        { id: "conn-2", tenantId: "org-2", tenantName: "Second Org" },
+        { id: "conn-1", tenantId: "org-1", tenantName: "Buckley & Co" },
+      ],
+    },
+  ];
+  assert.equal((await saveXeroConnection(database, tokens)).tenantId, "org-1");
+  checks.push(
+    "reconnection preserves the recorded organisation rather than choosing the first result",
+  );
 
   // A connection save without any refresh token would silently break offline
   // access, so it must be refused.
@@ -176,8 +202,7 @@ async function main() {
   );
   checks.push("a connection without a refresh token is refused");
 
-  // Refresh must rotate and persist the new refresh token: Xero invalidates the
-  // previous one as soon as the new response is issued.
+  // Refresh must persist the rotated token before reporting success.
   connectionRow(memory).token_expires_at = new Date(Date.now() - 1000).toISOString();
   tokenQueue = [
     {
@@ -199,8 +224,60 @@ async function main() {
     previousRefresh,
     "the rotated refresh token must replace the old one",
   );
-  assert.match(String(rotated.encrypted_refresh_token), /^v1\./);
+  assert.match(String(rotated.encrypted_refresh_token), /^v2\./);
   checks.push("token refresh rotates and persists the new refresh token");
+
+  const otherTenantId = "99999999-9999-4999-8999-999999999999";
+  const copied = new MemorySupabase({
+    tenants: [{ id: otherTenantId, status: "active" }],
+    integration_connections: [{ ...rotated, tenant_id: otherTenantId }],
+  });
+  await assert.rejects(() =>
+    getXeroAccessToken(bindTenantDatabaseForTest(copied.client, otherTenantId)),
+  );
+  checks.push("copied credentials cannot be decrypted in another workspace");
+
+  for (const failure of ["save-error", "disconnect", "rotation"] as const) {
+    const broken = new MemorySupabase({
+      tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }],
+      integration_connections: [{ ...rotated, token_expires_at: new Date(0).toISOString() }],
+    });
+    const brokenDb = bindTenantDatabaseForTest(broken.client, ACCELERATE_TENANT_ID);
+    tokenQueue = [
+      {
+        body: {
+          access_token: "unsaved-access",
+          refresh_token: "unsaved-refresh",
+          expires_in: 1800,
+          token_type: "Bearer",
+        },
+      },
+    ];
+    const providerFetch = globalThis.fetch;
+    globalThis.fetch = (async (...args: Parameters<typeof fetch>) => {
+      const response = await providerFetch(...args);
+      if (failure === "save-error")
+        broken.fail("integration_connections", { message: "simulated save failure" });
+      if (failure === "disconnect") connectionRow(broken).status = "disconnected";
+      if (failure === "rotation")
+        connectionRow(broken).encrypted_refresh_token = "newer-connection";
+      return response;
+    }) as typeof fetch;
+    try {
+      await assert.rejects(() => getXeroAccessToken(brokenDb), /could not be saved/i, failure);
+      if (failure === "disconnect") assert.equal(connectionRow(broken).status, "disconnected");
+      if (failure === "rotation") {
+        assert.equal(connectionRow(broken).encrypted_refresh_token, "newer-connection");
+        assert.equal(connectionRow(broken).status, "connected");
+      }
+    } finally {
+      globalThis.fetch = providerFetch;
+      broken.recover("integration_connections");
+    }
+  }
+  checks.push(
+    "failed saves, disconnection and newer credentials cannot produce a successful refresh receipt",
+  );
 
   // A cached, still-valid access token must not trigger another refresh.
   calls.length = 0;

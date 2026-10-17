@@ -105,7 +105,7 @@ export function useRevealLifecycle<T extends HTMLElement>({
     const onPreference = () => {
       if (reduced.matches) reveal(true);
     };
-    const onFocus = () => {
+    const revealFocused = (activated = false) => {
       const active = document.activeElement;
       if (
         !element.classList.contains("reveal-immediate") &&
@@ -113,12 +113,18 @@ export function useRevealLifecycle<T extends HTMLElement>({
         element.contains(active) &&
         active.matches(
           'a[href], button, input, select, textarea, summary, [contenteditable="true"], [tabindex]:not([tabindex="-1"])',
-        )
+        ) &&
+        (activated ||
+          active.matches('input, select, textarea, [contenteditable="true"], :focus-visible'))
       )
         reveal(true);
     };
-    // Focused controls and their feedback must never remain partly faded.
+    const onFocus = () => revealFocused();
+    const onClick = () => revealFocused(true);
+    // Pointer-focused actions settle after click targeting, so completing an
+    // ancestor transform cannot move a link away between pointer down and up.
     element.addEventListener("focusin", onFocus);
+    element.addEventListener("click", onClick);
     onFocus();
     window.addEventListener("pageshow", onPageShow);
     reduced.addEventListener("change", onPreference);
@@ -128,6 +134,7 @@ export function useRevealLifecycle<T extends HTMLElement>({
       cancelAnimationFrame(restoreFrame);
       removePending(element);
       element.removeEventListener("focusin", onFocus);
+      element.removeEventListener("click", onClick);
       window.removeEventListener("pageshow", onPageShow);
       reduced.removeEventListener("change", onPreference);
     };

@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { buildXeroAuthUrl } from "@/lib/revenue-os/xero";
 import { commandCenterOrigin } from "@/lib/command-center/runtime";
@@ -9,9 +9,15 @@ import {
   XERO_OAUTH_STATE_TTL_SECONDS,
 } from "@/lib/revenue-os/xero-oauth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
+  // A setup link cannot silently connect a different workspace after a tab switch.
+  if (request.nextUrl.searchParams.get("tenant") !== auth.tenant.slug)
+    return NextResponse.json(
+      { error: "Select the intended workspace before connecting Xero." },
+      { status: 409 },
+    );
   const integrationsUrl = (query: string) =>
     new URL(
       `/t/${auth.tenant.slug}/admin/integrations?${query}`,

@@ -351,3 +351,9 @@ changes cannot enter this internal execution path. In-chat review reuses the exa
 ActionReviewDialog and human decision endpoint. No approval tool is registered.
 Member OAuth uses these services; static integration keys cannot impersonate a
 requesting member. Pending proposals expose a tenant-scoped exact review link.
+
+Xero connection setup is a secure human handoff from `get_workspace_configuration`.
+The setup link identifies the intended workspace; authorize rejects a changed active
+workspace, and the callback verifies its signed tenant-bound state. Credentials stay
+out of AI/MCP results. This read-only OAuth foundation does not import accounting
+records; Xero accounting sync remains planned until its separate verification exists.

@@ -271,6 +271,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:tenant-lifecycle:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:conversational-agent:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:platform-command-context:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:audit-log-append-only:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres

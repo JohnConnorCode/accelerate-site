@@ -92,6 +92,24 @@ export const WORKSPACE_CONFIGURATION_TOOLS = [
     confirmationRequired: false,
     connectionRequirement: "none",
     serviceTarget: "revenue-os.workspace-configuration",
+    operation: {
+      id: "workspace.configuration.secure-setup",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        {
+          path: "/api/admin/xero/authorize",
+          method: "GET",
+          audience: "secure-human-handoff",
+        },
+        {
+          path: "/api/admin/xero/callback",
+          method: "GET",
+          audience: "secure-human-handoff",
+        },
+      ],
+      verification: ["scripts/test-xero-oauth.ts", "scripts/test-ai-workspace-configuration.ts"],
+    },
   },
   {
     name: "preview_workspace_configuration",

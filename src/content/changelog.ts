@@ -2,11 +2,38 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "audit-ledger-append-only",
+    slug: "audit-ledger-append-only",
+    title: "Audit history is append-only for signed-in clients",
+    description:
+      "A catalogued database upgrade makes the shared audit ledger refuse client-role updates, deletes and truncation of recorded history. Existing tenant and private-owner policies, the trusted server writer and normal retention are preserved; signed-in members keep reading and appending receipts. Coding agents can run the documented disposable PostgreSQL check instead of changing grants by hand. Apply the migration before relying on client-role mutation protection in a connected installation.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
+    id: "provider-retry-recovery",
+    slug: "provider-retry-recovery",
+    title: "Recover from temporary provider errors",
+    description:
+      "Google Workspace reads retry temporary provider errors, and AI retries account for provider timing hints. Message sending retains its existing confirmation and recovery controls.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
+    id: "initial-payment-check-feedback",
+    slug: "initial-payment-check-feedback",
+    title: "Keep payment checks clear while confirmations load",
+    description:
+      "Ticket confirmation pages show that a check is in progress from the start. The payment re-check becomes available when the initial request finishes.",
+    category: "fix",
+    publishedAt: "2026-10-17",
+  },
+  {
     id: "readable-focused-forms",
     slug: "readable-focused-forms",
     title: "Keep focused forms and feedback readable",
     description:
-      "Focusing a form or link finishes its section's entrance immediately. Fields and payment feedback stay fully visible after focus moves, while the rest of the page keeps its usual motion and reduced-motion support.",
+      "Form fields and keyboard focus finish their section's entrance immediately. Pointer actions keep their position until the click arrives, and validation and payment feedback stay fully readable.",
     category: "fix",
     publishedAt: "2026-10-17",
   },

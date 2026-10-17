@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Protect recorded audit entries from client-role updates, deletes and truncation through an additive database migration; retain canonical appends and trusted retention.
+
 ### Added
 
 - Add `npm run example:followup` to exercise the actual Pipeline follow-up report against fixed fictional opportunities. The developer guide verifies the original seven-day rule and a three-day source adaptation without provider accounts.
@@ -29,6 +31,12 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 - Shared themed fields now govern Clients, Analytics, Campaigns, Integrations and Proposals; compact custom themes retain usable targets. Setup readiness inherits readable theme colors, and contact relationship failures offer retry instead of appearing empty.
 
 ### Fixed
+
+- Pointer-focused actions finish their entrance after native click targeting, preserving homepage anchor activation. Keyboard and form-field focus still expose full-contrast content immediately. The existing docs journey freezes the real entrance at an early frame and keeps its native anchor assertions.
+
+- Ticket confirmation starts in its checking state. Google reads retry transient provider responses without replaying sends, and AI retries account for bounded provider timing hints. The new Google and Xero checks join required core verification.
+
+- The internal Xero connection foundation refuses ambiguous organisation selection, preserves its recorded mapping on reconnect, binds encrypted credentials to the workspace/provider/field, and verifies credential persistence before reporting a successful refresh. It remains planned and does not claim invoice or payment import.
 
 - Public entrance owners settle immediately when a control receives focus, so form feedback keeps full contrast even during an early entrance frame. The workshop browser check holds the actual entrance at an early frame and verifies focused readability without removing its contrast assertions.
 

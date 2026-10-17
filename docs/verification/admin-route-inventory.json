@@ -170,11 +170,13 @@
     "src/app/api/admin/tasks/route.ts": "a8dcf117107438acfd5642593039fa9b95d320ef557faa81359f9e549357b5ce",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
     "src/app/api/admin/tenant/modules/route.ts": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1",
-    "src/app/api/admin/tenant/providers/route.ts": "a744234fa9e797b76b10dc20f26451f9ee7b1b894b614e0836e175464e211b17",
+    "src/app/api/admin/tenant/providers/route.ts": "8f925911d4dc327e5e0f4cdd4d5547bfffcb069d8348d2a5f308c78fd582af58",
     "src/app/api/admin/tenants/route.ts": "803a84e5a2aba7ce93591c13bfc27e2e746bbfd0e615b315fea7328e0f4bea6a",
     "src/app/api/admin/website-grades/export/route.ts": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772",
     "src/app/api/admin/website-grades/route.ts": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98",
     "src/app/api/admin/work/agent-items/route.ts": "7cd6c8e2873c0c8d96a3008470453e6118f3486d8e2a19092f1fd50f1028fce5",
+    "src/app/api/admin/xero/authorize/route.ts": "c485eae5248aa23586105452f27cc00d2147edcfda82cbf7eeed2cc469a89797",
+    "src/app/api/admin/xero/callback/route.ts": "58d2f11ef972c0e3d855a2ee838d17b64ead26611be9a0dc75485e5495ef4e3c",
     "src/components/admin/AICapabilities.tsx": "a1d7ac3979e0e959e630bc2d9d376e58743e969558bc8cc2d7fccbe32236cb08",
     "src/components/admin/AIReadinessPanel.tsx": "4a2f79fb03c96f6c8763118392a4bdb5d7c5ce5ccc9351f8bbed2a31828cc18f",
     "src/components/admin/AIRunHistory.tsx": "31fe825ac6247419d453934884ab140a528be927d0ad92a1e5b63657a8028351",
@@ -310,7 +312,7 @@
     "src/lib/admin/navigation.ts": "d97ec65ce455e087e201a2827c71accc7ef2a5ed43a6495010611b03662f533d",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
     "src/lib/ai/openrouter-models.ts": "005042ecb73505abc050af9b753e47db588f80fcfe3598fd81a04112a7b72784",
-    "src/lib/ai/openrouter.ts": "5da3d5a8f6e0dd66d99e56554aec3f62095df6a59f04a66124de39eb15a89be7",
+    "src/lib/ai/openrouter.ts": "dec47ca536d7aa6965c127cedd66a6f07ccdeb4c80f1b909f2e3c13624a08adf",
     "src/lib/ai/proposal-draft.ts": "29261d2c18f3327e757c9755a16ad2b198e6022387479d24fd7db69084fd251a",
     "src/lib/email/blocks.ts": "694fecaa691755074a7eafa07f2cb8170af100bb2b2c0614e70f5a344eec2e0b",
     "src/lib/email/booking.ts": "b6559df14564fd4d7a208c11c246f711f1f410023301494655a9c7b4856b034a",
@@ -356,7 +358,7 @@
     "src/lib/revenue-os/first-use.ts": "11163b96f7b92f510ac70dced96d1159e975c11fcc3d2f7d51a00d0e17fc6ded",
     "src/lib/revenue-os/form-builder-contract.ts": "a2a3403c5b9aff4d70c55a64cb3b672bb84484f81fcba33d5ab2deee015d280a",
     "src/lib/revenue-os/form-builder.ts": "3f2c181efe1dca678ccd9457e8f76d309657770badb16429cc70a27fc835f862",
-    "src/lib/revenue-os/google.ts": "748bf626071a1c8a500dc2d2ddbe3079393f87a796e0774232be7753a8fab65a",
+    "src/lib/revenue-os/google.ts": "49a55127e6929369f0f22fc78b05e094a74e49f53f09e780b1c57bb0d3307a2c",
     "src/lib/revenue-os/health.ts": "674d80b48a05c5dbe3451b265342ae6d5cdf6d2b3db2e2dd0bc2f2a14fe93f15",
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
     "src/lib/revenue-os/identity.ts": "cb0b7bbff0e3efd674652a9e84000e6f8db56fe2033763541e6068ae4be0a6ed",
@@ -401,8 +403,10 @@
     "src/lib/revenue-os/workspace-architect-generated-operations.ts": "052b53334e27e1c888b42e881d3a42fd9927a495d61e11733408129c528b5a28",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
     "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
-    "src/lib/revenue-os/workspace-configuration.ts": "e31e6ccc812f890bf9f10515332e8c062c0349e7a533edc5626c95330713f5b6",
+    "src/lib/revenue-os/workspace-configuration.ts": "fddf1f9ed1c50ee85d6d92c7ebda12c4fec808f3de3dcad98634199f9012aaef",
     "src/lib/revenue-os/workspace-mcp-oauth.ts": "9073501451d28a00dad04577404eefdc5c85c51a50890bf243eda505528b1753",
+    "src/lib/revenue-os/xero-oauth.ts": "8063440d016d01600b8c21a2478b99a2c6ca2747d41f6fb48db2ad676803fd05",
+    "src/lib/revenue-os/xero.ts": "13a931c198d848a90516d068944e47f89579caf6b6a6ee3b97bbd72dee8d671a",
     "src/lib/site-studio/database-store.ts": "58a4234f1af081f015727ba72c527e6b7ac78e110a868d0dc5b18c895e674842",
     "src/lib/site-studio/delegation.ts": "a0e55a813bb33b3a791c6b84be69e3f3a6c8f6a38ed52372c5dc3e85416fe4e9",
     "src/lib/site-studio/document.ts": "fa1e5a9b58b02ca02dfe7310087274e52d1e3112119f4c995cd405c71a7af8f8",
@@ -1263,9 +1267,23 @@
             "@/lib/tenancy/context"
           ],
           "directTables": ["integration_connections"]
+        },
+        {
+          "path": "src/app/api/admin/xero/authorize/route.ts",
+          "domainImports": ["@/lib/revenue-os/xero", "@/lib/revenue-os/xero-oauth"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/xero/callback/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/audit",
+            "@/lib/revenue-os/xero",
+            "@/lib/revenue-os/xero-oauth"
+          ],
+          "directTables": []
         }
       ],
-      "boundary": "Integration, module and tenant provider services have separate ownership. Registered plugin settings reuse a reviewed schema and reject credentials in public configuration. Radar requires complete public profile fields before enablement; saved model preferences do not enable workers. Radar source briefs enforce them through shared atomic budget reservations and a pinned single-attempt model gateway. Module documentation links are manifest data. A targeted module setup query filters to its existing enable switch. Search and tab state do not enable a module or change provider configuration; the existing module and provider APIs remain the mutation boundary.",
+      "boundary": "Integration, module and tenant provider services have separate ownership. Registered plugin settings reuse a reviewed schema and reject credentials in public configuration. Radar requires complete public profile fields before enablement; saved model preferences do not enable workers. Radar source briefs enforce them through shared atomic budget reservations and a pinned single-attempt model gateway. Module documentation links are manifest data. A targeted module setup query filters to its existing enable switch. Search and tab state do not enable a module or change provider configuration; the existing module and provider APIs remain the mutation boundary. Xero authorization is a human-only OAuth handoff with an intended-workspace precondition and signed tenant-bound callback; encrypted tokens bind the workspace, provider and token field. Initial organization mapping must be unambiguous, reconnect preserves the prior mapping, and refresh success requires a durable revision-fenced save. Accounting sync remains planned. Google retries only replayable reads, never sends or draft creates; AI retries honor bounded provider pacing without changing approval or execution policy.",
       "followUp": null,
       "specialBoundary": null
     },
