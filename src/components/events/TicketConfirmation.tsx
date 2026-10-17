@@ -32,7 +32,10 @@ export function TicketConfirmation({
   orderKey: string;
 }) {
   const [receipt, setReceipt] = useState<Receipt | null>(null);
-  const [busy, setBusy] = useState(false);
+  // The mount effect below runs the first status check immediately, so the
+  // initial render is already busy. Keep the re-check control disabled until
+  // that status is known, instead of briefly offering an enabled button.
+  const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const endpoint = `/api/public/${encodeURIComponent(tenantSlug)}/events/${encodeURIComponent(slug)}`;
