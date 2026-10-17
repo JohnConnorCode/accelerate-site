@@ -64,6 +64,34 @@ does not grant a privileged writer to manufacture one. The existing proposal
 remains available for later owner review after access is restored. This differs
 from an authorized founder's autonomous request, which records terminal `denied`.
 
+## Audit ledger append-only boundary
+
+`20261017050301_audit_log_append_only.sql` makes `public.audit_log` append-only
+for client API roles. `anon`, `authenticated` and any role that inherits them at
+any depth can no longer UPDATE, DELETE or TRUNCATE recorded history; the
+existing tenant membership policy, the restrictive private-owner policy, the
+service-role policy and the canonical INSERT/read paths are unchanged. The guard
+is fail-closed: only `service_role`, a superuser, the table owner, or a role that
+inherits `service_role` may mutate the ledger. Ownership and tenant immutability
+remain with `command_ownership_guard`.
+
+This is an in-tenant integrity boundary, not a cross-tenant fix. Cross-tenant
+isolation is enforced by the tenant membership/context RLS policy (`Tenant member
+access` with `private.request_tenant_id()` and
+`private.has_active_tenant_membership`); the RESTRICTIVE `Private command owner`
+policy adds private-owner protection and does not independently provide tenant
+isolation. This change protects existing rows from untrusted client-role mutation.
+Trusted server/owner mutation, raw INSERT actor/content provenance, and the
+atomicity of a domain write that calls a separate audit insert remain outside
+this change and are tracked separately.
+
+Run `npm run test:audit-log-append-only:postgres` with native PostgreSQL binaries
+on `PATH` (or `POSTGRES_BIN` pointing at a specific install). It reproduces the
+pre-fix gap, applies the migration twice to an owned disposable loopback
+fixture, and proves client-role and multi-hop inherited-role refusals while
+service_role and owner retention still work. It never connects to a hosted
+database.
+
 ## Verification and release
 
 Run `npm run test:platform-command-context` for server authority, adapter,

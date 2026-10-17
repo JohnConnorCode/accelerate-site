@@ -43,6 +43,17 @@ An activity event records that something happened inside the application. For an
 
 Events deliberately omit sensitive content, so a row can identify that a message was sent without containing its full body. Open the authorized business record itself for content you're allowed to read.
 
+## How recorded history is protected
+
+After the audit-ledger migration (`20261017050301_audit_log_append_only.sql`) is applied through the ordered catalog, recorded activity is append-only for signed-in clients. Your own session can read events and append new ones, but it cannot update, delete, or truncate an existing row, and the workspace and private-owner fields stay fixed once written. This is client-role mutation protection, not tamper-evidence: trusted server infrastructure and the database owner keep the governed retention and recovery paths they need, so this boundary does not block a privileged change.
+
+Two limits matter when you rely on Activity as evidence:
+
+- **Insert provenance is not checked by the database.** The application redacts sensitive keys and message bodies before writing, but a raw insert can record an action the application itself did not produce. Always read an event together with the record it points to.
+- **A change and its event are not always one transaction.** Some workflows write the record and its receipt together; a workflow that records its audit in a separate call is not guaranteed to commit both. If a change and its event disagree, keep the record ID and the approximate time and escalate rather than assuming one of them is complete.
+
+If the migration has not been applied to your installation, the protection is not active; ask your technical owner to apply it through the catalog. This boundary is not a substitute for reading the underlying record.
+
 ## What to check
 
 - If you can't find the event you're looking for, double-check the workspace, date range, and filters before assuming it's missing. If it's absent, keep the affected record's ID and approximate time to hand to your technical owner rather than guessing at what happened.
