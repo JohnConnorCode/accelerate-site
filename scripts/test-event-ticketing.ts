@@ -1,7 +1,12 @@
 import { WORKSHOP_EVENT, WORKSHOP_EVENT_ID } from "../src/content/workshops";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { NextRequest } from "next/server";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import { runInNewContext } from "node:vm";
+import ts from "typescript";
+import { NextRequest, NextResponse } from "next/server";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { encryptTenantSecret } from "../src/lib/revenue-os/encryption";
@@ -496,6 +501,63 @@ async function adminProof() {
     f.restore();
   }
 }
+async function adminRouteProof() {
+  const f = createAdminConfigurationFixture();
+  f.mem.rows("tenants")[0]!.config = { modules: { "event-ticketing": true } };
+  let authorization: unknown = f.actor;
+  let writes = 0;
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (raw, init) => {
+    const url = new URL(String(raw));
+    assert.equal(url.origin, "https://branding-fixture.example.test");
+    assert.equal(url.pathname, "/rest/v1/rpc/save_ticket_event");
+    writes++;
+    const args = JSON.parse(String(init?.body));
+    return Response.json({ ...args.p_definition, id: args.p_event_id, revision: 1 });
+  };
+  const require = createRequire(resolve("package.json"));
+  const route: { POST?: (request: NextRequest) => Promise<NextResponse> } = {};
+  runInNewContext(
+    ts.transpileModule(readFileSync("src/app/api/admin/events/route.ts", "utf8"), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    }).outputText,
+    {
+      exports: route,
+      console,
+      require: (name: string) =>
+        name === "@/lib/admin/module-guard"
+          ? { requireAdminForModule: async () => authorization }
+          : require(name.startsWith("@/") ? resolve("src", name.slice(2)) : name),
+    },
+  );
+  const submit = () =>
+    route.POST!(
+      new NextRequest("https://example.test/api/admin/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          operation: "save_event",
+          eventId: WORKSHOP_EVENT_ID,
+          revision: 0,
+          requestId: randomUUID(),
+          event: WORKSHOP_EVENT,
+        }),
+      }),
+    );
+  try {
+    const saved = await submit();
+    assert.equal(saved.status, 200, JSON.stringify(await saved.json()));
+    assert.equal(writes, 1);
+    f.mem.rows("tenant_memberships")[0]!.status = "revoked";
+    assert.equal((await submit()).status, 422);
+    assert.equal(writes, 1, "revoked membership cannot save through the route");
+    authorization = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    assert.equal((await submit()).status, 401);
+    assert.equal(writes, 1, "unauthenticated requests cannot save");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+}
 async function demoProof() {
   for (const pack of Object.values(DEMO_SCENARIOS)) {
     const state = initialState(),
@@ -581,6 +643,7 @@ async function demoProof() {
 async function main() {
   await serviceProof();
   await adminProof();
+  await adminRouteProof();
   await demoProof();
 }
 main()

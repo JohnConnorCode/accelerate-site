@@ -94,7 +94,7 @@
     "src/app/api/admin/emails/history/route.ts": "e32b181321a859caa4f2d56e473ec07b5b9990c34a9f0eaea678dbcaec3d3078",
     "src/app/api/admin/emails/preview/route.ts": "74e83fb3d54ac25280e13ef4282e852f2e597f639b820c834ec69a42c20dbd65",
     "src/app/api/admin/events/export/route.ts": "ce5fdcc27c7cc9ae4eb89f83c53ec641891b3af0e75535e0f96548f4443d172b",
-    "src/app/api/admin/events/route.ts": "e47caf535a8ed689ca23be50e0c24c6a27aa2c27a356f4ce43c9bbfd085e5711",
+    "src/app/api/admin/events/route.ts": "18236536099d8756f354e6af7a2e108d1291c65403109fbf7701bb599b98b986",
     "src/app/api/admin/features/agents/route.ts": "5e3f84e0ebb5ef161da251d2662334ded0dfaf7a63c8d3e0c26784ea09ce0656",
     "src/app/api/admin/features/route.ts": "0e864c3544c47c54146f56d1900e3248e11e9be2c63563bd6715f22bb949d88a",
     "src/app/api/admin/features/views/route.ts": "0f61e13ec15b8df5d1b543366b102ba62bb87d93f1076d9b394b08fddc02a395",
@@ -1079,7 +1079,8 @@
           "path": "src/app/api/admin/events/route.ts",
           "domainImports": [
             "@/lib/revenue-os/event-ticketing",
-            "@/lib/revenue-os/event-ticketing-contract"
+            "@/lib/revenue-os/event-ticketing-contract",
+            "@/lib/tenancy/context"
           ],
           "directTables": []
         },
