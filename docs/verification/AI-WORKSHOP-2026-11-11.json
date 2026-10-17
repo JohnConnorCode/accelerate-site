@@ -370,6 +370,20 @@
       "configuredInVercel": true,
       "existingEncryptedRecordCount": 0,
       "runtimeActivation": "Requires the new deployment; the prior production runtime refused the provider save because its encryption setting was absent."
+    },
+    "browserCorrection": {
+      "candidate": "5195d1de46c77370f885c13117dc684413a85010",
+      "ciRun": 38998595016,
+      "nativeEvidence": "/tmp/accelerate-launch-5195d1de-native/accelerate-home-hero-timing/results.json",
+      "findings": [
+        "Dismissed booking docks retained focus while React scheduled their exit; WebKit could retain the shared visible flag during rapid scroll reversal.",
+        "The moving sculpture grip could leave the pointer and reset steering on a narrow desktop."
+      ],
+      "corrections": [
+        "One native visibility and focus owner serves both public booking docks and Command Center utility navigation before React exit work.",
+        "The sculpture moves inside a stationary hit area; pointer, drag, keyboard and reduced-motion controls retain their existing assertions."
+      ],
+      "status": "pending exact-head browser verification"
     }
   }
 }

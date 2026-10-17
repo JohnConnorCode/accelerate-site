@@ -6579,8 +6579,9 @@ body.modal-open [data-dock] {
   z-index: 1;
   width: 42%;
   height: 42%;
-  left: calc(var(--core-x, 50%) - 21%);
-  top: calc(var(--core-y, 50%) - 21%);
+  /* A fixed grip keeps the moving sculpture from leaving the pointer's hit area. */
+  left: 29%;
+  top: 29%;
   border: 0;
   padding: 0;
   border-radius: 32%;

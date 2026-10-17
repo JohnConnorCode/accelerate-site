@@ -41,7 +41,8 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   action and service index enter. The artwork is an SVG automation system built from the existing three-chevron
   identity. Customer inquiries, meetings and invoices connect through the core
   to distinct example actions. One imperative controller owns SVG geometry,
-  signals, pointer steering, drag and keyboard controls. Static server geometry
+  signals, pointer steering, drag and keyboard controls. The grip stays fixed
+  while the sculpture moves so pointer steering keeps a stable hit area. Static server geometry
   remains readable without JavaScript. Drawing pauses offscreen, in hidden tabs,
   behind mobile navigation, for reduced motion and through the shared motion
   control. Coarse pointers receive bounded responses rather than continuous idle
@@ -55,6 +56,9 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   clicks. Keyboard focus immediately exposes the booking action and leaves it
   available after focus moves away. Only a fresh entrance resets this override;
   restoring an already visited history entry keeps the hero readable.
+- Public booking docks and the Command Center utility bar share immediate
+  visibility, inertness and focus withdrawal. The native scroll handler updates
+  these before React starts an animated exit, including rapid scroll reversals.
 - One inline root bootstrap arms every public reveal before first paint when
   JavaScript is available. A hydration watchdog removes that gate if the
   application runtime fails to start.

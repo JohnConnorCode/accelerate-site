@@ -13,3 +13,14 @@ export function isApplicationWorkspace(pathname: string) {
 export function isTicketConfirmationPath(pathname: string) {
   return /^\/(?:t\/[^/]+\/)?events\/[^/]+\/confirmation\/?$/.test(pathname);
 }
+
+/** Withdraw focus and hit testing immediately, before React's animated exit. */
+export function setPublicDockVisibility(visible: boolean) {
+  for (const dock of document.querySelectorAll<HTMLElement>("[data-dock]")) {
+    const focused = document.activeElement;
+    if (!visible && focused instanceof HTMLElement && dock.contains(focused)) focused.blur();
+    dock.inert = !visible;
+  }
+  if (visible) document.body.dataset.mcta = "on";
+  else delete document.body.dataset.mcta;
+}

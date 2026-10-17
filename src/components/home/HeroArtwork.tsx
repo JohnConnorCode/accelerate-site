@@ -145,7 +145,6 @@ export function HeroArtwork() {
     const signals = [...element.querySelectorAll<SVGCircleElement>(".home-system-signal")];
     const pins = [...element.querySelectorAll<SVGCircleElement>(".home-system-pin")];
     const ports = [...element.querySelectorAll<HTMLElement>(".home-system-port")];
-    const handle = get<HTMLButtonElement>(".home-system-handle");
     const base = get<SVGPathElement>(".home-system-base"),
       baseEdge = get<SVGPathElement>(".home-system-base-edge");
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -214,8 +213,6 @@ export function HeroArtwork() {
           inputs[selected].outputs.some((output) => output === i) && (reduced || phase > 0.9),
         );
       });
-      handle.style.setProperty("--core-x", `${shape.center.x / 6}%`);
-      handle.style.setProperty("--core-y", `${(shape.center.y - 72) / 6}%`);
       root.dataset.pose = `${pose.x.toFixed(2)},${pose.y.toFixed(2)}`;
       root.dataset.phase = phase.toFixed(3);
     }

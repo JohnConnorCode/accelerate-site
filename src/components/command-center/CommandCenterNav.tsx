@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { trackConversion } from "@/lib/analytics";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { setPublicDockVisibility } from "@/lib/navigation/public-chrome";
 
 const SECTIONS = [
   { id: "demo", label: "Workspace" },
@@ -37,10 +38,9 @@ export function CommandCenterNav() {
       // This is the page's primary utility navigation, not a promotional
       // dock. Keep it available throughout the long page once the hero has
       // started to clear instead of withdrawing it near the footer.
-      setVisible((current) => {
-        const next = y > 48;
-        return current === next ? current : next;
-      });
+      const next = y > 48;
+      setPublicDockVisibility(next);
+      setVisible((current) => (current === next ? current : next));
     };
     const raf = requestAnimationFrame(onScroll);
     // Hash navigation can settle after the first animation frame without
@@ -54,14 +54,9 @@ export function CommandCenterNav() {
       window.clearTimeout(settleTimer);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      setPublicDockVisibility(false);
     };
   }, []);
-
-  useEffect(() => {
-    if (visible) document.body.setAttribute("data-mcta", "on");
-    else document.body.removeAttribute("data-mcta");
-    return () => document.body.removeAttribute("data-mcta");
-  }, [visible]);
 
   // Scrollspy: a section is "active" once it has crossed the vertical
   // center of the viewport, so the highlighted pill matches what's actually
