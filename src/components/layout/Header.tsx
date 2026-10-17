@@ -41,12 +41,14 @@ export function Header({
   brandName,
   logoSrc,
   showThemeToggle = true,
+  workshopHref,
 }: {
   content?: WebsiteHeader;
   navLinks?: NavLink[];
   brandName?: string;
   logoSrc?: string;
   showThemeToggle?: boolean;
+  workshopHref?: string;
 }) {
   const reducedMotion = useReducedMotion();
   const [scrolled, setScrolled] = useState(false);
@@ -63,6 +65,9 @@ export function Header({
   const headerRef = useRef<HTMLElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
+  const navigation: NavLink[] = workshopHref
+    ? [...navLinks.slice(0, 1), { label: "Workshop", href: workshopHref }, ...navLinks.slice(1)]
+    : navLinks;
   useEffect(() => {
     const frame = requestAnimationFrame(() => setMobileControlsReady(true));
     return () => cancelAnimationFrame(frame);
@@ -153,7 +158,7 @@ export function Header({
 
           {/* Desktop Nav */}
           <nav aria-label="Primary" className="hidden xl:flex items-center gap-5">
-            {navLinks.map((link) =>
+            {navigation.map((link) =>
               link.children ? (
                 <motion.div
                   key={link.label}
@@ -237,6 +242,7 @@ export function Header({
                 <motion.div key={link.href} variants={headerNavItem}>
                   <Link
                     href={link.href}
+                    data-workshop-link={link.href === workshopHref ? true : undefined}
                     aria-current={pathname === link.href ? "page" : undefined}
                     className={cn(
                       "group/nav relative inline-flex min-h-11 items-center text-sm transition-colors rounded-sm",
@@ -333,7 +339,7 @@ export function Header({
           setMobileOpen(false);
           mobileTriggerRef.current?.focus();
         }}
-        navLinks={navLinks}
+        navLinks={navigation}
         content={content}
         brandName={brandName}
         logoSrc={logoSrc}

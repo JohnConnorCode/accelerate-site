@@ -82,8 +82,9 @@ export default function RootLayout({
       </head>
       <body className="noise-overlay min-h-screen flex flex-col">
         <NavigationRuntime>
-          <MotionRuntime />
-          <ThemeProvider>{children}</ThemeProvider>
+          <MotionRuntime>
+            <ThemeProvider>{children}</ThemeProvider>
+          </MotionRuntime>
         </NavigationRuntime>
       </body>
     </html>

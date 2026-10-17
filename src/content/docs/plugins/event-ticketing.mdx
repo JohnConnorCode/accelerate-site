@@ -1,7 +1,7 @@
 ---
 title: Events and tickets
 description: Publish a paid workshop, control its ticket capacity, and follow payments and buyer confirmations.
-updated: "2026-10-16"
+updated: "2026-10-17"
 ---
 
 Events and tickets gives a workshop one public page, a secure Stripe checkout,
@@ -60,9 +60,18 @@ Orders also retain the event details agreed at purchase. If you change the date
 or venue, notify existing buyers separately using the order list or CSV export.
 This version does not send automatic event-change announcements.
 
-The bundled Accelerate homepage promotes its published, upcoming workshop. A
-custom Site Studio homepage keeps its saved composition; add the public workshop
-link through its existing editor when you want promotion there.
+The bundled Accelerate homepage shows a glass announcement for its published,
+upcoming workshop, with a countdown, current ticket price, available places and
+a ticket link. Its date and details come from Events. Saving changes updates the
+announcement for new page visits; you do not need to edit Stripe prices. The
+announcement disappears when the workshop starts or sales are paused or closed.
+Visitors can dismiss it for their browser tab's session. Changing the start time
+makes the updated announcement available again.
+
+**Workshop** in the desktop and mobile menus uses the event's saved public link,
+including changes to its page slug. A custom Site Studio
+homepage keeps its saved composition; add the public workshop link through its
+existing editor when you want promotion there.
 
 ## Capacity and purchase confirmation
 

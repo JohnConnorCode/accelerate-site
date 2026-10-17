@@ -170,7 +170,7 @@ for (const run of [
     : null;
   if (run.name.startsWith("mobile")) {
     await page.evaluate(() => {
-      window.__adminIntentReceipt = { startedAt: null, acknowledgedAt: null };
+      window.__adminIntentReceipt = { startedAt: null, acknowledgedAt: null, pendingLabel: "" };
       const dock = document.querySelector(".admin-mobile-dock");
       dock?.addEventListener(
         "pointerdown",
@@ -180,8 +180,13 @@ for (const run of [
         { capture: true, once: true },
       );
       const observer = new MutationObserver(() => {
-        if (document.querySelector('.admin-mobile-dock-item[data-pending="true"]')) {
+        const pendingItem = document.querySelector('.admin-mobile-dock-item[data-pending="true"]');
+        if (pendingItem) {
           window.__adminIntentReceipt.acknowledgedAt = performance.now();
+          // Capture the acknowledged destination here. A fast cached route can
+          // commit and clear the pending state before a later sample, so a
+          // post-hoc query would race the navigation instead of the intent.
+          window.__adminIntentReceipt.pendingLabel = pendingItem.textContent || "";
           observer.disconnect();
         }
       });
@@ -193,22 +198,25 @@ for (const run of [
   if (run.name.startsWith("mobile")) {
     const intentAcknowledgement = await page.evaluate(() => {
       const receipt = window.__adminIntentReceipt;
-      return receipt?.acknowledgedAt && receipt?.startedAt
-        ? receipt.acknowledgedAt - receipt.startedAt
-        : null;
+      return {
+        elapsed:
+          receipt?.acknowledgedAt && receipt?.startedAt
+            ? receipt.acknowledgedAt - receipt.startedAt
+            : null,
+        pendingLabel: receipt?.pendingLabel ?? "",
+      };
     });
-    const pendingLabel = await page
-      .locator('.admin-mobile-dock-item[data-pending="true"]')
-      .textContent()
-      .catch(() => "");
-    if (!pendingLabel?.includes("Contacts"))
+    if (!intentAcknowledgement.pendingLabel.includes("Contacts"))
       failures.push(
         `${run.name}: destination intent was not acknowledged before the route committed`,
       );
     const acknowledgementBudget = run.cpuRate ? 180 : 100;
-    if (intentAcknowledgement === null || intentAcknowledgement > acknowledgementBudget)
+    if (
+      intentAcknowledgement.elapsed === null ||
+      intentAcknowledgement.elapsed > acknowledgementBudget
+    )
       failures.push(
-        `${run.name}: destination intent acknowledgement took ${intentAcknowledgement ?? "no receipt"}ms (budget ${acknowledgementBudget}ms)`,
+        `${run.name}: destination intent acknowledgement took ${intentAcknowledgement.elapsed ?? "no receipt"}ms (budget ${acknowledgementBudget}ms)`,
       );
   }
   const checkpoints = [48, 120, 220, 380];
