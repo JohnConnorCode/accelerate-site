@@ -44,7 +44,8 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-  if (!auth.user.email)
+  const actorEmail = auth.user.email;
+  if (!actorEmail)
     return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
   return runWithTenantRequestContext(auth, async () => {
     try {
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
           requestKey: z.uuid().parse(requestKey),
           command: { operation: "create", id: z.uuid().parse(id), values },
         },
-        auth.user.email,
+        actorEmail,
       );
       return NextResponse.json({ receipt }, { status: 201 });
     } catch (error) {
@@ -69,7 +70,8 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-  if (!auth.user.email)
+  const actorEmail = auth.user.email;
+  if (!actorEmail)
     return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
   return runWithTenantRequestContext(auth, async () => {
     try {
@@ -92,7 +94,7 @@ export async function PATCH(request: NextRequest) {
             requestKey: input.requestKey,
             command: { operation: "reorder", updates: input.reorder },
           },
-          auth.user.email,
+          actorEmail,
           input.expected,
         );
         return NextResponse.json({ success: true, affected: receipt.count, receipt });
@@ -102,7 +104,7 @@ export async function PATCH(request: NextRequest) {
         auth.database,
         z.uuid().parse(id),
         changes,
-        auth.user.email,
+        actorEmail,
         z.string().min(1).parse(expectedRevision),
       );
       return NextResponse.json({ item });
@@ -115,7 +117,8 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
-  if (!auth.user.email)
+  const actorEmail = auth.user.email;
+  if (!actorEmail)
     return NextResponse.json({ error: "Administrator email is required" }, { status: 403 });
   return runWithTenantRequestContext(auth, async () => {
     try {
@@ -128,7 +131,7 @@ export async function DELETE(request: NextRequest) {
           requestKey: z.uuid().parse(params.get("requestKey")),
           command: { operation: "delete", id },
         },
-        auth.user.email,
+        actorEmail,
         [{ id, revision }],
       );
       return NextResponse.json({ success: true, receipt });

@@ -1887,10 +1887,11 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/content-calendar",
+        "@/lib/tenancy/context",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "5a1103a276c845a3fd945304f11b90e3bc9d0acc857944fd0273cb25e5e14fef"
+      "sourceSha256": "f67985f2ee62bfe84680625f40a7b99c85644662b41a21a0fc255636d8104755"
     },
     {
       "source": "src/app/api/admin/corrections/detect/route.ts",
@@ -1988,9 +1989,10 @@
         "@/lib/http/bounded-json",
         "@/lib/revenue-os/event-ticketing",
         "@/lib/revenue-os/event-ticketing-contract",
+        "@/lib/tenancy/context",
         "next/server"
       ],
-      "sourceSha256": "e47caf535a8ed689ca23be50e0c24c6a27aa2c27a356f4ce43c9bbfd085e5711"
+      "sourceSha256": "18236536099d8756f354e6af7a2e108d1291c65403109fbf7701bb599b98b986"
     },
     {
       "source": "src/app/api/admin/features/agents/route.ts",
