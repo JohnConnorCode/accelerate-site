@@ -19,8 +19,8 @@ export function setPublicDockVisibility(visible: boolean) {
   for (const dock of document.querySelectorAll<HTMLElement>("[data-dock]")) {
     const focused = document.activeElement;
     if (!visible && focused instanceof HTMLElement && dock.contains(focused)) focused.blur();
-    dock.inert = !visible;
+    if (dock.inert !== !visible) dock.inert = !visible;
   }
-  if (visible) document.body.dataset.mcta = "on";
-  else delete document.body.dataset.mcta;
+  if (visible && document.body.dataset.mcta !== "on") document.body.dataset.mcta = "on";
+  else if (!visible && document.body.dataset.mcta !== undefined) delete document.body.dataset.mcta;
 }
