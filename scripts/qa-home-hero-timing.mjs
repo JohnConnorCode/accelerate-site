@@ -34,10 +34,8 @@ const baseUrl = (hosted || process.env.PLAYWRIGHT_BASE_URL || "http://localhost:
 const output = process.env.HERO_QA_OUTPUT || "/tmp/accelerate-home-hero-timing";
 await mkdir(output, { recursive: true });
 // Reuse the existing native Chromium/WebKit CI lane for rendered interaction QA.
-const browser = await chromium.launch({
-  headless: true,
-  args: process.platform === "linux" ? ["--use-gl=angle", "--use-angle=swiftshader"] : [],
-});
+// SVG uses the native renderer; the former WebGL scene needed a forced GL driver.
+const browser = await chromium.launch({ headless: true });
 const failures = [];
 const results = [];
 const entranceFrames = [];

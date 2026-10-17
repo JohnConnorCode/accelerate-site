@@ -36,7 +36,6 @@ for (const [engine, launcher] of Object.entries(engines)) {
     ...(engine === "chromium"
       ? {
           ignoreDefaultArgs: ["--disable-back-forward-cache"],
-          args: process.platform === "linux" ? ["--use-gl=angle", "--use-angle=swiftshader"] : [],
         }
       : {}),
   });

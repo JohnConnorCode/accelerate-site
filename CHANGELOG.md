@@ -30,6 +30,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Native homepage verification uses Chromium's normal SVG renderer instead of the former WebGL scene's forced software GL driver, which stalled screenshot capture. All motion, pixel, hit-testing and frame-time assertions remain unchanged.
+
 - Wait for Today's refreshed native order in deadline browser acceptance before comparing its complete sequence and count. Existing source IDs are not a freshness signal.
 
 - Withdraw public booking docks and Command Center utility navigation when Safari updates the scroll position before delivering its scroll event. A visible-only position check preserves focus and hit testing without running while the dock or browser tab is hidden.
