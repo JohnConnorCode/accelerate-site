@@ -11,6 +11,7 @@ export const WORKSPACE_PROVIDERS = [
   "hubspot",
   "stripe",
   "postiz",
+  "xero",
 ] as const;
 export const WORKSPACE_SETTING_KEYS = [
   "RESEND_FROM_EMAIL",

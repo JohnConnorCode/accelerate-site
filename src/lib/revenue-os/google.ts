@@ -88,20 +88,66 @@ class GoogleApiError extends Error {
   }
 }
 
-async function googleFetch<T>(url: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(url, init);
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok)
-    throw new GoogleApiError(
-      (payload as { error_description?: string; error?: { message?: string } | string })
-        .error_description ||
-        (typeof (payload as { error?: unknown }).error === "string"
-          ? (payload as { error: string }).error
-          : (payload as { error?: { message?: string } }).error?.message) ||
-        `Google request failed (${response.status})`,
-      response.status,
-    );
-  return payload as T;
+/** Provider conditions on a replayable Google request worth another attempt. */
+const GOOGLE_REPLAYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+const GOOGLE_FETCH_ATTEMPTS = 3;
+const GOOGLE_MAX_RETRY_AFTER_MS = 10_000;
+
+/**
+ * Only GET and HEAD may be replayed. A Gmail send or draft create is a POST
+ * whose effect is not safe to duplicate on a transport retry, so those keep
+ * the single-attempt behaviour.
+ */
+function isReplayableGoogleRequest(init: RequestInit): boolean {
+  const method = (init.method ?? "GET").toUpperCase();
+  return method === "GET" || method === "HEAD";
+}
+
+/** `Retry-After` may be delta-seconds or an HTTP date. Bound either. */
+function googleRetryDelayMs(response: Response, attempt: number): number {
+  const header = response.headers.get("retry-after");
+  if (header) {
+    const seconds = /^\d+$/.test(header)
+      ? Number(header)
+      : Math.ceil((Date.parse(header) - Date.now()) / 1000);
+    if (Number.isFinite(seconds) && seconds > 0)
+      return Math.min(seconds * 1000, GOOGLE_MAX_RETRY_AFTER_MS);
+  }
+  // No usable hint: bounded exponential backoff starting at 250ms.
+  return Math.min(250 * 2 ** (attempt - 1), GOOGLE_MAX_RETRY_AFTER_MS);
+}
+
+/**
+ * Exported for the focused transport test. The retry policy only stays safe
+ * alongside proof that replays are bounded and that sends are never replayed.
+ */
+export async function googleFetch<T>(url: string, init: RequestInit = {}): Promise<T> {
+  const attempts = isReplayableGoogleRequest(init) ? GOOGLE_FETCH_ATTEMPTS : 1;
+  for (let attempt = 1; ; attempt += 1) {
+    const response = await fetch(url, init);
+    if (!response.ok && attempt < attempts && GOOGLE_REPLAYABLE_STATUSES.has(response.status)) {
+      // Release the unused body before waiting so the socket is not held open.
+      try {
+        await response.body?.cancel();
+      } catch {
+        /* recovery does not depend on draining the discarded body */
+      }
+      await new Promise((resolve) => setTimeout(resolve, googleRetryDelayMs(response, attempt)));
+      continue;
+    }
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok)
+      throw new GoogleApiError(
+        (payload as { error_description?: string; error?: { message?: string } | string })
+          .error_description ||
+          (typeof (payload as { error?: unknown }).error === "string"
+            ? (payload as { error: string }).error
+            : (payload as { error?: { message?: string } }).error?.message) ||
+          `Google request failed (${response.status})`,
+        response.status,
+      );
+    return payload as T;
+  }
 }
 
 export async function exchangeGoogleCode(code: string) {
