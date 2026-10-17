@@ -103,7 +103,12 @@ export function ChatWidget() {
       until = performance.now() + 500;
       if (!frame) frame = requestAnimationFrame(update);
     };
-    const dock = new MutationObserver(schedule);
+    const dock = new MutationObserver(() => {
+      // Hit testing must follow dock withdrawal even when Safari delays paint.
+      cancelAnimationFrame(frame);
+      until = performance.now() + 500;
+      update(performance.now());
+    });
     dock.observe(document.body, { attributes: true, attributeFilter: ["data-mcta"] });
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);

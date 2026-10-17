@@ -30,6 +30,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Withdraw public booking docks and Command Center utility navigation when Safari updates the scroll position before delivering its scroll event. A visible-only position check preserves focus and hit testing without running while the dock or browser tab is hidden.
+
 - First-release preparation accepts an explicitly empty supported-version list. The CLI still refuses missing option values, empty required inputs, invalid source tags and unreviewed source; a clean-repository regression exercises the actual preparation command.
 
 - Keep exact-change AI reviews at their reading position through pending reads and chat resizes. Automatic following pauses until review ends, preserving the visible consequence and decision controls. Browser acceptance resizes the real viewport and verifies all six fictional businesses on desktop and mobile.

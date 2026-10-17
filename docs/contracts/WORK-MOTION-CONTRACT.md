@@ -59,6 +59,11 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 - Public booking docks and the Command Center utility bar share immediate
   visibility, inertness and focus withdrawal. The native scroll handler updates
   these before React starts an animated exit, including rapid scroll reversals.
+  While a dock is visible, one bounded timer also detects position changes when
+  Safari defers scroll events or paint callbacks. It reads only the scroll offset,
+  updates on a changed position, and stops when hidden, in a background tab or on
+  route unmount. Chat hit testing follows the shared visibility mutation
+  immediately; its visual transition continues on its existing animation clock.
 - One inline root bootstrap arms every public reveal before first paint when
   JavaScript is available. A hydration watchdog removes that gate if the
   application runtime fails to start.

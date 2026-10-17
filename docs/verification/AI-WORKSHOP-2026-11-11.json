@@ -383,7 +383,27 @@
         "One native visibility and focus owner serves both public booking docks and Command Center utility navigation before React exit work.",
         "The sculpture moves inside a stationary hit area; pointer, drag, keyboard and reduced-motion controls retain their existing assertions."
       ],
-      "status": "pending exact-head browser verification"
+      "status": "pending exact-head browser verification",
+      "additionalFinding": "Linux WebKit changed scrollY immediately but deferred native scroll events and paint callbacks during fixed-layer animation. A visible-only timer reads scrollY and invokes the shared update only when position changes. It stops when the dock or document is hidden and is cleaned up on route unmount. Chat hit testing follows the shared visibility mutation immediately.",
+      "focusedRegression": "Navigation runtime regression proves deferred-event withdrawal, one clock, no unchanged-position updates, hidden/background clock shutdown, foreground recovery and complete cleanup. Existing native 50ms/400ms focus and hit-testing assertions remain intact."
+    },
+    "workshopBrowserAcceptance": {
+      "source": "4ac080a28c837336cc0c28e9048f574b9e7922db",
+      "result": "passed",
+      "scenarios": 6,
+      "evidence": "/tmp/accelerate-launch-event-ticketing/results.json",
+      "visualReview": "Public desktop/mobile, admin desktop/mobile and private confirmation screenshots inspected. Browser fixtures establish rendered behavior; actual provider payment, email and publication remain pending."
+    },
+    "providerPreflight": {
+      "stripeAccount": "acct_1SZo5APUTQWMxnFh",
+      "restrictedTestCheckoutPricesCents": [5000, 5700],
+      "inlinePricesAccepted": true,
+      "manualStripePriceChangesRequired": false,
+      "sessionsExpiredUnpaid": true,
+      "resendDomain": "acceleratewith.us",
+      "resendDomainStatus": "verified",
+      "liveChargesPerformed": false,
+      "applicationProviderConnection": "pending new runtime deployment"
     }
   }
 }

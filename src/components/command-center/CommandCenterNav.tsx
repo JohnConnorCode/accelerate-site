@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { trackConversion } from "@/lib/analytics";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { setPublicDockVisibility } from "@/lib/navigation/public-chrome";
+import { observePublicDockScroll, setPublicDockVisibility } from "@/lib/navigation/public-chrome";
 
 const SECTIONS = [
   { id: "demo", label: "Workspace" },
@@ -42,18 +42,14 @@ export function CommandCenterNav() {
       setPublicDockVisibility(next);
       setVisible((current) => (current === next ? current : next));
     };
-    const raf = requestAnimationFrame(onScroll);
+    const scroll = observePublicDockScroll(onScroll);
     // Hash navigation can settle after the first animation frame without
     // dispatching another scroll event. Recheck once so the utility bar does
     // not remain hidden when someone lands directly on a deep section.
-    const settleTimer = window.setTimeout(onScroll, 500);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    const settleTimer = window.setTimeout(scroll.refresh, 500);
     return () => {
-      cancelAnimationFrame(raf);
+      scroll.disconnect();
       window.clearTimeout(settleTimer);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
       setPublicDockVisibility(false);
     };
   }, []);
