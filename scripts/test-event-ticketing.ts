@@ -524,6 +524,7 @@ async function adminRouteProof() {
     {
       exports: route,
       console,
+      Error,
       require: (name: string) =>
         name === "@/lib/admin/module-guard"
           ? { requireAdminForModule: async () => authorization }
