@@ -190,6 +190,7 @@
     "test:gmail-draft-provider": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-gmail-draft-provider.ts",
     "test:gmail-send-receipt": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-gmail-send-receipt.ts",
     "test:google-oauth": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-google-oauth.ts",
+    "test:google-fetch-retry": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-google-fetch-retry.ts",
     "test:google-readiness": "node scripts/test-google-oauth-readiness.mjs",
     "verify:google-readiness": "node scripts/verify-google-oauth-readiness.mjs",
     "test:cold-start:postgres": "node scripts/test-workspace-setup-postgres.mjs",
