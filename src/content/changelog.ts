@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "dashboard-chart-metric-primitives",
+    slug: "dashboard-chart-metric-primitives",
+    title: "Read consistent dashboard values and charts",
+    description:
+      "Revenue and Analytics share themed chart and metric components. Currency values keep their units, unavailable figures say Not available, and comparison deltas require a named period. The active-contract chart keeps its cumulative step shape and existing calculation. Builders can reuse line, area, bar, donut, gauge and sparkline components with explicit chart states.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
     id: "workspace-ai-cost-controls",
     slug: "workspace-ai-cost-controls",
     title: "Control AI budgets and recurring work",

@@ -44,7 +44,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "What do the Revenue figures measure?",
     answer:
-      "Monthly Recurring sums current active client agreements. The start-month chart groups those same contracts in UTC, keeps missing dates visible and ends at that total. Churned Share describes current non-onboarding client records across all recorded dates. Opportunity values, one-time agreement values and accepted proposal monthly values remain separate. If a read is incomplete or fails, use Retry; a failed refresh labels the previous figures. Check provider receipts when you need collected cash, and a dated ledger when you need historical revenue.",
+      "Monthly Recurring sums current active client agreements. The start-month chart groups those same contracts in UTC, keeps missing dates visible and ends at that total. Churned Share describes current non-onboarding client records across all recorded dates. Opportunity values, one-time agreement values and accepted proposal monthly values remain separate. Cards show units, name any comparison period and mark unavailable values explicitly. If a read is incomplete or fails, use Retry; a failed refresh labels the previous figures. Check provider receipts when you need collected cash, and a dated ledger when you need historical revenue.",
   },
   {
     question: "Where do I find invoices and create a new one?",

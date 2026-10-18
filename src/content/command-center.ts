@@ -740,7 +740,7 @@ export const CURRENT_SURFACES: CurrentSurface[] = [
     n: "04",
     group: "day",
     title: "Numbers you can check",
-    body: "Source, owner, campaign, stage, forecast, and data-quality signals sit together. Revenue keeps active client agreements, accepted proposals and opportunity values separate, groups current active contracts by start month, and shows Retry when a complete read is unavailable.",
+    body: "Source, owner, campaign, stage, forecast, and data-quality signals sit together. Revenue keeps active client agreements, accepted proposals and opportunity values separate. Shared themed cards and charts show units and named comparisons, keep unavailable figures visible, and offer Retry when a complete read fails.",
   },
   {
     n: "05",

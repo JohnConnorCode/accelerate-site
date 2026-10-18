@@ -151,9 +151,7 @@ try {
         .filter((row) => row.status === "accepted")
         .reduce((sum, row) => sum + row.total_monthly, 0),
     );
-    await expect(
-      metrics.getByText(`$${expected.toLocaleString()}/mo`, { exact: true }),
-    ).toBeVisible();
+    await expect(metrics.getByText(`$${expected.toLocaleString()}`, { exact: true })).toBeVisible();
     await page.waitForFunction(() =>
       [...document.querySelectorAll(".admin-grid--metrics > div")].every(
         (element) => Number(getComputedStyle(element).opacity) >= 0.99,
@@ -186,7 +184,7 @@ try {
     assert.equal(edit.totalMRR, expected - values.clients[0].monthly_value);
     assert.equal(edit.mrrTimeline.at(-1).mrr, edit.totalMRR);
     await expect(
-      metrics.getByText(`$${edit.totalMRR.toLocaleString()}/mo`, { exact: true }),
+      metrics.getByText(`$${edit.totalMRR.toLocaleString()}`, { exact: true }),
     ).toBeVisible();
     await page.evaluate(() => {
       window.__revenueFault = "error";
@@ -195,7 +193,7 @@ try {
     await expect(alerts).toContainText("Showing previously loaded information");
     await expect(chart).toBeVisible();
     await expect(
-      metrics.getByText(`$${edit.totalMRR.toLocaleString()}/mo`, { exact: true }),
+      metrics.getByText(`$${edit.totalMRR.toLocaleString()}`, { exact: true }),
     ).toBeVisible();
     await page.screenshot({ path: `${output}/${width}-stale-warning.png`, fullPage: true });
     await page.evaluate(() => {
@@ -209,7 +207,8 @@ try {
       window.dispatchEvent(new Event("admin:priority-refresh"));
     });
     await expect(page.getByText("No active client contracts yet", { exact: true })).toHaveCount(2);
-    await expect(chart).toHaveCount(0);
+    await expect(chart).toBeVisible();
+    await expect(page.getByText("No active contracts to display.", { exact: true })).toBeVisible();
     await expect(alerts).toHaveCount(0);
     await page.waitForFunction(() =>
       [...document.querySelectorAll('.admin-content-stack [style*="opacity"]')].every(

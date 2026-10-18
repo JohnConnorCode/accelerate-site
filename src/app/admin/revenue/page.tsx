@@ -12,6 +12,7 @@ import { AdminSurface } from "@/components/admin/AdminSurface";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { MRRChart } from "@/components/admin/MRRChart";
 import { StatCard } from "@/components/admin/StatCard";
+import { formatMoney, formatRate } from "@/lib/admin/format";
 
 interface RevenueData {
   totalMRR: number;
@@ -67,24 +68,23 @@ export default function RevenuePage() {
             <div className="admin-grid admin-grid--metrics">
               <StatCard
                 label="Monthly Recurring"
-                value={data.totalMRR}
-                change={`$${data.totalMRR.toLocaleString()}/mo`}
+                value={formatMoney(data.totalMRR)}
+                note="Monthly value of active contracts"
                 icon={DollarSign}
                 index={0}
               />
               <StatCard label="Active Clients" value={data.activeCount} icon={Users} index={1} />
               <StatCard
                 label="Avg Client Value"
-                value={data.avgClientValue}
-                change={`$${data.avgClientValue.toLocaleString()}/mo`}
+                value={formatMoney(data.avgClientValue)}
+                note="Average monthly value per active client"
                 icon={BarChart3}
                 index={2}
               />
               <StatCard
                 label="Churned Share"
-                value={data.churnRate}
-                change={`${data.churnRate}%`}
-                trend={data.churnRate > 10 ? "down" : "neutral"}
+                value={formatRate(data.churnRate)}
+                note="Share of recorded client records marked churned"
                 icon={TrendingDown}
                 index={3}
               />

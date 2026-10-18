@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { formatMoney } from "@/lib/admin/format";
 import Link from "@/components/admin/AdminLink";
 import {
   ArrowLeft,
@@ -109,14 +110,6 @@ interface RecordModel {
       occurred_at: string;
     }
   >;
-}
-
-function money(value: unknown) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(Number(value) || 0);
 }
 
 function dateTime(value: unknown) {
@@ -468,9 +461,9 @@ export default function OpportunityRecordPage() {
                 },
                 {
                   label: "Estimated value",
-                  value: money(opportunity.estimated_value),
+                  value: formatMoney(opportunity.estimated_value),
                   note: opportunity.won_value
-                    ? `${money(opportunity.won_value)} won`
+                    ? `${formatMoney(opportunity.won_value)} won`
                     : "Current estimate",
                   icon: CircleDollarSign,
                 },
@@ -583,7 +576,7 @@ export default function OpportunityRecordPage() {
                         items: record.proposals,
                         href: "/admin/proposals",
                         line: (item: Item) =>
-                          `${item.status || "draft"} · ${money(Number(item.total_one_time || 0) + Number(item.total_monthly || 0))}`,
+                          `${item.status || "draft"} · ${formatMoney(Number(item.total_one_time || 0) + Number(item.total_monthly || 0))}`,
                       },
                     ].map(({ title, icon: Icon, items, href, line }) => (
                       <div key={title} className="rounded-2xl bg-[var(--admin-surface-subtle)] p-4">

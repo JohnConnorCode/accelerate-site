@@ -12,7 +12,8 @@ import {
   Building2,
   DollarSign,
 } from "lucide-react";
-import { StatCard } from "./StatCard";
+import { StatCard, type StatCardProps } from "./StatCard";
+import { formatMoney } from "@/lib/admin/format";
 
 interface DashboardMetricsProps {
   metrics: {
@@ -41,53 +42,36 @@ interface DashboardMetricsProps {
 }
 
 export function DashboardMetrics({ metrics, emailStats, trends }: DashboardMetricsProps) {
-  const weekTrend: "up" | "down" | "neutral" | undefined = trends
-    ? trends.weekDelta > 0
-      ? "up"
-      : trends.weekDelta < 0
-        ? "down"
-        : "neutral"
-    : undefined;
-  const monthTrend: "up" | "down" | "neutral" | undefined = trends
-    ? trends.monthDelta > 0
-      ? "up"
-      : trends.monthDelta < 0
-        ? "down"
-        : "neutral"
-    : undefined;
-  const weekChange = trends
-    ? `${trends.weekDelta >= 0 ? "+" : ""}${trends.weekDelta} vs last week`
-    : undefined;
-  const monthChange = trends
-    ? `${trends.monthDelta >= 0 ? "+" : ""}${trends.monthDelta} vs last month`
-    : undefined;
-
-  const cards: {
-    label: string;
-    value: number;
-    icon: typeof Users;
-    change?: string;
-    trend?: "up" | "down" | "neutral";
-  }[] = [
+  const cards: StatCardProps[] = [
     { label: "Leads Today", value: metrics.leadsToday, icon: Users },
     {
       label: "Leads This Week",
       value: metrics.leadsWeek,
       icon: TrendingUp,
-      change: weekChange,
-      trend: weekTrend,
+      comparison: trends
+        ? {
+            label: "vs last week",
+            text: `${trends.weekDelta >= 0 ? "+" : ""}${trends.weekDelta}`,
+            direction: trends.weekDelta > 0 ? "up" : trends.weekDelta < 0 ? "down" : "flat",
+          }
+        : undefined,
     },
     {
       label: "Leads This Month",
       value: metrics.leadsMonth,
       icon: Target,
-      change: monthChange,
-      trend: monthTrend,
+      comparison: trends
+        ? {
+            label: "vs last month",
+            text: `${trends.monthDelta >= 0 ? "+" : ""}${trends.monthDelta}`,
+            direction: trends.monthDelta > 0 ? "up" : trends.monthDelta < 0 ? "down" : "flat",
+          }
+        : undefined,
     },
     {
       label: "Plans Generated",
       value: metrics.plansGenerated,
-      change: `${metrics.conversionRate} conversion`,
+      note: `${metrics.conversionRate} conversion`,
       icon: FileText,
     },
   ];
@@ -95,11 +79,11 @@ export function DashboardMetrics({ metrics, emailStats, trends }: DashboardMetri
   if (metrics.activeClients !== undefined) {
     cards.push({ label: "Active Clients", value: metrics.activeClients, icon: Building2 });
   }
-  if (metrics.mrr !== undefined && metrics.mrr > 0) {
+  if (metrics.mrr !== undefined) {
     cards.push({
       label: "MRR",
-      value: metrics.mrr,
-      change: `$${metrics.mrr.toLocaleString()}/mo`,
+      value: formatMoney(metrics.mrr),
+      note: "Monthly value of active contracts",
       icon: DollarSign,
     });
   }
@@ -116,7 +100,7 @@ export function DashboardMetrics({ metrics, emailStats, trends }: DashboardMetri
     cards.push({
       label: "Email Sequences",
       value: emailStats.total,
-      change: `${emailStats.active} active`,
+      note: `${emailStats.active} active`,
       icon: Mail,
     });
   }
@@ -124,15 +108,7 @@ export function DashboardMetrics({ metrics, emailStats, trends }: DashboardMetri
   return (
     <div className="admin-grid admin-grid--metrics">
       {cards.map((card, i) => (
-        <StatCard
-          key={card.label}
-          label={card.label}
-          value={card.value}
-          change={card.change}
-          trend={card.trend}
-          icon={card.icon}
-          index={i}
-        />
+        <StatCard key={card.label} {...card} index={i} />
       ))}
     </div>
   );

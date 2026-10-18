@@ -88,3 +88,23 @@ downgrades are not included. The exact audit is retained with release evidence;
 this release does not claim an advisory-free dependency tree.
 
 The 5e6e402e CI first-run touch check measured a toast while its 0.985 entrance scale was active. The observer now waits for opacity 1 and no transform before measuring, with a five-second deadline. The existing 44px requirement remains unchanged; the final candidate must pass the actual native touch journey.
+
+## Late dashboard handoffs
+
+The release owner also inspected the subsequently submitted chart and metric
+handoffs at `a86568bcaca12b893f1dff35735cd562e6c67d72` and
+`b457a3a33d239d0c0906f28432fb8d65e49c62ee`. Their original workers remain clean
+and retained. Both cards were in review at integration, not accepted or live.
+The combined source reuses one sparkline, resolves theme radius and heading
+semantics, preserves the active-contract chart's step curve and currency axis,
+and keeps provenance links inside the current workspace. Unavailable metrics
+cannot display a comparison or measured trend. Existing saved layouts, metric
+calculations, providers and permissions remain owned by their current services.
+
+Focused rendered-output checks cover missing values, named comparison periods,
+invalid dates, fixed chart state geometry and single-point sparklines. Browser
+acceptance requires the registered appearance matrix at desktop and mobile
+widths, computed text contrast, keyboard chart inspection and console-error
+checks. Source-level token guards alone do not establish visual acceptance.
+The dated Revenue guide and Command Center descriptions cover the changed
+report presentation; source reconciliation never implies production deployment.

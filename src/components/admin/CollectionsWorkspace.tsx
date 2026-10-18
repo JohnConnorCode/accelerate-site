@@ -10,6 +10,7 @@ import AdminLink from "./AdminLink";
 import { DemoBusinessNotice } from "./DemoBusinessNotice";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { formatMoney } from "@/lib/admin/format";
 import {
   collectionSummary,
   type CollectionCaseView,
@@ -17,8 +18,6 @@ import {
 } from "@/lib/revenue-os/collection-contract";
 const button = "admin-button admin-button--secondary";
 const field = "admin-field mt-1";
-const money = (value: number, currency: string) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value / 100);
 type Preview = { digest: string; to: string; subject: string; text: string; html: string };
 const request = <T,>(path: string, method: string, body: unknown) =>
   fetchJson<T>(path, {
@@ -166,7 +165,9 @@ export function CollectionsWorkspace() {
               <p className="text-xs text-[var(--admin-muted)]">Eligible overdue balance</p>
               <p className="mt-2 font-semibold tabular-nums">
                 {Object.entries(summary.eligible)
-                  .map(([currency, value]) => money(value, currency))
+                  .map(([currency, value]) =>
+                    formatMoney(value / 100, { currency, maximumFractionDigits: 2 }),
+                  )
                   .join(" · ") || "No eligible balance"}
               </p>
             </AdminSurface>
@@ -255,10 +256,10 @@ export function CollectionsWorkspace() {
                             ? `Promise ${c.promiseDate}`
                             : c.status}{" "}
                       ·{" "}
-                      {money(
-                        c.invoices.reduce((n, i) => n + i.remaining, 0),
-                        c.currency,
-                      )}
+                      {formatMoney(c.invoices.reduce((n, i) => n + i.remaining, 0) / 100, {
+                        currency: c.currency,
+                        maximumFractionDigits: 2,
+                      })}
                     </span>
                   </button>
                 </li>
@@ -289,7 +290,10 @@ export function CollectionsWorkspace() {
                       <div className="flex flex-wrap justify-between gap-2">
                         <span className="break-all">{i.invoiceId}</span>
                         <strong className="tabular-nums">
-                          {money(i.remaining, current.currency)}
+                          {formatMoney(i.remaining / 100, {
+                            currency: current.currency,
+                            maximumFractionDigits: 2,
+                          })}
                         </strong>
                       </div>
                       <p className="mt-1 text-xs text-[var(--admin-muted)]">
