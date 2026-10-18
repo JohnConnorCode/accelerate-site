@@ -2,8 +2,9 @@
 
 The founder authorized completing recovered Accelerate agent work and making it
 live. One integration owner uses the retained launch checkout. The original
-application checkout and all other workers remain intact. Local heavy checks use
-the shared machine resource gate and run sequentially.
+application checkout and unfinished workers remain intact. Independently retired
+clean historical checkouts remain recoverable from verified refs and archives.
+Local heavy checks use the shared machine resource gate and run sequentially.
 
 ## Source reconciliation
 
@@ -108,3 +109,9 @@ widths, computed text contrast, keyboard chart inspection and console-error
 checks. Source-level token guards alone do not establish visual acceptance.
 The dated Revenue guide and Command Center descriptions cover the changed
 report presentation; source reconciliation never implies production deployment.
+
+The complete design-token check caught the Analytics raw-color count falling
+below its former allowance and a remaining fixed corner utility in chart
+markers. Integration lowers the allowance from ten to nine and uses the existing
+theme control radius for those markers. No guard is waived. Chart capture also
+waits for its normal draw animation to finish before retaining a screenshot.

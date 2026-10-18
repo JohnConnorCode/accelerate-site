@@ -10,6 +10,7 @@
  * Usage: PLAYWRIGHT_BASE_URL=http://localhost:3011 node scripts/qa-admin-charts.mjs
  */
 import { chromium } from "playwright";
+import { expect } from "playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import AxeBuilder from "@axe-core/playwright";
@@ -94,6 +95,7 @@ try {
         const surface = heading.locator("xpath=ancestor::div[contains(@class,'admin-surface')][1]");
         const line = surface.locator(".recharts-line-curve");
         await line.waitFor();
+        await expect(line).not.toHaveAttribute("stroke-dasharray", /.+/);
         const path = await line.getAttribute("d");
         assert.ok(
           path && !/[Cc]/.test(path),

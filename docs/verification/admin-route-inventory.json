@@ -300,7 +300,7 @@
     "src/components/admin/WorkflowLayoutSwitcher.tsx": "5db8e60cfaa98c60310f44f93ee37ff390a3769d2a77454da55d4882810b67b4",
     "src/components/admin/WorkspaceMcpConnections.tsx": "55619da7893bae1ff11e7afb18b303bfa4db8366152f807c0a3ce22ef59b091e",
     "src/components/admin/charts/CartesianCharts.tsx": "3b2c56d24ac462f2941bdd13128a08c3e9c5b0803a65dd5e6f3045992d4529bb",
-    "src/components/admin/charts/ChartChrome.tsx": "14d52d884ba348f704d183eaccd684dee91700d1585c692012e1aded5b087a80",
+    "src/components/admin/charts/ChartChrome.tsx": "a4dc92017435f8dc559a3016d689571e3a3c7d95f0d24a8a8843a3396254268c",
     "src/components/admin/charts/ChartFrame.tsx": "22d992cc291b7c7b7428ae6ac0659e83ad5f50d250072076eba5fb195418e426",
     "src/components/admin/charts/ProportionCharts.tsx": "f567248cf943d437a8cea866b14f810199246554c10d326839a7dea0dd0c8a27",
     "src/components/admin/charts/Sparkline.tsx": "0fbdecc9014845f10d13eaab3c0df6394444e23f3b47361e60defe1ec3235c0d",
