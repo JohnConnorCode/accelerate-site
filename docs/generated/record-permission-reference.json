@@ -379,6 +379,22 @@
       "module": "core-contacts"
     },
     {
+      "tool": "get_architect_blueprints",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "preview_architect_patch",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "propose_architect_patch",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "simulate_architect_blueprint",
+      "module": "core-intelligence"
+    },
+    {
       "tool": "search_knowledge_base",
       "module": "core-intelligence"
     },

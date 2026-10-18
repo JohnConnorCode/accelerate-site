@@ -14,6 +14,9 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Add atomic Blueprint draft versions with optimistic concurrency, replay recovery, approval reset and transactional audit. Registered Architect tools and admin review use the shared writer and verified tenant context.
+- Update the application and test tooling while retaining the prior React hooks lint plugin at 7.0.1, with all existing lint rules enabled. The newer compiler-analysis policy requires its own screen migration.
+
 - Protect recorded audit entries from client-role updates, deletes and truncation through an additive database migration; retain canonical appends and trusted retention.
 - Add Xero to the existing atomic provider-disconnect database command so workspace owners can revoke the new OAuth connection and clear credentials with a durable audit entry.
 

@@ -156,10 +156,15 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
         if (controller.signal.aborted) return;
         if (registration.waiting) setUpdateReady(registration);
         registration.addEventListener("updatefound", () => {
+          if (controller.signal.aborted) return;
           const worker = registration?.installing;
           if (!worker) return;
           worker.addEventListener("statechange", () => {
-            if (worker.state === "installed" && navigator.serviceWorker.controller)
+            if (
+              !controller.signal.aborted &&
+              worker.state === "installed" &&
+              navigator.serviceWorker.controller
+            )
               setUpdateReady(registration);
           });
         });
@@ -518,16 +523,21 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
                         type="button"
                         className="admin-button admin-button--secondary ml-2 mt-2"
                         onClick={() => {
-                          void deleteOfflineDraft(tenantSlug, userId, draft.id).then((deleted) => {
-                            if (deleted)
-                              setDrafts((current) =>
-                                current.filter((item) => item.id !== draft.id),
-                              );
-                            else
-                              setDraftError(
-                                "Could not delete this local draft. Reload drafts and try again.",
-                              );
-                          });
+                          const signal = requestRef.current?.signal;
+                          setDraftError("");
+                          void deleteOfflineDraft(tenantSlug, userId, draft.id, signal).then(
+                            (deleted) => {
+                              if (signal?.aborted) return;
+                              if (deleted)
+                                setDrafts((current) =>
+                                  current.filter((item) => item.id !== draft.id),
+                                );
+                              else
+                                setDraftError(
+                                  "Could not delete this local draft. Reload drafts and try again.",
+                                );
+                            },
+                          );
                         }}
                       >
                         Delete draft

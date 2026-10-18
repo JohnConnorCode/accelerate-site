@@ -169,6 +169,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [blueprintDraftId, setBlueprintDraftId] = useState<string | null>(null);
   const historyGeneration = useRef(0);
+  const reviewGeneration = useRef(0);
   const [messages, setMessages] = useState<AdminAIMessage[]>([]);
   const [sources, setSources] = useState<AdminAISource[]>([]);
   const [connectedContext, setConnectedContext] = useState<
@@ -215,6 +216,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
     setBlueprintDraftId(null);
     abortRef.current?.abort();
     setRunning(false);
+    setLoadingHistory(false);
     setMessages([]);
     setSources([]);
     setConnectedContext([]);
@@ -223,6 +225,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
     setTools([]);
     setProposals([]);
     setReviewedAction(null);
+    setReviewing(false);
     setWorkProgress([]);
     setError("");
     if (!id) {
@@ -341,6 +344,8 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       setReviewing(false);
       setWorkProgress([]);
       setRunning(false);
+      setModel("");
+      setPack("");
       setLoadingHistory(false);
       setError("");
       try {
@@ -449,8 +454,15 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   );
 
   const reviewProposal = useCallback(async (id: string | null) => {
+    const generation = historyGeneration.current;
+    const request = ++reviewGeneration.current;
+    const current = () =>
+      generation === historyGeneration.current && request === reviewGeneration.current;
     setReviewedAction(null);
-    if (!id) return;
+    if (!id) {
+      setReviewing(false);
+      return;
+    }
     setError("");
     setReviewing(true);
     try {
@@ -458,6 +470,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         cache: "no-store",
       });
       const payload = await response.json();
+      if (!current()) return;
       const action = payload.actions?.find((item: ActionRow) => item.id === id);
       if (!response.ok || !action || action.status !== "pending")
         throw new Error(
@@ -466,15 +479,17 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         );
       setReviewedAction(action);
     } catch (issue) {
-      setError(issue instanceof Error ? issue.message : "Could not load the exact proposal");
+      if (current())
+        setError(issue instanceof Error ? issue.message : "Could not load the exact proposal");
     } finally {
-      setReviewing(false);
+      if (current()) setReviewing(false);
     }
   }, []);
   const decideProposal = useCallback(
     async (decision: "approve" | "reject") => {
       if (!reviewedAction || decisionLock.current) return;
       decisionLock.current = true;
+      const generation = historyGeneration.current;
       setReviewing(true);
       setError("");
       try {
@@ -485,6 +500,8 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         });
         const receipt = await response.json();
         if (!response.ok) throw new Error(receipt.error || "The decision could not be completed");
+        window.dispatchEvent(new Event("admin:refresh"));
+        if (generation !== historyGeneration.current) return;
         const result = receipt.result;
         const incomplete =
           result?.complete === false ||
@@ -505,12 +522,12 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         ]);
         setProposals((current) => current.filter((item) => item.id !== reviewedAction.id));
         setReviewedAction(null);
-        window.dispatchEvent(new Event("admin:refresh"));
       } catch (issue) {
-        setError(issue instanceof Error ? issue.message : "Could not apply your decision");
+        if (generation === historyGeneration.current)
+          setError(issue instanceof Error ? issue.message : "Could not apply your decision");
       } finally {
         decisionLock.current = false;
-        setReviewing(false);
+        if (generation === historyGeneration.current) setReviewing(false);
       }
     },
     [reviewedAction],
