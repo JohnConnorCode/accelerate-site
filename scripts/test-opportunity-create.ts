@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
@@ -122,6 +123,14 @@ async function main() {
     const unavailable = await post(input);
     assert.equal(unavailable.status, 503);
     assert.equal((await unavailable.json()).code, "save_unconfirmed");
+    fixture.opportunityWriter = async () => {
+      throw new SyntaxError("controlled response parse failure after a possible write");
+    };
+    assert.equal(
+      (await post(input)).status,
+      503,
+      "unexpected write errors must not reset the intent as invalid input",
+    );
     fixture.opportunityWriter = original;
     assert.equal((await post(input)).status, 201);
     fixture.opportunityAuth = {
@@ -134,7 +143,7 @@ async function main() {
     // Both contenders can read no identity before the winning insert commits.
     // Exercise the resolver's unique-conflict reread using the normal queries.
     const race = new AuthorizedMemorySupabase();
-    const raw = race.client;
+    const raw = race.client as unknown as SupabaseClient;
     const client = {
       ...raw,
       from(table: string) {

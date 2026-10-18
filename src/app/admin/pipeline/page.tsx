@@ -389,6 +389,7 @@ export default function PipelinePage() {
           <button
             type="button"
             onClick={() => setDialog("create")}
+            disabled={!preferenceScope}
             className="admin-button admin-button--primary"
           >
             <Plus className="size-4" /> New opportunity

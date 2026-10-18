@@ -24,6 +24,11 @@ try {
     });
     await page.goto(`${base}/demo/command-center/superdebate/pipeline`);
     await page.getByRole("button", { name: "New opportunity", exact: true }).waitFor();
+    await page.waitForFunction(() =>
+      Array.from(document.querySelectorAll("button")).some(
+        (button) => button.textContent?.includes("New opportunity") && !button.disabled,
+      ),
+    );
     await page.evaluate(() => {
       const original = window.fetch.bind(window);
       window.__opportunityRecovery = { captures: [], rows: {} };

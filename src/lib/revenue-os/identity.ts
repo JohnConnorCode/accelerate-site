@@ -169,12 +169,14 @@ export async function resolveOrCreateIdentity(
         throw new Error(
           existing.error?.message || "Company identity changed; retry the same request",
         );
-      company = existing.data[0];
+      company = existing.data[0]!;
     } else {
       if (error) throw new Error(error.message);
       company = data;
     }
   }
+
+  if (!company) throw new Error("Company identity could not be resolved");
 
   let contact: { id: string; full_name: string; primary_email: string | null } | null = null;
   if (input.sourceRecordType && input.sourceRecordId) {

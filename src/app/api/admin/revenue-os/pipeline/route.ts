@@ -139,30 +139,28 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
+  let input: z.output<typeof opportunityCreateRequestSchema>;
   try {
-    const input = opportunityCreateRequestSchema.parse(await readBoundedJson(request, 16_384));
+    input = opportunityCreateRequestSchema.parse(await readBoundedJson(request, 16_384));
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof z.ZodError
+            ? error.issues[0]?.message || "Invalid opportunity details"
+            : "Enter valid opportunity details within the request size limit.",
+        code: "invalid_input",
+      },
+      { status: error instanceof Error && /size limit/.test(error.message) ? 413 : 400 },
+    );
+  }
+  try {
     const data = await createOpportunity(auth.database, {
       ...input,
       actorEmail: auth.user.email || "founder",
     });
     return NextResponse.json({ opportunity: data }, { status: 201 });
   } catch (error) {
-    if (
-      error instanceof SyntaxError ||
-      (error instanceof Error && /JSON request body|size limit/.test(error.message))
-    )
-      return NextResponse.json(
-        {
-          error: "Enter valid opportunity details within the request size limit.",
-          code: "invalid_input",
-        },
-        { status: error instanceof Error && /size limit/.test(error.message) ? 413 : 400 },
-      );
-    if (error instanceof z.ZodError)
-      return NextResponse.json(
-        { error: error.issues[0]?.message || "Invalid opportunity details", code: "invalid_input" },
-        { status: 400 },
-      );
     const code = error && typeof error === "object" && "code" in error ? error.code : null;
     if (code === "40001")
       return NextResponse.json(
