@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-18T20:20:10.752051+00:00",
+  "title": "First customer workflow: published-source baseline",
+  "card": "first-customer-workflow-baseline",
+  "parent": {
+    "key": "first-value-business-journey",
+    "id": "94148555-0dc2-4e36-840b-e9ed80637ef2",
+    "acceptanceChanged": false,
+    "remaining": "All six parent acceptance requirements retain their current unaccepted state; this child audit does not substitute for the connected journey or human trial.",
+    "boardLink": "https://www.acceleratewith.us/admin/features"
+  },
+  "source": {
+    "repository": "https://github.com/JohnConnorCode/accelerate-site.git",
+    "approvedMainCommit": "4e421e1d16b5b4b806fdcf7bc1355475b04dd3e7",
+    "applicationChanges": false
+  },
+  "summary": "The core workflow has substantive implementation and passing controlled tests. The first demonstrated recovery gap is manual opportunity creation: an audit failure can leave a saved opportunity and retry creates another. The full connected customer journey and an observed new-user trial remain unverified.",
+  "evidenceBoundary": {
+    "demo": "Fictional session-local runtime, not connected application records.",
+    "domainFixtures": "Production service functions backed by AuthorizedMemorySupabase. Tenant-bound queries are exercised but this does not prove native constraints, RLS, PostgREST or Auth.",
+    "nativeIsolatedTenant": "Not executed in this bounded audit. Existing reference runner includes native PostgreSQL checks with explicitly narrower scope.",
+    "hostedJourney": "Not observed. No production records were read or mutated for the journey.",
+    "providerCalls": "No real provider transport or paid inference. Stripe/OpenRouter are stubbed by the focused test.",
+    "humanTrial": "Not conducted. Local test duration is not user setup time."
+  },
+  "matrix": [
+    {
+      "stage": "Customer and opportunity creation",
+      "implemented": "The canonical identity resolver reuses contact/company identities, then createOpportunity inserts a new opportunity. The admin POST authenticates and calls this owner.",
+      "evidence": "test:business-workflows passed real domain-function calls against AuthorizedMemorySupabase. The demo check reviews a seeded import batch; it does not prove a fresh database import.",
+      "finding": "Controlled audit failure leaves one saved opportunity while returning an error; retry saves a second opportunity for the same contact/company.",
+      "status": "happy path covered by memory fixture; recovery gap reproduced",
+      "nativeOrHostedProof": "Not established by this audit.",
+      "sources": [
+        {
+          "path": "src/lib/revenue-os/identity.ts",
+          "line": 115,
+          "meaning": "Canonical person/company identity resolution."
+        },
+        {
+          "path": "src/lib/revenue-os/pipeline.ts",
+          "line": 15,
+          "meaning": "Opportunity insert followed by audit/history/activity."
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/pipeline/route.ts",
+          "line": 135,
+          "meaning": "POST has no stable create request identity; service errors become HTTP 400."
+        },
+        {
+          "path": "src/lib/revenue-os/audit.ts",
+          "line": 128,
+          "meaning": "Audit failure throws."
+        },
+        {
+          "path": "scripts/test-first-value-business-journey.ts",
+          "line": 82,
+          "meaning": "Fictional import-review coverage."
+        }
+      ]
+    },
+    {
+      "stage": "Won opportunity and onboarding",
+      "implemented": "A stage transition is validated and conditionally updates the current stage. Onboarding is a reviewed plugin action with active assignees, current won state and explicit approval; winning a deal alone does not create onboarding tasks.",
+      "evidence": "test:business-workflows passed creation, won transition, task proposal/approval, replay, inactive-assignee and disabled-plugin checks using the in-memory database double.",
+      "status": "domain behavior covered by controlled fixture",
+      "nativeOrHostedProof": "No authenticated fresh-workspace onboarding was observed.",
+      "sources": [
+        {
+          "path": "src/lib/revenue-os/pipeline.ts",
+          "line": 152,
+          "meaning": "Canonical stage transition."
+        },
+        {
+          "path": "src/lib/revenue-os/workflow-tasks.ts",
+          "line": 9,
+          "meaning": "Current source and active-assignee review."
+        },
+        {
+          "path": "src/lib/revenue-os/workflow-tasks.ts",
+          "line": 47,
+          "meaning": "Fresh approval, plugin check, deterministic effect key and per-task receipts."
+        },
+        {
+          "path": "scripts/test-workflow-business-outcomes.ts",
+          "line": 69,
+          "meaning": "AuthorizedMemorySupabase fixture, not native PostgreSQL."
+        }
+      ]
+    },
+    {
+      "stage": "Task visibility and completion",
+      "implemented": "Tasks use the shared task owner. Today loads the operator queue, whose bounded task queries filter by pending/snoozed status, date horizon and source. Completion goes through the shared action executor.",
+      "evidence": "The demo test passed Today/detail/Activity parity across six fictional scenarios. The business-workflow fixture passed domain task completion. Source inspection confirms the production read/write owners, but does not prove their complete browser journey or every task appears on Today immediately.",
+      "status": "demo parity and memory-domain evidence; connected parity unverified",
+      "nativeOrHostedProof": "No same-customer connected Today/detail/Activity/browser proof in this audit.",
+      "sources": [
+        {
+          "path": "src/lib/revenue-os/tasks.ts",
+          "line": 23,
+          "meaning": "Canonical task creation and dedupe handling."
+        },
+        {
+          "path": "src/lib/revenue-os/queue.ts",
+          "line": 12,
+          "meaning": "Date/status-filtered bounded task queue."
+        },
+        {
+          "path": "src/lib/revenue-os/today-snapshot.ts",
+          "line": 41,
+          "meaning": "Tenant-bound Today data and source unavailable states."
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/tasks/route.ts",
+          "line": 5,
+          "meaning": "Task writes use executeTaskWrite."
+        },
+        {
+          "path": "scripts/test-first-value-business-journey.ts",
+          "line": 343,
+          "meaning": "Demo surface-parity checks."
+        }
+      ]
+    },
+    {
+      "stage": "Invoice preparation and approval",
+      "implemented": "The invoice reviewer checks canonical customer identity and current provider account/mode. Draft execution requires the persisted approved action. Sending is a separate proposal and approval tied to the created invoice.",
+      "evidence": "test:stripe-workflow passed with fake Stripe/OpenRouter transport and memory application database. Exact totals, partial-result retry and separate send approval are exercised.",
+      "status": "domain behavior covered by controlled provider and database fixtures",
+      "nativeOrHostedProof": "No live or sandbox Stripe call and no customer delivery occurred in this audit.",
+      "sources": [
+        {
+          "path": "src/lib/revenue-os/stripe-invoicing.ts",
+          "line": 118,
+          "meaning": "Review identity, account, mode and invoice lines."
+        },
+        {
+          "path": "src/lib/revenue-os/stripe-invoicing.ts",
+          "line": 174,
+          "meaning": "Approved draft execution and deterministic provider keys."
+        },
+        {
+          "path": "src/lib/revenue-os/stripe-invoicing.ts",
+          "line": 368,
+          "meaning": "Separate send proposal for an executed complete draft."
+        },
+        {
+          "path": "src/app/api/admin/invoicing/route.ts",
+          "line": 1,
+          "meaning": "Guarded invoice reads and propose-send adapter."
+        },
+        {
+          "path": "scripts/test-stripe-workflow.ts",
+          "line": 42,
+          "meaning": "Memory application database fixture."
+        }
+      ]
+    },
+    {
+      "stage": "Receipts and recovery",
+      "implemented": "Onboarding and invoice actions checkpoint effects and reuse deterministic keys. Invoice test-mode receipts explicitly distinguish provider acceptance from actual delivery. Manual opportunity creation has a different recovery boundary and no per-intent replay identity.",
+      "evidence": "Controlled invoice test recorded one creation, one line write and one send effect despite retries; these are fixture effects. Separate opportunity reproduction recorded saved counts 1 then 2 after audit failure and retry.",
+      "status": "action replay covered in fixtures; opportunity-create retry gap demonstrated",
+      "nativeOrHostedProof": "Concurrent native-database/HTTP replay for manual create remains required by the follow-up.",
+      "sources": [
+        {
+          "path": "src/lib/revenue-os/workflow-tasks.ts",
+          "line": 47,
+          "meaning": "Approved batch replay handling."
+        },
+        {
+          "path": "src/lib/revenue-os/stripe-invoicing.ts",
+          "line": 174,
+          "meaning": "Invoice effect receipts and recovery."
+        },
+        {
+          "path": "src/lib/revenue-os/pipeline.ts",
+          "line": 15,
+          "meaning": "Manual create currently lacks the same replay boundary."
+        }
+      ]
+    },
+    {
+      "stage": "First use by a new user",
+      "implemented": "A deterministic demo trial runs six fictional scenario packs.",
+      "evidence": "test:first-value-business-journey passed; reported total 48.923247 milliseconds is local fixture execution. It cannot measure human setup, confusion, authenticated browser operation or production latency.",
+      "status": "fictional demo verified; observed new-user trial unverified",
+      "nativeOrHostedProof": "An observed new-user trial and controlled connected workspace journey are still needed.",
+      "sources": [
+        {
+          "path": "scripts/test-first-value-business-journey.ts",
+          "line": 554,
+          "meaning": "Local fixture timing boundary and founder-led trial requirement."
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "command": "npm run test:first-value-business-journey",
+      "status": "passed",
+      "scope": "Six fictional scenario packs; demo surface parity and recovery; local fixture timing.",
+      "artifact": "first-use.json"
+    },
+    {
+      "command": "npm run test:business-workflows",
+      "status": "passed",
+      "scope": "Production identity/pipeline/workflow/task functions with memory database fixture; no native tenant/HTTP proof.",
+      "artifact": "onboarding.json"
+    },
+    {
+      "command": "npm run test:stripe-workflow",
+      "status": "passed",
+      "scope": "Production invoice functions with memory database and deterministic transport; no real send.",
+      "artifact": "invoice.json"
+    },
+    {
+      "command": "NODE_OPTIONS=--conditions=react-server npx tsx <parent>/.agent-archives/first-customer-workflow-20261018/creation-retry-repro.ts",
+      "status": "passed",
+      "scope": "Reproduces current defect; does not assert the workflow is fixed.",
+      "artifact": "creation-retry-result.json"
+    }
+  ],
+  "testExecution": "All three npm test suites ran through agent:run and resources:run in the claimed worker using its own exact-lock npm ci install. The small failure reproduction ran directly with the same worker tsx.",
+  "referenceChecksReviewed": [
+    {
+      "path": "scripts/test-reference-business-journeys.mjs",
+      "status": "source inspected; full runner not executed in this audit",
+      "meaning": "Runs 13 separate checks, including native PostgreSQL work completion; collects and cross-checks selected artifacts. Its limits explicitly exclude hosted provider proof, Auth delivery, PostgREST and human timings. It is not one freshly authenticated customer journey end to end."
+    },
+    {
+      "path": "scripts/qa-business-workflows.mjs",
+      "status": "source inspected; browser not run in this audit",
+      "meaning": "Routes **/api/admin/** to controlled responses. This proves UI behavior against stubs when run; it is not proof of connected persistence."
+    },
+    {
+      "path": "scripts/test-stripe-sandbox.ts",
+      "status": "source inspected; opt-in provider test not run",
+      "meaning": "Uses real Stripe test transport when explicitly configured, with an in-memory application database. Neither hosted database nor real customer delivery is implied."
+    }
+  ],
+  "releaseComparison": {
+    "branchObserved": "integrate/all-agent-release-20261018",
+    "headObserved": "6d9b313a88ca986c60ec47d8c51530831b030b54",
+    "observedAt": "2026-10-18T20:18Z",
+    "pipelineComparison": "Read-only git diff from approved main for pipeline.ts and its POST route was empty. The reproduced manual-create boundary is unchanged in that observed release checkout.",
+    "receipt": ".agent-archives/all-agent-release-20261018/execution-receipt.json",
+    "receiptCandidate": "6672f25e8a50f1850d21728c8e0c6a5ce37b53be",
+    "receiptRecordedAt": "2026-10-18T19:23:52.769540+00:00",
+    "limits": "Receipt candidate differs from the later checkout head; verification from the receipt is not attributed to the later head. The release owner retains release verification, migration and deployment work. No release or deployment acceptance is inferred here."
+  },
+  "firstDemonstratedGap": {
+    "key": "manual-opportunity-create-retry",
+    "severity": "Recoverability defect on the first manual write; no observed hosted incident or claim that every create fails.",
+    "reproduction": {
+      "recordedAt": "2026-10-18T20:17:46.257Z",
+      "environment": "in-memory database double; production domain function",
+      "networkCalls": 0,
+      "injectedFailure": "audit_log insert",
+      "firstError": "Error: Audit write failed: Controlled audit failure",
+      "savedAfterFailedRequest": 1,
+      "savedAfterRetry": 2,
+      "retryId": "aaaaaaaa-aaaa-4aaa-8aaa-000000000006",
+      "sameContact": true,
+      "sameCompany": true,
+      "limitation": "No native database, HTTP route or hosted customer observation. Reproduction verifies service orchestration under the controlled adapter."
+    },
+    "steps": [
+      "Use a fictional tenant and production createOpportunity with the memory adapter.",
+      "Inject audit_log insert failure and submit one manual opportunity.",
+      "Observe thrown audit error and one already-saved opportunity.",
+      "Recover audit writes and repeat the same submission.",
+      "Observe two opportunities with one canonical contact/company pair."
+    ],
+    "nextAction": "Add stable per-intent create replay handling in the existing owner and adapters, with durable/reconcilable audit. Prove lost response, post-insert audit failure, concurrent retries, changed payload, tenant isolation and a deliberate second intent using native/API checks.",
+    "scope": "One bounded follow-up card, high priority / Next. No application fix is included in this research delivery."
+  },
+  "artifacts": [
+    {
+      "path": ".agent-archives/first-customer-workflow-20261018/first-use.json",
+      "sha256": "31618e9d28521f992a7c91b6097ad7544a1cdc75696d39aeffe8096394523da3"
+    },
+    {
+      "path": ".agent-archives/first-customer-workflow-20261018/onboarding.json",
+      "sha256": "52fdc7c27c9cd5e0c40147f07785ff12ff6733c9db061defc1138ac0112038df"
+    },
+    {
+      "path": ".agent-archives/first-customer-workflow-20261018/invoice.json",
+      "sha256": "5457bda595883fc90d5c0a993c79c6ff72a5a41bb7858792cc88514dc7de68a4"
+    },
+    {
+      "path": ".agent-archives/first-customer-workflow-20261018/creation-retry-repro.ts",
+      "sha256": "b85167501e5de084634537deb283e999be2b09e8a1f9517460a060cb51b299cd"
+    },
+    {
+      "path": ".agent-archives/first-customer-workflow-20261018/creation-retry-result.json",
+      "sha256": "e34d72227af00d25e1443e49159c7892d065318ea15beac2b23b7704a0e8840b"
+    }
+  ],
+  "verificationLimits": [
+    "No browser journey was run. Source and domain-test success are not complete browser acceptance.",
+    "No complete native/hosted isolated-tenant customer-to-invoice journey was established.",
+    "No new-user observation, paid model call, provider send, purchase, migration or deployment occurred."
+  ]
+}
