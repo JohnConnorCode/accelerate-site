@@ -2,24 +2,29 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, CalendarDays, X } from "lucide-react";
+import { ArrowUpRight, MapPin, X } from "lucide-react";
 import { setPublicDockVisibility } from "@/lib/navigation/public-chrome";
 import styles from "./workshop-promotion.module.css";
 
 export function WorkshopBanner({
-  eventId,
   startsAt,
+  date,
   headline,
   schedule,
+  venue,
+  presenters,
   href,
   price,
   available,
 }: {
-  eventId: string;
   startsAt: string;
+  date: { month: string; day: string; label: string };
   headline: string;
   schedule: string;
+  venue: string;
+  presenters: { name: string; image: string }[];
   href: string;
   price: string;
   available?: number;
@@ -28,20 +33,11 @@ export function WorkshopBanner({
   const [now, setNow] = useState<number | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const banner = useRef<HTMLElement>(null);
-  const storageKey = `accelerate:workshop-announcement:${eventId}`;
   const start = Date.parse(startsAt);
   const visible = now !== null && now < start && !dismissed;
 
   useEffect(() => {
     if (dismissed) return;
-    let saved: string | null = null;
-    try {
-      saved = sessionStorage.getItem(storageKey);
-    } catch {
-      // Storage restrictions leave the announcement available for this visit.
-      saved = null;
-    }
-    if (saved === startsAt) return;
     let interval = 0;
     const tick = () => {
       const current = Date.now();
@@ -60,13 +56,13 @@ export function WorkshopBanner({
     const entrance = window.setTimeout(() => {
       document.addEventListener("visibilitychange", updateClock);
       updateClock();
-    }, 2400);
+    }, 1800);
     return () => {
       window.clearTimeout(entrance);
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", updateClock);
     };
-  }, [dismissed, start, startsAt, storageKey]);
+  }, [dismissed, start]);
 
   useLayoutEffect(() => {
     if (!visible) return;
@@ -92,12 +88,6 @@ export function WorkshopBanner({
     ).find((element) => element.getClientRects().length > 0);
     returnTo?.focus({ preventScroll: true });
     setDismissed(true);
-    try {
-      sessionStorage.setItem(storageKey, startsAt);
-    } catch {
-      // The current visit stays dismissed even when tab storage is unavailable.
-      return;
-    }
   };
   const seconds = now === null ? 0 : Math.max(0, Math.ceil((start - now) / 1000));
   const countdown = [
@@ -108,17 +98,17 @@ export function WorkshopBanner({
   ] as const;
 
   return (
-    <AnimatePresence initial={false}>
+    <AnimatePresence>
       {visible && (
         <motion.aside
           ref={banner}
           aria-label="Upcoming workshop"
           data-workshop-announcement
           className={styles.banner}
-          initial={reducedMotion ? false : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
-          transition={{ duration: reducedMotion ? 0 : 0.28, ease: [0.2, 0, 0, 1] }}
+          initial={reducedMotion ? false : { opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: reducedMotion ? 0 : 12, scale: reducedMotion ? 1 : 0.98 }}
+          transition={{ duration: reducedMotion ? 0 : 0.4, ease: [0.16, 1, 0.3, 1] }}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.stopPropagation();
@@ -126,41 +116,67 @@ export function WorkshopBanner({
             }
           }}
         >
+          <time className={styles.date} dateTime={startsAt} aria-label={date.label}>
+            <span>{date.month}</span>
+            <strong>{date.day}</strong>
+            <span>In person</span>
+          </time>
           <div className={styles.copy}>
-            <p className={styles.eyebrow}>
-              <CalendarDays size={13} aria-hidden="true" /> In-person workshop
-            </p>
+            <p className={styles.eyebrow}>Accelerate presents · Business AI workshop</p>
             <h2>{headline}</h2>
-            <p className={styles.schedule}>{schedule}</p>
-          </div>
-          <div
-            className={styles.countdown}
-            role="timer"
-            aria-label="Time until the workshop"
-            aria-live="off"
-          >
-            <p className={styles.clockLabel}>Starts in</p>
-            <dl>
-              {countdown.map(([label, value]) => (
-                <div key={label}>
-                  <dt>{label}</dt>
-                  <dd>{String(value).padStart(2, "0")}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-          <div className={styles.action}>
-            <Link href={available === 0 ? href : `${href}#tickets`} className={styles.cta}>
-              {available === 0 ? "View workshop" : `Get tickets · ${price}`}
-              <ArrowUpRight size={16} aria-hidden="true" />
-            </Link>
-            <p>
-              {available === undefined
-                ? "Secure checkout"
-                : available === 0
-                  ? "Sold out"
-                  : `${available} ${available === 1 ? "seat" : "seats"} available`}
+            <p className={styles.schedule}>
+              <MapPin size={13} aria-hidden="true" /> {venue}
+              <span aria-hidden="true">·</span> {schedule}
             </p>
+            {presenters.length > 0 && (
+              <div className={styles.hosts}>
+                <div className={styles.avatars} aria-hidden="true">
+                  {presenters.map((presenter) => (
+                    <Image
+                      key={presenter.name}
+                      src={presenter.image}
+                      alt=""
+                      width={40}
+                      height={40}
+                    />
+                  ))}
+                </div>
+                <p>With {presenters.map((presenter) => presenter.name).join(" + ")}</p>
+              </div>
+            )}
+          </div>
+          <div className={styles.booking}>
+            <div
+              className={styles.countdown}
+              role="timer"
+              aria-label="Time until the workshop"
+              aria-live="off"
+            >
+              <p className={styles.clockLabel}>Workshop begins in</p>
+              <dl>
+                {countdown.map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{String(value).padStart(2, "0")}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <div className={styles.action}>
+              <Link href={available === 0 ? href : `${href}#tickets`} className={styles.cta}>
+                {available === 0 ? "View workshop" : `Get tickets · ${price}`}
+                <span className={styles.ctaArrow} aria-hidden="true">
+                  <ArrowUpRight size={17} />
+                </span>
+              </Link>
+              <p>
+                {available === undefined
+                  ? "Secure checkout"
+                  : available === 0
+                    ? "Sold out"
+                    : `${available} ${available === 1 ? "seat" : "seats"} available`}
+              </p>
+            </div>
           </div>
           <button
             type="button"

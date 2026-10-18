@@ -108,14 +108,17 @@ export function EventCheckout({
   }
   return (
     <aside className={styles.checkout} id="tickets" aria-label="Workshop tickets">
-      <p className={styles.eyebrow}>Your seat at the workshop</p>
-      <div className={styles.price}>
-        {ticketMoney(event.price_cents)}
-        <span>per person</span>
+      <div className={styles.checkoutHeader}>
+        <p className={styles.eyebrow}>Your seat at the workshop</p>
+        <div className={styles.price}>
+          {ticketMoney(event.price_cents)}
+          <span>per person</span>
+        </div>
+        <p>
+          {event.capacity} places for practical questions, live demonstrations, and focused
+          planning.
+        </p>
       </div>
-      <p>
-        {event.capacity} places for practical questions, live demonstrations, and focused planning.
-      </p>
       {open ? (
         <form onSubmit={purchase} className={styles.form}>
           <label>

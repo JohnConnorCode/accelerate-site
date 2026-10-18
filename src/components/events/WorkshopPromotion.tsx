@@ -1,4 +1,5 @@
 import { WORKSHOP_EVENT_ID } from "@/content/workshops";
+import { getTeamMember } from "@/content/team";
 import Link from "next/link";
 import { ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
 import { loadPublicTicketEvent } from "@/lib/revenue-os/event-ticketing";
@@ -14,18 +15,28 @@ export async function WorkshopPromotion() {
   if (!event) return null;
   const href = eventPath(ACCELERATE_TENANT_SLUG, event.slug);
   const timing = eventTiming(event);
-  const date = new Intl.DateTimeFormat("en-US", {
+  const dateFormat = {
     timeZone: event.timezone,
-    month: "short",
-    day: "numeric",
-  }).format(new Date(event.starts_at));
+  };
+  const starts = new Date(event.starts_at);
+  const date = {
+    month: new Intl.DateTimeFormat("en-US", { ...dateFormat, month: "short" }).format(starts),
+    day: new Intl.DateTimeFormat("en-US", { ...dateFormat, day: "numeric" }).format(starts),
+    label: timing.date,
+  };
+  const presenters = ["john-connor", "matthew-rolnick"]
+    .map(getTeamMember)
+    .filter((member) => member !== null)
+    .map(({ name, image }) => ({ name, image }));
   return (
     <>
       <WorkshopBanner
-        eventId={event.id}
         startsAt={event.starts_at}
+        date={date}
         headline={event.headline}
-        schedule={`${date} · ${timing.time} · ${event.venue_name}`}
+        schedule={timing.time}
+        venue={event.venue_name}
+        presenters={presenters}
         href={href}
         price={ticketMoney(event.price_cents)}
         available={event.available_tickets}

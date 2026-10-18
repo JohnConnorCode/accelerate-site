@@ -179,6 +179,11 @@ try {
         errors.push(message.text());
     });
     await page.addInitScript((theme) => localStorage.setItem("theme", theme), theme);
+    await page.addInitScript(
+      ({ id, startsAt }) =>
+        sessionStorage.setItem(`accelerate:workshop-announcement:${id}`, startsAt),
+      { id: event.id, startsAt: event.starts_at },
+    );
     await page.route("**/*", (route) => {
       const url = new URL(route.request().url());
       if (url.hostname === "checkout.stripe.com")
@@ -308,8 +313,8 @@ try {
     );
     assert.equal(await page.evaluate(() => document.body.dataset.workshopPromotion), undefined);
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(2800);
-    assert.equal(await announcement.count(), 0, "Dismissal lasts for this tab's session");
+    await announcement.waitFor({ state: "visible" });
+    assert.equal(await announcement.count(), 1, "Every homepage reload shows the announcement");
     if (width === 390) {
       await page.getByRole("button", { name: "Open navigation menu" }).click();
     }
@@ -326,7 +331,8 @@ try {
       theme,
       homepageAnnouncement: true,
       liveCountdown: true,
-      sessionDismissal: true,
+      reloadReopensAnnouncement: true,
+      legacyDismissalDoesNotSuppressAnnouncement: true,
       workshopMenu: true,
       noCompetingDocks: true,
     });
@@ -334,6 +340,25 @@ try {
       waitUntil: "networkidle",
     });
     await page.getByRole("heading", { level: 1, name: event.headline }).waitFor();
+    if (width === 1440 && theme === "light") {
+      await page.locator("header a").first().click();
+      await page.waitForURL(base + "/");
+      await announcement.waitFor({ state: "visible" });
+      await announcement.getByRole("button", { name: "Dismiss workshop announcement" }).click();
+      await announcement.waitFor({ state: "hidden" });
+      await page
+        .getByRole("navigation", { name: "Primary", exact: true })
+        .getByRole("link", { name: "Workshop", exact: true })
+        .click();
+      await page.waitForURL(`**/events/${event.slug}`);
+      await page.locator("header a").first().click();
+      await page.waitForURL(base + "/");
+      await announcement.waitFor({ state: "visible" });
+      results.push({ returningHomeReopensAnnouncement: true });
+      await page.goto(`${base}/events/${event.slug}?utm_source=venue&utm_campaign=workshop`, {
+        waitUntil: "networkidle",
+      });
+    }
     if (controlledTracking) {
       await page.locator("#gtag-init").waitFor({ state: "attached" });
       await page.locator("#meta-pixel").waitFor({ state: "attached" });
@@ -364,6 +389,25 @@ try {
         .boundingBox();
       assert.ok(checkout.y < takeaways.y, "Mobile ticket form must precede the long content");
     }
+    await page.locator('[data-motion-role="public-hero"]').evaluate(async (hero) => {
+      await Promise.allSettled(
+        hero
+          .getAnimations({ subtree: true })
+          .filter((animation) => Number.isFinite(animation.effect?.getComputedTiming().endTime))
+          .map((animation) => animation.finished),
+      );
+    });
+    await page.screenshot({ path: `${output}/public-hero-${theme}-${width}.png` });
+    for (const id of ["takeaways", "agenda", "presenters", "support", "prepare"]) {
+      await page
+        .locator(`#${id}`)
+        .evaluate((heading) => heading.scrollIntoView({ block: "center", behavior: "instant" }));
+      await page.waitForFunction((id) => {
+        const owner = document.getElementById(id)?.closest(".ui-entrance");
+        return owner && getComputedStyle(owner).opacity === "1";
+      }, id);
+    }
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     const accessibility = await new AxeBuilder({ page })
       .include("main")
       .withTags(["wcag2a", "wcag2aa"])
