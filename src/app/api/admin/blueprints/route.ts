@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { listBlueprints, saveBlueprintVersion } from "@/lib/revenue-os/workspace-blueprint";
 
 export async function GET() {
@@ -49,15 +50,17 @@ export async function POST(request: NextRequest) {
   try {
     // Saving against an existing blueprintId always forks a new version;
     // reviewed versions are never mutated.
-    const saved = await saveBlueprintVersion(auth.database, {
-      tenantId: auth.tenant.id,
-      blueprintId,
-      title,
-      document: body.document,
-      changeSummary,
-      createdBy: auth.user.email ?? null,
-      actorEmail: auth.user.email ?? null,
-    });
+    const saved = await runWithTenantRequestContext(auth, () =>
+      saveBlueprintVersion(auth.database, {
+        tenantId: auth.tenant.id,
+        blueprintId,
+        title,
+        document: body.document,
+        changeSummary,
+        createdBy: auth.user.email ?? null,
+        actorEmail: auth.user.email ?? null,
+      }),
+    );
     return NextResponse.json(
       { blueprintId: saved.blueprintId, version: saved.version.version },
       { status: 201 },

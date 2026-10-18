@@ -79,7 +79,7 @@
     "src/app/api/admin/blueprints/[id]/patch/route.ts": "7ec84fa5a20932ee36f8f720bfd0fefc76d8bcfebdaaba6029908cd7a2dc69b3",
     "src/app/api/admin/blueprints/[id]/route.ts": "55e534d37af37a4b8ebe48748681fe883722e2c9c7ed5d4068b4eb25dd414dff",
     "src/app/api/admin/blueprints/[id]/simulate/route.ts": "b59b889d8c6a0fd7ebfe577b0a18be87c134c06d9200472d332c3d07237653b1",
-    "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
+    "src/app/api/admin/blueprints/route.ts": "5873dbb8d99ffa56d4d8c62770850009a58d6db676afb48c4e2a7d9ac9c9b8dc",
     "src/app/api/admin/bookings/route.ts": "57b07eb5f5da312bc972daec1cfa68584d9e4f65f0451940dabd42f04565341e",
     "src/app/api/admin/chat-leads/route.ts": "1252546fd8002454ebf50caceca306f1c31a31c08dfef3fbdb64ce6bdf2526a1",
     "src/app/api/admin/clients/route.ts": "fec7982f6a38a8b1ac40d9de0de6ff1d94138899ab4b4ad1f0097c7f9c6d7d4b",
@@ -612,7 +612,8 @@
         {
           "path": "src/app/api/admin/blueprints/route.ts",
           "domainImports": [
-            "@/lib/revenue-os/workspace-blueprint"
+            "@/lib/revenue-os/workspace-blueprint",
+            "@/lib/tenancy/context"
           ],
           "directTables": []
         }
