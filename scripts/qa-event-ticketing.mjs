@@ -1,5 +1,6 @@
 import { WORKSHOP_EVENT, WORKSHOP_EVENT_ID } from "../src/content/workshops.ts";
 import { eventDefinitionSchema } from "../src/lib/revenue-os/event-ticketing-contract.ts";
+import { contrastRatio } from "../src/lib/revenue-os/branding-contract.ts";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -512,6 +513,33 @@ try {
       [],
       "Paid confirmation details must remain readable in each theme",
     );
+    const receiptColors = await page.locator("main dl dt, main dl dd").evaluateAll((fields) =>
+      fields.map((field) => {
+        let surface = field;
+        while (
+          surface.parentElement &&
+          getComputedStyle(surface).backgroundColor === "rgba(0, 0, 0, 0)"
+        )
+          surface = surface.parentElement;
+        const hex = (color) =>
+          "#" +
+          color
+            .match(/[\d.]+/g)
+            .slice(0, 3)
+            .map((channel) => Number(channel).toString(16).padStart(2, "0"))
+            .join("");
+        return {
+          foreground: hex(getComputedStyle(field).color),
+          background: hex(getComputedStyle(surface).backgroundColor),
+        };
+      }),
+    );
+    assert.ok(receiptColors.length > 0, "The confirmation must show its event and order details");
+    for (const colors of receiptColors)
+      assert.ok(
+        contrastRatio(colors.foreground, colors.background) >= 4.5,
+        `Paid confirmation text must meet 4.5:1 contrast: ${JSON.stringify(colors)}`,
+      );
     const calendarDownload = page.waitForEvent("download");
     await page.getByRole("button", { name: "Add the workshop to your calendar" }).click();
     const calendar = await readFile(await (await calendarDownload).path(), "utf8");
