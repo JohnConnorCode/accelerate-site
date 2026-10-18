@@ -751,7 +751,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             })}
           </div>
         </div>
-        {awayFromLatest && !ai.reviewedAction && (
+        {awayFromLatest && !ai.reviewedAction && ai.messages.length > 0 && (
           <button
             type="button"
             onClick={() => {
@@ -814,7 +814,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             rows={1}
             placeholder={
               ai.purpose === "architect"
-                ? "Describe the business, attach notes, or name a scoped source…"
+                ? "Describe a workflow…"
                 : "Ask about priorities, pipeline, conversations, or next actions…"
             }
             className="admin-composer-field max-h-32"

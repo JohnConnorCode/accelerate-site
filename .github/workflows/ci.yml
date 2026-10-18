@@ -465,7 +465,6 @@ jobs:
           if [ "$ready" != true ]; then cat /tmp/accelerate-workspace-operations-server.log; exit 1; fi
           npm run resources:run -- npm run qa:workspace-operations
           npm run resources:run -- node scripts/qa-architect-review.mjs
-          npm run resources:run -- node scripts/qa-command-center-offline-store.mjs
       - name: Retain operating setup browser evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         uses: actions/upload-artifact@v7

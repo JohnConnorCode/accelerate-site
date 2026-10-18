@@ -85,6 +85,11 @@ try {
       ),
       `Readable chat viewport at ${width}`,
     );
+    assert.equal(
+      await page.getByRole("button", { name: "Jump to latest", exact: true }).count(),
+      0,
+      "Empty chat must not cover the simulation with a chat navigation control",
+    );
     const send = await page.getByRole("button", { name: "Send AI command" }).boundingBox();
     assert.ok(
       send && send.x >= 0 && send.x + send.width <= width,
