@@ -66,6 +66,13 @@ review, not a deployment receipt. Browser verification covers actual desktop and
 mobile review, cancellation, approval, simulation and mode switching, plus
 IndexedDB deletion and the offline fallback.
 
+The final first-run CI group exposed an inline review footer covering its
+consequence on a short chat viewport. Inline reviews now keep the consequence
+with the decision buttons. Website recovery acceptance explicitly opens the
+phone preview before checking its rendered content, matching the editor's
+single-pane mobile interaction. These corrections require a new source-bound
+artifact and exact-head CI receipt; earlier receipts are retained as history.
+
 The package audit currently reports upstream advisories without a compatible
 published remediation in the affected dependency families. Forced incompatible
 downgrades are not included. The exact audit is retained with release evidence;

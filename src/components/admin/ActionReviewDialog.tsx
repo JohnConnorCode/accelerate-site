@@ -260,6 +260,30 @@ export function ActionReviewDialog({
         conversationId?: string;
       }>)
     : [];
+  const consequenceBanner = (
+    <div
+      className={cn(
+        "flex items-start gap-2.5 rounded-xl border",
+        inline ? "mx-3 mt-3 px-3 py-2" : "mx-5 mt-5 px-3.5 py-3 sm:mx-6",
+        external
+          ? "border-[var(--admin-warning)]/25 bg-[var(--admin-warning-soft)]"
+          : "border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]",
+      )}
+    >
+      <TriangleAlert
+        className={cn(
+          "mt-px size-4 shrink-0",
+          external ? "text-[var(--admin-warning)]" : "text-[var(--admin-muted)]",
+        )}
+      />
+      <div className="admin-copy text-[11px] leading-5">
+        <span className="font-semibold text-[var(--admin-ink)]">
+          {external ? "Irreversible external consequence:" : "Material consequence:"}
+        </span>{" "}
+        {consequence}
+      </div>
+    </div>
+  );
   const Surface = inline ? InlineReviewSurface : AdminDialog;
   return (
     <Surface
@@ -334,28 +358,7 @@ export function ActionReviewDialog({
           </button>
         </div>
 
-        <div
-          className={cn(
-            "flex items-start gap-2.5 rounded-xl border",
-            inline ? "mx-3 mt-3 px-3 py-2" : "mx-5 mt-5 px-3.5 py-3 sm:mx-6",
-            external
-              ? "border-[var(--admin-warning)]/25 bg-[var(--admin-warning-soft)]"
-              : "border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]",
-          )}
-        >
-          <TriangleAlert
-            className={cn(
-              "mt-px size-4 shrink-0",
-              external ? "text-[var(--admin-warning)]" : "text-[var(--admin-muted)]",
-            )}
-          />
-          <div className="admin-copy text-[11px] leading-5">
-            <span className="font-semibold text-[var(--admin-ink)]">
-              {external ? "Irreversible external consequence:" : "Material consequence:"}
-            </span>{" "}
-            {consequence}
-          </div>
-        </div>
+        {!inline && consequenceBanner}
 
         {error && (
           <p
@@ -714,6 +717,9 @@ export function ActionReviewDialog({
               : "flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6",
           )}
         >
+          {inline && (
+            <div className="col-span-3 [&>div]:mx-0 [&>div]:mt-0">{consequenceBanner}</div>
+          )}
           <button
             type="button"
             data-review-decision="reject"
