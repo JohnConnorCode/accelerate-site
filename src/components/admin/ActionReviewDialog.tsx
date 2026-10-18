@@ -713,7 +713,7 @@ export function ActionReviewDialog({
           className={cn(
             "sticky bottom-0 mt-auto border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-xl",
             inline
-              ? "grid grid-cols-3 gap-1 px-2 py-2"
+              ? "z-20 grid grid-cols-3 gap-1 px-2 py-2"
               : "flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6",
           )}
         >

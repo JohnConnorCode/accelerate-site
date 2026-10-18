@@ -419,7 +419,12 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           this workspace.
         </div>
       )}
-      <div className="flex min-w-0 flex-wrap items-center gap-2 border-b border-[var(--admin-border)] px-4 py-2.5 text-[11px] text-[var(--admin-muted)]">
+      <div
+        className={cn(
+          "min-w-0 flex-wrap items-center gap-2 border-b border-[var(--admin-border)] px-4 py-2.5 text-[11px] text-[var(--admin-muted)]",
+          reviewInProgress ? "hidden" : "flex",
+        )}
+      >
         {ai.purpose === "architect" ? (
           <NotebookPen className="size-3.5" />
         ) : (
@@ -445,7 +450,10 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
       </div>
       <nav
         aria-label="AI workspace mode"
-        className="flex shrink-0 gap-2 border-b border-[var(--admin-border)] p-2"
+        className={cn(
+          "shrink-0 gap-2 border-b border-[var(--admin-border)] p-2",
+          reviewInProgress ? "hidden" : "flex",
+        )}
       >
         <Link
           href="/admin/ai"
@@ -462,7 +470,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           Architect
         </Link>
       </nav>
-      {mobileConversationBar}
+      {!reviewInProgress && mobileConversationBar}
       <div className="relative flex min-h-0 flex-1 flex-col">
         <div
           ref={scrollRef}

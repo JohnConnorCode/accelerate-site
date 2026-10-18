@@ -72,6 +72,9 @@ with the decision buttons. Website recovery acceptance explicitly opens the
 phone preview before checking its rendered content, matching the editor's
 single-pane mobile interaction. These corrections require a new source-bound
 artifact and exact-head CI receipt; earlier receipts are retained as history.
+Screenshot review also identified header occlusion that geometry alone missed.
+Inline review hides secondary chat controls to retain reading space, and browser
+acceptance checks that the consequence is the visible element at its position.
 
 The package audit currently reports upstream advisories without a compatible
 published remediation in the affected dependency families. Forced incompatible
