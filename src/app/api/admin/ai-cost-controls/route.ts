@@ -34,11 +34,8 @@ export async function PUT(request: Request) {
     .object({ revision: z.number().int().min(0), policy: aiSpendPolicySchema })
     .strict()
     .safeParse(
-      await readBoundedJson(request).catch((error) => {
-        console.warn(
-          "Invalid AI controls request body",
-          error instanceof Error ? error.message : "Invalid JSON",
-        );
+      await readBoundedJson(request).catch(() => {
+        console.warn("Invalid AI controls request body");
         return null;
       }),
     );
@@ -70,11 +67,8 @@ export async function PATCH(request: Request) {
     })
     .strict()
     .safeParse(
-      await readBoundedJson(request).catch((error) => {
-        console.warn(
-          "Invalid AI controls request body",
-          error instanceof Error ? error.message : "Invalid JSON",
-        );
+      await readBoundedJson(request).catch(() => {
+        console.warn("Invalid AI controls request body");
         return null;
       }),
     );

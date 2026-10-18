@@ -1816,7 +1816,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "24fd32879b6fe646dadafb3ae0a7ba61e8b3ea14fd234a32363015281393c3d1"
+      "sourceSha256": "4f5f44d490209d0bf7148667050213f28fdd114b28b726256e36ff3bf0b07360"
     },
     {
       "source": "src/app/api/admin/ai-readiness/route.ts",
