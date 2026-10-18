@@ -134,6 +134,18 @@ async function main() {
     ),
     "https://www.example.test/events/practical-ai/confirmation?preview=1",
   );
+  const fictional = await visit("www.example.test", "/admin/ai?__demoScenario=northline-roofing");
+  assert.equal(
+    fictional.headers.get("location"),
+    null,
+    "A validated fictional rewrite must stay on the public demo origin",
+  );
+  assert.equal(fictional.headers.get("x-middleware-request-x-accelerate-admin-runtime"), "demo");
+  assert.equal(
+    (await visit("www.example.test", "/admin/ai?__demoScenario=unknown")).headers.get("location"),
+    "https://app.example.test/admin/ai?__demoScenario=unknown",
+    "An invalid demo marker retains the real workspace host boundary",
+  );
   assert.equal((await visit("www.example.test", "/")).headers.get("location"), null);
   assert.equal(
     (await visit("www.example.test", "/admin/login")).headers.get("location"),
