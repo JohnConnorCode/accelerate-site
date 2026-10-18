@@ -236,6 +236,49 @@
 }
 .facts {
   display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  border-top: 1px solid var(--border-glass);
+  padding-top: 1.75rem;
+  margin-top: 2.5rem;
+}
+.facts dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--white-muted);
+  margin-bottom: 0.5rem;
+}
+.facts dd {
+  margin: 0;
+  color: var(--heading-color);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.facts a {
+  color: inherit;
+  text-decoration: underline;
+}
+.section {
+  padding: 2.5rem 0;
+  border-top: 1px solid var(--border-glass);
+}
+.section h2 {
+  color: var(--heading-color);
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  margin: 0 0 1.5rem;
+  text-wrap: balance;
+}
+.section p {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  margin: 0;
+  text-wrap: pretty;
+}
+.heroFacts {
+  display: grid;
   grid-column: 1 / -1;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
@@ -243,17 +286,17 @@
   padding-top: 1.75rem;
   margin: 0;
 }
-.facts > div {
+.heroFacts > div {
   position: relative;
   padding-left: 2.1rem;
 }
-.facts dt > svg {
+.heroFacts dt > svg {
   position: absolute;
   top: 0.15rem;
   left: 0;
   color: rgb(251 251 250 / 65%);
 }
-.facts dt {
+.heroFacts dt {
   font-family: var(--util);
   font-size: 0.6rem;
   text-transform: uppercase;
@@ -261,19 +304,19 @@
   color: rgb(251 251 250 / 60%);
   margin-bottom: 0.4rem;
 }
-.facts dd {
+.heroFacts dd {
   margin: 0;
   color: var(--paper);
   font-size: 0.8rem;
   line-height: 1.7;
 }
-.facts a {
+.heroFacts a {
   display: inline;
   color: rgb(251 251 250 / 75%);
   text-decoration: underline;
   text-decoration-color: rgb(255 255 255 / 35%);
 }
-.facts a svg {
+.heroFacts a svg {
   display: inline;
   vertical-align: baseline;
 }
@@ -304,7 +347,7 @@
   grid-row: 1;
   min-width: 0;
 }
-.section {
+.workshopSection {
   padding: 0 0 3rem;
   margin-bottom: 3rem;
   border-bottom: 1px solid var(--border-glass);
@@ -321,7 +364,7 @@
   text-transform: uppercase;
   letter-spacing: 0.09em;
 }
-.section h2,
+.workshopSection h2,
 .support h2,
 .prepare h2 {
   color: var(--heading-color);
@@ -332,7 +375,7 @@
   margin: 0;
   text-wrap: balance;
 }
-.section h3 {
+.workshopSection h3 {
   color: var(--heading-color);
   font-size: 1.15rem;
   margin: 0 0 0.55rem;
@@ -341,7 +384,7 @@
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
-.section p,
+.workshopSection p,
 .support p,
 .prepare p {
   font-size: 0.9rem;
@@ -430,7 +473,7 @@
   font-weight: 450;
   margin-bottom: 1rem;
 }
-.section .role {
+.workshopSection .role {
   font-family: var(--util);
   font-size: 0.6rem;
   line-height: 1.6;
@@ -679,6 +722,11 @@
   }
 }
 @media (max-width: 800px) {
+  .facts {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1.75rem;
+  }
   .page {
     padding: 5rem 0.75rem 3rem;
   }
@@ -761,19 +809,19 @@
   .heroPresenters figcaption small {
     display: none;
   }
-  .facts {
+  .heroFacts {
     grid-template-columns: 1fr;
     gap: 1.1rem;
     padding-top: 1.5rem;
   }
-  .facts dt {
+  .heroFacts dt {
     font-size: 0.55rem;
     margin-bottom: 0.2rem;
   }
-  .facts dd {
+  .heroFacts dd {
     font-size: 0.75rem;
   }
-  .facts dt > svg {
+  .heroFacts dt > svg {
     width: 17px;
     height: 17px;
   }
@@ -794,14 +842,14 @@
   .checkout {
     scroll-margin-top: 6rem;
   }
-  .section {
+  .workshopSection {
     padding-bottom: 2.25rem;
     margin-bottom: 2.25rem;
   }
   .sectionHeading {
     margin-bottom: 1.5rem;
   }
-  .section h2 {
+  .workshopSection h2 {
     font-size: 1.9rem;
   }
   .takeaways article {
@@ -818,10 +866,10 @@
     width: 19px;
     height: 19px;
   }
-  .section h3 {
+  .workshopSection h3 {
     font-size: 1.08rem;
   }
-  .section p,
+  .workshopSection p,
   .support p,
   .prepare p {
     font-size: 0.86rem;

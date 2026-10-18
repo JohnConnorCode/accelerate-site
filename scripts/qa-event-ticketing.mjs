@@ -503,6 +503,15 @@ try {
     await page
       .getByText("The confirmation email still needs attention.", { exact: false })
       .waitFor();
+    const confirmationAccessibility = await new AxeBuilder({ page })
+      .include("main")
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .analyze();
+    assert.deepEqual(
+      confirmationAccessibility.violations.map((item) => ({ id: item.id, impact: item.impact })),
+      [],
+      "Paid confirmation details must remain readable in each theme",
+    );
     const calendarDownload = page.waitForEvent("download");
     await page.getByRole("button", { name: "Add the workshop to your calendar" }).click();
     const calendar = await readFile(await (await calendarDownload).path(), "utf8");
@@ -564,6 +573,7 @@ try {
       keyboardCheckout: true,
       identicalRetry: true,
       pendingToConfirmed: true,
+      confirmationAccessibility: true,
       paidDespiteEmailFailure: true,
       calendar: true,
       optionalContextRetry: true,

@@ -87,7 +87,7 @@ export function WorkshopContent({
               </div>
             )}
           </div>
-          <dl className={styles.facts} data-hero-step="5">
+          <dl className={styles.heroFacts} data-hero-step="5">
             <div>
               <dt>
                 <CalendarDays size={20} aria-hidden="true" />
@@ -124,7 +124,7 @@ export function WorkshopContent({
           </AnimateOnScroll>
           <div className={styles.content}>
             <AnimateOnScroll>
-              <section className={styles.section} aria-labelledby="takeaways">
+              <section className={styles.workshopSection} aria-labelledby="takeaways">
                 <div className={styles.sectionHeading}>
                   <span aria-hidden="true">01</span>
                   <h2 id="takeaways">Leave knowing what to do first.</h2>
@@ -161,7 +161,7 @@ export function WorkshopContent({
               </section>
             </AnimateOnScroll>
             <AnimateOnScroll>
-              <section className={styles.section} aria-labelledby="agenda">
+              <section className={styles.workshopSection} aria-labelledby="agenda">
                 <div className={styles.sectionHeading}>
                   <span aria-hidden="true">02</span>
                   <h2 id="agenda">A focused 90 minutes.</h2>
@@ -207,7 +207,7 @@ export function WorkshopContent({
             </AnimateOnScroll>
             {presenters.length > 0 && (
               <AnimateOnScroll>
-                <section className={styles.section} aria-labelledby="presenters">
+                <section className={styles.workshopSection} aria-labelledby="presenters">
                   <div className={styles.sectionHeading}>
                     <span aria-hidden="true">03</span>
                     <h2 id="presenters">Your presenters.</h2>
