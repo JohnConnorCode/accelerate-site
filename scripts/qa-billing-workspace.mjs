@@ -105,6 +105,12 @@ try {
     await invoices.getByRole("listitem").first().waitFor();
     assert.equal(await invoices.getByRole("listitem").count(), 1);
     await nav.getByRole("link", { name: "Payments & refunds", exact: true }).click();
+    await page
+      .getByRole("heading", { level: 1, name: "Payments & refunds", exact: true })
+      .waitFor();
+    await page.waitForFunction(
+      () => document.querySelector("main h1")?.getBoundingClientRect().top >= 64,
+    );
     await page.getByRole("heading", { name: "Payment activity", exact: true }).waitFor();
     const payments = page.getByRole("list", { name: "Payment results" });
     await payments.getByRole("listitem").nth(2).waitFor();
@@ -180,7 +186,7 @@ try {
     await page.getByRole("heading", { level: 1, name: "Invoices", exact: true }).waitFor();
     await page.locator("main").getByRole("link", { name: "Create invoice", exact: true }).click();
     const contactSelect = page.getByLabel("CRM customer", { exact: true });
-    await contactSelect.locator("option").nth(4).waitFor();
+    await contactSelect.locator("option").nth(4).waitFor({ state: "attached" });
     await contactSelect.selectOption(
       await contactSelect.locator("option").nth(4).getAttribute("value"),
     );
@@ -195,7 +201,7 @@ try {
       .getByLabel("Stripe billing customer", { exact: true })
       .locator("option")
       .nth(1)
-      .waitFor();
+      .waitFor({ state: "attached" });
     await clean(page, label + "-customer-created");
     results.push({
       ...config,

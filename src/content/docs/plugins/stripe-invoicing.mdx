@@ -16,7 +16,7 @@ Preparing an invoice means bringing a customer, amount and agreed terms together
 
 ## Try a complete invoice
 
-Open **Apps & connections**, select **Pluggable Modules**, and enable **Stripe invoicing**, then open **Billing & payments** from the sidebar or mobile **More** menu. Select **Create invoice** to open the customer and line-item form. Command/Ctrl+K also finds **Create invoice**; if the module is off, search for **invoice** and choose **Set up invoicing** for enablement instructions.
+Open **Plugins** at `/admin/plugins` and enable **Stripe invoicing**, then open **Billing** from the sidebar or mobile **More** menu. Select **Create invoice** to open the customer and line-item form. Command/Ctrl+K also finds **Create invoice**; if the module is off, search for **invoice** and choose **Set up invoicing** for enablement instructions.
 
 The direct creation link is `/admin/invoicing?view=create`. If Stripe is disconnected, connect it here first. Credentials belong in the server-only connection controls. Verify test or live mode before a provider action.
 
@@ -39,11 +39,27 @@ For a finalized, unpaid invoice created by this workspace, choose **Void unpaid 
 
 Select **Payments & refunds** in the billing navigation. Search the loaded account charges, filter by status or period, and load older payments when needed. The figures describe the selected records: **Captured**, **Refunded**, and **After refunds**. They keep currencies separate and do not include processing fees, disputes, payouts or bank balances. Failed and pending charges do not contribute captured amounts.
 
+<DocsFigure
+  src="/images/docs/billing/payments-workspace-2026-10-18.png"
+  alt="Payment activity in fictional Northline Roofing, with separate EUR and USD figures, filters, CSV export and the eligible payment’s refund control."
+  width={1440}
+  height={1000}
+  caption="Fictional account charges. Currency totals stay separate, and workspace ownership determines which payments offer a refund."
+/>
+
 For a payment marked as belonging to this workspace, choose **Refund payment**. Enter a full or partial amount and a reason, then choose **Review refund**. USD, EUR, GBP, CAD and AUD support partial amounts here; other currencies offer the full remaining balance. Payments that need an invoice ownership check offer **Check refund eligibility** first. The review verifies their link to invoices belonging to this workspace before allowing a refund.
 
 Approve only the exact amount and original payment method shown in the review. The resulting receipt distinguishes a succeeded refund from a pending or failed provider result. **Recent billing actions** keeps that result and its provider reference available. Choose **Check provider result** to read its current status, including after a review expires. The latest observation appears separately and preserves the original execution receipt. A refund does not rewrite the invoice’s recorded payment history. Ticket refunds also follow the existing signed webhook path, which updates the order and admission status from Stripe’s facts.
 
 For example, a fictional $125 consulting payment can receive a reviewed $25 refund. Once Stripe confirms that amount, the payment record shows $25 refunded and $100 after refunds, before fees or other adjustments. The demo simulates this result locally and moves no money.
+
+<DocsFigure
+  src="/images/docs/billing/refund-review-2026-10-18.png"
+  alt="An exact $25 refund review showing the original payment, customer, amount and reason before human approval."
+  width={1440}
+  height={1000}
+  caption="A fictional $25 refund review. The demo simulates approval and moves no money."
+/>
 
 **Export selected payments** downloads the currently selected loaded records as CSV. Amount columns explicitly use Stripe’s integer minor units and retain a separate currency column. Load the history you need before exporting; the file is not an automatic complete-account export.
 

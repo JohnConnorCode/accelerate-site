@@ -35,6 +35,8 @@ const routes = [
   "/docs/delivery/content",
   "/docs/delivery/resources",
   "/docs/pipeline/revenue",
+  "/docs/billing/overview",
+  "/docs/plugins/stripe-invoicing",
   "/docs/workspace/settings",
   "/docs/sources/leads",
   "/docs/sources/overview",

@@ -63,10 +63,10 @@ export default function InvoicingPage() {
   const payments = params.get("view") === "payments";
   const pageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    // Query-only navigation stays on this page. Bring the creation view back
-    // into sight even when it was opened from tools farther down the invoice list.
-    if (creating) pageRef.current?.closest("main")?.scrollTo({ top: 0 });
-  }, [creating]);
+    // Query-only navigation switches billing views in place. Start each newly
+    // selected view below the persistent toolbar.
+    pageRef.current?.closest("main")?.scrollTo({ top: 0 });
+  }, [creating, payments]);
   const demoToken = demo ? params.get("demoInvoice") : null;
   const demoDocument = useAdminQuery<{
     brand: WorkspaceBrand;
@@ -359,9 +359,10 @@ export default function InvoicingPage() {
               <div>
                 <h2 className="text-lg font-semibold">Connect your Stripe account</h2>
                 <p className="admin-copy mt-2 max-w-2xl text-sm leading-6">
-                  Use a restricted key with account, customer, and invoice read access, plus invoice
-                  write access. The key stays encrypted in this workspace. Start with a test key to
-                  exercise the full workflow without sending customer emails.
+                  Use a restricted key with account, customer, invoice, payment and refund read
+                  access. Enable customer, invoice and refund writes for the actions you need. The
+                  key stays encrypted in this workspace. Verify the workflow in test mode before
+                  using live payments.
                 </p>
               </div>
             </div>

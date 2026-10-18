@@ -495,10 +495,26 @@ async function main() {
       ]).length,
       1,
     );
-    assert.match(formatInvoiceAmount(500, "jpy"), /500/);
-    assert.match(formatInvoiceAmount(500, "isk"), /5/);
-    assert.match(formatInvoiceAmount(500, "ugx"), /5/);
-    assert.match(formatInvoiceAmount(1050, "huf"), /10[.,]50/);
+    for (const [currency, minor, major, digits] of [
+      ["JPY", 500, 500, 0],
+      ["MGA", 500, 500, 0],
+      ["ISK", 500, 5, 0],
+      ["UGX", 500, 5, 0],
+      ["HUF", 1050, 10.5, 2],
+      ["TWD", 1050, 10.5, 2],
+      ["USD", 1050, 10.5, 2],
+    ] as const) {
+      assert.equal(
+        formatInvoiceAmount(minor, currency),
+        new Intl.NumberFormat(undefined, {
+          style: "currency",
+          currency,
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits,
+        }).format(major),
+        `${currency} must display Stripe charge units consistently across Intl versions`,
+      );
+    }
     assert.ok(f.mem.rows("audit_log").length > 0);
     console.log(
       "Billing workspace: reviewed UI/AI service parity, exact snapshots across jsonb ordering, tenant/admin boundaries, replay, accepted-refund timeout reconciliation, provider failures, pending receipts, customer dedupe, unpaid invoice cancellation, currency-separated reports and honest partial invoice balances passed. Provider transport is controlled; no live money moved.",

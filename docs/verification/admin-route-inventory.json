@@ -38,7 +38,7 @@
     "src/app/admin/identity-review/page.tsx": "93d875e879ea45822a3a66a45c017fee081c2ff13a89dc2f745fcf27549e7631",
     "src/app/admin/inbox/page.tsx": "e68393d6ed5462661be12b125eadf3543d2ca935f61454fa34e8914e0dc5e472",
     "src/app/admin/integrations/page.tsx": "66a05fecb574b1b3fa9b7178fb10cfd57bd7a4b10f4ee14dfc847264cd4e45a5",
-    "src/app/admin/invoicing/page.tsx": "3c4c10f126a9a840a0428f3f1192f5fe6cac94c2520092a5a5e26f0003c57b55",
+    "src/app/admin/invoicing/page.tsx": "2f54cf89a9d71c55ecbe89066353f0566cc9cc7bb96a4372272844dc1d1934e8",
     "src/app/admin/leads/page.tsx": "3825c0c1d99ca81c8939249aa26e1051b587aa0f21d9bffcc770828cd6852724",
     "src/app/admin/learning/page.tsx": "a6722bfef692402e5da9ebe3eaff5ae776ca70ad07b89c8d863a93d4f7ed0f61",
     "src/app/admin/login/page.tsx": "198de31be5e2dfed5d09de6fceb3e99c7c921f02f7b6eca220a1d2886b917f98",
