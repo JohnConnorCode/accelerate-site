@@ -243,7 +243,7 @@ try {
       if (slug.endsWith("revenue"))
         await expect(page.locator("main figure img").first()).toHaveAttribute(
           "src",
-          /revenue-active-contracts-2026-09-29/,
+          /revenue-chart-2026-10-18/,
         );
       await page.locator(".docs-entrance").evaluate(async (element) => {
         await Promise.all(
