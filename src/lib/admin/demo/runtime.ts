@@ -4946,7 +4946,9 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({
         actions: [
           ...(state.agentProposals ?? []).filter((item) => item.status === "pending"),
-          ...business.actions.filter((item) => item.status === "pending"),
+          ...business.actions.filter(
+            (item) => item.status === "pending" || item.action_type === "billing_change",
+          ),
           ...pack.actions
             .filter((item) => !state.completedActions.includes(item.id))
             .map((item, index) => ({

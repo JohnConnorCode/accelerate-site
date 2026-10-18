@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, CalendarDays, CreditCard, HandCoins, ReceiptText } from "lucide-react";
+import { BarChart3, CalendarDays, CreditCard, HandCoins, ReceiptText, Repeat2 } from "lucide-react";
 import AdminLink from "./AdminLink";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +13,7 @@ const areas = [
     icon: CreditCard,
   },
   { id: "collections", href: "/admin/collections", label: "Collections", icon: HandCoins },
-  { id: "subscriptions", href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
+  { id: "subscriptions", href: "/admin/subscriptions", label: "Subscriptions", icon: Repeat2 },
   { id: "events", href: "/admin/events", label: "Ticket sales", icon: CalendarDays },
   { id: "revenue", href: "/admin/revenue", label: "Revenue", icon: BarChart3 },
 ] as const;

@@ -134,6 +134,13 @@ try {
       .waitFor();
     await page.getByRole("heading", { name: "Recent billing actions", exact: true }).waitFor();
     assert.ok((await page.locator("main").innerText()).includes("No provider effect occurred"));
+    await page
+      .getByRole("heading", { name: "Recent billing actions", exact: true })
+      .locator("..")
+      .getByRole("button", { name: "Check provider result", exact: true })
+      .first()
+      .click();
+    await page.getByText(/Latest provider check: succeeded/).waitFor();
     await page.getByLabel("Payment status", { exact: true }).selectOption("refunded");
     assert.equal(await payments.getByRole("listitem").count(), 2);
     const downloadPromise = page.waitForEvent("download");
