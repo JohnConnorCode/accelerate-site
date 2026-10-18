@@ -76,6 +76,12 @@ Screenshot review also identified header occlusion that geometry alone missed.
 Inline review hides secondary chat controls to retain reading space, and browser
 acceptance checks that the consequence is the visible element at its position.
 
+The WebKit hero packet observer also stopped after 900 ms of wall time even
+when the artwork had rendered only two frames. The observer now follows the
+visible packet until it exits, retaining the original four-second deadline and
+eight-pixel travel requirement. A clock-controlled test proves delayed frames
+remain observable while frozen and absent signals still fail to show travel.
+
 The package audit currently reports upstream advisories without a compatible
 published remediation in the affected dependency families. Forced incompatible
 downgrades are not included. The exact audit is retained with release evidence;
