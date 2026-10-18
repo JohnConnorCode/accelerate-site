@@ -70,7 +70,7 @@ console.log(`Admin token contract passed: ${used.size} used tokens are defined.`
 // count) is what keeps a ratchet a ratchet instead of a ceiling nobody ever
 // lowers.
 const COLOR_BUDGET = {
-  "src/app/admin/analytics/page.tsx": 10,
+  "src/app/admin/analytics/page.tsx": 9,
   "src/app/admin/bookings/page.tsx": 2,
   "src/app/admin/campaigns/page.tsx": 19,
   "src/app/admin/chat-leads/page.tsx": 1,

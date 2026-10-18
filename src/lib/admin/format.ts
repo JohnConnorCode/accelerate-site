@@ -38,10 +38,7 @@ export function formatNumber(
 }
 
 /** A percentage value already expressed as a number, e.g. 72 renders as "72%". */
-export function formatRate(
-  value: number | null | undefined,
-  options: FormatOptions = {},
-): string {
+export function formatRate(value: number | null | undefined, options: FormatOptions = {}): string {
   if (!isFiniteNumber(value)) return options.unknown ?? UNKNOWN_VALUE;
   return `${value}%`;
 }
@@ -49,10 +46,7 @@ export function formatRate(
 export const formatPercent = formatRate;
 
 /** A duration in hours, rendered as minutes below one hour. */
-export function formatHours(
-  value: number | null | undefined,
-  options: FormatOptions = {},
-): string {
+export function formatHours(value: number | null | undefined, options: FormatOptions = {}): string {
   if (!isFiniteNumber(value)) return options.unknown ?? UNKNOWN_VALUE;
   return value < 1 ? `${Math.round(value * 60)} min` : `${value} hr`;
 }

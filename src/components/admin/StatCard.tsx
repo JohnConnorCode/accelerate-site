@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import AdminLink from "@/components/admin/AdminLink";
 import { motion, useReducedMotion } from "framer-motion";
 import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -133,7 +133,11 @@ export function StatCard({
       <AdminSurface
         padding="lg"
         tone={tone === "attention" ? "attention" : "default"}
-        className={cn("flex h-full flex-col", tone === "estimate" && "bg-violet-500/[0.035]", className)}
+        className={cn(
+          "flex h-full flex-col",
+          tone === "estimate" && "bg-[var(--admin-accent-soft)]",
+          className,
+        )}
       >
         <div className="flex items-center justify-between gap-3">
           <span className="admin-eyebrow">{label}</span>
@@ -177,9 +181,12 @@ export function StatCard({
           <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-[11px] text-[var(--admin-muted)]">
             <span>{freshness}</span>
             {href ? (
-              <Link href={href} className="font-medium text-[var(--admin-accent)] hover:underline">
+              <AdminLink
+                href={href}
+                className="font-medium text-[var(--admin-accent)] hover:underline"
+              >
                 View records
-              </Link>
+              </AdminLink>
             ) : null}
           </div>
         ) : null}

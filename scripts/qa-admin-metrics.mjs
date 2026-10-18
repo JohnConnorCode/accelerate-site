@@ -51,10 +51,7 @@ try {
       /Monthly value of active contracts/,
       "the recurring KPI names what the figure means",
     );
-    assert.ok(
-      !revenueText.includes("/mo"),
-      "the redundant unlabelled delta text is gone",
-    );
+    assert.ok(!revenueText.includes("/mo"), "the redundant unlabelled delta text is gone");
     await revenueGrid.scrollIntoViewIfNeeded();
     await revenueGrid.screenshot({ path: `${out}/revenue-metrics-${width}.png` });
 
