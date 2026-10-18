@@ -20,6 +20,7 @@ export function useAdminDialogState() {
 interface AdminDialogProps {
   open: boolean;
   onClose: () => void;
+  onExitComplete?: () => void;
   children: React.ReactNode;
   title: string;
   labelledBy?: string;
@@ -47,6 +48,7 @@ const dialogOpeners = new WeakMap<HTMLElement, HTMLElement[]>();
 export function AdminDialog({
   open,
   onClose,
+  onExitComplete,
   children,
   title,
   labelledBy,
@@ -80,7 +82,7 @@ export function AdminDialog({
         if (!next) onClose();
       }}
     >
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="sync" onExitComplete={onExitComplete}>
         {open && (
           <Dialog.Portal forceMount>
             {/* Keep each backdrop above earlier panels, including during exit. */}

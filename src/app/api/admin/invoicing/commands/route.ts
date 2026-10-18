@@ -4,7 +4,11 @@ import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import { billingCommandSchema } from "@/lib/revenue-os/billing-command-contract";
-import { previewBillingCommand, proposeBillingCommand } from "@/lib/revenue-os/billing-workspace";
+import {
+  previewBillingCommand,
+  proposeBillingCommand,
+  readBillingActionReceipt,
+} from "@/lib/revenue-os/billing-workspace";
 
 const input = z.discriminatedUnion("mode", [
   z.object({ mode: z.literal("preview"), command: billingCommandSchema }).strict(),

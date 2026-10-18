@@ -48,6 +48,7 @@ export function BillingActionControl({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const request = useRef<BillingCommand | null>(null);
+  const refreshAfterClose = useRef(false);
   const supportsPartial = ["usd", "eur", "gbp", "cad", "aud"].includes(currency);
   async function prepare() {
     setBusy(true);
@@ -93,6 +94,7 @@ export function BillingActionControl({
   async function decide(decision: "approve" | "reject") {
     if (!action) return;
     setBusy(true);
+    refreshAfterClose.current = true;
     setError("");
     try {
       const result = await fetchJson<{ result?: BillingReceipt }>("/api/admin/revenue-os/actions", {
@@ -115,7 +117,6 @@ export function BillingActionControl({
       );
     } finally {
       setBusy(false);
-      await refreshBilling(cache);
     }
   }
   return (
@@ -204,6 +205,11 @@ export function BillingActionControl({
         busy={busy}
         error={error}
         onClose={() => setReviewing(false)}
+        onExitComplete={() => {
+          if (!refreshAfterClose.current) return;
+          refreshAfterClose.current = false;
+          void refreshBilling(cache);
+        }}
         onApprove={() => void decide("approve")}
         onReject={() => void decide("reject")}
       />

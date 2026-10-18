@@ -151,6 +151,7 @@ export function ActionReviewDialog({
   action,
   busy,
   onClose,
+  onExitComplete,
   onApprove,
   onReject,
   error,
@@ -162,6 +163,7 @@ export function ActionReviewDialog({
   action: ActionRow | null;
   busy: boolean;
   onClose: () => void;
+  onExitComplete?: () => void;
   onApprove: () => void;
   onReject: () => void;
 }) {
@@ -257,6 +259,7 @@ export function ActionReviewDialog({
       key={action.id}
       open={open}
       onClose={onClose}
+      onExitComplete={onExitComplete}
       title="Review before approving"
       labelledBy="action-review-title"
       maxWidth="sm"
@@ -712,6 +715,7 @@ export function ActionReviewDialog({
               data-review-decision="approve"
               disabled={
                 busy ||
+                action.status !== "pending" ||
                 Boolean(isToday && !todayPreview.data) ||
                 Boolean(isCalendar && !calendar?.success) ||
                 Boolean(isTicket && !ticket?.success) ||
