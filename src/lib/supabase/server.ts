@@ -395,6 +395,18 @@ export async function callSourceAuthorityRpc(
   });
 }
 
+/** Opportunity creation keeps its business row and immutable evidence atomic. */
+export function callOpportunityCreateHostRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+) {
+  const context = getTenantRequestContext();
+  return callVerifiedHostRpc(database, "create_opportunity_with_receipt", {
+    ...args,
+    p_actor: context?.kind === "actor" ? context.user.id : null,
+  });
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

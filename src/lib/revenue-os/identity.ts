@@ -159,8 +159,21 @@ export async function resolveOrCreateIdentity(
       })
       .select("id, name, domain")
       .single();
-    if (error) throw new Error(error.message);
-    company = data;
+    if (error?.code === "23505" && domain) {
+      const existing = await supabase
+        .from("companies")
+        .select("id,name,domain")
+        .ilike("domain", exactIlike(domain))
+        .limit(2);
+      if (existing.error || existing.data?.length !== 1)
+        throw new Error(
+          existing.error?.message || "Company identity changed; retry the same request",
+        );
+      company = existing.data[0];
+    } else {
+      if (error) throw new Error(error.message);
+      company = data;
+    }
   }
 
   let contact: { id: string; full_name: string; primary_email: string | null } | null = null;
@@ -198,8 +211,13 @@ export async function resolveOrCreateIdentity(
       })
       .select("id, full_name, primary_email")
       .single();
-    if (error) throw new Error(error.message);
-    contact = data;
+    if (error?.code === "23505" && email) {
+      contact = await findCanonicalContactByEmail(supabase, email);
+      if (!contact) throw new Error("Contact identity changed; retry the same request");
+    } else {
+      if (error) throw new Error(error.message);
+      contact = data;
+    }
   }
 
   return { contact, company };
