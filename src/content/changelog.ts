@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "workshop-presentation",
+    slug: "workshop-presentation",
+    title: "Meet your workshop presenters and reserve a place",
+    description:
+      "The workshop page brings its date, presenters, agenda and ticket form into a more considered layout. The homepage's glass announcement includes presenter photos and returns whenever you load the homepage. Saved event details, prices and availability still come from Events.",
+    category: "improvement",
+    publishedAt: "2026-10-17",
+  },
+  {
     id: "public-reduced-motion",
     slug: "public-reduced-motion",
     title: "Respect reduced motion across public dialogs",
