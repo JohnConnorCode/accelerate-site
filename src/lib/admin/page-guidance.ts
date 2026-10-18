@@ -184,10 +184,10 @@ export const adminPageGuidance: Record<string, AdminPageGuidance> = {
     description:
       "Understand current agreement and opportunity values while keeping invoiced and collected amounts distinct.",
     steps: [
-      "Choose the period you want to review and check the available totals.",
+      "Check current active client agreements and the separate opportunity totals.",
       "Open related records to understand the activity behind a result.",
     ],
-    guideHref: "/docs/intelligence/overview",
+    guideHref: "/docs/pipeline/revenue",
   },
   clients: {
     description:

@@ -10,6 +10,10 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Plus, ReceiptText, RefreshCw, Send, Trash2 } from "lucide-react";
 import { InvoicePageDesigner } from "@/components/admin/InvoicePageDesigner";
+import { BillingNavigation } from "@/components/admin/BillingNavigation";
+import { PaymentIndex } from "@/components/admin/PaymentIndex";
+import { BillingActivity } from "@/components/admin/BillingActivity";
+import { BillingActionControl } from "@/components/admin/BillingActionControl";
 import { InvoiceIndex } from "@/components/admin/InvoiceIndex";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { adminPageGuidance } from "@/lib/admin/page-guidance";
@@ -56,12 +60,13 @@ export default function InvoicingPage() {
   const demo = useAdminDemo();
   const params = useSearchParams();
   const creating = params.get("view") === "create";
+  const payments = params.get("view") === "payments";
   const pageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    // Query-only navigation stays on this page. Bring the creation view back
-    // into sight even when it was opened from tools farther down the invoice list.
-    if (creating) pageRef.current?.closest("main")?.scrollTo({ top: 0 });
-  }, [creating]);
+    // Query-only navigation switches billing views in place. Start each newly
+    // selected view below the persistent toolbar.
+    pageRef.current?.closest("main")?.scrollTo({ top: 0 });
+  }, [creating, payments]);
   const demoToken = demo ? params.get("demoInvoice") : null;
   const demoDocument = useAdminQuery<{
     brand: WorkspaceBrand;
@@ -73,14 +78,19 @@ export default function InvoicingPage() {
     { enabled: Boolean(demoToken) },
   );
   const cache = useQueryClient();
-  const providers = useAdminQuery<{ providers: { provider: string; status: string }[] }>(
-    ["tenant", "providers"],
-    "/api/admin/tenant/providers",
+  const providers = useAdminQuery<{
+    providers: {
+      provider: string;
+      status: string;
+      account_email?: string;
+      credential_version?: number;
+    }[];
+  }>(["tenant", "providers"], "/api/admin/tenant/providers");
+  const stripeConnection = providers.data?.providers.find(
+    (provider) => provider.provider === "stripe",
   );
-  const connected =
-    providers.data?.providers.some(
-      (provider) => provider.provider === "stripe" && provider.status === "connected",
-    ) ?? false;
+  const connected = stripeConnection?.status === "connected";
+  const connectionKey = `${stripeConnection?.account_email ?? "demo"}:${stripeConnection?.credential_version ?? 0}`;
   const [contactSearch, setContactSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -90,9 +100,13 @@ export default function InvoicingPage() {
   const [notice, setNotice] = useState("");
   const [contactId, setContactId] = useState("");
   const billing = useAdminQuery<Billing>(
-    ["admin", "invoicing", appliedSearch, contactId],
+    ["admin", "invoicing", connectionKey, appliedSearch, contactId],
     `/api/admin/invoicing?${new URLSearchParams({ search: appliedSearch, ...(contactId ? { contactId } : {}) })}`,
-    { enabled: connected },
+    {
+      enabled: connected,
+      placeholderData: (previous, query) =>
+        query?.queryKey[2] === connectionKey ? previous : undefined,
+    },
   );
   const [customerId, setCustomerId] = useState("");
   const [currency, setCurrency] = useState("usd");
@@ -121,8 +135,11 @@ export default function InvoicingPage() {
     }
   }
   async function refresh() {
-    await cache.invalidateQueries({ queryKey: ["admin", "invoicing"] });
-    await cache.invalidateQueries({ queryKey: ["admin", "actions"] });
+    await Promise.all([
+      cache.invalidateQueries({ queryKey: ["admin", "invoicing"] }),
+      cache.invalidateQueries({ queryKey: ["admin", "actions"] }),
+      cache.invalidateQueries({ queryKey: ["tenant", "providers"] }),
+    ]);
   }
   function connect(event: FormEvent) {
     event.preventDefault();
@@ -138,6 +155,8 @@ export default function InvoicingPage() {
       });
       setApiKey("");
       setWebhookSecret("");
+      setCustomerId("");
+      edit();
       await cache.invalidateQueries({ queryKey: ["tenant", "providers"] });
       setNotice("Stripe connected for this workspace.");
     });
@@ -254,7 +273,7 @@ export default function InvoicingPage() {
   return (
     <div ref={pageRef} className="space-y-6 pb-10">
       <PageHeader
-        title={creating ? "Create invoice" : "Invoices"}
+        title={creating ? "Create invoice" : payments ? "Payments & refunds" : "Invoices"}
         guidance={
           creating
             ? {
@@ -262,12 +281,29 @@ export default function InvoicingPage() {
                 startHint:
                   "Choose the billing customer, add line items and terms, then prepare the invoice preview below.",
               }
-            : undefined
+            : payments
+              ? {
+                  description:
+                    "Inspect payment receipts, review a refund and export selected records.",
+                  startHint:
+                    "Find the payment you need, then inspect its receipt or review the available refund.",
+                  steps: [
+                    "Filter the loaded payments by customer, status or date.",
+                    "Choose the refund amount and reason, then approve the exact operation.",
+                    "Check Recent billing actions for the recorded result or request a current provider check.",
+                  ],
+                  savedOutcome:
+                    "Approved refunds retain their original provider result. A pending refund needs a current check before you treat it as complete.",
+                  guideHref: "/docs/plugins/stripe-invoicing#review-a-payment-or-refund",
+                }
+              : undefined
         }
         subtitle={
           creating
             ? "Draft creation and sending require separate approvals."
-            : "Find customer invoices, track payments, and create a new invoice."
+            : payments
+              ? "Review payment evidence and manage refunds from your workspace."
+              : "Find customer invoices, track payments, and create a new invoice."
         }
         actions={
           creating ? (
@@ -283,35 +319,17 @@ export default function InvoicingPage() {
         }
       />
       <DemoBusinessNotice />
-      {!creating && (
-        <nav aria-label="Invoice sections" className="flex flex-wrap gap-2">
-          <AdminLink
-            className={button}
-            href="/admin/invoicing"
-            aria-current={!creating ? "page" : undefined}
-          >
-            All invoices
-          </AdminLink>
-          <AdminLink
-            className={button}
-            href="/admin/invoicing?view=create"
-            aria-current={creating ? "page" : undefined}
-          >
-            Create invoice
-          </AdminLink>
-          <AdminLink className={button} href="/admin/collections">
-            Collections
-          </AdminLink>
-          <AdminLink className={button} href="/admin/subscriptions">
-            Subscriptions
-          </AdminLink>
-        </nav>
-      )}
-      {!creating && (
-        <div id="invoice-list">
-          <InvoiceIndex enabled={connected || Boolean(demo)} />
-        </div>
-      )}
+      {!creating && <BillingNavigation active={payments ? "payments" : "invoices"} />}
+      {!creating &&
+        providers.data &&
+        (payments ? (
+          <PaymentIndex enabled={connected} connectionKey={connectionKey} />
+        ) : (
+          <div id="invoice-list">
+            <InvoiceIndex enabled={connected} connectionKey={connectionKey} />
+          </div>
+        ))}
+      {!creating && <BillingActivity />}
       <>
         {(error || providers.error || billing.error) && (
           <div
@@ -334,16 +352,17 @@ export default function InvoicingPage() {
           <p role="status" className="admin-copy">
             Checking your Stripe connection…
           </p>
-        ) : !connected ? (
+        ) : providers.error && !providers.data ? null : !connected ? (
           <AdminSurface padding="lg">
             <div className="flex items-start gap-3">
               <ReceiptText className="mt-1 size-6 shrink-0" aria-hidden="true" />
               <div>
                 <h2 className="text-lg font-semibold">Connect your Stripe account</h2>
                 <p className="admin-copy mt-2 max-w-2xl text-sm leading-6">
-                  Use a restricted key with account, customer, and invoice read access, plus invoice
-                  write access. The key stays encrypted in this workspace. Start with a test key to
-                  exercise the full workflow without sending customer emails.
+                  Use a restricted key with account, customer, invoice, payment and refund read
+                  access. Enable customer, invoice and refund writes for the actions you need. The
+                  key stays encrypted in this workspace. Verify the workflow in test mode before
+                  using live payments.
                 </p>
               </div>
             </div>
@@ -597,12 +616,22 @@ export default function InvoicingPage() {
                         </select>
                       </label>
                     </div>
-                    {contactId && !matchingCustomers.length && (
-                      <p className="admin-copy text-sm">
-                        No Stripe customer matches this CRM billing email. Add or correct the
-                        customer in Stripe, then refresh. CRM and Stripe emails must match.
-                      </p>
-                    )}
+                    {contactId &&
+                      !billing.isFetching &&
+                      !billing.error &&
+                      !matchingCustomers.length && (
+                        <div className="space-y-3 rounded-xl bg-[var(--admin-surface-subtle)] p-4">
+                          <p className="admin-copy text-sm">
+                            Create a billing customer using this contact’s name and email, then
+                            select it above. Customer setup does not take a payment.
+                          </p>
+                          <BillingActionControl
+                            key={contactId}
+                            label="Create billing customer"
+                            intent={{ operation: "create_customer", contactId }}
+                          />
+                        </div>
+                      )}
                     {billing.data?.truncated && (
                       <p className="admin-copy text-xs">
                         Refine the customer name search if needed: up to 100 CRM matches are shown.

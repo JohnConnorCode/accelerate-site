@@ -379,6 +379,26 @@
       "module": "core-contacts"
     },
     {
+      "tool": "get_ai_cost_controls",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "get_architect_blueprints",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "preview_architect_patch",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "propose_architect_patch",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "simulate_architect_blueprint",
+      "module": "core-intelligence"
+    },
+    {
       "tool": "search_knowledge_base",
       "module": "core-intelligence"
     },
@@ -784,6 +804,22 @@
     },
     {
       "tool": "propose_stripe_invoicing",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "get_billing_action",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "get_billing_records",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "preview_billing_change",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "propose_billing_change",
       "module": "stripe-invoicing"
     },
     {

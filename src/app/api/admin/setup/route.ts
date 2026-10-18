@@ -606,17 +606,13 @@ export async function GET() {
       group: "ai",
       label: "OpenRouter intelligence gateway",
       description: openRouterReady
-        ? `All AI workflows use the ${openRouterCredential?.source === "tenant" ? "encrypted workspace-owned" : "bootstrap platform-managed"} OpenRouter key${process.env.OPENROUTER_MODEL ? ` with ${process.env.OPENROUTER_MODEL}` : ` with ${DEFAULT_OPENROUTER_MODEL} as the default model`}${process.env.OPENROUTER_FALLBACK_MODEL ? ` and ${process.env.OPENROUTER_FALLBACK_MODEL} as the configured fallback model` : " with no model fallback override"}.`
+        ? `All AI workflows use the ${openRouterCredential?.source === "tenant" ? "encrypted workspace-owned" : "bootstrap platform-managed"} OpenRouter key${process.env.OPENROUTER_MODEL ? ` with ${process.env.OPENROUTER_MODEL}` : ` with ${DEFAULT_OPENROUTER_MODEL} as the default model`}. Cost controls must permit each request; model routing stays within its verified price ceiling.`
         : "Add and verify this workspace's OpenRouter API key in Integrations.",
       accomplishes:
         "Runs contact cleanup, Revenue Copilot, website chat, plan generation, insights, briefs, and drafts through one governed provider gateway.",
       status: openRouterReady ? "ready" : "action",
       required: false,
-      keys: [
-        "Tenant OpenRouter connection",
-        "OPENROUTER_MODEL (optional)",
-        "OPENROUTER_FALLBACK_MODEL (optional)",
-      ],
+      keys: ["Tenant OpenRouter connection", "OPENROUTER_MODEL (optional)"],
       nextRun: setupNextRun("config"),
       action: {
         label: openRouterReady ? "Open AI Workspace" : "Configure OpenRouter",

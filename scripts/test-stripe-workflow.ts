@@ -1,3 +1,4 @@
+import { enableAiSpendFixture, fixtureAiPricing } from "./lib/ai-spend-fixture";
 import { projectCollectionObservation } from "../src/lib/revenue-os/collections";
 import { writeJourneyEvidence } from "./lib/reference-journey-evidence";
 import { formatInvoiceAmount } from "../src/lib/revenue-os/stripe-contract";
@@ -82,7 +83,7 @@ async function main() {
     ],
   });
   mem.idFactory = (sequence) => `aaaaaaaa-aaaa-4aaa-8aaa-${String(sequence).padStart(12, "0")}`;
-  const db = bindTenantDatabase(mem.client, tenantId, true);
+  const db = bindTenantDatabase(enableAiSpendFixture(mem, tenantId).client, tenantId, true);
   const originalFetch = globalThis.fetch;
   let invoice: Record<string, unknown> | null = null,
     creates = 0,
@@ -100,6 +101,8 @@ async function main() {
     livemode: false,
   };
   globalThis.fetch = async (url, init) => {
+    const pricing = fixtureAiPricing(url);
+    if (pricing) return pricing;
     providerCalls++;
     const parsed = new URL(String(url));
     if (parsed.origin === "https://openrouter.ai") {

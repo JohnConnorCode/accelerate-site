@@ -1,6 +1,7 @@
 "use client";
 
 import { adminPageName } from "@/lib/admin/navigation";
+import { formatMoney } from "@/lib/admin/format";
 
 import { FormEvent, useCallback, useState } from "react";
 import {
@@ -86,12 +87,6 @@ const motionLabels: Record<string, string> = {
   dormant_customer: "Dormant customers",
   lapsed_client: "Lapsed clients",
 };
-const money = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value || 0);
 
 export default function RecoveryPage() {
   const query = useAdminQuery<Data>(["admin", "recovery"], "/api/admin/revenue-os/recovery");
@@ -191,7 +186,9 @@ export default function RecoveryPage() {
         },
         {
           label: "Recovered",
-          value: money(data.playbooks.reduce((sum, item) => sum + item.metrics.wonRevenue, 0)),
+          value: formatMoney(
+            data.playbooks.reduce((sum, item) => sum + item.metrics.wonRevenue, 0),
+          ),
           Icon: DollarSign,
         },
       ]
@@ -408,7 +405,7 @@ export default function RecoveryPage() {
                               <span className="admin-copy ml-1 text-[10px]">excluded</span>
                             </p>
                             <p className="font-mono text-sm font-semibold tabular-nums">
-                              {money(audiencePreview.totals.estimatedValue)}
+                              {formatMoney(audiencePreview.totals.estimatedValue)}
                               <span className="admin-copy ml-1 text-[10px]">est.</span>
                             </p>
                           </div>

@@ -117,7 +117,7 @@ complete wake-up path.
 
 Approval is bound to the exact selected and edited row digest. Execution claims that snapshot atomically, calls the canonical identity/import service, fills only blank fields on exact existing contacts, and records a terminal result per row plus batch events, activity, and audit provenance. It never creates an opportunity, task, campaign membership, or message. A partial batch retains failed rows for a safe replay; already imported rows resolve through the source-row idempotency key.
 
-Apply `migrations/20260816-contact-importer.sql`, then connect and verify the workspace's OpenRouter key in Integrations. The key is stored in the tenant's authenticated encrypted provider envelope; it is never stored in import tables or returned to the browser. `OPENROUTER_MODEL` is optional and defaults to `deepseek/deepseek-v4.1-flash`; `OPENROUTER_FALLBACK_MODEL` may name one OpenRouter-routed model fallback, and workflow-specific model variables remain platform-side routing controls. The full uploaded source is not logged.
+Apply `migrations/20260816-contact-importer.sql`, then connect and verify the workspace's OpenRouter key in Integrations. The key is stored in the tenant's authenticated encrypted provider envelope; it is never stored in import tables or returned to the browser. `OPENROUTER_MODEL` is optional and defaults to `deepseek/deepseek-v4.1-flash`; cost controls pin each request to one evaluated model and its verified price ceiling, and workflow-specific model variables remain platform-side routing controls. The full uploaded source is not logged.
 
 ## Email Studio publishing
 
@@ -285,7 +285,7 @@ not installed integrations and not permission to connect a new external system.
 
 Each workspace admin connects a dedicated OpenRouter API key in Integrations. The server verifies it with OpenRouter's current-key metadata endpoint without generating tokens, encrypts it with tenant/provider/field authentication, increments its credential version on rotation, and never returns plaintext. AI calls resolve that tenant connection immediately before provider traffic, so client usage is billed to the client's OpenRouter account. Client tenants fail closed when their key is missing, revoked, invalid, or unreadable. Only the Accelerate bootstrap tenant may use the temporary `OPENROUTER_API_KEY` platform fallback, and an explicit disconnect disables that fallback.
 
-Create a separate OpenRouter key per tenant and set a provider-side monthly limit. `OPENROUTER_MODEL` is optional because the gateway defaults to `deepseek/deepseek-v4.1-flash`; `OPENROUTER_FALLBACK_MODEL` selects a model fallback, not a credential fallback; and workflow-specific `OPENROUTER_*_MODEL` variables can tune a workflow without adding another provider SDK. The same tenant key serves Contact Import, Revenue Copilot, website chat, plan generation, content briefs, proposals, and the responder. Email sends, Gmail replies, pipeline movements, task creation, and campaign activation retain their normal confirmation and policy boundaries.
+Create a separate OpenRouter key per tenant and set a provider-side monthly limit. `OPENROUTER_MODEL` is optional because the gateway defaults to `deepseek/deepseek-v4.1-flash`; cost controls prevent automatic model or provider fallback outside the admitted request; workflow-specific `OPENROUTER_*_MODEL` variables can tune a workflow without adding another provider SDK. The same tenant key serves Contact Import, Revenue Copilot, website chat, plan generation, content briefs, proposals, and the responder. Email sends, Gmail replies, pipeline movements, task creation, and campaign activation retain their normal confirmation and policy boundaries.
 
 ## Approval queue triage threshold
 
@@ -360,3 +360,9 @@ Source integration and controlled PostgreSQL proof do not establish this live
 rollout. If the deployed application still relies on the temporary grants, retain
 that current state until the compatible release; do not rewrite recorded history
 or broaden the RPC grants to make a failing save appear successful.
+
+Apply `migrations/20261018151805_blueprint_draft_version_atomic.sql` before enabling in-chat Blueprint draft saves. The ordered upgrade adds atomic version, approval-reset and audit persistence with request-based recovery. The existing Blueprint document format stays compatible; current approved versions require a fresh approval after a new draft is saved. `npm run test:architect-review` exercises the service and an owned PostgreSQL fixture without hosted data.
+
+### Workspace AI cost controls
+
+Apply `migrations/20261018173749_workspace_ai_spend_controls.sql` before deploying the cost-control gateway. Open AI Workspace → Cost controls after deployment. Existing and new workspaces start with model requests and recurring coworker work paused until an administrator explicitly saves limits and enables them. Health snapshots keep running without inference. Provider billing is separate; connect the intended workspace-owned key and verify its billing account before adding credits. This migration does not change keys, purchase credits or enable auto-top-up.

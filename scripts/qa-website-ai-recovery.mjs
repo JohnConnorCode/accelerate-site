@@ -274,6 +274,10 @@ try {
       await page.getByText("40 of 40 sections", { exact: true }).waitFor();
       await page.getByRole("button", { name: "Save draft", exact: true }).click();
       await page.getByText("Private revision 2 saved.", { exact: false }).waitFor();
+      // On phones the editor intentionally shows one pane at a time. Open the
+      // preview through its visible control before asserting its rendered content.
+      const previewPage = page.getByRole("button", { name: "Preview page", exact: true });
+      if (await previewPage.isVisible()) await previewPage.click();
       const draftFrame = page.locator('.admin-route-frame iframe[title="Live website preview"]');
       assert.equal(
         await draftFrame.evaluate((element) => getComputedStyle(element).visibility),

@@ -276,6 +276,8 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:blueprint-version:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:ai-spend:postgres
           npm run test:content-calendar-actions
           PATH="$(pg_config --bindir):$PATH" npm run test:content-calendar-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:event-ticketing:postgres
@@ -463,6 +465,7 @@ jobs:
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-workspace-operations-server.log; exit 1; fi
           npm run resources:run -- npm run qa:workspace-operations
+          npm run resources:run -- node scripts/qa-architect-review.mjs
       - name: Retain operating setup browser evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         uses: actions/upload-artifact@v7
@@ -470,6 +473,7 @@ jobs:
           name: workspace-operations-evidence
           path: |
             /tmp/accelerate-workspace-operations-qa/
+            /tmp/accelerate-architect-review/
             /tmp/accelerate-workspace-operations-server.log
           if-no-files-found: ignore
       - name: Verify source-authority browser recovery
@@ -526,6 +530,7 @@ jobs:
           mobile_status=0
           loading_status=0
           core_release_status=0
+          node scripts/test-hero-packet-observer.mjs || observer_status=$?
           node scripts/test-hero-motion-observer.mjs || observer_status=$?
           node scripts/qa-home-hero-timing.mjs || hero_status=$?
           node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
@@ -710,6 +715,7 @@ jobs:
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
             if [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
             node scripts/qa-conversational-agent.mjs
+            node scripts/qa-ai-cost-controls.mjs
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
             node scripts/qa-invoice-navigation.mjs
@@ -843,6 +849,7 @@ jobs:
             /tmp/accelerate-work-board-qa/
             /tmp/accelerate-booking-mode/
             /tmp/accelerate-conversational-agent/
+            /tmp/accelerate-ai-cost-controls/
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
             /tmp/accelerate-client-interactions/

@@ -1,3 +1,4 @@
+import { enableAiSpendFixture, fixtureAiPricing } from "./lib/ai-spend-fixture";
 import assert from "node:assert/strict";
 import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
@@ -80,7 +81,11 @@ function fixture() {
     policy: null,
     status_reason: "fixture",
   }));
-  return { db, wi, client: bindTenantDatabase(db.client as never, tenant, true) };
+  return {
+    db,
+    wi,
+    client: bindTenantDatabase(enableAiSpendFixture(db, tenant).client as never, tenant, true),
+  };
 }
 
 /** Exercises the registered handler and real AI loop with a fully intercepted transport. */
@@ -104,6 +109,8 @@ export async function verifySalesQualificationHandoff() {
     process.env.OPENROUTER_AGENT_MODEL = "fixture-model";
     process.env.OPENROUTER_API_KEY = "fixture-placeholder";
     globalThis.fetch = async (url) => {
+      const pricing = fixtureAiPricing(url);
+      if (pricing) return pricing;
       assert.equal(
         String(url),
         "https://openrouter.ai/api/v1/chat/completions",

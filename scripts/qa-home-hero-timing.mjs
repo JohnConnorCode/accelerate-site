@@ -1,3 +1,4 @@
+import { armPacketObservation } from "./lib/hero-packet-observer.mjs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { chromium, webkit } from "playwright";
 import sharp from "sharp";
@@ -127,37 +128,6 @@ async function observeRest(artwork, label) {
     beforeState,
     afterState,
   };
-}
-
-function armPacketObservation(index) {
-  window.__heroPacketObservation = new Promise((resolve) => {
-    const control = document.querySelectorAll(".home-system-input")[index];
-    const circle = document.querySelectorAll(".home-system-signal")[index];
-    let deadline = performance.now() + 4000;
-    let activated = false;
-    let started = null;
-    const points = [];
-    const activate = () => {
-      activated = true;
-      deadline = performance.now() + 4000;
-    };
-    // Pointer, native touch and keyboard activation all dispatch click. Begin
-    // with that real event, then follow one incoming signal from this workflow.
-    // Never spend the observation window on the previous workflow's tail.
-    control.addEventListener("click", activate, { once: true });
-    const sample = (now) => {
-      if (activated && circle.getAttribute("opacity") === "1") {
-        started ??= now;
-        const box = circle.getBoundingClientRect();
-        points.push({ time: now, x: box.x + box.width / 2, y: box.y + box.height / 2 });
-      }
-      if (now >= deadline || (started !== null && now - started >= 900)) {
-        control.removeEventListener("click", activate);
-        resolve(points);
-      } else requestAnimationFrame(sample);
-    };
-    requestAnimationFrame(sample);
-  });
 }
 
 async function exerciseDockDismissal(page, label) {

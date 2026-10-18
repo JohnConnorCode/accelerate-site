@@ -11,6 +11,20 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "blueprint_draft_change",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Save a newly reviewed draft version to restore prior content. Versions and audit history remain; workspace application requires its separate approval.",
+  },
+  {
+    actionType: "billing_change",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale:
+      "Refunds and invoice cancellation cannot be undone. Billing profiles and provider receipts are retained. Exact human approval is always required.",
+  },
+  {
     actionType: "event_ticketing_change",
     impact: "external_action",
     reversibility: "compensable",

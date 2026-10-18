@@ -4,6 +4,7 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { motion, useReducedMotion } from "framer-motion";
 import { DollarSign, Users, TrendingDown, BarChart3 } from "lucide-react";
+import { BillingNavigation } from "@/components/admin/BillingNavigation";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
@@ -11,6 +12,7 @@ import { AdminSurface } from "@/components/admin/AdminSurface";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { MRRChart } from "@/components/admin/MRRChart";
 import { StatCard } from "@/components/admin/StatCard";
+import { formatMoney, formatRate } from "@/lib/admin/format";
 
 interface RevenueData {
   totalMRR: number;
@@ -50,6 +52,7 @@ export default function RevenuePage() {
         title={adminPageName("revenue")}
         subtitle="Review active client contracts and recorded opportunity values."
       />
+      <BillingNavigation active="revenue" />
       <AdminReadBody
         loading={loading}
         hasData={Boolean(data)}
@@ -65,24 +68,23 @@ export default function RevenuePage() {
             <div className="admin-grid admin-grid--metrics">
               <StatCard
                 label="Monthly Recurring"
-                value={data.totalMRR}
-                change={`$${data.totalMRR.toLocaleString()}/mo`}
+                value={formatMoney(data.totalMRR)}
+                note="Monthly value of active contracts"
                 icon={DollarSign}
                 index={0}
               />
               <StatCard label="Active Clients" value={data.activeCount} icon={Users} index={1} />
               <StatCard
                 label="Avg Client Value"
-                value={data.avgClientValue}
-                change={`$${data.avgClientValue.toLocaleString()}/mo`}
+                value={formatMoney(data.avgClientValue)}
+                note="Average monthly value per active client"
                 icon={BarChart3}
                 index={2}
               />
               <StatCard
                 label="Churned Share"
-                value={data.churnRate}
-                change={`${data.churnRate}%`}
-                trend={data.churnRate > 10 ? "down" : "neutral"}
+                value={formatRate(data.churnRate)}
+                note="Share of recorded client records marked churned"
                 icon={TrendingDown}
                 index={3}
               />
@@ -95,9 +97,9 @@ export default function RevenuePage() {
 
             <AdminSurface>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
+                <h2 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
                   Opportunity values
-                </h3>
+                </h2>
                 <span className="admin-copy text-xs">
                   {data.canonical.openOpportunities} open of {data.canonical.opportunityCount}{" "}
                   opportunities
@@ -137,9 +139,9 @@ export default function RevenuePage() {
             <div className="admin-grid admin-grid--panels">
               {/* Active Monthly Value by Industry */}
               <AdminSurface>
-                <h3 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
+                <h2 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
                   Active Monthly Value by Industry
-                </h3>
+                </h2>
                 {data.industryBreakdown.length === 0 ? (
                   <p className="admin-copy text-xs">No active client contracts yet</p>
                 ) : (
@@ -174,9 +176,9 @@ export default function RevenuePage() {
 
               {/* Active Monthly Value by Client */}
               <AdminSurface>
-                <h3 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
+                <h2 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
                   Active Monthly Value by Client
-                </h3>
+                </h2>
                 {data.byClient.length === 0 ? (
                   <p className="admin-copy text-xs">No active client contracts yet</p>
                 ) : (

@@ -2,6 +2,7 @@
 import { WORKSHOP_EVENT } from "@/content/workshops";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ZodError } from "zod";
+import { BillingNavigation } from "@/components/admin/BillingNavigation";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import {
@@ -231,6 +232,7 @@ export default function EventsPage() {
           </button>
         }
       />
+      <BillingNavigation active="events" />
       {error && (
         <div className="admin-notice admin-notice--error" role="alert">
           {error}{" "}

@@ -214,6 +214,26 @@ export async function callCollectionHostRpc(
 }
 
 const MODEL_BUDGET_RPCS = ["reserve_model_call", "complete_model_call"] as const;
+export async function callAiSpendRpc(
+  database: SupabaseClient,
+  operation:
+    | "save_workspace_ai_controls"
+    | "reserve_workspace_ai_call"
+    | "finish_workspace_ai_call"
+    | "read_workspace_ai_usage",
+  args: Record<string, unknown>,
+) {
+  if (
+    ![
+      "save_workspace_ai_controls",
+      "reserve_workspace_ai_call",
+      "finish_workspace_ai_call",
+      "read_workspace_ai_usage",
+    ].includes(operation)
+  )
+    throw new Error("AI cost operation is not allowed");
+  return callVerifiedHostRpc(database, operation, args);
+}
 /** Event edits use the existing fresh-membership bridge; public order RPCs
  * remain on their explicitly scoped system database. */
 export async function callTicketEventRpc(
@@ -393,6 +413,14 @@ export async function callSourceAuthorityRpc(
     ...args,
     p_actor_id: context.user.id,
   });
+}
+
+/** Versioned Blueprint saves share the existing fresh-membership host boundary. */
+export async function callBlueprintVersionRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+) {
+  return callVerifiedHostRpc(database, "save_workspace_blueprint_version", args);
 }
 
 async function callVerifiedHostRpc(

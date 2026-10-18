@@ -269,7 +269,7 @@ async function main() {
       moduleDef.aiToolNames = originalNames;
     }
   }
-  assert.equal(pluginTools, 9);
+  assert.equal(pluginTools, 13);
   const invoiceModule = REVENUE_OS_MODULES.find((module) => module.id === "stripe-invoicing")!;
   assert.throws(
     () => pluginToolDeclarations({ ...invoiceModule, workflow: { inputContract: "constructor" } }),
@@ -290,6 +290,21 @@ async function main() {
   };
   const uuid = "11111111-1111-4111-8111-111111111111";
   const invalidInputs: Record<string, Record<string, unknown>> = {
+    get_billing_records: { kind: "payouts" },
+    get_billing_action: { actionId: "invalid" },
+    preview_billing_change: {
+      command: {
+        operation: "refund_payment",
+        chargeId: "ch_example",
+        amount: -1,
+        reason: "duplicate",
+        requestId: uuid,
+      },
+    },
+    propose_billing_change: {
+      command: { operation: "create_customer", contactId: uuid, requestId: uuid },
+      digest: "invalid",
+    },
     prepare_client_onboarding: { opportunityId: "x".repeat(36), tasks: [] },
     propose_client_onboarding: {
       input: { opportunityId: uuid, tasks: [] },
@@ -737,7 +752,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v32");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v34");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.

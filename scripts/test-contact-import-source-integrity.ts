@@ -1,3 +1,4 @@
+import { enableAiSpendFixture, fixtureAiPricing } from "./lib/ai-spend-fixture";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -212,6 +213,8 @@ let modelContacts = [
   aiContact(0, "Jane Doe", "jane@example.test"),
 ];
 globalThis.fetch = (async (url: string | URL | Request) => {
+  const pricing = fixtureAiPricing(url);
+  if (pricing) return pricing;
   assert.match(String(url), /openrouter\.ai/);
   providerCalls++;
   return Response.json({
@@ -229,7 +232,11 @@ globalThis.fetch = (async (url: string | URL | Request) => {
 
 async function main() {
   const memory = new MemorySupabase({ tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }] });
-  const database = bindTenantDatabase(memory.client, ACCELERATE_TENANT_ID, true) as SupabaseClient;
+  const database = bindTenantDatabase(
+    enableAiSpendFixture(memory, ACCELERATE_TENANT_ID).client,
+    ACCELERATE_TENANT_ID,
+    true,
+  ) as SupabaseClient;
   const sourceText =
     "fullName,email\nJane Doe,jane@example.test\nMissing Person,missing@example.test\nSam Lee,sam@example.test";
   const input = { sourceText, filename: "contacts.csv", actorEmail: "owner@example.test" };

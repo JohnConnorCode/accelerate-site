@@ -26,6 +26,7 @@ export interface AdminAIConversation {
   id: string;
   title: string;
   lastMessageAt: string;
+  blueprintDraftId?: string | null;
 }
 
 export interface AdminAISource {
@@ -76,9 +77,10 @@ interface AdminAIContextValue {
   draft: string;
   setDraft: (draft: string) => void;
   purpose: AdminAIPurpose;
-  setPurpose: (purpose: AdminAIPurpose) => void;
+  setPurpose: (purpose: AdminAIPurpose) => Promise<void>;
   conversations: AdminAIConversation[];
   activeConversationId: string | null;
+  blueprintDraftId: string | null;
   messages: AdminAIMessage[];
   sources: AdminAISource[];
   connectedContext: Array<{
@@ -107,7 +109,7 @@ interface AdminAIContextValue {
   error: string;
   model: string;
   pack: string;
-  refreshConversations: () => Promise<void>;
+  refreshConversations: () => Promise<AdminAIConversation[]>;
   selectConversation: (id: string | null) => Promise<void>;
   startNew: () => void;
   archiveActive: () => Promise<void>;
@@ -165,6 +167,9 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const purposeRef = useRef<AdminAIPurpose>("command");
   const [conversations, setConversations] = useState<AdminAIConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [blueprintDraftId, setBlueprintDraftId] = useState<string | null>(null);
+  const historyGeneration = useRef(0);
+  const reviewGeneration = useRef(0);
   const [messages, setMessages] = useState<AdminAIMessage[]>([]);
   const [sources, setSources] = useState<AdminAISource[]>([]);
   const [connectedContext, setConnectedContext] = useState<
@@ -185,13 +190,9 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const [pack, setPack] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
-  const setPurpose = useCallback((next: AdminAIPurpose) => {
-    purposeRef.current = next;
-    setPurposeState(next);
-  }, []);
-
   const refreshConversations = useCallback(async () => {
-    const query = new URLSearchParams({ limit: "30", purpose: purposeRef.current });
+    const purpose = purposeRef.current;
+    const query = new URLSearchParams({ limit: "30", purpose });
     const response = await fetch(`/api/admin/revenue-os/ai/conversations?${query}`, {
       cache: "no-store",
     });
@@ -200,20 +201,31 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       conversations?: AdminAIConversation[];
       error?: string;
     } | null;
+    if (purpose !== purposeRef.current) return [];
     if (!response.ok) {
       setSchemaReady(payload?.schemaReady ?? false);
       throw new Error(payload?.error || "Could not load AI conversations");
     }
     setSchemaReady(true);
     setConversations(payload?.conversations ?? []);
+    return payload?.conversations ?? [];
   }, []);
 
   const selectConversation = useCallback(async (id: string | null) => {
+    const generation = ++historyGeneration.current;
+    setBlueprintDraftId(null);
     abortRef.current?.abort();
+    setRunning(false);
+    setLoadingHistory(false);
+    setMessages([]);
+    setSources([]);
+    setConnectedContext([]);
+    setAssumptions([]);
     setActiveConversationId(id);
     setTools([]);
     setProposals([]);
     setReviewedAction(null);
+    setReviewing(false);
     setWorkProgress([]);
     setError("");
     if (!id) {
@@ -237,6 +249,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         { cache: "no-store" },
       );
       const payload = (await response.json()) as {
+        conversation?: { blueprintDraftId?: string | null };
         messages?: AdminAIMessage[];
         sources?: AdminAISource[];
         connectedContext?: AdminAIContextValue["connectedContext"];
@@ -244,6 +257,8 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         error?: string;
       };
       if (!response.ok) throw new Error(payload.error || "Could not load AI conversation");
+      if (generation !== historyGeneration.current) return;
+      setBlueprintDraftId(payload.conversation?.blueprintDraftId ?? null);
       setMessages(payload.messages ?? []);
       const ids = [
         ...new Set(
@@ -261,6 +276,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
             ActionRow | undefined;
         }),
       );
+      if (generation !== historyGeneration.current) return;
       setProposals(
         restored
           .filter((row): row is ActionRow => Boolean(row) && row?.status === "pending")
@@ -301,11 +317,52 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       setAssumptions(payload.assumptions ?? []);
       setSchemaReady(true);
     } catch (issue) {
-      setError(issue instanceof Error ? issue.message : "Could not load AI conversation");
+      if (generation === historyGeneration.current)
+        setError(issue instanceof Error ? issue.message : "Could not load AI conversation");
     } finally {
-      setLoadingHistory(false);
+      if (generation === historyGeneration.current) setLoadingHistory(false);
     }
   }, []);
+
+  const setPurpose = useCallback(
+    async (next: AdminAIPurpose) => {
+      if (purposeRef.current === next) return;
+      abortRef.current?.abort();
+      ++historyGeneration.current;
+      purposeRef.current = next;
+      setPurposeState(next);
+      setActiveConversationId(null);
+      setConversations([]);
+      setBlueprintDraftId(null);
+      setMessages([]);
+      setSources([]);
+      setConnectedContext([]);
+      setAssumptions([]);
+      setTools([]);
+      setProposals([]);
+      setReviewedAction(null);
+      setReviewing(false);
+      setWorkProgress([]);
+      setRunning(false);
+      setModel("");
+      setPack("");
+      setLoadingHistory(false);
+      setError("");
+      try {
+        const available = await refreshConversations();
+        if (purposeRef.current !== next) return;
+        const stored = window.localStorage.getItem(
+          next === "architect" ? ARCHITECT_KEY : ACTIVE_KEY,
+        );
+        if (stored && available.some((item) => item.id === stored))
+          await selectConversation(stored);
+      } catch (issue) {
+        if (purposeRef.current === next)
+          setError(issue instanceof Error ? issue.message : "AI history is unavailable");
+      }
+    },
+    [refreshConversations, selectConversation],
+  );
 
   useEffect(() => {
     const show = (event: Event) => {
@@ -331,12 +388,14 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const initialPurpose = purposeRef.current;
     void refreshConversations()
-      .then(() => {
+      .then((available) => {
+        if (purposeRef.current !== initialPurpose) return;
         const stored = window.localStorage.getItem(
           purposeRef.current === "architect" ? ARCHITECT_KEY : ACTIVE_KEY,
         );
-        if (stored) void selectConversation(stored);
+        if (stored && available.some((item) => item.id === stored)) void selectConversation(stored);
       })
       .catch((issue) =>
         setError(issue instanceof Error ? issue.message : "AI history is unavailable"),
@@ -395,8 +454,15 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   );
 
   const reviewProposal = useCallback(async (id: string | null) => {
+    const generation = historyGeneration.current;
+    const request = ++reviewGeneration.current;
+    const current = () =>
+      generation === historyGeneration.current && request === reviewGeneration.current;
     setReviewedAction(null);
-    if (!id) return;
+    if (!id) {
+      setReviewing(false);
+      return;
+    }
     setError("");
     setReviewing(true);
     try {
@@ -404,6 +470,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         cache: "no-store",
       });
       const payload = await response.json();
+      if (!current()) return;
       const action = payload.actions?.find((item: ActionRow) => item.id === id);
       if (!response.ok || !action || action.status !== "pending")
         throw new Error(
@@ -412,15 +479,17 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         );
       setReviewedAction(action);
     } catch (issue) {
-      setError(issue instanceof Error ? issue.message : "Could not load the exact proposal");
+      if (current())
+        setError(issue instanceof Error ? issue.message : "Could not load the exact proposal");
     } finally {
-      setReviewing(false);
+      if (current()) setReviewing(false);
     }
   }, []);
   const decideProposal = useCallback(
     async (decision: "approve" | "reject") => {
       if (!reviewedAction || decisionLock.current) return;
       decisionLock.current = true;
+      const generation = historyGeneration.current;
       setReviewing(true);
       setError("");
       try {
@@ -431,6 +500,8 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         });
         const receipt = await response.json();
         if (!response.ok) throw new Error(receipt.error || "The decision could not be completed");
+        window.dispatchEvent(new Event("admin:refresh"));
+        if (generation !== historyGeneration.current) return;
         const result = receipt.result;
         const incomplete =
           result?.complete === false ||
@@ -451,12 +522,12 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         ]);
         setProposals((current) => current.filter((item) => item.id !== reviewedAction.id));
         setReviewedAction(null);
-        window.dispatchEvent(new Event("admin:refresh"));
       } catch (issue) {
-        setError(issue instanceof Error ? issue.message : "Could not apply your decision");
+        if (generation === historyGeneration.current)
+          setError(issue instanceof Error ? issue.message : "Could not apply your decision");
       } finally {
         decisionLock.current = false;
-        setReviewing(false);
+        if (generation === historyGeneration.current) setReviewing(false);
       }
     },
     [reviewedAction],
@@ -505,6 +576,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       setRunning(true);
       setModel("");
       setPack("");
+      const generation = historyGeneration.current;
       const controller = new AbortController();
       abortRef.current = controller;
       let streamed = "";
@@ -522,6 +594,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
           signal: controller.signal,
         });
         await readEventStream(response, (event) => {
+          if (generation !== historyGeneration.current || controller.signal.aborted) return;
           if (event.type === "conversation") {
             setActiveConversationId(event.conversationId);
             window.localStorage.setItem(
@@ -600,8 +673,9 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
           }
           if (event.type === "error") setError(event.error);
         });
-        await refreshConversations();
+        if (generation === historyGeneration.current) await refreshConversations();
       } catch (issue) {
+        if (generation !== historyGeneration.current) return;
         if (issue instanceof DOMException && issue.name === "AbortError") {
           setMessages((current) =>
             current.map((item) =>
@@ -622,8 +696,10 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
           );
         }
       } finally {
-        if (abortRef.current === controller) abortRef.current = null;
-        setRunning(false);
+        if (abortRef.current === controller) {
+          abortRef.current = null;
+          setRunning(false);
+        }
       }
     },
     [
@@ -660,6 +736,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       throw new Error(createdPayload?.error || "Could not open Architect session");
     const conversationId = createdPayload.conversation.id;
     setActiveConversationId(conversationId);
+    setBlueprintDraftId(createdPayload.conversation.blueprintDraftId ?? null);
     window.localStorage.setItem(ARCHITECT_KEY, conversationId);
     await refreshConversations();
     return conversationId;
@@ -819,6 +896,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       setPurpose,
       conversations,
       activeConversationId,
+      blueprintDraftId,
       messages,
       sources,
       connectedContext,
@@ -857,6 +935,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       setPurpose,
       conversations,
       activeConversationId,
+      blueprintDraftId,
       messages,
       sources,
       connectedContext,

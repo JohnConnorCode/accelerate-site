@@ -31,7 +31,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
         { src: "/command-center-icon-192.png", sizes: "192x192", type: "image/png" },
         { src: "/command-center-icon-512.png", sizes: "512x512", type: "image/png" },
         {
-          src: "/command-center-icon-512.png",
+          src: "/command-center-icon-maskable-512.png",
           sizes: "512x512",
           type: "image/png",
           purpose: "maskable",
@@ -39,10 +39,30 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
         { src: "/apple-icon", sizes: "180x180", type: "image/png" },
       ],
       shortcuts: [
-        { name: "Today", short_name: "Today", url: "/workspace" },
-        { name: "Inbox", short_name: "Inbox", url: "/admin/inbox" },
-        { name: "Tasks", short_name: "Tasks", url: "/admin/work" },
-        { name: "Search", short_name: "Search", url: "/admin/today?open=search" },
+        {
+          name: "Today",
+          short_name: "Today",
+          url: "/workspace",
+          icons: [{ src: "/command-center-icon-96.png", sizes: "96x96", type: "image/png" }],
+        },
+        {
+          name: "Inbox",
+          short_name: "Inbox",
+          url: "/admin/inbox",
+          icons: [{ src: "/command-center-icon-96.png", sizes: "96x96", type: "image/png" }],
+        },
+        {
+          name: "Tasks",
+          short_name: "Tasks",
+          url: "/admin/work",
+          icons: [{ src: "/command-center-icon-96.png", sizes: "96x96", type: "image/png" }],
+        },
+        {
+          name: "Search",
+          short_name: "Search",
+          url: "/admin/today?open=search",
+          icons: [{ src: "/command-center-icon-96.png", sizes: "96x96", type: "image/png" }],
+        },
       ],
     };
   }

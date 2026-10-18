@@ -74,18 +74,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/demo/command-center", request.url), 308);
   }
 
-  const workspacePath =
-    request.nextUrl.pathname === "/workspace" ||
-    request.nextUrl.pathname.startsWith("/admin") ||
-    /^\/t\/[a-z0-9]+(?:-[a-z0-9]+)*\/admin(?:\/|$)/.test(request.nextUrl.pathname);
-  if (workspacePath && commandCenterOrigin) {
-    const appOrigin = new URL(commandCenterOrigin);
-    if (requestHost !== appOrigin.host) {
-      const destination = new URL(request.nextUrl.pathname + request.nextUrl.search, appOrigin);
-      return NextResponse.redirect(destination, 307);
-    }
-  }
-
   const demoMatch = request.nextUrl.pathname.match(
     /^\/demo\/command-center\/([a-z0-9-]+)(?:\/(.*))?$/,
   );
@@ -125,6 +113,18 @@ export async function proxy(request: NextRequest) {
     const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     return response;
+  }
+
+  const workspacePath =
+    request.nextUrl.pathname === "/workspace" ||
+    request.nextUrl.pathname.startsWith("/admin") ||
+    /^\/t\/[a-z0-9]+(?:-[a-z0-9]+)*\/admin(?:\/|$)/.test(request.nextUrl.pathname);
+  if (workspacePath && commandCenterOrigin) {
+    const appOrigin = new URL(commandCenterOrigin);
+    if (requestHost !== appOrigin.host) {
+      const destination = new URL(request.nextUrl.pathname + request.nextUrl.search, appOrigin);
+      return NextResponse.redirect(destination, 307);
+    }
   }
 
   const workspaceMatch = request.nextUrl.pathname.match(

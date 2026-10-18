@@ -485,12 +485,12 @@ assert.doesNotMatch(
 );
 assert.match(
   dialog,
-  /<AnimatePresence mode="sync">/,
+  /<AnimatePresence mode="sync"(?:\s[^>]*)?>/,
   "The shared dialog must animate an initially opened controlled surface",
 );
 assert.doesNotMatch(
   dialog,
-  /<AnimatePresence initial=\{false\}/,
+  /<AnimatePresence[^>]*initial=\{false\}/,
   "The shared dialog must not suppress entry when a caller opens on mount",
 );
 assert.match(

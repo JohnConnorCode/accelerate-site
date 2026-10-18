@@ -186,6 +186,7 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     pendingWork,
     failedWork,
     unresolvedMessages,
+    aiControlsResult,
   ] = await Promise.all([
     supabase
       .from("integration_connections")
@@ -225,6 +226,7 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
       .select("id", { count: "exact", head: true })
       .eq("direction", "outbound")
       .in("status", ["processing", "failed", "uncertain"]),
+    supabase.from("workspace_ai_controls").select("recurring_enabled").maybeSingle(),
   ]);
   const firstError = [
     integrationResult.error,
@@ -236,6 +238,7 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     pendingWork.error,
     failedWork.error,
     unresolvedMessages.error,
+    aiControlsResult.error,
   ].find(Boolean);
   if (firstError) throw new Error(firstError.message);
 
@@ -298,6 +301,8 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     );
     const anchor = lastSuccessAt ?? anchorMs(row.finished_at ?? row.claimed_at);
     const cadenceMs = cadenceMsForJob(String(row.job_key));
+    const paused =
+      row.job_key === "work-engine" && aiControlsResult.data?.recurring_enabled !== true;
     return {
       key: String(row.job_key),
       status: String(row.status),
@@ -306,9 +311,10 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
       error: row.error ?? null,
       stalled: isStalled(String(row.status), row.claimed_at ?? null),
       lastSuccessAt,
-      nextExpectedAt: nextExpectedFromAnchor(anchor, cadenceMs),
-      cadenceLabel:
-        String(row.job_key) === "system-health-snapshot"
+      nextExpectedAt: paused ? undefined : nextExpectedFromAnchor(anchor, cadenceMs),
+      cadenceLabel: paused
+        ? "paused in AI cost controls"
+        : String(row.job_key) === "system-health-snapshot"
           ? "every 15 minutes"
           : EXPECTED_CADENCE_LABELS.job,
       receiptHref: SETUP_OPERATIONS_HREF,

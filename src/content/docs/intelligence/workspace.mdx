@@ -1,16 +1,16 @@
 ---
 title: "Use the AI Workspace"
-description: "Ask a specific question, check the sources behind the answer, then inspect what ran."
-updated: "2026-10-08"
+description: "Ask business questions, inspect run evidence, and control AI costs and recurring work."
+updated: "2026-10-18"
 ---
 
 A question about the business often needs both an answer and a way to inspect its evidence. Open **AI Workspace** to ask, review record links and see the tools and results in run history. Use [Ask AI](/docs/command-center/ask) when you want to stay on your current screen.
 
 <DocsFigure
   src="/images/docs/intelligence/workspace.png"
-  alt="The AI Workspace in the fictional Northline Roofing workspace."
-  width={1440}
-  height={1000}
+  alt="The Ask view in the fictional Northline Roofing AI Workspace."
+  width={1088}
+  height={697}
   caption="The AI Workspace in the fictional Northline Roofing workspace. This is the real interface with fictional demo data."
 />
 
@@ -26,6 +26,26 @@ Read the returned record links and dates. If the answer lacks a needed source, a
 
 Ask for one bounded action, such as preparing a reply to a named conversation. Choose **Review** beneath the answer to inspect the exact recipient, content and changes in chat. Approve or reject there, or use [Approvals](/docs/command-center/approvals). After approval, inspect the execution result; approval alone does not establish that the operation succeeded.
 
+## Set AI costs and recurring work
+
+Open **AI Workspace → Cost controls** as a workspace administrator. Model requests and recurring coworker work start paused. Set a daily budget, monthly budget, maximum cost per request and maximum requests per day, then turn on the work you want and choose **Save AI controls**. A zero dollar budget permits only a model with verified zero pricing; requests still count toward the daily request limit.
+
+<DocsFigure
+  src="/images/docs/intelligence/cost-controls.png"
+  alt="AI cost controls with model requests and recurring work paused, and saved daily, monthly, per-request and request-count limits."
+  width={1024}
+  height={565}
+  caption="Saved cost controls in the fictional Northline Roofing workspace. Both switches are off; the limits are ready for an administrator to review before enabling AI."
+/>
+
+For example, a fictional service team might allow 20 requests a day, reserve up to $0.10 per request and set a $1 daily and $10 monthly budget. Keep recurring work off if the team wants AI only when someone asks for it. **Individual coworkers** lists each registered coworker and its kinds of work. Pause an individual coworker to prevent its queued execution, or choose **Pause all AI now** to stop new model requests throughout the workspace. A request already running may finish.
+
+Each provider attempt reserves its bounded token cost before it runs. A confirmed final charge releases the unused part of that reservation. An interrupted request without a final charge keeps its reservation until the period resets, preventing an uncertain outcome from spending the same budget again. Daily periods reset at midnight UTC; monthly periods reset on the first day of the month.
+
+**Current usage** separates budget used or held from provider charges reported for this workspace. Recent requests identify their job, model, reservation and reported charge. These records begin when cost controls are installed. They do not include another application's usage, credit purchase fees or hosting. Provider credits and automatic top-up remain in the provider's billing settings; saving these controls never purchases credits. Health monitoring continues without model calls when recurring coworker work is paused. Paused work is not marked overdue; previously failed or stalled runs remain visible. If recurring work is on while model requests are paused, supported coworkers use their existing checks on saved records.
+
+If another administrator saves first, refresh the controls and review their current values before saving again. If controls or current prices cannot be read, the app refuses the model request. The fictional demo saves these choices only in its browser session and cannot start real scheduled work or purchases.
+
 ## Inspect a run
 
 Use run history to find which tools were called, their outcomes and reported usage. This helps distinguish a missing connection, a denied operation and a provider failure.
@@ -38,7 +58,7 @@ Check its connection requirement in the [AI tool reference](/docs/intelligence/t
 
 ## Model jobs and evaluation
 
-AI requests name a registered job with capability and context requirements. An operator-selected model or configured fallback must satisfy those requirements. Free and low-cost models need a recorded passing evaluation before running consequential jobs such as the command agent. A fresh installation does not assume that evaluation has happened.
+AI requests name a registered job with capability and context requirements. An operator-selected model must satisfy those requirements. Cost controls pin each request to that model and its verified price ceiling. Free and low-cost models need a recorded passing evaluation before running consequential jobs such as the command agent. A fresh installation does not assume that evaluation has happened.
 
 The model-call activity records the requested model, reported serving model and execution state. A started call without a terminal receipt needs investigation; it is not proof of a completed answer. Model availability and evaluation are separate from permission to change business records or send messages, which still follows the approval workflow.
 
@@ -70,6 +90,23 @@ Choose **Blueprints** to review saved proposals, their versions and validation
 results. Compare the proposed changes with your actual business before approving
 an exact version. Approval and application are separate steps; a saved proposal
 does not mean the workspace has changed.
+
+### Review a Blueprint in Architect
+
+In **Architect**, expand **Blueprint review** and choose the draft you want to change.
+Enter a proposal such as “Set the business summary to Require a written scope before
+scheduling work,” then give the change a short summary. Select **Preview patch**
+to compare the current and proposed values. **Review draft save** opens the exact
+approval. Approving saves a new draft version; it does not apply the workspace.
+
+Select **Simulate** to inspect workflow steps and capability checks. Leave the event
+blank to inspect all workflows, or enter a trigger to narrow the result. Simulation
+never sends messages, enables modules or applies the Blueprint.
+
+If another administrator saves first, reload the current draft and prepare a new
+preview. After an uncertain save, inspect the original approval and receipt before
+creating another request. Each saved version keeps its history and requires a new
+approval before the workspace can apply it.
 
 ### Save the operating setup
 

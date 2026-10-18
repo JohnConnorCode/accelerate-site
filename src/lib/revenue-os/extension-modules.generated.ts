@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "66f459ea6242c57eafb972ad7850cc1639b36dd3183b35d398764a3d54876e57",
+      contractHash: "1b31464ec4ac16839b7f686231d1e9d59cad7bffe066f2acc14a930257fd0c40",
       tools: [
         {
           operation: "prepare-workflow",
@@ -464,7 +464,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "7bdf5142d2e64bc3aaa8548bf6b1058b4a06f2241d435d719795da189c7c93f7",
+      contractHash: "660fb383bbb873203e712f34bc7fc6a0a684e43536367bfdb9ff2b03f50505f2",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1068,6 +1068,10 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: [
       "prepare_stripe_invoicing",
       "propose_stripe_invoicing",
+      "get_billing_action",
+      "get_billing_records",
+      "preview_billing_change",
+      "propose_billing_change",
       "propose_stripe_invoice_send",
       "preview_invoice_page",
       "propose_invoice_page",
@@ -1161,7 +1165,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "86362dbd33b876a9eb1b6c0e68afe8491ec881950f99c51f0ea81da1c2889e3c",
+      contractHash: "97d50b7bcc87e06f5d26fc040dca8fd157b4a4273330450e98e060efde1334f5",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1317,6 +1321,256 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
               },
             },
             required: ["input", "digest", "requestId"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "get-billing-action",
+          name: "get_billing_action",
+          description:
+            "Check the current provider result of one existing workspace billing action without changing or retrying it. Supports refund status, unpaid-invoice cancellation and billing-customer setup, including expired reviews. Preserves the original execution receipt.",
+          serviceTarget: "revenue-os.billing-workspace",
+          connectionRequirement: "none",
+          impact: "read",
+          confirmationRequired: false,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              actionId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+            },
+            required: ["actionId"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "get-billing-records",
+          name: "get_billing_records",
+          description:
+            "Read five current Stripe invoices or payments, source amounts, account mode and a next-page cursor. Includes account records outside this workspace. Never sum currencies or describe one page as an account total.",
+          serviceTarget: "revenue-os.billing-workspace",
+          connectionRequirement: "none",
+          impact: "read",
+          confirmationRequired: false,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              kind: {
+                type: "string",
+                enum: ["invoices", "payments"],
+              },
+              cursor: {
+                type: "string",
+                maxLength: 124,
+              },
+              connection: {
+                type: "string",
+                maxLength: 160,
+              },
+            },
+            required: ["kind"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "preview-billing-change",
+          name: "preview_billing_change",
+          description:
+            "Preview a billing customer, unpaid invoice cancellation or exact payment refund without provider effects. Refund amounts use Stripe minor units. Returns current customer, mode, consequences and review digest.",
+          serviceTarget: "revenue-os.billing-workspace",
+          connectionRequirement: "none",
+          impact: "read",
+          confirmationRequired: false,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              command: {
+                oneOf: [
+                  {
+                    type: "object",
+                    properties: {
+                      operation: {
+                        type: "string",
+                        const: "create_customer",
+                      },
+                      contactId: {
+                        type: "string",
+                        format: "uuid",
+                        pattern:
+                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      },
+                      requestId: {
+                        type: "string",
+                        format: "uuid",
+                        pattern:
+                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      },
+                    },
+                    required: ["operation", "contactId", "requestId"],
+                    additionalProperties: false,
+                  },
+                  {
+                    type: "object",
+                    properties: {
+                      operation: {
+                        type: "string",
+                        const: "void_invoice",
+                      },
+                      invoiceId: {
+                        type: "string",
+                        pattern: "^in_[A-Za-z0-9]{1,80}$",
+                      },
+                      requestId: {
+                        type: "string",
+                        format: "uuid",
+                        pattern:
+                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      },
+                    },
+                    required: ["operation", "invoiceId", "requestId"],
+                    additionalProperties: false,
+                  },
+                  {
+                    type: "object",
+                    properties: {
+                      operation: {
+                        type: "string",
+                        const: "refund_payment",
+                      },
+                      chargeId: {
+                        type: "string",
+                        pattern: "^ch_[A-Za-z0-9]{1,120}$",
+                      },
+                      amount: {
+                        type: "integer",
+                        exclusiveMinimum: 0,
+                        maximum: 100000000,
+                      },
+                      reason: {
+                        type: "string",
+                        enum: ["requested_by_customer", "duplicate"],
+                      },
+                      requestId: {
+                        type: "string",
+                        format: "uuid",
+                        pattern:
+                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      },
+                    },
+                    required: ["operation", "chargeId", "amount", "reason", "requestId"],
+                    additionalProperties: false,
+                  },
+                ],
+              },
+            },
+            required: ["command"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "propose-billing-change",
+          name: "propose_billing_change",
+          description:
+            "Stage the exact billing command and preview digest for human approval. Cannot approve, refund or cancel by itself. Rechecks administrator authority and current billing facts. Reuse requestId for one logical request.",
+          serviceTarget: "revenue-os.billing-workspace",
+          connectionRequirement: "none",
+          impact: "internal_write",
+          confirmationRequired: true,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              command: {
+                oneOf: [
+                  {
+                    type: "object",
+                    properties: {
+                      operation: {
+                        type: "string",
+                        const: "create_customer",
+                      },
+                      contactId: {
+                        type: "string",
+                        format: "uuid",
+                        pattern:
+                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      },
+                      requestId: {
+                        type: "string",
+                        format: "uuid",
+                        pattern:
+                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      },
+                    },
+                    required: ["operation", "contactId", "requestId"],
+                    additionalProperties: false,
+                  },
+                  {
+                    type: "object",
+                    properties: {
+                      operation: {
+                        type: "string",
+                        const: "void_invoice",
+                      },
+                      invoiceId: {
+                        type: "string",
+                        pattern: "^in_[A-Za-z0-9]{1,80}$",
+                      },
+                      requestId: {
+                        type: "string",
+                        format: "uuid",
+                        pattern:
+                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      },
+                    },
+                    required: ["operation", "invoiceId", "requestId"],
+                    additionalProperties: false,
+                  },
+                  {
+                    type: "object",
+                    properties: {
+                      operation: {
+                        type: "string",
+                        const: "refund_payment",
+                      },
+                      chargeId: {
+                        type: "string",
+                        pattern: "^ch_[A-Za-z0-9]{1,120}$",
+                      },
+                      amount: {
+                        type: "integer",
+                        exclusiveMinimum: 0,
+                        maximum: 100000000,
+                      },
+                      reason: {
+                        type: "string",
+                        enum: ["requested_by_customer", "duplicate"],
+                      },
+                      requestId: {
+                        type: "string",
+                        format: "uuid",
+                        pattern:
+                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      },
+                    },
+                    required: ["operation", "chargeId", "amount", "reason", "requestId"],
+                    additionalProperties: false,
+                  },
+                ],
+              },
+              digest: {
+                type: "string",
+                pattern: "^[a-f0-9]{64}$",
+              },
+            },
+            required: ["command", "digest"],
             additionalProperties: false,
           },
         },

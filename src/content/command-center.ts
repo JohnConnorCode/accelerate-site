@@ -98,7 +98,7 @@ const capabilityDefinitions: Capability[] = [
     promise:
       "Create an invoice for an existing customer and follow its sending and payment status.",
     detail:
-      "Enable Stripe invoicing, connect the intended account and review the line items. Draft creation, sending and customer-page publication have separate approved results; provider payment facts remain authoritative.",
+      "Search loaded invoices, review open and overdue balances by currency, create a missing billing customer, and approve invoice creation, sending or unpaid-invoice cancellation. Payments & refunds adds reviewed refunds, source receipts and selected-record CSV exports. Provider payment facts remain authoritative; reports state their loaded scope.",
     gated: true,
     guideHref: "/docs/plugins/stripe-invoicing",
   },
@@ -243,7 +243,7 @@ const capabilityDefinitions: Capability[] = [
     title: "Business-specific records",
     promise: "Adapt the platform to track the information your process needs.",
     detail:
-      "Use supported settings where available. New fields, record types or lifecycles may require a source extension that reuses the existing identity and permission services.",
+      "Review a saved Blueprint inside Architect, preview a patch and approve its draft save. Simulate workflows without live effects before the separate workspace application. Use supported settings where available. New fields, record types or lifecycles may require a source extension that reuses the existing identity and permission services.",
   },
   {
     id: "graph",
@@ -493,7 +493,7 @@ const capabilityDefinitions: Capability[] = [
     title: "Run work through conversation",
     promise: "Ask for the result you need, review exact changes in chat and follow the saved work.",
     detail:
-      "Ask AI reads records, prepares replies and tasks, and previews ordered jobs. Configured background work retains progress after the browser closes. You can approve exact proposals inside chat and grant bounded permission for named internal operations. Messages, publishing, billing and permission changes keep human review. Available tools depend on modules, providers and current access.",
+      "Ask AI reads records, prepares replies and tasks, and previews ordered jobs. Configured background work retains progress after the browser closes. You can approve exact proposals inside chat and grant bounded permission for named internal operations. Messages, publishing, billing and permission changes keep human review. Cost controls pause model requests or recurring coworker work, set request and spending limits, and show held budget separately from reported provider charges. Available tools depend on modules, providers and current access.",
   },
   {
     id: "mcp",
@@ -740,7 +740,7 @@ export const CURRENT_SURFACES: CurrentSurface[] = [
     n: "04",
     group: "day",
     title: "Numbers you can check",
-    body: "Source, owner, campaign, stage, forecast, and data-quality signals sit together. Revenue keeps active client agreements, accepted proposals and opportunity values separate, groups current active contracts by start month, and shows Retry when a complete read is unavailable.",
+    body: "Source, owner, campaign, stage, forecast, and data-quality signals sit together. Revenue keeps active client agreements, accepted proposals and opportunity values separate. Shared themed cards and charts show units and named comparisons, keep unavailable figures visible, and offer Retry when a complete read fails.",
   },
   {
     n: "05",

@@ -2,6 +2,51 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "dashboard-chart-metric-primitives",
+    slug: "dashboard-chart-metric-primitives",
+    title: "Read consistent dashboard values and charts",
+    description:
+      "Revenue and Analytics share themed chart and metric components. Currency values keep their units, unavailable figures say Not available, and comparison deltas require a named period. The active-contract chart keeps its cumulative step shape and existing calculation. Builders can reuse line, area, bar, donut, gauge and sparkline components with explicit chart states.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
+    id: "workspace-ai-cost-controls",
+    slug: "workspace-ai-cost-controls",
+    title: "Control AI budgets and recurring work",
+    description:
+      "Pause model requests, choose whether coworkers run on a schedule, and set daily, monthly and per-request spending limits in AI Workspace. Every provider attempt reserves its bounded cost before execution. Usage identifies the job and separates held budget from reported charges. New workspaces start paused, and saving controls never purchases credits.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
+    id: "architect-draft-review",
+    slug: "architect-draft-review",
+    title: "Review Blueprint changes inside Architect",
+    description:
+      "Choose a Blueprint in the conversation, compare an exact draft patch, and approve its save through the shared review. Version conflicts preserve the newer draft, retries recover the original save, and each new version resets workspace approval. Simulations show workflow steps and capability checks without live effects.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
+    id: "command-center-install-recovery",
+    slug: "command-center-install-recovery",
+    title: "Manage local drafts and keep Command Center current",
+    description:
+      "Delete an individual offline draft within your own workspace and account. Installed workspaces check for updates when returning to the tab, and iPad desktop mode receives the appropriate installation guidance. Dedicated shortcut and maskable icons improve the installed appearance.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
+    id: "billing-workspace-controls",
+    slug: "billing-workspace-controls",
+    title: "Manage invoices, payments and refunds from one billing workspace",
+    description:
+      "Search loaded invoices, separate open and overdue balances by currency, create billing customers and review unpaid-invoice cancellations. Payments & refunds brings source receipts, reviewed full or partial refunds, selected-payment CSV exports and recovery against the original provider operation. Billing navigation connects invoices, collections, plans, ticket sales and revenue. Admin and AI share the same reviewed billing services; pending provider results remain pending.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
     id: "workshop-presentation",
     slug: "workshop-presentation",
     title: "Meet your workshop presenters and reserve a place",

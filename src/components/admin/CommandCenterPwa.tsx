@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Download, FilePenLine, RefreshCw, WifiOff, X } from "lucide-react";
 import { trackWorkspaceEvent } from "@/lib/analytics";
 import {
+  deleteOfflineDraft,
   listOfflineDrafts,
   readOfflineSnapshot,
   saveOfflineDraft,
@@ -31,7 +32,10 @@ function isStandalone() {
 
 function isIosSafari() {
   if (typeof navigator === "undefined") return false;
-  return /iphone|ipad|ipod/i.test(navigator.userAgent) && /safari/i.test(navigator.userAgent);
+  return (
+    /iphone|ipad|ipod|crios|fxios|edgios/i.test(navigator.userAgent) ||
+    (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
+  );
 }
 
 function isCommandCenterHost() {
@@ -141,6 +145,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
     });
 
     let registration: ServiceWorkerRegistration | null = null;
+    let cleanupUpdateCheck: (() => void) | null = null;
     const register = async () => {
       if (!("serviceWorker" in navigator)) return;
       try {
@@ -148,15 +153,36 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
           scope: "/",
           updateViaCache: "none",
         });
+        if (controller.signal.aborted) return;
         if (registration.waiting) setUpdateReady(registration);
         registration.addEventListener("updatefound", () => {
+          if (controller.signal.aborted) return;
           const worker = registration?.installing;
           if (!worker) return;
           worker.addEventListener("statechange", () => {
-            if (worker.state === "installed" && navigator.serviceWorker.controller)
+            if (
+              !controller.signal.aborted &&
+              worker.state === "installed" &&
+              navigator.serviceWorker.controller
+            )
               setUpdateReady(registration);
           });
         });
+        const checkForUpdate = () => {
+          if (!controller.signal.aborted)
+            void registration?.update().catch(() => {
+              // A failed update probe leaves the current online/offline state intact.
+            });
+        };
+        const timer = window.setInterval(checkForUpdate, 4 * 60 * 60 * 1000);
+        const onVisible = () => {
+          if (document.visibilityState === "visible") checkForUpdate();
+        };
+        document.addEventListener("visibilitychange", onVisible);
+        cleanupUpdateCheck = () => {
+          window.clearInterval(timer);
+          document.removeEventListener("visibilitychange", onVisible);
+        };
       } catch {
         // PWA support is progressive. App functionality remains network-first.
       }
@@ -165,6 +191,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
 
     return () => {
       controller.abort();
+      cleanupUpdateCheck?.();
       window.clearTimeout(initialStateTimer);
       window.removeEventListener("online", syncOnline);
       window.removeEventListener("offline", syncOnline);
@@ -491,6 +518,29 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
                         }}
                       >
                         Reuse text
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-button admin-button--secondary ml-2 mt-2"
+                        onClick={() => {
+                          const signal = requestRef.current?.signal;
+                          setDraftError("");
+                          void deleteOfflineDraft(tenantSlug, userId, draft.id, signal).then(
+                            (deleted) => {
+                              if (signal?.aborted) return;
+                              if (deleted)
+                                setDrafts((current) =>
+                                  current.filter((item) => item.id !== draft.id),
+                                );
+                              else
+                                setDraftError(
+                                  "Could not delete this local draft. Reload drafts and try again.",
+                                );
+                            },
+                          );
+                        }}
+                      >
+                        Delete draft
                       </button>
                     </li>
                   ))}

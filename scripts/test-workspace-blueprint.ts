@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 import {
@@ -135,6 +136,31 @@ function fakeSupabase() {
   const tables: Record<string, FakeRow[]> = {};
   return {
     tables,
+    async rpc(name: string, args: Record<string, unknown>) {
+      assert.equal(name, "save_workspace_blueprint_version");
+      const headers = (tables.workspace_blueprints ??= []);
+      const versions = (tables.workspace_blueprint_versions ??= []);
+      let header = headers.find(
+        (row) => row.tenant_id === args.p_tenant_id && row.id === args.p_blueprint_id,
+      );
+      if (!header) {
+        header = { id: randomUUID(), tenant_id: args.p_tenant_id, latest_version: 0 };
+        headers.push(header);
+      }
+      const version = Number(header.latest_version) + 1;
+      const row = {
+        tenant_id: args.p_tenant_id,
+        blueprint_id: header.id,
+        version,
+        parent_version: version === 1 ? null : version - 1,
+        document: args.p_document,
+        change_summary: args.p_change_summary,
+        created_by: args.p_actor_email,
+      };
+      versions.push(row);
+      header.latest_version = version;
+      return { data: { blueprintId: header.id, version: row }, error: null };
+    },
     from(table: string): FakeQuery {
       return new FakeQuery(tables, table);
     },
@@ -444,8 +470,8 @@ async function main() {
 
   // 8. Versioned persistence: append-only, parent-linked, tenant-isolated.
   const db = fakeSupabase();
-  const client = db as unknown as SupabaseClient;
   const tenantA = randomUUID();
+  const client = bindTenantDatabaseForTest(db as unknown as SupabaseClient, tenantA);
   const tenantB = randomUUID();
   const first = await saveBlueprintVersion(client, {
     tenantId: tenantA,

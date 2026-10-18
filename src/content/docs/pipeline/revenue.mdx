@@ -1,17 +1,17 @@
 ---
 title: "Understand revenue figures"
 description: "Where each number on the revenue screen comes from, and how to chase a discrepancy."
-updated: "2026-09-29"
+updated: "2026-10-18"
 ---
 
 An opportunity value, a client agreement and a collected payment describe different parts of the business. **Revenue** shows recorded client and proposal values alongside a separate opportunity summary, so you can inspect where a figure comes from before using it to make a decision.
 
 <DocsFigure
-  src="/images/docs/pipeline/revenue-active-contracts-2026-09-29.png"
-  alt="The Revenue screen in the fictional Northline Roofing workspace, showing current active contract values, separate opportunity values, and active contracts grouped by start month."
-  width={1440}
-  height={1000}
-  caption="Revenue in the fictional Northline Roofing workspace: current active contracts grouped by start month. Fictional demo data."
+  src="/images/docs/billing/revenue-chart-2026-10-18.png"
+  alt="Active Contracts by Start Month in fictional Northline Roofing, showing cumulative monthly agreement values from June through August."
+  width={1078}
+  height={365}
+  caption="Current active agreements grouped by start month in fictional Northline Roofing. The final point agrees with its $11,325 monthly recurring value."
 />
 
 ## What the figures mean
@@ -36,9 +36,15 @@ When a valid start date is missing, the chart uses the creation date and tells y
 
 **Churned Share** describes the current client records across all recorded dates, excluding onboarding records from its denominator. Use it to inspect the mix of client statuses; a period churn calculation needs dated departures and the client base at the beginning of that period.
 
+Metric cards show currency and percentage units with their values. Where a report supplies a comparison, its delta names the comparison period. **Not available** means a value could not be established; retry the report before using it. A complete read can still report a measured zero. The charts and cards follow the appearance selected in Settings.
+
 ## Example: check a changed client agreement
 
 In the fictional Northline Roofing workspace, open [Clients](/docs/delivery/clients) and check an active agreement’s monthly value and contract start. Open Revenue and compare that agreement with **Active Monthly Value by Client**, then check the final chart value against **Monthly Recurring**. After a simulated change marks that client churned, its monthly value leaves both active totals because the report reflects the clients active now.
+
+## Check collected payments
+
+Use **Payments & refunds** in the billing navigation to inspect the connected Stripe account’s loaded charges. Its captured, refunded and after-refund figures describe payment records, while Revenue continues to show agreements and opportunity values. The payment report separates currencies and states which loaded records are selected. It does not establish bank balances or amounts after fees. The [billing guide](/docs/billing/overview) explains the related invoice, collection and refund tasks.
 
 ## Investigate a difference
 

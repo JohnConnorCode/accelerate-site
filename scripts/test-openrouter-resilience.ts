@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+import { enableAiSpendFixture, fixtureAiPricing } from "./lib/ai-spend-fixture";
 /**
  * Deterministic coverage for the gateway's failure behaviour, with the provider
  * stubbed. This needs no API key and costs nothing, which matters because the
@@ -8,7 +9,7 @@
  *   - transient failures retry with backoff instead of surfacing immediately
  *   - permanent failures do not retry
  *   - a caller-supplied AbortSignal no longer detaches the request timeout
- *   - a configured fallback model is handed to OpenRouter for provider failover
+ *   - model routing stays within the admitted pricing ceiling
  */
 import assert from "node:assert/strict";
 import { MemorySupabase } from "./lib/memory-supabase";
@@ -25,7 +26,6 @@ import {
   OpenRouterError,
   type OpenRouterStreamMetadata,
 } from "../src/lib/ai/openrouter";
-import { DEFAULT_OPENROUTER_MODEL } from "../src/lib/ai/openrouter-models";
 
 // Read at call time by the gateway, so setting it here is enough and no real
 // credential is involved.
@@ -47,6 +47,8 @@ let calls: Array<{ body: Record<string, unknown>; signal?: AbortSignal | null }>
 function stubFetch(responses: StubResponse[]) {
   let index = 0;
   globalThis.fetch = (async (_url: string, init: RequestInit) => {
+    const pricing = fixtureAiPricing(_url);
+    if (pricing) return pricing;
     const spec = responses[Math.min(index, responses.length - 1)] ?? { status: 200 };
     index += 1;
     calls.push({ body: JSON.parse(String(init.body)), signal: init.signal });
@@ -101,7 +103,11 @@ const okBody = {
   usage: { total_tokens: 7 },
 };
 const memory = new MemorySupabase({ tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }] });
-const database = bindTenantDatabase(memory.client, ACCELERATE_TENANT_ID, true);
+const database = bindTenantDatabase(
+  enableAiSpendFixture(memory, ACCELERATE_TENANT_ID).client,
+  ACCELERATE_TENANT_ID,
+  true,
+);
 const ask = {
   database,
   job: "connectivity-check",
@@ -257,15 +263,18 @@ async function main() {
     );
   });
 
-  await scenario("a configured fallback model is offered to the provider", async () => {
-    process.env.OPENROUTER_FALLBACK_MODEL = "anthropic/claude-haiku-4.5";
-    stubFetch([{ status: 200, body: okBody }]);
-    await openRouterChat(ask);
-    const body = calls[0]?.body as { models?: string[]; route?: string };
-    assert.deepEqual(body.models, [DEFAULT_OPENROUTER_MODEL, "anthropic/claude-haiku-4.5"]);
-    assert.equal(body.route, "fallback");
-    delete process.env.OPENROUTER_FALLBACK_MODEL;
-  });
+  await scenario(
+    "workspace budgets keep a configured fallback from escaping the admitted model",
+    async () => {
+      process.env.OPENROUTER_FALLBACK_MODEL = "anthropic/claude-haiku-4.5";
+      stubFetch([{ status: 200, body: okBody }]);
+      await openRouterChat(ask);
+      const body = calls[0]?.body as { models?: string[]; route?: string };
+      assert.equal(body.models, undefined);
+      assert.equal(body.route, undefined);
+      delete process.env.OPENROUTER_FALLBACK_MODEL;
+    },
+  );
 
   await scenario("no fallback configured leaves the request single-model", async () => {
     delete process.env.OPENROUTER_FALLBACK_MODEL;
@@ -327,6 +336,8 @@ async function main() {
   });
   await scenario("a body abort after HTTP 200 remains a timeout without a paid retry", async () => {
     globalThis.fetch = (async (_url: string, init: RequestInit) => {
+      const pricing = fixtureAiPricing(_url);
+      if (pricing) return pricing;
       calls.push({ body: JSON.parse(String(init.body)), signal: init.signal });
       return new Response(
         new ReadableStream({
@@ -347,6 +358,8 @@ async function main() {
     "invalid JSON behind HTTP 200 reports provider failure, never success",
     async () => {
       globalThis.fetch = (async (_url: string, init: RequestInit) => {
+        const pricing = fixtureAiPricing(_url);
+        if (pricing) return pricing;
         calls.push({ body: JSON.parse(String(init.body)), signal: init.signal });
         return new Response("not JSON", { status: 200 });
       }) as typeof fetch;
@@ -465,10 +478,7 @@ async function main() {
       model: "anthropic/claude-haiku-4.5",
       usage: { prompt_tokens: 11, completion_tokens: 4, total_tokens: 15 },
     });
-    assert.deepEqual((calls[0]?.body as { models?: string[] }).models, [
-      DEFAULT_OPENROUTER_MODEL,
-      "anthropic/claude-haiku-4.5",
-    ]);
+    assert.equal((calls[0]?.body as { models?: string[] }).models, undefined);
     delete process.env.OPENROUTER_FALLBACK_MODEL;
   });
 

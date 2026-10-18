@@ -30,7 +30,7 @@ export function ArchitectEvidencePanel() {
   return (
     <div
       className={cn(
-        "border-b border-[var(--admin-border)] px-3 py-3 sm:px-4",
+        "min-w-0 border-b border-[var(--admin-border)] px-3 py-3 sm:px-4",
         dragging && "bg-[var(--admin-ink)]/[0.04]",
       )}
       onDragOver={(event) => {
@@ -121,7 +121,7 @@ export function ArchitectEvidencePanel() {
           id="architect-source"
           value={source}
           onChange={(event) => setSource(event.target.value)}
-          className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)]"
+          className="admin-field min-h-11 min-w-0 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)]"
         >
           <option value="drive">Drive</option>
           <option value="gmail">Gmail</option>
@@ -134,7 +134,7 @@ export function ArchitectEvidencePanel() {
           id="architect-scope"
           value={scope}
           onChange={(event) => setScope(event.target.value)}
-          className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)]"
+          className="admin-field min-h-11 min-w-0 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)]"
         >
           <option value="folder">Folder</option>
           <option value="label">Label</option>
@@ -148,7 +148,7 @@ export function ArchitectEvidencePanel() {
           value={resourceId}
           onChange={(event) => setResourceId(event.target.value)}
           placeholder="Named folder, label, or document"
-          className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
+          className="admin-field min-h-11 min-w-0 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
         />
         <button
           type="submit"
@@ -157,7 +157,7 @@ export function ArchitectEvidencePanel() {
           Add scope
         </button>
       </form>
-      <form onSubmit={addNote} className="mt-2 flex gap-2">
+      <form onSubmit={addNote} className="mt-2 flex flex-col gap-2 sm:flex-row">
         <label className="sr-only" htmlFor="architect-assumption">
           Assumption
         </label>
@@ -166,7 +166,7 @@ export function ArchitectEvidencePanel() {
           value={assumption}
           onChange={(event) => setAssumption(event.target.value.slice(0, 280))}
           placeholder="Record an assumption this session should keep"
-          className="admin-field admin-field--inline min-h-11 flex-1 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
+          className="admin-field min-h-11 min-w-0 w-full flex-1 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
         />
         <button
           type="submit"

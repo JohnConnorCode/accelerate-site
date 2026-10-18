@@ -18,7 +18,7 @@ receiving payment.
    to reach its enablement instructions. If Stripe is disconnected, the creation
    page shows the connection step first.
    Select an existing contact and its matching Stripe
-   billing customer. Enter currency, line descriptions, quantities and unit prices
+   billing customer. When none exists, use **Create billing customer** and approve the contact identity; the resulting profile appears in the refreshed choices without a charge. Enter currency, line descriptions, quantities and unit prices
    in normal currency units: enter `125.00` for USD 125.00. Set payment terms
    (1–90 days) and confirm recipient details in the preview. The API/AI input
    represents that same unit price as `unitAmount: 12500` in minor units.
@@ -110,3 +110,19 @@ The design contract adds optional per-invoice appearance fields; existing publis
 designs without these fields retain workspace typography, color and comfortable
 spacing. No database migration is needed. Pending plugin previews must still be
 prepared again after the host-contract upgrade.
+
+## Payments, cancellations and recovery
+
+Invoices now searches the loaded account records and projects open, overdue and draft balances separately by currency. It states its loaded scope and missing balances. Account-wide invoice and charge reads do not grant write ownership over other workspaces’ records.
+
+**Payments & refunds** reads bounded pages of account charges. It separates captured and refunded amounts, excludes failed/pending charges from captured figures, and exports only selected loaded records with explicit currency/minor-unit columns. Processing fees, disputes, payouts and bank accounting are outside this projection.
+
+`billing-workspace.ts` owns `create_customer`, `void_invoice` and `refund_payment`. The UI and registered AI tools call its preview/proposal service. Approval binds canonical contact identity or live invoice/payment facts, tenant, provider account, key revision and mode to an exact digest. PostgreSQL JSON key ordering cannot invalidate that digest. Cancellation accepts only workspace-owned finalized unpaid invoices. Refunds accept workspace metadata or complete current invoice-payment ownership evidence; shared or unproven ownership refuses.
+
+Billing actions require fresh active administrator membership and an approved, unexpired execution claim. Provider calls reuse a tenant/request idempotency key. A timed-out refund is reconciled from its request-tagged Stripe refund history before another request can be posted. Provider pending/failed refunds retain that actual status. **Recent billing actions** offers exact same-operation re-review for eligible failures, never a fresh blind refund. Disabling invoicing blocks later execution. Existing provider receipts are retained.
+
+The key needs customer/invoice writes, charge/payment-intent/invoice-payment/refund reads and refund writes for these controls. Keep encrypted credentials in the existing tenant connection, with the encryption configuration provided by the host environment. No new secret store or payment provider is introduced. Test mode uses the same services and provider-receipt rules; the browser demo remains fictional.
+
+Verify with `npm run test:billing-workspace`, `npm run test:stripe-workflow`, `npm run test:ai-tool-discovery`, `npm run qa:billing-workspace` and `npm run qa:invoice-navigation`, followed by the repository build and checks. The deterministic provider transport covers approval, freshness, ownership, failures, replay and accepted-refund recovery. Browser checks cover shared admin controls, keyboard, narrow screens and reduced motion. These checks do not establish a particular installation’s live restricted-key permissions or move real funds. Credit notes and accounting-ledger integration are not implemented by this billing slice.
+
+`get_billing_action` and **Check provider result** perform a fresh read for an existing billing action, including an expired action. Refund checks match the immutable tenant/request identity in provider metadata and verify charge, amount and currency. Incomplete history refuses absence claims. The original action receipt is preserved; this observation cannot approve or retry an effect. The same-account/mode guard applies after credential rotation. A pending refund can therefore be checked from Command Center without opening the provider dashboard.

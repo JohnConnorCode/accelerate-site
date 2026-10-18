@@ -159,10 +159,15 @@ try {
             .closest('section[aria-label="Review exact changes"]')
             .querySelector('[data-review-decision="approve"]')
             .getBoundingClientRect();
+          const hit = document.elementFromPoint(
+            bounds.left + bounds.width / 2,
+            bounds.top + bounds.height / 2,
+          );
           return {
             visible:
               bounds.top >= Math.max(0, log.top) &&
-              bounds.bottom <= Math.min(innerHeight, decision.top),
+              bounds.bottom <= Math.min(innerHeight, decision.top) &&
+              Boolean(hit && consequence.contains(hit)),
             consequenceTop: bounds.top,
             consequenceBottom: bounds.bottom,
             logTop: log.top,

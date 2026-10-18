@@ -7,13 +7,13 @@
     "Server-action and client-write candidates are static discovery only; indirect client writes and third-party plugin entrypoints still require semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 137,
-  "mutationHandlerCount": 119,
+  "routeCount": 142,
+  "mutationHandlerCount": 124,
   "semantic": {
     "complete": false,
     "unreviewedSourceBindings": [],
     "meaning": "Reviewed command-to-transport bindings with executable verification references. No coverage percentage or universal runtime acceptance is asserted.",
-    "registeredTools": 138,
+    "registeredTools": 147,
     "unreviewedToolBindings": [
       "activate_tool_bundle",
       "bootstrap_business_pulse_coworker",
@@ -145,6 +145,39 @@
     "operations": [
       {
         "definition": {
+          "id": "ai.cost-controls",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/ai-cost-controls",
+              "method": "GET"
+            },
+            {
+              "path": "/api/admin/ai-cost-controls",
+              "method": "PUT",
+              "audience": "secure-human-handoff",
+              "variant": "Current human administrator saves workspace AI budgets and pause state"
+            },
+            {
+              "path": "/api/admin/ai-cost-controls",
+              "method": "PATCH",
+              "audience": "secure-human-handoff",
+              "variant": "Current human administrator pauses or resumes a coworker"
+            }
+          ],
+          "verification": [
+            "scripts/test-ai-spend-controls.ts",
+            "scripts/test-ai-spend-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "ai.spend-controls",
+        "tools": [
+          "get_ai_cost_controls"
+        ]
+      },
+      {
+        "definition": {
           "id": "analytics.export-report",
           "version": 1,
           "scope": "workspace",
@@ -178,6 +211,180 @@
         "serviceTarget": "revenue-os.analytics",
         "tools": [
           "get_revenue_analytics"
+        ]
+      },
+      {
+        "definition": {
+          "id": "billing.action.read",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing/commands",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-billing-workspace.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.billing-workspace",
+        "tools": [
+          "get_billing_action"
+        ]
+      },
+      {
+        "definition": {
+          "id": "billing.change.preview",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing/commands",
+              "method": "POST",
+              "variant": "preview"
+            }
+          ],
+          "verification": [
+            "scripts/test-billing-workspace.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.billing-workspace",
+        "tools": [
+          "preview_billing_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "billing.change.propose",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing/commands",
+              "method": "POST",
+              "variant": "propose"
+            }
+          ],
+          "verification": [
+            "scripts/test-billing-workspace.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.billing-workspace",
+        "tools": [
+          "propose_billing_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "billing.records.read",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing/list",
+              "method": "GET"
+            },
+            {
+              "path": "/api/admin/invoicing/payments",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-billing-workspace.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.billing-workspace",
+        "tools": [
+          "get_billing_records"
+        ]
+      },
+      {
+        "definition": {
+          "id": "blueprints.patch.preview",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/blueprints/[id]/patch",
+              "method": "POST"
+            }
+          ],
+          "verification": [
+            "scripts/test-workspace-architect-review-simulation.ts",
+            "scripts/test-blueprint-version-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.architect-review",
+        "tools": [
+          "preview_architect_patch"
+        ]
+      },
+      {
+        "definition": {
+          "id": "blueprints.patch.propose",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/blueprints/[id]/patch",
+              "method": "POST"
+            }
+          ],
+          "verification": [
+            "scripts/test-workspace-architect-review-simulation.ts",
+            "scripts/test-blueprint-version-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.architect-review",
+        "tools": [
+          "propose_architect_patch"
+        ]
+      },
+      {
+        "definition": {
+          "id": "blueprints.read",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/blueprints",
+              "method": "GET"
+            },
+            {
+              "path": "/api/admin/blueprints/[id]",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-workspace-architect-review-simulation.ts",
+            "scripts/test-blueprint-version-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.architect-review",
+        "tools": [
+          "get_architect_blueprints"
+        ]
+      },
+      {
+        "definition": {
+          "id": "blueprints.simulate",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/blueprints/[id]/simulate",
+              "method": "POST"
+            }
+          ],
+          "verification": [
+            "scripts/test-workspace-architect-review-simulation.ts",
+            "scripts/test-blueprint-version-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.architect-review",
+        "tools": [
+          "simulate_architect_blueprint"
         ]
       },
       {
@@ -438,8 +645,6 @@
       "GET /api/admin/activity",
       "GET /api/admin/ai-readiness",
       "GET /api/admin/analytics",
-      "GET /api/admin/blueprints",
-      "GET /api/admin/blueprints/[id]",
       "GET /api/admin/bookings",
       "GET /api/admin/chat-leads",
       "GET /api/admin/clients",
@@ -464,7 +669,6 @@
       "GET /api/admin/inbox",
       "GET /api/admin/integrations",
       "GET /api/admin/invoicing",
-      "GET /api/admin/invoicing/list",
       "GET /api/admin/invoicing/pages",
       "GET /api/admin/kanban/columns",
       "GET /api/admin/knowledge/documents",
@@ -871,6 +1075,7 @@
       ],
       "mutationHandlers": [],
       "imports": [
+        "@/lib/ai/spend-controls",
         "@/lib/revenue-os/agent-work",
         "@/lib/revenue-os/bounded-execution",
         "@/lib/revenue-os/business-pulse-coworker",
@@ -892,7 +1097,7 @@
         "@/lib/tenancy/system",
         "next/server"
       ],
-      "sourceSha256": "d6419c9d4304a1cea60516e34c9352eeb91d034568ae36cae66fb50bc63db39d"
+      "sourceSha256": "0b593801c88c41ed5b0f0487b9f03b66a3735976917d5e45e43b1e577bb36caa"
     },
     {
       "source": "src/app/api/demo/agent/route.ts",
@@ -1590,6 +1795,30 @@
       "sourceSha256": "8605e5d894ea920306aba4385453778200e745ecd1d646a76b80a8baf06b7dce"
     },
     {
+      "source": "src/app/api/admin/ai-cost-controls/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH",
+        "PUT"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "PUT"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/ai/spend-controls",
+        "@/lib/ai/spend-controls-contract",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/coworkers",
+        "@/lib/revenue-os/tenant-admin-authority",
+        "@/lib/tenancy/context",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "4f5f44d490209d0bf7148667050213f28fdd114b28b726256e36ff3bf0b07360"
+    },
+    {
       "source": "src/app/api/admin/ai-readiness/route.ts",
       "handlers": [
         "GET"
@@ -1660,6 +1889,25 @@
       "sourceSha256": "0b3ed795dcfa91e211ded4f69b8fadd4daacfeadb967b4839a8f6970a1419a70"
     },
     {
+      "source": "src/app/api/admin/blueprints/[id]/patch/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/architect-review",
+        "@/lib/revenue-os/architect-review-contract",
+        "@/lib/tenancy/context",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "7ec84fa5a20932ee36f8f720bfd0fefc76d8bcfebdaaba6029908cd7a2dc69b3"
+    },
+    {
       "source": "src/app/api/admin/blueprints/[id]/route.ts",
       "handlers": [
         "GET"
@@ -1675,6 +1923,25 @@
       "sourceSha256": "55e534d37af37a4b8ebe48748681fe883722e2c9c7ed5d4068b4eb25dd414dff"
     },
     {
+      "source": "src/app/api/admin/blueprints/[id]/simulate/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/architect-review",
+        "@/lib/revenue-os/architect-review-contract",
+        "@/lib/tenancy/context",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "b59b889d8c6a0fd7ebfe577b0a18be87c134c06d9200472d332c3d07237653b1"
+    },
+    {
       "source": "src/app/api/admin/blueprints/route.ts",
       "handlers": [
         "GET",
@@ -1686,9 +1953,10 @@
       "imports": [
         "@/lib/admin/auth",
         "@/lib/revenue-os/workspace-blueprint",
+        "@/lib/tenancy/context",
         "next/server"
       ],
-      "sourceSha256": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c"
+      "sourceSha256": "5873dbb8d99ffa56d4d8c62770850009a58d6db676afb48c4e2a7d9ac9c9b8dc"
     },
     {
       "source": "src/app/api/admin/bookings/route.ts",
@@ -2197,6 +2465,26 @@
       "sourceSha256": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb"
     },
     {
+      "source": "src/app/api/admin/invoicing/commands/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/billing-command-contract",
+        "@/lib/revenue-os/billing-workspace",
+        "@/lib/tenancy/context",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "e6b4c0d5a456d1da146de73f3a0a972a3b86e0b7327af6f579a0ca8d3cb4be76"
+    },
+    {
       "source": "src/app/api/admin/invoicing/list/route.ts",
       "handlers": [
         "GET"
@@ -2204,11 +2492,10 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/module-guard",
-        "@/lib/revenue-os/stripe-adapter",
-        "next/server",
-        "zod"
+        "@/lib/revenue-os/billing-workspace",
+        "next/server"
       ],
-      "sourceSha256": "2a3bd4e44af26484f636ddc379ee5e0176ee7836507a851615460c60a291b6f0"
+      "sourceSha256": "475d7d68b9612cb15f625ec62e247f6485b7d20e5e92571ab53618884899786f"
     },
     {
       "source": "src/app/api/admin/invoicing/pages/route.ts",
@@ -2229,6 +2516,19 @@
         "zod"
       ],
       "sourceSha256": "976266b5f66a3e8b0b7b58e5946e321a0c76ad030b910d58e7f928a5ec5f0e82"
+    },
+    {
+      "source": "src/app/api/admin/invoicing/payments/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/billing-workspace",
+        "next/server"
+      ],
+      "sourceSha256": "23022b9d08d961766aeddcc8b4b3e2e897a9a74039c5db164020130941509e6f"
     },
     {
       "source": "src/app/api/admin/invoicing/route.ts",
@@ -3390,7 +3690,7 @@
         "@/lib/supabase/server",
         "next/server"
       ],
-      "sourceSha256": "dd275356738ca89aab4c50ca5166915d0532ca74d2ca95023567be9f9201946d"
+      "sourceSha256": "d33670f94d4ee5b1f489c003b484da45ddff70326946d74dcdd36cd609e7cc96"
     },
     {
       "source": "src/app/api/admin/site/delegations/route.ts",

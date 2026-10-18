@@ -1,3 +1,4 @@
+import { handleDemoBilling, type DemoBillingState } from "./billing-runtime";
 import { handleDemoSocial, type DemoSocialState } from "./social-runtime";
 import type { DemoEventTicketState } from "./event-ticketing-runtime";
 import { handleDemoConfiguration, type DemoConfigurationState } from "./configuration-runtime";
@@ -76,6 +77,7 @@ type Page = {
   design: InvoiceDesign;
 };
 export type DemoBusinessState = {
+  billing?: DemoBillingState;
   eventTickets?: DemoEventTicketState;
   configuration?: DemoConfigurationState;
   social?: DemoSocialState;
@@ -358,6 +360,17 @@ export async function handleDemoBusinessRequest(
     return action;
   };
   try {
+    const billingResponse = await handleDemoBilling(
+      pack,
+      state,
+      modules,
+      url,
+      method,
+      body,
+      save,
+      digest,
+    );
+    if (billingResponse) return billingResponse;
     if (path === "/api/admin/tenant/branding") {
       if (method === "GET")
         return response({
@@ -399,6 +412,9 @@ export async function handleDemoBusinessRequest(
         truncated: false,
         contacts: contacts.map((x) => ({ id: x.id, full_name: x.name, primary_email: x.email })),
         customers: pack.people
+          .filter(
+            (contact, index) => index < 3 || state.billing?.createdCustomers.includes(contact.id),
+          )
           .filter(
             (x) => !url.searchParams.get("contactId") || x.id === url.searchParams.get("contactId"),
           )

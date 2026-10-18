@@ -44,12 +44,17 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "What do the Revenue figures measure?",
     answer:
-      "Monthly Recurring sums current active client agreements. The start-month chart groups those same contracts in UTC, keeps missing dates visible and ends at that total. Churned Share describes current non-onboarding client records across all recorded dates. Opportunity values, one-time agreement values and accepted proposal monthly values remain separate. If a read is incomplete or fails, use Retry; a failed refresh labels the previous figures. Check provider receipts when you need collected cash, and a dated ledger when you need historical revenue.",
+      "Monthly Recurring sums current active client agreements. The start-month chart groups those same contracts in UTC, keeps missing dates visible and ends at that total. Churned Share describes current non-onboarding client records across all recorded dates. Opportunity values, one-time agreement values and accepted proposal monthly values remain separate. Cards show units, name any comparison period and mark unavailable values explicitly. If a read is incomplete or fails, use Retry; a failed refresh labels the previous figures. Check provider receipts when you need collected cash, and a dated ledger when you need historical revenue.",
   },
   {
     question: "Where do I find invoices and create a new one?",
     answer:
-      "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Choose an existing customer, enter line items and review the draft before requesting approval.",
+      "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Search the loaded invoices by customer, number or email, or choose an overdue or payment status. Load older invoices when needed. To create one, choose a contact, create its missing billing customer inside the form if needed, enter line items and review the draft before approval. Sending remains a separate decision.",
+  },
+  {
+    question: "Can I manage refunds and payment reporting in Command Center?",
+    answer:
+      "Yes. Payments & refunds shows loaded Stripe account charges, separate currency figures and selected-record CSV exports. Workspace-owned payments support reviewed full or partial refunds; invoice-linked payments can check ownership during review. Recent billing actions preserves the actual provider status and safe same-operation recovery. Pending refunds remain pending. After refunds excludes fees, disputes, payouts and bank balances. Invoices also offers reviewed cancellation of workspace-created, finalized unpaid invoices. AI can read bounded billing records and preview or propose these same billing changes for human approval.",
   },
   {
     question: "Can AI redesign a customer invoice?",
@@ -179,7 +184,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How can an agent help set up my business workflow?",
     answer:
-      "Use Architect to describe the work and Blueprints to review its proposed setup. Save an approved version to add available Pipeline or Content columns and retain the remaining navigation, view, workflow and Coworker recommendations. Missing capabilities become custom development briefs. Claude Code, Codex or another coding agent can use those briefs and the extension guide to build on your existing records, permissions and review process, saving your team from specifying the same workflow again for each screen. The in-app save records recommendations; enabling their execution follows the existing configuration or development path.",
+      "Use Architect to describe the work, choose a saved Blueprint and preview a draft patch inside the conversation. Review and approve the exact draft save, or simulate its workflow steps without live effects. Blueprints keeps the version history and separate workspace approval. Save an approved version to add available Pipeline or Content columns and retain the remaining navigation, view, workflow and Coworker recommendations. Missing capabilities become custom development briefs. Claude Code, Codex or another coding agent can use those briefs and the extension guide to build on your existing records, permissions and review process, saving your team from specifying the same workflow again for each screen. The in-app save records recommendations; enabling their execution follows the existing configuration or development path.",
   },
   {
     question: "Can AI create Apps inside Command Center?",
@@ -234,7 +239,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we control our AI provider costs?",
     answer:
-      "Yes. Each workspace can use the shared provider setup or bring its own OpenRouter key and approved model settings. DeepSeek V4.1 Flash is the default and can be changed per installation or request. Keys stay server-side, and usage stays inside your workspace.",
+      "Yes. Open AI Workspace → Cost controls to pause all model requests, control recurring coworker work, pause individual coworkers, and set request, daily and monthly limits. AI starts paused, and each provider attempt reserves its maximum token cost before running. Usage separates held budget from reported provider charges. Provider credits, automatic top-up and hosting costs remain in their own billing accounts; saving workspace controls never purchases credits.",
   },
   {
     question: "How is this different from the notetaker we already have?",

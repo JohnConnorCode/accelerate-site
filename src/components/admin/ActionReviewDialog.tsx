@@ -1,5 +1,6 @@
 "use client";
 import { contentCalendarCommandApprovalSchema } from "@/lib/revenue-os/content-calendar-contract";
+import { billingApprovalSchema } from "@/lib/revenue-os/billing-command-contract";
 import {
   ticketAdminCommandSchema,
   eventTiming,
@@ -117,6 +118,8 @@ const BODY_FIELDS = new Set(["body", "text", "message", "description"]);
 function payloadEntries(payload: Record<string, unknown> | null, actionType: string) {
   if (
     !payload ||
+    actionType === "blueprint_draft_change" ||
+    actionType === "billing_change" ||
     actionType === "content_calendar_change" ||
     actionType === "event_ticketing_change"
   )
@@ -149,6 +152,7 @@ export function ActionReviewDialog({
   action,
   busy,
   onClose,
+  onExitComplete,
   onApprove,
   onReject,
   error,
@@ -160,6 +164,7 @@ export function ActionReviewDialog({
   action: ActionRow | null;
   busy: boolean;
   onClose: () => void;
+  onExitComplete?: () => void;
   onApprove: () => void;
   onReject: () => void;
 }) {
@@ -184,6 +189,10 @@ export function ActionReviewDialog({
   }
   const isCalendar = action.action_type === "content_calendar_change";
   const isTicket = action.action_type === "event_ticketing_change";
+  const billing =
+    action.action_type === "billing_change"
+      ? billingApprovalSchema.safeParse(action.payload)
+      : null;
   const ticket = isTicket ? ticketAdminCommandSchema.safeParse(action.payload) : null;
   const calendar = isCalendar
     ? contentCalendarCommandApprovalSchema.safeParse(action.payload)
@@ -209,7 +218,13 @@ export function ActionReviewDialog({
   );
   const layoutSummary =
     action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
+  const blueprintReview =
+    action.action_type === "blueprint_draft_change"
+      ? (action.payload?.review as Record<string, string> | undefined)
+      : undefined;
   const consequence =
+    (typeof blueprintReview?.Consequence === "string" ? blueprintReview.Consequence : null) ??
+    (billing?.success ? billing.data.review.Consequence : null) ??
     (ticket?.success
       ? ticket.data.operation === "save_event"
         ? ticket.data.event.status === "published"
@@ -230,6 +245,7 @@ export function ActionReviewDialog({
     ACTION_CONSEQUENCE[action.action_type] ??
     "Executes this action through the same service the admin uses.";
   const external =
+    action.action_type === "billing_change" ||
     action.action_type === "send_email" ||
     action.action_type === "send_gmail_reply" ||
     action.action_type === "create_debate_invitation" ||
@@ -244,12 +260,37 @@ export function ActionReviewDialog({
         conversationId?: string;
       }>)
     : [];
+  const consequenceBanner = (
+    <div
+      className={cn(
+        "flex items-start gap-2.5 rounded-xl border",
+        inline ? "mx-3 mt-3 px-3 py-2" : "mx-5 mt-5 px-3.5 py-3 sm:mx-6",
+        external
+          ? "border-[var(--admin-warning)]/25 bg-[var(--admin-warning-soft)]"
+          : "border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]",
+      )}
+    >
+      <TriangleAlert
+        className={cn(
+          "mt-px size-4 shrink-0",
+          external ? "text-[var(--admin-warning)]" : "text-[var(--admin-muted)]",
+        )}
+      />
+      <div className="admin-copy text-[11px] leading-5">
+        <span className="font-semibold text-[var(--admin-ink)]">
+          {external ? "Irreversible external consequence:" : "Material consequence:"}
+        </span>{" "}
+        {consequence}
+      </div>
+    </div>
+  );
   const Surface = inline ? InlineReviewSurface : AdminDialog;
   return (
     <Surface
       key={action.id}
       open={open}
       onClose={onClose}
+      onExitComplete={onExitComplete}
       title="Review before approving"
       labelledBy="action-review-title"
       maxWidth="sm"
@@ -317,28 +358,7 @@ export function ActionReviewDialog({
           </button>
         </div>
 
-        <div
-          className={cn(
-            "flex items-start gap-2.5 rounded-xl border",
-            inline ? "mx-3 mt-3 px-3 py-2" : "mx-5 mt-5 px-3.5 py-3 sm:mx-6",
-            external
-              ? "border-[var(--admin-warning)]/25 bg-[var(--admin-warning-soft)]"
-              : "border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]",
-          )}
-        >
-          <TriangleAlert
-            className={cn(
-              "mt-px size-4 shrink-0",
-              external ? "text-[var(--admin-warning)]" : "text-[var(--admin-muted)]",
-            )}
-          />
-          <div className="admin-copy text-[11px] leading-5">
-            <span className="font-semibold text-[var(--admin-ink)]">
-              {external ? "Irreversible external consequence:" : "Material consequence:"}
-            </span>{" "}
-            {consequence}
-          </div>
-        </div>
+        {!inline && consequenceBanner}
 
         {error && (
           <p
@@ -414,6 +434,41 @@ export function ActionReviewDialog({
             <ContentCalendarReview payload={action.payload} />
           )}
           {isTicket && <EventTicketReview command={ticket?.success ? ticket.data : null} />}
+          {blueprintReview && (
+            <section aria-label="Exact Blueprint draft change">
+              <dl className="space-y-3 text-sm">
+                {Object.entries(blueprintReview)
+                  .filter(([label]) => !["Consequence", "Operation"].includes(label))
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      <dt className="text-[var(--admin-muted)]">{label}</dt>
+                      <dd className="min-w-0 whitespace-pre-wrap break-words font-medium">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+              </dl>
+            </section>
+          )}
+          {billing &&
+            (billing.success ? (
+              <section aria-label="Exact billing operation">
+                <dl className="grid gap-3 text-sm">
+                  {Object.entries(billing.data.review)
+                    .filter(([label]) => label !== "Consequence")
+                    .map(([label, value]) => (
+                      <div key={label} className="grid gap-1 sm:grid-cols-[120px_minmax(0,1fr)]">
+                        <dt className="text-[var(--admin-muted)]">{label}</dt>
+                        <dd className="min-w-0 break-words font-medium">{value}</dd>
+                      </div>
+                    ))}
+                </dl>
+              </section>
+            ) : (
+              <p role="alert">
+                This billing proposal is incomplete. Reject it and prepare a new review.
+              </p>
+            ))}
           {isToday && (
             <section className="grid gap-3 text-xs text-[var(--admin-ink)]">
               {todayPreview.isPending && <p>Loading the private exact preview…</p>}
@@ -602,7 +657,9 @@ export function ActionReviewDialog({
             </div>
           )}
 
-          {!isCalendar &&
+          {!billing &&
+            !blueprintReview &&
+            !isCalendar &&
             !isTicket &&
             !isConfiguration &&
             !fields.length &&
@@ -616,6 +673,8 @@ export function ActionReviewDialog({
             )}
 
           {(action.reasoning || action.description) &&
+            (!billing || action.reasoning || action.description !== consequence) &&
+            (!blueprintReview || action.reasoning || action.description !== consequence) &&
             (!isCalendar || action.reasoning) &&
             (!isConfiguration || action.reasoning || action.description !== consequence) && (
               <div>
@@ -654,10 +713,13 @@ export function ActionReviewDialog({
           className={cn(
             "sticky bottom-0 mt-auto border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-xl",
             inline
-              ? "grid grid-cols-3 gap-1 px-2 py-2"
+              ? "z-20 grid grid-cols-3 gap-1 px-2 py-2"
               : "flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6",
           )}
         >
+          {inline && (
+            <div className="col-span-3 [&>div]:mx-0 [&>div]:mt-0">{consequenceBanner}</div>
+          )}
           <button
             type="button"
             data-review-decision="reject"
@@ -686,9 +748,11 @@ export function ActionReviewDialog({
               data-review-decision="approve"
               disabled={
                 busy ||
+                action.status !== "pending" ||
                 Boolean(isToday && !todayPreview.data) ||
                 Boolean(isCalendar && !calendar?.success) ||
-                Boolean(isTicket && !ticket?.success)
+                Boolean(isTicket && !ticket?.success) ||
+                Boolean(billing && !billing.success)
               }
               onClick={onApprove}
               className={cn(
@@ -703,7 +767,7 @@ export function ActionReviewDialog({
               )}
               {action.action_type === "create_gmail_draft"
                 ? "Save draft to Gmail"
-                : external
+                : external && !billing
                   ? "Approve and send"
                   : "Approve"}
             </button>

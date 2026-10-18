@@ -1,5 +1,7 @@
 "use client";
 
+import { ArchitectBlueprintReviewHost } from "./ArchitectBlueprintReview";
+
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
 import {
@@ -409,7 +411,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
     ) : null;
 
   const chat = (
-    <section className="flex min-h-0 flex-1 flex-col">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
       {ai.schemaReady === false && (
         <div className="m-4 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
           <CircleAlert className="mr-2 inline size-4" />
@@ -417,7 +419,12 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           this workspace.
         </div>
       )}
-      <div className="flex items-center gap-2 border-b border-[var(--admin-border)] px-4 py-2.5 text-[11px] text-[var(--admin-muted)]">
+      <div
+        className={cn(
+          "min-w-0 flex-wrap items-center gap-2 border-b border-[var(--admin-border)] px-4 py-2.5 text-[11px] text-[var(--admin-muted)]",
+          reviewInProgress ? "hidden" : "flex",
+        )}
+      >
         {ai.purpose === "architect" ? (
           <NotebookPen className="size-3.5" />
         ) : (
@@ -441,9 +448,29 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           </>
         )}
       </div>
-      {ai.purpose === "architect" && <ArchitectEvidencePanel />}
-      {ai.purpose === "architect" && <ArchitectUnderstandingPanel />}
-      {mobileConversationBar}
+      <nav
+        aria-label="AI workspace mode"
+        className={cn(
+          "shrink-0 gap-2 border-b border-[var(--admin-border)] p-2",
+          reviewInProgress ? "hidden" : "flex",
+        )}
+      >
+        <Link
+          href="/admin/ai"
+          className="admin-button admin-button--secondary"
+          aria-current={ai.purpose === "command" ? "page" : undefined}
+        >
+          Ask
+        </Link>
+        <Link
+          href="/admin/ai?purpose=architect"
+          className="admin-button admin-button--secondary"
+          aria-current={ai.purpose === "architect" ? "page" : undefined}
+        >
+          Architect
+        </Link>
+      </nav>
+      {!reviewInProgress && mobileConversationBar}
       <div className="relative flex min-h-0 flex-1 flex-col">
         <div
           ref={scrollRef}
@@ -476,6 +503,13 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           role="log"
           aria-label="AI conversation"
         >
+          {ai.purpose === "architect" && (
+            <>
+              <ArchitectEvidencePanel />
+              <ArchitectUnderstandingPanel />
+              <ArchitectBlueprintReviewHost key={ai.activeConversationId ?? "new"} />
+            </>
+          )}
           {ai.loadingHistory && (
             <div className="grid min-h-48 place-items-center text-xs text-[var(--admin-muted)]">
               <Loader2 className="mb-2 size-5 animate-spin" />
@@ -483,7 +517,12 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             </div>
           )}
           {!ai.loadingHistory && ai.messages.length === 0 && (
-            <div className="mx-auto flex min-h-full max-w-xl flex-col items-center justify-center py-8 text-center">
+            <div
+              className={cn(
+                "mx-auto flex max-w-xl flex-col items-center justify-center py-8 text-center",
+                ai.purpose === "architect" ? "min-h-48" : "min-h-full",
+              )}
+            >
               <span className="grid size-12 place-items-center rounded-2xl bg-[var(--admin-ink)] text-[var(--admin-surface)]">
                 {ai.purpose === "architect" ? (
                   <NotebookPen className="size-5" />
@@ -720,7 +759,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             })}
           </div>
         </div>
-        {awayFromLatest && !ai.reviewedAction && (
+        {awayFromLatest && !ai.reviewedAction && ai.messages.length > 0 && (
           <button
             type="button"
             onClick={() => {
@@ -783,7 +822,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             rows={1}
             placeholder={
               ai.purpose === "architect"
-                ? "Describe the business, attach notes, or name a scoped source…"
+                ? "Describe a workflow…"
                 : "Ask about priorities, pipeline, conversations, or next actions…"
             }
             className="admin-composer-field max-h-32"
@@ -833,7 +872,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
       </div>
     );
   return (
-    <div className="grid h-[clamp(440px,calc(100dvh-19rem),720px)] min-h-0 overflow-hidden rounded-2xl bg-[var(--admin-surface)] shadow-[var(--admin-shadow)] md:grid-cols-[228px_minmax(0,1fr)]">
+    <div className="grid h-[clamp(440px,calc(100dvh-19rem),720px)] min-h-0 grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl bg-[var(--admin-surface)] shadow-[var(--admin-shadow)] md:grid-cols-[228px_minmax(0,1fr)]">
       <div className="hidden p-4 md:block">{conversationList}</div>
       {chat}
     </div>

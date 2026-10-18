@@ -30,6 +30,26 @@ try {
     check(await store.saveOfflineDraft(draft("alpha", "two", "b")), "Second user did not commit");
     check(await store.saveOfflineDraft(draft("beta", "one", "c")), "Second tenant did not commit");
     check((await store.listOfflineDrafts("alpha", "one")).length === 1, "Draft isolation failed");
+    await store.saveOfflineDraft(draft("alpha", "one", "doomed"));
+    check(
+      !(await store.deleteOfflineDraft("beta", "one", "doomed")),
+      "Delete crossed tenant boundary",
+    );
+    check(
+      !(await store.deleteOfflineDraft("alpha", "two", "doomed")),
+      "Delete crossed user boundary",
+    );
+    const deletionCanceled = new AbortController();
+    deletionCanceled.abort();
+    check(
+      !(await store.deleteOfflineDraft("alpha", "one", "doomed", deletionCanceled.signal)),
+      "Canceled deletion reported success",
+    );
+    check(
+      await store.deleteOfflineDraft("alpha", "one", "doomed"),
+      "Draft deletion did not commit",
+    );
+    check((await store.listOfflineDrafts("alpha", "one")).length === 1, "Deleted draft survived");
     const canceled = new AbortController();
     canceled.abort();
     check(
@@ -77,6 +97,7 @@ try {
       "Unavailable storage falsely reported saved",
     );
     return [
+      "single draft deletion and ownership",
       "committed save",
       "tenant/user isolation",
       "canceled write",
@@ -85,7 +106,7 @@ try {
       "unavailable storage",
     ];
   }, source);
-  assert.equal(results.length, 6);
+  assert.equal(results.length, 7);
   console.log("PASS: Command Center offline storage", results.join(", "));
   await page.evaluate(async () => {
     await navigator.serviceWorker.register("/command-center-sw.js", { scope: "/" });

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BarChart3, Loader2, Target, Users } from "lucide-react";
+import { StatCard } from "@/components/admin/StatCard";
 import { GlassCard } from "@/components/ui/GlassCard";
 
 type Analytics = {
@@ -74,15 +75,15 @@ export function AIReadinessPanel() {
         <p className="text-xs text-white-muted">Browser activity and saved reports</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-        <Metric
+        <StatCard
           label="Started sessions"
           value={data.eventAnalyticsReady ? number(funnel.starts) : "—"}
           icon={BarChart3}
         />
-        <Metric label="Previewed" value={number(funnel.previews)} icon={Target} />
-        <Metric label="Unlocked" value={number(funnel.unlocked)} icon={Users} />
-        <Metric label="Site URLs provided" value={number(funnel.websiteAudited)} icon={Target} />
-        <Metric
+        <StatCard label="Previewed" value={number(funnel.previews)} icon={Target} />
+        <StatCard label="Unlocked" value={number(funnel.unlocked)} icon={Users} />
+        <StatCard label="Site URLs provided" value={number(funnel.websiteAudited)} icon={Target} />
+        <StatCard
           label="Report unlock rate"
           value={
             data.completionRate === null || data.completionRate === undefined
@@ -91,7 +92,7 @@ export function AIReadinessPanel() {
           }
           icon={Target}
         />
-        <Metric
+        <StatCard
           label="Avg. score"
           value={
             data.averageScore === null || data.averageScore === undefined
@@ -251,27 +252,5 @@ export function AIReadinessPanel() {
         </div>
       </GlassCard>
     </section>
-  );
-}
-
-function Metric({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon: typeof BarChart3;
-}) {
-  return (
-    <GlassCard>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="admin-eyebrow">{label}</p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-white-primary">{value}</p>
-        </div>
-        <Icon className="h-4 w-4 text-white-muted" />
-      </div>
-    </GlassCard>
   );
 }

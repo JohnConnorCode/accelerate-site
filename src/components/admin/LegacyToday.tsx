@@ -1,5 +1,7 @@
 "use client";
 
+import { formatMoney } from "@/lib/admin/format";
+
 import { adminPageName } from "@/lib/admin/navigation";
 
 import { AttentionList } from "@/components/admin/AttentionList";
@@ -83,13 +85,6 @@ interface Overview {
     webhookFailures: HealthWebhookFailure[];
     queueBacklog?: { pending: number; expired: number };
   };
-}
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
 }
 
 const focusOptions = [

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+import { AI_SPEND_POLICY_FIXTURE, fixtureAiPricing } from "./lib/ai-spend-fixture";
 /**
  * Deterministic coverage for the command agent's loop, with OpenRouter stubbed
  * at the fetch boundary so the real gateway and the real agent both execute.
@@ -79,6 +80,8 @@ function toolCallTurn(index: number) {
 function stubOpenRouter(reply: (turn: number) => unknown) {
   let turn = 0;
   globalThis.fetch = (async (_url: string, init: RequestInit) => {
+    const pricing = fixtureAiPricing(_url);
+    if (pricing) return pricing;
     sent.push(JSON.parse(String(init.body)) as Sent);
     const body = reply(turn);
     const toolCalls = (body as { choices?: Array<{ message?: { tool_calls?: unknown[] } }> })
@@ -104,6 +107,7 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
   const seededTables: Record<string, Row[]> = {
     tenants: [{ id: ACCELERATE_TENANT_ID, slug: "accelerate", status: "active" }],
     integration_connections: [],
+    workspace_ai_controls: [{ tenant_id: ACCELERATE_TENANT_ID, ...AI_SPEND_POLICY_FIXTURE }],
     // Fixture approval exercises the real gateway; no live-model evaluation is implied.
     admin_settings: [
       {
@@ -202,7 +206,16 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
     return self;
   }
 
-  return { client: { from: (table: string) => query(table) } as never, writes };
+  return {
+    client: {
+      from: (table: string) => query(table),
+      rpc: async (name: string, args: Record<string, unknown>) =>
+        ["reserve_workspace_ai_call", "finish_workspace_ai_call"].includes(name)
+          ? { data: { id: args.p_id }, error: null }
+          : { data: null, error: { message: "Unconfigured fixture RPC" } },
+    } as never,
+    writes,
+  };
 }
 
 const ask = [{ role: "user" as const, content: "What should I do today?" }];

@@ -1,3 +1,16 @@
+import { readAiSpendControls } from "@/lib/ai/spend-controls";
+import {
+  readArchitectBlueprint,
+  previewArchitectPatch,
+  proposeArchitectPatch,
+  simulateArchitectBlueprint,
+} from "./architect-review";
+import {
+  blueprintReadSchema,
+  blueprintPatchSchema,
+  blueprintProposalSchema,
+  blueprintSimulationSchema,
+} from "./architect-review-contract";
 import { previewAgentWork, startAgentWork, getAgentWork, controlAgentWork } from "./agent-work";
 import {
   previewInternalPermission,
@@ -180,6 +193,14 @@ import { proposeLayoutChange } from "./admin-layout";
 import { ADMIN_LAYOUT_SCOPES } from "@/lib/admin/layout-scopes";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
+import {
+  previewBillingCommand,
+  proposeBillingCommand,
+  readBillingInvoices,
+  readBillingPayments,
+  readBillingActionReceipt,
+} from "./billing-workspace";
+import { BILLING_OPERATION_BINDINGS } from "./billing-command-contract";
 import { proposeStripeInvoiceSend } from "./stripe-invoicing";
 import { readTicketWorkspace, proposeTicketAdminCommand } from "./event-ticketing";
 import { eventPath, ticketAdminCommandSchema } from "./event-ticketing-contract";
@@ -640,6 +661,23 @@ const PLUGIN_TOOL_EXECUTORS = {
       value(input, "requestId")!,
       actorEmail,
     ),
+  "get-billing-action": ({ supabase }, raw) =>
+    readBillingActionReceipt(supabase, value(raw, "actionId")!),
+  "get-billing-records": ({ supabase }, raw) =>
+    raw.kind === "payments"
+      ? readBillingPayments(supabase, {
+          cursor: value(raw, "cursor"),
+          connection: value(raw, "connection"),
+          limit: 5,
+        })
+      : readBillingInvoices(supabase, {
+          cursor: value(raw, "cursor"),
+          connection: value(raw, "connection"),
+          limit: 5,
+        }),
+  "preview-billing-change": ({ supabase }, raw) => previewBillingCommand(supabase, raw.command),
+  "propose-billing-change": ({ supabase, actorEmail }, raw) =>
+    proposeBillingCommand(supabase, raw.command, value(raw, "digest")!, actorEmail),
   "propose-invoice-send": ({ supabase, actorEmail }, input) =>
     proposeStripeInvoiceSend(supabase, value(input, "creationActionId")!, actorEmail),
   "preview-invoice-page": ({ supabase }, input) =>
@@ -672,6 +710,135 @@ const adminCoverageInputSchema = z
   .strict();
 
 const registry: AiToolRegistration[] = [
+  {
+    name: "get_ai_cost_controls",
+    description:
+      "Read this workspace's AI pause state, recurring-work permission, request and dollar limits, recent model requests and reported provider charges. Returns the human admin page for changes. Cannot enable AI, raise a budget, resume a coworker, purchase credits or change provider credentials.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: { type: "object" },
+    serviceTarget: "ai.spend-controls",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "ai.cost-controls",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        { path: "/api/admin/ai-cost-controls", method: "GET" },
+        {
+          path: "/api/admin/ai-cost-controls",
+          method: "PUT",
+          audience: "secure-human-handoff",
+          variant: "Current human administrator saves workspace AI budgets and pause state",
+        },
+        {
+          path: "/api/admin/ai-cost-controls",
+          method: "PATCH",
+          audience: "secure-human-handoff",
+          variant: "Current human administrator pauses or resumes a coworker",
+        },
+      ],
+      verification: ["scripts/test-ai-spend-controls.ts", "scripts/test-ai-spend-postgres.mjs"],
+    },
+    execute: ({ supabase }) => readAiSpendControls(supabase),
+  },
+  {
+    name: "get_architect_blueprints",
+    description:
+      "Read workspace Blueprint drafts and the current validated document. Supply blueprintId for one draft.",
+    inputSchema: z.toJSONSchema(blueprintReadSchema) as Record<string, unknown>,
+    parseInput: (raw) => blueprintReadSchema.parse(raw),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.architect-review",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "blueprints.read",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        { path: "/api/admin/blueprints", method: "GET" },
+        { path: "/api/admin/blueprints/[id]", method: "GET" },
+      ],
+      verification: [
+        "scripts/test-workspace-architect-review-simulation.ts",
+        "scripts/test-blueprint-version-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase }, raw) => readArchitectBlueprint(supabase, raw),
+  },
+  {
+    name: "preview_architect_patch",
+    description:
+      "Preview an exact versioned Blueprint patch. Supports an explicit summary instruction or a typed JSON section patch. Does not save or apply.",
+    inputSchema: z.toJSONSchema(blueprintPatchSchema) as Record<string, unknown>,
+    parseInput: (raw) => blueprintPatchSchema.parse(raw),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.architect-review",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "blueprints.patch.preview",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/blueprints/[id]/patch", method: "POST" }],
+      verification: [
+        "scripts/test-workspace-architect-review-simulation.ts",
+        "scripts/test-blueprint-version-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase }, raw) => previewArchitectPatch(supabase, raw),
+  },
+  {
+    name: "propose_architect_patch",
+    description:
+      "Stage the exact Blueprint draft patch and preview digest for human approval. Cannot approve, apply or enable modules. Reuse requestId after an uncertain response.",
+    inputSchema: z.toJSONSchema(blueprintProposalSchema) as Record<string, unknown>,
+    parseInput: (raw) => blueprintProposalSchema.parse(raw),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.architect-review",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    operation: {
+      id: "blueprints.patch.propose",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/blueprints/[id]/patch", method: "POST" }],
+      verification: [
+        "scripts/test-workspace-architect-review-simulation.ts",
+        "scripts/test-blueprint-version-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase, actorEmail }, raw) =>
+      proposeArchitectPatch(supabase, raw, actorEmail),
+  },
+  {
+    name: "simulate_architect_blueprint",
+    description:
+      "Inspect Blueprint workflow traces and capability preflight without live writes, messages or module enablement.",
+    inputSchema: z.toJSONSchema(blueprintSimulationSchema) as Record<string, unknown>,
+    parseInput: (raw) => blueprintSimulationSchema.parse(raw),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.architect-review",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "blueprints.simulate",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/blueprints/[id]/simulate", method: "POST" }],
+      verification: [
+        "scripts/test-workspace-architect-review-simulation.ts",
+        "scripts/test-blueprint-version-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase }, raw) => simulateArchitectBlueprint(supabase, raw),
+  },
   {
     name: "get_ticket_events",
     description:
@@ -1686,6 +1853,8 @@ const registry: AiToolRegistration[] = [
       const { operation, ...declaration } = pluginToolDeclaration(registration);
       return {
         ...declaration,
+        operation:
+          BILLING_OPERATION_BINDINGS[registration.name as keyof typeof BILLING_OPERATION_BINDINGS],
         parseInput: (input) => registration.schema.parse(input) as Record<string, unknown>,
         outputSchema: declaration.impact === "read" ? { type: "object" } : ACTION_OUTPUT_SCHEMA,
         execute: async (context, input) => {
@@ -4011,6 +4180,11 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_ai_cost_controls",
+    "get_architect_blueprints",
+    "preview_architect_patch",
+    "propose_architect_patch",
+    "simulate_architect_blueprint",
     "preview_agent_work",
     "start_agent_work",
     "get_agent_work",
