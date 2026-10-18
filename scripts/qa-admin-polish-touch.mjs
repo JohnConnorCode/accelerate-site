@@ -164,10 +164,28 @@ try {
     const feedback = page.locator(".admin-toast").last();
     await feedback.waitFor();
     const dismissFeedback = feedback.getByRole("button", { name: /^Dismiss:/ });
+    // Measure the settled touch target, after the entrance scale has finished.
+    await feedback.evaluate(
+      (node) =>
+        new Promise((resolve, reject) => {
+          const deadline = performance.now() + 5000;
+          const inspect = () => {
+            const style = getComputedStyle(node);
+            if (style.transform === "none" && style.opacity === "1") return resolve();
+            if (performance.now() >= deadline)
+              return reject(new Error("Feedback entrance did not settle"));
+            requestAnimationFrame(inspect);
+          };
+          inspect();
+        }),
+    );
     const dismissBounds = await dismissFeedback.boundingBox();
     const feedbackBounds = await feedback.boundingBox();
     const dockBounds = await page.locator(".admin-mobile-dock").boundingBox();
-    assert.ok(dismissBounds.width >= 44 && dismissBounds.height >= 44);
+    assert.ok(
+      dismissBounds.width >= 44 && dismissBounds.height >= 44,
+      `Settled dismiss target must be at least 44px: ${JSON.stringify(dismissBounds)}`,
+    );
     assert.ok(feedbackBounds.x >= 0 && feedbackBounds.x + feedbackBounds.width <= 391);
     assert.ok(feedbackBounds.y + feedbackBounds.height <= dockBounds.y);
     if (reducedMotion === "reduce") {

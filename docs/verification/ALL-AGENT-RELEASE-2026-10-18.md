@@ -86,3 +86,5 @@ The package audit currently reports upstream advisories without a compatible
 published remediation in the affected dependency families. Forced incompatible
 downgrades are not included. The exact audit is retained with release evidence;
 this release does not claim an advisory-free dependency tree.
+
+The 5e6e402e CI first-run touch check measured a toast while its 0.985 entrance scale was active. The observer now waits for opacity 1 and no transform before measuring, with a five-second deadline. The existing 44px requirement remains unchanged; the final candidate must pass the actual native touch journey.
