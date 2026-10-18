@@ -25,7 +25,7 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { KanbanBoard, type KanbanCardRenderOpts } from "@/components/kanban/KanbanBoard";
-import { fetchJson } from "@/lib/admin/fetchJson";
+import { AdminRequestError, fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { useKanbanColumns } from "@/lib/kanban/useKanbanColumns";
 import type { KanbanColumnRecord } from "@/lib/kanban/types";
@@ -136,6 +136,10 @@ export default function PipelinePage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState("");
+  const createIntent = useRef<Record<string, unknown> | null>(null);
+  const [pendingCreate, setPendingCreate] = useState<Record<string, unknown> | null>(null);
+  const [createError, setCreateError] = useState("");
+
   const [dialog, setDialog] = useState<"create" | "customize" | "save" | "add-stage" | null>(null);
   const [lossRequest, setLossRequest] = useState<Opportunity | null>(null);
   const [lossReasonDraft, setLossReasonDraft] = useState("");
@@ -169,6 +173,11 @@ export default function PipelinePage() {
   const data = pipelineQuery.data ?? null;
   const preferenceScope =
     data?.tenantId && data.viewerId ? `${data.tenantId}:${data.viewerId}` : "";
+  useEffect(() => {
+    createIntent.current = null;
+    setPendingCreate(null);
+    setCreateError("");
+  }, [preferenceScope]);
   const loading = pipelineQuery.isPending;
   const refreshing = pipelineQuery.isFetching;
   const error = actionError || pipelineQuery.error?.message || "";
@@ -317,17 +326,35 @@ export default function PipelinePage() {
   }, []);
   const create = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    createIntent.current ??= {
+      requestId: crypto.randomUUID(),
+      ...Object.fromEntries(new FormData(event.currentTarget)),
+    };
+    setPendingCreate(createIntent.current);
     setSaving(true);
+    setCreateError("");
     try {
       await fetchJson("/api/admin/revenue-os/pipeline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))),
+        body: JSON.stringify(createIntent.current),
       });
+      createIntent.current = null;
+      setPendingCreate(null);
       setDialog(null);
       await load();
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Could not create opportunity.");
+      // A validation/conflict refusal cannot have created an opportunity. An
+      // uncertain transport result keeps the exact input and key for recovery.
+      if (reason instanceof AdminRequestError && [400, 409, 413].includes(reason.status)) {
+        createIntent.current = null;
+        setPendingCreate(null);
+      }
+      setCreateError(
+        reason instanceof Error
+          ? reason.message
+          : "The save could not be confirmed. Retry this save to recover it.",
+      );
     } finally {
       setSaving(false);
     }
@@ -972,35 +999,44 @@ export default function PipelinePage() {
             description="Creates or resolves the contact and company before opening the opportunity."
             close={() => setDialog(null)}
           />
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {[
-              ["name", "Contact name", "text", true],
-              ["email", "Email", "email", true],
-              ["companyName", "Company", "text"],
-              ["website", "Website", "text"],
-              ["estimatedValue", "Estimated value", "number"],
-              ["nextActionAt", "Next action date", "datetime-local"],
-            ].map(([name, label, type, required]) => (
-              <label key={String(name)} className="text-xs font-semibold">
-                {String(label)}
-                <input
-                  name={String(name)}
-                  type={String(type)}
-                  required={Boolean(required)}
-                  min={type === "number" ? "0" : undefined}
-                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none"
-                />
-              </label>
-            ))}
-          </div>
-          <label className="mt-4 block text-xs font-semibold">
-            Next action
-            <input
-              name="nextAction"
-              placeholder="Send audit follow-up"
-              className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal"
-            />
-          </label>
+          {createError && (
+            <p role="alert" className="mt-4 text-sm text-red-600">
+              {createError}
+            </p>
+          )}
+          <fieldset disabled={saving || Boolean(pendingCreate)}>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {[
+                ["name", "Contact name", "text", true],
+                ["email", "Email", "email", true],
+                ["companyName", "Company", "text"],
+                ["website", "Website", "text"],
+                ["estimatedValue", "Estimated value", "number"],
+                ["nextActionAt", "Next action date", "datetime-local"],
+              ].map(([name, label, type, required]) => (
+                <label key={String(name)} className="text-xs font-semibold">
+                  {String(label)}
+                  <input
+                    name={String(name)}
+                    defaultValue={String(pendingCreate?.[String(name)] ?? "")}
+                    type={String(type)}
+                    required={Boolean(required)}
+                    min={type === "number" ? "0" : undefined}
+                    className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none"
+                  />
+                </label>
+              ))}
+            </div>
+            <label className="mt-4 block text-xs font-semibold">
+              Next action
+              <input
+                name="nextAction"
+                defaultValue={String(pendingCreate?.nextAction ?? "")}
+                placeholder="Send audit follow-up"
+                className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal"
+              />
+            </label>
+          </fieldset>
           <div className="mt-6 flex justify-end gap-2">
             <button
               type="button"
@@ -1010,7 +1046,8 @@ export default function PipelinePage() {
               Cancel
             </button>
             <button type="submit" disabled={saving} className="admin-button admin-button--primary">
-              {saving && <Loader2 className="size-4 animate-spin" />} Create opportunity
+              {saving && <Loader2 className="size-4 animate-spin" />}{" "}
+              {pendingCreate && createError ? "Retry save" : "Create opportunity"}
             </button>
           </div>
         </form>

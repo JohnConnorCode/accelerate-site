@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { readBoundedJson } from "@/lib/http/bounded-json";
+import { opportunityCreateRequestSchema } from "@/lib/revenue-os/opportunity-create-contract";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
@@ -136,33 +139,52 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const body = (await request.json()) as Record<string, unknown>;
-  const name = typeof body.name === "string" ? body.name.trim() : "";
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  if (!name || !email)
-    return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
-  const supabase = auth.database;
   try {
-    const data = await createOpportunity(supabase, {
+    const input = opportunityCreateRequestSchema.parse(await readBoundedJson(request, 16_384));
+    const data = await createOpportunity(auth.database, {
+      ...input,
       actorEmail: auth.user.email || "founder",
-      name,
-      email,
-      phone: typeof body.phone === "string" ? body.phone : null,
-      companyName: typeof body.companyName === "string" ? body.companyName : null,
-      website: typeof body.website === "string" ? body.website : null,
-      industry: typeof body.industry === "string" ? body.industry : null,
-      opportunityName: typeof body.opportunityName === "string" ? body.opportunityName : null,
-      estimatedValue: Number.isFinite(Number(body.estimatedValue))
-        ? Number(body.estimatedValue)
-        : null,
-      nextAction: typeof body.nextAction === "string" ? body.nextAction : null,
-      nextActionAt: typeof body.nextActionAt === "string" ? body.nextActionAt : null,
     });
     return NextResponse.json({ opportunity: data }, { status: 201 });
   } catch (error) {
+    if (
+      error instanceof SyntaxError ||
+      (error instanceof Error && /JSON request body|size limit/.test(error.message))
+    )
+      return NextResponse.json(
+        {
+          error: "Enter valid opportunity details within the request size limit.",
+          code: "invalid_input",
+        },
+        { status: error instanceof Error && /size limit/.test(error.message) ? 413 : 400 },
+      );
+    if (error instanceof z.ZodError)
+      return NextResponse.json(
+        { error: error.issues[0]?.message || "Invalid opportunity details", code: "invalid_input" },
+        { status: 400 },
+      );
+    const code = error && typeof error === "object" && "code" in error ? error.code : null;
+    if (code === "40001")
+      return NextResponse.json(
+        {
+          error:
+            "This request already saved different opportunity details. Start a new opportunity.",
+          code: "intent_conflict",
+        },
+        { status: 409 },
+      );
+    if (code === "42501")
+      return NextResponse.json(
+        { error: "Workspace administrator access is unavailable.", code: "access_unavailable" },
+        { status: 403 },
+      );
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not create the opportunity" },
-      { status: 400 },
+      {
+        error:
+          "The save could not be confirmed. Retry this save to recover it without creating another opportunity.",
+        code: "save_unconfirmed",
+      },
+      { status: 503 },
     );
   }
 }

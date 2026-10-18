@@ -3145,13 +3145,16 @@
       ],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/http/bounded-json",
         "@/lib/revenue-os/db",
+        "@/lib/revenue-os/opportunity-create-contract",
         "@/lib/revenue-os/pipeline",
         "@/lib/revenue-os/pipeline-stage-resolver",
         "@/lib/revenue-os/stage-history",
-        "next/server"
+        "next/server",
+        "zod"
       ],
-      "sourceSha256": "aa7c743cdd2b3cccfb69143111f0d2bc29b2702a63dd11f7a0db59df021c3621"
+      "sourceSha256": "d93dff5c68d4ea958df0f047134dff5665c7b1e1e2d7da220fb7dfced630919a"
     },
     {
       "source": "src/app/api/admin/revenue-os/priority/route.ts",
