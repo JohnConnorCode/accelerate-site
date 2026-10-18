@@ -5,9 +5,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-08.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-18.1";
 
 export const TENANT_SCOPED_TABLES = [
+  "workspace_ai_controls",
+  "workspace_ai_reservations",
   "ticket_events",
   "ticket_orders",
   "ticket_order_receipts",
@@ -157,6 +159,31 @@ export const TENANT_SCOPED_TABLES = [
 const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
+  {
+    table: "workspace_ai_controls",
+    columns: [
+      "revision",
+      "enabled",
+      "recurring_enabled",
+      "daily_usd",
+      "monthly_usd",
+      "request_usd",
+      "daily_calls",
+      "updated_at",
+    ],
+  },
+  {
+    table: "workspace_ai_reservations",
+    columns: [
+      "id",
+      "job",
+      "model",
+      "reserved_usd",
+      "actual_usd",
+      "provider_request_id",
+      "created_at",
+    ],
+  },
   {
     table: "ticket_events",
     columns: [
@@ -931,6 +958,7 @@ export const REVENUE_SCHEMA_CONSTRAINTS = [
 ] as const;
 
 export const REVENUE_SCHEMA_INDEXES = [
+  "workspace_ai_reservations_period",
   "ticket_orders_inventory",
   "ticket_event_request_receipt",
   "workspace_mcp_delegation_lookup",
@@ -985,6 +1013,23 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
+  {
+    name: "public.save_workspace_ai_controls(uuid,uuid,text,integer,jsonb)",
+    migration: "migrations/20261018173749_workspace_ai_spend_controls.sql",
+  },
+  {
+    name: "public.reserve_workspace_ai_call(uuid,uuid,text,text,numeric,boolean)",
+    migration: "migrations/20261018173749_workspace_ai_spend_controls.sql",
+  },
+  {
+    name: "public.finish_workspace_ai_call(uuid,uuid,numeric,text)",
+    migration: "migrations/20261018173749_workspace_ai_spend_controls.sql",
+  },
+  {
+    name: "public.read_workspace_ai_usage(uuid)",
+    migration: "migrations/20261018173749_workspace_ai_spend_controls.sql",
+  },
+
   {
     name: "public.record_ticket_confirmation(uuid,text,text)",
     migration: "migrations/20261016200534_event_ticketing.sql",

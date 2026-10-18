@@ -19,7 +19,20 @@ const suspensionMigration = readFileSync(
 const setup = readFileSync("docs/self-hosting/REVENUE-OS-SETUP.md", "utf8");
 const contract = readFileSync("docs/contracts/MULTI-TENANCY-CONTRACT.md", "utf8");
 
+const costMigration = readFileSync(
+  "migrations/20261018173749_workspace_ai_spend_controls.sql",
+  "utf8",
+);
 for (const table of TENANT_SCOPED_TABLES) {
+  if (["workspace_ai_controls", "workspace_ai_reservations"].includes(table)) {
+    assert.match(
+      costMigration,
+      new RegExp(String.raw`CREATE TABLE IF NOT EXISTS public\.${table} \(\s*[^;]*tenant_id uuid`),
+    );
+    assert.ok(costMigration.includes(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY`));
+    assert.match(costMigration, /private.has_active_tenant_membership\(tenant_id\)/);
+    continue;
+  }
   assert.match(
     migration,
     new RegExp(`'${table}'`),
