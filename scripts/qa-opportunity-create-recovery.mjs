@@ -85,7 +85,11 @@ try {
     await dialog.getByRole("button", { name: "Create opportunity", exact: true }).focus();
     await page.keyboard.press("Enter");
     await dialog.getByRole("alert").waitFor();
-    assert.match(await dialog.getByRole("alert").innerText(), /could not be confirmed/);
+    assert.match(
+      await dialog.getByRole("alert").innerText(),
+      /Controlled lost response after save/,
+    );
+    await dialog.getByRole("button", { name: "Retry save", exact: true }).waitFor();
     assert.equal(await dialog.getByLabel("Contact name", { exact: true }).isDisabled(), true);
     await page.screenshot({ path: `${output}/uncertain-${width}.png`, fullPage: true });
     await dialog.getByRole("button", { name: "Cancel", exact: true }).focus();
