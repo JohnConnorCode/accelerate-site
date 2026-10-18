@@ -3,7 +3,7 @@
 import type { TooltipContentProps } from "recharts";
 import { cn } from "@/lib/utils";
 
-export interface ChartTooltipProps extends TooltipContentProps {
+export interface ChartTooltipProps extends Omit<TooltipContentProps, "formatter"> {
   /** Formats a series value for display. Receives the raw recharts value. */
   formatter?: (value: unknown, name: string) => string;
 }

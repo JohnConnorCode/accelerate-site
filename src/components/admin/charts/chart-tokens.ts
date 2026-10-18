@@ -17,8 +17,10 @@ export const CHART_AXIS = "var(--admin-muted)";
 export const CHART_SURFACE = "var(--admin-surface)";
 export const CHART_INK = "var(--admin-ink)";
 
+const FALLBACK_SERIES = "var(--admin-accent)";
+
 export function seriesColor(index: number): string {
-  return CHART_SERIES[index % CHART_SERIES.length];
+  return CHART_SERIES[index % CHART_SERIES.length] ?? FALLBACK_SERIES;
 }
 
 export function clampPercent(value: number): number {
