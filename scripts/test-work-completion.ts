@@ -25,12 +25,17 @@ import {
 } from "../src/lib/revenue-os/work-executor";
 import {
   runCoworkerAgentTask,
+  tryCoworkerAgentTask,
   MAX_COWORKER_TOOL_TURNS,
 } from "../src/lib/revenue-os/coworker-agent";
 import { registerSalesWorkHandlers } from "../src/lib/revenue-os/sales-coworker";
 import { findWorkDraft, workDraftKey } from "../src/lib/revenue-os/work-drafts";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
-import type { OpenRouterMessage, openRouterChat } from "../src/lib/ai/openrouter";
+import {
+  OpenRouterError,
+  type OpenRouterMessage,
+  type openRouterChat,
+} from "../src/lib/ai/openrouter";
 
 const iso = (ms: number) => new Date(Date.now() + ms).toISOString();
 function item(overrides: Row = {}): WorkItem {
@@ -562,6 +567,24 @@ async function main() {
       );
       assert.equal(called, false);
       assert.equal(db.rows("agent_runs").length, 0);
+    });
+    await check("paused AI leaves deterministic coworker fallback available", async () => {
+      const db = seed();
+      const result = await tryCoworkerAgentTask(db.client, item(db.rows("work_items")[0]));
+      assert.equal(result, null);
+      assert.equal(db.rows("agent_runs").length, 0);
+    });
+    await check("AI admission limits defer work without reporting a provider failure", async () => {
+      const db = seed();
+      const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
+        chat: async () => {
+          throw new OpenRouterError("AI budget reached", 409, null, false, null, false);
+        },
+      });
+      assert.equal(result.status, "deferred");
+      assert.match(result.outcome, /budget reached/);
+      assert.equal(db.rows("agent_runs")[0]?.status, "partial");
+      assert.equal(db.rows("action_queue").length, 0);
     });
     await check("AI prose without tools cannot complete work", async () => {
       const db = seed();

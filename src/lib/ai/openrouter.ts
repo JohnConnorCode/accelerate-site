@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { reserveAiSpend, finishAiSpend } from "./spend-controls";
 import { z } from "zod";
 import { readBoundedJson } from "./bounded-json";
 import { tenant } from "@/config/tenant";
@@ -121,6 +122,54 @@ export class OpenRouterError extends Error {
 }
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const spendReservations = new WeakMap<Response, string>();
+async function fetchModel(
+  input: OpenRouterRequest,
+  model: string,
+  init: RequestInit,
+): Promise<Response> {
+  if (!input.database) throw new OpenRouterError("AI calls require a workspace", 400);
+  if (input.signal?.aborted)
+    throw new OpenRouterError("AI request cancelled before admission", 499);
+  const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+  let id: string;
+  try {
+    id = await reserveAiSpend(input.database, input.job, model, body);
+  } catch (error) {
+    throw new OpenRouterError(
+      error instanceof Error ? error.message : "AI budget admission failed",
+      409,
+      null,
+      false,
+      null,
+      false,
+    );
+  }
+  const response = await fetch(OPENROUTER_URL, { ...init, body: JSON.stringify(body) });
+  spendReservations.set(response, id);
+  return response;
+}
+async function recordProviderSpend(
+  input: OpenRouterRequest,
+  response: Response,
+  id: string,
+  usage: OpenRouterUsage,
+) {
+  const reservation = spendReservations.get(response);
+  if (!input.database || !reservation) throw new Error("AI usage has no budget reservation");
+  try {
+    await finishAiSpend(input.database, reservation, id, usage.cost);
+  } catch {
+    throw new OpenRouterError(
+      "AI usage could not be saved. The budget reservation remains held",
+      502,
+      id,
+      false,
+      null,
+      false,
+    );
+  }
+}
 const MAX_CHAT_RESPONSE_BYTES = 1024 * 1024;
 const MAX_STREAM_RESPONSE_BYTES = 1024 * 1024;
 
@@ -225,18 +274,12 @@ async function attemptChat(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? 45_000);
   const startedAt = Date.now();
-  const fallbackModel = input.strictPricing ? null : getOpenRouterFallbackModel();
   try {
-    const response = await fetch(OPENROUTER_URL, {
+    const response = await fetchModel(input, model, {
       method: "POST",
       headers: headers(apiKey),
       body: JSON.stringify({
         model,
-        // Provider-side failover: OpenRouter tries the fallback itself if the
-        // primary is down, which recovers faster than our own retry loop.
-        ...(fallbackModel && fallbackModel !== model
-          ? { models: [model, fallbackModel], route: "fallback" }
-          : {}),
         messages: input.messages,
         ...(input.reasoning ? { reasoning: input.reasoning } : {}),
         max_tokens: Math.min(Math.max(input.maxTokens ?? 1200, 1), 8000),
@@ -310,6 +353,7 @@ async function attemptChat(
         false,
       );
     }
+    await recordProviderSpend(input, response, payload.id, payload.usage ?? {});
     return payload;
   } catch (error) {
     if (error instanceof OpenRouterError) throw error;
@@ -346,8 +390,6 @@ async function resolveJobModel(
     input.job,
     getOpenRouterModel(input.model),
   );
-  const fallback = input.strictPricing ? null : getOpenRouterFallbackModel();
-  if (fallback) await resolveModelForJob(input.database, explicitTenantId, input.job, fallback);
   return {
     requested: resolution.requested,
     resolved: resolution.resolved,
@@ -486,16 +528,12 @@ export async function openRouterChatStream(
   const callId = randomUUID();
   await recordJobReceipt(input, tenantId, requested, model, streamStartedAt, callId, "started");
   const timeout = setTimeout(() => controller.abort(), 45_000);
-  const fallbackModel = getOpenRouterFallbackModel();
   try {
-    const response = await fetch(OPENROUTER_URL, {
+    const response = await fetchModel(input, model, {
       method: "POST",
       headers: headers(apiKey),
       body: JSON.stringify({
         model,
-        ...(fallbackModel && fallbackModel !== model
-          ? { models: [model, fallbackModel], route: "fallback" }
-          : {}),
         messages: input.messages,
         ...(reasoning ? { reasoning } : {}),
         max_tokens: Math.min(Math.max(input.maxTokens ?? 1200, 1), 8000),
@@ -580,6 +618,7 @@ export async function openRouterChatStream(
     }
     if (buffer.trim()) consume(buffer);
 
+    if (finishReason !== null) await recordProviderSpend(input, response, id, usage);
     await recordJobReceipt(input, tenantId, requested, resolvedModel, streamStartedAt, callId);
     return {
       id,
@@ -692,18 +731,14 @@ export async function openRouterTextStream(
   const callId = randomUUID();
   await recordJobReceipt(input, tenantId, requested, model, streamStartedAt, callId, "started");
   const timeout = setTimeout(() => controller.abort(), 45_000);
-  const fallbackModel = getOpenRouterFallbackModel();
   const apiKey = await requestApiKey(input);
   let response: Response;
   try {
-    response = await fetch(OPENROUTER_URL, {
+    response = await fetchModel(input, model, {
       method: "POST",
       headers: headers(apiKey),
       body: JSON.stringify({
         model,
-        ...(fallbackModel && fallbackModel !== model
-          ? { models: [model, fallbackModel], route: "fallback" }
-          : {}),
         messages: input.messages,
         ...(reasoning ? { reasoning } : {}),
         max_tokens: Math.min(Math.max(input.maxTokens ?? 500, 1), 2000),
@@ -758,9 +793,29 @@ export async function openRouterTextStream(
     usage: {},
   };
   let metadataDelivered = false;
+  let streamComplete = false;
+  const markComplete = () => {
+    streamComplete = true;
+  };
   const deliverMetadata = async (phase: "completed" | "failed" | "cancelled" = "completed") => {
     if (metadataDelivered) return;
     metadataDelivered = true;
+    if (phase === "completed" && streamComplete) {
+      try {
+        await recordProviderSpend(input, response, metadata.requestId, metadata.usage);
+      } catch (error) {
+        await recordJobReceipt(
+          input,
+          tenantId,
+          requested,
+          metadata.model ?? model,
+          streamStartedAt,
+          callId,
+          "failed",
+        );
+        throw error;
+      }
+    }
     onMetadata?.({ ...metadata, usage: { ...metadata.usage } });
     await recordJobReceipt(
       input,
@@ -778,7 +833,8 @@ export async function openRouterTextStream(
         while (true) {
           const { value, done } = await reader.read();
           if (done) {
-            if (buffer.trim()) parseSseChunk(buffer, streamController, encoder, metadata);
+            if (buffer.trim())
+              parseSseChunk(buffer, streamController, encoder, metadata, markComplete);
             await deliverMetadata();
             clearTimeout(timeout);
             streamController.close();
@@ -801,7 +857,7 @@ export async function openRouterTextStream(
           buffer = blocks.pop() ?? "";
           let enqueued = 0;
           for (const block of blocks)
-            enqueued += parseSseChunk(block, streamController, encoder, metadata);
+            enqueued += parseSseChunk(block, streamController, encoder, metadata, markComplete);
           // Returning without enqueueing leaves the stream waiting for a pull
           // that never comes; keepalive, role-only and reasoning chunks carry
           // no visible text, so keep reading until one does.
@@ -833,12 +889,17 @@ function parseSseChunk(
   controller: ReadableStreamDefaultController<Uint8Array>,
   encoder: TextEncoder,
   metadata: OpenRouterStreamMetadata,
+  onComplete: () => void,
 ): number {
   let enqueued = 0;
   for (const line of block.split(/\r?\n/)) {
     if (!line.startsWith("data:")) continue;
     const data = line.slice(5).trim();
-    if (!data || data === "[DONE]") continue;
+    if (data === "[DONE]") {
+      onComplete();
+      continue;
+    }
+    if (!data) continue;
     let parsed: OpenRouterStreamChunk;
     try {
       parsed = JSON.parse(data) as OpenRouterStreamChunk;
@@ -851,6 +912,7 @@ function parseSseChunk(
     if (parsed.id) metadata.requestId = parsed.id;
     if (parsed.model) metadata.model = parsed.model;
     if (parsed.usage) metadata.usage = parsed.usage;
+    if (parsed.choices?.some((choice) => choice.finish_reason != null)) onComplete();
     const content = parsed.choices?.[0]?.delta?.content;
     if (content) {
       controller.enqueue(encoder.encode(content));

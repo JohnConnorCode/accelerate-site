@@ -493,7 +493,7 @@ const capabilityDefinitions: Capability[] = [
     title: "Run work through conversation",
     promise: "Ask for the result you need, review exact changes in chat and follow the saved work.",
     detail:
-      "Ask AI reads records, prepares replies and tasks, and previews ordered jobs. Configured background work retains progress after the browser closes. You can approve exact proposals inside chat and grant bounded permission for named internal operations. Messages, publishing, billing and permission changes keep human review. Available tools depend on modules, providers and current access.",
+      "Ask AI reads records, prepares replies and tasks, and previews ordered jobs. Configured background work retains progress after the browser closes. You can approve exact proposals inside chat and grant bounded permission for named internal operations. Messages, publishing, billing and permission changes keep human review. Cost controls pause model requests or recurring coworker work, set request and spending limits, and show held budget separately from reported provider charges. Available tools depend on modules, providers and current access.",
   },
   {
     id: "mcp",

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "workspace-ai-cost-controls",
+    slug: "workspace-ai-cost-controls",
+    title: "Control AI budgets and recurring work",
+    description:
+      "Pause model requests, choose whether coworkers run on a schedule, and set daily, monthly and per-request spending limits in AI Workspace. Every provider attempt reserves its bounded cost before execution. Usage identifies the job and separates held budget from reported charges. New workspaces start paused, and saving controls never purchases credits.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
     id: "architect-draft-review",
     slug: "architect-draft-review",
     title: "Review Blueprint changes inside Architect",

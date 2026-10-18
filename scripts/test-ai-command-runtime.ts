@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+import { enableAiSpendFixture, fixtureAiPricing } from "./lib/ai-spend-fixture";
 import assert from "node:assert/strict";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
@@ -41,7 +42,11 @@ function sseResponse(blocks: unknown[]) {
 
 async function main() {
   const memory = new MemorySupabase({ tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }] });
-  const database = bindTenantDatabase(memory.client, ACCELERATE_TENANT_ID, true);
+  const database = bindTenantDatabase(
+    enableAiSpendFixture(memory, ACCELERATE_TENANT_ID).client,
+    ACCELERATE_TENANT_ID,
+    true,
+  );
   // Controlled transport fixture only; this is not an evaluation of a live model.
   await recordModelEvalEvidence(database, {
     tenantId: ACCELERATE_TENANT_ID,
@@ -306,7 +311,8 @@ async function main() {
   assert.ok(model.questions.every((item) => item.why.length > 0));
 
   const deltas: string[] = [];
-  globalThis.fetch = (async () =>
+  globalThis.fetch = (async (url) =>
+    fixtureAiPricing(url) ??
     sseResponse([
       {
         id: "stream-1",

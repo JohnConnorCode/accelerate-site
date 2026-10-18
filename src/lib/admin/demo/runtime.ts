@@ -1,4 +1,9 @@
 import { handleDemoArchitect } from "./architect-runtime";
+import {
+  DEFAULT_AI_SPEND_POLICY,
+  aiSpendPolicySchema,
+  type AiSpendPolicy,
+} from "@/lib/ai/spend-controls-contract";
 import { handleDemoContentCalendar } from "./content-calendar-runtime";
 import { handleDemoEventTickets } from "./event-ticketing-runtime";
 import {
@@ -156,6 +161,11 @@ type DemoSubscriptionsState = {
   archivedPlanIds?: string[];
 };
 export type DemoState = {
+  aiCostControls?: {
+    revision: number;
+    policy: AiSpendPolicy;
+    statuses: Record<string, "active" | "paused">;
+  };
   contentSeedAt?: string;
   contentCommandReceipts?: Record<string, { fingerprint: string; result: Record<string, unknown> }>;
   blueprintApprovedVersion?: number;
@@ -3106,6 +3116,63 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (learningResponse) {
       if (method !== "GET" && learningResponse.ok) saveState(scenarioId, state);
       return learningResponse;
+    }
+    if (path === "/api/admin/ai-cost-controls") {
+      const controls = state.aiCostControls ?? {
+        revision: 0,
+        policy: { ...DEFAULT_AI_SPEND_POLICY },
+        statuses: {},
+      };
+      const coworkers = [
+        {
+          id: "business-pulse",
+          name: "Business Pulse",
+          work_kinds: ["daily_digest", "detect_stale_deals"],
+        },
+        {
+          id: "operations",
+          name: "Operations",
+          work_kinds: ["daily_health_check", "integration_status_audit"],
+        },
+      ];
+      if (method === "PUT") {
+        const input = body as { revision?: unknown; policy?: unknown };
+        const policy = aiSpendPolicySchema.safeParse(input.policy);
+        if (!policy.success)
+          return jsonResponse({ error: "Enter valid AI controls and finite limits" }, 400);
+        if (input.revision !== controls.revision)
+          return jsonResponse({ error: "AI controls changed. Refresh before saving" }, 409);
+        controls.policy = policy.data;
+        controls.revision++;
+      } else if (method === "PATCH") {
+        const input = body as { id?: string; status?: unknown };
+        if (
+          !coworkers.some((row) => row.id === input.id) ||
+          !["active", "paused"].includes(String(input.status))
+        )
+          return jsonResponse({ error: "Choose an existing coworker and status" }, 400);
+        controls.statuses[input.id!] = input.status as "active" | "paused";
+      } else if (method !== "GET")
+        return jsonResponse({ error: "Unsupported AI control operation" }, 405);
+      if (method !== "GET") {
+        state.aiCostControls = controls;
+        saveState(scenarioId, state);
+      }
+      return jsonResponse({
+        ...controls,
+        coworkers: coworkers.map((row) => ({
+          ...row,
+          status: controls.statuses[row.id] ?? "active",
+        })),
+        usage: {
+          dailyCalls: 0,
+          dailyReservedUsd: 0,
+          monthlyReservedUsd: 0,
+          reportedUsd: 0,
+          uncertainCalls: 0,
+        },
+        recent: [],
+      });
     }
     if (path === "/api/admin/site/models" && method === "GET") {
       if (state.moduleOverrides["site-studio"] === false)

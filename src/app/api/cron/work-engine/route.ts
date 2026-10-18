@@ -8,6 +8,7 @@ import { registerSocialWorkHandlers } from "@/lib/revenue-os/social-marketing-wo
 import { registerDebateBookingWorkHandlers } from "@/lib/revenue-os/debate-booking-work";
 import { ProviderCircuit } from "@/lib/revenue-os/bounded-execution";
 import { NextRequest, NextResponse } from "next/server";
+import { readAiSpendPolicy } from "@/lib/ai/spend-controls";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { listTenantSystemContexts } from "@/lib/tenancy/system";
@@ -67,6 +68,9 @@ export async function GET(request: NextRequest) {
       try {
         const result = await runWithTenantRequestContext(context, async () => {
           const supabase = createServiceRoleClient(context);
+          const controls = await readAiSpendPolicy(supabase);
+          if (!controls.policy.recurringEnabled)
+            return { claimed: false, runId: null, value: null };
           return withJobRun(supabase, "work-engine", async () => {
             // Schedule recurring work (daily + weekly on Mondays) before execution.
             const scheduling = await scheduleRecurringWork(supabase);

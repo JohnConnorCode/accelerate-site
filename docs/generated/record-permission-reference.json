@@ -379,6 +379,10 @@
       "module": "core-contacts"
     },
     {
+      "tool": "get_ai_cost_controls",
+      "module": "core-intelligence"
+    },
+    {
       "tool": "get_architect_blueprints",
       "module": "core-intelligence"
     },

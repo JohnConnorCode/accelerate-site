@@ -243,6 +243,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     navLinkIds: ["ai", "architect", "blueprints", "learning", "source-authority"],
     routes: ["/admin/ai", "/admin/blueprints", "/admin/learning", "/admin/source-authority"],
     aiToolNames: [
+      "get_ai_cost_controls",
       "get_architect_blueprints",
       "preview_architect_patch",
       "propose_architect_patch",

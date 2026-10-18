@@ -449,7 +449,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["intelligence", "workspace"],
         title: "Use the AI Workspace",
         description:
-          "Ask a specific question, check the sources behind the answer, then inspect what ran.",
+          "Ask business questions, inspect run evidence, and control AI costs and recurring work.",
       },
     ],
   },

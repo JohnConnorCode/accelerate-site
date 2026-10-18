@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Add workspace AI cost controls with model and recurring-work pauses, individual coworker control, atomic request and spending admission, and separate reserved and reported usage. Provider funding remains explicit.
+
 - Add atomic Blueprint draft versions with optimistic concurrency, replay recovery, approval reset and transactional audit. Registered Architect tools and admin review use the shared writer and verified tenant context.
 - Update the application and test tooling while retaining the prior React hooks lint plugin at 7.0.1, with all existing lint rules enabled. The newer compiler-analysis policy requires its own screen migration.
 

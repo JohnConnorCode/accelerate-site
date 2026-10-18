@@ -239,7 +239,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we control our AI provider costs?",
     answer:
-      "Yes. Each workspace can use the shared provider setup or bring its own OpenRouter key and approved model settings. DeepSeek V4.1 Flash is the default and can be changed per installation or request. Keys stay server-side, and usage stays inside your workspace.",
+      "Yes. Open AI Workspace → Cost controls to pause all model requests, control recurring coworker work, pause individual coworkers, and set request, daily and monthly limits. AI starts paused, and each provider attempt reserves its maximum token cost before running. Usage separates held budget from reported provider charges. Provider credits, automatic top-up and hosting costs remain in their own billing accounts; saving workspace controls never purchases credits.",
   },
   {
     question: "How is this different from the notetaker we already have?",

@@ -1,8 +1,14 @@
+import { readAiSpendPolicy } from "@/lib/ai/spend-controls";
 import { MAX_ACTIVE_AI_TOOLS } from "./ai-tool-bundles";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import "server-only";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
-import { getOpenRouterModel, openRouterChat, type OpenRouterMessage } from "@/lib/ai/openrouter";
+import {
+  getOpenRouterModel,
+  openRouterChat,
+  OpenRouterError,
+  type OpenRouterMessage,
+} from "@/lib/ai/openrouter";
 import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { resolveModelForJob } from "@/lib/ai/model-registry";
 import { claimResourceBudget } from "./budgets";
@@ -75,6 +81,8 @@ async function coworkerAiReady(supabase: SupabaseClient): Promise<boolean> {
   const tenantId = tenantIdForDatabase(supabase);
   if (!tenantId) return false;
   try {
+    const controls = await readAiSpendPolicy(supabase);
+    if (!controls.policy.enabled || !controls.policy.recurringEnabled) return false;
     if (!(await isTenantOpenRouterConfigured(supabase))) return false;
     await resolveModelForJob(
       supabase,
@@ -502,6 +510,15 @@ export async function runCoworkerAgentTask(
       runId: run.id,
     };
   } catch (error) {
+    if (error instanceof OpenRouterError && error.status === 409 && !error.retryable) {
+      await finishAgentRun(supabase, run, "partial", {
+        toolNames,
+        inputTokens,
+        outputTokens,
+        error: error.message,
+      });
+      return { ...deferWork(error.message), artifacts, runId: run.id ?? "" };
+    }
     await finishAgentRun(supabase, run, "failed", {
       toolNames,
       inputTokens,

@@ -277,6 +277,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:blueprint-version:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:ai-spend:postgres
           npm run test:content-calendar-actions
           PATH="$(pg_config --bindir):$PATH" npm run test:content-calendar-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:event-ticketing:postgres
@@ -714,6 +715,7 @@ jobs:
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
             if [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
             node scripts/qa-conversational-agent.mjs
+            node scripts/qa-ai-cost-controls.mjs
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
             node scripts/qa-invoice-navigation.mjs
@@ -847,6 +849,7 @@ jobs:
             /tmp/accelerate-work-board-qa/
             /tmp/accelerate-booking-mode/
             /tmp/accelerate-conversational-agent/
+            /tmp/accelerate-ai-cost-controls/
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
             /tmp/accelerate-client-interactions/

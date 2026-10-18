@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+import { enableAiSpendFixture, fixtureAiPricing } from "./lib/ai-spend-fixture";
 /**
  * The copilot streams its answer as it is written instead of making the
  * founder wait for the whole response. Narration from a tool-calling turn is
@@ -60,12 +61,16 @@ function database() {
       },
     ],
   });
-  return bindTenantDatabaseForTest(memory.client, ACCELERATE_TENANT_ID);
+  return bindTenantDatabaseForTest(
+    enableAiSpendFixture(memory, ACCELERATE_TENANT_ID).client,
+    ACCELERATE_TENANT_ID,
+  );
 }
 
 async function run(turns: unknown[][]) {
   let turn = 0;
-  globalThis.fetch = (async () => sse(turns[Math.min(turn++, turns.length - 1)]!)) as typeof fetch;
+  globalThis.fetch = (async (url) =>
+    fixtureAiPricing(url) ?? sse(turns[Math.min(turn++, turns.length - 1)]!)) as typeof fetch;
   const events: string[] = [];
   const result = await runRevenueCommandAgent(
     database(),

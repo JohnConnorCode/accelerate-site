@@ -1,3 +1,4 @@
+import { enableAiSpendFixture } from "./lib/ai-spend-fixture";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { MemorySupabase } from "./lib/memory-supabase";
@@ -63,7 +64,7 @@ function fixture(overrides: Record<string, unknown> = {}) {
     ],
     model_call_receipts: [],
   });
-  const db = bindTenantDatabase(mem.client as never, tenant, true);
+  const db = bindTenantDatabase(enableAiSpendFixture(mem, tenant).client as never, tenant, true);
   const receiptId = randomUUID();
   mem.rpc("reserve_model_call", () => ({ status: "reserved", receipt: { id: receiptId } }));
   mem.rpc("complete_model_call", (args) => ({

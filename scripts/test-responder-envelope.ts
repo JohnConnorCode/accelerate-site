@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+import { enableAiSpendFixture, fixtureAiPricing } from "./lib/ai-spend-fixture";
 /**
  * The responder is the only thing in this system that emails a prospect with no
  * human in the loop. Its safety argument is entirely the envelope, so the
@@ -48,6 +49,8 @@ function stubNetwork(reply: string, options: { sendFails?: boolean } = {}) {
   providerSends = 0;
   lastModelRequest = null;
   globalThis.fetch = (async (url: string | URL, init?: RequestInit) => {
+    const pricing = fixtureAiPricing(url);
+    if (pricing) return pricing;
     const href = String(url);
     if (href.includes("openrouter.ai")) {
       modelCalls += 1;
@@ -140,7 +143,10 @@ function harness(
 }
 
 function respond(db: MemorySupabase, input: typeof INPUT) {
-  const tenantDatabase = bindTenantDatabaseForTest(db.client, ACCELERATE_TENANT_ID);
+  const tenantDatabase = bindTenantDatabaseForTest(
+    enableAiSpendFixture(db, ACCELERATE_TENANT_ID).client,
+    ACCELERATE_TENANT_ID,
+  );
   return runWithTenantRequestContext(accelerateSystemContext("responder-envelope-test"), () =>
     respondToInbound(tenantDatabase, input),
   );
@@ -484,6 +490,8 @@ async function main() {
   assert.equal(failedSend.rows("agent_runs")[0]!.status, "failed");
 
   globalThis.fetch = (async (url: string | URL) => {
+    const pricing = fixtureAiPricing(url);
+    if (pricing) return pricing;
     if (String(url).includes("openrouter.ai")) throw new Error("model unreachable");
     throw new Error("unexpected call");
   }) as unknown as typeof fetch;

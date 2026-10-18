@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAdminNavigation } from "@/components/admin/AdminLink";
-import { Bot, History, MessageSquare, Wrench } from "lucide-react";
+import { Bot, History, MessageSquare, Wrench, Wallet } from "lucide-react";
+import { AiCostControls } from "./AiCostControls";
 import { adminPageName } from "@/lib/admin/navigation";
 import { PageHeader } from "./PageHeader";
 import { AdminAIChat } from "./AdminAIChat";
@@ -12,7 +13,7 @@ import { AICapabilities } from "./AICapabilities";
 import { useAdminAI } from "./AdminAIProvider";
 import { AdminViewSwitcher } from "./AdminViewSwitcher";
 
-type WorkspaceView = "ask" | "runs" | "capabilities";
+type WorkspaceView = "ask" | "runs" | "capabilities" | "costs";
 
 const views: Array<{ id: WorkspaceView; label: string; description: string; icon: typeof Bot }> = [
   { id: "ask", label: "Ask", description: "Prepare business actions", icon: MessageSquare },
@@ -28,10 +29,11 @@ const views: Array<{ id: WorkspaceView; label: string; description: string; icon
     description: "Available tools and permissions",
     icon: Wrench,
   },
+  { id: "costs", label: "Cost controls", description: "Budgets and recurring work", icon: Wallet },
 ];
 
 function validView(value: string | null): WorkspaceView {
-  return value === "runs" || value === "capabilities" ? value : "ask";
+  return value === "runs" || value === "capabilities" || value === "costs" ? value : "ask";
 }
 
 export function AdminAIWorkspace() {
@@ -61,16 +63,22 @@ export function AdminAIWorkspace() {
   return (
     <div className="pb-10">
       <PageHeader
-        title={purpose === "architect" ? adminPageName("architect") : adminPageName("ai")}
+        title={
+          purpose === "architect" && view !== "costs"
+            ? adminPageName("architect")
+            : adminPageName("ai")
+        }
+        guidance={view === "costs" ? false : undefined}
       />
       <AdminViewSwitcher
         label="AI workspace views"
         value={view}
         onChange={setView}
         options={views}
-        className="mb-4 grid grid-cols-3"
+        className="mb-4 grid grid-cols-2 sm:grid-cols-4"
       />
       <div key={view} data-admin-view-panel={view}>
+        {view === "costs" && <AiCostControls />}
         {view === "ask" && <AskView />}
         {view === "runs" && <AIRunHistory />}
         {view === "capabilities" && <AICapabilities />}
