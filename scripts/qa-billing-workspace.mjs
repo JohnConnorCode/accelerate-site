@@ -90,14 +90,17 @@ try {
     await review.getByRole("region", { name: "Exact billing operation" }).waitFor();
     await clean(page, label + "-void-review");
     await page.keyboard.press("Escape");
-    await review.waitFor({ state: "detached" });
+    await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "detached" });
+    await page.waitForFunction(
+      () => document.activeElement?.textContent?.trim() === "Void unpaid invoice",
+    );
     assert.ok(
       await cancel.evaluate((node) => node === document.activeElement),
       "Closing review restores its opener",
     );
     await cancel.click();
     await page.getByRole("dialog").getByRole("button", { name: "Approve", exact: true }).click();
-    await page.getByRole("dialog").waitFor({ state: "detached" });
+    await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "detached" });
     await page.getByLabel("Status", { exact: true }).selectOption("void");
     await invoices.getByRole("listitem").first().waitFor();
     assert.equal(await invoices.getByRole("listitem").count(), 1);
@@ -126,7 +129,7 @@ try {
     assert.ok((await review.innerText()).includes("$25.00"));
     await clean(page, label + "-refund-review");
     await review.getByRole("button", { name: "Approve", exact: true }).click();
-    await page.getByRole("dialog").waitFor({ state: "detached" });
+    await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "detached" });
     await payments
       .getByRole("listitem")
       .filter({ hasText: "ch_demopayment1" })
@@ -181,7 +184,7 @@ try {
       .getByRole("region", { name: "Exact billing operation" })
       .waitFor();
     await page.getByRole("dialog").getByRole("button", { name: "Approve", exact: true }).click();
-    await page.getByRole("dialog").waitFor({ state: "detached" });
+    await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "detached" });
     await page
       .getByLabel("Stripe billing customer", { exact: true })
       .locator("option")

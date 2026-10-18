@@ -73,7 +73,6 @@ If the contact has no matching Stripe customer, check the contact email and use 
 
 Disabling the plugin blocks later execution and makes its customer-page links unavailable. Saved pages remain stored; re-enabling restores unexpired, unrevoked links. Stripe invoices and payments are not reversed. Revoke a page explicitly when you no longer want to share it. The controlled tests in the developer guide check the code, not your specific live connection or payment.
 
-
 After an uncertain billing result, open **Recent billing actions**. For an eligible failed operation, **Review same operation again** retains its original identity and checks whether Stripe already accepted it before attempting another effect. A changed account, balance, recipient, expired review or incomplete provider lookup refuses the retry. Refresh and reconcile that original result before preparing a different action.
 
 The Stripe key needs account, customer, invoice, charge, payment-intent, invoice-payment and refund reads, plus customer, invoice and refund writes for the controls you use. The connection stores credentials encrypted on the server. A missing permission appears as a provider error with retained results; it is not an empty successful report. Disputed payments and payments without verified workspace ownership cannot be refunded here. Credit notes, accounting journals and bank reconciliation remain separate workflows.

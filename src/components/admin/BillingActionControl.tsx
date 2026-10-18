@@ -51,6 +51,7 @@ export function BillingActionControl({
   const refreshAfterClose = useRef(false);
   const supportsPartial = ["usd", "eur", "gbp", "cad", "aud"].includes(currency);
   async function prepare() {
+    if (busy) return;
     setBusy(true);
     setError("");
     setNotice("");
@@ -124,8 +125,10 @@ export function BillingActionControl({
       <button
         type="button"
         className="admin-button admin-button--secondary"
-        disabled={busy}
+        aria-disabled={busy}
+        aria-busy={busy}
         onClick={() => {
+          if (busy) return;
           if (intent.operation === "refund_payment") {
             setAmount(String(original / 100));
             setError("");
@@ -195,7 +198,7 @@ export function BillingActionControl({
               {error}
             </p>
           )}
-          <button type="submit" className="admin-button admin-button--primary" disabled={busy}>
+          <button type="submit" className="admin-button admin-button--primary" aria-disabled={busy}>
             {busy ? "Preparing…" : "Review refund"}
           </button>
         </form>

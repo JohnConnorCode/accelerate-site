@@ -351,5 +351,4 @@ rejection reuse the shared queue and avoid shared learning from private content.
 See [Platform command privacy](../../../docs/contracts/PLATFORM-COMMAND-PRIVACY.md)
 for verification, migration-first release and the remaining platform parity work.
 
-
 `billing-workspace.ts` owns bounded Stripe invoice/charge reads and exact reviewed billing-customer creation, finalized unpaid-invoice cancellation and payment refunds. `billing-command-contract.ts` shares command schemas, receipt types, operation bindings and currency-separated payment projections with admin, AI/MCP and the fictional adapter. Actions use the existing approval/claim/checkpoint/audit runtime. Refund retries reconcile request-tagged provider receipts; workspace or complete invoice-payment ownership is required before a refund. `invoice-index-contract.ts` projects only loaded invoices and preserves missing balances. These reports are not bank, fee or accounting ledgers. See `scripts/test-billing-workspace.ts` and the public invoicing guide.

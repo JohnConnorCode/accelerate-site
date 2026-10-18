@@ -45,7 +45,7 @@
 .metric {
   min-width: 0;
   padding: 1.25rem;
-  border-radius: var(--admin-card-radius, 1rem);
+  border-radius: var(--admin-surface-radius);
   background: var(--admin-surface-subtle);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.04),

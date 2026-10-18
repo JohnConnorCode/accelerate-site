@@ -787,6 +787,22 @@
       "module": "stripe-invoicing"
     },
     {
+      "tool": "get_billing_action",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "get_billing_records",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "preview_billing_change",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "propose_billing_change",
+      "module": "stripe-invoicing"
+    },
+    {
       "tool": "propose_stripe_invoice_send",
       "module": "stripe-invoicing"
     },
