@@ -134,7 +134,8 @@ export function InvoiceIndex({
                   {listing.data.pages[0]?.testMode ? "Test mode" : "Live mode"}
                 </span>
                 <p className="admin-copy text-xs">
-                  Balances below cover {invoices.length} loaded invoices.
+                  Balances below cover {invoices.length} loaded{" "}
+                  {invoices.length === 1 ? "invoice" : "invoices"}.
                   {listing.hasNextPage
                     ? " Older invoices are available below."
                     : " All account invoices are loaded."}{" "}
@@ -161,7 +162,8 @@ export function InvoiceIndex({
                       )}
                     </dd>
                     <dd className="admin-copy mt-2 text-xs">
-                      {overview.counts[id]} invoices · {detail}
+                      {overview.counts[id]} {overview.counts[id] === 1 ? "invoice" : "invoices"} ·{" "}
+                      {detail}
                     </dd>
                   </div>
                 ))}
@@ -188,6 +190,7 @@ export function InvoiceIndex({
                   <span>Status</span>
                   <select
                     className="admin-field"
+                    aria-label="Status"
                     value={status}
                     onChange={(event) => setStatus(event.target.value as InvoiceFilter)}
                   >
@@ -202,6 +205,7 @@ export function InvoiceIndex({
                   <span>Sort</span>
                   <select
                     className="admin-field"
+                    aria-label="Sort"
                     value={sort}
                     onChange={(event) => setSort(event.target.value as typeof sort)}
                   >

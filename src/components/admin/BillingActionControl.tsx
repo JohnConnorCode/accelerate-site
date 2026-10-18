@@ -182,6 +182,7 @@ export function BillingActionControl({
             Reason
             <select
               className="admin-field mt-2 w-full"
+              aria-label="Reason"
               value={reason}
               onChange={(event) => setReason(event.target.value as typeof reason)}
             >

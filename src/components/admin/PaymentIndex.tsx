@@ -182,6 +182,7 @@ export function PaymentIndex({
                   <span>Payment status</span>
                   <select
                     className="admin-field"
+                    aria-label="Payment status"
                     value={status}
                     onChange={(event) => setStatus(event.target.value)}
                   >
@@ -196,6 +197,7 @@ export function PaymentIndex({
                   <span>Period</span>
                   <select
                     className="admin-field"
+                    aria-label="Period"
                     value={period}
                     onChange={(event) => setPeriod(event.target.value)}
                   >
