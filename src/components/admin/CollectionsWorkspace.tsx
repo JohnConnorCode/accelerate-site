@@ -3,6 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { BillingNavigation } from "@/components/admin/BillingNavigation";
 import { PageHeader } from "./PageHeader";
 import { AdminSurface } from "./AdminSurface";
 import AdminLink from "./AdminLink";
@@ -146,6 +147,7 @@ export function CollectionsWorkspace() {
           </AdminLink>
         }
       />
+      <BillingNavigation active="collections" />
       <DemoBusinessNotice />
       {(error || query.error) && (
         <p role="alert" className="rounded-xl border border-[var(--admin-danger)]/30 p-4 text-sm">

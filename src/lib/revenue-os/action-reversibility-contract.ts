@@ -11,6 +11,12 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "billing_change",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale: "Refunds and invoice cancellation cannot be undone. Billing profiles and provider receipts are retained. Exact human approval is always required.",
+  },
+  {
     actionType: "event_ticketing_change",
     impact: "external_action",
     reversibility: "compensable",

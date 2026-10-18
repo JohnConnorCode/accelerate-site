@@ -180,6 +180,13 @@ import { proposeLayoutChange } from "./admin-layout";
 import { ADMIN_LAYOUT_SCOPES } from "@/lib/admin/layout-scopes";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
+import {
+  previewBillingCommand,
+  proposeBillingCommand,
+  readBillingInvoices,
+  readBillingPayments,
+} from "./billing-workspace";
+import { BILLING_OPERATION_BINDINGS } from "./billing-command-contract";
 import { proposeStripeInvoiceSend } from "./stripe-invoicing";
 import { readTicketWorkspace, proposeTicketAdminCommand } from "./event-ticketing";
 import { eventPath, ticketAdminCommandSchema } from "./event-ticketing-contract";
@@ -640,6 +647,21 @@ const PLUGIN_TOOL_EXECUTORS = {
       value(input, "requestId")!,
       actorEmail,
     ),
+  "get-billing-records": ({ supabase }, raw) =>
+    raw.kind === "payments"
+      ? readBillingPayments(supabase, {
+          cursor: value(raw, "cursor"),
+          connection: value(raw, "connection"),
+          limit: 5,
+        })
+      : readBillingInvoices(supabase, {
+          cursor: value(raw, "cursor"),
+          connection: value(raw, "connection"),
+          limit: 5,
+        }),
+  "preview-billing-change": ({ supabase }, raw) => previewBillingCommand(supabase, raw.command),
+  "propose-billing-change": ({ supabase, actorEmail }, raw) =>
+    proposeBillingCommand(supabase, raw.command, value(raw, "digest")!, actorEmail),
   "propose-invoice-send": ({ supabase, actorEmail }, input) =>
     proposeStripeInvoiceSend(supabase, value(input, "creationActionId")!, actorEmail),
   "preview-invoice-page": ({ supabase }, input) =>
@@ -1686,6 +1708,8 @@ const registry: AiToolRegistration[] = [
       const { operation, ...declaration } = pluginToolDeclaration(registration);
       return {
         ...declaration,
+        operation:
+          BILLING_OPERATION_BINDINGS[registration.name as keyof typeof BILLING_OPERATION_BINDINGS],
         parseInput: (input) => registration.schema.parse(input) as Record<string, unknown>,
         outputSchema: declaration.impact === "read" ? { type: "object" } : ACTION_OUTPUT_SCHEMA,
         execute: async (context, input) => {

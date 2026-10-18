@@ -163,6 +163,7 @@ try {
     "src/lib/revenue-os/action-reversibility-contract.ts",
     "src/lib/revenue-os/workflow-task-contract.ts",
     "src/lib/revenue-os/stripe-contract.ts",
+    "src/lib/revenue-os/billing-command-contract.ts",
   ])
     cpSync(join(root, path), join(fixture, path));
   for (const file of readdirSync(join(root, "extensions")).filter((file) =>

@@ -4,6 +4,7 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { motion, useReducedMotion } from "framer-motion";
 import { DollarSign, Users, TrendingDown, BarChart3 } from "lucide-react";
+import { BillingNavigation } from "@/components/admin/BillingNavigation";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
@@ -50,6 +51,7 @@ export default function RevenuePage() {
         title={adminPageName("revenue")}
         subtitle="Review active client contracts and recorded opportunity values."
       />
+      <BillingNavigation active="revenue" />
       <AdminReadBody
         loading={loading}
         hasData={Boolean(data)}

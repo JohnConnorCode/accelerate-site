@@ -49,7 +49,12 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Where do I find invoices and create a new one?",
     answer:
-      "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Choose an existing customer, enter line items and review the draft before requesting approval.",
+      "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Search the loaded invoices by customer, number or email, or choose an overdue or payment status. Load older invoices when needed. To create one, choose a contact, create its missing billing customer inside the form if needed, enter line items and review the draft before approval. Sending remains a separate decision.",
+  },
+  {
+    question: "Can I manage refunds and payment reporting in Command Center?",
+    answer:
+      "Yes. Payments & refunds shows loaded Stripe account charges, separate currency figures and selected-record CSV exports. Workspace-owned payments support reviewed full or partial refunds; invoice-linked payments can check ownership during review. Recent billing actions preserves the actual provider status and safe same-operation recovery. Pending refunds remain pending. After refunds excludes fees, disputes, payouts and bank balances. Invoices also offers reviewed cancellation of workspace-created, finalized unpaid invoices. AI can read bounded billing records and preview or propose these same billing changes for human approval.",
   },
   {
     question: "Can AI redesign a customer invoice?",

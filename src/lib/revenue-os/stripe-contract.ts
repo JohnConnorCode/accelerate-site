@@ -50,5 +50,11 @@ export function formatInvoiceAmount(amount: unknown, currency: unknown): string 
     !/^[a-zA-Z]{3}$/.test(currency)
   )
     return "Unknown amount";
-  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount / 100);
+  const code = currency.toUpperCase();
+  const formatter = new Intl.NumberFormat(undefined, { style: "currency", currency: code });
+  // Stripe keeps two-decimal API units for ISK and UGX despite their ISO exponent.
+  // https://docs.stripe.com/currencies#special-cases
+  const digits =
+    code === "ISK" || code === "UGX" ? 2 : (formatter.resolvedOptions().maximumFractionDigits ?? 2);
+  return formatter.format(amount / 10 ** digits);
 }

@@ -235,6 +235,39 @@ export async function tenantStripeClient(db: SupabaseClient) {
       if (!/^ch_[A-Za-z0-9]{1,120}$/.test(id)) throw new Error("Invalid Stripe charge");
       return stripeRequest(apiKey, `/charges/${id}`);
     },
+    charges: async (startingAfter?: string) => {
+      if (startingAfter && !/^ch_[A-Za-z0-9]{1,120}$/.test(startingAfter))
+        throw new Error("Invalid payment cursor");
+      await assertCurrentConnection();
+      return stripeRequest(
+        apiKey,
+        `/charges?${new URLSearchParams({ limit: "50", ...(startingAfter ? { starting_after: startingAfter } : {}) })}`,
+      );
+    },
+    refunds: (chargeId: string) => {
+      if (!/^ch_[A-Za-z0-9]{1,120}$/.test(chargeId)) throw new Error("Invalid payment reference");
+      return stripeRequest(
+        apiKey,
+        `/refunds?${new URLSearchParams({ charge: chargeId, limit: "100" })}`,
+      );
+    },
+    paymentInvoices: (paymentIntent: string) => {
+      if (!/^pi_[A-Za-z0-9]{1,120}$/.test(paymentIntent)) throw new Error("Invalid payment intent");
+      return stripeRequest(
+        apiKey,
+        `/invoice_payments?${new URLSearchParams({
+          "payment[type]": "payment_intent",
+          "payment[payment_intent]": paymentIntent,
+          status: "paid",
+          limit: "50",
+          "expand[]": "data.invoice",
+        })}`,
+      );
+    },
+    createRefund: async (body: URLSearchParams, key: string) => {
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, "/refunds", body, key);
+    },
     subscription: (id: string) => {
       if (!/^sub_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe subscription");
       return stripeRequest(apiKey, `/subscriptions/${id}`);
@@ -284,13 +317,13 @@ export async function tenantStripeClient(db: SupabaseClient) {
     },
     invoiceOperation: async (
       id: string,
-      operation: "add_lines" | "finalize" | "send",
+      operation: "add_lines" | "finalize" | "send" | "void",
       body: URLSearchParams,
       key: string,
     ) => {
       if (
         !/^in_[A-Za-z0-9]{1,80}$/.test(id) ||
-        !["add_lines", "finalize", "send"].includes(operation)
+        !["add_lines", "finalize", "send", "void"].includes(operation)
       )
         throw new Error("Invalid Stripe invoice operation");
       await assertCurrentConnection();

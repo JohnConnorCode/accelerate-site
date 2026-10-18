@@ -98,7 +98,7 @@ const capabilityDefinitions: Capability[] = [
     promise:
       "Create an invoice for an existing customer and follow its sending and payment status.",
     detail:
-      "Enable Stripe invoicing, connect the intended account and review the line items. Draft creation, sending and customer-page publication have separate approved results; provider payment facts remain authoritative.",
+      "Search loaded invoices, review open and overdue balances by currency, create a missing billing customer, and approve invoice creation, sending or unpaid-invoice cancellation. Payments & refunds adds reviewed refunds, source receipts and selected-record CSV exports. Provider payment facts remain authoritative; reports state their loaded scope.",
     gated: true,
     guideHref: "/docs/plugins/stripe-invoicing",
   },

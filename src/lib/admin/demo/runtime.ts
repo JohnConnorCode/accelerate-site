@@ -5018,14 +5018,24 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         status: item.receipt.status,
         currency: item.receipt.currency,
         amountDue: item.receipt.amountDue,
+        amountPaid: item.receipt.amountPaid,
+        managed: true,
         remaining: item.receipt.amountRemaining,
         contactName: item.document.customerName,
         contactEmail: item.document.customerEmail,
-        dueDate: item.document.dueLabel,
+        dueDate: /^\d{4}-\d{2}-\d{2}$/.test(item.document.dueLabel)
+          ? item.document.dueLabel + "T12:00:00.000Z"
+          : null,
         hostedInvoiceUrl: item.receipt.hostedInvoiceUrl,
         createdAt: ago(1),
       }));
-      return jsonResponse({ invoices, hasMore: false, nextCursor: null });
+      return jsonResponse({
+        invoices,
+        hasMore: false,
+        nextCursor: null,
+        connection: `demo:${pack.id}`,
+        testMode: true,
+      });
     }
     if (path === "/api/admin/contacts" && method === "GET") {
       const payload = legacy(pack, path, state) as { contacts: Array<Record<string, unknown>> };

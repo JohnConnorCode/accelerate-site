@@ -185,6 +185,12 @@ async function executeApprovedAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "billing_change": {
+        if (mode !== "approved") throw new Error("Billing changes require exact human approval");
+        const { executeBillingCommand } = await import("./billing-workspace");
+        result = await executeBillingCommand(supabase, id, actorEmail);
+        break;
+      }
       case "event_ticketing_change": {
         if (mode !== "approved")
           throw new Error("Event publication and confirmation changes require human approval");

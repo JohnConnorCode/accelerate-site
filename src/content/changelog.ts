@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "billing-workspace-controls",
+    slug: "billing-workspace-controls",
+    title: "Manage invoices, payments and refunds from one billing workspace",
+    description:
+      "Search loaded invoices, separate open and overdue balances by currency, create billing customers and review unpaid-invoice cancellations. Payments & refunds brings source receipts, reviewed full or partial refunds, selected-payment CSV exports and recovery against the original provider operation. Billing navigation connects invoices, collections, plans, ticket sales and revenue. Admin and AI share the same reviewed billing services; pending provider results remain pending.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
     id: "workshop-presentation",
     slug: "workshop-presentation",
     title: "Meet your workshop presenters and reserve a place",

@@ -1,7 +1,7 @@
 ---
 title: "Stripe invoicing"
 description: "Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted."
-updated: "2026-10-06"
+updated: "2026-10-18"
 ---
 
 Preparing an invoice means bringing a customer, amount and agreed terms together correctly. Stripe invoicing combines existing customer records, a configured Stripe connection and reviewed operations, with provider results recorded separately from the requests that produced them.
@@ -20,14 +20,32 @@ Open **Apps & connections**, select **Pluggable Modules**, and enable **Stripe i
 
 The direct creation link is `/admin/invoicing?view=create`. If Stripe is disconnected, connect it here first. Credentials belong in the server-only connection controls. Verify test or live mode before a provider action.
 
-1. Select an existing contact and its matching Stripe billing customer.
+1. Select an existing contact and its matching Stripe billing customer. If no billing customer exists, choose **Create billing customer** and approve the name and email shown. The new profile appears in the refreshed choices; creating it takes no payment.
 2. Enter currency, line items and payment terms. For a fictional example, use one consulting session at `125.00` USD, quantity one. The UI uses normal currency units; the corresponding API value is `12500` minor units.
 3. Preview the recipient, amount and terms, then submit the exact draft for approval.
 4. After approval execution, inspect the provider result. Use the separate reviewed send control when ready, and check its receipt.
 
 A created draft, a sent invoice and a paid invoice are different states. The demo simulates provider actions with fictional records and does not create a live invoice.
 
-The **All invoices** section reads every invoice in the connected Stripe account, including invoices created outside this workspace. It loads results in bounded pages. The app's reviewed draft and send actions remain in the invoice tools below; Stripe's status is the source of truth for invoice payment state.
+## Review balances and find an invoice
+
+**All invoices** reads the connected Stripe account, including invoices created outside this workspace. Search the loaded invoices by number, customer or email, choose a status such as **Overdue**, and sort by creation or due date. **Load more invoices** includes older records in your search. Clearing a filter restores the loaded list.
+
+**Awaiting payment** sums the remaining balances of open invoices. **Past due** is the overdue part of that same balance, so do not add those two figures together. **In draft** shows prepared amounts that have not been issued. Each currency has its own figure. The screen states how many invoices are loaded, discloses missing balances, and keeps older information visible if a refresh fails. Refresh successfully before treating it as current.
+
+For a finalized, unpaid invoice created by this workspace, choose **Void unpaid invoice**. Review the exact customer, amount and consequence before approval. Voiding permanently cancels the invoice and preserves its history. A paid or partly paid invoice needs the appropriate refund or credit-note workflow; this control cannot cancel it.
+
+## Review a payment or refund
+
+Select **Payments & refunds** in the billing navigation. Search the loaded account charges, filter by status or period, and load older payments when needed. The figures describe the selected records: **Captured**, **Refunded**, and **After refunds**. They keep currencies separate and do not include processing fees, disputes, payouts or bank balances. Failed and pending charges do not contribute captured amounts.
+
+For a payment marked as belonging to this workspace, choose **Refund payment**. Enter a full or partial amount and a reason, then choose **Review refund**. USD, EUR, GBP, CAD and AUD support partial amounts here; other currencies offer the full remaining balance. Payments that need an invoice ownership check offer **Check refund eligibility** first. The review verifies their link to invoices belonging to this workspace before allowing a refund.
+
+Approve only the exact amount and original payment method shown in the review. The resulting receipt distinguishes a succeeded refund from a pending or failed provider result. **Recent billing actions** keeps that result and its provider reference available. A refund does not rewrite the invoice’s recorded payment history. Ticket refunds also follow the existing signed webhook path, which updates the order and admission status from Stripe’s facts.
+
+For example, a fictional $125 consulting payment can receive a reviewed $25 refund. Once Stripe confirms that amount, the payment record shows $25 refunded and $100 after refunds, before fees or other adjustments. The demo simulates this result locally and moves no money.
+
+**Export selected payments** downloads the currently selected loaded records as CSV. Amount columns explicitly use Stripe’s integer minor units and retain a separate currency column. Load the history you need before exporting; the file is not an automatic complete-account export.
 
 ## Give the customer a coherent experience
 
@@ -45,12 +63,17 @@ This designs the customer invoice page served by your workspace. It does not red
 
 An external action needs more than a form. The plugin connects a source record, a reviewable plan, provider execution and a durable result. You can study this pattern when adding another billing or document service.
 
-AI tools `prepare_stripe_invoice` and `propose_stripe_invoice` use the same services as the interface. Provider secrets stay on the host, and the model cannot approve its own action. See the [workflow source](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/stripe-invoicing/workflow.js) and [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/stripe-invoicing/README.md) for contracts, verification and upgrade behavior.
+AI invoice preparation and proposal tools use the same services as the interface. `get_billing_records` reads bounded invoice or payment pages. `preview_billing_change` and `propose_billing_change` prepare the same billing-customer, unpaid-invoice and refund operations for human approval. Provider secrets stay on the host, and the model cannot approve its own action. See the [workflow source](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/stripe-invoicing/workflow.js) and [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/stripe-invoicing/README.md) for contracts, verification and upgrade behavior.
 
 ## Costs and recovery
 
 Draft preparation is deterministic. Stripe usage, hosting and any AI design or chat can incur their normal costs. There is no plugin-specific unlimited free allowance.
 
-If the contact has no matching Stripe customer, correct or add the billing customer and refresh the choices. After a timeout, inspect the original action and provider invoice before retrying with its existing identity. A changed draft needs a new preview and approval. If the editor cannot load the invoice, choose **Retry loading invoice**; your current draft stays in place while it retries.
+If the contact has no matching Stripe customer, check the contact email and use **Create billing customer**. An existing unambiguous billing profile is reused to prevent duplicates. After a timeout, inspect the original action and provider invoice before retrying with its existing identity. A changed draft needs a new preview and approval. If the editor cannot load the invoice, choose **Retry loading invoice**; your current draft stays in place while it retries.
 
 Disabling the plugin blocks later execution and makes its customer-page links unavailable. Saved pages remain stored; re-enabling restores unexpired, unrevoked links. Stripe invoices and payments are not reversed. Revoke a page explicitly when you no longer want to share it. The controlled tests in the developer guide check the code, not your specific live connection or payment.
+
+
+After an uncertain billing result, open **Recent billing actions**. For an eligible failed operation, **Review same operation again** retains its original identity and checks whether Stripe already accepted it before attempting another effect. A changed account, balance, recipient, expired review or incomplete provider lookup refuses the retry. Refresh and reconcile that original result before preparing a different action.
+
+The Stripe key needs account, customer, invoice, charge, payment-intent, invoice-payment and refund reads, plus customer, invoice and refund writes for the controls you use. The connection stores credentials encrypted on the server. A missing permission appears as a provider error with retained results; it is not an empty successful report. Disputed payments and payments without verified workspace ownership cannot be refunded here. Credit notes, accounting journals and bank reconciliation remain separate workflows.

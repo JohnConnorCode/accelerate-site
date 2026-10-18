@@ -1,5 +1,6 @@
 "use client";
 import { contentCalendarCommandApprovalSchema } from "@/lib/revenue-os/content-calendar-contract";
+import { billingApprovalSchema } from "@/lib/revenue-os/billing-command-contract";
 import {
   ticketAdminCommandSchema,
   eventTiming,
@@ -117,6 +118,7 @@ const BODY_FIELDS = new Set(["body", "text", "message", "description"]);
 function payloadEntries(payload: Record<string, unknown> | null, actionType: string) {
   if (
     !payload ||
+    actionType === "billing_change" ||
     actionType === "content_calendar_change" ||
     actionType === "event_ticketing_change"
   )
@@ -184,6 +186,10 @@ export function ActionReviewDialog({
   }
   const isCalendar = action.action_type === "content_calendar_change";
   const isTicket = action.action_type === "event_ticketing_change";
+  const billing =
+    action.action_type === "billing_change"
+      ? billingApprovalSchema.safeParse(action.payload)
+      : null;
   const ticket = isTicket ? ticketAdminCommandSchema.safeParse(action.payload) : null;
   const calendar = isCalendar
     ? contentCalendarCommandApprovalSchema.safeParse(action.payload)
@@ -210,6 +216,7 @@ export function ActionReviewDialog({
   const layoutSummary =
     action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
   const consequence =
+    (billing?.success ? billing.data.review.Consequence : null) ??
     (ticket?.success
       ? ticket.data.operation === "save_event"
         ? ticket.data.event.status === "published"
@@ -414,6 +421,25 @@ export function ActionReviewDialog({
             <ContentCalendarReview payload={action.payload} />
           )}
           {isTicket && <EventTicketReview command={ticket?.success ? ticket.data : null} />}
+          {billing &&
+            (billing.success ? (
+              <section aria-label="Exact billing operation">
+                <dl className="grid gap-3 text-sm">
+                  {Object.entries(billing.data.review)
+                    .filter(([label]) => label !== "Consequence")
+                    .map(([label, value]) => (
+                      <div key={label} className="grid gap-1 sm:grid-cols-[120px_1fr]">
+                        <dt className="text-[var(--admin-muted)]">{label}</dt>
+                        <dd className="break-words font-medium">{value}</dd>
+                      </div>
+                    ))}
+                </dl>
+              </section>
+            ) : (
+              <p role="alert">
+                This billing proposal is incomplete. Reject it and prepare a new review.
+              </p>
+            ))}
           {isToday && (
             <section className="grid gap-3 text-xs text-[var(--admin-ink)]">
               {todayPreview.isPending && <p>Loading the private exact preview…</p>}
@@ -688,7 +714,8 @@ export function ActionReviewDialog({
                 busy ||
                 Boolean(isToday && !todayPreview.data) ||
                 Boolean(isCalendar && !calendar?.success) ||
-                Boolean(isTicket && !ticket?.success)
+                Boolean(isTicket && !ticket?.success) ||
+                Boolean(billing && !billing.success)
               }
               onClick={onApprove}
               className={cn(

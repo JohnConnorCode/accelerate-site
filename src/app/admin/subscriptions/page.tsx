@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BillingNavigation } from "@/components/admin/BillingNavigation";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import AdminLink from "@/components/admin/AdminLink";
@@ -145,6 +146,7 @@ export default function SubscriptionsPage() {
         title="Subscriptions"
         subtitle="Create recurring plans and review customer subscription status."
       />
+      <BillingNavigation active="subscriptions" />
       {error && (
         <p
           role="alert"

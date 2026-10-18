@@ -7,13 +7,13 @@
     "Server-action and client-write candidates are static discovery only; indirect client writes and third-party plugin entrypoints still require semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 137,
-  "mutationHandlerCount": 119,
+  "routeCount": 139,
+  "mutationHandlerCount": 120,
   "semantic": {
     "complete": false,
     "unreviewedSourceBindings": [],
     "meaning": "Reviewed command-to-transport bindings with executable verification references. No coverage percentage or universal runtime acceptance is asserted.",
-    "registeredTools": 138,
+    "registeredTools": 141,
     "unreviewedToolBindings": [
       "activate_tool_bundle",
       "bootstrap_business_pulse_coworker",
@@ -178,6 +178,72 @@
         "serviceTarget": "revenue-os.analytics",
         "tools": [
           "get_revenue_analytics"
+        ]
+      },
+      {
+        "definition": {
+          "id": "billing.change.preview",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing/commands",
+              "method": "POST",
+              "variant": "preview"
+            }
+          ],
+          "verification": [
+            "scripts/test-billing-workspace.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.billing-workspace",
+        "tools": [
+          "preview_billing_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "billing.change.propose",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing/commands",
+              "method": "POST",
+              "variant": "propose"
+            }
+          ],
+          "verification": [
+            "scripts/test-billing-workspace.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.billing-workspace",
+        "tools": [
+          "propose_billing_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "billing.records.read",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing/list",
+              "method": "GET"
+            },
+            {
+              "path": "/api/admin/invoicing/payments",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-billing-workspace.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.billing-workspace",
+        "tools": [
+          "get_billing_records"
         ]
       },
       {
@@ -464,7 +530,6 @@
       "GET /api/admin/inbox",
       "GET /api/admin/integrations",
       "GET /api/admin/invoicing",
-      "GET /api/admin/invoicing/list",
       "GET /api/admin/invoicing/pages",
       "GET /api/admin/kanban/columns",
       "GET /api/admin/knowledge/documents",
@@ -2197,6 +2262,25 @@
       "sourceSha256": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb"
     },
     {
+      "source": "src/app/api/admin/invoicing/commands/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/billing-command-contract",
+        "@/lib/revenue-os/billing-workspace",
+        "@/lib/tenancy/context",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "09597b573d08497180961ec51f60ad4a9520727b6669a638050b883249042c4e"
+    },
+    {
       "source": "src/app/api/admin/invoicing/list/route.ts",
       "handlers": [
         "GET"
@@ -2204,11 +2288,10 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/module-guard",
-        "@/lib/revenue-os/stripe-adapter",
-        "next/server",
-        "zod"
+        "@/lib/revenue-os/billing-workspace",
+        "next/server"
       ],
-      "sourceSha256": "2a3bd4e44af26484f636ddc379ee5e0176ee7836507a851615460c60a291b6f0"
+      "sourceSha256": "475d7d68b9612cb15f625ec62e247f6485b7d20e5e92571ab53618884899786f"
     },
     {
       "source": "src/app/api/admin/invoicing/pages/route.ts",
@@ -2229,6 +2312,19 @@
         "zod"
       ],
       "sourceSha256": "976266b5f66a3e8b0b7b58e5946e321a0c76ad030b910d58e7f928a5ec5f0e82"
+    },
+    {
+      "source": "src/app/api/admin/invoicing/payments/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/billing-workspace",
+        "next/server"
+      ],
+      "sourceSha256": "23022b9d08d961766aeddcc8b4b3e2e897a9a74039c5db164020130941509e6f"
     },
     {
       "source": "src/app/api/admin/invoicing/route.ts",
