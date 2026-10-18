@@ -18,6 +18,7 @@ import {
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminMeter } from "@/components/admin/charts";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
@@ -507,23 +508,12 @@ export default function AnalyticsPage() {
                           <p className="admin-eyebrow">{label}</p>
                           <p className="mt-2 text-2xl font-semibold tabular-nums">{value}</p>
                           {conversion !== null && (
-                            <>
-                              <p className="mt-1 text-xs tabular-nums text-[var(--admin-muted)]">
-                                {rate(conversion as number | null)} from prior stage
-                              </p>
-                              <div
-                                role="img"
-                                aria-label={`${label}: ${rate(conversion as number | null)} from prior stage`}
-                                className="mt-3 h-1.5 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.08]"
-                              >
-                                <div
-                                  className="h-full rounded-full bg-[var(--admin-ink)]"
-                                  style={{
-                                    width: `${Math.max(0, Math.min(100, Number(conversion || 0)))}%`,
-                                  }}
-                                />
-                              </div>
-                            </>
+                            <AdminMeter
+                              className="mt-3"
+                              value={Number(conversion || 0)}
+                              label="From prior stage"
+                              valueLabel={rate(conversion as number | null)}
+                            />
                           )}
                         </div>
                       ))}
