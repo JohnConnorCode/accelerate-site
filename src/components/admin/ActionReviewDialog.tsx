@@ -239,6 +239,7 @@ export function ActionReviewDialog({
     ACTION_CONSEQUENCE[action.action_type] ??
     "Executes this action through the same service the admin uses.";
   const external =
+    action.action_type === "billing_change" ||
     action.action_type === "send_email" ||
     action.action_type === "send_gmail_reply" ||
     action.action_type === "create_debate_invitation" ||
@@ -431,9 +432,9 @@ export function ActionReviewDialog({
                   {Object.entries(billing.data.review)
                     .filter(([label]) => label !== "Consequence")
                     .map(([label, value]) => (
-                      <div key={label} className="grid gap-1 sm:grid-cols-[120px_1fr]">
+                      <div key={label} className="grid gap-1 sm:grid-cols-[120px_minmax(0,1fr)]">
                         <dt className="text-[var(--admin-muted)]">{label}</dt>
-                        <dd className="break-words font-medium">{value}</dd>
+                        <dd className="min-w-0 break-words font-medium">{value}</dd>
                       </div>
                     ))}
                 </dl>
@@ -631,7 +632,8 @@ export function ActionReviewDialog({
             </div>
           )}
 
-          {!isCalendar &&
+          {!billing &&
+            !isCalendar &&
             !isTicket &&
             !isConfiguration &&
             !fields.length &&
@@ -645,6 +647,7 @@ export function ActionReviewDialog({
             )}
 
           {(action.reasoning || action.description) &&
+            (!billing || action.reasoning || action.description !== consequence) &&
             (!isCalendar || action.reasoning) &&
             (!isConfiguration || action.reasoning || action.description !== consequence) && (
               <div>
@@ -734,7 +737,7 @@ export function ActionReviewDialog({
               )}
               {action.action_type === "create_gmail_draft"
                 ? "Save draft to Gmail"
-                : external
+                : external && !billing
                   ? "Approve and send"
                   : "Approve"}
             </button>

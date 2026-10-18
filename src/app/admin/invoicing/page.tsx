@@ -281,7 +281,22 @@ export default function InvoicingPage() {
                 startHint:
                   "Choose the billing customer, add line items and terms, then prepare the invoice preview below.",
               }
-            : undefined
+            : payments
+              ? {
+                  description:
+                    "Inspect payment receipts, review a refund and export selected records.",
+                  startHint:
+                    "Find the payment you need, then inspect its receipt or review the available refund.",
+                  steps: [
+                    "Filter the loaded payments by customer, status or date.",
+                    "Choose the refund amount and reason, then approve the exact operation.",
+                    "Check Recent billing actions for the recorded result or request a current provider check.",
+                  ],
+                  savedOutcome:
+                    "Approved refunds retain their original provider result. A pending refund needs a current check before you treat it as complete.",
+                  guideHref: "/docs/plugins/stripe-invoicing#review-a-payment-or-refund",
+                }
+              : undefined
         }
         subtitle={
           creating

@@ -97,9 +97,9 @@ export default function RevenuePage() {
 
             <AdminSurface>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
+                <h2 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
                   Opportunity values
-                </h3>
+                </h2>
                 <span className="admin-copy text-xs">
                   {data.canonical.openOpportunities} open of {data.canonical.opportunityCount}{" "}
                   opportunities
@@ -139,9 +139,9 @@ export default function RevenuePage() {
             <div className="admin-grid admin-grid--panels">
               {/* Active Monthly Value by Industry */}
               <AdminSurface>
-                <h3 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
+                <h2 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
                   Active Monthly Value by Industry
-                </h3>
+                </h2>
                 {data.industryBreakdown.length === 0 ? (
                   <p className="admin-copy text-xs">No active client contracts yet</p>
                 ) : (
@@ -176,9 +176,9 @@ export default function RevenuePage() {
 
               {/* Active Monthly Value by Client */}
               <AdminSurface>
-                <h3 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
+                <h2 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">
                   Active Monthly Value by Client
-                </h3>
+                </h2>
                 {data.byClient.length === 0 ? (
                   <p className="admin-copy text-xs">No active client contracts yet</p>
                 ) : (

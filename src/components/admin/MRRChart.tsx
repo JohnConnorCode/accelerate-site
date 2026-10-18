@@ -33,9 +33,9 @@ export function MRRChart({ data, dates }: MRRChartProps) {
       <AdminSurface>
         <div className="mb-2 flex items-center gap-2">
           <TrendingUp className="size-4 text-[var(--admin-accent)]" />
-          <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
+          <h2 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
             Active Contracts by Start Month
-          </h3>
+          </h2>
         </div>
         <p className="admin-copy mb-4 text-xs">
           Cumulative monthly value of contracts active now, grouped by start month in UTC. This

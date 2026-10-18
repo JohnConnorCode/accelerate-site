@@ -127,6 +127,12 @@ try {
     review = page.getByRole("dialog");
     await review.getByRole("region", { name: "Exact billing operation" }).waitFor();
     assert.ok((await review.innerText()).includes("$25.00"));
+    assert.equal(await review.getByText(/This proposal recorded no payload/).count(), 0);
+    await review.getByText("External Action", { exact: true }).waitFor();
+    assert.ok(
+      await review.evaluate((node) => node.scrollWidth <= node.clientWidth + 1),
+      "The exact billing review must fit its panel",
+    );
     await clean(page, label + "-refund-review");
     await review.getByRole("button", { name: "Approve", exact: true }).click();
     await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "detached" });
