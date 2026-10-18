@@ -28,13 +28,10 @@ export function ChartTooltip({ active, payload, label, formatter }: ChartTooltip
           const name = String(entry.name ?? entry.dataKey ?? "Value");
           const value = formatter ? formatter(entry.value, name) : formatFallback(entry.value);
           return (
-            <li
-              key={`${name}-${index}`}
-              className="flex items-center gap-2 text-xs tabular-nums"
-            >
+            <li key={`${name}-${index}`} className="flex items-center gap-2 text-xs tabular-nums">
               <span
                 aria-hidden
-                className="size-2 shrink-0 rounded-[2px]"
+                className="size-2 shrink-0 rounded-sm"
                 style={{ background: entry.color ?? "var(--admin-accent)" }}
               />
               <span className="text-[var(--admin-muted)]">{name}</span>
@@ -71,16 +68,10 @@ export function ChartLegend({
     <ul className={cn("flex flex-wrap items-center gap-x-4 gap-y-1.5", className)}>
       {items.map((item) => (
         <li key={item.label} className="flex items-center gap-1.5 text-xs">
-          <span
-            aria-hidden
-            className="size-2 rounded-[2px]"
-            style={{ background: item.color }}
-          />
+          <span aria-hidden className="size-2 rounded-sm" style={{ background: item.color }} />
           <span className="text-[var(--admin-muted)]">{item.label}</span>
           {item.value ? (
-            <span className="font-semibold tabular-nums text-[var(--admin-ink)]">
-              {item.value}
-            </span>
+            <span className="font-semibold tabular-nums text-[var(--admin-ink)]">{item.value}</span>
           ) : null}
         </li>
       ))}

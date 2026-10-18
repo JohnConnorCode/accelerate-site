@@ -203,8 +203,17 @@ export function AdminBarChart({
       {showLegend ? <ChartLegendRow series={series} /> : null}
       <div style={{ width: "100%", height: showLegend ? height - 26 : height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout={horizontal ? "vertical" : "horizontal"} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={horizontal} horizontal={!horizontal} />
+          <BarChart
+            data={data}
+            layout={horizontal ? "vertical" : "horizontal"}
+            margin={{ top: 4, right: 8, bottom: 0, left: 0 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={CHART_GRID}
+              vertical={horizontal}
+              horizontal={!horizontal}
+            />
             {horizontal ? (
               <>
                 <XAxis type="number" {...axisProps()} />

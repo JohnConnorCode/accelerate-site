@@ -9,7 +9,11 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { CHART_SERIES, clampPercent, seriesColor } from "../src/components/admin/charts/chart-tokens";
+import {
+  CHART_SERIES,
+  clampPercent,
+  seriesColor,
+} from "../src/components/admin/charts/chart-tokens";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const chartsDir = join(here, "..", "src", "components", "admin", "charts");
@@ -36,6 +40,4 @@ for (const file of readdirSync(chartsDir)) {
   assert.ok(!hexColor.test(source), `${file} must not hardcode a hex color; use a theme token`);
 }
 
-console.log(
-  "admin chart primitives: theme-token, clamping and no-hardcoded-color guards pass",
-);
+console.log("admin chart primitives: theme-token, clamping and no-hardcoded-color guards pass");

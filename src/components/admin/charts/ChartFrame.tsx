@@ -35,7 +35,7 @@ function StateMessage({
       role={role}
       aria-live={tone === "error" ? "assertive" : "polite"}
       className={cn(
-        "flex h-full flex-col items-center justify-center gap-2 rounded-[var(--admin-radius-md)] border border-dashed px-6 text-center",
+        "flex h-full flex-col items-center justify-center gap-2 rounded-[var(--admin-radius-surface)] border border-dashed px-6 text-center",
         tone === "error"
           ? "border-[var(--admin-danger)] text-[var(--admin-danger)]"
           : "border-[var(--admin-border)] text-[var(--admin-muted)]",

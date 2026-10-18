@@ -66,9 +66,7 @@ try {
       const heading = page.getByText("Active Contracts by Start Month", { exact: true }).first();
       if (await heading.count()) {
         await heading.scrollIntoViewIfNeeded();
-        const surface = heading.locator(
-          "xpath=ancestor::div[contains(@class,'admin-surface')][1]",
-        );
+        const surface = heading.locator("xpath=ancestor::div[contains(@class,'admin-surface')][1]");
         await surface.screenshot({ path: `${out}/mrr-${width}.png` });
         revenueChart = "captured";
       } else {
