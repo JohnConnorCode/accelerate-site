@@ -14,4 +14,6 @@ Only a freshly authenticated workspace administrator can change controls. SQL va
 - TypeScript, ESLint, agent contract, guardrails, public docs coverage/index, route guards and extension fingerprint checks pass. Existing AI transport/workflow fixtures opt in explicitly and retain their functional assertions.
 - Public guide and screenshots show the actual fictional interface. No model call, top-up, real coworker activation or customer mutation was used for qualification.
 
+Health reporting removes the work-engine due time while recurring work is intentionally paused, including the default-off state. It preserves recorded partial failures and stalled claims, and refuses to infer a pause if controls cannot be read. The health-output regression exercises all five cases.
+
 These are local implementation receipts. Final combined-source CI, production artifact, migration and hosted acceptance remain separate release gates recorded in the release receipt.

@@ -99,6 +99,52 @@ async function main() {
     Date.parse(successfulAt),
   );
   assert.equal(failedHealth.sourceRuns.find((r) => r.key === "gmail")?.status, "failed");
+  const oldRun = new Date(Date.now() - 7200000).toISOString();
+  const scheduled = new MemorySupabase({
+    job_runs: [
+      { job_key: "work-engine", status: "success", claimed_at: oldRun, finished_at: oldRun },
+    ],
+    workspace_ai_controls: [{ recurring_enabled: false }],
+  });
+  const paused = await loadOperationalHealth(scheduled.client);
+  assert.equal(paused.jobRuns[0]?.nextExpectedAt, undefined);
+  assert.match(paused.jobRuns[0]?.cadenceLabel ?? "", /paused in AI cost controls/);
+  assert.equal(
+    paused.concerns.some((row) => row.key === "work-engine"),
+    false,
+  );
+  scheduled.tables.workspace_ai_controls = [];
+  assert.equal(
+    (await loadOperationalHealth(scheduled.client)).concerns.some(
+      (row) => row.key === "work-engine",
+    ),
+    false,
+    "A missing policy defaults to recurring work paused",
+  );
+  scheduled.tables.workspace_ai_controls = [{ recurring_enabled: true }];
+  assert.match(
+    (await loadOperationalHealth(scheduled.client)).concerns.find(
+      (row) => row.key === "work-engine",
+    )?.detail ?? "",
+    /overdue/,
+  );
+  scheduled.tables.workspace_ai_controls = [{ recurring_enabled: false }];
+  scheduled.tables.job_runs![0]!.status = "partial";
+  assert.match(
+    (await loadOperationalHealth(scheduled.client)).concerns.find(
+      (row) => row.key === "work-engine",
+    )?.detail ?? "",
+    /partial/,
+    "Pausing is not recovery from a recorded failure",
+  );
+  scheduled.tables.job_runs![0]!.status = "running";
+  assert.equal(
+    (await loadOperationalHealth(scheduled.client)).jobRuns[0]?.stalled,
+    true,
+    "Pausing must not hide a stalled running claim",
+  );
+  scheduled.fail("workspace_ai_controls", { message: "Controls unavailable" });
+  await assert.rejects(() => loadOperationalHealth(scheduled.client), /Controls unavailable/);
   console.log(
     "PASS: source-specific quiet/empty/unconfigured/never-run/incomplete output and live unreconciled-work overlay.",
   );
