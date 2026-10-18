@@ -9,9 +9,10 @@
   align-items: center;
   gap: 1.75rem;
   max-width: 1080px;
+  max-height: calc(100svh - 3rem);
   margin-inline: auto;
   padding: 1.75rem 3.5rem 1.75rem 1.75rem;
-  overflow: hidden;
+  overflow: auto;
   border: 1px solid rgb(255 255 255 / 24%);
   border-radius: 28px;
   color: var(--paper);
@@ -200,13 +201,16 @@
   box-shadow: 0 2px 5px rgb(0 0 0 / 12%);
   font-size: 0.77rem;
   font-weight: 650;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: start;
+  line-height: 1.35;
   text-decoration: none;
   transition:
     transform 150ms var(--ease-out),
     background-color 150ms var(--ease-out);
 }
 .ctaArrow {
+  flex-shrink: 0;
   display: grid;
   place-items: center;
   width: 30px;
@@ -267,6 +271,7 @@
     align-items: start;
     gap: 1rem var(--column-gap);
     max-width: 550px;
+    max-height: calc(100svh - 1.5rem);
     padding: 1.5rem 1.25rem 1.1rem;
     border-radius: 24px;
   }
@@ -362,10 +367,23 @@
     font-size: 1.25rem;
   }
   .booking {
-    gap: 0.65rem;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+  .countdown {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .clockLabel {
+    margin: 0;
+  }
+  .countdown dl {
+    gap: 0.75rem;
   }
   .countdown dd {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
   }
   .countdown dt {
     font-size: 0.5rem;
