@@ -144,6 +144,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20261016200534_event_ticketing.sql",
   "migrations/20261017050301_audit_log_append_only.sql",
   "migrations/20261017162039_xero_workspace_disconnect.sql",
+  "migrations/20261018203409_manual_opportunity_create_receipt.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {
