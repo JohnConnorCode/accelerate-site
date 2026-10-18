@@ -14,7 +14,17 @@ let active;
 let passed = false;
 async function clean(page, label) {
   await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth + 1);
-  const issues = (await new AxeBuilder({ page }).include("main").analyze()).violations;
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every(
+        (animation) =>
+          animation.playState !== "running" ||
+          animation.effect?.getTiming().iterations === Infinity,
+      ),
+  );
+  const scope = (await page.getByRole("dialog").count()) ? '[role="dialog"]' : "main";
+  const issues = (await new AxeBuilder({ page }).include(scope).analyze()).violations;
   assert.deepEqual(
     issues.map((issue) => ({ id: issue.id, nodes: issue.nodes.length })),
     [],
@@ -98,18 +108,30 @@ try {
     await clean(page, label + "-payments");
     assert.ok((await page.locator('[data-payment-metric="captured"]').innerText()).includes("EUR"));
     assert.ok((await page.locator('[data-payment-metric="captured"]').innerText()).includes("USD"));
-    await page.getByRole("button", { name: "Refund payment", exact: true }).click();
+    await page.getByRole("button", { name: "Refund payment", exact: true }).focus();
+    await page.keyboard.press("Enter");
     const refundForm = page.getByRole("dialog", { name: "Refund payment", exact: true });
     await refundForm.getByLabel("Refund amount (USD)", { exact: true }).fill("25.00");
+    await page.keyboard.press("Tab");
+    assert.ok(
+      await refundForm
+        .getByLabel("Reason", { exact: true })
+        .evaluate((node) => node === document.activeElement),
+    );
     await refundForm.getByLabel("Reason", { exact: true }).selectOption("duplicate");
-    await refundForm.getByRole("button", { name: "Review refund", exact: true }).click();
+    await refundForm.getByRole("button", { name: "Review refund", exact: true }).focus();
+    await page.keyboard.press("Enter");
     review = page.getByRole("dialog");
     await review.getByRole("region", { name: "Exact billing operation" }).waitFor();
     assert.ok((await review.innerText()).includes("$25.00"));
     await clean(page, label + "-refund-review");
     await review.getByRole("button", { name: "Approve", exact: true }).click();
     await page.getByRole("dialog").waitFor({ state: "detached" });
-    await payments.getByText("Partially refunded", { exact: true }).waitFor();
+    await payments
+      .getByRole("listitem")
+      .filter({ hasText: "ch_demopayment1" })
+      .getByText("Partially refunded", { exact: true })
+      .waitFor();
     await page.getByRole("heading", { name: "Recent billing actions", exact: true }).waitFor();
     assert.ok((await page.locator("main").innerText()).includes("No provider effect occurred"));
     await page.getByLabel("Payment status", { exact: true }).selectOption("refunded");

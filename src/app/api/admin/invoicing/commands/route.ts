@@ -45,3 +45,21 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function GET(request: Request) {
+  const auth = await requireAdminForModule("stripe-invoicing");
+  if (auth instanceof NextResponse) return auth;
+  const actionId = new URL(request.url).searchParams.get("actionId");
+  if (!z.uuid().safeParse(actionId).success)
+    return NextResponse.json({ error: "Choose an existing billing action." }, { status: 400 });
+  try {
+    return NextResponse.json(await readBillingActionReceipt(auth.database, actionId!));
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "The provider result could not be checked.",
+      },
+      { status: 422 },
+    );
+  }
+}

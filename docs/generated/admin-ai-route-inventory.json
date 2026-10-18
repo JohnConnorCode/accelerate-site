@@ -13,7 +13,7 @@
     "complete": false,
     "unreviewedSourceBindings": [],
     "meaning": "Reviewed command-to-transport bindings with executable verification references. No coverage percentage or universal runtime acceptance is asserted.",
-    "registeredTools": 141,
+    "registeredTools": 142,
     "unreviewedToolBindings": [
       "activate_tool_bundle",
       "bootstrap_business_pulse_coworker",
@@ -178,6 +178,26 @@
         "serviceTarget": "revenue-os.analytics",
         "tools": [
           "get_revenue_analytics"
+        ]
+      },
+      {
+        "definition": {
+          "id": "billing.action.read",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing/commands",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-billing-workspace.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.billing-workspace",
+        "tools": [
+          "get_billing_action"
         ]
       },
       {
@@ -2264,6 +2284,7 @@
     {
       "source": "src/app/api/admin/invoicing/commands/route.ts",
       "handlers": [
+        "GET",
         "POST"
       ],
       "mutationHandlers": [
@@ -2278,7 +2299,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "09597b573d08497180961ec51f60ad4a9520727b6669a638050b883249042c4e"
+      "sourceSha256": "74a03c850f99363957bbf21b7ec600ae7099bcc5218cb4228cba796504fad93e"
     },
     {
       "source": "src/app/api/admin/invoicing/list/route.ts",

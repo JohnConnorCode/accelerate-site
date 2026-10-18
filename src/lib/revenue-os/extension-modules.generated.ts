@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "9e29731748be64c5ab3d085d9ba93b29e0e1bfe350ec592bafa79c0352e0cf69",
+      contractHash: "f73daf7902e74ea183ba7f56afcf0073d935ea7a82b58611eff78405d07cad07",
       tools: [
         {
           operation: "prepare-workflow",
@@ -464,7 +464,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "fab0bf67e61a8e0da17a28446ff9f15b258c6e2e282986f3dd11595f67d88a66",
+      contractHash: "34768c3152d20413407b5729ae0f1b354a4263f1fbf963c0aaf81a0b592e625c",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1068,6 +1068,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: [
       "prepare_stripe_invoicing",
       "propose_stripe_invoicing",
+      "get_billing_action",
       "get_billing_records",
       "preview_billing_change",
       "propose_billing_change",
@@ -1164,7 +1165,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "027bb1b529392923a2a636e5376512a0ee2a6c582b5b907d1256e7a3e26d96ad",
+      contractHash: "da5104b20b66446d649c8c5e326610a791e53de344c7fc77e60d90774f74713d",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1320,6 +1321,30 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
               },
             },
             required: ["input", "digest", "requestId"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "get-billing-action",
+          name: "get_billing_action",
+          description:
+            "Check the current provider result of one existing workspace billing action without changing or retrying it. Supports refund status, unpaid-invoice cancellation and billing-customer setup, including expired reviews. Preserves the original execution receipt.",
+          serviceTarget: "revenue-os.billing-workspace",
+          connectionRequirement: "none",
+          impact: "read",
+          confirmationRequired: false,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              actionId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+            },
+            required: ["actionId"],
             additionalProperties: false,
           },
         },

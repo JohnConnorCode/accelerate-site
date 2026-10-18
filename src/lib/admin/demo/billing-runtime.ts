@@ -79,10 +79,24 @@ export async function handleDemoBilling(
       connection: `demo:${pack.id}`,
       testMode: true,
     });
+  if (url.pathname === "/api/admin/invoicing/commands" && method === "GET") {
+    const original = state.actions.find(
+      (item) =>
+        item.id === url.searchParams.get("actionId") && item.action_type === "billing_change",
+    );
+    if (!original) throw new Error("Choose an existing fictional billing action.");
+    if (!original.result)
+      throw new Error("This fictional billing action has no provider result yet.");
+    return respond({
+      ...original.result,
+      reconciled: true,
+      message: "Simulated · Current fictional result checked. No provider effect occurred.",
+    });
+  }
   const preview = async (raw: unknown): Promise<BillingPreview> => {
     const command = billingCommandSchema.parse(raw);
     let snapshot: Record<string, unknown>;
-    let review: Record<string, string>;
+    let review: BillingPreview["review"];
     if (command.operation === "create_customer") {
       const contact = pack.people.find((item) => item.id === command.contactId);
       if (!contact) throw new Error("Choose a fictional contact.");

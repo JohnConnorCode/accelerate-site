@@ -26,12 +26,15 @@ export const billingPreviewInputSchema = z.object({ command: billingCommandSchem
 export const billingProposalInputSchema = billingPreviewInputSchema
   .extend({ digest: z.string().regex(/^[a-f0-9]{64}$/) })
   .strict();
+export const billingReviewSchema = z
+  .object({ Operation: z.string().min(1), Consequence: z.string().min(1) })
+  .catchall(z.string());
 export const billingApprovalSchema = z
   .object({
     command: billingCommandSchema,
     digest: z.string().regex(/^[a-f0-9]{64}$/),
     snapshot: z.record(z.string(), z.unknown()),
-    review: z.record(z.string(), z.string()),
+    review: billingReviewSchema,
   })
   .strict();
 export type BillingPreview = z.infer<typeof billingApprovalSchema>;
@@ -132,6 +135,13 @@ export const billingReadInputSchema = z
   })
   .strict();
 export const BILLING_OPERATION_BINDINGS = {
+  get_billing_action: {
+    id: "billing.action.read",
+    version: 1,
+    scope: "workspace",
+    entrypoints: [{ path: "/api/admin/invoicing/commands", method: "GET" }],
+    verification: ["scripts/test-billing-workspace.ts"],
+  },
   get_billing_records: {
     id: "billing.records.read",
     version: 1,

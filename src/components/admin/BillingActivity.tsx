@@ -20,6 +20,7 @@ export function BillingActivity() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [checks, setChecks] = useState<Record<string, BillingReceipt>>({});
   const actions =
     query.data?.actions.filter((action) => action.action_type === "billing_change").slice(0, 8) ??
     [];
@@ -42,6 +43,22 @@ export function BillingActivity() {
     } finally {
       setBusy(false);
       await refreshBilling(cache);
+    }
+  }
+  async function check(action: BillingAction) {
+    setBusy(true);
+    setError("");
+    try {
+      const receipt = await fetchJson<BillingReceipt>(
+        `/api/admin/invoicing/commands?actionId=${encodeURIComponent(action.id)}`,
+      );
+      setChecks((current) => ({ ...current, [action.id]: receipt }));
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "The provider result could not be checked.",
+      );
+    } finally {
+      setBusy(false);
     }
   }
   if (!actions.length && !query.error) return null;
@@ -84,6 +101,21 @@ export function BillingActivity() {
                 {action.result?.providerId ? ` · ${action.result.providerId}` : ""}
               </p>
             </div>
+            {checks[action.id] && (
+              <p role="status" className="admin-copy w-full text-sm">
+                Latest provider check: {checks[action.id]!.status}. {checks[action.id]!.message}
+              </p>
+            )}
+            {["executed", "failed", "expired"].includes(action.status) && (
+              <button
+                type="button"
+                className="admin-button admin-button--secondary"
+                disabled={busy}
+                onClick={() => void check(action)}
+              >
+                Check provider result
+              </button>
+            )}
             {action.status === "pending" && (
               <button
                 className="admin-button admin-button--secondary"

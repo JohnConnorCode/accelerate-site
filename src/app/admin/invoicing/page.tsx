@@ -102,7 +102,11 @@ export default function InvoicingPage() {
   const billing = useAdminQuery<Billing>(
     ["admin", "invoicing", connectionKey, appliedSearch, contactId],
     `/api/admin/invoicing?${new URLSearchParams({ search: appliedSearch, ...(contactId ? { contactId } : {}) })}`,
-    { enabled: connected, placeholderData: undefined },
+    {
+      enabled: connected,
+      placeholderData: (previous, query) =>
+        query?.queryKey[2] === connectionKey ? previous : undefined,
+    },
   );
   const [customerId, setCustomerId] = useState("");
   const [currency, setCurrency] = useState("usd");
@@ -131,9 +135,11 @@ export default function InvoicingPage() {
     }
   }
   async function refresh() {
-    await cache.invalidateQueries({ queryKey: ["admin", "invoicing"] });
-    await cache.invalidateQueries({ queryKey: ["admin", "actions"] });
-    await cache.invalidateQueries({ queryKey: ["tenant", "providers"] });
+    await Promise.all([
+      cache.invalidateQueries({ queryKey: ["admin", "invoicing"] }),
+      cache.invalidateQueries({ queryKey: ["admin", "actions"] }),
+      cache.invalidateQueries({ queryKey: ["tenant", "providers"] }),
+    ]);
   }
   function connect(event: FormEvent) {
     event.preventDefault();
@@ -308,7 +314,7 @@ export default function InvoicingPage() {
             <InvoiceIndex enabled={connected} connectionKey={connectionKey} />
           </div>
         ))}
-      {connected && !creating && <BillingActivity />}
+      {!creating && <BillingActivity />}
       <>
         {(error || providers.error || billing.error) && (
           <div
@@ -594,19 +600,22 @@ export default function InvoicingPage() {
                         </select>
                       </label>
                     </div>
-                    {contactId && !matchingCustomers.length && (
-                      <div className="space-y-3 rounded-xl bg-[var(--admin-surface-subtle)] p-4">
-                        <p className="admin-copy text-sm">
-                          Create a billing customer using this contact’s name and email, then select
-                          it above. Customer setup does not take a payment.
-                        </p>
-                        <BillingActionControl
-                          key={contactId}
-                          label="Create billing customer"
-                          intent={{ operation: "create_customer", contactId }}
-                        />
-                      </div>
-                    )}
+                    {contactId &&
+                      !billing.isFetching &&
+                      !billing.error &&
+                      !matchingCustomers.length && (
+                        <div className="space-y-3 rounded-xl bg-[var(--admin-surface-subtle)] p-4">
+                          <p className="admin-copy text-sm">
+                            Create a billing customer using this contact’s name and email, then
+                            select it above. Customer setup does not take a payment.
+                          </p>
+                          <BillingActionControl
+                            key={contactId}
+                            label="Create billing customer"
+                            intent={{ operation: "create_customer", contactId }}
+                          />
+                        </div>
+                      )}
                     {billing.data?.truncated && (
                       <p className="admin-copy text-xs">
                         Refine the customer name search if needed: up to 100 CRM matches are shown.

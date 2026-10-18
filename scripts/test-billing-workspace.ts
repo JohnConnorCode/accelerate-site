@@ -9,6 +9,7 @@ import {
   executeBillingCommand,
   readBillingPayments,
   readBillingInvoices,
+  readBillingActionReceipt,
 } from "../src/lib/revenue-os/billing-workspace";
 import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
 import { retryPluginAction } from "../src/lib/revenue-os/actions";
@@ -40,7 +41,8 @@ async function main() {
     full_name: "Example Customer",
     primary_email: "billing@customer.example",
   };
-  f.mem.tables.contacts = [contact];
+  const foreignContactId = randomUUID();
+  f.mem.tables.contacts = [contact, { ...contact, id: foreignContactId, tenant_id: f.other }];
   (f.mem.rows("tenants")[0]!.config as { modules: Record<string, boolean> }).modules = {
     "stripe-invoicing": true,
   };
@@ -72,7 +74,7 @@ async function main() {
     disputed: false,
     livemode: false,
     created: 1792320000,
-    metadata: { accelerate_tenant_id: f.tenantId },
+    metadata: { accelerate_tenant_id: String(f.tenantId) },
     billing_details: { name: contact.full_name, email: contact.primary_email },
     description: "Controlled payment",
     receipt_url: "https://pay.stripe.com/receipts/fixture",
@@ -147,6 +149,10 @@ async function main() {
     assert.ok(key?.startsWith(`billing:${f.tenantId}:`));
     writes.push({ path: url.pathname, key });
     if (url.pathname === "/v1/refunds") {
+      assert.equal(
+        key,
+        `billing:${f.tenantId}:${body.get("metadata[accelerate_billing_request_id]")}`,
+      );
       const result = {
         id: `re_controlled${refunds.length + 1}`,
         charge: charge.id,
@@ -208,6 +214,15 @@ async function main() {
     failReads = false;
     await assert.rejects(() => executeBillingCommand(f.db, randomUUID(), f.email), /authenticated/);
     await runWithTenantRequestContext(f.actor, async () => {
+      await assert.rejects(
+        () =>
+          previewBillingCommand(f.db, {
+            operation: "create_customer",
+            contactId: foreignContactId,
+            requestId: randomUUID(),
+          }),
+        /existing contact/,
+      );
       const command = {
         operation: "refund_payment" as const,
         chargeId: charge.id,
@@ -302,6 +317,23 @@ async function main() {
       assert.equal(pendingReceipt.status, "pending");
       assert.match(pendingReceipt.message, /pending/);
       assert.ok(!pendingReceipt.message.includes("succeeded"));
+      refunds.at(-1)!.status = "succeeded";
+      f.mem.rows("action_queue").find((item) => item.id === pending!.id)!.expires_at =
+        "2020-01-01T00:00:00.000Z";
+      const checked = await readBillingActionReceipt(f.db, pending!.id);
+      assert.equal(
+        checked.status,
+        "succeeded",
+        "An expired review can still inspect its original provider result",
+      );
+      assert.equal(
+        (
+          f.mem.rows("action_queue").find((item) => item.id === pending!.id)!
+            .result as BillingReceipt
+        ).status,
+        "pending",
+        "A provider check must preserve the original receipt",
+      );
       refundStatus = "succeeded";
       const stale = await stage({ ...command, amount: 100, requestId: randomUUID() });
       charge.amount_refunded++;
@@ -396,6 +428,26 @@ async function main() {
         /connection changed/,
       );
       f.mem.rows("integration_connections")[0]!.credential_version = 1;
+      const fullCommand = {
+        ...command,
+        amount: charge.amount_captured - charge.amount_refunded,
+        requestId: randomUUID(),
+      };
+      const full = await stage(fullCommand);
+      timeoutAfterRefund = true;
+      await assert.rejects(() => approveAndExecuteAction(f.db, full!.id, f.email), /disconnect/);
+      const afterFull = writes.length;
+      assert.equal(charge.amount_refunded, charge.amount_captured);
+      await retryPluginAction(f.db, full!.id, f.email);
+      assert.equal(
+        ((await approveAndExecuteAction(f.db, full!.id, f.email)) as BillingReceipt).status,
+        "succeeded",
+      );
+      assert.equal(
+        writes.length,
+        afterFull,
+        "A fully refunded payment must reconcile without another refund",
+      );
     });
     const overview = paymentOverview([
       { ...page.payments[0]!, captured: 10000, refunded: 1500 },

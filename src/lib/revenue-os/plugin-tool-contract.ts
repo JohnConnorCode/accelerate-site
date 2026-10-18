@@ -16,6 +16,7 @@ export const PLUGIN_TOOL_OPERATIONS = [
   "preview-invoice-page",
   "propose-invoice-page",
   "get-billing-records",
+  "get-billing-action",
   "preview-billing-change",
   "propose-billing-change",
 ] as const;
@@ -71,6 +72,17 @@ export function pluginToolRegistrations(module: PluginToolModule): ToolRegistrat
     if (module.workflow.inputContract !== "stripe-invoice-draft-v1")
       throw new Error("Stripe adapter tools require the invoice workflow contract");
     registrations.push(
+      {
+        operation: "get-billing-action",
+        name: "get_billing_action",
+        description:
+          "Check the current provider result of one existing workspace billing action without changing or retrying it. Supports refund status, unpaid-invoice cancellation and billing-customer setup, including expired reviews. Preserves the original execution receipt.",
+        schema: z.object({ actionId: z.uuid() }).strict(),
+        serviceTarget: "revenue-os.billing-workspace",
+        connectionRequirement: "none",
+        impact: "read",
+        confirmationRequired: false,
+      },
       {
         operation: "get-billing-records",
         name: "get_billing_records",

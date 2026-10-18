@@ -185,6 +185,7 @@ import {
   proposeBillingCommand,
   readBillingInvoices,
   readBillingPayments,
+  readBillingActionReceipt,
 } from "./billing-workspace";
 import { BILLING_OPERATION_BINDINGS } from "./billing-command-contract";
 import { proposeStripeInvoiceSend } from "./stripe-invoicing";
@@ -647,6 +648,8 @@ const PLUGIN_TOOL_EXECUTORS = {
       value(input, "requestId")!,
       actorEmail,
     ),
+  "get-billing-action": ({ supabase }, raw) =>
+    readBillingActionReceipt(supabase, value(raw, "actionId")!),
   "get-billing-records": ({ supabase }, raw) =>
     raw.kind === "payments"
       ? readBillingPayments(supabase, {

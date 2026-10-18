@@ -10,6 +10,7 @@ import {
   billingCommandSchema,
   type BillingCommand,
   type BillingReceipt,
+  type BillingPreview,
 } from "./billing-command-contract";
 import { formatInvoiceAmount } from "./stripe-contract";
 import { invoiceIndexPageSchema } from "./invoice-index-contract";
@@ -153,7 +154,7 @@ async function inspect(
 ): Promise<{
   client: Awaited<ReturnType<typeof tenantStripeClient>>;
   snapshot: Record<string, unknown>;
-  review: Record<string, string>;
+  review: BillingPreview["review"];
 }> {
   const client = await tenantStripeClient(db);
   const connection = {
@@ -532,7 +533,7 @@ function refundReceipt(
     reconciled,
     message:
       refund.status === "succeeded"
-        ? "Stripe confirms the refund succeeded. Bank processing may continue. Refresh ticket orders to check admission status."
+        ? "Stripe confirms the refund succeeded. Bank processing may continue."
         : `Stripe reports this refund as ${refund.status.replaceAll("_", " ")}. No second refund was requested.`,
   };
 }
@@ -600,4 +601,111 @@ export async function readBillingInvoices(
     hasMore: response.data.has_more || all.length > limit,
     nextCursor: invoices.length ? invoices[invoices.length - 1]!.id : null,
   });
+}
+
+/** A fresh provider observation never rewrites the original execution receipt. */
+export async function readBillingActionReceipt(
+  db: SupabaseClient,
+  actionId: string,
+): Promise<BillingReceipt> {
+  const { data: action, error } = await db
+    .from("action_queue")
+    .select("*")
+    .eq("id", z.uuid().parse(actionId))
+    .eq("action_type", "billing_change")
+    .maybeSingle();
+  if (error || !action) throw new Error("This billing action is unavailable in this workspace.");
+  const approved = billingApprovalSchema.parse(action.payload);
+  const client = await tenantStripeClient(db);
+  if (
+    approved.snapshot.tenantId !== client.tenantId ||
+    approved.snapshot.accountId !== client.accountId ||
+    approved.snapshot.testMode !== (client.mode === "test")
+  )
+    throw new Error("Reconnect the original Stripe account and mode before checking this result.");
+  const { command } = approved;
+  if (command.operation === "refund_payment") {
+    const { object: response, requestId } = await client.refunds(command.chargeId);
+    const page = z
+      .object({ data: z.array(z.record(z.string(), z.unknown())).max(100), has_more: z.boolean() })
+      .parse(response);
+    const found = page.data.find(
+      (refund) =>
+        object(refund.metadata).accelerate_billing_request_id === command.requestId &&
+        object(refund.metadata).accelerate_tenant_id === client.tenantId,
+    );
+    if (found)
+      return refundReceipt(
+        found,
+        command,
+        String(approved.snapshot.currency),
+        client.mode === "test",
+        requestId,
+        true,
+      );
+    if (page.has_more)
+      throw new Error("Refund history is incomplete; no outcome can be confirmed from this page.");
+    return {
+      operation: command.operation,
+      providerId: command.chargeId,
+      status: "not_found",
+      message:
+        "Stripe's complete refund history contains no refund for this original request. No money was moved by this check.",
+      testMode: client.mode === "test",
+      providerRequestId: requestId,
+      reconciled: true,
+    };
+  }
+  if (command.operation === "void_invoice") {
+    const { object: invoice, requestId } = await client.invoice(command.invoiceId);
+    if (
+      object(invoice.metadata).accelerate_tenant_id !== client.tenantId ||
+      invoice.livemode !== (client.mode === "live")
+    )
+      throw new Error("The invoice no longer has verified workspace ownership.");
+    const status = z.enum(["draft", "open", "paid", "uncollectible", "void"]).parse(invoice.status);
+    return {
+      operation: command.operation,
+      providerId: command.invoiceId,
+      status,
+      message: `Stripe currently reports this invoice as ${status}. This check makes no change.`,
+      testMode: client.mode === "test",
+      providerRequestId: requestId,
+      reconciled: true,
+    };
+  }
+  const { object: response, requestId } = await client.customers(String(approved.snapshot.email));
+  const page = z
+    .object({ data: z.array(z.record(z.string(), z.unknown())).max(50), has_more: z.boolean() })
+    .parse(response);
+  if (page.has_more)
+    throw new Error(
+      "Billing customer history is incomplete; refine the original contact before reviewing again.",
+    );
+  const customers = page.data.filter(
+    (customer) =>
+      String(customer.email).toLowerCase() === approved.snapshot.email &&
+      customer.livemode === (client.mode === "live") &&
+      !customer.deleted,
+  );
+  if (customers.length > 1)
+    throw new Error(
+      "Several matching billing customers exist. Select the intended profile in the invoice form.",
+    );
+  return {
+    operation: command.operation,
+    providerId: customers[0]
+      ? z
+          .string()
+          .regex(/^cus_[A-Za-z0-9]{1,80}$/)
+          .parse(customers[0].id)
+      : command.contactId,
+    status: customers.length ? "ready" : "not_found",
+    message: customers.length
+      ? "A matching billing customer is available in the invoice choices. This check creates no profile."
+      : "Stripe has no matching billing customer. This check creates no profile.",
+    testMode: client.mode === "test",
+    providerRequestId: requestId,
+    reconciled: true,
+  };
 }
