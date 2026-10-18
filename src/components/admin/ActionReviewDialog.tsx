@@ -435,7 +435,7 @@ export function ActionReviewDialog({
             <section aria-label="Exact Blueprint draft change">
               <dl className="space-y-3 text-sm">
                 {Object.entries(blueprintReview)
-                  .filter(([label]) => label !== "Consequence")
+                  .filter(([label]) => !["Consequence", "Operation"].includes(label))
                   .map(([label, value]) => (
                     <div key={label}>
                       <dt className="text-[var(--admin-muted)]">{label}</dt>
@@ -655,6 +655,7 @@ export function ActionReviewDialog({
           )}
 
           {!billing &&
+            !blueprintReview &&
             !isCalendar &&
             !isTicket &&
             !isConfiguration &&
@@ -670,6 +671,7 @@ export function ActionReviewDialog({
 
           {(action.reasoning || action.description) &&
             (!billing || action.reasoning || action.description !== consequence) &&
+            (!blueprintReview || action.reasoning || action.description !== consequence) &&
             (!isCalendar || action.reasoning) &&
             (!isConfiguration || action.reasoning || action.description !== consequence) && (
               <div>

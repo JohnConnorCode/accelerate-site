@@ -28,7 +28,7 @@ try {
     const root = "/demo/command-center/northline-roofing/ai";
     await page.goto(`${base}${root}?purpose=architect`);
     await page.waitForFunction(() => window.__accelerateAdminDemoRuntime);
-    const select = page.getByLabel("Blueprint", { exact: true });
+    const select = page.getByRole("combobox", { name: /^Blueprint/ });
     await select.selectOption("11111111-1111-4111-8111-111111111111");
     await page.getByText(/^Version 1:/).waitFor();
     await page
@@ -43,9 +43,22 @@ try {
     await page.getByRole("button", { name: "Review draft save", exact: true }).click();
     let dialog = page.getByRole("dialog");
     await dialog.getByRole("region", { name: "Exact Blueprint draft change" }).waitFor();
+    assert.equal(await dialog.getByText(/This proposal recorded no payload/).count(), 0);
+    await page.waitForFunction(() =>
+      document
+        .getAnimations()
+        .every(
+          (animation) =>
+            animation.playState !== "running" ||
+            animation.effect?.getTiming().iterations === Infinity,
+        ),
+    );
     const axe = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
     assert.deepEqual(
-      axe.violations.map(({ id }) => id),
+      axe.violations.map(({ id, nodes }) => ({
+        id,
+        nodes: nodes.map(({ target, failureSummary }) => ({ target, failureSummary })),
+      })),
       [],
       `Review accessibility at ${width}`,
     );
@@ -62,14 +75,35 @@ try {
     const simulation = page.getByRole("region", { name: "Simulation result", exact: true });
     await simulation.getByText(/No live changes were made/).waitFor();
     await page.getByText(/^Version 2:/).waitFor();
+    await simulation
+      .getByRole("heading", { name: "Simulation result", exact: true })
+      .scrollIntoViewIfNeeded();
+    const log = page.getByRole("log", { name: "AI conversation" });
+    assert.ok(
+      await log.evaluate(
+        (node) => node.clientHeight >= 120 && node.scrollWidth <= node.clientWidth + 1,
+      ),
+      `Readable chat viewport at ${width}`,
+    );
+    const send = await page.getByRole("button", { name: "Send AI command" }).boundingBox();
+    assert.ok(
+      send && send.x >= 0 && send.x + send.width <= width,
+      `Composer remains reachable at ${width}`,
+    );
     await page.screenshot({ path: `${output}/simulation-${width}.png` });
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
       `Overflow at ${width}`,
     );
-    await page.getByRole("link", { name: "Ask", exact: true }).click();
+    await page
+      .getByRole("navigation", { name: "AI workspace mode" })
+      .getByRole("link", { name: "Ask", exact: true })
+      .click();
     await select.waitFor({ state: "hidden" });
-    await page.getByRole("link", { name: "Architect", exact: true }).click();
+    await page
+      .getByRole("navigation", { name: "AI workspace mode" })
+      .getByRole("link", { name: "Architect", exact: true })
+      .click();
     await select.selectOption("11111111-1111-4111-8111-111111111111");
     await page.getByText(/^Version 2:/).waitFor();
     await context.close();

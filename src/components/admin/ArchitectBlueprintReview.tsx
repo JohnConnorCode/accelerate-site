@@ -67,6 +67,7 @@ export function ArchitectBlueprintReviewHost() {
           Blueprint
           <select
             className="admin-field mt-1 min-h-11 w-full"
+            aria-label="Blueprint"
             value={selected}
             onChange={(event) => setSelection(event.target.value)}
             disabled={list.isPending}

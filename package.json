@@ -404,7 +404,8 @@
     "test:event-ticketing:postgres": "node --import tsx scripts/test-event-ticketing-postgres.mjs",
     "qa:event-ticketing": "node scripts/resource-run.mjs node --import tsx scripts/qa-event-ticketing.mjs",
     "test:audit-log-append-only:postgres": "node scripts/test-audit-log-append-only-postgres.mjs",
-    "test:architect-review": "node --conditions=react-server --import tsx scripts/test-workspace-architect-review-simulation.ts && node scripts/test-blueprint-version-postgres.mjs"
+    "test:architect-review": "node --conditions=react-server --import tsx scripts/test-workspace-architect-review-simulation.ts",
+    "test:blueprint-version:postgres": "node scripts/test-blueprint-version-postgres.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

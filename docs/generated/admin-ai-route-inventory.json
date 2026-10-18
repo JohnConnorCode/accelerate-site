@@ -1895,9 +1895,10 @@
       "imports": [
         "@/lib/admin/auth",
         "@/lib/revenue-os/workspace-blueprint",
+        "@/lib/tenancy/context",
         "next/server"
       ],
-      "sourceSha256": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c"
+      "sourceSha256": "5873dbb8d99ffa56d4d8c62770850009a58d6db676afb48c4e2a7d9ac9c9b8dc"
     },
     {
       "source": "src/app/api/admin/bookings/route.ts",

@@ -411,7 +411,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
     ) : null;
 
   const chat = (
-    <section className="flex min-h-0 flex-1 flex-col">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
       {ai.schemaReady === false && (
         <div className="m-4 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
           <CircleAlert className="mr-2 inline size-4" />
@@ -462,8 +462,6 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           Architect
         </Link>
       </nav>
-      {ai.purpose === "architect" && <ArchitectEvidencePanel />}
-      {ai.purpose === "architect" && <ArchitectUnderstandingPanel />}
       {mobileConversationBar}
       <div className="relative flex min-h-0 flex-1 flex-col">
         <div
@@ -498,7 +496,11 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           aria-label="AI conversation"
         >
           {ai.purpose === "architect" && (
-            <ArchitectBlueprintReviewHost key={ai.activeConversationId ?? "new"} />
+            <>
+              <ArchitectEvidencePanel />
+              <ArchitectUnderstandingPanel />
+              <ArchitectBlueprintReviewHost key={ai.activeConversationId ?? "new"} />
+            </>
           )}
           {ai.loadingHistory && (
             <div className="grid min-h-48 place-items-center text-xs text-[var(--admin-muted)]">
@@ -862,7 +864,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
       </div>
     );
   return (
-    <div className="grid h-[clamp(440px,calc(100dvh-19rem),720px)] min-h-0 overflow-hidden rounded-2xl bg-[var(--admin-surface)] shadow-[var(--admin-shadow)] md:grid-cols-[228px_minmax(0,1fr)]">
+    <div className="grid h-[clamp(440px,calc(100dvh-19rem),720px)] min-h-0 grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl bg-[var(--admin-surface)] shadow-[var(--admin-shadow)] md:grid-cols-[228px_minmax(0,1fr)]">
       <div className="hidden p-4 md:block">{conversationList}</div>
       {chat}
     </div>

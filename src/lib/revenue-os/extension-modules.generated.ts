@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "33a4b103f7493b12a2db4f40729426afe489419d90de87fef535b44d610a0224",
+      contractHash: "1b31464ec4ac16839b7f686231d1e9d59cad7bffe066f2acc14a930257fd0c40",
       tools: [
         {
           operation: "prepare-workflow",
@@ -464,7 +464,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "9c1011daf0c84ed16d48548326edbefe8496e8d84bef36a1908d22ab35a6dbf1",
+      contractHash: "660fb383bbb873203e712f34bc7fc6a0a684e43536367bfdb9ff2b03f50505f2",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1165,7 +1165,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "0b21d1e30358ce595d767de750a883351d87618f23d6d308a51b2889b72c62f1",
+      contractHash: "97d50b7bcc87e06f5d26fc040dca8fd157b4a4273330450e98e060efde1334f5",
       tools: [
         {
           operation: "prepare-workflow",

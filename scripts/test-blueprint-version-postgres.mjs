@@ -31,7 +31,8 @@ const args = [
 ];
 const run = (command, argv, input) => {
   const result = spawnSync(command, argv, { input, encoding: "utf8", timeout: 30000 });
-  if (result.status !== 0) throw new Error(result.stderr || result.stdout);
+  if (result.status !== 0)
+    throw new Error(result.error?.message || result.stderr || result.stdout || `${command} failed`);
   return result.stdout.trim();
 };
 const sql = (input) => run(bin("psql"), args, input);
