@@ -360,3 +360,5 @@ Source integration and controlled PostgreSQL proof do not establish this live
 rollout. If the deployed application still relies on the temporary grants, retain
 that current state until the compatible release; do not rewrite recorded history
 or broaden the RPC grants to make a failing save appear successful.
+
+Apply `migrations/20261018151805_blueprint_draft_version_atomic.sql` before enabling in-chat Blueprint draft saves. The ordered upgrade adds atomic version, approval-reset and audit persistence with request-based recovery. The existing Blueprint document format stays compatible; current approved versions require a fresh approval after a new draft is saved. `npm run test:architect-review` exercises the service and an owned PostgreSQL fixture without hosted data.

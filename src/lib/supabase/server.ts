@@ -395,6 +395,14 @@ export async function callSourceAuthorityRpc(
   });
 }
 
+/** Versioned Blueprint saves share the existing fresh-membership host boundary. */
+export async function callBlueprintVersionRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+) {
+  return callVerifiedHostRpc(database, "save_workspace_blueprint_version", args);
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

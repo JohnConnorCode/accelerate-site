@@ -145,6 +145,10 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "private, no-store" },
         ],
       },
+      {
+        source: "/command-center-sw.js",
+        headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }],
+      },
     ];
   },
 };

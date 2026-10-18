@@ -185,6 +185,13 @@ async function executeApprovedAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "blueprint_draft_change": {
+        if (mode !== "approved")
+          throw new Error("Blueprint draft changes require exact human approval");
+        const { executeArchitectPatch } = await import("./architect-review");
+        result = await executeArchitectPatch(supabase, id, actorEmail);
+        break;
+      }
       case "billing_change": {
         if (mode !== "approved") throw new Error("Billing changes require exact human approval");
         const { executeBillingCommand } = await import("./billing-workspace");

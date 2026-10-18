@@ -37,19 +37,19 @@ function validView(value: string | null): WorkspaceView {
 export function AdminAIWorkspace() {
   const searchParams = useSearchParams();
   const router = useAdminNavigation();
-  const { activeConversationId, selectConversation, setPurpose, refreshConversations } =
-    useAdminAI();
+  const { selectConversation, setPurpose } = useAdminAI();
   const view = validView(searchParams.get("view"));
   const conversationId = searchParams.get("conversation");
   const purpose = searchParams.get("purpose") === "architect" ? "architect" : "command";
   useEffect(() => {
-    setPurpose(purpose);
-    void refreshConversations().catch(() => undefined);
-  }, [purpose, refreshConversations, setPurpose]);
-  useEffect(() => {
-    if (view === "ask" && conversationId && conversationId !== activeConversationId)
-      void selectConversation(conversationId);
-  }, [activeConversationId, conversationId, selectConversation, view]);
+    let current = true;
+    void setPurpose(purpose).then(() => {
+      if (current && view === "ask" && conversationId) void selectConversation(conversationId);
+    });
+    return () => {
+      current = false;
+    };
+  }, [purpose, setPurpose, conversationId, selectConversation, view]);
   const setView = (next: WorkspaceView) => {
     const params = new URLSearchParams(searchParams.toString());
     if (next === "ask") params.delete("view");

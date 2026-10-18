@@ -2,6 +2,24 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "architect-draft-review",
+    slug: "architect-draft-review",
+    title: "Review Blueprint changes inside Architect",
+    description:
+      "Choose a Blueprint in the conversation, compare an exact draft patch, and approve its save through the shared review. Version conflicts preserve the newer draft, retries recover the original save, and each new version resets workspace approval. Simulations show workflow steps and capability checks without live effects.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
+    id: "command-center-install-recovery",
+    slug: "command-center-install-recovery",
+    title: "Manage local drafts and keep Command Center current",
+    description:
+      "Delete an individual offline draft within your own workspace and account. Installed workspaces check for updates when returning to the tab, and iPad desktop mode receives the appropriate installation guidance. Dedicated shortcut and maskable icons improve the installed appearance.",
+    category: "improvement",
+    publishedAt: "2026-10-18",
+  },
+  {
     id: "billing-workspace-controls",
     slug: "billing-workspace-controls",
     title: "Manage invoices, payments and refunds from one billing workspace",

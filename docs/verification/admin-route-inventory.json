@@ -76,7 +76,9 @@
     "src/app/admin/website-grades/page.tsx": "d519f5bbde93a82914777fe500b4538e963bd8b1573f345c853ea7cec6ae5b6a",
     "src/app/admin/work/page.tsx": "ef2b2a35406754f76866f912cbcaba360c3c3c965a3ac7d921d4fc5caf2a26d8",
     "src/app/api/admin/activity/route.ts": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f",
+    "src/app/api/admin/blueprints/[id]/patch/route.ts": "7ec84fa5a20932ee36f8f720bfd0fefc76d8bcfebdaaba6029908cd7a2dc69b3",
     "src/app/api/admin/blueprints/[id]/route.ts": "55e534d37af37a4b8ebe48748681fe883722e2c9c7ed5d4068b4eb25dd414dff",
+    "src/app/api/admin/blueprints/[id]/simulate/route.ts": "b59b889d8c6a0fd7ebfe577b0a18be87c134c06d9200472d332c3d07237653b1",
     "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
     "src/app/api/admin/bookings/route.ts": "57b07eb5f5da312bc972daec1cfa68584d9e4f65f0451940dabd42f04565341e",
     "src/app/api/admin/chat-leads/route.ts": "1252546fd8002454ebf50caceca306f1c31a31c08dfef3fbdb64ce6bdf2526a1",
@@ -180,12 +182,12 @@
     "src/components/admin/AICapabilities.tsx": "a1d7ac3979e0e959e630bc2d9d376e58743e969558bc8cc2d7fccbe32236cb08",
     "src/components/admin/AIReadinessPanel.tsx": "4a2f79fb03c96f6c8763118392a4bdb5d7c5ce5ccc9351f8bbed2a31828cc18f",
     "src/components/admin/AIRunHistory.tsx": "31fe825ac6247419d453934884ab140a528be927d0ad92a1e5b63657a8028351",
-    "src/components/admin/ActionReviewDialog.tsx": "ef2fa9dc42cb49fccf695b6e081a585e54edf102c751f336609d1c9236fadf49",
+    "src/components/admin/ActionReviewDialog.tsx": "b754499dd48000f9bd3b8fbc0f75ebcb04ecadfaf94b06a7751995d5417d550c",
     "src/components/admin/AddLeadModal.tsx": "57e3653a3cd765a8788b50135ac98140c417c8b9369bccc43b0f1b6159c5a30b",
-    "src/components/admin/AdminAIChat.tsx": "2a4122c3eb3c6dd0ec4043acd9937123b0296d9fb010da51802caabeecab09f6",
+    "src/components/admin/AdminAIChat.tsx": "e5c5dff705401537cc5ed5f54c67dd354869643d37202c56f97ac0285bdf7b52",
     "src/components/admin/AdminAIPanel.tsx": "ea2a8a85786ffc2e8290757b98b4969c427a165afadebb8d4a4d07c3963eb7e2",
-    "src/components/admin/AdminAIProvider.tsx": "af41848e65d561ec3ee0887ea81ce590e1c71e27fa6bfe17715eb9451b675be2",
-    "src/components/admin/AdminAIWorkspace.tsx": "942364d037f972e05e1d95425fb16f97253af20c2d811cc33ac1c1c7ae724a8e",
+    "src/components/admin/AdminAIProvider.tsx": "114fae41752980267b0bfed02f1f11c0425b92a80ef4bbf3de9ad398ca7b9ac5",
+    "src/components/admin/AdminAIWorkspace.tsx": "2e0c356012e45a06496e35b9825bd8070a5e15a0993aa164b8cc75284d4008e5",
     "src/components/admin/AdminAppearancePicker.tsx": "2f999424ec4d1262c3a7fc555f12be18664fdebdfe47eae51a21fddcb90a09c6",
     "src/components/admin/AdminAsyncRegion.tsx": "3ee68daf270ed188f5318fae1c11e7a855edf716c2a9cc90e257a5f6638b399b",
     "src/components/admin/AdminAuthLayout.tsx": "52ff564e4ebb8e3f755b97ba7a609e41dd06a5a8f513ec8c98115c114e12ec52",
@@ -216,6 +218,7 @@
     "src/components/admin/AdminViewSwitcher.tsx": "c9cd614e5996c8bef33c3de79f95f22d49b5f5dd0045b046a23f3b9b56c33918",
     "src/components/admin/AgentMemoryReview.tsx": "1b5593583cbb10d9b87fc9b0f512ed8fb0961b0eb869ff97d3a04513a26c23ff",
     "src/components/admin/AgentWorkPanel.tsx": "5cf0acd08e2477fb005fd363dbf5a1f8ebf016f214f81edbc7f372874eeec522",
+    "src/components/admin/ArchitectBlueprintReview.tsx": "dff68ab4a9c956a585eca0186c63d27a2c3f2830e0f9876cec6d13ff4656c0a6",
     "src/components/admin/ArchitectEvidencePanel.tsx": "5d3763ebfc64b6e5a0c301d88c96979d0bf66be387b292382fbf5bcea0ea300e",
     "src/components/admin/ArchitectUnderstandingPanel.tsx": "3cc664230ebb00d1d31554bb537d8db12a83969cdd2df1f53c95d97db0d17366",
     "src/components/admin/AttentionList.tsx": "ed7468bc4c78b694e8a333db014b3ff5981d405db7879bf868e1ac18f50e843a",
@@ -229,7 +232,7 @@
     "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
     "src/components/admin/ClientDetail.tsx": "2c7a8b63da7b2ba4f89e3f5f46a02d8c2f8c232698e90a987b834d5a9f93f1a4",
     "src/components/admin/CollectionsWorkspace.tsx": "75625530ebecfc35dfaf720b5a779b68becdbc8ff544dff88d7b6e26b2a9a6a0",
-    "src/components/admin/CommandCenterPwa.tsx": "c39c6ab18d111988e1b818c7210054c948ec009409cb776420ba12bac07353e5",
+    "src/components/admin/CommandCenterPwa.tsx": "c9afb4a97a9aa4afddd2c3cb0213e513ada1ac0370baad8984ca5a8964966a9e",
     "src/components/admin/ContactIntakeNav.tsx": "0b442890abee019e85fecb756f7c92cdf16951b0e6eeac3abf00f254f45bcec1",
     "src/components/admin/ContactSubmissionsPage.tsx": "f2d02abf3174cd164b982f15a59fa8b5f5bca8ca30afb98ce634edd1c3f0e648",
     "src/components/admin/ContactTimeline.tsx": "8fcc27a6abf5c834b81fbee9741b16b91bdaaa6491868abf8cea23e4a15b9e90",
@@ -323,8 +326,8 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "05bc7954bc812e42965bc5c8977b3d219da31010b72146a0c7bfbcd5992a69a9",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "2475bb4b40827f08893bf5a2e345b118de6bb118e62dc648d81ede07a1fbd288",
-    "src/lib/revenue-os/action-executor.ts": "1b813ad65c212167c069a94cc4838ff14b88a1c1cce6cb643802548d948b514c",
+    "src/lib/revenue-os/README.md": "4d4049af7f1aae35b6a955851984b1f584a0f3af8fbdcd4eedbe8c0e3b512462",
+    "src/lib/revenue-os/action-executor.ts": "17e3a0c0c32c4491d9c2dae9021f2ef16f8cdd6b9e1dd067dc43c75234895f29",
     "src/lib/revenue-os/actions.ts": "1cdafcf3345b4ee616850b6781b7411b117d0e6c85a883ab673114989f24841b",
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
@@ -334,8 +337,10 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "e5b7a00424187c92fdb969fd98236a274b992b751380bb00b3cf4b911b7ae65f",
     "src/lib/revenue-os/ai-operations.ts": "32eb6cdefa75a8cdd05c871420ff4bd3cf2184fdc9b1e2743c80faf103f820a6",
     "src/lib/revenue-os/ai-stream-contract.ts": "45e5459095d2c4b27c2a0927a83408ef352bf4584653638d7d03b5447dbf1c0b",
-    "src/lib/revenue-os/ai-tools.ts": "c960118002c97c127b4e7ba8b28a37556399766ecda4482080d2de148dd42b1f",
+    "src/lib/revenue-os/ai-tools.ts": "d266feff947445e6caf18c14d57b242a544231ff33f1c357c2694831e65ed353",
     "src/lib/revenue-os/analytics.ts": "61ac0118d5177b5222f0e7f07243196d5907106b45e84e2c00650d35d4688c9d",
+    "src/lib/revenue-os/architect-review-contract.ts": "c380b28b286d1902e2b8137f296f66a467fc099528f936d313b91789f439e3e9",
+    "src/lib/revenue-os/architect-review.ts": "b271223e4bbfdccbbb8e22186e74966d8bf11a5cac84f712c8063e1448928073",
     "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "928a37ea33689f746e8df5cbbbaa0505e193ba0a1e40bc711508ffaa2caae5f2",
@@ -379,7 +384,7 @@
     "src/lib/revenue-os/memory.ts": "6b30e30b9cd7cfefbe83b78d9912aa24c898a436d8f095a34f60f011d0996db3",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
-    "src/lib/revenue-os/modules.ts": "d50a4509122c04e512e01e7a2e16970c6d03e4fa216fb7d8ae10d8255b3a6802",
+    "src/lib/revenue-os/modules.ts": "12bbceaa0199872b7d4bb0fb4ce248d7e2fcd268aa11790bc22859b171ce8fec",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "5832f25f4a0a93a0913fc080e9cd984b57e1b42bf7840e291449c8fac0ff8134",
     "src/lib/revenue-os/pipeline.ts": "c01c688af0c25fffd4f926e55ad4c134ccf12f2cbcfd553d27525a91f6ecb886",
     "src/lib/revenue-os/proposals.ts": "1cfb2a6d157df923f7f910c13fc41410af1617a5d11e765cb9cb5e4daa4d7fb3",
@@ -390,7 +395,7 @@
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/reporting-contract.ts": "d4a083bdf9810f8b3180b90f4515d42a89874f8156307871f540f46c00fb9e42",
     "src/lib/revenue-os/retained-source-dispositions.ts": "3dadabae5e8fc129bd51d1c3027093634c30a1836bd8d37f206cfc788243ac23",
-    "src/lib/revenue-os/schema-contract.ts": "8d5004cd101683e609fc4c0c8636bc54b1eb683121badeaca9ae4d82860ed998",
+    "src/lib/revenue-os/schema-contract.ts": "975e8b6d3b6e616f5b3ad6a00fe93f820aaaade489691b37c204d7955311c9f9",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/shared-context.ts": "2886f194671f3b671cfafb7bd289c8b2d54414608df083165bc509b5d3f76e8d",
     "src/lib/revenue-os/social-marketing.ts": "a5421a504fd070c4826a0fb62037abe6f83786781c0dd7c21f4d27c94b901ea8",
@@ -406,7 +411,7 @@
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
     "src/lib/revenue-os/workspace-architect-generated-operations.ts": "052b53334e27e1c888b42e881d3a42fd9927a495d61e11733408129c528b5a28",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
-    "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
+    "src/lib/revenue-os/workspace-blueprint.ts": "00c8d71d692819128598e936d37693da1fc232562ee99eae70b3915affdb33c3",
     "src/lib/revenue-os/workspace-configuration.ts": "fddf1f9ed1c50ee85d6d92c7ebda12c4fec808f3de3dcad98634199f9012aaef",
     "src/lib/revenue-os/workspace-mcp-oauth.ts": "9073501451d28a00dad04577404eefdc5c85c51a50890bf243eda505528b1753",
     "src/lib/revenue-os/xero-oauth.ts": "8063440d016d01600b8c21a2478b99a2c6ca2747d41f6fb48db2ad676803fd05",
@@ -438,7 +443,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/get-started/route.ts",
-          "domainImports": ["@/lib/revenue-os/first-use"],
+          "domainImports": [
+            "@/lib/revenue-os/first-use"
+          ],
           "directTables": []
         }
       ],
@@ -453,7 +460,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/activity/route.ts",
-          "domainImports": ["@/lib/revenue-os/activities", "@/lib/revenue-os/audit"],
+          "domainImports": [
+            "@/lib/revenue-os/activities",
+            "@/lib/revenue-os/audit"
+          ],
           "directTables": []
         }
       ],
@@ -480,17 +490,23 @@
         },
         {
           "path": "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts",
-          "domainImports": ["@/lib/revenue-os/ai-conversations"],
+          "domainImports": [
+            "@/lib/revenue-os/ai-conversations"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/ai/conversations/[id]/context/route.ts",
-          "domainImports": ["@/lib/revenue-os/ai-conversations"],
+          "domainImports": [
+            "@/lib/revenue-os/ai-conversations"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/ai/conversations/[id]/sources/route.ts",
-          "domainImports": ["@/lib/revenue-os/ai-conversations"],
+          "domainImports": [
+            "@/lib/revenue-os/ai-conversations"
+          ],
           "directTables": []
         },
         {
@@ -503,22 +519,30 @@
         },
         {
           "path": "src/app/api/admin/revenue-os/ai/conversations/route.ts",
-          "domainImports": ["@/lib/revenue-os/ai-conversations"],
+          "domainImports": [
+            "@/lib/revenue-os/ai-conversations"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/ai/feedback/route.ts",
-          "domainImports": ["@/lib/revenue-os/agent-learning"],
+          "domainImports": [
+            "@/lib/revenue-os/agent-learning"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/ai/runs/[id]/route.ts",
-          "domainImports": ["@/lib/revenue-os/ai-operations"],
+          "domainImports": [
+            "@/lib/revenue-os/ai-operations"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/ai/runs/route.ts",
-          "domainImports": ["@/lib/revenue-os/ai-operations"],
+          "domainImports": [
+            "@/lib/revenue-os/ai-operations"
+          ],
           "directTables": []
         },
         {
@@ -529,9 +553,27 @@
             "@/lib/revenue-os/ai-stream-contract"
           ],
           "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/blueprints/[id]/patch/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/architect-review",
+            "@/lib/revenue-os/architect-review-contract",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/blueprints/[id]/simulate/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/architect-review",
+            "@/lib/revenue-os/architect-review-contract",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": []
         }
       ],
-      "boundary": "Shared AI workspace; purpose=architect reuses the same conversation store for teaching the workspace. Attached and connected sources are inspectable evidence, never executable instruction; entire-account scopes are refused. Business-model extraction persists a reading only and does not write schema or configuration. Command-center writes still require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable. Radar briefing calls the tenant-bound shared budget gateway; status and usage reconciliation expose bounded receipts. These tools cannot send, publish, edit business records or bypass module gates. Business job starters only fill an editable request through the existing composer event; they do not send inference requests or execute business actions. The operation registry, readiness and approval services remain the owners. Pending and open exact-change reviews suspend automatic chat following, so their consequence and decision controls retain the reading position through asynchronous layout updates; this does not execute or alter proposals.",
+      "boundary": "Architect reviews validated, tenant-scoped Blueprint drafts. Preview and simulation are reads; draft saves stage the shared exact approval and append versions atomically with audit and replay protection. Applying the workspace remains the separate approved compiler path.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -551,7 +593,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/revenue-os/analytics/route.ts",
-          "domainImports": ["@/lib/revenue-os/analytics", "@/lib/revenue-os/reporting-contract"],
+          "domainImports": [
+            "@/lib/revenue-os/analytics",
+            "@/lib/revenue-os/reporting-contract"
+          ],
           "directTables": []
         }
       ],
@@ -566,7 +611,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/blueprints/route.ts",
-          "domainImports": ["@/lib/revenue-os/workspace-blueprint"],
+          "domainImports": [
+            "@/lib/revenue-os/workspace-blueprint"
+          ],
           "directTables": []
         }
       ],
@@ -586,7 +633,9 @@
             "@/lib/revenue-os/workspace-blueprint",
             "@/lib/revenue-os/workspace-blueprint-compiler"
           ],
-          "directTables": ["workspace_blueprints"]
+          "directTables": [
+            "workspace_blueprints"
+          ]
         }
       ],
       "boundary": "Review is read-only against the latest version. Validation uses live capabilities and entity keys. The document is never executed.",
@@ -600,8 +649,14 @@
       "adapters": [
         {
           "path": "src/app/api/admin/bookings/route.ts",
-          "domainImports": ["@/lib/email/booking", "@/lib/revenue-os/pipeline"],
-          "directTables": ["opportunities", "tasks"]
+          "domainImports": [
+            "@/lib/email/booking",
+            "@/lib/revenue-os/pipeline"
+          ],
+          "directTables": [
+            "opportunities",
+            "tasks"
+          ]
         }
       ],
       "boundary": "Stage changes call pipeline.ts; value patches and follow-up task writes remain in the adapter.",
@@ -637,13 +692,21 @@
       "adapters": [
         {
           "path": "src/app/api/admin/revenue-os/campaigns/members/route.ts",
-          "domainImports": ["@/lib/revenue-os/campaigns"],
+          "domainImports": [
+            "@/lib/revenue-os/campaigns"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/campaigns/preview/route.ts",
-          "domainImports": ["@/lib/revenue-os/campaigns"],
-          "directTables": ["campaign_members", "campaign_steps", "campaigns"]
+          "domainImports": [
+            "@/lib/revenue-os/campaigns"
+          ],
+          "directTables": [
+            "campaign_members",
+            "campaign_steps",
+            "campaigns"
+          ]
         },
         {
           "path": "src/app/api/admin/revenue-os/campaigns/route.ts",
@@ -653,7 +716,10 @@
             "@/lib/revenue-os/campaigns",
             "@/lib/revenue-os/db"
           ],
-          "directTables": ["campaign_steps", "campaigns"]
+          "directTables": [
+            "campaign_steps",
+            "campaigns"
+          ]
         }
       ],
       "boundary": "Campaign services own execution; previews are not sends.",
@@ -671,7 +737,9 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["chat_leads"]
+          "directTables": [
+            "chat_leads"
+          ]
         }
       ],
       "boundary": "Retain chat_leads.id and its canonical linkage; bounded display is not a full row reconciliation.",
@@ -699,7 +767,9 @@
         },
         {
           "path": "src/app/api/admin/plugins/workflow/route.ts",
-          "domainImports": ["@/lib/revenue-os/workflow-plugins"],
+          "domainImports": [
+            "@/lib/revenue-os/workflow-plugins"
+          ],
           "directTables": []
         },
         {
@@ -711,11 +781,15 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         },
         {
           "path": "src/app/api/admin/revenue-os/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/action-executor"],
+          "domainImports": [
+            "@/lib/revenue-os/action-executor"
+          ],
           "directTables": []
         }
       ],
@@ -734,7 +808,9 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["clients"]
+          "directTables": [
+            "clients"
+          ]
         }
       ],
       "boundary": "Retain clients.id; source values and canonical linkage have different owners.",
@@ -755,11 +831,15 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["clients"]
+          "directTables": [
+            "clients"
+          ]
         },
         {
           "path": "src/app/api/admin/contacts/timeline/route.ts",
-          "domainImports": ["@/lib/revenue-os/activities"],
+          "domainImports": [
+            "@/lib/revenue-os/activities"
+          ],
           "directTables": [
             "chat_leads",
             "companies",
@@ -792,17 +872,23 @@
       "adapters": [
         {
           "path": "src/app/api/admin/collections/route.ts",
-          "domainImports": ["@/lib/revenue-os/collections"],
+          "domainImports": [
+            "@/lib/revenue-os/collections"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/collections/workspace/route.ts",
-          "domainImports": ["@/lib/revenue-os/collection-workspace"],
+          "domainImports": [
+            "@/lib/revenue-os/collection-workspace"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/collections/reminders/route.ts",
-          "domainImports": ["@/lib/revenue-os/collection-reminders"],
+          "domainImports": [
+            "@/lib/revenue-os/collection-reminders"
+          ],
           "directTables": []
         },
         {
@@ -814,7 +900,9 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         },
         {
           "path": "src/app/api/admin/tenant/modules/route.ts",
@@ -838,7 +926,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/revenue-os/contact-imports/route.ts",
-          "domainImports": ["@/lib/revenue-os/contact-imports"],
+          "domainImports": [
+            "@/lib/revenue-os/contact-imports"
+          ],
           "directTables": []
         }
       ],
@@ -853,13 +943,19 @@
       "adapters": [
         {
           "path": "src/app/api/admin/contacts/directory/route.ts",
-          "domainImports": ["@/lib/revenue-os/identity"],
-          "directTables": ["contacts"]
+          "domainImports": [
+            "@/lib/revenue-os/identity"
+          ],
+          "directTables": [
+            "contacts"
+          ]
         },
         {
           "path": "src/app/api/admin/contacts/export/route.ts",
           "domainImports": [],
-          "directTables": ["contact_submissions"]
+          "directTables": [
+            "contact_submissions"
+          ]
         },
         {
           "path": "src/app/api/admin/contacts/route.ts",
@@ -868,7 +964,9 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["contact_submissions"]
+          "directTables": [
+            "contact_submissions"
+          ]
         }
       ],
       "boundary": "Directory reads require an active admin and filter by tenant. Creation calls the tenant-bound identity service for exact email matching, canonical insert and audit receipt. Website requests remain retained source rows with their own IDs.",
@@ -885,7 +983,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/contacts/timeline/route.ts",
-          "domainImports": ["@/lib/revenue-os/activities"],
+          "domainImports": [
+            "@/lib/revenue-os/activities"
+          ],
           "directTables": [
             "chat_leads",
             "companies",
@@ -905,8 +1005,12 @@
         },
         {
           "path": "src/app/api/admin/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/action-executor"],
-          "directTables": ["tasks"]
+          "domainImports": [
+            "@/lib/revenue-os/action-executor"
+          ],
+          "directTables": [
+            "tasks"
+          ]
         }
       ],
       "boundary": "The route accepts a contact ID or email. A linked follow-up must resolve the contact within the active tenant before task creation and appears on that contact's timeline.",
@@ -923,7 +1027,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/content/route.ts",
-          "domainImports": ["@/lib/revenue-os/content-calendar", "@/lib/tenancy/context"],
+          "domainImports": [
+            "@/lib/revenue-os/content-calendar",
+            "@/lib/tenancy/context"
+          ],
           "directTables": []
         }
       ],
@@ -941,22 +1048,32 @@
       "adapters": [
         {
           "path": "src/app/api/admin/google/sync/route.ts",
-          "domainImports": ["@/lib/revenue-os/workspace-configuration", "@/lib/tenancy/context"],
+          "domainImports": [
+            "@/lib/revenue-os/workspace-configuration",
+            "@/lib/tenancy/context"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/conversations/action/route.ts",
-          "domainImports": ["@/lib/revenue-os/conversations"],
+          "domainImports": [
+            "@/lib/revenue-os/conversations"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/conversations/reply/route.ts",
-          "domainImports": ["@/lib/revenue-os/actions", "@/lib/revenue-os/google"],
+          "domainImports": [
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/google"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/revenue-os/conversations/route.ts",
-          "domainImports": ["@/lib/revenue-os/conversations"],
+          "domainImports": [
+            "@/lib/revenue-os/conversations"
+          ],
           "directTables": []
         },
         {
@@ -978,12 +1095,16 @@
         },
         {
           "path": "src/app/api/admin/corrections/detect/route.ts",
-          "domainImports": ["@/lib/revenue-os/correction-capture"],
+          "domainImports": [
+            "@/lib/revenue-os/correction-capture"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/learning/signals/route.ts",
-          "domainImports": ["@/lib/revenue-os/learning-signals"],
+          "domainImports": [
+            "@/lib/revenue-os/learning-signals"
+          ],
           "directTables": []
         }
       ],
@@ -999,11 +1120,15 @@
         {
           "path": "src/app/api/admin/work/agent-items/route.ts",
           "domainImports": [],
-          "directTables": ["work_items"]
+          "directTables": [
+            "work_items"
+          ]
         },
         {
           "path": "src/app/api/admin/revenue-os/ai/feedback/route.ts",
-          "domainImports": ["@/lib/revenue-os/agent-learning"],
+          "domainImports": [
+            "@/lib/revenue-os/agent-learning"
+          ],
           "directTables": []
         }
       ],
@@ -1022,7 +1147,10 @@
             "@/lib/revenue-os/debate-bookings",
             "@/lib/revenue-os/debate-invitations"
           ],
-          "directTables": ["drive_documents", "messages"]
+          "directTables": [
+            "drive_documents",
+            "messages"
+          ]
         }
       ],
       "boundary": "The booking service owns revision-checked production and milestone writes. The invitation service proposes an approval-bound action; calendar verification reads the provider event before marking a booking current.",
@@ -1037,7 +1165,9 @@
         {
           "path": "src/app/api/admin/email-sequences/route.ts",
           "domainImports": [],
-          "directTables": ["email_sequences"]
+          "directTables": [
+            "email_sequences"
+          ]
         }
       ],
       "boundary": "Legacy email_sequences read; no canonical execution parity established here.",
@@ -1055,7 +1185,10 @@
         {
           "path": "src/app/api/admin/emails/history/route.ts",
           "domainImports": [],
-          "directTables": ["messages", "sent_emails"]
+          "directTables": [
+            "messages",
+            "sent_emails"
+          ]
         },
         {
           "path": "src/app/api/admin/emails/preview/route.ts",
@@ -1067,7 +1200,10 @@
             "@/lib/revenue-os/communications",
             "@/lib/tenancy/system"
           ],
-          "directTables": ["email_template_versions", "email_templates"]
+          "directTables": [
+            "email_template_versions",
+            "email_templates"
+          ]
         }
       ],
       "boundary": "Email template services own saved versions; history is delivery evidence, preview is not delivery.",
@@ -1117,18 +1253,31 @@
       "adapters": [
         {
           "path": "src/app/api/admin/features/agents/route.ts",
-          "domainImports": ["@/lib/revenue-os/work-board", "@/lib/revenue-os/work-board-http"],
-          "directTables": ["work_board_agents"]
+          "domainImports": [
+            "@/lib/revenue-os/work-board",
+            "@/lib/revenue-os/work-board-http"
+          ],
+          "directTables": [
+            "work_board_agents"
+          ]
         },
         {
           "path": "src/app/api/admin/features/route.ts",
-          "domainImports": ["@/lib/revenue-os/work-board", "@/lib/revenue-os/work-board-http"],
+          "domainImports": [
+            "@/lib/revenue-os/work-board",
+            "@/lib/revenue-os/work-board-http"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/features/views/route.ts",
-          "domainImports": ["@/lib/revenue-os/work-board", "@/lib/revenue-os/work-board-http"],
-          "directTables": ["work_board_views"]
+          "domainImports": [
+            "@/lib/revenue-os/work-board",
+            "@/lib/revenue-os/work-board-http"
+          ],
+          "directTables": [
+            "work_board_views"
+          ]
         }
       ],
       "boundary": "Canonical work-board service owns claims and lifecycle; page is its adapter. Advanced filters and saved views share the existing validated filter state through an accessible dialog; no lifecycle or board write bypass is introduced. Attempt takeover and durable checkpoints use the same project-scoped, revision-checked service; policy changes require separate reviewer authority and default off. Late predecessor tokens cannot mutate successor work.",
@@ -1161,7 +1310,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/get-started/route.ts",
-          "domainImports": ["@/lib/revenue-os/first-use"],
+          "domainImports": [
+            "@/lib/revenue-os/first-use"
+          ],
           "directTables": []
         }
       ],
@@ -1176,7 +1327,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/revenue-os/identity-review/route.ts",
-          "domainImports": ["@/lib/revenue-os/identity-review"],
+          "domainImports": [
+            "@/lib/revenue-os/identity-review"
+          ],
           "directTables": []
         }
       ],
@@ -1196,11 +1349,15 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["contact_submissions"]
+          "directTables": [
+            "contact_submissions"
+          ]
         },
         {
           "path": "src/app/api/admin/inbox/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter"
+          ],
           "directTables": [
             "action_queue",
             "chat_leads",
@@ -1221,12 +1378,18 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         },
         {
           "path": "src/app/api/admin/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/action-executor"],
-          "directTables": ["tasks"]
+          "domainImports": [
+            "@/lib/revenue-os/action-executor"
+          ],
+          "directTables": [
+            "tasks"
+          ]
         }
       ],
       "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count. Approval opens the exact action in Work for review; only rejection is decided directly from Inbox. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
@@ -1243,12 +1406,17 @@
       "adapters": [
         {
           "path": "src/app/api/admin/google/sync/route.ts",
-          "domainImports": ["@/lib/revenue-os/workspace-configuration", "@/lib/tenancy/context"],
+          "domainImports": [
+            "@/lib/revenue-os/workspace-configuration",
+            "@/lib/tenancy/context"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/integrations/route.ts",
-          "domainImports": ["@/lib/revenue-os/integrations"],
+          "domainImports": [
+            "@/lib/revenue-os/integrations"
+          ],
           "directTables": []
         },
         {
@@ -1271,11 +1439,16 @@
             "@/lib/revenue-os/workspace-configuration",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["integration_connections"]
+          "directTables": [
+            "integration_connections"
+          ]
         },
         {
           "path": "src/app/api/admin/xero/authorize/route.ts",
-          "domainImports": ["@/lib/revenue-os/xero", "@/lib/revenue-os/xero-oauth"],
+          "domainImports": [
+            "@/lib/revenue-os/xero",
+            "@/lib/revenue-os/xero-oauth"
+          ],
           "directTables": []
         },
         {
@@ -1299,8 +1472,12 @@
       "adapters": [
         {
           "path": "src/app/api/admin/invoicing/route.ts",
-          "domainImports": ["@/lib/revenue-os/stripe-invoicing"],
-          "directTables": ["action_queue"]
+          "domainImports": [
+            "@/lib/revenue-os/stripe-invoicing"
+          ],
+          "directTables": [
+            "action_queue"
+          ]
         },
         {
           "path": "src/app/api/admin/invoicing/pages/route.ts",
@@ -1312,7 +1489,9 @@
         },
         {
           "path": "src/app/api/admin/plugins/workflow/route.ts",
-          "domainImports": ["@/lib/revenue-os/workflow-plugins"],
+          "domainImports": [
+            "@/lib/revenue-os/workflow-plugins"
+          ],
           "directTables": []
         },
         {
@@ -1324,7 +1503,9 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         },
         {
           "path": "src/app/api/admin/tenant/providers/route.ts",
@@ -1336,7 +1517,9 @@
             "@/lib/revenue-os/workspace-configuration",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["integration_connections"]
+          "directTables": [
+            "integration_connections"
+          ]
         }
       ],
       "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
@@ -1355,7 +1538,9 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["solution_requests"]
+          "directTables": [
+            "solution_requests"
+          ]
         }
       ],
       "boundary": "Manual capture uses inbound.captureManualLead with stable source IDs. Individual and bulk changes share legacy-adapter.updateLegacyLead, delegating stages, commitments and won engagements to Pipeline, Tasks and Delivery with checked partial outcomes and source completion receipts. Reads, export and deletion retain solution_requests compatibility ownership; retained read parity remains separate.",
@@ -1372,12 +1557,16 @@
       "adapters": [
         {
           "path": "src/app/api/admin/learning/route.ts",
-          "domainImports": ["@/lib/revenue-os/learning-inbox"],
+          "domainImports": [
+            "@/lib/revenue-os/learning-inbox"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/learning/[id]/route.ts",
-          "domainImports": ["@/lib/revenue-os/learning-inbox"],
+          "domainImports": [
+            "@/lib/revenue-os/learning-inbox"
+          ],
           "directTables": []
         },
         {
@@ -1390,17 +1579,23 @@
         },
         {
           "path": "src/app/api/admin/learning/signals/route.ts",
-          "domainImports": ["@/lib/revenue-os/learning-signals"],
+          "domainImports": [
+            "@/lib/revenue-os/learning-signals"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/memory/route.ts",
-          "domainImports": ["@/lib/revenue-os/memory"],
+          "domainImports": [
+            "@/lib/revenue-os/memory"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/memory/[id]/route.ts",
-          "domainImports": ["@/lib/revenue-os/memory"],
+          "domainImports": [
+            "@/lib/revenue-os/memory"
+          ],
           "directTables": []
         }
       ],
@@ -1416,12 +1611,19 @@
         {
           "path": "src/app/api/admin/login/route.ts",
           "domainImports": [],
-          "directTables": ["tenant_memberships"]
+          "directTables": [
+            "tenant_memberships"
+          ]
         },
         {
           "path": "src/app/api/admin/password-reset/route.ts",
-          "domainImports": ["@/lib/email/resend", "@/lib/email/templates"],
-          "directTables": ["tenant_memberships"]
+          "domainImports": [
+            "@/lib/email/resend",
+            "@/lib/email/templates"
+          ],
+          "directTables": [
+            "tenant_memberships"
+          ]
         }
       ],
       "boundary": "Authentication boundary for authorized workspace members; no business record reconciliation applies. Missing, placeholder or malformed public database configuration shows setup on direct and redirected visits, with public-site documentation and fictional demo links. Login and password-reset APIs return 503 before provider calls until public configuration is valid. Google OAuth appears only when Supabase reports that provider enabled; its PKCE callback sets the session, while existing workspace membership checks still determine access. Configured email requests retain existing rate limits and membership checks. Password recovery uses the configured sender when available or Supabase Auth email otherwise; both callback paths use the configured workspace origin, while eligible membership and rate limits still gate issuance. Public links grant no authentication or workspace access.",
@@ -1435,7 +1637,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/mcp/delegations/route.ts",
-          "domainImports": ["@/lib/revenue-os/workspace-mcp-oauth"],
+          "domainImports": [
+            "@/lib/revenue-os/workspace-mcp-oauth"
+          ],
           "directTables": []
         }
       ],
@@ -1461,7 +1665,9 @@
         },
         {
           "path": "src/app/api/admin/plugins/workflow/route.ts",
-          "domainImports": ["@/lib/revenue-os/workflow-plugins"],
+          "domainImports": [
+            "@/lib/revenue-os/workflow-plugins"
+          ],
           "directTables": []
         },
         {
@@ -1473,11 +1679,15 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         },
         {
           "path": "src/app/api/admin/revenue-os/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/action-executor"],
+          "domainImports": [
+            "@/lib/revenue-os/action-executor"
+          ],
           "directTables": []
         }
       ],
@@ -1505,7 +1715,9 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["partner_applications"]
+          "directTables": [
+            "partner_applications"
+          ]
         }
       ],
       "boundary": "Preserve partner_applications.id and status; canonical identity linkage does not migrate application fields.",
@@ -1570,7 +1782,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/plugins/run/route.ts",
-          "domainImports": ["@/lib/revenue-os/modules", "@/lib/revenue-os/report-plugins"],
+          "domainImports": [
+            "@/lib/revenue-os/modules",
+            "@/lib/revenue-os/report-plugins"
+          ],
           "directTables": []
         },
         {
@@ -1601,12 +1816,19 @@
             "@/lib/ai/proposal-draft",
             "@/lib/revenue-os/shared-context"
           ],
-          "directTables": ["solution_requests"]
+          "directTables": [
+            "solution_requests"
+          ]
         },
         {
           "path": "src/app/api/admin/proposals/route.ts",
-          "domainImports": ["@/lib/revenue-os/audit", "@/lib/revenue-os/proposals"],
-          "directTables": ["proposals"]
+          "domainImports": [
+            "@/lib/revenue-os/audit",
+            "@/lib/revenue-os/proposals"
+          ],
+          "directTables": [
+            "proposals"
+          ]
         }
       ],
       "boundary": "Proposal records and adapter actions remain; audit import alone does not make a domain writer. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming.",
@@ -1623,12 +1845,16 @@
       "adapters": [
         {
           "path": "src/app/api/admin/radar/workspace/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "domainImports": [
+            "@/lib/revenue-os/radar-workspace"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/radar/commands/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "domainImports": [
+            "@/lib/revenue-os/radar-workspace"
+          ],
           "directTables": []
         },
         {
@@ -1640,7 +1866,9 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         }
       ],
       "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
@@ -1654,12 +1882,16 @@
       "adapters": [
         {
           "path": "src/app/api/admin/radar/workspace/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "domainImports": [
+            "@/lib/revenue-os/radar-workspace"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/radar/commands/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "domainImports": [
+            "@/lib/revenue-os/radar-workspace"
+          ],
           "directTables": []
         },
         {
@@ -1671,7 +1903,9 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         }
       ],
       "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
@@ -1685,12 +1919,16 @@
       "adapters": [
         {
           "path": "src/app/api/admin/radar/workspace/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "domainImports": [
+            "@/lib/revenue-os/radar-workspace"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/radar/commands/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "domainImports": [
+            "@/lib/revenue-os/radar-workspace"
+          ],
           "directTables": []
         },
         {
@@ -1702,7 +1940,9 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         }
       ],
       "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
@@ -1716,12 +1956,16 @@
       "adapters": [
         {
           "path": "src/app/api/admin/radar/workspace/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "domainImports": [
+            "@/lib/revenue-os/radar-workspace"
+          ],
           "directTables": []
         },
         {
           "path": "src/app/api/admin/radar/commands/route.ts",
-          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "domainImports": [
+            "@/lib/revenue-os/radar-workspace"
+          ],
           "directTables": []
         },
         {
@@ -1733,7 +1977,9 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         }
       ],
       "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
@@ -1770,7 +2016,9 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["resource_downloads"]
+          "directTables": [
+            "resource_downloads"
+          ]
         }
       ],
       "boundary": "resource_downloads.id is a download record; search is page-local and does not edit a resource.",
@@ -1787,7 +2035,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/revenue/route.ts",
-          "domainImports": ["@/lib/revenue-os/analytics"],
+          "domainImports": [
+            "@/lib/revenue-os/analytics"
+          ],
           "directTables": []
         }
       ],
@@ -1805,12 +2055,19 @@
       "adapters": [
         {
           "path": "src/app/api/admin/settings/route.ts",
-          "domainImports": ["@/lib/revenue-os/workspace-configuration", "@/lib/tenancy/context"],
-          "directTables": ["admin_settings"]
+          "domainImports": [
+            "@/lib/revenue-os/workspace-configuration",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": [
+            "admin_settings"
+          ]
         },
         {
           "path": "src/app/api/admin/settings/test/route.ts",
-          "domainImports": ["@/lib/ai/openrouter"],
+          "domainImports": [
+            "@/lib/ai/openrouter"
+          ],
           "directTables": []
         }
       ],
@@ -1825,7 +2082,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/google/sync/route.ts",
-          "domainImports": ["@/lib/revenue-os/workspace-configuration", "@/lib/tenancy/context"],
+          "domainImports": [
+            "@/lib/revenue-os/workspace-configuration",
+            "@/lib/tenancy/context"
+          ],
           "directTables": []
         },
         {
@@ -1921,7 +2181,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/site/delegations/route.ts",
-          "domainImports": ["@/lib/site-studio/delegation", "@/lib/site-studio/website-store"],
+          "domainImports": [
+            "@/lib/site-studio/delegation",
+            "@/lib/site-studio/website-store"
+          ],
           "directTables": []
         }
       ],
@@ -1989,7 +2252,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/social/route.ts",
-          "domainImports": ["@/lib/revenue-os/social-marketing"],
+          "domainImports": [
+            "@/lib/revenue-os/social-marketing"
+          ],
           "directTables": []
         }
       ]
@@ -2002,7 +2267,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/social-history/route.ts",
-          "domainImports": ["@/lib/revenue-os/social-marketing"],
+          "domainImports": [
+            "@/lib/revenue-os/social-marketing"
+          ],
           "directTables": []
         }
       ]
@@ -2014,7 +2281,9 @@
       "adapters": [
         {
           "path": "src/app/api/admin/source-authority/route.ts",
-          "domainImports": ["@/lib/revenue-os/source-authority"],
+          "domainImports": [
+            "@/lib/revenue-os/source-authority"
+          ],
           "directTables": []
         }
       ],
@@ -2030,7 +2299,9 @@
         {
           "path": "src/app/api/admin/subscribers/export/route.ts",
           "domainImports": [],
-          "directTables": ["subscribers"]
+          "directTables": [
+            "subscribers"
+          ]
         },
         {
           "path": "src/app/api/admin/subscribers/route.ts",
@@ -2038,7 +2309,9 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["subscribers"]
+          "directTables": [
+            "subscribers"
+          ]
         }
       ],
       "boundary": "Retain subscribers.id; identity links do not prove consent or delivery-history parity.",
@@ -2073,8 +2346,13 @@
       "adapters": [
         {
           "path": "src/app/api/admin/tenants/route.ts",
-          "domainImports": ["@/lib/tenancy/lifecycle"],
-          "directTables": ["tenant_memberships", "tenants"]
+          "domainImports": [
+            "@/lib/tenancy/lifecycle"
+          ],
+          "directTables": [
+            "tenant_memberships",
+            "tenants"
+          ]
         }
       ],
       "boundary": "Tenant lifecycle service and membership adapters own this administrative boundary.",
@@ -2095,11 +2373,16 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         },
         {
           "path": "src/app/api/admin/revenue-os/layout/route.ts",
-          "domainImports": ["@/lib/revenue-os/admin-layout", "@/lib/revenue-os/audit"],
+          "domainImports": [
+            "@/lib/revenue-os/admin-layout",
+            "@/lib/revenue-os/audit"
+          ],
           "directTables": []
         },
         {
@@ -2122,7 +2405,9 @@
         },
         {
           "path": "src/app/api/admin/revenue-os/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/action-executor"],
+          "domainImports": [
+            "@/lib/revenue-os/action-executor"
+          ],
           "directTables": []
         }
       ],
@@ -2147,7 +2432,9 @@
         {
           "path": "src/app/api/admin/website-grades/export/route.ts",
           "domainImports": [],
-          "directTables": ["website_grades"]
+          "directTables": [
+            "website_grades"
+          ]
         },
         {
           "path": "src/app/api/admin/website-grades/route.ts",
@@ -2155,7 +2442,9 @@
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/retained-source-dispositions"
           ],
-          "directTables": ["website_grades"]
+          "directTables": [
+            "website_grades"
+          ]
         }
       ],
       "boundary": "Retain website_grades.id and report fields; identity links do not replace grade evidence.",
@@ -2172,12 +2461,18 @@
       "adapters": [
         {
           "path": "src/app/api/admin/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/action-executor"],
-          "directTables": ["tasks"]
+          "domainImports": [
+            "@/lib/revenue-os/action-executor"
+          ],
+          "directTables": [
+            "tasks"
+          ]
         },
         {
           "path": "src/app/api/admin/revenue-os/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/action-executor"],
+          "domainImports": [
+            "@/lib/revenue-os/action-executor"
+          ],
           "directTables": []
         },
         {
@@ -2189,7 +2484,9 @@
             "@/lib/revenue-os/db",
             "@/lib/tenancy/context"
           ],
-          "directTables": ["action_queue"]
+          "directTables": [
+            "action_queue"
+          ]
         }
       ],
       "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity. Draft recipient checks use the canonical contact primary email and communication status; inactive recipients cannot execute. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning. Task selection and dismissal share the URL owner, including same-task reopening; record identity and late-save navigation checks remain in the inspector.",

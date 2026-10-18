@@ -84,6 +84,53 @@ export async function saveOfflineDraft(draft: OfflineDraft, signal?: AbortSignal
   return (await transaction(DRAFTS, "readwrite", (store) => store.put(draft), signal)) !== null;
 }
 
+/** Delete only a draft owned by the current local workspace and user. */
+export async function deleteOfflineDraft(
+  tenantSlug: string,
+  userId: string,
+  id: string,
+  signal?: AbortSignal,
+) {
+  if (signal?.aborted) return false;
+  let database: IDBDatabase | null = null;
+  try {
+    database = await openDatabase();
+    if (!database || signal?.aborted) return false;
+    return await new Promise<boolean>((resolve) => {
+      const tx = database!.transaction(DRAFTS, "readwrite");
+      const store = tx.objectStore(DRAFTS);
+      let deleted = false;
+      const abort = () => {
+        try {
+          tx.abort();
+        } catch {
+          /* already settled */
+        }
+      };
+      signal?.addEventListener("abort", abort, { once: true });
+      const finish = (ok: boolean) => {
+        signal?.removeEventListener("abort", abort);
+        resolve(ok);
+      };
+      tx.oncomplete = () => finish(deleted);
+      tx.onerror = () => finish(false);
+      tx.onabort = () => finish(false);
+      const request = store.get(id);
+      request.onsuccess = () => {
+        const draft = request.result as OfflineDraft | undefined;
+        if (!signal?.aborted && draft?.tenantSlug === tenantSlug && draft.userId === userId) {
+          store.delete(id);
+          deleted = true;
+        }
+      };
+    });
+  } catch {
+    return false;
+  } finally {
+    database?.close();
+  }
+}
+
 export async function listOfflineDrafts(tenantSlug: string, userId: string) {
   const database = await openDatabase();
   if (!database) return [];

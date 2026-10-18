@@ -118,6 +118,7 @@ const BODY_FIELDS = new Set(["body", "text", "message", "description"]);
 function payloadEntries(payload: Record<string, unknown> | null, actionType: string) {
   if (
     !payload ||
+    actionType === "blueprint_draft_change" ||
     actionType === "billing_change" ||
     actionType === "content_calendar_change" ||
     actionType === "event_ticketing_change"
@@ -217,7 +218,12 @@ export function ActionReviewDialog({
   );
   const layoutSummary =
     action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
+  const blueprintReview =
+    action.action_type === "blueprint_draft_change"
+      ? (action.payload?.review as Record<string, string> | undefined)
+      : undefined;
   const consequence =
+    (typeof blueprintReview?.Consequence === "string" ? blueprintReview.Consequence : null) ??
     (billing?.success ? billing.data.review.Consequence : null) ??
     (ticket?.success
       ? ticket.data.operation === "save_event"
@@ -425,6 +431,22 @@ export function ActionReviewDialog({
             <ContentCalendarReview payload={action.payload} />
           )}
           {isTicket && <EventTicketReview command={ticket?.success ? ticket.data : null} />}
+          {blueprintReview && (
+            <section aria-label="Exact Blueprint draft change">
+              <dl className="space-y-3 text-sm">
+                {Object.entries(blueprintReview)
+                  .filter(([label]) => label !== "Consequence")
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      <dt className="text-[var(--admin-muted)]">{label}</dt>
+                      <dd className="min-w-0 whitespace-pre-wrap break-words font-medium">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+              </dl>
+            </section>
+          )}
           {billing &&
             (billing.success ? (
               <section aria-label="Exact billing operation">

@@ -1,5 +1,7 @@
 "use client";
 
+import { ArchitectBlueprintReviewHost } from "./ArchitectBlueprintReview";
+
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
 import {
@@ -417,7 +419,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           this workspace.
         </div>
       )}
-      <div className="flex items-center gap-2 border-b border-[var(--admin-border)] px-4 py-2.5 text-[11px] text-[var(--admin-muted)]">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 border-b border-[var(--admin-border)] px-4 py-2.5 text-[11px] text-[var(--admin-muted)]">
         {ai.purpose === "architect" ? (
           <NotebookPen className="size-3.5" />
         ) : (
@@ -441,6 +443,25 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           </>
         )}
       </div>
+      <nav
+        aria-label="AI workspace mode"
+        className="flex shrink-0 gap-2 border-b border-[var(--admin-border)] p-2"
+      >
+        <Link
+          href="/admin/ai"
+          className="admin-button admin-button--secondary"
+          aria-current={ai.purpose === "command" ? "page" : undefined}
+        >
+          Ask
+        </Link>
+        <Link
+          href="/admin/ai?purpose=architect"
+          className="admin-button admin-button--secondary"
+          aria-current={ai.purpose === "architect" ? "page" : undefined}
+        >
+          Architect
+        </Link>
+      </nav>
       {ai.purpose === "architect" && <ArchitectEvidencePanel />}
       {ai.purpose === "architect" && <ArchitectUnderstandingPanel />}
       {mobileConversationBar}
@@ -476,6 +497,9 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           role="log"
           aria-label="AI conversation"
         >
+          {ai.purpose === "architect" && (
+            <ArchitectBlueprintReviewHost key={ai.activeConversationId ?? "new"} />
+          )}
           {ai.loadingHistory && (
             <div className="grid min-h-48 place-items-center text-xs text-[var(--admin-muted)]">
               <Loader2 className="mb-2 size-5 animate-spin" />
@@ -483,7 +507,12 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             </div>
           )}
           {!ai.loadingHistory && ai.messages.length === 0 && (
-            <div className="mx-auto flex min-h-full max-w-xl flex-col items-center justify-center py-8 text-center">
+            <div
+              className={cn(
+                "mx-auto flex max-w-xl flex-col items-center justify-center py-8 text-center",
+                ai.purpose === "architect" ? "min-h-48" : "min-h-full",
+              )}
+            >
               <span className="grid size-12 place-items-center rounded-2xl bg-[var(--admin-ink)] text-[var(--admin-surface)]">
                 {ai.purpose === "architect" ? (
                   <NotebookPen className="size-5" />

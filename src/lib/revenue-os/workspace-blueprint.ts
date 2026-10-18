@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { recordAudit } from "./audit";
+import { callBlueprintVersionRpc } from "@/lib/supabase/server";
 import { listWorkspaceCapabilities } from "./capabilities";
 import { getActiveModules } from "./modules";
 import { listEntityTypeKeys } from "./entity-registry";
@@ -573,6 +573,11 @@ export function summarizePreflight(blueprint: WorkspaceBlueprint): BlueprintPref
 // ---------------------------------------------------------------------------
 
 const DIFFABLE_SECTIONS = [
+  "businessSummary",
+  "evidenceRefs",
+  "assumptions",
+  "unresolvedQuestions",
+  "migrationPlan",
   "navigation",
   "entities",
   "relationships",
@@ -709,6 +714,8 @@ export interface SaveBlueprintInput {
   createdBy?: string | null;
   sourceAgentRunId?: string | null;
   actorEmail?: string | null;
+  expectedVersion?: number;
+  requestKey?: string;
 }
 
 function requireUuid(value: string, field: string): string {
@@ -728,76 +735,28 @@ export async function saveBlueprintVersion(
   if (!changeSummary) throw new Error("changeSummary is required");
   const document = parseBlueprint(input.document);
 
-  let blueprintId = input.blueprintId?.trim() || null;
+  const blueprintId = input.blueprintId?.trim() || null;
   if (blueprintId) requireUuid(blueprintId, "blueprintId");
-
-  if (!blueprintId) {
-    const { data, error } = await supabase
-      .from("workspace_blueprints")
-      .insert({
-        tenant_id: tenantId,
-        title: input.title?.trim() || "Workspace Blueprint",
-        status: "draft",
-        latest_version: 0,
-        created_by: input.createdBy ?? null,
-        source_agent_run_id: input.sourceAgentRunId ?? null,
-      })
-      .select("id")
-      .single();
-    if (error || !data) throw new Error(`Blueprint create failed: ${error?.message ?? "no row"}`);
-    blueprintId = (data as { id: string }).id;
-  }
-
-  const { data: blueprint, error: blueprintError } = await supabase
-    .from("workspace_blueprints")
-    .select("id,latest_version")
-    .eq("tenant_id", tenantId)
-    .eq("id", blueprintId)
-    .maybeSingle();
-  if (blueprintError || !blueprint) {
-    throw new Error("Blueprint not found in this workspace");
-  }
-  const nextVersion = ((blueprint as { latest_version: number }).latest_version ?? 0) + 1;
-  const parentVersion = nextVersion > 1 ? nextVersion - 1 : null;
-
-  const { data: inserted, error: versionError } = await supabase
-    .from("workspace_blueprint_versions")
-    .insert({
-      tenant_id: tenantId,
-      blueprint_id: blueprintId,
-      version: nextVersion,
-      parent_version: parentVersion,
-      document,
-      change_summary: changeSummary,
-      created_by: input.createdBy ?? null,
-      source_agent_run_id: input.sourceAgentRunId ?? null,
-    })
-    .select(
-      "tenant_id,blueprint_id,version,parent_version,document,change_summary,created_by,source_agent_run_id,created_at",
-    )
-    .single();
-  if (versionError || !inserted) {
-    throw new Error(`Blueprint version save failed: ${versionError?.message ?? "no row"}`);
-  }
-
-  const { error: bumpError } = await supabase
-    .from("workspace_blueprints")
-    .update({ latest_version: nextVersion, updated_at: new Date().toISOString() })
-    .eq("tenant_id", tenantId)
-    .eq("id", blueprintId)
-    .eq("latest_version", nextVersion - 1);
-  if (bumpError) throw new Error(`Blueprint version bump failed: ${bumpError.message}`);
-
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail ?? input.createdBy ?? null,
-    action: "blueprint.version_saved",
-    entityType: "workspace_blueprint",
-    entityId: blueprintId,
-    source: "admin",
-    after: { version: nextVersion, parentVersion, changeSummary },
+  if (input.requestKey) requireUuid(input.requestKey, "requestKey");
+  if (
+    input.expectedVersion != null &&
+    (!Number.isInteger(input.expectedVersion) || input.expectedVersion < 0)
+  )
+    throw new Error("expectedVersion must be a nonnegative integer");
+  const { data, error } = await callBlueprintVersionRpc(supabase, {
+    p_tenant_id: tenantId,
+    p_blueprint_id: blueprintId,
+    p_document: document,
+    p_change_summary: changeSummary,
+    p_actor_email: input.actorEmail ?? input.createdBy ?? null,
+    p_expected_version: input.expectedVersion ?? null,
+    p_request_key: input.requestKey ?? null,
+    p_title: input.title?.trim() || "Workspace Blueprint",
+    p_source_agent_run_id: input.sourceAgentRunId ?? null,
   });
-
-  return { blueprintId, version: inserted as unknown as BlueprintVersionRecord };
+  if (error || !data)
+    throw new Error(`Blueprint version save failed: ${error?.message ?? "no receipt"}`);
+  return data as { blueprintId: string; version: BlueprintVersionRecord };
 }
 
 export async function listBlueprintVersions(

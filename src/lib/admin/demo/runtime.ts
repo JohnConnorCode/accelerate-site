@@ -1,3 +1,4 @@
+import { handleDemoArchitect } from "./architect-runtime";
 import { handleDemoContentCalendar } from "./content-calendar-runtime";
 import { handleDemoEventTickets } from "./event-ticketing-runtime";
 import {
@@ -2696,6 +2697,11 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       },
     );
     if (calendar) return calendar;
+    const architectResponse = await handleDemoArchitect(state, business, path, method, body, () => {
+      saveState(scenarioId, state);
+      window.dispatchEvent(new Event("admin:demo-state"));
+    });
+    if (architectResponse) return architectResponse;
     if (
       path === "/api/admin/revenue-os/actions" &&
       method === "GET" &&

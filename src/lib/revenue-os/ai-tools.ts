@@ -1,3 +1,15 @@
+import {
+  readArchitectBlueprint,
+  previewArchitectPatch,
+  proposeArchitectPatch,
+  simulateArchitectBlueprint,
+} from "./architect-review";
+import {
+  blueprintReadSchema,
+  blueprintPatchSchema,
+  blueprintProposalSchema,
+  blueprintSimulationSchema,
+} from "./architect-review-contract";
 import { previewAgentWork, startAgentWork, getAgentWork, controlAgentWork } from "./agent-work";
 import {
   previewInternalPermission,
@@ -697,6 +709,102 @@ const adminCoverageInputSchema = z
   .strict();
 
 const registry: AiToolRegistration[] = [
+  {
+    name: "get_architect_blueprints",
+    description:
+      "Read workspace Blueprint drafts and the current validated document. Supply blueprintId for one draft.",
+    inputSchema: z.toJSONSchema(blueprintReadSchema) as Record<string, unknown>,
+    parseInput: (raw) => blueprintReadSchema.parse(raw),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.architect-review",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "blueprints.read",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        { path: "/api/admin/blueprints", method: "GET" },
+        { path: "/api/admin/blueprints/[id]", method: "GET" },
+      ],
+      verification: [
+        "scripts/test-workspace-architect-review-simulation.ts",
+        "scripts/test-blueprint-version-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase }, raw) => readArchitectBlueprint(supabase, raw),
+  },
+  {
+    name: "preview_architect_patch",
+    description:
+      "Preview an exact versioned Blueprint patch. Supports an explicit summary instruction or a typed JSON section patch. Does not save or apply.",
+    inputSchema: z.toJSONSchema(blueprintPatchSchema) as Record<string, unknown>,
+    parseInput: (raw) => blueprintPatchSchema.parse(raw),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.architect-review",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "blueprints.patch.preview",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/blueprints/[id]/patch", method: "POST" }],
+      verification: [
+        "scripts/test-workspace-architect-review-simulation.ts",
+        "scripts/test-blueprint-version-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase }, raw) => previewArchitectPatch(supabase, raw),
+  },
+  {
+    name: "propose_architect_patch",
+    description:
+      "Stage the exact Blueprint draft patch and preview digest for human approval. Cannot approve, apply or enable modules. Reuse requestId after an uncertain response.",
+    inputSchema: z.toJSONSchema(blueprintProposalSchema) as Record<string, unknown>,
+    parseInput: (raw) => blueprintProposalSchema.parse(raw),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.architect-review",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    operation: {
+      id: "blueprints.patch.propose",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/blueprints/[id]/patch", method: "POST" }],
+      verification: [
+        "scripts/test-workspace-architect-review-simulation.ts",
+        "scripts/test-blueprint-version-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase, actorEmail }, raw) =>
+      proposeArchitectPatch(supabase, raw, actorEmail),
+  },
+  {
+    name: "simulate_architect_blueprint",
+    description:
+      "Inspect Blueprint workflow traces and capability preflight without live writes, messages or module enablement.",
+    inputSchema: z.toJSONSchema(blueprintSimulationSchema) as Record<string, unknown>,
+    parseInput: (raw) => blueprintSimulationSchema.parse(raw),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.architect-review",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "blueprints.simulate",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/blueprints/[id]/simulate", method: "POST" }],
+      verification: [
+        "scripts/test-workspace-architect-review-simulation.ts",
+        "scripts/test-blueprint-version-postgres.mjs",
+      ],
+    },
+    execute: async ({ supabase }, raw) => simulateArchitectBlueprint(supabase, raw),
+  },
   {
     name: "get_ticket_events",
     description:
@@ -4038,6 +4146,10 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_architect_blueprints",
+    "preview_architect_patch",
+    "propose_architect_patch",
+    "simulate_architect_blueprint",
     "preview_agent_work",
     "start_agent_work",
     "get_agent_work",

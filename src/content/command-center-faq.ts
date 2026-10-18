@@ -184,7 +184,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How can an agent help set up my business workflow?",
     answer:
-      "Use Architect to describe the work and Blueprints to review its proposed setup. Save an approved version to add available Pipeline or Content columns and retain the remaining navigation, view, workflow and Coworker recommendations. Missing capabilities become custom development briefs. Claude Code, Codex or another coding agent can use those briefs and the extension guide to build on your existing records, permissions and review process, saving your team from specifying the same workflow again for each screen. The in-app save records recommendations; enabling their execution follows the existing configuration or development path.",
+      "Use Architect to describe the work, choose a saved Blueprint and preview a draft patch inside the conversation. Review and approve the exact draft save, or simulate its workflow steps without live effects. Blueprints keeps the version history and separate workspace approval. Save an approved version to add available Pipeline or Content columns and retain the remaining navigation, view, workflow and Coworker recommendations. Missing capabilities become custom development briefs. Claude Code, Codex or another coding agent can use those briefs and the extension guide to build on your existing records, permissions and review process, saving your team from specifying the same workflow again for each screen. The in-app save records recommendations; enabling their execution follows the existing configuration or development path.",
   },
   {
     question: "Can AI create Apps inside Command Center?",

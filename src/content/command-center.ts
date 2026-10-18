@@ -243,7 +243,7 @@ const capabilityDefinitions: Capability[] = [
     title: "Business-specific records",
     promise: "Adapt the platform to track the information your process needs.",
     detail:
-      "Use supported settings where available. New fields, record types or lifecycles may require a source extension that reuses the existing identity and permission services.",
+      "Review a saved Blueprint inside Architect, preview a patch and approve its draft save. Simulate workflows without live effects before the separate workspace application. Use supported settings where available. New fields, record types or lifecycles may require a source extension that reuses the existing identity and permission services.",
   },
   {
     id: "graph",

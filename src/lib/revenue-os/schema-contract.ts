@@ -598,6 +598,7 @@ const BASE_REVENUE_SCHEMA_TABLES = [
       "created_by",
       "source_agent_run_id",
       "created_at",
+      "request_key",
     ],
   },
   {
@@ -955,6 +956,7 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_ai_conversations_actor_purpose",
   "idx_ai_conversation_sources_replay",
   "idx_ai_conversation_sources_conversation",
+  "workspace_blueprint_version_request",
   "idx_workspace_blueprints_tenant_updated",
   "idx_workspace_blueprint_versions_history",
   "idx_workspace_blueprint_applies_replay",
@@ -1006,6 +1008,10 @@ export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
   {
     name: "public.release_uncreated_ticket_order(uuid,text)",
     migration: "migrations/20261016200534_event_ticketing.sql",
+  },
+  {
+    name: "public.save_workspace_blueprint_version(uuid,uuid,jsonb,text,text,integer,uuid,text,uuid)",
+    migration: "migrations/20261018151805_blueprint_draft_version_atomic.sql",
   },
   {
     name: "public.generate_workspace_operations(uuid,uuid,integer,text,text,jsonb,jsonb)",
