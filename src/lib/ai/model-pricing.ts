@@ -12,7 +12,15 @@ const modelSchema = z.object({
   id: z.string().min(1).max(200),
   context_length: z.number().int().positive(),
   supported_parameters: z.array(z.string()),
-  pricing: z.object({ prompt: price, completion: price, request: price }).catchall(price),
+  pricing: z
+    .object({
+      prompt: price,
+      completion: price,
+      // The public catalog can omit a request fee. Admit only a zero request-fee
+      // ceiling in that case; the provider price filter must refuse any surcharge.
+      request: price.optional().transform((value) => value ?? 0),
+    })
+    .catchall(price),
 });
 export type ModelQuote = {
   model: string;

@@ -50,7 +50,8 @@ globalThis.fetch = (async (url, init) => {
           id: target.searchParams.get("q"),
           context_length: 100000,
           supported_parameters: ["structured_outputs"],
-          pricing: { prompt: "0.000001", completion: "0.000002", request: "0" },
+          // Match the live catalog shape: request pricing can be absent.
+          pricing: { prompt: "0.000001", completion: "0.000002" },
         },
       ],
     });
