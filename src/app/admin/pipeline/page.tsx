@@ -1,6 +1,7 @@
 "use client";
 
 import { adminPageName } from "@/lib/admin/navigation";
+import { formatMoney } from "@/lib/admin/format";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
@@ -113,12 +114,6 @@ function toneForColumn(column: KanbanColumnRecord | undefined): string {
   const role = column?.metadata?.role;
   return ROLE_TONE[role === "won" || role === "lost" ? role : "open"];
 }
-const money = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value || 0);
 const shortDate = (value?: string | null) =>
   value
     ? new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric" })
@@ -387,9 +382,9 @@ export default function PipelinePage() {
               <section className="admin-grid admin-grid--metrics admin-grid--metrics-compact">
                 {[
                   ["Open", metrics.open, "Active opportunities"],
-                  ["Pipeline value", money(metrics.value), "Unweighted"],
+                  ["Pipeline value", formatMoney(metrics.value), "Unweighted"],
                   ["At proposal", metrics.proposals, "Proposal or negotiation"],
-                  ["Won revenue", money(metrics.won), "Recorded outcomes"],
+                  ["Won revenue", formatMoney(metrics.won), "Recorded outcomes"],
                 ].map(([label, value, note]) => (
                   <AdminSurface key={String(label)} className="min-w-0 p-4 sm:p-5">
                     <p className="admin-eyebrow truncate">{String(label)}</p>
@@ -1183,7 +1178,7 @@ function Card({
         </div>
         {has(state, "value") && (
           <span className="shrink-0 font-mono text-xs font-semibold tabular-nums">
-            {money(item.estimated_value)}
+            {formatMoney(item.estimated_value)}
           </span>
         )}
       </div>
@@ -1329,7 +1324,7 @@ function ListView({
                 )}
                 {has(state, "value") && (
                   <td className="px-4 text-right font-mono tabular-nums">
-                    {money(item.estimated_value)}
+                    {formatMoney(item.estimated_value)}
                   </td>
                 )}
                 {has(state, "next_action") && (

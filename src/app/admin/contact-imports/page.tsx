@@ -24,6 +24,7 @@ import { AdminSurface } from "@/components/admin/AdminSurface";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
 import { Pagination } from "@/components/admin/Pagination";
+import { StatCard } from "@/components/admin/StatCard";
 import { cn } from "@/lib/utils";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
@@ -436,30 +437,30 @@ export default function ContactImportsPage() {
       ) : (
         <section key={batch.id} aria-label="Contact import review">
           <div className="mb-5 admin-grid admin-grid--metrics">
-            <Metric
+            <StatCard
               label="Selected"
               value={selectedRows.length}
-              detail={`${rows.length} proposed`}
+              note={`${rows.length} proposed`}
               icon={UsersRound}
             />
-            <Metric
+            <StatCard
               label="New contacts"
               value={summary.create}
-              detail="Will create"
+              note="Will create"
               icon={UserRoundCheck}
             />
-            <Metric
+            <StatCard
               label="Existing"
               value={summary.update}
-              detail="Fill blank fields"
+              note="Fill blank fields"
               icon={RefreshCw}
             />
-            <Metric
+            <StatCard
               label="Needs attention"
               value={summary.needsReview}
-              detail={`${summary.excluded} excluded`}
+              note={`${summary.excluded} excluded`}
               icon={AlertTriangle}
-              attention={summary.needsReview > 0}
+              tone={summary.needsReview > 0 ? "attention" : "default"}
             />
           </div>
 
@@ -631,38 +632,6 @@ export default function ContactImportsPage() {
   );
 }
 
-function Metric({
-  label,
-  value,
-  detail,
-  icon: Icon,
-  attention = false,
-}: {
-  label: string;
-  value: number;
-  detail: string;
-  icon: typeof UsersRound;
-  attention?: boolean;
-}) {
-  return (
-    <div>
-      <AdminSurface padding="md" tone={attention ? "attention" : "default"}>
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="admin-eyebrow">{label}</p>
-            <p className="admin-number mt-1 font-display text-3xl font-semibold tracking-[-0.04em] text-[var(--admin-ink)]">
-              {value}
-            </p>
-            <p className="admin-copy mt-1 text-xs">{detail}</p>
-          </div>
-          <span className="grid size-9 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]">
-            <Icon className="size-4" />
-          </span>
-        </div>
-      </AdminSurface>
-    </div>
-  );
-}
 
 function RowListItem({
   row,

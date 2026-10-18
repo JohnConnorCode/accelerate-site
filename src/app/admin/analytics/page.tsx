@@ -18,6 +18,8 @@ import {
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { StatCard } from "@/components/admin/StatCard";
+import { formatHours, formatMoney, formatRate } from "@/lib/admin/format";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
@@ -95,51 +97,6 @@ const DEFAULT_FILTERS: FilterState = {
   stage: "all",
 };
 const STORAGE_KEY = "accelerate:analytics-filters:v1";
-const money = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value || 0);
-const rate = (value: number | null) => (value === null ? "N/A" : `${value}%`);
-const hours = (value: number | null) =>
-  value === null ? "N/A" : value < 1 ? `${Math.round(value * 60)} min` : `${value} hr`;
-
-function Metric({
-  label,
-  value,
-  icon: Icon,
-  note,
-  tone = "default",
-}: {
-  label: string;
-  value: string | number;
-  icon: typeof Users;
-  note?: string;
-  tone?: "default" | "estimate";
-}) {
-  return (
-    <AdminSurface
-      padding="lg"
-      className={tone === "estimate" ? "bg-violet-500/[0.035]" : undefined}
-    >
-      <div className="flex justify-between gap-3">
-        <div>
-          <p className="admin-eyebrow">{label}</p>
-          <p className="mt-3 text-3xl font-semibold tabular-nums tracking-[-0.04em] text-[var(--admin-ink)]">
-            {value}
-          </p>
-          {note && (
-            <p className="admin-copy mt-1.5 max-w-[32ch] text-pretty text-[11px] leading-4">
-              {note}
-            </p>
-          )}
-        </div>
-        <Icon className="mt-0.5 size-4 text-[var(--admin-muted)]" />
-      </div>
-    </AdminSurface>
-  );
-}
 
 function FilterSelect({
   label,
@@ -419,28 +376,28 @@ export default function AnalyticsPage() {
                       </h2>
                     </div>
                     <div className="admin-grid admin-grid--metrics">
-                      <Metric
+                      <StatCard
                         label="Pipeline value"
-                        value={money(funnel.pipelineValue)}
+                        value={formatMoney(funnel.pipelineValue)}
                         icon={CircleDollarSign}
                         note="Recorded open estimated value"
                       />
-                      <Metric
+                      <StatCard
                         label="Weighted forecast"
-                        value={money(data.forecast.weightedPipeline)}
+                        value={formatMoney(data.forecast.weightedPipeline)}
                         icon={BarChart3}
                         tone="estimate"
                         note={data.forecast.method}
                       />
-                      <Metric
+                      <StatCard
                         label="Won revenue"
-                        value={money(funnel.wonRevenue)}
+                        value={formatMoney(funnel.wonRevenue)}
                         icon={Target}
                         note="Recorded outcomes only"
                       />
-                      <Metric
+                      <StatCard
                         label="Inquiry-to-win"
-                        value={rate(data.rates.inquiryToWin)}
+                        value={formatRate(data.rates.inquiryToWin)}
                         icon={Users}
                         note={`${funnel.won} of ${funnel.opportunities} opportunities`}
                       />
@@ -460,25 +417,25 @@ export default function AnalyticsPage() {
                       </AdminSurface>
                     ) : (
                       <div className="admin-grid admin-grid--metrics">
-                        <Metric
+                        <StatCard
                           label="Inbound conversations"
                           value={data.communication.inboundConversations ?? "N/A"}
                           icon={MessageCircleReply}
                         />
-                        <Metric
+                        <StatCard
                           label="Replied"
                           value={data.communication.repliedConversations ?? "N/A"}
                           icon={MessageCircleReply}
                         />
-                        <Metric
+                        <StatCard
                           label="Reply coverage"
-                          value={rate(data.communication.replyRate)}
+                          value={formatRate(data.communication.replyRate)}
                           icon={Target}
                           note="A later outbound message exists in the same canonical conversation"
                         />
-                        <Metric
+                        <StatCard
                           label="Median response"
-                          value={hours(data.communication.medianResponseHours)}
+                          value={formatHours(data.communication.medianResponseHours)}
                           icon={Clock3}
                           note="Elapsed time from first inbound message to first later outbound reply"
                         />
@@ -498,7 +455,7 @@ export default function AnalyticsPage() {
                         ["Meetings", funnel.meetings, data.rates.meeting],
                         ["Proposals", funnel.proposals, data.rates.proposal],
                         ["Won", funnel.won, data.rates.win],
-                        ["Revenue", money(funnel.wonRevenue), null],
+                        ["Revenue", formatMoney(funnel.wonRevenue), null],
                       ].map(([label, value, conversion]) => (
                         <div
                           key={String(label)}
@@ -509,11 +466,11 @@ export default function AnalyticsPage() {
                           {conversion !== null && (
                             <>
                               <p className="mt-1 text-xs tabular-nums text-[var(--admin-muted)]">
-                                {rate(conversion as number | null)} from prior stage
+                                {formatRate(conversion as number | null)} from prior stage
                               </p>
                               <div
                                 role="img"
-                                aria-label={`${label}: ${rate(conversion as number | null)} from prior stage`}
+                                aria-label={`${label}: ${formatRate(conversion as number | null)} from prior stage`}
                                 className="mt-3 h-1.5 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.08]"
                               >
                                 <div
@@ -555,7 +512,7 @@ export default function AnalyticsPage() {
                               {source.opportunities} opps
                             </span>
                             <span className="tabular-nums font-semibold">
-                              {money(source.revenue)}
+                              {formatMoney(source.revenue)}
                             </span>
                           </div>
                         ))}
@@ -625,17 +582,17 @@ export default function AnalyticsPage() {
                       </p>
                     </div>
                     <div className="admin-grid admin-grid--metrics">
-                      <Metric label="Visitors" value={web.visitors ?? "—"} icon={Users} />
-                      <Metric label="Page views" value={web.pageViews ?? "—"} icon={Eye} />
-                      <Metric
+                      <StatCard label="Visitors" value={web.visitors ?? "—"} icon={Users} />
+                      <StatCard label="Page views" value={web.pageViews ?? "—"} icon={Eye} />
+                      <StatCard
                         label="Intent actions"
                         value={web.conversions ?? "—"}
                         icon={Target}
                         note="CTA clicks and form starts. Reading and scrolling remain engagement."
                       />
-                      <Metric
+                      <StatCard
                         label="Intent rate"
-                        value={rate(web.conversionRate)}
+                        value={formatRate(web.conversionRate)}
                         icon={BarChart3}
                         note={
                           web.engagementEvents != null

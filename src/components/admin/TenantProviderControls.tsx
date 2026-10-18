@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { formatMoney } from "@/lib/admin/format";
 import {
   Bot,
   CalendarDays,
@@ -490,20 +491,12 @@ function ProviderCard({
 function KeyMetadata({ connection }: { connection: ProviderConnection }) {
   const metadata = connection.key_metadata;
   if (!metadata) return null;
-  const money = (value: number | null) =>
-    value === null
-      ? "Not reported"
-      : new Intl.NumberFormat(undefined, {
-          style: "currency",
-          currency: "USD",
-          maximumFractionDigits: 2,
-        }).format(value);
   return (
     <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
       {[
         ["Key", metadata.label || "Verified key"],
-        ["Usage", money(metadata.usage)],
-        ["Remaining", money(metadata.limit_remaining)],
+        ["Usage", formatMoney(metadata.usage, { maximumFractionDigits: 2, unknown: "Not reported" })],
+        ["Remaining", formatMoney(metadata.limit_remaining, { maximumFractionDigits: 2, unknown: "Not reported" })],
         ["Limit cycle", metadata.limit_reset || "Not set"],
       ].map(([label, value]) => (
         <div

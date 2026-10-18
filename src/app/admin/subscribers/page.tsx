@@ -100,8 +100,7 @@ export default function SubscribersPage() {
             value={stats.active}
             icon={Users}
             index={1}
-            trend="up"
-            change={`${stats.total ? Math.round((stats.active / stats.total) * 100) : 0}% active`}
+            note={`${stats.total ? Math.round((stats.active / stats.total) * 100) : 0}% of subscribers`}
           />
           <StatCard label="Unsubscribed" value={stats.unsubscribed} icon={UserX} index={2} />
         </div>
