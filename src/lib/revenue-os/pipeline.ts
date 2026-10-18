@@ -2,7 +2,10 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
-import { normalizeEmail } from "./db";
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
+import { opportunityCreateSchema } from "./opportunity-create-contract";
+import { callOpportunityCreateHostRpc, tenantIdForDatabase } from "@/lib/supabase/server";
 import { recordActivity } from "./activities";
 import { loadPipelineStages } from "./pipeline-stage-resolver";
 import { createDetectOverduePaymentsWork } from "./finance-coworker";
@@ -16,6 +19,7 @@ export async function createOpportunity(
   supabase: SupabaseClient,
   input: {
     actorEmail: string;
+    requestId?: string;
     name: string;
     email: string;
     phone?: string | null;
@@ -29,69 +33,45 @@ export async function createOpportunity(
     source?: string;
   },
 ) {
-  const name = input.name.trim();
-  const email = normalizeEmail(input.email);
-  if (!name || !email) throw new Error("Name and email are required");
-  const source = input.source ?? "manual";
-  const identity = await resolveOrCreateIdentity(supabase, {
-    name,
-    email,
-    phone: input.phone ?? null,
-    companyName: input.companyName ?? null,
-    website: input.website ?? null,
-    industry: input.industry ?? null,
-    source,
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Opportunity creation requires a tenant-bound workspace");
+  // Compatibility callers without a key deliberately start a new intent. HTTP
+  // adapters must retain and supply the key across uncertain saves.
+  const { actorEmail, requestId = randomUUID(), ...raw } = input;
+  z.string().trim().min(1).max(200).parse(requestId);
+  const intent = opportunityCreateSchema.parse(raw);
+  const previous = await supabase
+    .from("audit_log")
+    .select("after_state")
+    .eq("action", "opportunity.created")
+    .contains("metadata", { creationRequestId: requestId })
+    .maybeSingle();
+  if (previous.error) throw new Error("Could not confirm the save. Retry the same request.");
+  const identity = previous.data
+    ? {
+        contact: { id: previous.data.after_state.contact_id },
+        company: { id: previous.data.after_state.company_id },
+      }
+    : await resolveOrCreateIdentity(supabase, { ...intent });
+  const { data, error } = await callOpportunityCreateHostRpc(supabase, {
+    p_tenant: tenantId,
+    p_actor_email: actorEmail,
+    p_request_id: requestId,
+    p_input: intent,
+    p_contact: identity.contact.id,
+    p_company: identity.company.id,
   });
-  const { data, error } = await supabase
-    .from("opportunities")
-    .insert({
-      name: input.opportunityName?.trim() || identity.company.name,
-      contact_id: identity.contact.id,
-      company_id: identity.company.id,
-      email,
-      stage: "new",
-      source,
-      estimated_value: Math.max(0, Number(input.estimatedValue) || 0),
-      next_action: input.nextAction?.trim() || null,
-      // An empty string (the common case: the create form's date field left
-      // blank) is not a valid timestamp — Postgres rejects it outright,
-      // unlike a genuinely absent field. Only a non-empty value is passed
-      // through.
-      next_action_at: input.nextActionAt?.trim() ? input.nextActionAt : null,
-      owner_email: input.actorEmail,
-    })
-    .select("*")
-    .single();
-  if (error) throw new Error(error.message);
-
-  await Promise.all([
-    recordAudit(supabase, {
-      actorEmail: input.actorEmail,
-      action: "opportunity.created",
-      entityType: "opportunity",
-      entityId: data.id,
-      after: data,
-    }),
-    supabase.from("stage_events").insert({
-      opportunity_id: data.id,
-      from_stage: null,
-      to_stage: "new",
-      source,
-      actor_email: input.actorEmail,
-      reason: "Opportunity created",
-    }),
-    recordActivity(supabase, {
-      activityType: "opportunity_created",
-      title: `Opportunity created: ${data.name || identity.company.name}`,
-      opportunityId: data.id,
-      contactId: identity.contact.id,
-      companyId: identity.company.id,
-      source,
-      actorEmail: input.actorEmail,
-      externalId: `opportunity:${data.id}:created`,
-      metadata: { stage: "new", estimated_value: data.estimated_value },
-    }),
-  ]);
+  if (error) {
+    const message =
+      error.code === "40001"
+        ? "This save request already belongs to different opportunity details. Start a new opportunity."
+        : error.code === "42501"
+          ? "Workspace administrator access is unavailable."
+          : "The save could not be confirmed. Retry the same request to recover it.";
+    throw Object.assign(new Error(message), { code: error.code });
+  }
+  if (!data?.id)
+    throw new Error("The save returned no opportunity receipt. Retry the same request.");
   return data;
 }
 
