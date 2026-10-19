@@ -1,4 +1,13 @@
 BEGIN;
+-- Auth identities remain private. The host may check this exact identity pair
+-- without receiving SELECT on auth.users or returning any user record.
+CREATE OR REPLACE FUNCTION private.opportunity_actor_matches(p_actor uuid,p_email text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+ SELECT EXISTS(SELECT 1 FROM auth.users u WHERE u.id=p_actor AND lower(u.email)=lower(p_email));
+$$;
+REVOKE ALL ON FUNCTION private.opportunity_actor_matches(uuid,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION private.opportunity_actor_matches(uuid,text) TO service_role;
+
 -- Client API roles may append audit rows. A separate private, server-owned
 -- receipt prevents such inserts from forging or reserving a creation result.
 CREATE TABLE IF NOT EXISTS private.opportunity_create_receipts (
@@ -33,10 +42,12 @@ BEGIN
  -- Interactive hosts supply the authenticated actor. Background hosts remain
  -- server-only and carry an explicit tenant, as with existing host commands.
  IF p_actor IS NOT NULL THEN
-  PERFORM 1 FROM public.tenant_memberships m JOIN auth.users u ON u.id=m.user_id
+  PERFORM 1 FROM public.tenant_memberships m
    WHERE m.tenant_id=p_tenant AND m.user_id=p_actor AND m.role='admin' AND m.status='active'
-    AND lower(u.email)=lower(p_actor_email) FOR SHARE OF m;
-  IF NOT FOUND THEN RAISE EXCEPTION 'Current workspace administrator required' USING ERRCODE='42501'; END IF;
+    FOR SHARE OF m;
+  IF NOT FOUND OR NOT private.opportunity_actor_matches(p_actor,p_actor_email) THEN
+   RAISE EXCEPTION 'Current workspace administrator required' USING ERRCODE='42501';
+  END IF;
  END IF;
  IF jsonb_typeof(p_input) IS DISTINCT FROM 'object' OR octet_length(p_input::text)>16384
   OR EXISTS(SELECT 1 FROM jsonb_object_keys(p_input) k WHERE k NOT IN

@@ -128,7 +128,6 @@ try {
       CREATE POLICY fixture_tenant_read ON ${table} FOR SELECT TO authenticated USING(tenant_id=private.request_tenant_id());`);
   }
   sql(`GRANT USAGE ON SCHEMA auth,private TO service_role,authenticated;
-    GRANT SELECT ON auth.users TO service_role;
     GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
     INSERT INTO companies(id,tenant_id,name,domain) VALUES('${company}','${a}','Fictional Company','example.test'),('${foreignCompany}','${b}','Other Company','other.test');
     INSERT INTO contacts(id,tenant_id,full_name,primary_email,company_id) VALUES('${contact}','${a}','Fictional Customer','customer@example.test','${company}'),('${foreignContact}','${b}','Other Customer','other@example.test','${foreignCompany}');`);
@@ -138,6 +137,13 @@ try {
   );
   sql(migration);
   sql(migration);
+  assert.equal(
+    sql(
+      "SELECT has_column_privilege('service_role','auth.users','id','SELECT') OR has_column_privilege('service_role','auth.users','email','SELECT')",
+    ),
+    "f",
+    "Native fixture preserves production's private Auth identity boundary",
+  );
   const key = randomUUID(),
     query = call(key);
   const exec = promisify(execFile);
@@ -248,6 +254,13 @@ try {
   for (const role of ["anon", "authenticated"])
     assert.equal(
       sql(`SELECT has_table_privilege('${role}','private.opportunity_create_receipts','select')`),
+      "f",
+    );
+  for (const role of ["anon", "authenticated"])
+    assert.equal(
+      sql(
+        `SELECT has_function_privilege('${role}','private.opportunity_actor_matches(uuid,text)','execute')`,
+      ),
       "f",
     );
   for (const role of ["anon", "authenticated"])
