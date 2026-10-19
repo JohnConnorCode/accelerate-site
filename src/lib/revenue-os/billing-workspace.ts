@@ -517,7 +517,7 @@ function refundReceipt(
 ): BillingReceipt {
   const refund = z
     .object({
-      id: z.string().regex(/^re_[A-Za-z0-9]{1,120}$/),
+      id: z.string().regex(/^(?:re|pyr)_[A-Za-z0-9]{1,120}$/),
       charge: z.literal(command.chargeId),
       amount: z.literal(command.amount),
       currency: z.literal(currency),

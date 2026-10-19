@@ -190,7 +190,7 @@ async function main() {
         `billing:${f.tenantId}:${body.get("metadata[accelerate_billing_request_id]")}`,
       );
       const result = {
-        id: `re_controlled${refunds.length + 1}`,
+        id: `${charge.id.startsWith("py_") ? "pyr" : "re"}_controlled${refunds.length + 1}`,
         charge: charge.id,
         amount: Number(body.get("amount")),
         currency: charge.currency,
@@ -391,6 +391,9 @@ async function main() {
         () => approveAndExecuteAction(f.db, action.id, f.email),
         /already handled/,
       );
+      assert.match(receipt.providerId, /^re_/);
+      charge.id = "py_controlled1";
+      command.chargeId = charge.id;
       const interrupted = await stage({ ...command, amount: 500, requestId: randomUUID() });
       timeoutAfterRefund = true;
       await assert.rejects(
@@ -406,6 +409,7 @@ async function main() {
         f.email,
       )) as BillingReceipt;
       assert.equal(recovered.reconciled, true);
+      assert.match(recovered.providerId, /^pyr_/);
       assert.equal(writes.length, 2, "A timed-out accepted refund must never be posted twice");
       refundStatus = "pending";
       const pending = await stage({ ...command, amount: 100, requestId: randomUUID() });
