@@ -646,14 +646,23 @@ try {
   await staticPromotion.getByRole("link", { name: /View workshop/ }).waitFor();
   await staticContext.close();
   results.push({ homepageWithoutJavaScript: true });
-  for (const width of [1440, 390]) {
+  for (const [width, theme] of [
+    [1440, "light"],
+    [390, "light"],
+    [1440, "dark"],
+    [390, "dark"],
+  ]) {
     const context = await browser.newContext({
       viewport: { width, height: 1000 },
       reducedMotion: "reduce",
     });
     const page = await context.newPage();
+    await page.addInitScript((theme) => localStorage.setItem("theme", theme), theme);
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
     for (const slug of WORKSHOP_GUIDES) {
       await page.goto(`${base}/events/${event.slug}`);
       await page
@@ -672,13 +681,37 @@ try {
       });
       assert.equal(await workshopLink.getAttribute("href"), `/events/${event.slug}`);
       await workshopLink.scrollIntoViewIfNeeded();
-      await page.screenshot({ path: `${output}/guide-${slug}-${width}.png`, fullPage: true });
-      await workshopLink.click();
+      await page.mouse.move(0, 0);
+      const accessibility = await new AxeBuilder({ page })
+        .include(".cta-band")
+        .withTags(["wcag2a", "wcag2aa"])
+        .analyze();
+      assert.deepEqual(
+        accessibility.violations.map(({ id, impact }) => ({ id, impact })),
+        [],
+      );
+      await workshopLink.focus();
+      await page
+        .locator(".cta-band")
+        .screenshot({ path: `${output}/guide-cta-${slug}-${theme}-${width}.png` });
+      await page.screenshot({
+        path: `${output}/guide-${slug}-${theme}-${width}.png`,
+        fullPage: true,
+      });
+      await page.keyboard.press("Enter");
       await page.waitForURL(`${base}/events/${event.slug}`);
       assert.equal(new URL(page.url()).hash, "");
       const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
       assert.ok(heading && heading.y >= 0 && heading.y < 600);
-      results.push({ width, guide: slug, linkedFromWorkshop: true, returnsToOverview: true });
+      results.push({
+        width,
+        theme,
+        guide: slug,
+        linkedFromWorkshop: true,
+        returnsToOverview: true,
+        keyboard: true,
+        accessibleCallToAction: true,
+      });
     }
     assert.deepEqual(errors, []);
     await context.close();
@@ -813,7 +846,7 @@ try {
     const exact = review.getByRole("region", { name: "Exact event operation" });
     await exact.getByText("$90", { exact: true }).waitFor();
     await exact.getByText("$90", { exact: true }).scrollIntoViewIfNeeded();
-    await exact.getByText("40 tickets", { exact: true }).waitFor();
+    await exact.getByText(`${command.event.capacity} tickets`, { exact: true }).waitFor();
     await page.keyboard.press("Tab");
     assert.equal(
       await review.evaluate((element) => element.contains(document.activeElement)),
