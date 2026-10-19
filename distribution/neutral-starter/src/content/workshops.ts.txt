@@ -19,3 +19,4 @@ export const WORKSHOP_EVENT: EventDefinition = {
   status: "draft",
 };
 export const WORKSHOP_EVENT_ID = "acce1e8e-1111-4111-8111-202611110001";
+export const WORKSHOP_GUIDES: readonly string[] = [];

@@ -50,7 +50,7 @@ export async function WorkshopPromotion() {
             <h2>{event.title}</h2>
           </div>
           <Link href={href}>
-            Workshop tickets · {ticketMoney(event.price_cents)} <span aria-hidden="true">↗</span>
+            View workshop · {ticketMoney(event.price_cents)} <span aria-hidden="true">↗</span>
           </Link>
         </section>
       </noscript>

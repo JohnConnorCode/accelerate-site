@@ -7,10 +7,12 @@ export function EventCheckout({
   event: initialEvent,
   tenantSlug,
   preview = false,
+  includesPizza = false,
 }: {
   event: TicketEvent;
   tenantSlug: string;
   preview?: boolean;
+  includesPizza?: boolean;
 }) {
   const [event, setEvent] = useState(initialEvent);
   const [quantity, setQuantity] = useState(1);
@@ -115,8 +117,8 @@ export function EventCheckout({
           <span>per person</span>
         </div>
         <p>
-          {event.capacity} places for practical questions, live demonstrations, and focused
-          planning.
+          {event.capacity} places, with time for questions and hands-on practice.
+          {includesPizza && " Pizza included."}
         </p>
       </div>
       {open ? (

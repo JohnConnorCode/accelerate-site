@@ -42,7 +42,7 @@ import {
 import { POST as checkoutRoute } from "../src/app/api/public/[tenantSlug]/events/[slug]/checkout/route";
 
 assert.equal(WORKSHOP_EVENT.price_cents, 5000);
-assert.equal(WORKSHOP_EVENT.capacity, 40);
+assert.equal(WORKSHOP_EVENT.capacity, 24);
 assert.equal(eventLocalTime(WORKSHOP_EVENT.starts_at, "America/Chicago"), "2026-11-11T12:00");
 assert.equal(eventLocalToIso("2026-11-11T12:00", "America/Chicago"), "2026-11-11T18:00:00.000Z");
 assert.equal(eventLocalToIso("2026-07-11T12:00", "America/Chicago"), "2026-07-11T17:00:00.000Z");
@@ -101,7 +101,7 @@ async function serviceProof() {
     id: WORKSHOP_EVENT_ID,
     tenant_id: ACCELERATE_TENANT_ID,
     revision: 1,
-    available_tickets: 40,
+    available_tickets: WORKSHOP_EVENT.capacity,
     starts_at: new Date(Date.now() + 7 * 86400000).toISOString(),
   };
   const mem = new MemorySupabase({

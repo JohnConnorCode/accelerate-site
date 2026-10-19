@@ -1,4 +1,4 @@
-import { WORKSHOP_EVENT, WORKSHOP_EVENT_ID } from "../src/content/workshops.ts";
+import { WORKSHOP_EVENT, WORKSHOP_EVENT_ID, WORKSHOP_GUIDES } from "../src/content/workshops.ts";
 import { eventDefinitionSchema } from "../src/lib/revenue-os/event-ticketing-contract.ts";
 import { contrastRatio } from "../src/lib/revenue-os/branding-contract.ts";
 import assert from "node:assert/strict";
@@ -30,7 +30,7 @@ const event = {
   revision: 1,
   paid_tickets: 0,
   reserved_tickets: 0,
-  available_tickets: 40,
+  available_tickets: WORKSHOP_EVENT.capacity,
   gross_cents: 0,
   refunded_cents: 0,
   created_at: new Date().toISOString(),
@@ -266,8 +266,8 @@ try {
     const announcement = page.getByRole("complementary", { name: "Upcoming workshop" });
     await announcement.waitFor({ state: "visible" });
     assert.equal(await announcement.getByRole("heading").innerText(), event.headline);
-    const ticketCta = announcement.getByRole("link", { name: "Get tickets · $50" });
-    assert.equal(await ticketCta.getAttribute("href"), `/events/${event.slug}#tickets`);
+    const ticketCta = announcement.getByRole("link", { name: "View workshop · $50" });
+    assert.equal(await ticketCta.getAttribute("href"), `/events/${event.slug}`);
     const timer = announcement.getByRole("timer");
     const originalClock = await timer.innerText();
     await page.waitForFunction(
@@ -288,10 +288,10 @@ try {
     await page.screenshot({ path: `${output}/homepage-workshop-${width}-${theme}.png` });
     if (theme === "light") {
       await ticketCta.click();
-      await page.waitForURL(`**/events/${event.slug}#tickets`);
+      await page.waitForURL(`**/events/${event.slug}`);
       await page.waitForFunction(() => {
-        const box = document.getElementById("tickets")?.getBoundingClientRect();
-        return box && box.top >= 0 && box.top < innerHeight / 2;
+        const box = document.getElementById("workshop-heading")?.getBoundingClientRect();
+        return location.hash === "" && box && box.top >= 0 && box.top < innerHeight;
       });
       await page.goBack({ waitUntil: "domcontentloaded" });
       await announcement.waitFor({ state: "visible" });
@@ -365,7 +365,7 @@ try {
       await page.locator("#meta-pixel").waitFor({ state: "attached" });
     }
     assert.equal(await page.locator("main").count(), 1, "Use the route's single main landmark");
-    assert.match(await page.title(), /AI for Your Business/);
+    assert.match(await page.title(), /Feel More Confident Using AI/);
     const structured = await page.locator('script[type="application/ld+json"]').allTextContents();
     const listing = structured
       .map((text) => JSON.parse(text))
@@ -386,9 +386,12 @@ try {
         .getByRole("complementary", { name: "Workshop tickets" })
         .boundingBox();
       const takeaways = await page
-        .getByRole("heading", { name: "Leave knowing what to do first." })
+        .getByRole("heading", { name: "Practical skills you can use at work." })
         .boundingBox();
-      assert.ok(checkout.y < takeaways.y, "Mobile ticket form must precede the long content");
+      assert.ok(
+        checkout.y > takeaways.y,
+        "Mobile visitors get learning context before the ticket form",
+      );
     }
     await page.locator('[data-motion-role="public-hero"]').evaluate(async (hero) => {
       await Promise.allSettled(
@@ -399,7 +402,7 @@ try {
       );
     });
     await page.screenshot({ path: `${output}/public-hero-${theme}-${width}.png` });
-    for (const id of ["takeaways", "agenda", "presenters", "support", "prepare"]) {
+    for (const id of ["comfortable", "takeaways", "practice", "small-group", "presenters"]) {
       await page
         .locator(`#${id}`)
         .evaluate((heading) => heading.scrollIntoView({ block: "center", behavior: "instant" }));
@@ -407,6 +410,10 @@ try {
         const owner = document.getElementById(id)?.closest(".ui-entrance");
         return owner && getComputedStyle(owner).opacity === "1";
       }, id);
+    }
+    const resources = page.getByRole("region", { name: "Try something useful today." });
+    for (const slug of WORKSHOP_GUIDES) {
+      assert.equal(await resources.locator(`a[href="/learn/${slug}"]`).count(), 1);
     }
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     const accessibility = await new AxeBuilder({ page })
@@ -636,9 +643,46 @@ try {
   const staticPage = await staticContext.newPage();
   await staticPage.goto(base, { waitUntil: "domcontentloaded" });
   const staticPromotion = staticPage.getByRole("region", { name: "Upcoming workshop" });
-  await staticPromotion.getByRole("link", { name: /Workshop tickets/ }).waitFor();
+  await staticPromotion.getByRole("link", { name: /View workshop/ }).waitFor();
   await staticContext.close();
   results.push({ homepageWithoutJavaScript: true });
+  for (const width of [1440, 390]) {
+    const context = await browser.newContext({
+      viewport: { width, height: 1000 },
+      reducedMotion: "reduce",
+    });
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    for (const slug of WORKSHOP_GUIDES) {
+      await page.goto(`${base}/events/${event.slug}`);
+      await page
+        .getByRole("region", { name: "Try something useful today." })
+        .locator(`a[href="/learn/${slug}"]`)
+        .click();
+      await page.waitForURL(`${base}/learn/${slug}`);
+      await page.getByRole("heading", { level: 1 }).waitFor();
+      assert.equal(
+        await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+        false,
+        `${slug} fits the ${width}px viewport`,
+      );
+      const workshopLink = page.getByRole("link", {
+        name: /^(See the workshop details|Explore the workshop|View the workshop)$/,
+      });
+      assert.equal(await workshopLink.getAttribute("href"), `/events/${event.slug}`);
+      await workshopLink.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${output}/guide-${slug}-${width}.png`, fullPage: true });
+      await workshopLink.click();
+      await page.waitForURL(`${base}/events/${event.slug}`);
+      assert.equal(new URL(page.url()).hash, "");
+      const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
+      assert.ok(heading && heading.y >= 0 && heading.y < 600);
+      results.push({ width, guide: slug, linkedFromWorkshop: true, returnsToOverview: true });
+    }
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
   for (const width of [1440, 390]) {
     const context = await browser.newContext({
       viewport: { width, height: 1000 },
