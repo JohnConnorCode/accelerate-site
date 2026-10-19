@@ -740,6 +740,7 @@ jobs:
             node scripts/qa-command-center-offline-store.mjs
             node scripts/qa-operator-workspace.mjs
             node scripts/qa-today-workspace.mjs
+            TODAY_REVIEW_QA_OUTPUT=/tmp/accelerate-today-review node scripts/qa-today-review-layout.mjs
             node scripts/qa-booking-mode.mjs
             npm run test:work-completion -- --browser-fixtures
             node scripts/qa-work-completion.mjs

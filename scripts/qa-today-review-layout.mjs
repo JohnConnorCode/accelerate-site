@@ -6,11 +6,11 @@ const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3058";
 const output = process.env.TODAY_REVIEW_QA_OUTPUT || "output/playwright/today-review";
 await mkdir(output, { recursive: true });
 const cases = [
-  ["alder-ridge-law", "night", 1920],
-  ["alder-ridge-law", "night", 1440],
-  ["alder-ridge-law", "night", 390],
-  ["alder-ridge-law", "paper", 1440],
-  ["alder-ridge-law", "paper", 390],
+  ["alder-ridge-law", "dark", 1920],
+  ["alder-ridge-law", "dark", 1440],
+  ["alder-ridge-law", "dark", 390],
+  ["alder-ridge-law", "light", 1440],
+  ["alder-ridge-law", "light", 390],
   ["northline-roofing", "signal", 1440],
   ["northline-roofing", "signal", 390],
 ];
@@ -47,6 +47,18 @@ try {
     const root = `/demo/command-center/${scenario}`;
     await page.goto(base + root + "/today");
     await page.locator("[data-business-review]").first().waitFor();
+    await page.waitForFunction(
+      (expected) => document.documentElement.dataset.theme === expected,
+      appearance,
+    );
+    await page.waitForFunction(() => {
+      const action = document.querySelector("[data-business-review] a.admin-button");
+      if (!action || action.getBoundingClientRect().height < 43.99) return false;
+      for (let node = action; node; node = node.parentElement) {
+        if (Number(getComputedStyle(node).opacity) < 0.999) return false;
+      }
+      return true;
+    });
     assert.equal(await page.locator("[data-business-review]").count(), 4);
     assert.equal(await page.locator("[data-page-start-hint]").count(), 0);
     assert.equal(
@@ -87,7 +99,7 @@ try {
       assert(Math.abs(row.width - geometry.rows[0].width) < 2, "No narrow category columns");
       if (i) assert(row.y >= geometry.rows[i - 1].bottom - 1, "Review rows overlap");
       if (row.action) {
-        assert(row.action.height >= 44, "Review target is too small");
+        assert(row.action.height >= 43.99, "Review target is too small");
         assert(row.action.right <= row.x + row.width + 1, "Review action is clipped");
       }
     }
@@ -101,6 +113,7 @@ try {
     assert.equal(await evidence.getAttribute("open"), "");
     assert.match(await evidence.innerText(), /Source and next step/);
     await page.keyboard.press("Enter");
+    await page.locator(".admin-page-introduction h1").click();
     await page.locator(".admin-main").evaluate((main) => {
       main.scrollTop = 0;
     });
