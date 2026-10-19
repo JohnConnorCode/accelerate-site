@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Where should I start with an actual business job?",
+    answer:
+      "Open Get started, or expand Start a business workflow on Today. Choose Capture a sales inquiry, Start client onboarding, Assign meeting follow-ups or Prepare a customer invoice. The chooser explains the required inputs, steps and saved result, then opens the existing working screen. Onboarding and meeting checklists create assigned tasks after review and approval. Invoices need Stripe and separate approvals for draft creation and sending. Optional Apps must be enabled; the chooser links to their setup walkthroughs and Apps management.",
+  },
+  {
     question: "Can I import contacts without paying for AI?",
     answer:
       "Yes. Open Contacts → List import, keep Map columns selected, upload a CSV, TSV or flat JSON file, and choose Review columns. Check the field matches, build the review, correct rows and approve the exact snapshot. This path needs no model key or AI credits and makes no model request. AI-assisted preparation is an explicit optional choice for free-form notes and uses your configured model and spending limits.",

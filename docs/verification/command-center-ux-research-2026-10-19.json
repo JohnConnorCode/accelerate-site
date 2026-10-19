@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19",
+  "title": "Command Center: competitor UX research and proposed product direction",
+  "baselineCommit": "f46bed3423eb9e81ae5dce1a1026b54b48f6d48b",
+  "method": {
+    "completed": [
+      "Reviewed current first-party product messaging and task documentation for Attio, HubSpot, Lindy, Twenty, n8n and Linear.",
+      "Visually inspected official Attio navigation, HubSpot Sales Workspace and Linear active-issues screenshots.",
+      "Traced Accelerate entry, navigation, Today, opportunity delivery handoff, checklist App and invoice source code at the published-main baseline."
+    ],
+    "limitations": [
+      "This is a heuristic and documented-flow review, not signed-in competitor testing or measured customer research.",
+      "Competitor marketing illustrates positioning; it does not prove reliability or business outcomes.",
+      "No real new-user study, connected customer lifecycle acceptance or production change was performed.",
+      "Lindy screenshot CDN returned 403; its UI observations are documentation-based.",
+      "The separate workflow-chooser implementation is a preserved, unverified draft and is not this research result."
+    ]
+  },
+  "summary": "Accelerate has a technical northstar and substantial domain capabilities. Its operator experience does not consistently carry a customer and a piece of work through context, action, review and recorded outcome. A task chooser improves discovery but cannot establish that continuity by itself.",
+  "competitors": [
+    {
+      "product": "Attio",
+      "role": "Direct CRM/AI competitor",
+      "observed": "Revenue outcomes anchor the messaging. Records, lists, contextual quick actions and AI suggestions use a consistent CRM model. Workflow documentation follows trigger, steps, publication and individual run inspection.",
+      "lesson": "Show which customer and job an action belongs to. Make AI suggestions produce inspectable changes to the same records.",
+      "avoid": "Copying broad agentic claims without verified connected execution. Its navigation is extensive; a short menu is not the source of coherence.",
+      "sources": [
+        "https://attio.com/",
+        "https://attio.com/help/reference/productivity-collaborating/navigating-your-workspace",
+        "https://attio.com/help/reference/automations/workflows/overview-of-workflows",
+        "https://attio.com/platform/ask"
+      ]
+    },
+    {
+      "product": "HubSpot",
+      "role": "Direct customer-platform/workspace competitor",
+      "observed": "The sales workspace organizes sales work and recommendations around leads, deals, tasks and schedule. A March 2026 first-party migration post explains replacing parallel workspace views with native CRM pages. Several commenters report losing persistent task context and sequential execution.",
+      "lesson": "Reuse canonical records and controls while preserving the operator’s active queue, selected record and working context.",
+      "avoid": "Assuming that shared data or consistent styling automatically creates a usable work experience. Comments are qualitative complaints, not representative prevalence evidence.",
+      "sources": [
+        "https://www.hubspot.com/products/sales/ai-guided-selling",
+        "https://community.hubspot.com/t/sales-workspace-is-getting-a-big-update-heres-whats-changing/147441"
+      ]
+    },
+    {
+      "product": "Lindy",
+      "role": "AI delegation competitor",
+      "observed": "Its model is a teammate receiving a task, using connected context and returning work in the same conversation. Home combines conversation with attention and activity. Routine templates disclose Ready, Needs setup and Needs admin before activation.",
+      "lesson": "Explain what to delegate and what happens next. Put missing requirements next to the intended task. Keep setup and routine-building subordinate to the job.",
+      "avoid": "Replacing every deterministic workflow with an unbounded chat prompt. Its current docs were reviewed; no authenticated run was performed.",
+      "sources": [
+        "https://www.lindy.ai/",
+        "https://docs.lindy.ai/",
+        "https://docs.lindy.ai/start-here/quickstart",
+        "https://docs.lindy.ai/teammate/home",
+        "https://docs.lindy.ai/teammate/routines"
+      ]
+    },
+    {
+      "product": "Twenty",
+      "role": "Open-source/customizable CRM competitor",
+      "observed": "It identifies itself as a CRM, then explains customization, ownership and developer extensibility. People, companies and opportunities remain recognizable operating objects.",
+      "lesson": "Keep a concrete business category and useful default experience. Ownership and extensibility strengthen that product rather than requiring an operator to understand its platform first.",
+      "avoid": "Treating open source or customization alone as a unique daily workflow benefit.",
+      "sources": [
+        "https://twenty.com/",
+        "https://docs.twenty.com/user-guide/introduction"
+      ]
+    },
+    {
+      "product": "n8n",
+      "role": "Builder and automation competitor",
+      "observed": "A workflow starts with a trigger and connected nodes. Manual execution, publishing and production runs are explicit, and executions are inspectable at workflow and global levels.",
+      "lesson": "Distinguish preparing, testing, enabling and running. Expose a clear run result and recovery path.",
+      "avoid": "Making a business operator learn a workflow canvas before they can complete an ordinary customer job. n8n is a builder comparison, not the proposed operator interface.",
+      "sources": [
+        "https://n8n.io/",
+        "https://docs.n8n.io/build/understand-workflows/create-and-run-workflows.md",
+        "https://docs.n8n.io/build/understand-workflows/understand-executions.md"
+      ]
+    },
+    {
+      "product": "Linear",
+      "role": "Interaction/coherence benchmark, not a direct business-platform competitor",
+      "observed": "Issues are the unit of daily work. Teams own workflows, projects organize an outcome, and views present the same underlying work. Triage is an intentional intake stage with ownership and priority.",
+      "lesson": "Make the main work object and lifecycle teachable. A view should help perform the same job without introducing another set of records or states.",
+      "avoid": "Copying engineering vocabulary or visual density into service-business operations.",
+      "sources": [
+        "https://linear.app/docs/conceptual-model",
+        "https://linear.app/docs/triage"
+      ]
+    }
+  ],
+  "accelerateFindings": [
+    {
+      "id": "A1",
+      "kind": "source observation",
+      "finding": "BusinessWorkflowStarts maps six broad business areas to generic Open workspace links. Optional onboarding, meeting and invoice preparation are not exposed as specific starting jobs.",
+      "paths": [
+        "src/components/admin/BusinessWorkflowStarts.tsx",
+        "src/content/command-center-business.ts"
+      ]
+    },
+    {
+      "id": "A2",
+      "kind": "source observation",
+      "finding": "The admin landing route sends users without a completed first follow-up to Get started. Its seven-step checklist mixes customer work, business references, learning approval and later AI reuse. This makes the first useful outcome compete with setup and advanced concepts.",
+      "paths": [
+        "src/app/admin/page.tsx",
+        "src/app/admin/get-started/page.tsx",
+        "src/lib/revenue-os/first-use.ts"
+      ]
+    },
+    {
+      "id": "A3",
+      "kind": "source observation and product inference",
+      "finding": "A won-opportunity record offers a reviewed delivery handoff that creates an engagement using canonical identities. The Client onboarding App separately selects a won opportunity and creates an explicit task checklist. These are different operations with overlapping operator language. Pick and explain the primary journey before adding another entry layer; do not assume the underlying operations are interchangeable.",
+      "paths": [
+        "src/app/admin/pipeline/[id]/page.tsx",
+        "src/lib/revenue-os/delivery-handoff.ts",
+        "src/components/admin/TaskWorkflowWorkspace.tsx",
+        "src/lib/revenue-os/workflow-plugins.ts"
+      ]
+    },
+    {
+      "id": "A4",
+      "kind": "source observation",
+      "finding": "The standalone checklist starts with an empty sourceId. Invoice creation supports view=create but starts contactId empty. These adapters do not currently consume the selected opportunity/customer from a launch URL. Some other record and approval links already preserve exact context; the gap is not universal.",
+      "paths": [
+        "src/components/admin/TaskWorkflowWorkspace.tsx",
+        "src/app/admin/invoicing/page.tsx",
+        "src/components/admin/AdminLink.tsx"
+      ]
+    },
+    {
+      "id": "A5",
+      "kind": "source observation",
+      "finding": "Today already has sourced business review, Needs you, automation status and activity. The existing attention, task and action services can support a coherent operating loop without another dashboard, work engine or approval registry.",
+      "paths": [
+        "src/components/admin/TodayWorkspace.tsx",
+        "src/lib/admin/today-workspace.ts",
+        "src/lib/revenue-os/operator-attention.ts"
+      ]
+    },
+    {
+      "id": "A6",
+      "kind": "product inference from source",
+      "finding": "The platform promise spans customers, sales, delivery, billing, marketing, custom Apps and AI. Navigation also exposes Architect, Blueprints, Coworkers and learning. Operators and builders need distinct entry priorities and stable explanations of these concepts. Menu length alone is not the diagnosis.",
+      "paths": [
+        "src/content/command-center-business.ts",
+        "src/lib/admin/navigation.ts",
+        "docs/NORTHSTAR.md"
+      ]
+    }
+  ],
+  "proposedProductDirection": {
+    "status": "Recommendation for validation; not an approved market pivot or shipped capability claim.",
+    "primaryAudienceHypothesis": "Owner/operators and small service teams who need to win customer work, hand it to a team and invoice it. Keep the broader runtime extensible; validate this default with target users.",
+    "operatorPromise": "Run customer work from inquiry to delivery and payment in a shared workspace. AI uses the same customer history to prepare and carry out authorized work, with required decisions brought back for review.",
+    "buyingReason": "A useful operating workspace that can be adapted and owned, with customer context and governed actions shared across its screens and agents. Research does not establish this as a unique market advantage.",
+    "dailyLoop": [
+      "See the customer jobs that need attention and why.",
+      "Open a job with its customer, source and current state already selected.",
+      "Complete the next action or review an exact AI/workflow proposal.",
+      "See what changed, what remains and who owns the next step.",
+      "Return to the same queue without losing the selected job or prepared work."
+    ],
+    "operatorAndBuilderSeparation": "Today and customer work should explain operating value. Apps, connections, Blueprint editing and source customization remain accessible when a job requires them, without becoming prerequisites for understanding the product.",
+    "messagingRules": [
+      "Name the business object, action and saved result.",
+      "Show the specific missing connection or permission beside the action it blocks; preserve manual alternatives where implemented.",
+      "Distinguish a suggestion, draft, approved action, execution result and confirmed customer/provider outcome.",
+      "Use one stable name for each concept. An App adds capability; a connection supplies access; a workflow describes repeatable work; a Coworker is an AI role operating against shared records.",
+      "Lead with working customer examples. Describe ownership and extensibility after the operator can understand the job.",
+      "Do not publish automated-execution, in-app building, extraction, payment or time-saving claims beyond current verified behavior."
+    ]
+  },
+  "nextImplementation": {
+    "title": "Make one customer journey continuous before expanding the feature catalogue",
+    "referenceJourney": "A won opportunity becomes a reviewed engagement/checklist, then owned delivery tasks and an invoice for the same canonical customer.",
+    "firstSlice": "Trace the existing delivery handoff and checklist App semantics, choose a primary operator path, and make its source/customer context survive the next action into billing. Surface its next step and truthful outcome through existing Today/Work views.",
+    "acceptance": [
+      "The user can explain who the default experience is for and what first result to pursue without reading architecture terminology.",
+      "A selected customer/opportunity remains selected through applicable delivery and invoice actions; the user does not re-find the customer or retype known facts.",
+      "One primary delivery entry explains whether it creates an engagement, tasks or both; alternate App capabilities remain discoverable without ambiguous duplicate starts.",
+      "Preparing and approving are distinct, with existing authorization, canonical services, immutable receipts and same-intent recovery preserved.",
+      "Completing an action refreshes the same saved work in Today, Work and the source record; no second work model or fake success state.",
+      "Missing Apps/providers explain what is missing and offer the relevant recovery action without an apparent successful empty result.",
+      "Observe a fresh target user completing the controlled journey; record their errors, context switches and time. Do not claim this research pass is that study."
+    ],
+    "sequence": [
+      "Product promise, default user and primary customer lifecycle.",
+      "Context-preserving reference journey and next-action/result experience.",
+      "Consistent information architecture and messaging based on that working path.",
+      "Additional workflow discovery and broader capabilities."
+    ],
+    "notAuthorizedByThisResearch": [
+      "Production deployment",
+      "Provider sends or purchases",
+      "A broad navigation rewrite or domain-service replacement"
+    ]
+  },
+  "draftDisposition": {
+    "card": "business-workflow-entry",
+    "worker": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/business-workflow-entry",
+    "state": "Unverified implementation draft retained for reference. The founder’s competitor-research clarification takes precedence. Do not treat the draft changelog or chooser as shipped or sufficient acceptance.",
+    "files": [
+      "src/components/admin/BusinessWorkflowStarts.tsx",
+      "src/app/admin/get-started/page.tsx",
+      "src/content/docs/start/first-value.mdx",
+      "src/content/docs/start/business-owners.mdx",
+      "src/content/changelog.ts",
+      "src/content/command-center.ts",
+      "src/content/command-center-faq.ts"
+    ]
+  }
+}
