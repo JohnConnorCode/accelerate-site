@@ -218,7 +218,10 @@ try {
           checkoutAttempts === 1
             ? {
                 status: 503,
-                json: { error: "Checkout could not be started. Retry with the same details." },
+                json: {
+                  error:
+                    "Checkout could not be started. Your admission is not confirmed. Retry with the same details; if payment already succeeded, use your confirmation link.",
+                },
               }
             : checkoutAttempts === 2
               ? {
@@ -449,10 +452,40 @@ try {
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
     await page.getByLabel("Number of tickets").selectOption("2");
+    // A failed checkout must remain usable on short laptops and small phones,
+    // including when the sticky card grows to contain its recovery message.
+    await page.setViewportSize(
+      width === 1440 ? { width: 1440, height: 720 } : { width: 320, height: 568 },
+    );
     const buy = page.getByRole("button", { name: "Get 2 tickets ($100)" });
     await buy.focus();
     await page.keyboard.press("Enter");
     await page.getByRole("alert").filter({ hasText: "Retry with the same details" }).waitFor();
+    await page.waitForFunction(() => document.activeElement?.getAttribute("role") === "alert");
+    const errorLayout = await page.getByRole("alert").evaluate((alert) => {
+      const card = alert.closest("aside");
+      const cardBox = card.getBoundingClientRect();
+      const alertBox = alert.getBoundingClientRect();
+      return {
+        pageFits: document.documentElement.scrollWidth <= innerWidth,
+        cardFits: card.scrollWidth <= card.clientWidth,
+        alertFits: alertBox.left >= cardBox.left && alertBox.right <= cardBox.right,
+        alertVisible: alertBox.top >= 0 && alertBox.bottom <= innerHeight,
+        stickyFits: innerWidth <= 800 || cardBox.height <= innerHeight - 112 + 1,
+      };
+    });
+    assert.deepEqual(errorLayout, {
+      pageFits: true,
+      cardFits: true,
+      alertFits: true,
+      alertVisible: true,
+      stickyFits: true,
+    });
+    await page.keyboard.press("Tab");
+    assert.equal(await buy.evaluate((button) => document.activeElement === button), true);
+    await page.getByRole("complementary", { name: "Workshop tickets" }).screenshot({
+      path: `${output}/checkout-error-${theme}-${width}.png`,
+    });
     const errorAccessibility = await new AxeBuilder({ page })
       .include('[role="alert"]')
       .withRules(["color-contrast"])
@@ -467,6 +500,7 @@ try {
       })),
       [],
     );
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
     assert.equal(
       await page.getByLabel("Your name", { exact: true }).inputValue(),
       "Workshop Buyer",
@@ -607,6 +641,8 @@ try {
       trackingExcluded: true,
       keyboardCheckout: true,
       identicalRetry: true,
+      containedCheckoutError: true,
+      focusedRecovery: true,
       pendingToConfirmed: true,
       confirmationAccessibility: true,
       paidDespiteEmailFailure: true,

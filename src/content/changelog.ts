@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "workshop-confidence",
     title: "Practice AI skills in a small Chicago workshop",
     description:
-      "The November 11 workshop now focuses on guided practice for people who want more confidence using AI. Meet the hosts, see what to bring, and explore three practical preparation guides. Homepage links open the workshop overview before checkout. The workshop is limited to 24 participants, with pizza included in the $50 admission. Article buttons retain readable contrast in both themes.",
+      "The November 11 workshop now focuses on guided practice for people who want more confidence using AI. Meet the hosts, see what to bring, and explore three practical preparation guides. Homepage links open the workshop overview before checkout. The workshop is limited to 24 participants, with pizza included in the $50 admission. Article buttons retain readable contrast in both themes. Checkout errors remain within the ticket card and direct buyers to retry with their details retained.",
     category: "improvement",
     publishedAt: "2026-10-19",
   },

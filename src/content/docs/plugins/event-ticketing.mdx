@@ -82,6 +82,11 @@ A reservation is released after Stripe confirms expiration or the server verifie
 that an expired creation attempt has no provider session. An uncertain provider
 outcome remains reserved while it needs review.
 
+If checkout cannot open, the form keeps the buyer's details and moves focus to
+the recovery message beside the purchase button. Retry with the same details to
+reuse the reservation. A failed checkout does not confirm admission. Buyers who
+already completed payment should use their private confirmation link.
+
 **Paused** stops new purchases while retaining the public page. **Closed** ends
 sales. Already created Stripe sessions retain their existing reservation until
 payment or expiration. Capacity cannot be reduced below paid and reserved places.

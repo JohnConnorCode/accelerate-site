@@ -201,7 +201,8 @@ async function serviceProof() {
     return row;
   });
   const realFetch = globalThis.fetch;
-  let dropCreateResponse = true,
+  let denyCreate = true,
+    dropCreateResponse = true,
     dropEmailResponse = true,
     providerCreates = 0,
     providerSends = 0,
@@ -228,6 +229,13 @@ async function serviceProof() {
         assert.equal(body.get("line_items[0][quantity]"), "2");
         assert.equal(body.get("adjustable_quantity[enabled]"), null);
         assert.match(body.get("success_url")!, /\/confirmation\?order=.*&key=/);
+        if (denyCreate) {
+          denyCreate = false;
+          return new Response(JSON.stringify({ error: { message: "private provider payload" } }), {
+            status: 403,
+            headers: { "request-id": "req_checkoutDenied" },
+          });
+        }
         if (!createdByKey.has(key)) {
           providerCreates++;
           const metadata = Object.fromEntries(
@@ -309,6 +317,25 @@ async function serviceProof() {
       email: "buyer@example.test",
       attribution: { utm_source: "venue" },
     };
+    const logged: unknown[][] = [];
+    const originalError = console.error;
+    try {
+      console.error = (...args: unknown[]) => logged.push(args);
+      await assert.rejects(
+        createTicketCheckout(db, event.slug, input, "https://workshop.example.test", "accelerate"),
+        /Stripe request failed \(HTTP 403\).*req_checkoutDenied/,
+      );
+    } finally {
+      console.error = originalError;
+    }
+    assert.deepEqual(logged, [
+      [
+        "[stripe] Provider request failed",
+        { status: 403, resource: "checkout", requestId: "req_checkoutDenied" },
+      ],
+    ]);
+    assert.equal(rows().length, 1);
+    assert.equal(providerCreates, 0, "A denied request must not claim a provider checkout");
     await assert.rejects(
       createTicketCheckout(db, event.slug, input, "https://workshop.example.test", "accelerate"),
       /lost checkout/,

@@ -77,6 +77,11 @@ async function stripeRequest(
         ? ` Stripe request: ${requestId}.`
         : "";
     const resource = path.split("/")[1]?.split("?")[0];
+    console.error("[stripe] Provider request failed", {
+      status: response.status,
+      resource,
+      requestId: requestId && /^req_[A-Za-z0-9]{1,120}$/.test(requestId) ? requestId : null,
+    });
     const recovery =
       response.status === 403
         ? ` Check this workspace’s Stripe key permissions for ${resource ?? "the requested resource"} in Stripe, then reconnect it in Integrations.`
