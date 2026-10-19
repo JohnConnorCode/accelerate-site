@@ -58,6 +58,21 @@ jobs:
           done < "$RUNNER_TEMP/changed-files"
           echo 'docs_only=true' >> "$GITHUB_OUTPUT"
 
+  # Fail source typing once before starting the application/fork build fan-out.
+  typecheck:
+    needs: scope
+    if: ${{ !inputs.admin_design_only && !inputs.hero_target_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
   checks:
     needs: scope
     if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' }}
@@ -273,6 +288,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:platform-command-context:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:audit-log-append-only:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:opportunity-create:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
@@ -367,7 +383,7 @@ jobs:
       - run: npm run format:check
 
   build:
-    needs: scope
+    needs: [scope, typecheck]
     if: ${{ !inputs.admin_design_only && !inputs.cold_start_only && !inputs.hero_target_url }}
     runs-on: ubuntu-latest
     # Full browser coverage includes native SVG interaction across viewports,
@@ -449,10 +465,11 @@ jobs:
           path: /tmp/accelerate-admin-focus-handoff/
           if-no-files-found: error
           retention-days: 7
-      - name: Verify Blueprint operating setup
+      - name: Verify import and opportunity recovery with Blueprint operating setup
         if: ${{ needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
+          OPPORTUNITY_QA_OUTPUT: /tmp/accelerate-opportunity-create-recovery
         run: |
           setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-workspace-operations-server.log 2>&1 &
           server_pid=$!
@@ -464,8 +481,26 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-workspace-operations-server.log; exit 1; fi
+          npm run resources:run -- node scripts/qa-contact-import-source-review.mjs
+          npm run resources:run -- node scripts/qa-opportunity-create-recovery.mjs
           npm run resources:run -- npm run qa:workspace-operations
           npm run resources:run -- node scripts/qa-architect-review.mjs
+      - name: Retain focused contact import evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: contact-import-browser-evidence
+          path: /tmp/accelerate-import-source-review/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain focused opportunity recovery evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: opportunity-create-browser-evidence
+          path: /tmp/accelerate-opportunity-create-recovery/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain operating setup browser evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         uses: actions/upload-artifact@v7
@@ -753,7 +788,6 @@ jobs:
           if [ "$PUBLIC_PAGES_ONLY" != "true" ] && [ "$DOCS_ONLY" != "true" ]; then
             if ! node scripts/qa-navigation-runtime.mjs; then browser_status=1; fi
             if ! node scripts/qa-navigation-filmstrip.mjs; then browser_status=1; fi
-            if ! node scripts/qa-contact-import-source-review.mjs; then browser_status=1; fi
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
@@ -859,7 +893,6 @@ jobs:
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/
             /tmp/accelerate-theme-persistence/
-            /tmp/accelerate-import-source-review/
             /tmp/accelerate-policy-browser/
           if-no-files-found: ignore
           retention-days: 7
@@ -904,7 +937,7 @@ jobs:
           retention-days: 7
 
   full-product-fork:
-    needs: scope
+    needs: [scope, typecheck]
     if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -950,7 +983,7 @@ jobs:
           retention-days: 7
 
   neutral-starter:
-    needs: scope
+    needs: [scope, typecheck]
     if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -1008,7 +1041,7 @@ jobs:
   # Keep the required check name; accept only the jobs expected for the detected scope.
   verify:
     if: ${{ always() && !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only }}
-    needs: [scope, checks, docs-checks, build, full-product-fork, neutral-starter]
+    needs: [scope, typecheck, checks, docs-checks, build, full-product-fork, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
@@ -1018,11 +1051,12 @@ jobs:
           DOCS_CHECKS_RESULT: ${{ needs.docs-checks.result }}
           DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
           SCOPE_RESULT: ${{ needs.scope.result }}
+          TYPECHECK_RESULT: ${{ needs.typecheck.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
           FULL_FORK_RESULT: ${{ needs.full-product-fork.result }}
         run: |
-          test "$SCOPE_RESULT" = success && test "$BUILD_RESULT" = success || exit 1
+          test "$SCOPE_RESULT" = success && test "$TYPECHECK_RESULT" = success && test "$BUILD_RESULT" = success || exit 1
           if [ "$DOCS_ONLY" = true ]; then
             test "$DOCS_CHECKS_RESULT" = success && test "$CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = skipped && test "$FULL_FORK_RESULT" = skipped || exit 1
           else

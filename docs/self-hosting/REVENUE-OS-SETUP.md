@@ -188,6 +188,14 @@ for ongoing definition edits. Submit the exact code commit and acceptance-linked
 check evidence with `agent:complete`. Review acceptance, merge and production
 deployment are separate facts; local acceptance does not mean deployed.
 
+## Opportunity creation upgrade
+
+Apply `migrations/20261018203409_manual_opportunity_create_receipt.sql` through the ordered catalog before deploying the compatible Pipeline form. It adds a service-only, tenant-scoped transaction for opportunity creation, stage history, Activity and the immutable audit receipt. Existing opportunities are unchanged. Identity resolution remains in the existing identity service; an unsuccessful transaction may leave a resolved contact/company, but no partial opportunity or creation evidence.
+
+Keep Auth user tables private. The migration verifies the actor through a restricted identity-match function; the business host does not need permission to read Auth user records.
+
+Run `npm run test:opportunity-create` for controlled PostgreSQL and adapter proof. The form retains one request across an uncertain save. Compatibility service callers that omit a request key intentionally start a new operation on each invocation; they must supply a stable key if their transport retries. Rollback retains the additive function and receipts. An older client without a stable key cannot provide the new retry guarantee. Hosted migration and application deployment remain separate release work; this local proof does not activate either.
+
 ## AI operating architecture
 
 The Revenue Copilot is a bounded tool-using system, not an autonomous database or browser agent. `src/lib/revenue-os/ai-tools.ts` is the single registry for every exposed tool, its JSON input schema, impact tier, confirmation requirement, and the validated service that executes it. Unknown tools fail closed. Each tool receipt records the registry version and impact metadata in the agent event ledger.

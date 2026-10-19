@@ -182,9 +182,9 @@ const capabilityDefinitions: Capability[] = [
     category: "capture",
     title: "Contact import",
     promise:
-      "Bring in a CSV or a pasted list, check it against the people you already know, and review the proposed records before anything saves.",
+      "Map contact spreadsheet columns without AI, check existing identities, and review the exact records before importing.",
     detail:
-      "An import is a review step rather than a blind write. The system flags rows that look like someone you already have, which is how an unfamiliar sender ends up attached to the right person instead of becoming a duplicate.",
+      "CSV, TSV and flat JSON use explicit column mapping with no model request. AI-assisted extraction is optional for free-form lists. Both paths retain original source rows, identify existing contacts and require approval before canonical writes.",
   },
 
   // ── Organize: records stay connected ──────────────────────────────────

@@ -104,6 +104,25 @@ if (mode === "diagnose-native") {
   assert.equal(process.env.SUPABASE_DB_HOST, "127.0.0.1");
   assert.equal(process.env.ADMIN_EMAIL, ownerEmail);
   assert.ok(!process.env.RESEND_API_KEY, "Native recovery must use local mail capture only");
+  assert.ok(
+    !process.env.OPENROUTER_API_KEY,
+    "Structured import must work without model credentials",
+  );
+  const { runPsql } = await import("./lib/accelerate-database.mjs");
+  // Match the deployed Auth boundary rather than grant extra privileges to
+  // make a service-only business command pass in this fixture.
+  const authBoundary = runPsql([
+    "-A",
+    "-t",
+    "-c",
+    `
+    REVOKE SELECT ON auth.users FROM service_role;
+    REVOKE SELECT(id,email) ON auth.users FROM service_role;
+    SELECT has_column_privilege('service_role','auth.users','id','SELECT')
+      OR has_column_privilege('service_role','auth.users','email','SELECT');`,
+  ]);
+  assert.equal(authBoundary.status, 0, "Native Auth privilege boundary must be established");
+  assert.equal(authBoundary.stdout.trim().split("\n").at(-1), "f");
   const { chromium } = await import("playwright");
   const output = process.env.RUNNER_TEMP
     ? `${process.env.RUNNER_TEMP}/accelerate-connected-fork`
@@ -117,6 +136,7 @@ if (mode === "diagnose-native") {
   );
   let browser;
   const checks = [];
+  checks.push("service-role-cannot-read-auth-identities");
   let currentPassword = process.env.SETUP_OWNER_PASSWORD;
   const mailBase = "http://127.0.0.1:54324";
   async function mail(path) {
@@ -248,6 +268,136 @@ if (mode === "diagnose-native") {
         checks.push(`${label}-linked-task-persists`);
         const recordUrl = page.url();
         await page.screenshot({ path: `${output}/${label}-contact-task.png`, fullPage: true });
+
+        await page.goto(`${base}/admin/contact-imports`);
+        assert.equal(await page.getByRole("radio", { name: /Map columns/ }).isChecked(), true);
+        const importEmail = `import-${label}@harbor.test`;
+        await page
+          .getByTestId("contact-import-source")
+          .fill(`fullName,email\nConnected import ${label},${importEmail}`);
+        await page.getByTestId("contact-import-analyze").click();
+        await page.getByRole("group", { name: "Match contact columns" }).waitFor();
+        const prepared = page.waitForResponse(
+          (response) =>
+            response.url() === `${base}/api/admin/revenue-os/contact-imports` &&
+            response.request().method() === "POST" &&
+            response.request().postDataJSON()?.action === "analyze",
+        );
+        await page.getByTestId("contact-import-analyze").click();
+        const preparedResponse = await prepared;
+        assert.equal(preparedResponse.status(), 201);
+        const importBatch = (await preparedResponse.json()).batch;
+        assert.equal(importBatch.ai_provider, "none");
+        assert.equal(importBatch.ai_model, null);
+        assert.equal(importBatch.ai_request_id, null);
+        assert.equal(importBatch.ai_usage.cost, 0);
+        await page.locator('[data-contact-import-row="0"]').waitFor();
+        await page.getByTestId("contact-import-approve").click();
+        await page.getByTestId("contact-import-confirm").click();
+        await page
+          .getByRole("heading", { name: "Contacts imported with receipts", exact: true })
+          .waitFor();
+        const imported = runPsql([
+          "-A",
+          "-t",
+          "-c",
+          `SELECT count(*) FROM public.contacts WHERE primary_email='${importEmail}';`,
+        ]);
+        assert.equal(imported.status, 0);
+        assert.equal(imported.stdout.trim(), "1");
+        await page.screenshot({ path: `${output}/${label}-no-ai-import.png`, fullPage: true });
+        checks.push(`${label}-no-model-import-persists-without-provider-key`);
+
+        await page.goto(`${base}/admin/pipeline`);
+        const captures = [];
+        await page.route(`${base}/api/admin/revenue-os/pipeline`, async (route) => {
+          if (route.request().method() !== "POST") return route.continue();
+          const response = await route.fetch();
+          captures.push({
+            input: route.request().postDataJSON(),
+            status: response.status(),
+            data: await response.json(),
+          });
+          // The real HTTP/Auth/PostgREST/SQL save completes before its response
+          // is deliberately lost. Retry must recover its private receipt.
+          if (captures.length === 1 && response.status() === 201) return route.abort("failed");
+          return route.fulfill({ response });
+        });
+        const newOpportunity = page.getByRole("button", { name: "New opportunity", exact: true });
+        await newOpportunity.click();
+        const opportunityDialog = page.getByRole("dialog", {
+          name: "New opportunity",
+          exact: true,
+        });
+        await opportunityDialog.getByLabel("Contact name", { exact: true }).fill(name);
+        await opportunityDialog.getByLabel("Email", { exact: true }).fill(email);
+        await opportunityDialog.getByLabel("Company", { exact: true }).fill("Harbor Trial Company");
+        await opportunityDialog
+          .getByRole("button", { name: "Create opportunity", exact: true })
+          .click();
+        await opportunityDialog.getByRole("alert").waitFor();
+        assert.equal(
+          captures[0]?.status,
+          201,
+          "Native opportunity must save before the response is lost",
+        );
+        await opportunityDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+        await newOpportunity.click();
+        assert.equal(
+          await opportunityDialog.getByLabel("Email", { exact: true }).inputValue(),
+          email,
+        );
+        assert.equal(
+          await opportunityDialog.getByLabel("Email", { exact: true }).isDisabled(),
+          true,
+        );
+        await opportunityDialog.screenshot({
+          path: `${output}/${label}-opportunity-uncertain.png`,
+        });
+        await opportunityDialog.getByRole("button", { name: "Retry save", exact: true }).click();
+        await opportunityDialog.waitFor({ state: "hidden" });
+        assert.equal(captures.length, 2);
+        assert.equal(captures[1].status, 201);
+        assert.deepEqual(captures[1].input, captures[0].input);
+        assert.equal(captures[1].data.opportunity.id, captures[0].data.opportunity.id);
+        checks.push(`${label}-native-opportunity-lost-response-replay`);
+        await newOpportunity.click();
+        await opportunityDialog.getByLabel("Contact name", { exact: true }).fill(name);
+        await opportunityDialog.getByLabel("Email", { exact: true }).fill(email);
+        await opportunityDialog.getByLabel("Company", { exact: true }).fill("Harbor Trial Company");
+        await opportunityDialog
+          .getByRole("button", { name: "Create opportunity", exact: true })
+          .click();
+        await opportunityDialog.waitFor({ state: "hidden" });
+        assert.equal(captures.length, 3);
+        assert.equal(captures[2].status, 201);
+        assert.notEqual(captures[2].input.requestId, captures[0].input.requestId);
+        assert.notEqual(captures[2].data.opportunity.id, captures[0].data.opportunity.id);
+        const persisted = runPsql([
+          "-A",
+          "-t",
+          "-c",
+          `SELECT json_build_object(
+          'contacts',(SELECT count(*) FROM public.contacts WHERE primary_email='${email}'),
+          'opportunities',(SELECT count(*) FROM public.opportunities WHERE email='${email}'),
+          'receipts',(SELECT count(*) FROM private.opportunity_create_receipts WHERE input->>'email'='${email}')
+        );`,
+        ]);
+        assert.equal(persisted.status, 0);
+        assert.deepEqual(JSON.parse(persisted.stdout.trim()), {
+          contacts: 1,
+          opportunities: 2,
+          receipts: 2,
+        });
+        await page.reload();
+        await newOpportunity.waitFor();
+        await page.screenshot({
+          path: `${output}/${label}-opportunity-recovered.png`,
+          fullPage: true,
+        });
+        checks.push(`${label}-native-opportunity-separate-intent-and-canonical-counts`);
+        await page.unroute(`${base}/api/admin/revenue-os/pipeline`);
+        await page.goto(recordUrl);
 
         if (label === "mobile") await page.getByRole("button", { name: "Open More" }).click();
         await page.getByRole("button", { name: "Sign out" }).click();

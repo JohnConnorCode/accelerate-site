@@ -26,6 +26,13 @@ import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
 import { Pagination } from "@/components/admin/Pagination";
 import { StatCard } from "@/components/admin/StatCard";
 import { cn } from "@/lib/utils";
+import {
+  CONTACT_IMPORT_COLUMNS,
+  prepareContactImportColumns,
+  validateContactImportMapping,
+  type ContactImportMapping,
+  type ContactImportColumn,
+} from "@/lib/revenue-os/contact-import-source";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
 type Action = "create" | "update" | "skip";
@@ -67,8 +74,9 @@ type ImportBatch = {
   selected_row_count: number;
   review_digest: string | null;
   approval_digest: string | null;
+  ai_provider?: "openrouter" | "none";
   ai_model: string | null;
-  summary: Record<string, number>;
+  summary: Record<string, unknown>;
   error: string | null;
   approved_by: string | null;
   approved_at: string | null;
@@ -79,6 +87,7 @@ type ImportBatch = {
 };
 
 const EMPTY_SAMPLE = `Jane Martinez, jane@martinezroofing.com, 512-555-0142, Martinez Roofing, Owner\nSam Lee — Operations Director at Northstar HVAC — sam@northstarhvac.com\nPriya Shah | priya@example.com | met at Austin builders meetup; interested in faster estimate follow-up`;
+const COLUMN_SAMPLE = `fullName,email,companyName\nAlex Morgan,alex@example.test,Example Company\nJamie Chen,jamie@example.test,Example Company`;
 
 function statusTone(status: string) {
   if (["completed", "imported"].includes(status))
@@ -122,6 +131,11 @@ export default function ContactImportsPage() {
   const [sourceText, setSourceText] = useState("");
   const [filename, setFilename] = useState<string | null>(null);
   const [instructions, setInstructions] = useState("");
+  const [method, setMethod] = useState<"columns" | "ai">("columns");
+  const [columnSource, setColumnSource] = useState<ReturnType<
+    typeof prepareContactImportColumns
+  > | null>(null);
+  const [mapping, setMapping] = useState<ContactImportMapping>({});
   const [batch, setBatch] = useState<ImportBatch | null>(null);
   const historyQuery = useAdminQuery<{ schemaReady: boolean; batches: ImportBatch[] }>(
     ["contact-imports", "history"],
@@ -154,8 +168,27 @@ export default function ContactImportsPage() {
   async function analyze() {
     setError(null);
     setBusy("analyze");
+    const generation = sourceGeneration.current;
     try {
-      const data = await api({ action: "analyze", sourceText, filename, instructions });
+      if (method === "columns" && !columnSource) {
+        const prepared = prepareContactImportColumns(sourceText, filename);
+        setColumnSource(prepared);
+        setMapping(prepared.mapping);
+        return;
+      }
+      const reviewedMapping =
+        method === "columns"
+          ? validateContactImportMapping(mapping, columnSource!.columns)
+          : undefined;
+      const data = await api({
+        action: "analyze",
+        sourceText,
+        filename,
+        method,
+        mapping: reviewedMapping,
+        ...(method === "ai" ? { instructions } : {}),
+      });
+      if (generation !== sourceGeneration.current) return;
       setBatch(data.batch);
       setReviewPage(1);
       setActiveRowId(data.batch?.rows?.[0]?.id ?? null);
@@ -174,6 +207,7 @@ export default function ContactImportsPage() {
   async function chooseFile(file?: File) {
     if (!file) return;
     const generation = ++sourceGeneration.current;
+    setColumnSource(null);
     setError(null);
     if (file.size > 250_000) {
       setError("Choose a UTF-8 text file smaller than 250 KB.");
@@ -313,6 +347,7 @@ export default function ContactImportsPage() {
               disabled={busy !== null}
               onClick={() => {
                 sourceGeneration.current += 1;
+                setColumnSource(null);
                 setBatch(null);
                 setSourceText("");
                 setFilename(null);
@@ -331,44 +366,71 @@ export default function ContactImportsPage() {
         <section key="source" aria-label="Contact import source" className="admin-split">
           <AdminSurface padding="lg" className="overflow-hidden">
             <div className="flex flex-col gap-5">
-              <div className="flex items-start gap-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300">
-                  <Sparkles className="size-4" />
-                </span>
-                <div>
-                  <h2 className="text-balance font-display text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
-                    Give it whatever contact data you have
-                  </h2>
-                  <p className="admin-copy mt-1 text-sm">
-                    OpenRouter identifies fields and cleans formatting. The importer then validates
-                    and checks existing identities before showing a preview.
-                  </p>
-                </div>
-              </div>
+              <fieldset disabled={busy !== null} className="grid gap-2 sm:grid-cols-2">
+                <legend className="admin-field-label mb-2">Preparation</legend>
+                {(
+                  [
+                    ["columns", "Map columns", "CSV, TSV or flat JSON. No AI request."],
+                    ["ai", "AI-assisted", "For free-form lists. Uses your model and budget."],
+                  ] as const
+                ).map(([value, label, detail]) => (
+                  <label
+                    key={value}
+                    className="flex min-h-12 cursor-pointer items-start gap-3 rounded-xl p-3 shadow-[var(--admin-shadow-border)]"
+                  >
+                    <input
+                      type="radio"
+                      name="import-method"
+                      value={value}
+                      checked={method === value}
+                      onChange={() => {
+                        setMethod(value);
+                        setColumnSource(null);
+                        setError(null);
+                      }}
+                      className="mt-1"
+                    />
+                    <span>
+                      <span className="block text-sm font-semibold">{label}</span>
+                      <span className="admin-copy mt-1 block text-xs">{detail}</span>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
               <label className="admin-field-label">
-                <span>Paste names, notes, rows, or exported data</span>
+                <span>
+                  {method === "columns"
+                    ? "Paste CSV, TSV or flat JSON"
+                    : "Paste names, notes, rows, or exported data"}
+                </span>
                 <textarea
                   value={sourceText}
+                  disabled={busy !== null}
                   onChange={(event) => {
                     sourceGeneration.current += 1;
+                    setColumnSource(null);
                     setSourceText(event.target.value);
                     setFilename(null);
+                    setError(null);
                   }}
-                  placeholder={EMPTY_SAMPLE}
+                  placeholder={method === "columns" ? COLUMN_SAMPLE : EMPTY_SAMPLE}
                   className="admin-field !min-h-40 resize-y py-3 font-mono text-[12px] leading-6"
                   data-testid="contact-import-source"
                 />
               </label>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                <label className="admin-field-label">
-                  <span>Optional context for the cleanup</span>
-                  <input
-                    value={instructions}
-                    onChange={(event) => setInstructions(event.target.value)}
-                    placeholder="Example: these came from the Austin builders meetup"
-                    className="admin-field"
-                  />
-                </label>
+                {method === "ai" && (
+                  <label className="admin-field-label">
+                    <span>Optional context for the cleanup</span>
+                    <input
+                      value={instructions}
+                      disabled={busy !== null}
+                      onChange={(event) => setInstructions(event.target.value)}
+                      placeholder="Example: these came from the Austin builders meetup"
+                      className="admin-field"
+                    />
+                  </label>
+                )}
                 <input
                   ref={fileInput}
                   className="sr-only"
@@ -382,6 +444,7 @@ export default function ContactImportsPage() {
                 />
                 <button
                   type="button"
+                  disabled={busy !== null}
                   onClick={() => fileInput.current?.click()}
                   className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-[var(--admin-surface-subtle)] px-4 text-sm font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,scale] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
                 >
@@ -393,6 +456,57 @@ export default function ContactImportsPage() {
                   <FileSpreadsheet className="size-3.5" /> {filename}
                 </p>
               )}
+              {method === "columns" && columnSource && (
+                <fieldset
+                  disabled={busy !== null}
+                  className="space-y-3"
+                  aria-label="Match contact columns"
+                >
+                  <legend className="font-semibold">Match columns</legend>
+                  <p className="admin-copy text-sm">
+                    Choose a full name, or separate first and last names, plus email or phone.
+                    Unmapped columns remain available in Original source.
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {columnSource.columns.map((column) => (
+                      <label key={column} className="admin-field-label min-w-0 self-start">
+                        <span>{column}</span>
+                        <select
+                          className="admin-field"
+                          aria-label={`${column} contact field`}
+                          value={
+                            CONTACT_IMPORT_COLUMNS.find((field) => mapping[field.key] === column)
+                              ?.key ?? ""
+                          }
+                          onChange={(event) => {
+                            const next = { ...mapping };
+                            for (const field of CONTACT_IMPORT_COLUMNS)
+                              if (next[field.key] === column) delete next[field.key];
+                            const target = event.target.value as ContactImportColumn;
+                            if (target) next[target] = column;
+                            setMapping(next);
+                            setError(null);
+                          }}
+                        >
+                          <option value="">Do not import</option>
+                          {CONTACT_IMPORT_COLUMNS.map((field) => (
+                            <option key={field.key} value={field.key}>
+                              {field.label}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="block truncate text-xs font-normal normal-case tracking-normal text-[var(--admin-muted)]">
+                          Example: {columnSource.rows[0]?.[column] || "(empty)"}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="admin-copy text-xs tabular-nums">
+                    {columnSource.rows.length} source rows. Validation and existing-contact checks
+                    follow.
+                  </p>
+                </fieldset>
+              )}
               <button
                 type="button"
                 disabled={!sourceText.trim() || busy === "analyze" || !schemaReady}
@@ -402,10 +516,17 @@ export default function ContactImportsPage() {
               >
                 {busy === "analyze" ? (
                   <Loader2 className="size-4 animate-spin" />
-                ) : (
+                ) : method === "ai" ? (
                   <Sparkles className="size-4" />
+                ) : (
+                  <FileSpreadsheet className="size-4" />
                 )}{" "}
-                Analyze and build review <ArrowRight className="size-4" />
+                {method === "ai"
+                  ? "Analyze with AI"
+                  : columnSource
+                    ? "Build contact review"
+                    : "Review columns"}{" "}
+                <ArrowRight className="size-4" />
               </button>
             </div>
           </AdminSurface>
@@ -415,10 +536,10 @@ export default function ContactImportsPage() {
                 <ShieldCheck className="size-4" />
               </span>
               <h2 className="mt-4 text-balance font-display text-lg font-semibold text-[var(--admin-ink)]">
-                Nothing imports on analysis
+                Approval comes before import
               </h2>
               <ul className="admin-copy mt-3 space-y-2 text-pretty text-sm">
-                <li>AI can propose fields; it cannot approve or write contacts.</li>
+                <li>Preparing a review creates no customer records.</li>
                 <li>Low-confidence and ambiguous rows start excluded.</li>
                 <li>You approve the exact edited snapshot.</li>
                 <li>No opportunities, campaigns, or messages are created.</li>
@@ -479,7 +600,10 @@ export default function ContactImportsPage() {
                     <h2 className="font-display text-lg font-semibold text-[var(--admin-ink)]">
                       Review rows
                     </h2>
-                    <p className="admin-copy text-xs">Select a row to edit its approved values.</p>
+                    <p className="admin-copy text-xs">Select a row to edit its proposed values.</p>
+                    {batch.ai_provider === "none" && (
+                      <p className="mt-1 text-xs font-medium">Mapped columns · No AI used</p>
+                    )}
                   </div>
                   <span
                     className={cn(
@@ -959,6 +1083,7 @@ function ImportHistory({
               </span>
               <span className="admin-copy admin-number mt-0.5 block text-[10px]">
                 {item.proposed_row_count} rows · {new Date(item.created_at).toLocaleString()}
+                {item.ai_provider === "none" ? " · No AI used" : ""}
               </span>
             </span>
             <span

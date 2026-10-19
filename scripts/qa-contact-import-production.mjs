@@ -126,6 +126,7 @@ try {
   if (importerRead.status !== 200 || importerRead.body.schemaReady !== true) {
     throw new Error(`Production importer read returned ${importerRead.status}`);
   }
+  await page.getByRole("radio", { name: /AI-assisted/ }).check();
   const uniqueEmail = `accelerate-import-smoke-${Date.now()}@example.com`;
   const source = page.getByTestId("contact-import-source");
   await source.click();

@@ -251,10 +251,11 @@ await desktop.page.goto(`${base}/admin/contact-imports`, {
   waitUntil: "networkidle",
   timeout: 60_000,
 });
-await desktop.page.getByRole("heading", { name: "Contact intake", exact: true }).waitFor();
+await desktop.page.getByRole("heading", { name: "Import contacts", exact: true }).waitFor();
 await desktop.page
   .getByTestId("contact-import-source")
   .fill("Jane Martinez, jane@martinezroofing.com\nSam Lee, sam@northstarhvac.com");
+await desktop.page.getByRole("radio", { name: /AI-assisted/ }).check();
 await desktop.page.getByTestId("contact-import-analyze").click();
 await desktop.page.getByRole("heading", { name: "Review rows" }).waitFor();
 await desktop.page.getByLabel("Email", { exact: true }).fill("jane.updated@martinezroofing.com");
@@ -291,6 +292,7 @@ await mobile.page.goto(`${base}/admin/contact-imports`, {
 await mobile.page
   .getByTestId("contact-import-source")
   .fill("Jane Martinez, jane@martinezroofing.com");
+await mobile.page.getByRole("radio", { name: /AI-assisted/ }).check();
 await mobile.page.getByTestId("contact-import-analyze").click();
 await mobile.page.getByRole("heading", { name: "Review rows" }).waitFor();
 await assertFits(mobile.page, { width: 390, height: 844 });
@@ -311,7 +313,7 @@ await reduced.page.goto(`${base}/admin/contact-imports`, {
   waitUntil: "networkidle",
   timeout: 60_000,
 });
-await reduced.page.getByRole("heading", { name: "Contact intake", exact: true }).waitFor();
+await reduced.page.getByRole("heading", { name: "Import contacts", exact: true }).waitFor();
 
 await desktop.context.close();
 await mobile.context.close();

@@ -2,6 +2,24 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "contact-import-no-ai",
+    slug: "contact-import-no-ai",
+    title: "Import contact spreadsheets without AI",
+    description:
+      "Map CSV, TSV and flat JSON columns into the existing contact review without a model key or AI credits. Check suggested matches, combine first and last names, correct rows and approve the exact reviewed snapshot. Optional AI extraction remains an explicit choice for free-form lists. Batches record whether a model was used; mapped imports record zero model usage.",
+    category: "improvement",
+    publishedAt: "2026-10-19",
+  },
+  {
+    id: "opportunity-create-recovery",
+    slug: "opportunity-create-recovery",
+    title: "Retry an uncertain opportunity save",
+    description:
+      "Pipeline keeps the original request when a save cannot be confirmed. Retry save recovers that opportunity, while separate new opportunities can still use the same customer. The compatible database upgrade saves the opportunity and its creation evidence together; apply it before deploying this form.",
+    category: "fix",
+    publishedAt: "2026-10-19",
+  },
+  {
     id: "billing-live-read-recovery",
     slug: "billing-live-read-recovery",
     title: "Load payment history and subscription plans reliably",

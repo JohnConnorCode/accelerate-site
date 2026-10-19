@@ -11,7 +11,8 @@ export async function proveContactImportReview({ sql, asyncSql, context, a, b })
   sql(`UPDATE tenants SET status='active';
     CREATE TABLE contact_import_batches(id uuid PRIMARY KEY,tenant_id uuid,status text,updated_at timestamptz,
       selected_row_count integer,proposed_row_count integer,review_digest text,approval_digest text,
-      approved_by text,approved_at timestamptz,completed_at timestamptz,execution_claimed_at timestamptz,summary jsonb,error text);
+      approved_by text,approved_at timestamptz,completed_at timestamptz,execution_claimed_at timestamptz,summary jsonb,error text,
+      ai_provider text NOT NULL DEFAULT 'openrouter' CHECK(ai_provider='openrouter'), ai_model text, ai_request_id text, ai_usage jsonb NOT NULL DEFAULT '{}');
     CREATE TABLE contact_import_rows(id uuid PRIMARY KEY,tenant_id uuid,batch_id uuid,row_index integer,
       raw_data jsonb,reviewed_data jsonb,action text,status text,included boolean,errors text[],warnings text[],
       match_reason text,matched_contact_id uuid,matched_company_id uuid,error text);
@@ -25,6 +26,44 @@ export async function proveContactImportReview({ sql, asyncSql, context, a, b })
       VALUES('${ids[0]}','${a}','${batchId}',0,'{"name":"Original 1"}','{"fullName":"Original 1"}','create','proposed',true,'{}','{}'),
             ('${ids[1]}','${a}','${batchId}',1,'{"name":"Original 2"}','{"fullName":"Original 2"}','create','proposed',true,'{}','{}'),
             ('${foreignRow}','${b}','${foreignBatch}',0,'{}','{}','skip','skipped',false,'{}','{}');`);
+  const noAi = readFileSync("migrations/20261019052913_contact_import_without_ai.sql", "utf8");
+  sql(noAi);
+  sql(noAi);
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM contact_import_batches WHERE ai_provider='openrouter' AND ai_usage='{}'::jsonb`,
+    ),
+    "2",
+    "Historical provider metadata remains unchanged",
+  );
+  const zero = '{"cost":0,"prompt_tokens":0,"completion_tokens":0,"total_tokens":0}';
+  assert.equal(
+    sql(
+      `BEGIN; INSERT INTO contact_import_batches(id,tenant_id,ai_provider,ai_usage) VALUES(gen_random_uuid(),'${a}','none','${zero}') RETURNING ai_provider; ROLLBACK;`,
+    ),
+    "none",
+  );
+  assert.throws(
+    () =>
+      sql(
+        `INSERT INTO contact_import_batches(id,tenant_id,ai_provider) VALUES(gen_random_uuid(),'${a}','none')`,
+      ),
+    /no_ai_usage_check/,
+  );
+  assert.throws(
+    () =>
+      sql(
+        `INSERT INTO contact_import_batches(id,tenant_id,ai_provider,ai_model,ai_usage) VALUES(gen_random_uuid(),'${a}','none','invented-model','${zero}')`,
+      ),
+    /no_ai_usage_check/,
+  );
+  assert.throws(
+    () =>
+      sql(
+        `INSERT INTO contact_import_batches(id,tenant_id,ai_provider) VALUES(gen_random_uuid(),'${a}','unknown')`,
+      ),
+    /ai_provider_check/,
+  );
   const migration = readFileSync(
     "migrations/20260929211535_contact_import_review_atomic.sql",
     "utf8",

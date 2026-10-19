@@ -423,6 +423,21 @@ export async function callBlueprintVersionRpc(
   return callVerifiedHostRpc(database, "save_workspace_blueprint_version", args);
 }
 
+/** Opportunity creation keeps its business row and immutable evidence atomic. */
+export function callOpportunityCreateHostRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+  verifiedActor?: TenantActorContext,
+) {
+  const context = verifiedActor ?? getTenantRequestContext();
+  return callVerifiedHostRpc(
+    database,
+    "create_opportunity_with_receipt",
+    { ...args, p_actor: context?.kind === "actor" ? context.user.id : null },
+    context?.kind === "actor" ? context : undefined,
+  );
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

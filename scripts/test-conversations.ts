@@ -1,3 +1,4 @@
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import assert from "node:assert/strict";
 import {
   assignConversation,
@@ -54,6 +55,24 @@ class MockSupabase {
           | null,
         onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
       ): Promise<TResult1 | TResult2> {
+        if (fn === "create_opportunity_with_receipt") {
+          if (!params.p_contact || !params.p_company)
+            return Promise.resolve({ data: null, error: null }).then(onfulfilled, onrejected);
+          const input = params.p_input as Row;
+          const row = {
+            id: crypto.randomUUID(),
+            tenant_id: params.p_tenant,
+            name: input.opportunityName,
+            contact_id: params.p_contact,
+            company_id: params.p_company,
+            email: input.email,
+            stage: "new",
+            source: input.source,
+            estimated_value: input.estimatedValue,
+          };
+          tables.opportunities!.push(row);
+          return Promise.resolve({ data: row, error: null }).then(onfulfilled, onrejected);
+        }
         if (fn === "record_evidence") {
           if (!tables["claims"]) tables["claims"] = [];
           if (!tables["evidence"]) tables["evidence"] = [];
@@ -347,7 +366,10 @@ async function runConversationsSuite() {
   console.log("Running Conversations Omnichannel Inbox test suite...");
 
   const db = new MockSupabase();
-  const supabase = db as unknown as SupabaseClient;
+  const supabase = bindTenantDatabaseForTest(
+    db as unknown as SupabaseClient,
+    "11111111-1111-4111-8111-111111111111",
+  );
 
   // 1. Seed test data
   const contactId = "contact-100";

@@ -1,20 +1,12 @@
 ---
 title: "Import contacts"
 description: "Review a CSV or pasted list, resolve contact matches and confirm the records to import."
-updated: "2026-09-29"
+updated: "2026-10-19"
 ---
 
 A spreadsheet becomes useful when your team can find its people in the workspace and trust their details. Import a CSV or pasted list into a review batch, check the proposed matches and save the contacts you intend to keep.
 
-**Before you start:** use a workspace you are authorized to update. AI-assisted analysis needs the configured model path to be available. Check [Setup](/docs/workspace/setup) if analysis is unavailable.
-
-<DocsFigure
-  src="/images/docs/contacts/import.png"
-  alt="The contact import screen in the fictional Northline Roofing workspace."
-  width={1440}
-  height={1000}
-  caption="The contact import flow in the fictional Northline Roofing workspace, where an imported list becomes a review batch. Fictional demo data."
-/>
+**Before you start:** use a workspace you are authorized to update. **Map columns** prepares CSV, TSV and flat JSON without a model key, AI credits or a model request. **AI-assisted** is an optional choice for free-form lists and requires an enabled model and budget. Check [Setup](/docs/workspace/setup) if that optional path is unavailable.
 
 ## 1. Prepare your list
 
@@ -28,15 +20,21 @@ Jamie Chen,jamie@example.test,,Example Company,https://example.test
 
 A reviewed contact needs a name and at least an email address or phone number. An email must be valid. A supplied website must be a valid domain or HTTP(S) address. Include a business website when you want to identify a company reliably.
 
-Give every CSV or TSV column a distinct header and keep the same number of columns on each row. A batch accepts up to 500 contact rows, 40 columns, 100 characters per header, 250,000 source characters, and 2,000 characters per source cell. Uploaded files also have a 250 KB limit, so split a larger export into smaller files before analyzing it.
+Give every CSV or TSV column a distinct header and keep the same number of columns on each row. A batch accepts up to 500 contact rows, 40 columns, 100 characters per header, 250,000 source characters, and 2,000 characters per source cell. Uploaded files also have a 250 KB limit, so split a larger export into smaller files before preparing it.
 
 For JSON, use flat contact objects or a list of those objects. Numeric values keep their original digits as source text, which protects long identifiers and phone numbers. Paste a free-form list as one person per line, or upload it as a TXT file, and keep any analysis guidance within 1,000 characters.
 
-## 2. Analyze the source
+## 2. Prepare the review
 
-Open **Contacts**, choose **List import**, and start an import. You can also open `/admin/contact-imports`. Upload the file or paste the list, then choose **Analyze and build review**.
+Open **Contacts**, choose **List import**, and upload the file or paste its contents. **Map columns** is selected initially. Choose **Review columns** to inspect suggested column matches. Choose the contact field for each source column you want to import. Choose a full-name column, or separate first and last names, and at least email or phone. Each source column can supply only one contact field. Unmapped columns stay in **Original source**.
 
-The review keeps every accepted source row in its original order. When the AI cannot identify a contact in a row, that row remains visible with an explanation and starts excluded, so you can complete it or leave it out. Analysis creates the review batch; it does not import contacts.
+Choose **Build contact review**. This path copies mapped source values, validates them and checks existing identities. It makes no model request, including when AI is paused or no provider is connected. A suggestion is only a column-name match; review it before proceeding.
+
+For example, map `fullName` to **Full name**, `email` to **Email**, and `companyName` to **Company** in the sample above. An unfamiliar heading such as `Customer` can be selected manually. If your source changes, choose **Review columns** again so older mappings cannot apply to a different file.
+
+For notes or a free-form list, explicitly select **AI-assisted**, add any cleanup context, and choose **Analyze with AI**. This sends the source to the configured model under the workspace's cost controls. An unavailable model does not trigger a hidden fallback to another import method. Analysis cannot approve or import contacts.
+
+Both paths preserve every accepted source row in its original order. Invalid or ambiguous rows remain visible and start excluded. When AI omits a row, its original source still appears so you can complete or exclude it.
 
 ## 3. Review the rows
 
@@ -60,10 +58,14 @@ Check the batch result and open a sample of the accepted contacts. Failed rows r
 
 ## What to check
 
-Compare the source row count with the review row count before approval; they should match. If analysis rejects repeated headers, broken quotes, missing columns, nested JSON, or control characters, correct the export and try again. Split a batch when its complete source exceeds the analysis budget, even if the file fits the upload limit. Inspect the existing batch before resubmitting the same file. Use separate actions when you want to send email, enroll contacts in a campaign, or create an opportunity.
+Compare the source row count with the review row count before approval; they should match. If analysis rejects repeated headers, broken quotes, missing columns, nested JSON, or control characters, correct the export and try again. Split a batch when its complete source exceeds the analysis budget, even if the file fits the upload limit. The AI context budget applies only to AI-assisted preparation. Inspect the existing batch before resubmitting the same file. Use separate actions when you want to send email, enroll contacts in a campaign, or create an opportunity.
 
 ## Correct a row from its original source
 
 Each review row keeps its source row number. Open **Original source** to compare the untouched source fields with the proposed contact. It opens automatically for rows needing review, including rows the AI omitted. Correct the fields, choose whether to include the row, and save the review before approving its exact snapshot.
 
 Uploads must contain valid UTF-8. An incorrectly encoded file is refused with a correction message, rather than replacing unreadable characters. Save it as UTF-8 and upload again. Recent import history is cached across workspace navigation; if a refresh fails, retry history while keeping the current review available.
+
+## Try the fictional demo
+
+Column mapping uses your pasted fictional data and saves its review in this browser session. Approving new, distinct contacts creates simulated contacts only. Existing-contact updates start excluded and require a connected workspace. The demo makes no model request and sends no data to live business APIs.

@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I import contacts without paying for AI?",
+    answer:
+      "Yes. Open Contacts → List import, keep Map columns selected, upload a CSV, TSV or flat JSON file, and choose Review columns. Check the field matches, build the review, correct rows and approve the exact snapshot. This path needs no model key or AI credits and makes no model request. AI-assisted preparation is an explicit optional choice for free-form notes and uses your configured model and spending limits.",
+  },
+  {
     question: "Can I sell tickets to a workshop?",
     answer:
       "Yes, with Events & Tickets enabled and the intended Stripe and Resend connections configured. Open Marketing → Events to edit the page, admission price, schedule, capacity and refund terms. Changing the price updates new checkouts without creating a price in Stripe. Accelerate's bundled homepage announces its upcoming workshop, and Workshop in the menu opens its event page. Buyers can purchase several tickets without creating an account. Payment confirms admission; a return from checkout alone does not. Existing orders keep their agreed price, and you can inspect confirmations, export buyer records and review refunds in Stripe.",
