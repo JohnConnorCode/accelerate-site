@@ -87,6 +87,7 @@ type ImportBatch = {
 };
 
 const EMPTY_SAMPLE = `Jane Martinez, jane@martinezroofing.com, 512-555-0142, Martinez Roofing, Owner\nSam Lee — Operations Director at Northstar HVAC — sam@northstarhvac.com\nPriya Shah | priya@example.com | met at Austin builders meetup; interested in faster estimate follow-up`;
+const COLUMN_SAMPLE = `fullName,email,companyName\nAlex Morgan,alex@example.test,Example Company\nJamie Chen,jamie@example.test,Example Company`;
 
 function statusTone(status: string) {
   if (["completed", "imported"].includes(status))
@@ -397,7 +398,11 @@ export default function ContactImportsPage() {
                 ))}
               </fieldset>
               <label className="admin-field-label">
-                <span>Paste names, notes, rows, or exported data</span>
+                <span>
+                  {method === "columns"
+                    ? "Paste CSV, TSV or flat JSON"
+                    : "Paste names, notes, rows, or exported data"}
+                </span>
                 <textarea
                   value={sourceText}
                   disabled={busy !== null}
@@ -406,8 +411,9 @@ export default function ContactImportsPage() {
                     setColumnSource(null);
                     setSourceText(event.target.value);
                     setFilename(null);
+                    setError(null);
                   }}
-                  placeholder={EMPTY_SAMPLE}
+                  placeholder={method === "columns" ? COLUMN_SAMPLE : EMPTY_SAMPLE}
                   className="admin-field !min-h-40 resize-y py-3 font-mono text-[12px] leading-6"
                   data-testid="contact-import-source"
                 />

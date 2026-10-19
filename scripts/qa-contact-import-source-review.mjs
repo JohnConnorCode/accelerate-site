@@ -34,11 +34,19 @@ try {
     });
     await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
     assert.equal(await page.getByRole("radio", { name: /Map columns/ }).isChecked(), true);
+    await page.getByTestId("contact-import-source").fill("Free-form contact notes");
+    await page.getByTestId("contact-import-analyze").click();
+    const formatError = page.getByText(
+      "Column mapping needs CSV, TSV or flat JSON. Choose AI-assisted for a free-form list.",
+      { exact: true },
+    );
+    await formatError.waitFor();
     await page
       .getByTestId("contact-import-source")
       .fill(
         "Customer,Mailbox,Original note\nHarbor Contact,harbor-import@fictional.example,Retain this source\nInvalid Contact,not-an-email,Keep this row too",
       );
+    assert.equal(await formatError.count(), 0, "Correcting the source clears its format error");
     await page.getByTestId("contact-import-analyze").focus();
     await page.keyboard.press("Enter");
     await page.getByRole("group", { name: "Match contact columns" }).waitFor();
@@ -110,6 +118,17 @@ try {
       `${out}/partial-results.json`,
       JSON.stringify({ status: "partial", results }, null, 2),
     );
+    await page.goto(`${base}/docs/contacts/import`, { waitUntil: "networkidle" });
+    await page.getByRole("heading", { name: "Import contacts", exact: true }).waitFor();
+    await page
+      .getByRole("heading", { name: "2. Prepare the review", exact: true })
+      .scrollIntoViewIfNeeded();
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      "Import guide fits the viewport",
+    );
+    assert.deepEqual(errors, []);
+    await page.screenshot({ path: `${out}/mapped-${width}-guide.png`, fullPage: true });
     await context.close();
   }
   for (const scenario of scenarios)
