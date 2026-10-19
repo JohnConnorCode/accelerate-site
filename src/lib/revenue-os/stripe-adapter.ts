@@ -84,6 +84,7 @@ async function stripeRequest(
         providerError = parsed.error;
     } catch {
       // A non-JSON provider failure still retains its HTTP status and reference.
+      console.warn("[stripe] Provider error response was not JSON");
     }
     const [code, param] = ["code", "param"].map((field) => {
       const value = providerError[field];
