@@ -617,6 +617,7 @@ export function TodayWorkspace() {
                         title={`Ask AI about ${domain.items[0].title}`}
                         onClick={() => {
                           const item = domain.items[0];
+                          if (!item) return;
                           ask(
                             `Help me decide the next step for ${item.title}. Read ${item.sourceType} ${item.sourceId} (${item.href}). The inspected evidence says: ${item.detail}. Check current source status, explain what matters and propose the next action for review.`,
                           );
