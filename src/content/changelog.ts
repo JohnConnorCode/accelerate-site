@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "business-workflow-starts",
+    slug: "business-workflow-starts",
+    title: "Start with a concrete business job",
+    description:
+      "Get started and Today explain how to capture an inquiry, onboard a client, assign meeting follow-ups or prepare an invoice. Choose a job to see its requirements, steps and saved result, then enter the existing workflow. The first inquiry checklist and optional learning setup remain available below the primary chooser.",
+    category: "improvement",
+    publishedAt: "2026-10-19",
+  },
+  {
     id: "contact-import-no-ai",
     slug: "contact-import-no-ai",
     title: "Import contact spreadsheets without AI",

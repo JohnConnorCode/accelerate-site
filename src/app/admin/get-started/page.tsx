@@ -32,55 +32,58 @@ export default function GetStartedPage() {
     <div className="space-y-6">
       <PageHeader
         title={adminPageName("get-started")}
-        subtitle="Choose a useful customer, sales, delivery, billing or marketing job, then connect the capabilities it needs."
+        subtitle="Choose a job below to see what you need, how it works and where the result is saved."
       />
       <BusinessWorkflowStarts />
       <AdminSurface padding="lg">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold">Your first inquiry workflow</h2>
-            <p className="mt-2 max-w-2xl text-sm text-[var(--admin-muted)]">
-              This checklist follows the first saved inquiry through an assigned follow-up. Start
-              with manual tasks, then add AI or email when the job needs it. Completed steps come
-              from existing records and survive reloads.
-            </p>
+        <details>
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold">
+            First inquiry walkthrough
+          </summary>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="mt-2 max-w-2xl text-sm text-[var(--admin-muted)]">
+                Follow your first saved inquiry through a completed follow-up. The reference and
+                learning steps are optional. Progress comes from saved records and survives reloads.
+              </p>
+            </div>
+            <Button disabled={loading} onClick={load}>
+              {loading ? "Checking…" : "Refresh progress"}
+            </Button>
           </div>
-          <Button disabled={loading} onClick={load}>
-            {loading ? "Checking…" : "Refresh progress"}
-          </Button>
-        </div>
-        {error && (
-          <p role="alert" className="mt-4">
-            {error}
-          </p>
-        )}
-        {progress && (
-          <ol className="mt-6 space-y-4">
-            {progress.steps.map((step, index) => (
-              <li
-                key={step.id}
-                className="flex gap-4 rounded-xl bg-[var(--admin-surface-subtle)] p-4"
-              >
-                <span
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--admin-surface)] text-sm tabular-nums"
-                  aria-label={step.complete ? "Complete" : `Step ${index + 1}`}
+          {error && (
+            <p role="alert" className="mt-4">
+              {error}
+            </p>
+          )}
+          {progress && (
+            <ol className="mt-6 space-y-4">
+              {progress.steps.map((step, index) => (
+                <li
+                  key={step.id}
+                  className="flex gap-4 rounded-xl bg-[var(--admin-surface-subtle)] p-4"
                 >
-                  {step.complete ? "✓" : index + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold">{step.title}</h3>
-                  <p className="mt-1 text-sm text-[var(--admin-muted)]">{step.description}</p>
-                  <Link
-                    href={step.href}
-                    className="mt-2 inline-flex min-h-10 items-center text-sm font-medium underline underline-offset-4"
+                  <span
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--admin-surface)] text-sm tabular-nums"
+                    aria-label={step.complete ? "Complete" : `Step ${index + 1}`}
                   >
-                    {step.complete ? "Review saved work" : "Open workspace step"}
-                  </Link>
-                </div>
-              </li>
-            ))}
-          </ol>
-        )}
+                    {step.complete ? "✓" : index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold">{step.title}</h3>
+                    <p className="mt-1 text-sm text-[var(--admin-muted)]">{step.description}</p>
+                    <Link
+                      href={step.href}
+                      className="mt-2 inline-flex min-h-10 items-center text-sm font-medium underline underline-offset-4"
+                    >
+                      {step.complete ? "Review saved work" : "Open workspace step"}
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </details>
       </AdminSurface>
       {progress && (
         <AdminSurface padding="lg">

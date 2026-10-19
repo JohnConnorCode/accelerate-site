@@ -555,7 +555,7 @@ const capabilityDefinitions: Capability[] = [
     title: "Choose optional capabilities",
     promise: "Enable the optional parts of the workspace your business needs.",
     detail:
-      "Core capabilities remain available. Disabling an optional module removes its navigation and gates its routes and tools, while preserving existing records.",
+      "Get started and Today offer specific jobs with required inputs, ordered steps and direct actions into Pipeline, client onboarding, meeting commitments and invoice preparation. Core capabilities remain available. Disabling an optional module removes its navigation and gates its routes and tools, while preserving existing records.",
   },
   {
     id: "agent-workflow",
