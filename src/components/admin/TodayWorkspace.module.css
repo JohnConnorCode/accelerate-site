@@ -1,5 +1,8 @@
 .workspace {
   --today-accent: var(--admin-accent, #b76b32);
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-section-gap);
   color: var(--admin-ink);
   padding-bottom: 3rem;
 }
@@ -155,23 +158,25 @@
   flex-shrink: 0;
 }
 .briefFacts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
   margin-top: 14px;
 }
 .factButton {
   text-align: left;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: baseline;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 8px;
   min-width: 0;
   border-radius: var(--admin-control-radius);
   padding: 8px 10px;
   margin: -8px -10px;
 }
 .factButton strong {
-  font-size: 28px;
+  font-size: 18px;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   line-height: 1.2;
@@ -741,23 +746,31 @@
 
 .businessReview {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin: 18px 0;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 14px 0 20px;
 }
 .reviewDomain {
-  padding: 16px;
-  border-radius: var(--admin-control-radius);
-  background: var(--admin-surface-subtle);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--admin-border);
   min-width: 0;
 }
-.reviewDomainHeading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+.reviewContent {
+  min-width: 0;
+  max-width: 70ch;
 }
-.reviewDomain h3,
+.reviewContent > .muted {
+  margin: 4px 0 0;
+}
+.reviewDomain h3 {
+  margin: 0;
+  font-size: var(--admin-text-caption);
+  font-weight: 550;
+  color: var(--admin-muted);
+}
 .workflowGrid h3 {
   margin: 0;
   font-size: 15px;
@@ -765,12 +778,13 @@
   text-wrap: balance;
 }
 .reviewFinding {
-  margin-top: 14px;
+  margin-top: 4px;
   font-size: var(--admin-text-label);
   line-height: 1.6;
 }
 .reviewFinding > strong {
   display: block;
+  font-size: var(--admin-text-body);
   font-weight: 600;
 }
 .reviewFinding p {
@@ -780,12 +794,12 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 16px;
-  margin-top: 8px;
+  justify-content: flex-end;
+  gap: 8px;
 }
 .reviewActions a,
 .reviewActions button {
-  min-height: 40px;
+  min-height: 44px;
   text-align: left;
 }
 .reviewSource {
@@ -793,6 +807,33 @@
   margin-top: 4px;
   font-size: var(--admin-text-caption);
   color: var(--admin-muted);
+}
+.reviewEvidence {
+  margin-top: 6px;
+  color: var(--admin-muted);
+  font-size: var(--admin-text-caption);
+}
+.reviewEvidence > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  width: fit-content;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+.reviewEvidence > summary::-webkit-details-marker {
+  display: none;
+}
+.reviewEvidence > summary::before {
+  content: "+";
+}
+.reviewEvidence[open] > summary::before {
+  content: "−";
+}
+.reviewEvidence > summary:focus-visible {
+  outline: 2px solid var(--admin-action);
+  outline-offset: 3px;
 }
 .walkthroughs {
   margin-top: 18px;
@@ -823,14 +864,20 @@
   padding: 14px 0 4px;
 }
 @media (max-width: 700px) {
-  .businessReview,
   .workflowGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-@media (min-width: 1280px) {
-  .businessReview {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+@media (max-width: 700px) {
+  .reviewDomain {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .reviewActions {
+    justify-content: flex-start;
+  }
+  .reviewActions > a {
+    flex: 1;
   }
 }

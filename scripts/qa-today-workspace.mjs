@@ -63,7 +63,7 @@ try {
       });
     await installFixtureFetch(page);
     const heading = page.locator(".admin-page-introduction");
-    assert.equal(await heading.locator("[data-page-start-hint]").count(), 1);
+    assert.equal(await heading.locator("[data-page-start-hint]").count(), 0);
     assert.equal(await page.locator("[data-business-review]").count(), 4);
     assert.equal(await heading.getByLabel("Today view", { exact: true }).count(), 1);
     if (width === 390) {

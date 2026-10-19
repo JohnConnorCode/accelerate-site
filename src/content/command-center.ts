@@ -442,7 +442,7 @@ const capabilityDefinitions: Capability[] = [
     title: "A view of today’s work",
     promise: "Start with decisions, follow-up and business changes drawn from available records.",
     detail:
-      "Today provides source-linked attention and supporting context. Open a finding to inspect its record before acting.",
+      "Today pairs customer context with specific review actions in full-width rows. Expand a finding’s source and next step, or open its linked record to act.",
   },
   {
     id: "precall",

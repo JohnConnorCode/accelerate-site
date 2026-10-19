@@ -29,6 +29,7 @@ import Link, { useAdminNavigation } from "./AdminLink";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
+import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import {
   defaultTodayViews,
   defaultTodayView,
@@ -54,6 +55,16 @@ import type { OperatorAttentionItem } from "@/lib/revenue-os/operator-attention"
 import styles from "./TodayWorkspace.module.css";
 
 const desktopColumns = "(min-width: 1100px)";
+const reviewActionLabels: Record<string, string> = {
+  task: "Review task",
+  proposal: "Review proposal",
+  conversation: "Open conversation",
+  collection_case: "Review invoice follow-up",
+  stripe_invoice: "Review invoice",
+  calendar_event: "Review meeting",
+  client_onboarding: "Review checklist",
+  meeting_commitment: "Review checklist",
+};
 const sectionIcons = {
   brief: ChartNoAxesCombined,
   attention: Focus,
@@ -552,57 +563,74 @@ export function TodayWorkspace() {
                 key={domain.id}
                 className={styles.reviewDomain}
                 data-business-review={domain.id}
+                data-review-state={domain.state}
               >
-                <div className={styles.reviewDomainHeading}>
+                <div className={styles.reviewContent}>
                   <h3>{domain.title}</h3>
-                  <Link href={domain.href} className={styles.textLink}>
-                    Open <ArrowRight size={13} aria-hidden="true" />
-                  </Link>
+                  {domain.items.slice(0, 1).map((item) => (
+                    <div key={item.id} className={styles.reviewFinding}>
+                      <strong>{item.title}</strong>
+                      <p>{item.detail}</p>
+                      <details className={styles.reviewEvidence}>
+                        <summary>Source and next step</summary>
+                        <p>{item.nextStep}</p>
+                        <span className={styles.reviewSource}>
+                          {todaySourceName(item.sourceType)} ·{" "}
+                          {dateLabel(item.observedAt, {
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </details>
+                    </div>
+                  ))}
+                  {domain.message !== "From the currently inspected records." && (
+                    <p
+                      className={styles.muted}
+                      role={
+                        domain.state === "unavailable" || domain.state === "partial"
+                          ? "status"
+                          : undefined
+                      }
+                    >
+                      {domain.message}
+                    </p>
+                  )}
                 </div>
-                <p className={styles.muted}>{domain.why}</p>
-                {domain.items.slice(0, 1).map((item) => (
-                  <div key={item.id} className={styles.reviewFinding}>
-                    <strong>{item.title}</strong>
-                    <p>{item.detail}</p>
-                    <div className={styles.reviewActions}>
-                      <Link href={item.href} className={styles.textLink}>
-                        {item.nextStep} <ArrowRight size={13} aria-hidden="true" />
+                <div className={styles.reviewActions}>
+                  {domain.items[0] ? (
+                    <>
+                      <Link
+                        href={domain.items[0].href}
+                        className="admin-button admin-button--secondary"
+                        aria-label={`${reviewActionLabels[domain.items[0].sourceType] ?? "Review record"}: ${domain.items[0].title}`}
+                      >
+                        {reviewActionLabels[domain.items[0].sourceType] ?? "Review record"}
+                        <ArrowRight size={15} aria-hidden="true" />
                       </Link>
                       <button
                         type="button"
-                        className={styles.textLink}
-                        onClick={() =>
+                        className="admin-icon-button"
+                        aria-label={`Ask AI about ${domain.items[0].title}`}
+                        title={`Ask AI about ${domain.items[0].title}`}
+                        onClick={() => {
+                          const item = domain.items[0];
                           ask(
                             `Help me decide the next step for ${item.title}. Read ${item.sourceType} ${item.sourceId} (${item.href}). The inspected evidence says: ${item.detail}. Check current source status, explain what matters and propose the next action for review.`,
-                          )
-                        }
+                          );
+                        }}
                       >
-                        Ask AI
+                        <Sparkles size={17} aria-hidden="true" />
                       </button>
-                    </div>
-                    <span className={styles.reviewSource}>
-                      Source: {todaySourceName(item.sourceType)} ·{" "}
-                      {dateLabel(item.observedAt, {
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                ))}
-                {domain.message !== "From the currently inspected records." && (
-                  <p
-                    className={styles.muted}
-                    role={
-                      domain.state === "unavailable" || domain.state === "partial"
-                        ? "status"
-                        : undefined
-                    }
-                  >
-                    {domain.message}
-                  </p>
-                )}
+                    </>
+                  ) : (
+                    <Link href={domain.href} className={styles.textLink}>
+                      View {domain.title.toLowerCase()} <ArrowRight size={13} aria-hidden="true" />
+                    </Link>
+                  )}
+                </div>
               </article>
             ))}
           </div>
@@ -882,7 +910,8 @@ export function TodayWorkspace() {
     >
       <PageHeader
         title="Today"
-        subtitle="Find the next sales action, client commitment or billing decision that needs your attention."
+        subtitle=""
+        guidance={{ ...adminPageGuidance.today!, startHint: undefined }}
         eyebrow={false}
         compact
         utilityActions={
@@ -971,7 +1000,6 @@ export function TodayWorkspace() {
           </>
         }
       />
-      <BusinessWorkflowStarts compact />
       {(error || query.error || viewsQuery.error) && (
         <div className={styles.error} role="alert">
           {error || query.error?.message || viewsQuery.error?.message}{" "}
@@ -1081,6 +1109,7 @@ export function TodayWorkspace() {
           </div>
         )}
       </AdminAsyncRegion>
+      <BusinessWorkflowStarts compact />
       {viewsQuery.data && preferences.muted.length > 0 && (
         <footer className={styles.cardFooter}>
           <div className={styles.toolbarGroup}>
