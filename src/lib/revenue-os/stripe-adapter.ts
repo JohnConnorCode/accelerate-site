@@ -77,10 +77,28 @@ async function stripeRequest(
         ? ` Stripe request: ${requestId}.`
         : "";
     const resource = path.split("/")[1]?.split("?")[0];
+    let providerError: StripeObject = {};
+    try {
+      const parsed = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+      if (parsed?.error && typeof parsed.error === "object" && !Array.isArray(parsed.error))
+        providerError = parsed.error;
+    } catch {
+      // A non-JSON provider failure still retains its HTTP status and reference.
+    }
+    const [code, param] = ["code", "param"].map((field) => {
+      const value = providerError[field];
+      return typeof value === "string" &&
+        /^[a-z][a-z0-9_.\[\]]{0,119}$/i.test(value) &&
+        !/(?:rk|sk)_(?:test|live)_/.test(value)
+        ? value
+        : null;
+    });
     console.error("[stripe] Provider request failed", {
       status: response.status,
       resource,
       requestId: requestId && /^req_[A-Za-z0-9]{1,120}$/.test(requestId) ? requestId : null,
+      code,
+      param,
     });
     const recovery =
       response.status === 403

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "today-review-action-layout",
+    slug: "today-review-action-layout",
+    title: "Review customer work in a clearer Today layout",
+    description:
+      "Business review uses full-width rows with customer context and specific review actions. Source details expand on demand, empty areas stay compact, and workflow discovery follows the active work. Today removes repeated opening instructions and keeps consistent spacing between sections across desktop and mobile.",
+    category: "improvement",
+    publishedAt: "2026-10-19",
+  },
+  {
     id: "workshop-confidence",
     slug: "workshop-confidence",
     title: "Practice AI skills in a small Chicago workshop",

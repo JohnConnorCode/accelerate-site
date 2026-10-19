@@ -231,10 +231,16 @@ async function serviceProof() {
         assert.match(body.get("success_url")!, /\/confirmation\?order=.*&key=/);
         if (denyCreate) {
           denyCreate = false;
-          return new Response(JSON.stringify({ error: { message: "private provider payload" } }), {
-            status: 403,
-            headers: { "request-id": "req_checkoutDenied" },
-          });
+          return new Response(
+            JSON.stringify({
+              error: {
+                code: "permission_denied",
+                param: "line_items[0][price_data]",
+                message: "private provider payload",
+              },
+            }),
+            { status: 403, headers: { "request-id": "req_checkoutDenied" } },
+          );
         }
         if (!createdByKey.has(key)) {
           providerCreates++;
@@ -331,7 +337,13 @@ async function serviceProof() {
     assert.deepEqual(logged, [
       [
         "[stripe] Provider request failed",
-        { status: 403, resource: "checkout", requestId: "req_checkoutDenied" },
+        {
+          status: 403,
+          resource: "checkout",
+          requestId: "req_checkoutDenied",
+          code: "permission_denied",
+          param: "line_items[0][price_data]",
+        },
       ],
     ]);
     assert.equal(rows().length, 1);
