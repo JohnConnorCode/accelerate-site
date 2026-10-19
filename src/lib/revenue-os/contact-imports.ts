@@ -489,7 +489,17 @@ export async function analyzeContactImport(
     })
     .select("id")
     .single();
-  if (created.error) throw new Error(created.error.message);
+  if (created.error) {
+    if (
+      method === "columns" &&
+      created.error.code === "23514" &&
+      created.error.message.includes("ai_provider")
+    )
+      throw new Error(
+        "Column mapping is unavailable until this installation completes its database update. Your source is retained; retry after the update.",
+      );
+    throw new Error(created.error.message);
+  }
   const batchId = created.data.id;
   try {
     const allowedSourceIndexes = new Set(rawRows.map((_, index) => index));

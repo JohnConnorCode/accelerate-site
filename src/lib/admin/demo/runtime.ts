@@ -4416,6 +4416,13 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (method === "POST" && path === "/api/admin/revenue-os/contact-imports") {
       try {
+        if (
+          body.action === "analyze" &&
+          body.method !== undefined &&
+          body.method !== "columns" &&
+          body.method !== "ai"
+        )
+          throw new Error("Choose column mapping or AI-assisted preparation");
         if (body.action === "analyze" && body.method !== "ai") {
           const prepared = prepareContactImportColumns(
             String(body.sourceText ?? ""),

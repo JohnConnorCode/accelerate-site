@@ -328,6 +328,37 @@ async function verifyMappedImports() {
       calls,
       "No provider fetch, pricing request, fallback or budget admission",
     );
+    memory.fail("contact_import_batches", {
+      code: "23514",
+      message: 'new row violates check constraint "contact_import_batches_ai_provider_check"',
+    });
+    await assert.rejects(
+      analyzeContactImport(db, { sourceText: "name,email\nSam,sam@example.test", actorEmail }),
+      /completes its database update/i,
+    );
+    memory.recover("contact_import_batches");
+    const rowsBeforeFailure = memory.rows("contact_import_rows").length;
+    memory.fail("contact_import_rows", {
+      code: "XX000",
+      message: "controlled row persistence failure",
+    });
+    await assert.rejects(
+      analyzeContactImport(db, { sourceText: "name,email\nSam,sam@example.test", actorEmail }),
+      /controlled row persistence failure/i,
+    );
+    memory.recover("contact_import_rows");
+    assert.equal(memory.rows("contact_import_batches").at(-1)?.status, "failed");
+    assert.equal(memory.rows("contact_import_rows").length, rowsBeforeFailure);
+    assert.equal(memory.rows("contacts").length, 0);
+    const retried = await analyzeContactImport(db, {
+      sourceText: "name,email\nSam,sam@example.test",
+      actorEmail,
+    });
+    assert.equal(
+      retried?.status,
+      "ready",
+      "A failed preparation can be retried safely without canonical effects",
+    );
     const require = createRequire(resolve("package.json"));
     const http: {
       POST?: (request: NextRequest) => Promise<NextResponse>;
