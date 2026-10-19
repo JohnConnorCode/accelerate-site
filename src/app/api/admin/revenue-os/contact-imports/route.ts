@@ -75,11 +75,13 @@ export async function POST(request: NextRequest) {
       );
       if (!rateLimitResult.success)
         return rateLimitResponse(rateLimitResult, {
-          error: "AI import analysis limit reached. Try again later.",
+          error: "Import preparation limit reached. Try again later.",
         });
       const sourceText = typeof body.sourceText === "string" ? body.sourceText : "";
       const batch = await analyzeContactImport(supabase, {
         sourceText,
+        method: body.method,
+        mapping: body.mapping,
         filename: typeof body.filename === "string" ? body.filename : null,
         instructions: typeof body.instructions === "string" ? body.instructions : null,
         actorEmail,

@@ -230,6 +230,64 @@ globalThis.fetch = (async (url: string | URL | Request) => {
   });
 }) as typeof fetch;
 
+async function verifyMappedImports() {
+  const key = process.env.OPENROUTER_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
+  const calls = providerCalls;
+  const memory = new MemorySupabase({ tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }] });
+  const db = bindTenantDatabase(memory.client, ACCELERATE_TENANT_ID, true) as SupabaseClient;
+  const actorEmail = "owner@example.test";
+  try {
+    const batch = await analyzeContactImport(db, {
+      sourceText: "First Name,Last Name,Email,Extra\nJosé,王,jose@example.test,keep this\nDuplicate,Person,jose@example.test,second\nInvalid,Person,not-an-email,third",
+      filename: "contacts.csv", actorEmail,
+    });
+    assert.equal(batch?.ai_provider, "none");
+    assert.equal(batch?.ai_model, null);
+    assert.equal(batch?.ai_request_id, null);
+    assert.deepEqual(batch?.ai_usage, { cost: 0, prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 });
+    assert.equal(batch?.rows?.length, 3);
+    assert.equal(batch?.rows?.[0]?.reviewed_data.fullName, "José 王");
+    assert.equal(batch?.rows?.[0]?.raw_data.extra, "keep this");
+    assert.equal(batch?.rows?.[0]?.included, true);
+    assert.equal(batch?.rows?.[1]?.included, false);
+    assert.match(batch?.rows?.[1]?.errors.join(' ') ?? '', /duplicate email/i);
+    assert.equal(batch?.rows?.[2]?.included, false);
+    assert.equal(memory.rows("contacts").length, 0, "Preparation never imports contacts");
+    assert.equal(memory.rows("audit_log").at(-1)?.after_state?.preparation, "columns");
+    for (const input of [
+      { sourceText: "Customer\tTelephone\nSam Lee\t555-0142", filename: "contacts.tsv", mapping: { fullName: "customer", phone: "telephone" } },
+      { sourceText: '[{"Name":"Priya Shah","Phone":9007199254740993}]', filename: "contacts.json" },
+    ]) {
+      const next = await analyzeContactImport(db, { ...input, actorEmail });
+      assert.equal(next?.ai_provider, "none");
+      assert.equal(next?.rows?.length, 1);
+      assert.equal(next?.rows?.[0]?.included, true);
+      if (input.filename.endsWith('json')) assert.equal(next?.rows?.[0]?.reviewed_data.phone, "9007199254740993");
+    }
+    const before = memory.rows("contact_import_batches").length;
+    for (const [mapping, error] of [
+      [{ fullName: 'missing', email: 'email' }, /missing from this source/i],
+      [{ fullName: 'name', email: 'name' }, /only one contact field/i],
+      [{ fullName: 'name', email: 'email', tenant_id: 'name' }, /unsupported contact field/i],
+      [{ fullName: 'name', email: 42 }, /missing from this source/i],
+      [{ fullName: 'name' }, /email or phone/i],
+      [{ fullName: 'name', firstName: 'email', phone: 'phone' }, /either full name/i],
+    ] as const) {
+      await assert.rejects(analyzeContactImport(db, { sourceText: "name,email,phone\nSam,sam@example.test,555-0142", actorEmail, mapping }), error);
+    }
+    await assert.rejects(analyzeContactImport(db, { sourceText: "Sam Lee at an event", actorEmail }), /CSV, TSV or flat JSON/i);
+    await assert.rejects(analyzeContactImport(db, { sourceText: "name,email\nSam,sam@example.test", actorEmail, method: "guess" }), /column mapping or AI-assisted/i);
+    assert.equal(memory.rows("contact_import_batches").length, before, "Invalid mappings fail before writes");
+    assert.equal(providerCalls, calls, "No provider fetch, pricing request, fallback or budget admission");
+    assert.equal(memory.rows("model_calls").length, 0);
+    assert.equal(memory.rows("workspace_ai_call_reservations").length, 0);
+  } finally {
+    if (key === undefined) delete process.env.OPENROUTER_API_KEY;
+    else process.env.OPENROUTER_API_KEY = key;
+  }
+}
+
 async function main() {
   const memory = new MemorySupabase({ tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }] });
   const database = bindTenantDatabase(
@@ -239,8 +297,9 @@ async function main() {
   ) as SupabaseClient;
   const sourceText =
     "fullName,email\nJane Doe,jane@example.test\nMissing Person,missing@example.test\nSam Lee,sam@example.test";
-  const input = { sourceText, filename: "contacts.csv", actorEmail: "owner@example.test" };
+  const input = { sourceText, filename: "contacts.csv", method: "ai", actorEmail: "owner@example.test" };
   try {
+    await verifyMappedImports();
     await assert.rejects(
       analyzeContactImport(database, { ...input, sourceText: "name,name\nJane,Doe" }),
       /headers repeat/i,
