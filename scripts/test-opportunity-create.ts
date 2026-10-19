@@ -176,7 +176,7 @@ async function main() {
       assert.equal(args.p_actor, actorId);
       assert.equal(args.p_actor_email, actor.user.email);
       hostCalls += 1;
-      const result = await mem.client.rpc("create_opportunity_with_receipt", args);
+      const result = await database.rpc("create_opportunity_with_receipt", args);
       return Response.json(result.error ?? result.data, { status: result.error ? 409 : 200 });
     };
     try {
