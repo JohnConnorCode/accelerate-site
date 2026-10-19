@@ -42,22 +42,27 @@ try {
     await page.getByTestId("contact-import-analyze").focus();
     await page.keyboard.press("Enter");
     await page.getByRole("group", { name: "Match contact columns" }).waitFor();
-    await page.getByLabel("Full name column", { exact: true }).selectOption("customer");
-    await page.getByLabel("Email column", { exact: true }).selectOption("customer");
+    await page.getByLabel("customer contact field", { exact: true }).selectOption("fullName");
     await page.getByTestId("contact-import-analyze").click();
-    await page
-      .getByText("Use each source column for only one contact field", { exact: true })
-      .waitFor();
+    await page.getByText("Map an email or phone column", { exact: true }).waitFor();
     assert.equal(
-      await page.getByLabel("Full name column", { exact: true }).inputValue(),
-      "customer",
+      await page.getByLabel("customer contact field", { exact: true }).inputValue(),
+      "fullName",
     );
-    await page.getByLabel("Email column", { exact: true }).selectOption("mailbox");
+    await page.getByLabel("mailbox contact field", { exact: true }).selectOption("email");
+    assert.equal(
+      await page.getByText("Map an email or phone column", { exact: true }).count(),
+      0,
+      "Editing the mapping clears its prior validation error",
+    );
+    await page.getByRole("radio", { name: /Map columns/ }).scrollIntoViewIfNeeded();
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
       "Column mapping fits the viewport",
     );
     await page.screenshot({ path: `${out}/mapped-${width}-columns.png`, fullPage: true });
+    await page.getByRole("group", { name: "Match contact columns" }).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${out}/mapped-${width}-fields.png`, fullPage: true });
     await page.getByTestId("contact-import-analyze").click();
     await page.locator('[data-contact-import-row="0"]').waitFor();
     await page.getByTestId("contact-import-approve").click();
@@ -101,6 +106,10 @@ try {
       replay: "passed",
       status: "passed",
     });
+    writeFileSync(
+      `${out}/partial-results.json`,
+      JSON.stringify({ status: "partial", results }, null, 2),
+    );
     await context.close();
   }
   for (const scenario of scenarios)
@@ -331,6 +340,7 @@ try {
           window.importQa.count = 500;
         });
         await source.fill("500 fictional rows");
+        await page.getByRole("radio", { name: /AI-assisted/ }).check();
         await page.getByTestId("contact-import-analyze").click();
         await page.getByRole("button", { name: /^50\s*Person 50/ }).waitFor();
         const animationMs = await page.evaluate(() => window.importQa.entrance);

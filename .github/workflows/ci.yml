@@ -464,7 +464,7 @@ jobs:
           path: /tmp/accelerate-admin-focus-handoff/
           if-no-files-found: error
           retention-days: 7
-      - name: Verify Blueprint operating setup
+      - name: Verify contact import and Blueprint operating setup
         if: ${{ needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
@@ -479,8 +479,17 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-workspace-operations-server.log; exit 1; fi
+          npm run resources:run -- node scripts/qa-contact-import-source-review.mjs
           npm run resources:run -- npm run qa:workspace-operations
           npm run resources:run -- node scripts/qa-architect-review.mjs
+      - name: Retain focused contact import evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: contact-import-browser-evidence
+          path: /tmp/accelerate-import-source-review/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain operating setup browser evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         uses: actions/upload-artifact@v7
@@ -768,7 +777,6 @@ jobs:
           if [ "$PUBLIC_PAGES_ONLY" != "true" ] && [ "$DOCS_ONLY" != "true" ]; then
             if ! node scripts/qa-navigation-runtime.mjs; then browser_status=1; fi
             if ! node scripts/qa-navigation-filmstrip.mjs; then browser_status=1; fi
-            if ! node scripts/qa-contact-import-source-review.mjs; then browser_status=1; fi
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
@@ -874,7 +882,6 @@ jobs:
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/
             /tmp/accelerate-theme-persistence/
-            /tmp/accelerate-import-source-review/
             /tmp/accelerate-policy-browser/
           if-no-files-found: ignore
           retention-days: 7

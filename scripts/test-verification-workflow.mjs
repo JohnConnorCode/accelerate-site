@@ -182,6 +182,16 @@ try {
     assert.notEqual(refused.status, 0);
   });
   reset();
+  check("contact import gets isolated early feedback and a focused artifact", () => {
+    const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
+    const command = "node scripts/qa-contact-import-source-review.mjs";
+    assert.equal(workflow.split(command).length, 2, "One complete import browser run");
+    assert.ok(
+      workflow.indexOf(command) <
+        workflow.indexOf("- name: Verify credential-free first-run journey"),
+    );
+    assert.match(workflow, /name: contact-import-browser-evidence/);
+  });
   check("navigation performance runs after parallel browser suites finish", () => {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     const command = "node scripts/qa-public-navigation-profile.mjs --services-only";

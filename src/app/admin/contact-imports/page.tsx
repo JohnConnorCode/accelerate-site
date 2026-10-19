@@ -31,6 +31,7 @@ import {
   prepareContactImportColumns,
   validateContactImportMapping,
   type ContactImportMapping,
+  type ContactImportColumn,
 } from "@/lib/revenue-os/contact-import-source";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
@@ -364,20 +365,6 @@ export default function ContactImportsPage() {
         <section key="source" aria-label="Contact import source" className="admin-split">
           <AdminSurface padding="lg" className="overflow-hidden">
             <div className="flex flex-col gap-5">
-              <div className="flex items-start gap-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300">
-                  <Sparkles className="size-4" />
-                </span>
-                <div>
-                  <h2 className="text-balance font-display text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
-                    Bring your contact list
-                  </h2>
-                  <p className="admin-copy mt-1 text-sm">
-                    Choose how to prepare the list. Every contact stays in review until you approve
-                    it.
-                  </p>
-                </div>
-              </div>
               <fieldset disabled={busy !== null} className="grid gap-2 sm:grid-cols-2">
                 <legend className="admin-field-label mb-2">Preparation</legend>
                 {(
@@ -475,29 +462,36 @@ export default function ContactImportsPage() {
                     Unmapped columns remain available in Original source.
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {CONTACT_IMPORT_COLUMNS.map((field) => (
-                      <label key={field.key} className="admin-field-label min-w-0">
-                        <span>{field.label}</span>
+                    {columnSource.columns.map((column) => (
+                      <label key={column} className="admin-field-label min-w-0 self-start">
+                        <span>{column}</span>
                         <select
                           className="admin-field"
-                          aria-label={`${field.label} column`}
-                          value={mapping[field.key] ?? ""}
-                          onChange={(event) =>
-                            setMapping({ ...mapping, [field.key]: event.target.value })
+                          aria-label={`${column} contact field`}
+                          value={
+                            CONTACT_IMPORT_COLUMNS.find((field) => mapping[field.key] === column)
+                              ?.key ?? ""
                           }
+                          onChange={(event) => {
+                            const next = { ...mapping };
+                            for (const field of CONTACT_IMPORT_COLUMNS)
+                              if (next[field.key] === column) delete next[field.key];
+                            const target = event.target.value as ContactImportColumn;
+                            if (target) next[target] = column;
+                            setMapping(next);
+                            setError(null);
+                          }}
                         >
                           <option value="">Do not import</option>
-                          {columnSource.columns.map((column) => (
-                            <option key={column} value={column}>
-                              {column}
+                          {CONTACT_IMPORT_COLUMNS.map((field) => (
+                            <option key={field.key} value={field.key}>
+                              {field.label}
                             </option>
                           ))}
                         </select>
-                        {mapping[field.key] && (
-                          <span className="admin-copy block truncate text-xs">
-                            Example: {columnSource.rows[0]?.[mapping[field.key]!] || "(empty)"}
-                          </span>
-                        )}
+                        <span className="block truncate text-xs font-normal normal-case tracking-normal text-[var(--admin-muted)]">
+                          Example: {columnSource.rows[0]?.[column] || "(empty)"}
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -516,8 +510,10 @@ export default function ContactImportsPage() {
               >
                 {busy === "analyze" ? (
                   <Loader2 className="size-4 animate-spin" />
-                ) : (
+                ) : method === "ai" ? (
                   <Sparkles className="size-4" />
+                ) : (
+                  <FileSpreadsheet className="size-4" />
                 )}{" "}
                 {method === "ai"
                   ? "Analyze with AI"
