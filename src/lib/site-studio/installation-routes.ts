@@ -9,6 +9,13 @@ export const installationRoutes = [
     preserve: "Published workshop details and tenant-scoped ticket checkout",
   },
   {
+    path: "/events/[slug]/checkout",
+    source: "src/app/(marketing)/events/[slug]/checkout/page.tsx",
+    kind: "application",
+    collection: null,
+    preserve: "Private order payment with tenant-scoped Stripe card fields",
+  },
+  {
     path: "/events/[slug]/confirmation",
     source: "src/app/(marketing)/events/[slug]/confirmation/page.tsx",
     kind: "application",
