@@ -409,7 +409,7 @@
     "src/lib/revenue-os/stage-history.ts": "83ce2f34e57acab509375b99ef6042d3cd77605a859923974aecd871692608a9",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/subscriptions-contract.ts": "aeeafdd05eb69cdfe1a9c7d67670d33fbc289a60452cb2f0021a8df1a68418c0",
-    "src/lib/revenue-os/subscriptions.ts": "abfc177809576e63dbe0bb12c1a7d8fc4d9fd110ee1434ee7e68a5536960badb",
+    "src/lib/revenue-os/subscriptions.ts": "e792687c8c04eb984a8aa12fb75ebe4bbbdee7633cf3106c0fa42635515c7542",
     "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
     "src/lib/revenue-os/types.ts": "7c2ef713990b2180acd4c76507e708431288fd46d98fab1072cc6451a15e44bd",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
@@ -2091,7 +2091,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Authenticated workspace membership and the enabled Stripe invoicing module are required. Plan writes are validated by the subscription domain, use idempotent request IDs and create or archive the Stripe price server-side; provider keys never reach the browser. Customer subscriptions remain Stripe-authoritative and status is read from the tenant-bound billing store.",
+      "boundary": "Authenticated workspace membership and the enabled Stripe invoicing module are required. Plan writes are validated by the subscription domain, use idempotent request IDs and create or archive the Stripe price server-side; provider keys never reach the browser. Customer subscriptions remain Stripe-authoritative and status is read from the tenant-bound billing store. Current administrator membership is rechecked before tenant-filtered server access. Billing tables retain their server-only browser permissions.",
       "followUp": null,
       "specialBoundary": null
     },

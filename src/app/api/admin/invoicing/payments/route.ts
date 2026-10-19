@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { readBillingPayments } from "@/lib/revenue-os/billing-workspace";
+import { stripeChargeIdSchema } from "@/lib/revenue-os/stripe-contract";
 export async function GET(request: NextRequest) {
   const auth = await requireAdminForModule("stripe-invoicing");
   if (auth instanceof NextResponse) return auth;
   const cursor = request.nextUrl.searchParams.get("starting_after") || undefined;
-  if (cursor && !/^ch_[A-Za-z0-9]{1,120}$/.test(cursor))
+  if (cursor && !stripeChargeIdSchema.safeParse(cursor).success)
     return NextResponse.json({ error: "Invalid payment cursor." }, { status: 400 });
   try {
     return NextResponse.json(

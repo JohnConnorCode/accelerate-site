@@ -12,7 +12,7 @@ import {
   type BillingReceipt,
   type BillingPreview,
 } from "./billing-command-contract";
-import { formatInvoiceAmount } from "./stripe-contract";
+import { formatInvoiceAmount, stripeChargeIdSchema } from "./stripe-contract";
 import { invoiceIndexPageSchema } from "./invoice-index-contract";
 
 const object = (value: unknown): Record<string, unknown> =>
@@ -22,7 +22,7 @@ const object = (value: unknown): Record<string, unknown> =>
 const amount = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
 const chargeSchema = z
   .object({
-    id: z.string().regex(/^ch_[A-Za-z0-9]{1,120}$/),
+    id: stripeChargeIdSchema,
     amount,
     amount_captured: amount,
     amount_refunded: amount,
@@ -517,7 +517,7 @@ function refundReceipt(
 ): BillingReceipt {
   const refund = z
     .object({
-      id: z.string().regex(/^re_[A-Za-z0-9]{1,120}$/),
+      id: z.string().regex(/^(?:re|pyr)_[A-Za-z0-9]{1,120}$/),
       charge: z.literal(command.chargeId),
       amount: z.literal(command.amount),
       currency: z.literal(currency),

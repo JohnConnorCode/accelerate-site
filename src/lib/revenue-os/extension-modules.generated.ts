@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "1b31464ec4ac16839b7f686231d1e9d59cad7bffe066f2acc14a930257fd0c40",
+      contractHash: "6c9a558a9f083627a5d9b1e439d8d5d7bb164e34103c00b96384b38791fecf84",
       tools: [
         {
           operation: "prepare-workflow",
@@ -464,7 +464,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "660fb383bbb873203e712f34bc7fc6a0a684e43536367bfdb9ff2b03f50505f2",
+      contractHash: "32efac7607235d6595ad9aaa917d2ff5822f131887df5017540d4e7d4f402f81",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1165,7 +1165,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "97d50b7bcc87e06f5d26fc040dca8fd157b4a4273330450e98e060efde1334f5",
+      contractHash: "ca0c7b6c5ff1494d9fc9dbe050f61f899176f6fda3e9ef380978cb7bced9a7ce",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1446,7 +1446,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                       },
                       chargeId: {
                         type: "string",
-                        pattern: "^ch_[A-Za-z0-9]{1,120}$",
+                        pattern: "^(?:ch|py)_[A-Za-z0-9]{1,120}$",
                       },
                       amount: {
                         type: "integer",
@@ -1542,7 +1542,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                       },
                       chargeId: {
                         type: "string",
-                        pattern: "^ch_[A-Za-z0-9]{1,120}$",
+                        pattern: "^(?:ch|py)_[A-Za-z0-9]{1,120}$",
                       },
                       amount: {
                         type: "integer",

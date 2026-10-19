@@ -89,7 +89,7 @@
       "impact": "external_action",
       "reversibility": "irreversible"
     },
-    "contractHash": "97d50b7bcc87e06f5d26fc040dca8fd157b4a4273330450e98e060efde1334f5",
+    "contractHash": "ca0c7b6c5ff1494d9fc9dbe050f61f899176f6fda3e9ef380978cb7bced9a7ce",
     "tools": [
       {
         "operation": "prepare-workflow",
@@ -288,7 +288,7 @@
                   "type": "object",
                   "properties": {
                     "operation": { "type": "string", "const": "refund_payment" },
-                    "chargeId": { "type": "string", "pattern": "^ch_[A-Za-z0-9]{1,120}$" },
+                    "chargeId": { "type": "string", "pattern": "^(?:ch|py)_[A-Za-z0-9]{1,120}$" },
                     "amount": { "type": "integer", "exclusiveMinimum": 0, "maximum": 100000000 },
                     "reason": { "type": "string", "enum": ["requested_by_customer", "duplicate"] },
                     "requestId": {
@@ -357,7 +357,7 @@
                   "type": "object",
                   "properties": {
                     "operation": { "type": "string", "const": "refund_payment" },
-                    "chargeId": { "type": "string", "pattern": "^ch_[A-Za-z0-9]{1,120}$" },
+                    "chargeId": { "type": "string", "pattern": "^(?:ch|py)_[A-Za-z0-9]{1,120}$" },
                     "amount": { "type": "integer", "exclusiveMinimum": 0, "maximum": 100000000 },
                     "reason": { "type": "string", "enum": ["requested_by_customer", "duplicate"] },
                     "requestId": {

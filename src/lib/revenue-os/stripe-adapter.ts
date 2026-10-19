@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { decryptTenantSecret } from "./encryption";
+import { stripeChargeIdSchema } from "./stripe-contract";
 import { isModuleEnabled } from "./modules";
 import type { IntegrationAdapter } from "./integration-adapters";
 import type { ExtsvcAdapterContract } from "./extsvc-adapter-contract";
@@ -69,10 +70,19 @@ async function stripeRequest(
   } finally {
     reader.releaseLock();
   }
-  if (!response.ok)
-    throw new Error(
-      `Stripe request failed (HTTP ${response.status}); review the provider receipt before retrying`,
-    );
+  if (!response.ok) {
+    const requestId = response.headers.get("request-id");
+    const receipt =
+      requestId && /^req_[A-Za-z0-9]{1,120}$/.test(requestId)
+        ? ` Stripe request: ${requestId}.`
+        : "";
+    const resource = path.split("/")[1]?.split("?")[0];
+    const recovery =
+      response.status === 403
+        ? ` Check this workspace’s Stripe key permissions for ${resource ?? "the requested resource"} in Stripe, then reconnect it in Integrations.`
+        : " Review the provider request before retrying.";
+    throw new Error(`Stripe request failed (HTTP ${response.status}).${recovery}${receipt}`);
+  }
   const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8"));
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
     throw new Error("Stripe response was not an object");
@@ -232,11 +242,11 @@ export async function tenantStripeClient(db: SupabaseClient) {
       return stripeRequest(apiKey, `/payment_intents/${id}`);
     },
     charge: (id: string) => {
-      if (!/^ch_[A-Za-z0-9]{1,120}$/.test(id)) throw new Error("Invalid Stripe charge");
+      if (!stripeChargeIdSchema.safeParse(id).success) throw new Error("Invalid Stripe charge");
       return stripeRequest(apiKey, `/charges/${id}`);
     },
     charges: async (startingAfter?: string) => {
-      if (startingAfter && !/^ch_[A-Za-z0-9]{1,120}$/.test(startingAfter))
+      if (startingAfter && !stripeChargeIdSchema.safeParse(startingAfter).success)
         throw new Error("Invalid payment cursor");
       await assertCurrentConnection();
       return stripeRequest(
@@ -245,7 +255,8 @@ export async function tenantStripeClient(db: SupabaseClient) {
       );
     },
     refunds: (chargeId: string) => {
-      if (!/^ch_[A-Za-z0-9]{1,120}$/.test(chargeId)) throw new Error("Invalid payment reference");
+      if (!stripeChargeIdSchema.safeParse(chargeId).success)
+        throw new Error("Invalid payment reference");
       return stripeRequest(
         apiKey,
         `/refunds?${new URLSearchParams({ charge: chargeId, limit: "100" })}`,
