@@ -259,6 +259,10 @@ try {
     });
     const page = await context.newPage();
     page.setDefaultTimeout(20000);
+    const ticketCheckout = page.getByRole("complementary", {
+      name: "Workshop tickets",
+      exact: true,
+    });
     const errors = [],
       purchases = [],
       contexts = [];
@@ -531,9 +535,7 @@ try {
       false,
     );
     if (width === 390) {
-      const checkout = await page
-        .getByRole("complementary", { name: "Workshop tickets" })
-        .boundingBox();
+      const checkout = await ticketCheckout.boundingBox();
       const takeaways = await page
         .getByRole("heading", { name: "Practical skills you can use at work." })
         .boundingBox();
@@ -577,7 +579,7 @@ try {
     // Hold the real entrance at an unreadable early frame. Interaction must
     // expose the form immediately instead of waiting for its entrance clock.
     if (reducedMotion === "no-preference")
-      await page.getByLabel("Your name", { exact: true }).evaluate((input) => {
+      await ticketCheckout.getByLabel("Your name", { exact: true }).evaluate((input) => {
         const owner = input.closest(".ui-entrance");
         for (const animation of owner.getAnimations()) {
           const timing = animation.effect.getTiming();
@@ -585,30 +587,32 @@ try {
           animation.currentTime = timing.delay + Number(timing.duration) * 0.05;
         }
       });
-    await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
+    await ticketCheckout.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
     assert.equal(
-      await page
+      await ticketCheckout
         .getByLabel("Your name", { exact: true })
         .evaluate((input) => getComputedStyle(input.closest(".ui-entrance")).opacity),
       "1",
       "Focused checkout must finish its entrance immediately",
     );
-    await page
-      .getByRole("complementary", { name: "Workshop tickets" })
+    await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
-    await page.getByLabel("Number of tickets").selectOption("2");
+    await ticketCheckout.getByLabel("Number of tickets").selectOption("2");
     // A failed checkout must remain usable on short laptops and small phones,
     // including when the sticky card grows to contain its recovery message.
     await page.setViewportSize(
       width === 1440 ? { width: 1440, height: 720 } : { width: 320, height: 568 },
     );
-    const buy = page.getByRole("button", { name: "Get 2 tickets ($100)" });
+    const buy = ticketCheckout.getByRole("button", { name: "Get 2 tickets ($100)" });
     await buy.focus();
     await page.keyboard.press("Enter");
-    await page.getByRole("alert").filter({ hasText: "Retry with the same details" }).waitFor();
-    await page.waitForFunction(() => document.activeElement?.getAttribute("role") === "alert");
-    const errorLayout = await page.getByRole("alert").evaluate((alert) => {
+    const checkoutAlert = ticketCheckout.getByRole("alert");
+    await checkoutAlert.filter({ hasText: "Retry with the same details" }).waitFor();
+    await page.waitForFunction(() =>
+      document.activeElement?.matches('aside[aria-label="Workshop tickets"] [role="alert"]'),
+    );
+    const errorLayout = await checkoutAlert.evaluate((alert) => {
       const card = alert.closest("aside");
       const cardBox = card.getBoundingClientRect();
       const alertBox = alert.getBoundingClientRect();
@@ -629,11 +633,11 @@ try {
     });
     await page.keyboard.press("Tab");
     assert.equal(await buy.evaluate((button) => document.activeElement === button), true);
-    await page.getByRole("complementary", { name: "Workshop tickets" }).screenshot({
+    await ticketCheckout.screenshot({
       path: `${output}/checkout-error-${theme}-${width}.png`,
     });
     const errorAccessibility = await new AxeBuilder({ page })
-      .include('[role="alert"]')
+      .include('aside[aria-label="Workshop tickets"] [role="alert"]')
       .withRules(["color-contrast"])
       .analyze();
     assert.deepEqual(
@@ -648,22 +652,21 @@ try {
     );
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
     assert.equal(
-      await page.getByLabel("Your name", { exact: true }).inputValue(),
+      await ticketCheckout.getByLabel("Your name", { exact: true }).inputValue(),
       "Workshop Buyer",
     );
     await page.reload();
-    await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
-    await page
-      .getByRole("complementary", { name: "Workshop tickets" })
+    await ticketCheckout.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
+    await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
-    await page.getByLabel("Number of tickets").selectOption("2");
+    await ticketCheckout.getByLabel("Number of tickets").selectOption("2");
     assert.equal(
       await page.evaluate(() => JSON.stringify(sessionStorage).includes("buyer@workshop.example")),
       false,
     );
     await buy.click();
-    await page.getByRole("alert").filter({ hasText: "This reservation expired" }).waitFor();
+    await checkoutAlert.filter({ hasText: "This reservation expired" }).waitFor();
     await page.evaluate(() => {
       window.__ticketPublicDocument = true;
     });
@@ -939,7 +942,7 @@ try {
     await page.getByLabel("Company", { exact: true }).fill("Local Business");
     await page.getByLabel("What would you like to improve?").fill("Customer follow-up");
     await page.getByRole("button", { name: "Save my answers" }).click();
-    await page.getByRole("alert").filter({ hasText: "Please retry" }).waitFor();
+    await page.getByRole("main").getByRole("alert").filter({ hasText: "Please retry" }).waitFor();
     assert.equal(await page.getByLabel("Company", { exact: true }).inputValue(), "Local Business");
     await page.getByRole("button", { name: "Save my answers" }).click();
     await page.getByRole("status").filter({ hasText: "Your answers are saved" }).waitFor();
@@ -965,16 +968,15 @@ try {
     await page.goto(`${base}/events/${event.slug}?utm_source=venue&utm_campaign=workshop`, {
       waitUntil: "networkidle",
     });
-    await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
-    await page
-      .getByRole("complementary", { name: "Workshop tickets" })
+    await ticketCheckout.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
+    await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
-    await page.getByLabel("Number of tickets").selectOption("2");
+    await ticketCheckout.getByLabel("Number of tickets").selectOption("2");
     await page.evaluate(() => {
       window.__ticketOriginalDocument = true;
     });
-    await page.getByRole("button", { name: "Get 2 tickets ($100)" }).click();
+    await buy.click();
     await page.waitForURL(`**/confirmation?order=${orderId}&key=${key}`);
     await page.getByRole("heading", { name: "You’re registered." }).waitFor();
     assert.equal(await page.evaluate(() => window.__ticketOriginalDocument), undefined);
