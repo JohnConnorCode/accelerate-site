@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "billing-live-read-recovery",
+    slug: "billing-live-read-recovery",
+    title: "Load payment history and subscription plans reliably",
+    description:
+      "Payment history accepts Stripe charge identifiers used by additional payment methods. Subscription views distinguish the current plan from a pending change, and admin plan operations retain server-only access. Stripe permission errors identify the affected resource and include the provider request reference when available.",
+    category: "fix",
+    publishedAt: "2026-10-18",
+  },
+  {
     id: "dashboard-chart-metric-primitives",
     slug: "dashboard-chart-metric-primitives",
     title: "Read consistent dashboard values and charts",

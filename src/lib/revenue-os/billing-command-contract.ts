@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { stripeChargeIdSchema } from "./stripe-contract";
 
 export const billingCommandSchema = z.discriminatedUnion("operation", [
   z
@@ -14,7 +15,7 @@ export const billingCommandSchema = z.discriminatedUnion("operation", [
   z
     .object({
       operation: z.literal("refund_payment"),
-      chargeId: z.string().regex(/^ch_[A-Za-z0-9]{1,120}$/),
+      chargeId: stripeChargeIdSchema,
       amount: z.number().int().positive().max(100000000),
       reason: z.enum(["requested_by_customer", "duplicate"]),
       requestId: z.uuid(),
@@ -49,7 +50,7 @@ export type BillingReceipt = {
 };
 
 export const paymentEntrySchema = z.object({
-  id: z.string().regex(/^ch_[A-Za-z0-9]{1,120}$/),
+  id: stripeChargeIdSchema,
   amount: z.number().int().nonnegative(),
   captured: z.number().int().nonnegative(),
   refunded: z.number().int().nonnegative(),
@@ -70,10 +71,7 @@ export const paymentPageSchema = z
   .object({
     payments: z.array(paymentEntrySchema).max(50),
     hasMore: z.boolean(),
-    nextCursor: z
-      .string()
-      .regex(/^ch_[A-Za-z0-9]{1,120}$/)
-      .nullable(),
+    nextCursor: stripeChargeIdSchema.nullable(),
     connection: z.string(),
     testMode: z.boolean(),
   })

@@ -2,7 +2,9 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { tenantIdForDatabase } from "@/lib/supabase/server";
+import { createApprovedTenantWriter, tenantIdForDatabase } from "@/lib/supabase/server";
+import { getTenantRequestContext } from "@/lib/tenancy/context";
+import { assertCurrentTenantAdmin } from "./tenant-admin-authority";
 import { recordAudit } from "./audit";
 import { tenantStripeClient } from "./stripe-adapter";
 import {
@@ -151,27 +153,40 @@ function subscriptionFields(value: ProviderObject) {
   };
 }
 
+async function subscriptionAdminHost(db: SupabaseClient, actorEmail?: string, actorId?: string) {
+  const context = getTenantRequestContext();
+  const id = await assertCurrentTenantAdmin(
+    db,
+    actorEmail ?? (context?.kind === "actor" ? (context.user.email ?? "") : ""),
+  );
+  if (actorId && (context?.kind !== "actor" || actorId !== context.user.id))
+    throw new Error("Billing actor does not match the authenticated administrator");
+  // Billing tables deliberately have no browser grants. Keep the privileged
+  // client inside this service and enforce the tenant on every query.
+  return createApprovedTenantWriter(id, "subscriptions.admin");
+}
+
 export async function listSubscriptionWorkspace(db: SupabaseClient) {
-  tenantId(db);
+  const host = await subscriptionAdminHost(db);
   const [
     { data: plans, error: plansError },
     { data: subscriptions, error: subscriptionsError },
     { data: customers, error: customersError },
   ] = await Promise.all([
-    db
+    host
       .from("billing_plans")
       .select(
         "id,name,description,currency,interval,amount,stripe_product_id,stripe_price_id,active,created_at,updated_at",
       )
       .order("created_at", { ascending: false }),
-    db
+    host
       .from("billing_subscriptions")
       .select(
-        "id,user_id,plan_id,stripe_subscription_id,stripe_customer_id,stripe_price_id,status,current_period_start,current_period_end,cancel_at_period_end,pending_plan_id,pending_change_at,created_at,updated_at,plan:billing_plans(name,currency,interval,amount)",
+        "id,user_id,plan_id,stripe_subscription_id,stripe_customer_id,stripe_price_id,status,current_period_start,current_period_end,cancel_at_period_end,pending_plan_id,pending_change_at,created_at,updated_at,plan:billing_plans!billing_subscriptions_tenant_id_plan_id_fkey(name,currency,interval,amount)",
       )
       .order("updated_at", { ascending: false })
       .limit(200),
-    db.from("billing_customers").select("user_id,email,name,stripe_customer_id"),
+    host.from("billing_customers").select("user_id,email,name,stripe_customer_id"),
   ]);
   if (plansError || subscriptionsError || customersError)
     throw new Error("Subscription workspace could not be read");
@@ -193,6 +208,8 @@ export async function createSubscriptionPlan(
   actorId: string,
 ) {
   const input = planInputSchema.parse(raw);
+  if (getTenantRequestContext()?.kind === "actor")
+    db = await subscriptionAdminHost(db, actorEmail, actorId);
   const { key, existing } = await beginOperation(db, requestId, "create_plan", actorId);
   if (existing.status === "succeeded") return existing.result;
   try {
@@ -260,6 +277,8 @@ export async function archiveSubscriptionPlan(
   actorEmail: string,
   actorId: string,
 ) {
+  if (getTenantRequestContext()?.kind === "actor")
+    db = await subscriptionAdminHost(db, actorEmail, actorId);
   const { key, existing } = await beginOperation(db, requestId, "archive_plan", actorId);
   if (existing.status === "succeeded") return existing.result;
   let planPriceId: string | undefined;
@@ -436,7 +455,7 @@ export async function readCustomerBilling(db: SupabaseClient, userId: string) {
   const { data: subscriptions, error } = await db
     .from("billing_subscriptions")
     .select(
-      "id,plan_id,stripe_subscription_id,stripe_price_id,status,current_period_start,current_period_end,cancel_at_period_end,pending_plan_id,pending_change_at,plan:billing_plans(name,description,currency,interval,amount)",
+      "id,plan_id,stripe_subscription_id,stripe_price_id,status,current_period_start,current_period_end,cancel_at_period_end,pending_plan_id,pending_change_at,plan:billing_plans!billing_subscriptions_tenant_id_plan_id_fkey(name,description,currency,interval,amount)",
     )
     .eq("user_id", userId)
     .order("updated_at", { ascending: false });

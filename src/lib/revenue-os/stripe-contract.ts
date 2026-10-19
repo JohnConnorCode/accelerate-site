@@ -1,4 +1,7 @@
 import { z } from "zod";
+
+// Stripe also returns py_ identifiers for charge objects from non-card payments.
+export const stripeChargeIdSchema = z.string().regex(/^(?:ch|py)_[A-Za-z0-9]{1,120}$/);
 export const invoiceLineSchema = z
   .object({
     description: z.string().trim().min(1).max(200),

@@ -20,7 +20,12 @@ import {
   type BillingCommand,
   type BillingReceipt,
 } from "../src/lib/revenue-os/billing-command-contract";
-import { formatInvoiceAmount } from "../src/lib/revenue-os/stripe-contract";
+import { formatInvoiceAmount, stripeChargeIdSchema } from "../src/lib/revenue-os/stripe-contract";
+import {
+  archiveSubscriptionPlan,
+  createSubscriptionPlan,
+  listSubscriptionWorkspace,
+} from "../src/lib/revenue-os/subscriptions";
 import {
   invoiceIndexPageSchema,
   invoiceOverview,
@@ -103,19 +108,50 @@ async function main() {
   let timeoutAfterRefund = false;
   let refundStatus = "succeeded";
   let failReads = false;
+  let forbiddenReads = false;
+  let hostReads = 0;
   let linkedInvoiceOwner = f.tenantId;
   let incompleteInvoiceLinks = false;
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input));
+    if (
+      url.origin === "https://branding-fixture.example.test" &&
+      url.pathname.includes("/billing_")
+    ) {
+      assert.equal(init?.method ?? "GET", "GET", "Workspace reads must not mutate billing");
+      assert.equal(new Headers(init?.headers).get("x-tenant-id"), f.tenantId);
+      assert.equal(url.searchParams.get("tenant_id"), `eq.${f.tenantId}`);
+      const table = url.pathname.split("/").at(-1)!;
+      if (table === "billing_subscriptions") {
+        assert.ok(
+          url.searchParams
+            .get("select")
+            ?.includes("plan:billing_plans!billing_subscriptions_tenant_id_plan_id_fkey("),
+        );
+        assert.equal(url.searchParams.get("limit"), "200");
+      }
+      hostReads++;
+      return Response.json(
+        table === "billing_plans" ? [{ id: "controlled-plan", name: "Current plan" }] : [],
+      );
+    }
     if (url.origin !== "https://api.stripe.com") return fallback(input, init);
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("stripe-version"), "2025-06-30.basil");
     const method = init?.method ?? "GET";
+    if (method === "GET" && forbiddenReads)
+      return Response.json(
+        { error: { message: "sensitive provider payload must never escape" } },
+        {
+          status: 403,
+          headers: { "request-id": "req_controlled403" },
+        },
+      );
     if (method === "GET" && failReads)
       return Response.json({ error: "controlled unavailable" }, { status: 503 });
     if (method === "GET") {
       if (url.pathname === "/v1/charges") return Response.json({ data: [charge], has_more: false });
-      if (url.pathname === "/v1/charges/ch_controlled1") return Response.json(charge);
+      if (url.pathname === `/v1/charges/${charge.id}`) return Response.json(charge);
       if (url.pathname === "/v1/invoices")
         return Response.json({ data: [invoice], has_more: false });
       if (url.pathname === "/v1/invoices/in_controlled1") return Response.json(invoice);
@@ -212,8 +248,72 @@ async function main() {
     failReads = true;
     await assert.rejects(() => readBillingPayments(f.db), /HTTP 503/);
     failReads = false;
+    forbiddenReads = true;
+    await assert.rejects(
+      () => readBillingPayments(f.db),
+      (error: unknown) => {
+        assert.ok(error instanceof Error);
+        assert.match(error.message, /HTTP 403/);
+        assert.match(error.message, /permissions.*Integrations/);
+        assert.match(error.message, /req_controlled403/);
+        assert.doesNotMatch(error.message, /sensitive provider payload/);
+        return true;
+      },
+    );
+    forbiddenReads = false;
+    for (const invalid of [
+      "ch_/../customers",
+      "py_bad?limit=100",
+      "in_wrongKind",
+      "ch_" + "x".repeat(121),
+    ])
+      assert.equal(stripeChargeIdSchema.safeParse(invalid).success, false);
+    charge.id = "py_controlled1";
+    const alternativePage = await readBillingPayments(f.db, { cursor: charge.id });
+    assert.equal(alternativePage.payments[0]!.id, charge.id);
+    assert.equal(alternativePage.nextCursor, charge.id);
+    await previewBillingCommand(f.db, {
+      operation: "refund_payment",
+      chargeId: charge.id,
+      amount: 100,
+      reason: "requested_by_customer",
+      requestId: randomUUID(),
+    });
+    charge.id = "ch_controlled1";
+    await assert.rejects(() => listSubscriptionWorkspace(f.db), /authenticated/);
+    assert.equal(hostReads, 0);
     await assert.rejects(() => executeBillingCommand(f.db, randomUUID(), f.email), /authenticated/);
     await runWithTenantRequestContext(f.actor, async () => {
+      const workspace = await listSubscriptionWorkspace(f.db);
+      assert.equal(workspace.plans[0]!.name, "Current plan");
+      assert.equal(hostReads, 3);
+      f.mem.rows("tenant_memberships")[0]!.status = "revoked";
+      await assert.rejects(() => listSubscriptionWorkspace(f.db), /revoked/);
+      await assert.rejects(
+        () =>
+          createSubscriptionPlan(
+            f.db,
+            { name: "Blocked", currency: "usd", interval: "month", amount: 100 },
+            randomUUID(),
+            f.email,
+            f.userId,
+          ),
+        /revoked/,
+      );
+      await assert.rejects(
+        () => archiveSubscriptionPlan(f.db, randomUUID(), randomUUID(), f.email, f.userId),
+        /revoked/,
+      );
+      assert.equal(
+        hostReads,
+        3,
+        "Revoked access must fail before privileged reads or plan operations",
+      );
+      f.mem.rows("tenant_memberships")[0]!.status = "active";
+      f.mem.rows("tenants")[0]!.status = "suspended";
+      await assert.rejects(() => listSubscriptionWorkspace(f.db), /inactive/);
+      assert.equal(hostReads, 3);
+      f.mem.rows("tenants")[0]!.status = "active";
       await assert.rejects(
         () =>
           previewBillingCommand(f.db, {

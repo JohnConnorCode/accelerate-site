@@ -132,3 +132,27 @@ below its former allowance and a remaining fixed corner utility in chart
 markers. Integration lowers the allowance from ten to nine and uses the existing
 theme control radius for those markers. No guard is waived. Chart capture also
 waits for its normal draw animation to finish before retaining a screenshot.
+
+## Hosted billing correction
+
+Live read-only acceptance exposed Stripe permission errors for customers and
+invoices, a charge identifier rejected by the payments parser, and a broken
+subscription workspace read. Billing tables intentionally deny browser access;
+this correction preserves those grants. The admin service rechecks current
+membership and tenant status before using a tenant-filtered server client for
+subscription reads and plan operations. Both admin and customer subscription
+queries explicitly select the current-plan relationship rather than the pending
+plan. Payment list, cursor, review and adapter validation share one charge-ID
+schema. Regenerating the extension contracts also updates the existing shared
+contract fingerprints on client-onboarding and meeting-commitments; their
+operations and permissions are unchanged. Provider failures include a safe request reference and recovery step
+without returning the provider payload.
+
+The public invoicing guide and product changelog describe permission recovery.
+Command Center feature descriptions and FAQ remain accurate: these fixes restore
+the already-described billing behavior without changing controls or approval
+policy. Existing billing and subscription screenshots still show the unchanged
+interface. Local checks exercise both charge formats, restricted-key failure
+messages, tenant-bound server reads, revocation and suspension. Live provider
+permissions still require acceptance against the connected Stripe key; controlled
+transport tests are not proof that the live key has every permission.
