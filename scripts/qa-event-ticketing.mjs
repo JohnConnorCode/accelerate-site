@@ -703,11 +703,19 @@ try {
       assert.equal(await page.locator("#gtag-init, #meta-pixel").count(), 0);
       assert.equal(await page.evaluate(() => typeof window.gtag), "undefined");
       assert.equal(await page.evaluate(() => typeof window.fbq), "undefined");
-      assert.equal(
-        await page.locator('meta[name="referrer"]').getAttribute("content"),
-        "no-referrer",
-      );
-      assert.match(await page.locator('meta[name="robots"]').getAttribute("content"), /noindex/);
+      const referrers = await page
+        .locator('meta[name="referrer"]')
+        .evaluateAll((tags) => tags.map((tag) => tag.getAttribute("content")));
+      assert.ok(referrers.length > 0, "Private payment documents need a referrer policy");
+      for (const referrer of referrers) assert.equal(referrer, "no-referrer");
+      const robots = await page
+        .locator('meta[name="robots"]')
+        .evaluateAll((tags) => tags.map((tag) => tag.getAttribute("content")));
+      assert.ok(robots.length > 0, "Private payment documents need crawler exclusions");
+      for (const directives of robots) {
+        assert.match(directives ?? "", /\bnoindex\b/i);
+        assert.match(directives ?? "", /\bnofollow\b/i);
+      }
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
         false,
