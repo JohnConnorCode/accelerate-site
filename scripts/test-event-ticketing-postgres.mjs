@@ -143,6 +143,8 @@ try {
   const future = Date.now() + 7 * 86400000;
   const published = {
     ...WORKSHOP_EVENT,
+    // Keep the forty-place concurrency scenario independent of marketing defaults.
+    capacity: 40,
     starts_at: new Date(future).toISOString(),
     ends_at: new Date(future + 90 * 60000).toISOString(),
     refund_cutoff: new Date(future - 48 * 3600000).toISOString(),

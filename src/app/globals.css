@@ -3885,14 +3885,14 @@ summary:focus-visible {
   color: var(--mid);
 }
 
-.prose-dark a {
+.prose-dark a:not(.btn) {
   color: var(--fg);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
   transition: opacity 0.2s ease;
 }
-.prose-dark a:hover {
+.prose-dark a:not(.btn):hover {
   opacity: 0.6;
 }
 

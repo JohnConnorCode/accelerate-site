@@ -22,6 +22,8 @@ export async function verifyAIReading({ browser, base, output }) {
           `${base}/demo/command-center/superdebate/${mode === "page" ? "ai" : "today"}`,
           { timeout: 120000 },
         );
+        // Server-rendered controls can appear before the demo boundary hydrates.
+        await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "superdebate");
         if (mode === "panel") {
           await page.locator("[data-today-workspace]").waitFor();
           await page.getByRole("button", { name: "Open More", exact: true }).click();

@@ -166,7 +166,7 @@ See what you can build: reports, reviewed workflows and dedicated business works
 - [Overdue commitments](https://www.acceleratewith.us/docs/plugins/commitment-watch) (updated 2026-09-19): Find overdue tasks and return to the work behind each commitment.
 - [Inventory registration example](https://www.acceleratewith.us/docs/plugins/example-inventory) (updated 2026-09-19): The smallest possible extension: a manifest, a page, and a setting, with nothing else.
 - [Form builder](https://www.acceleratewith.us/docs/plugins/form-builder) (updated 2026-10-10): Publish shareable intake forms and review each response before it enters the pipeline.
-- [Events and tickets](https://www.acceleratewith.us/docs/plugins/event-ticketing) (updated 2026-10-17): Publish a paid workshop, control its ticket capacity, and follow payments and buyer confirmations.
+- [Events and tickets](https://www.acceleratewith.us/docs/plugins/event-ticketing) (updated 2026-10-19): Publish a paid workshop, control its ticket capacity, and follow payments and buyer confirmations.
 - [Meeting commitments](https://www.acceleratewith.us/docs/plugins/meeting-commitments) (updated 2026-09-19): Turn what got agreed in a meeting into assigned, dated tasks someone owns.
 - [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-20): See which meetings are approaching so you can plan preparation time.
 - [Opportunity Radar](https://www.acceleratewith.us/docs/plugins/opportunity-radar) (updated 2026-09-19): A business-specific workspace for source-backed growth opportunities and relationship reviews.

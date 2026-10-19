@@ -122,7 +122,7 @@ export function WorkshopBanner({
             <span>In person</span>
           </time>
           <div className={styles.copy}>
-            <p className={styles.eyebrow}>Accelerate presents · Business AI workshop</p>
+            <p className={styles.eyebrow}>Accelerate presents · Hands-on AI workshop</p>
             <h2>{headline}</h2>
             <p className={styles.schedule}>
               <MapPin size={13} aria-hidden="true" /> {venue}
@@ -163,8 +163,8 @@ export function WorkshopBanner({
               </dl>
             </div>
             <div className={styles.action}>
-              <Link href={available === 0 ? href : `${href}#tickets`} className={styles.cta}>
-                {available === 0 ? "View workshop" : `Get tickets · ${price}`}
+              <Link href={href} className={styles.cta}>
+                {available === 0 ? "View workshop" : `View workshop · ${price}`}
                 <span className={styles.ctaArrow} aria-hidden="true">
                   <ArrowUpRight size={17} />
                 </span>
