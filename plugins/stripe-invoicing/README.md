@@ -14,6 +14,9 @@ receiving payment.
 2. Open **Invoices** directly from the sidebar (or the mobile **Menu**), then
    select **Create invoice**. You can also search for **Create invoice** with
    Command/Ctrl+K. The direct creation link is `/admin/invoicing?view=create`.
+   A won opportunity also provides **Create invoice**, preserving its exact contact
+   through `/admin/invoicing?view=create&contactId=<contact-uuid>`. The selected
+   contact remains in the bounded choices even outside the current name search.
    If the module is off, search for **invoice** and choose **Set up invoicing**
    to reach its enablement instructions. If Stripe is disconnected, the creation
    page shows the connection step first.
