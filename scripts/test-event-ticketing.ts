@@ -377,7 +377,9 @@ async function serviceProof() {
     );
     assert.equal(new URL(checkout.url!).origin, "https://workshop.example.test");
     assert.equal(new URL(checkout.url!).pathname, `/events/${event.slug}/checkout`);
-    const payment = await readTicketPayment(db, event.slug, rows()[0]!.id, input.requestId);
+    const controlledOrderId = rows()[0]!.id;
+    assert.ok(typeof controlledOrderId === "string");
+    const payment = await readTicketPayment(db, event.slug, controlledOrderId, input.requestId);
     assert.equal("clientSecret" in payment && payment.clientSecret, session.client_secret);
     assert.equal(
       "publishableKey" in payment && payment.publishableKey,
@@ -389,13 +391,13 @@ async function serviceProof() {
       "Do not persist client secrets",
     );
     await assert.rejects(
-      readTicketPayment(db, event.slug, rows()[0]!.id, randomUUID()),
+      readTicketPayment(db, event.slug, controlledOrderId, randomUUID()),
       /Order not found/,
     );
     const publicReceipt = await readPublicTicketOrder(
       db,
       event.slug,
-      rows()[0]!.id,
+      controlledOrderId,
       input.requestId,
     );
     assert.ok(
@@ -414,6 +416,7 @@ async function serviceProof() {
     );
     const priorMerchant = {
       ...rows()[0]!,
+      state: rows()[0]!.state,
       id: randomUUID(),
       request_id: randomUUID(),
       stripe_account_id: "acct_other",
