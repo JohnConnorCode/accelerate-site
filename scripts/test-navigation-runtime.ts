@@ -10,6 +10,9 @@ for (const path of [
   "/events/workshop/confirmation",
   "/events/workshop/confirmation/",
   "/t/another-business/events/workshop/confirmation",
+  "/events/workshop/checkout",
+  "/events/workshop/checkout/",
+  "/t/another-business/events/workshop/checkout",
 ])
   assert.equal(isTicketConfirmationPath(path), true, path);
 for (const path of ["/events/workshop", "/contact", "/docs"])

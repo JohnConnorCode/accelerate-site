@@ -109,7 +109,7 @@ const capabilityDefinitions: Capability[] = [
     promise:
       "Publish a paid workshop and keep its capacity, purchases, and confirmations together.",
     detail:
-      "Enable Events & Tickets and connect Stripe and Resend. Edit admission prices in Events, let buyers purchase several tickets, and confirm admission from verified payment. Existing orders retain their price. Accelerate's homepage promotion opens the workshop overview using saved event details. Refunds, buyer exports, reservation reconciliation and reviewed AI changes share the same workspace services.",
+      "Enable Events & Tickets and connect the business's Stripe account and Resend. Buyers choose several tickets and pay through secure card fields on an internal payment page. Confirm admission from verified payment; existing orders retain their price. Accelerate's homepage promotion opens the workshop overview using saved event details. Refunds, buyer exports, reservation reconciliation and reviewed AI changes share the same workspace services.",
     gated: true,
     guideHref: "/docs/plugins/event-ticketing",
   },

@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { encryptTenantSecret } from "../src/lib/revenue-os/encryption";
+import { stripeAdapter } from "../src/lib/revenue-os/stripe-adapter";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/constants";
 import {
   createTicketCheckout,
@@ -17,6 +18,8 @@ import {
   processTicketStripeWebhook,
   sendTicketConfirmation,
   readPublicTicketOrder,
+  readTicketPayment,
+  reconcileTicketReservations,
   saveTicketBusinessContext,
   executeTicketAdminCommand,
   proposeTicketAdminCommand,
@@ -121,6 +124,12 @@ async function serviceProof() {
         credential_version: 1,
         account_email: "acct_fixture",
         encrypted_credentials: {
+          publishable_key: encryptTenantSecret(
+            "pk_test_eventfixture1234567890",
+            ACCELERATE_TENANT_ID,
+            "stripe",
+            "publishable_key",
+          ),
           api_key: encryptTenantSecret(
             "rk_test_eventfixture1234567890",
             ACCELERATE_TENANT_ID,
@@ -224,11 +233,14 @@ async function serviceProof() {
         const body = new URLSearchParams(String(init.body));
         const key = headers.get("idempotency-key")!;
         assert.equal(body.get("mode"), "payment");
+        assert.equal(body.get("ui_mode"), "custom");
         assert.equal(body.get("payment_method_types[0]"), "card");
         assert.equal(body.get("line_items[0][price_data][unit_amount]"), "5000");
         assert.equal(body.get("line_items[0][quantity]"), "2");
         assert.equal(body.get("adjustable_quantity[enabled]"), null);
-        assert.match(body.get("success_url")!, /\/confirmation\?order=.*&key=/);
+        assert.match(body.get("return_url")!, /\/confirmation\?order=.*&key=/);
+        assert.equal(body.get("success_url"), null);
+        assert.equal(body.get("cancel_url"), null);
         if (denyCreate) {
           denyCreate = false;
           return new Response(
@@ -251,7 +263,9 @@ async function serviceProof() {
           );
           session = {
             id: "cs_test_ticketfixture",
-            url: "https://checkout.stripe.com/c/pay/cs_test_ticketfixture",
+            url: null,
+            ui_mode: "custom",
+            client_secret: "cs_test_ticketfixture_secret_controlled",
             expires_at: Number(body.get("expires_at")),
             mode: "payment",
             status: "open",
@@ -361,7 +375,73 @@ async function serviceProof() {
       "https://workshop.example.test",
       "accelerate",
     );
-    assert.match(checkout.url!, /^https:\/\/checkout\.stripe\.com\//);
+    assert.equal(new URL(checkout.url!).origin, "https://workshop.example.test");
+    assert.equal(new URL(checkout.url!).pathname, `/events/${event.slug}/checkout`);
+    const payment = await readTicketPayment(db, event.slug, rows()[0]!.id, input.requestId);
+    assert.equal("clientSecret" in payment && payment.clientSecret, session.client_secret);
+    assert.equal(
+      "publishableKey" in payment && payment.publishableKey,
+      "pk_test_eventfixture1234567890",
+    );
+    assert.equal(rows()[0]!.stripe_checkout_url, null);
+    assert.ok(
+      !JSON.stringify(rows()).includes("_secret_controlled"),
+      "Do not persist client secrets",
+    );
+    await assert.rejects(
+      readTicketPayment(db, event.slug, rows()[0]!.id, randomUUID()),
+      /Order not found/,
+    );
+    const publicReceipt = await readPublicTicketOrder(
+      db,
+      event.slug,
+      rows()[0]!.id,
+      input.requestId,
+    );
+    assert.ok(
+      !JSON.stringify(publicReceipt.public).includes("_secret_"),
+      "Status reads exclude client secrets",
+    );
+    assert.deepEqual(
+      await createTicketCheckout(
+        db,
+        event.slug,
+        input,
+        "https://workshop.example.test",
+        "accelerate",
+      ),
+      checkout,
+    );
+    const priorMerchant = {
+      ...rows()[0]!,
+      id: randomUUID(),
+      request_id: randomUUID(),
+      stripe_account_id: "acct_other",
+      expires_at: new Date(Date.now() - 120000).toISOString(),
+    };
+    rows().push(priorMerchant);
+    assert.deepEqual(await reconcileTicketReservations(db, event.id), {
+      checked: 1,
+      needsReview: 1,
+      truncated: false,
+    });
+    assert.equal(
+      priorMerchant.state,
+      "checkout",
+      "A merchant change cannot release an unverified reservation",
+    );
+    assert.deepEqual(
+      await createTicketCheckout(
+        db,
+        event.slug,
+        input,
+        "https://workshop.example.test",
+        "accelerate",
+      ),
+      checkout,
+      "A retained prior-merchant order cannot abort an unrelated current checkout",
+    );
+    rows().splice(rows().indexOf(priorMerchant), 1);
     assert.equal(providerCreates, 1, "a lost response must reuse the same provider checkout");
     assert.equal(rows()[0]!.quantity, 2);
     assert.equal(
@@ -681,6 +761,31 @@ async function demoProof() {
   }
 }
 async function main() {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ id: "acct_expected" }), { status: 200 });
+    const credentials = { apiKey: "rk_test_merchantfixture123456", accountId: "acct_other" };
+    const wrongMerchant = await stripeAdapter.verify(credentials);
+    assert.equal(wrongMerchant.valid, false);
+    assert.match(wrongMerchant.error!, /different Stripe account/);
+    assert.equal(
+      (await stripeAdapter.verify({ ...credentials, accountId: "acct_expected" })).valid,
+      true,
+    );
+    assert.equal(
+      (
+        await stripeAdapter.verify({
+          ...credentials,
+          accountId: "acct_expected",
+          publishableKey: "pk_live_merchantfixture123456",
+        })
+      ).valid,
+      false,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
   await serviceProof();
   await adminProof();
   await adminRouteProof();
@@ -697,6 +802,8 @@ main()
           "UTF-8 calendar folding and injection prevention",
           "cross-origin checkout denied before database access",
           "lost provider response safely reuses checkout",
+          "internal payment uses the same order and keeps client secrets out of records and public status",
+          "foreign Stripe account and mismatched publishable key mode are refused",
           "unpaid and mismatched receipts cannot confirm admission",
           "webhook replay cannot duplicate tickets",
           "email failure preserves paid admission",

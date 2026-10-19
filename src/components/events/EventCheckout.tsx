@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { ticketMoney, type TicketEvent } from "@/lib/revenue-os/event-ticketing-contract";
+import {
+  eventPath,
+  ticketMoney,
+  type TicketEvent,
+} from "@/lib/revenue-os/event-ticketing-contract";
 import styles from "./workshop.module.css";
 
 export function EventCheckout({
@@ -101,9 +105,12 @@ export function EventCheckout({
       const url = new URL(payload.url);
       // A fresh private document cannot inherit marketing SDKs already loaded
       // on this public page. Its own chrome excludes those scripts.
-      if (payload.confirmed && url.origin === window.location.origin)
-        window.location.assign(url.href);
-      else if (url.protocol === "https:" && url.hostname === "checkout.stripe.com")
+      const path = eventPath(tenantSlug, event.slug);
+      if (
+        url.origin === window.location.origin &&
+        (url.pathname === `${path}/checkout` ||
+          (payload.confirmed && url.pathname === `${path}/confirmation`))
+      )
         window.location.assign(url.href);
       else throw new Error("Checkout returned an unexpected address");
     } catch (cause) {
@@ -157,7 +164,7 @@ export function EventCheckout({
           )}
           <button type="submit" className={styles.primary} disabled={busy}>
             {busy
-              ? "Opening secure checkout…"
+              ? "Preparing your order…"
               : `Get ${quantity === 1 ? "a ticket" : `${quantity} tickets`} (${ticketMoney(event.price_cents * quantity)})`}
           </button>
           <p className={styles.small}>

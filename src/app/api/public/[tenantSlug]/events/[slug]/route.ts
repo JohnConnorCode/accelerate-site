@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { resolveActiveTenantSystemContext } from "@/lib/tenancy/system";
 import {
   readPublicTicketOrder,
+  readTicketPayment,
   readTicketEvent,
   saveTicketBusinessContext,
 } from "@/lib/revenue-os/event-ticketing";
@@ -38,15 +39,11 @@ export async function GET(
           { error: "Please wait before checking again" },
           headers,
         );
+      const key = request.nextUrl.searchParams.get("key") || "";
       return NextResponse.json(
-        (
-          await readPublicTicketOrder(
-            db,
-            slug,
-            order,
-            request.nextUrl.searchParams.get("key") || "",
-          )
-        ).public,
+        request.nextUrl.searchParams.get("payment") === "1"
+          ? await readTicketPayment(db, slug, order, key)
+          : (await readPublicTicketOrder(db, slug, order, key)).public,
         { headers },
       );
     }

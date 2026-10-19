@@ -1071,3 +1071,43 @@
     transform: none;
   }
 }
+.paymentWrap {
+  width: min(100%, 38rem);
+  margin: 0 auto;
+  padding: 1rem 0 0;
+}
+
+.paymentTitle {
+  margin: 2rem 0;
+  color: var(--heading-color);
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.paymentSummary {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-glass);
+  border-radius: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.paymentSummary h2 {
+  color: var(--heading-color);
+  font-size: 1.2rem;
+  line-height: 1.5;
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  cursor: pointer;
+}

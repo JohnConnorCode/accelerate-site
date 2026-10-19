@@ -15,7 +15,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "workshop-confidence",
     title: "Practice AI skills in a small Chicago workshop",
     description:
-      "The November 11 workshop now focuses on guided practice for people who want more confidence using AI. Meet the hosts, see what to bring, and explore three practical preparation guides. Homepage links open the workshop overview before checkout. The workshop is limited to 24 participants, with pizza included in the $50 admission. Article buttons retain readable contrast in both themes. Checkout errors remain within the ticket card and direct buyers to retry with their details retained.",
+      "The November 11 workshop now focuses on guided practice for people who want more confidence using AI. Meet the hosts, see what to bring, and explore three practical preparation guides. Homepage links open the workshop overview before checkout. The workshop is limited to 24 participants, with pizza included in the $50 admission. Buyers pay through secure Stripe card fields on an internal payment page. Field recovery keeps the same order, and uncertain payment results lead to a status check before another submission. Payment and confirmation pages exclude marketing scripts. Stripe setup verifies the intended account and keeps each merchant's credentials separate. Article buttons retain readable contrast in both themes, and checkout errors remain within the ticket card.",
     category: "improvement",
     publishedAt: "2026-10-19",
   },

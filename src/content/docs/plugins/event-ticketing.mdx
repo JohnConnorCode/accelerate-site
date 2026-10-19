@@ -4,7 +4,7 @@ description: Publish a paid workshop, control its ticket capacity, and follow pa
 updated: "2026-10-19"
 ---
 
-Events and tickets gives a workshop one public page, a secure Stripe checkout,
+Events and tickets gives a workshop one public page, an internal payment page with secure Stripe fields,
 and an Events workspace for the people running it. A buyer can purchase several
 tickets without an Accelerate account. Successful payment confirms admission;
 returning from checkout alone does not.
@@ -17,7 +17,10 @@ sender and reply inbox. Apply the installation's ordered migrations first. The
 Accelerate upgrade creates its November 11 workshop as a draft; it does not open
 sales automatically. Other installations enable the optional module themselves.
 
-Use the same Stripe mode for the API key, account and signing secret. In Stripe,
+In **Billing**, connect the Stripe account that belongs to this business. Enter
+its **Stripe account ID**, API key and **Publishable key for workshop payments**.
+The connection refuses a server key from another account. Use the same test or live
+mode for the server key, publishable key and signing secret. In Stripe,
 configure `/api/public/{tenant}/webhooks/stripe` for
 `checkout.session.completed`, `checkout.session.expired` and `charge.refunded`.
 For this workshop the tenant is `accelerate`. The API key needs permission to
@@ -25,8 +28,8 @@ create and read Checkout sessions and read payment intents and charges, alongsid
 the account access checked when connecting. Verify those permissions with a
 controlled test event before accepting live registrations.
 
-An account shared with another business should use a dedicated restricted key
-and webhook for this installation. Unrelated checkouts are acknowledged without
+Use a dedicated restricted key and webhook for this installation. Verify the
+merchant name on the account before connecting it. Unrelated checkouts are acknowledged without
 creating workshop registrations or entering the workspace's subscription workflow.
 
 Stripe processing and Resend usage are billed by those providers. Event editing
@@ -76,6 +79,11 @@ existing editor when you want promotion there.
 
 ## Capacity and purchase confirmation
 
+A buyer enters their name, email and quantity on the workshop page, then pays
+on the business's own payment page. Stripe supplies the secure card fields inside
+that page. The buyer sees their order and total before choosing **Pay**. No
+Stripe account or saved-payment login is required.
+
 A checkout reserves its quantity for thirty-five minutes. Reserved and paid
 places cannot exceed capacity, including when several buyers check out together.
 A reservation is released after Stripe confirms expiration or the server verifies
@@ -123,6 +131,10 @@ callbacks cannot undo a recorded refund.
 - If a buyer has paid but status is pending, keep the confirmation link and choose
   **Check payment status**. Payment verification and provider callbacks share one
   fulfillment service. Buying again is unnecessary.
+- If secure card fields fail to load, choose **Reload secure payment fields**.
+  The order remains the same. A declined card can be corrected and retried;
+  an uncertain payment result offers **Check this payment** and blocks another
+  submission until the order is reviewed.
 - Use **Reconcile reservations** to check expired sessions. A complete provider
   receipt can recover a lost response. A receipt lookup is bounded to one hundred
   recent sessions; an incomplete listing or a changed Stripe account remains
@@ -142,11 +154,11 @@ event revision are checked again. AI cannot charge a buyer or approve its own
 proposal.
 
 Ask for the event's public registration link when inviting buyers. Buyers choose
-their own tickets, pay in Stripe, and enter optional business context on their
+their own tickets, pay on the internal payment page, and enter optional business context on their
 private confirmation page. The assistant never needs a buyer's order key or
 payment details.
 
-Private confirmation pages exclude third-party marketing scripts. Returning to
+Private payment and confirmation pages exclude third-party marketing scripts. Returning to
 an already paid order opens a fresh private page, so advertising scripts from
 the sales page cannot inherit its order credentials.
 
