@@ -42,6 +42,23 @@ function reset() {
   git(["clean", "-fd"]);
 }
 try {
+  check("application and fork builds wait for one source typecheck", () => {
+    const ci = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
+    const connected = readFileSync(resolve(source, ".github/workflows/connected-fork.yml"), "utf8");
+    const section = (text, name) =>
+      text.split(`  ${name}:\n`)[1]?.split(/\n  [a-z][a-z-]*:/)[0] ?? "";
+    for (const job of ["build", "full-product-fork", "neutral-starter"])
+      assert.match(section(ci, job), /needs:.*typecheck/, `${job} must wait for source typing`);
+    for (const job of ["release-recovery", "connected-fork"])
+      assert.match(
+        section(connected, job),
+        /needs: typecheck/,
+        `${job} must wait for source typing`,
+      );
+    for (const text of [ci, connected])
+      assert.match(section(text, "typecheck"), /run: npm run typecheck/);
+    assert.match(section(ci, "verify"), /test "\$TYPECHECK_RESULT" = success/);
+  });
   git(["init", "--template=", "--initial-branch=main"]);
   git(["config", "user.name", "Workflow Test"]);
   git(["config", "user.email", "workflow@example.test"]);
@@ -237,7 +254,7 @@ try {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     assert.match(
       workflow,
-      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only && !inputs\.public_pages_only && !inputs\.cold_start_only \}\}\s+needs: \[scope, checks, docs-checks, build, full-product-fork, neutral-starter\]/,
+      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only && !inputs\.public_pages_only && !inputs\.cold_start_only \}\}\s+needs: \[scope, typecheck, checks, docs-checks, build, full-product-fork, neutral-starter\]/,
     );
     assert.match(workflow, /admin_design_only:[\s\S]*?type: boolean\s+default: false/);
     assert.match(workflow, /public_pages_only:[\s\S]*?type: boolean\s+default: false/);
@@ -254,17 +271,18 @@ try {
     );
     assert.match(
       workflow,
-      /build:\s+needs: scope\s+if: \$\{\{ !inputs\.admin_design_only && !inputs\.cold_start_only && !inputs\.hero_target_url \}\}/,
+      /build:\s+needs: \[scope, typecheck\]\s+if: \$\{\{ !inputs\.admin_design_only && !inputs\.cold_start_only && !inputs\.hero_target_url \}\}/,
     );
     assert.match(workflow, /hero_target_url:[\s\S]*?type: string\s+default: ""/);
     assert.match(
       workflow,
       /hosted-homepage:\s+if: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.public_pages_only && inputs\.hero_target_url \}\}/,
     );
-    for (const job of ["checks", "full-product-fork", "neutral-starter"])
+    assert.match(workflow, /checks:[\s\S]*?needs: scope[\s\S]*?docs_only != 'true'/);
+    for (const job of ["full-product-fork", "neutral-starter"])
       assert.match(
         workflow,
-        new RegExp(job + ":[\\s\\S]*?needs: scope[\\s\\S]*?docs_only != 'true'"),
+        new RegExp(job + ":[\\s\\S]*?needs: \\[scope, typecheck\\][\\s\\S]*?docs_only != 'true'"),
       );
     assert.match(workflow, /admin-design:\s+if: \$\{\{ inputs\.admin_design_only \}\}/);
     const command = workflow
@@ -277,6 +295,7 @@ try {
       spawnSync("bash", ["-e", "-c", command], { env: { ...env, ...results } }).status === 0;
     const full = {
       SCOPE_RESULT: "success",
+      TYPECHECK_RESULT: "success",
       DOCS_ONLY: "false",
       CHECKS_RESULT: "success",
       DOCS_CHECKS_RESULT: "skipped",
@@ -300,9 +319,10 @@ try {
         assert.equal(verify({ ...results, [key]: "cancelled" }), false, key + " cancelled");
       }
       assert.equal(verify({ ...results, BUILD_RESULT: "skipped" }), false);
+      assert.equal(verify({ ...results, TYPECHECK_RESULT: "skipped" }), false);
     }
     assert.match(workflow, /merge_group:/);
-    assert.doesNotMatch(workflow, /run: npm run typecheck/);
+    assert.match(workflow, /run: npm run typecheck/);
     assert.match(workflow, /run: npm run build/);
     assert.match(workflow, /run: npm run lint -- --max-warnings=0/);
     assert.match(workflow, /run: npm run format:check/);

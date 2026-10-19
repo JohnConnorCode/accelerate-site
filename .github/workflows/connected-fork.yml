@@ -42,7 +42,21 @@ permissions:
   contents: read
 
 jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
   release-recovery:
+    needs: typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -73,6 +87,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
   connected-fork:
+    needs: typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

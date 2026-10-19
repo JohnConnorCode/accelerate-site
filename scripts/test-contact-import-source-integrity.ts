@@ -272,7 +272,9 @@ async function verifyMappedImports() {
     assert.match(batch?.rows?.[1]?.errors.join(" ") ?? "", /duplicate email/i);
     assert.equal(batch?.rows?.[2]?.included, false);
     assert.equal(memory.rows("contacts").length, 0, "Preparation never imports contacts");
-    assert.equal(memory.rows("audit_log").at(-1)?.after_state?.preparation, "columns");
+    const audit = memory.rows("audit_log").at(-1)?.after_state as
+      { preparation?: string } | undefined;
+    assert.equal(audit?.preparation, "columns");
     for (const input of [
       {
         sourceText: "Customer\tTelephone\nSam Lee\t555-0142",

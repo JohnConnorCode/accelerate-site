@@ -58,6 +58,21 @@ jobs:
           done < "$RUNNER_TEMP/changed-files"
           echo 'docs_only=true' >> "$GITHUB_OUTPUT"
 
+  # Fail source typing once before starting the application/fork build fan-out.
+  typecheck:
+    needs: scope
+    if: ${{ !inputs.admin_design_only && !inputs.hero_target_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
   checks:
     needs: scope
     if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' }}
@@ -367,7 +382,7 @@ jobs:
       - run: npm run format:check
 
   build:
-    needs: scope
+    needs: [scope, typecheck]
     if: ${{ !inputs.admin_design_only && !inputs.cold_start_only && !inputs.hero_target_url }}
     runs-on: ubuntu-latest
     # Full browser coverage includes native SVG interaction across viewports,
@@ -904,7 +919,7 @@ jobs:
           retention-days: 7
 
   full-product-fork:
-    needs: scope
+    needs: [scope, typecheck]
     if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -950,7 +965,7 @@ jobs:
           retention-days: 7
 
   neutral-starter:
-    needs: scope
+    needs: [scope, typecheck]
     if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -1008,7 +1023,7 @@ jobs:
   # Keep the required check name; accept only the jobs expected for the detected scope.
   verify:
     if: ${{ always() && !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only }}
-    needs: [scope, checks, docs-checks, build, full-product-fork, neutral-starter]
+    needs: [scope, typecheck, checks, docs-checks, build, full-product-fork, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
@@ -1018,11 +1033,12 @@ jobs:
           DOCS_CHECKS_RESULT: ${{ needs.docs-checks.result }}
           DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
           SCOPE_RESULT: ${{ needs.scope.result }}
+          TYPECHECK_RESULT: ${{ needs.typecheck.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
           FULL_FORK_RESULT: ${{ needs.full-product-fork.result }}
         run: |
-          test "$SCOPE_RESULT" = success && test "$BUILD_RESULT" = success || exit 1
+          test "$SCOPE_RESULT" = success && test "$TYPECHECK_RESULT" = success && test "$BUILD_RESULT" = success || exit 1
           if [ "$DOCS_ONLY" = true ]; then
             test "$DOCS_CHECKS_RESULT" = success && test "$CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = skipped && test "$FULL_FORK_RESULT" = skipped || exit 1
           else
