@@ -288,6 +288,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:platform-command-context:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:audit-log-append-only:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:opportunity-create:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-configuration:postgres
@@ -464,10 +465,11 @@ jobs:
           path: /tmp/accelerate-admin-focus-handoff/
           if-no-files-found: error
           retention-days: 7
-      - name: Verify contact import and Blueprint operating setup
+      - name: Verify import and opportunity recovery with Blueprint operating setup
         if: ${{ needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
+          OPPORTUNITY_QA_OUTPUT: /tmp/accelerate-opportunity-create-recovery
         run: |
           setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-workspace-operations-server.log 2>&1 &
           server_pid=$!
@@ -480,6 +482,7 @@ jobs:
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-workspace-operations-server.log; exit 1; fi
           npm run resources:run -- node scripts/qa-contact-import-source-review.mjs
+          npm run resources:run -- node scripts/qa-opportunity-create-recovery.mjs
           npm run resources:run -- npm run qa:workspace-operations
           npm run resources:run -- node scripts/qa-architect-review.mjs
       - name: Retain focused contact import evidence
@@ -488,6 +491,14 @@ jobs:
         with:
           name: contact-import-browser-evidence
           path: /tmp/accelerate-import-source-review/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain focused opportunity recovery evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: opportunity-create-browser-evidence
+          path: /tmp/accelerate-opportunity-create-recovery/
           if-no-files-found: ignore
           retention-days: 7
       - name: Retain operating setup browser evidence

@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-10-19",
   },
   {
+    id: "opportunity-create-recovery",
+    slug: "opportunity-create-recovery",
+    title: "Retry an uncertain opportunity save",
+    description:
+      "Pipeline keeps the original request when a save cannot be confirmed. Retry save recovers that opportunity, while separate new opportunities can still use the same customer. The compatible database upgrade saves the opportunity and its creation evidence together; apply it before deploying this form.",
+    category: "fix",
+    publishedAt: "2026-10-19",
+  },
+  {
     id: "billing-live-read-recovery",
     slug: "billing-live-read-recovery",
     title: "Load payment history and subscription plans reliably",

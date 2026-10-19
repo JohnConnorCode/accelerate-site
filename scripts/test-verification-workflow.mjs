@@ -182,7 +182,7 @@ try {
     assert.notEqual(refused.status, 0);
   });
   reset();
-  check("contact import gets isolated early feedback and a focused artifact", () => {
+  check("import and opportunity recovery get early feedback and focused artifacts", () => {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     const command = "node scripts/qa-contact-import-source-review.mjs";
     assert.equal(workflow.split(command).length, 2, "One complete import browser run");
@@ -191,6 +191,17 @@ try {
         workflow.indexOf("- name: Verify credential-free first-run journey"),
     );
     assert.match(workflow, /name: contact-import-browser-evidence/);
+    const opportunity = "node scripts/qa-opportunity-create-recovery.mjs";
+    assert.equal(workflow.split(opportunity).length, 2, "One complete opportunity browser run");
+    assert.ok(
+      workflow.indexOf(opportunity) <
+        workflow.indexOf("- name: Verify credential-free first-run journey"),
+    );
+    assert.match(workflow, /name: opportunity-create-browser-evidence/);
+    assert.match(
+      workflow,
+      /PATH="\$\(pg_config --bindir\):\$PATH" npm run test:opportunity-create:postgres/,
+    );
   });
   check("navigation performance runs after parallel browser suites finish", () => {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");

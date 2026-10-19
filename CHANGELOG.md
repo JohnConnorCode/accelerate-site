@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Make manual opportunity creation atomic and safe to retry with a retained intent, tenant-scoped private receipt and explicit authenticated actor. Keep native SQL and desktop/mobile recovery checks in the release pipeline.
+
 - Gate application/fork builds and connected installation/recovery jobs on a bounded source typecheck, so typing failures stop before build fan-out or service provisioning.
 
 - Add deterministic contact column mapping for CSV, TSV and flat JSON using the existing parser, identity checks, reviewed approval and executor. Preserve explicit no-model provenance and zero usage; AI extraction is opt-in. Share parsing and validation with the mapping UI and fictional demo, and retain source rows, revision checks and replay boundaries.
