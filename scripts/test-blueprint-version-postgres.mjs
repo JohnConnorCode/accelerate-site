@@ -150,8 +150,77 @@ try {
   );
   sql(`UPDATE tenants SET status='suspended' WHERE id='${a}'`);
   denied(prefix() + call({ expected: 3, key: null }), /forbidden/);
+
+  // Exercise the real reader role: privileged fixture clients cannot catch a
+  // missing SELECT grant, which made the hosted Blueprint list return 500.
+  sql(readFileSync("migrations/20260925-workspace-generated-operations.sql", "utf8"));
+  for (const table of [
+    "workspace_blueprints",
+    "workspace_blueprint_versions",
+    "workspace_generated_operations",
+  ])
+    denied(
+      prefix(a, "authenticated") + `SELECT count(*) FROM public.${table}`,
+      /permission denied/,
+    );
+  const reads = readFileSync(
+    "migrations/20261019002407_workspace_blueprint_read_access.sql",
+    "utf8",
+  );
+  sql(reads);
+  sql(reads);
+  const owner = "88888888-8888-4888-8888-888888888888";
+  sql(`CREATE TABLE tenant_memberships(tenant_id uuid,user_id uuid,status text);
+    INSERT INTO tenant_memberships VALUES('${a}','${owner}','active');
+    CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$
+      SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+    GRANT USAGE ON SCHEMA auth,private TO authenticated;
+    GRANT EXECUTE ON FUNCTION private.request_tenant_id() TO authenticated;`);
+  const tenancy = readFileSync("migrations/20260830-shared-database-tenancy.sql", "utf8");
+  sql(
+    tenancy.slice(
+      tenancy.indexOf("CREATE OR REPLACE FUNCTION private.has_active_tenant_membership("),
+      tenancy.indexOf("REVOKE ALL ON FUNCTION private.request_tenant_id()"),
+    ),
+  );
+  sql(`GRANT EXECUTE ON FUNCTION private.has_active_tenant_membership(uuid) TO authenticated;
+    UPDATE tenants SET status='active' WHERE id='${a}';
+    INSERT INTO workspace_blueprints(tenant_id,id) VALUES('${b}','${bp}');
+    INSERT INTO workspace_blueprint_versions(tenant_id,blueprint_id,version,document,change_summary)
+      VALUES('${b}','${bp}',1,'${document}','Foreign draft');
+    INSERT INTO workspace_generated_operations(tenant_id,blueprint_id,version,request_key,receipt)
+      VALUES('${a}','${bp}',3,'a','{}'),('${b}','${bp}',1,'b','{}');`);
+  const reader = (tenant = a) =>
+    `SET request.jwt.claim.sub='${owner}'; ` + prefix(tenant, "authenticated");
+  for (const [table, count] of [
+    ["workspace_blueprints", "1"],
+    ["workspace_blueprint_versions", "3"],
+    ["workspace_generated_operations", "1"],
+  ]) {
+    const query = `SELECT count(*) FROM public.${table};`;
+    assert.equal(sql(reader() + query), count, `${table}: own workspace read`);
+    assert.equal(sql(reader(b) + query), "0", `${table}: foreign header is not membership`);
+    assert.equal(
+      sql(`SET request.jwt.claim.sub='${owner}'; SET ROLE authenticated; ` + query),
+      "0",
+      `${table}: missing tenant header`,
+    );
+    denied(prefix(a, "anon") + query, /permission denied/);
+    for (const command of [
+      `INSERT INTO public.${table} DEFAULT VALUES`,
+      `UPDATE public.${table} SET tenant_id='${b}'`,
+      `DELETE FROM public.${table}`,
+    ])
+      denied(reader() + command, /permission denied/);
+    sql(`UPDATE tenant_memberships SET status='revoked' WHERE user_id='${owner}'`);
+    assert.equal(sql(reader() + query), "0", `${table}: revoked membership`);
+    sql(`UPDATE tenant_memberships SET status='active' WHERE user_id='${owner}';
+      UPDATE tenants SET status='suspended' WHERE id='${a}'`);
+    assert.equal(sql(reader() + query), "0", `${table}: suspended workspace`);
+    sql(`UPDATE tenants SET status='active' WHERE id='${a}'`);
+  }
   console.log(
-    "PASS: Blueprint atomic append, approval reset, replay, concurrent conflict, tenant/role denial, suspension and audit rollback",
+    "PASS: Blueprint atomic append, approval reset, replay, concurrent conflict, audit rollback, tenant-scoped authenticated reads, missing/foreign context, revocation, suspension and browser write denial",
   );
 } finally {
   if (started) run(bin("pg_ctl"), ["-D", join(root, "data"), "-m", "fast", "-w", "stop"]);

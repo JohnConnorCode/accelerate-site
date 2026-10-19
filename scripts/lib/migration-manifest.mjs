@@ -146,6 +146,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20261017162039_xero_workspace_disconnect.sql",
   "migrations/20261018151805_blueprint_draft_version_atomic.sql",
   "migrations/20261018173749_workspace_ai_spend_controls.sql",
+  "migrations/20261019002407_workspace_blueprint_read_access.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

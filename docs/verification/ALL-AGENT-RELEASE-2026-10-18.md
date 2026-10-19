@@ -8,6 +8,23 @@ Local heavy checks use the shared machine resource gate and run sequentially.
 
 ## Source reconciliation
 
+The combined candidate `c48da288990e3fb2cb481f76a88bb4bebf400e92` passed required
+CI and merged through PR278 as `c8137de921ae9d7cbbe7645e886fb81190943f27`, with
+matching source trees. Its verified production artifact is live on the canonical
+site and app domains. Both release migrations are recorded in the production
+ledger. Authenticated cost-control reads confirm model requests and recurring
+work are disabled, with all limits at zero and no policy writes during acceptance.
+
+Hosted acceptance exposed a pre-existing Blueprint reader mismatch: admin routes
+use the signed-in tenant client, while Blueprint tables only granted service-role
+access. The corrective `20261019002407_workspace_blueprint_read_access.sql`
+migration grants SELECT on headers, versions and generated-operation receipts
+under the existing explicit-tenant and active-membership row policies. Anonymous
+access and direct browser writes remain denied. The native PostgreSQL regression
+uses the actual authenticated role and canonical membership predicate, covering
+foreign or missing tenant context, revocation and suspension. The correction does
+not change application inputs or require a replacement application artifact.
+
 The private recovery archive at `.agent-archives/all-agent-release-20261018/`
 records 43 registered worktrees, 826 local branch/retained refs, and 21 dirty
 checkouts. It preserves source deltas and a per-worker disposition ledger.

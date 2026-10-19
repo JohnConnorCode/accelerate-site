@@ -150,6 +150,24 @@ const migrationForPolicy = (table: string, name: string) =>
           ? "migrations/20260830-shared-database-tenancy.sql"
           : migrationFor(table);
 const requirements: Requirement[] = [
+  ...[
+    "workspace_blueprints",
+    "workspace_blueprint_versions",
+    "workspace_generated_operations",
+  ].flatMap((table) => [
+    {
+      kind: "privilege" as const,
+      label: `public.${table} tenant reads and service-only writes`,
+      migration: "migrations/20261019002407_workspace_blueprint_read_access.sql",
+      sql: `SELECT has_table_privilege('authenticated', 'public.${table}', 'SELECT') AND NOT has_table_privilege('authenticated', 'public.${table}', 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AND NOT has_table_privilege('anon', 'public.${table}', 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AND (SELECT relrowsecurity FROM pg_class WHERE oid = 'public.${table}'::regclass)`,
+    },
+    {
+      kind: "policy" as const,
+      label: `public.${table}.Blueprint workspace read`,
+      migration: "migrations/20261019002407_workspace_blueprint_read_access.sql",
+      sql: `SELECT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='${table}' AND policyname='Blueprint workspace read' AND cmd='SELECT' AND roles=ARRAY['authenticated']::name[])`,
+    },
+  ]),
   ...REVENUE_SCHEMA_TABLES.flatMap(({ table, columns }) => [
     {
       kind: "table" as const,

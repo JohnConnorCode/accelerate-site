@@ -366,3 +366,7 @@ Apply `migrations/20261018151805_blueprint_draft_version_atomic.sql` before enab
 ### Workspace AI cost controls
 
 Apply `migrations/20261018173749_workspace_ai_spend_controls.sql` before deploying the cost-control gateway. Open AI Workspace → Cost controls after deployment. Existing and new workspaces start with model requests and recurring coworker work paused until an administrator explicitly saves limits and enables them. Health snapshots keep running without inference. Provider billing is separate; connect the intended workspace-owned key and verify its billing account before adding credits. This migration does not change keys, purchase credits or enable auto-top-up.
+
+### Blueprint read-access upgrade
+
+Apply `migrations/20261019002407_workspace_blueprint_read_access.sql` to allow signed-in workspace administrators to read their Blueprint list, version history and generated-operation receipts. Reads require an explicit tenant header and current active membership. Anonymous access and direct browser writes remain denied; saves continue through reviewed host commands.
