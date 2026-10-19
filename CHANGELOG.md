@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Add deterministic contact column mapping for CSV, TSV and flat JSON using the existing parser, identity checks, reviewed approval and executor. Preserve explicit no-model provenance and zero usage; AI extraction is opt-in. Share parsing and validation with the mapping UI and fictional demo, and retain source rows, revision checks and replay boundaries.
+
 - Add workspace AI cost controls with model and recurring-work pauses, individual coworker control, atomic request and spending admission, and separate reserved and reported usage. Provider funding remains explicit.
 
 - Add atomic Blueprint draft versions with optimistic concurrency, replay recovery, approval reset and transactional audit. Registered Architect tools and admin review use the shared writer and verified tenant context.

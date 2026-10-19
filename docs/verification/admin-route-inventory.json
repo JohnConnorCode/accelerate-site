@@ -21,7 +21,7 @@
     "src/app/admin/clients/[id]/page.tsx": "b5069e1fb478168020c0a8825c395503b021187e18b83e983fbde9fa3fd839f7",
     "src/app/admin/clients/page.tsx": "e62ffcaddf13cd03612aeab53a1513fec092e6fef40c08834d58e53534ce348b",
     "src/app/admin/collections/page.tsx": "0564cde5a5e31bd65faeb64668a47ce9fbef778d7d6d0b0570fc93e9471e8482",
-    "src/app/admin/contact-imports/page.tsx": "1600a777c88b01dd09f3321966cf8c3068a92672fed6c8fbe97b414fb2823f17",
+    "src/app/admin/contact-imports/page.tsx": "6e1bb352d1c737c62555036eaab7e95bb0ad61ac4be4ac0f5973fb1230c50294",
     "src/app/admin/contacts/[email]/page.tsx": "4c4847ed12f186fc3d2ee7599448407e711dbaf35161d87ef3223259c869e7f5",
     "src/app/admin/contacts/page.tsx": "466e503e618bacebc3e6fbdebc5dfecce2ecb7b8041258b8e26c13dfd57037a7",
     "src/app/admin/content/page.tsx": "034cc7700d3353974bfcb4ae5b83fc762f5aacf4f594ce27bbd0a33f17cb1ccb",
@@ -141,7 +141,7 @@
     "src/app/api/admin/revenue-os/campaigns/members/route.ts": "853132cc41d0863663b276645c419ef73acd8e9ca8b9ab861664b5fcda73d96c",
     "src/app/api/admin/revenue-os/campaigns/preview/route.ts": "63eab34f9292f3f161061a89e7a528725d2dbf896236825716e6acdb3c5af3f9",
     "src/app/api/admin/revenue-os/campaigns/route.ts": "2859455f923dc00dec63ebe331f4847fa021858fc802eb2179b022c5fba27ac0",
-    "src/app/api/admin/revenue-os/contact-imports/route.ts": "d68738089b6a5dd5b03ba5aff4303b19d7af2d55a87f23d6e02921dfd88ec5e1",
+    "src/app/api/admin/revenue-os/contact-imports/route.ts": "04ec4033efecaea031c19665cbee12ed800591c83bf0b81fca27c05d7097fa08",
     "src/app/api/admin/revenue-os/conversations/action/route.ts": "337ebd5f168a4c83d8eb6a0d227e8892bad03bce4136d5227f73611388dde351",
     "src/app/api/admin/revenue-os/conversations/reply/route.ts": "6185a515cf0b4e5c5d1eb5f27f8f67a349af0c60b31104a9dd10fc02b5caebe4",
     "src/app/api/admin/revenue-os/conversations/route.ts": "1b637573f2ddd5024d10ffcf0ff3626aa2c70139003630e5742f05f3bb7f3abb",
@@ -357,7 +357,7 @@
     "src/lib/revenue-os/collection-workspace.ts": "1bcb5f357131fc730441646f1da78e672b1f0f2dbc1bb1e6381c0ebcfdbb743b",
     "src/lib/revenue-os/collections.ts": "a05af80ab775b9459d8799350b6cfb5e51799374bdab8e8264dadfe517a25c73",
     "src/lib/revenue-os/communications.ts": "2aaf1f1ad9dc8c073d47bfd3ad596a327df72e930e333e391f6c532a2dae1914",
-    "src/lib/revenue-os/contact-imports.ts": "d23584a3126b2d75d5dd39cc96f29e997fc7f9b1217af0ab4007e37e533d276e",
+    "src/lib/revenue-os/contact-imports.ts": "7d5f6f68a8a1654d81853470b9a1edf8a8c8e5b02f5f64fac868cb87580555b8",
     "src/lib/revenue-os/content-calendar.ts": "9ac20c1bd02752a985119edbf81ee26075941e3d3a57807dc2165b8749f299a6",
     "src/lib/revenue-os/conversations.ts": "6be8f7e1052a99c7dd938b4770308a74ba9d6057baaaf728709bcfa46d4dd25a",
     "src/lib/revenue-os/correction-capture.ts": "4fe7e40961eed06f2e02f6d2aa926efaa41f630ae5b67b07980ac7749dbd9832",
@@ -871,7 +871,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Import and identity services own source completeness, validation and matching. The shared review UI retains original values and source indices, refuses invalid UTF-8 uploads, caches history and requires saved edits plus exact human approval before canonical writes.",
+      "boundary": "Import and identity services own bounded shared parsing, explicit column mappings, source completeness, validation and matching. Structured preparation defaults to no model; AI extraction requires explicit selection and the shared cost controls. The shared UI retains original values and source indices, refuses invalid UTF-8 uploads, caches history and requires saved edits plus exact human approval before canonical writes. The API never accepts tenant authority from mappings.",
       "followUp": null,
       "specialBoundary": null
     },

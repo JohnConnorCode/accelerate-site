@@ -1,5 +1,12 @@
 import { handleDemoArchitect } from "./architect-runtime";
 import {
+  prepareContactImportColumns,
+  validateContactImportMapping,
+  mapContactImportRows,
+  validateContactImportFields,
+} from "@/lib/revenue-os/contact-import-source";
+import type { ContactImportBatchView, ContactImportAction } from "@/lib/revenue-os/contact-imports";
+import {
   DEFAULT_AI_SPEND_POLICY,
   aiSpendPolicySchema,
   type AiSpendPolicy,
@@ -161,6 +168,7 @@ type DemoSubscriptionsState = {
   archivedPlanIds?: string[];
 };
 export type DemoState = {
+  mappedContactImports?: Record<string, ContactImportBatchView>;
   aiCostControls?: {
     revision: number;
     policy: AiSpendPolicy;
@@ -4390,16 +4398,230 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         memberships: [],
       });
     if (method === "GET" && path === "/api/admin/revenue-os/contact-imports") {
+      const batches = Object.values(state.mappedContactImports ?? {});
       const batch = importBatch(pack);
       const requested = url.searchParams.get("id");
       return jsonResponse(
         requested
-          ? { schemaReady: true, batch: requested === batch.id ? batch : null }
-          : { schemaReady: true, batches: [{ ...batch, rows: undefined }] },
+          ? {
+              schemaReady: true,
+              batch:
+                state.mappedContactImports?.[requested] ?? (requested === batch.id ? batch : null),
+            }
+          : {
+              schemaReady: true,
+              batches: [...batches.reverse(), batch].map((item) => ({ ...item, rows: undefined })),
+            },
       );
     }
-    if (method === "POST" && path === "/api/admin/revenue-os/contact-imports")
+    if (method === "POST" && path === "/api/admin/revenue-os/contact-imports") {
+      try {
+        if (body.action === "analyze" && body.method !== "ai") {
+          const prepared = prepareContactImportColumns(
+            String(body.sourceText ?? ""),
+            typeof body.filename === "string" ? body.filename : null,
+          );
+          const mapping = validateContactImportMapping(
+            body.mapping ?? prepared.mapping,
+            prepared.columns,
+          );
+          const id = crypto.randomUUID(),
+            at = new Date().toISOString();
+          const emails = new Set<string>();
+          const rows = mapContactImportRows(prepared.rows, mapping).map((proposal, index) => {
+            const validated = validateContactImportFields(proposal);
+            const existing = [...pack.people, ...(state.manualContacts ?? [])].find(
+              (person) =>
+                validated.data.email && person.email.toLowerCase() === validated.data.email,
+            );
+            const errors = [...validated.errors];
+            if (validated.data.email && emails.has(validated.data.email))
+              errors.push("Duplicate email inside this batch");
+            if (validated.data.email) emails.add(validated.data.email);
+            // This simulation supports new contacts; existing-contact updates use the connected service.
+            const warnings = existing
+              ? [
+                  ...validated.warnings,
+                  "Existing-contact updates require a connected workspace. This row starts excluded in the demo.",
+                ]
+              : validated.warnings;
+            return {
+              id: crypto.randomUUID(),
+              batch_id: id,
+              row_index: index,
+              raw_data: prepared.rows[index]!,
+              proposed_data: validated.data,
+              reviewed_data: validated.data,
+              status: errors.length ? "needs_review" : "proposed",
+              action: (existing ? "update" : "create") as ContactImportAction,
+              included: !errors.length && !existing,
+              confidence: errors.length ? ("low" as const) : ("high" as const),
+              warnings,
+              errors,
+              match_reason: existing ? "Matched an existing email" : null,
+              matched_contact_id: existing?.id ?? null,
+              matched_company_id: null,
+              imported_contact_id: null,
+              imported_company_id: null,
+              result_summary: {},
+              error: null,
+              imported_at: null,
+            };
+          });
+          const batch: ContactImportBatchView = {
+            ...importBatch(pack),
+            id,
+            status: "ready",
+            source_type: prepared.sourceType,
+            original_filename: typeof body.filename === "string" ? body.filename : null,
+            source_row_count: rows.length,
+            proposed_row_count: rows.length,
+            selected_row_count: rows.filter((row) => row.included).length,
+            review_digest: crypto.randomUUID(),
+            ai_provider: "none",
+            ai_model: null,
+            ai_request_id: null,
+            ai_usage: { cost: 0, total_tokens: 0, prompt_tokens: 0, completion_tokens: 0 },
+            summary: { preparation: "columns", mapping },
+            created_by: "demo",
+            created_at: at,
+            updated_at: at,
+            rows,
+          };
+          (state.mappedContactImports ??= {})[id] = batch;
+          saveState(scenarioId, state);
+          return jsonResponse({ schemaReady: true, batch, simulated: true }, 201);
+        }
+        const mapped =
+          typeof body.batchId === "string" ? state.mappedContactImports?.[body.batchId] : null;
+        if (mapped) {
+          if (body.action === "save_review") {
+            if (
+              !["ready", "approved"].includes(mapped.status) ||
+              body.expectedRevision !== mapped.updated_at
+            )
+              throw new Error("Import review changed; reload it before saving");
+            const changes = body.rows as Array<{
+              id: string;
+              included: boolean;
+              action: ContactImportAction;
+              data: unknown;
+            }>;
+            if (
+              !Array.isArray(changes) ||
+              changes.length !== mapped.rows!.length ||
+              new Set(changes.map((row) => row.id)).size !== mapped.rows!.length
+            )
+              throw new Error("Save every source row exactly once");
+            const rows = mapped.rows!.map((row) => {
+              const edit = changes.find((change) => change.id === row.id);
+              if (!edit || !["create", "update", "skip"].includes(edit.action))
+                throw new Error("Invalid import row");
+              const checked = validateContactImportFields(edit.data);
+              return {
+                ...row,
+                reviewed_data: checked.data,
+                action: edit.action,
+                included: edit.included && !checked.errors.length,
+                errors: checked.errors,
+                status: checked.errors.length ? "needs_review" : "proposed",
+              };
+            });
+            Object.assign(mapped, {
+              rows,
+              selected_row_count: rows.filter((row) => row.included && row.action !== "skip")
+                .length,
+              status: "ready",
+              review_digest: crypto.randomUUID(),
+              approval_digest: null,
+              approved_by: null,
+              approved_at: null,
+              updated_at: new Date().toISOString(),
+            });
+          } else if (body.action === "approve") {
+            if (
+              !["ready", "approved"].includes(mapped.status) ||
+              body.expectedDigest !== mapped.review_digest
+            )
+              throw new Error("Review changed before approval");
+            Object.assign(mapped, {
+              status: "approved",
+              approval_digest: mapped.review_digest,
+              approved_by: "demo",
+              approved_at: new Date().toISOString(),
+            });
+          } else if (body.action === "execute") {
+            if (mapped.status !== "completed") {
+              if (mapped.status !== "approved" || mapped.approval_digest !== mapped.review_digest)
+                throw new Error("Approve this exact review before importing");
+              const chosen = mapped.rows!.filter((row) => row.included && row.action !== "skip");
+              const contacts = [...pack.people, ...(state.manualContacts ?? [])];
+              const emails = new Set(contacts.map((person) => person.email.toLowerCase()));
+              for (const row of chosen) {
+                const checked = validateContactImportFields(row.reviewed_data);
+                if (
+                  row.action !== "create" ||
+                  checked.errors.length ||
+                  (checked.data.email && emails.has(checked.data.email))
+                )
+                  throw new Error(
+                    "Demo import requires valid new contacts with distinct emails. Exclude existing-contact updates or use a connected workspace.",
+                  );
+                if (checked.data.email) emails.add(checked.data.email);
+              }
+              const added = chosen.map((row) => {
+                const id = crypto.randomUUID(),
+                  data = row.reviewed_data;
+                Object.assign(row, {
+                  status: "imported",
+                  imported_contact_id: id,
+                  imported_at: new Date().toISOString(),
+                  result_summary: { simulated: true },
+                });
+                return {
+                  id,
+                  name: data.fullName,
+                  email: data.email ?? "",
+                  phone: data.phone ?? "",
+                  company: data.companyName ?? "",
+                  role: data.role ?? "",
+                };
+              });
+              state.manualContacts = [...added, ...(state.manualContacts ?? [])];
+              Object.assign(mapped, {
+                status: "completed",
+                completed_at: new Date().toISOString(),
+                summary: {
+                  imported: added.length,
+                  failed: 0,
+                  skipped: mapped.rows!.length - added.length,
+                  simulated: true,
+                },
+              });
+              business.receipts.unshift({
+                id: crypto.randomUUID(),
+                operation: `Simulated import of ${added.length} contacts`,
+                at: new Date().toISOString(),
+                simulated: true,
+                sourceType: "contact",
+                sourceId: mapped.id,
+              });
+            }
+          } else throw new Error("Unknown import action");
+          saveState(scenarioId, state);
+          return jsonResponse({ schemaReady: true, batch: mapped, simulated: true });
+        }
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: error instanceof Error ? error.message : "Import preparation failed",
+            schemaReady: true,
+          },
+          400,
+        );
+      }
       return jsonResponse({ schemaReady: true, batch: importBatch(pack) });
+    }
     if (method === "POST" && path === "/api/admin/settings/test")
       return jsonResponse({ success: true, simulated: true });
     const opportunityRecordMatch = path.match(

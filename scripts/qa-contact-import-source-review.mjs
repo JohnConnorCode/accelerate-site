@@ -15,6 +15,94 @@ const scenarios = [
 const browser = await chromium.launch({ headless: true });
 const results = [];
 try {
+  for (const width of [1440, 390]) {
+    const context = await browser.newContext({
+      viewport: { width, height: 1000 },
+      reducedMotion: width === 390 ? "reduce" : "no-preference",
+      colorScheme: width === 390 ? "dark" : "light",
+    });
+    const page = await context.newPage();
+    const errors = [],
+      escaped = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("request", (request) => {
+      if (/\/api\/(admin|demo\/agent)|openrouter\.ai/.test(request.url()))
+        escaped.push(request.url());
+    });
+    await page.goto(`${base}/demo/command-center/northline-roofing/contact-imports`, {
+      waitUntil: "networkidle",
+    });
+    await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
+    assert.equal(await page.getByRole("radio", { name: /Map columns/ }).isChecked(), true);
+    await page
+      .getByTestId("contact-import-source")
+      .fill(
+        "Customer,Mailbox,Original note\nHarbor Contact,harbor-import@fictional.example,Retain this source\nInvalid Contact,not-an-email,Keep this row too",
+      );
+    await page.getByTestId("contact-import-analyze").focus();
+    await page.keyboard.press("Enter");
+    await page.getByRole("group", { name: "Match contact columns" }).waitFor();
+    await page.getByLabel("Full name column", { exact: true }).selectOption("customer");
+    await page.getByLabel("Email column", { exact: true }).selectOption("customer");
+    await page.getByTestId("contact-import-analyze").click();
+    await page
+      .getByText("Use each source column for only one contact field", { exact: true })
+      .waitFor();
+    assert.equal(
+      await page.getByLabel("Full name column", { exact: true }).inputValue(),
+      "customer",
+    );
+    await page.getByLabel("Email column", { exact: true }).selectOption("mailbox");
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      "Column mapping fits the viewport",
+    );
+    await page.screenshot({ path: `${out}/mapped-${width}-columns.png`, fullPage: true });
+    await page.getByTestId("contact-import-analyze").click();
+    await page.locator('[data-contact-import-row="0"]').waitFor();
+    await page.getByTestId("contact-import-approve").click();
+    await page.getByTestId("contact-import-confirm").click();
+    await page
+      .getByRole("heading", { name: "Contacts imported with receipts", exact: true })
+      .waitFor();
+    await page.screenshot({ path: `${out}/mapped-${width}-result.png`, fullPage: true });
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
+    const receipt = await page.evaluate(async () => {
+      const history = await fetch("/api/admin/revenue-os/contact-imports").then((r) => r.json());
+      const batch = history.batches.find((item) => item.ai_provider === "none");
+      const replay = await fetch("/api/admin/revenue-os/contact-imports", {
+        method: "POST",
+        body: JSON.stringify({ action: "execute", batchId: batch.id }),
+      }).then((r) => r.json());
+      const saved = await fetch(
+        "/api/admin/contacts/directory?search=harbor-import%40fictional.example",
+      ).then((r) => r.json());
+      const detail = await fetch("/api/admin/revenue-os/contact-imports?id=" + batch.id).then((r) =>
+        r.json(),
+      );
+      return { batch, replay, count: saved.total, rows: detail.batch.rows };
+    });
+    assert.equal(receipt.batch.status, "completed");
+    assert.equal(receipt.batch.ai_model, null);
+    assert.equal(receipt.batch.ai_usage.cost, 0);
+    assert.equal(receipt.replay.simulated, true);
+    assert.equal(receipt.count, 1, "Same-operation replay does not duplicate fictional contacts");
+    assert.equal(receipt.rows.length, 2);
+    assert.equal(receipt.rows[1].included, false);
+    assert.equal(receipt.rows[0].raw_data["original note"], "Retain this source");
+    assert.deepEqual(errors, []);
+    assert.deepEqual(escaped, [], "Mapped demo sends no business API or model traffic");
+    results.push({
+      width,
+      method: "columns",
+      sourceRows: 2,
+      imported: 1,
+      replay: "passed",
+      status: "passed",
+    });
+    await context.close();
+  }
   for (const scenario of scenarios)
     for (const width of [1440, 390]) {
       const context = await browser.newContext({
@@ -167,6 +255,7 @@ try {
         waitUntil: "networkidle",
       });
       await page.waitForFunction((id) => window.__accelerateAdminDemoRuntime === id, scenario);
+      await page.getByRole("radio", { name: /AI-assisted/ }).check();
       const source = page.getByTestId("contact-import-source");
       await source.fill("Keep this source");
       await page.getByLabel("Upload contacts file").setInputFiles({
