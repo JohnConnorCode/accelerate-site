@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import {
   archiveSubscriptionPlan,
   createSubscriptionPlan,
@@ -18,7 +19,11 @@ export async function GET() {
   const authorization = await requireAdminForModule("stripe-invoicing");
   if (authorization instanceof NextResponse) return authorization;
   try {
-    return NextResponse.json(await listSubscriptionWorkspace(authorization.database));
+    return NextResponse.json(
+      await runWithTenantRequestContext(authorization, () =>
+        listSubscriptionWorkspace(authorization.database),
+      ),
+    );
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Subscriptions could not be read" },
@@ -40,25 +45,30 @@ export async function POST(request: NextRequest) {
   const parsed = actionSchema.safeParse(body);
   if (!parsed.success)
     return NextResponse.json({ error: "Invalid subscription action" }, { status: 400 });
+  const action = parsed.data;
   try {
-    if (parsed.data.action === "create_plan") {
+    if (action.action === "create_plan") {
       return NextResponse.json(
-        await createSubscriptionPlan(
-          authorization.database,
-          parsed.data.plan,
-          parsed.data.requestId,
-          authorization.user.email || "admin",
-          authorization.user.id,
+        await runWithTenantRequestContext(authorization, () =>
+          createSubscriptionPlan(
+            authorization.database,
+            action.plan,
+            action.requestId,
+            authorization.user.email || "admin",
+            authorization.user.id,
+          ),
         ),
       );
     }
     return NextResponse.json(
-      await archiveSubscriptionPlan(
-        authorization.database,
-        parsed.data.planId,
-        parsed.data.requestId,
-        authorization.user.email || "admin",
-        authorization.user.id,
+      await runWithTenantRequestContext(authorization, () =>
+        archiveSubscriptionPlan(
+          authorization.database,
+          action.planId,
+          action.requestId,
+          authorization.user.email || "admin",
+          authorization.user.id,
+        ),
       ),
     );
   } catch (error) {

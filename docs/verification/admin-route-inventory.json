@@ -168,7 +168,7 @@
     "src/app/api/admin/source-authority/route.ts": "af5a44fb2059eb2beb6cab547e6b443c53368aed68665f855c2c4aaf5567c8a7",
     "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
     "src/app/api/admin/subscribers/route.ts": "3463b6ca89854e49bd045cf80ae1076332078bcfdd602c09ac482031a16573e9",
-    "src/app/api/admin/subscriptions/route.ts": "0ce8c7d379219cc74fba1dedb6cffb5ccc9756fa0ae5a043028e2af71063b855",
+    "src/app/api/admin/subscriptions/route.ts": "cf44d41cf91e0bb6be4ba8394f775882049f9d5b1b559ea8d140e5fa9bfb9e7b",
     "src/app/api/admin/tasks/route.ts": "a8dcf117107438acfd5642593039fa9b95d320ef557faa81359f9e549357b5ce",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
     "src/app/api/admin/tenant/modules/route.ts": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1",
@@ -2086,7 +2086,8 @@
           "path": "src/app/api/admin/subscriptions/route.ts",
           "domainImports": [
             "@/lib/revenue-os/subscriptions",
-            "@/lib/revenue-os/subscriptions-contract"
+            "@/lib/revenue-os/subscriptions-contract",
+            "@/lib/tenancy/context"
           ],
           "directTables": []
         }
