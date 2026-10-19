@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import { runInNewContext } from "node:vm";
+import ts from "typescript";
+import { NextRequest, NextResponse } from "next/server";
 import { createAdminConfigurationFixture } from "./lib/admin-configuration-fixture";
-import { runWithTenantRequestContext } from "../src/lib/tenancy/context";
+import { getTenantRequestContext, runWithTenantRequestContext } from "../src/lib/tenancy/context";
 import { encryptTenantSecret } from "../src/lib/revenue-os/encryption";
 import {
   previewBillingCommand,
@@ -282,6 +288,88 @@ async function main() {
     charge.id = "ch_controlled1";
     await assert.rejects(() => listSubscriptionWorkspace(f.db), /authenticated/);
     assert.equal(hostReads, 0);
+    // The guard resolves before the HTTP continuation runs. The adapter must
+    // bind the returned actor rather than rely on ambient async-local state.
+    const require = createRequire(resolve("package.json"));
+    const http: {
+      GET?: () => Promise<NextResponse>;
+      POST?: (request: NextRequest) => Promise<NextResponse>;
+    } = {};
+    let authorization: unknown = f.actor;
+    let planCommands = 0;
+    const planCommand = async () => {
+      await Promise.resolve();
+      assert.equal(getTenantRequestContext(), f.actor);
+      planCommands++;
+      return { id: randomUUID() };
+    };
+    runInNewContext(
+      ts.transpileModule(readFileSync("src/app/api/admin/subscriptions/route.ts", "utf8"), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+      }).outputText,
+      {
+        exports: http,
+        console,
+        URL,
+        Error,
+        SyntaxError,
+        require: (name: string) =>
+          name === "@/lib/admin/module-guard"
+            ? { requireAdminForModule: async () => authorization }
+            : name === "@/lib/revenue-os/subscriptions"
+              ? {
+                  listSubscriptionWorkspace,
+                  createSubscriptionPlan: planCommand,
+                  archiveSubscriptionPlan: planCommand,
+                }
+              : require(name.startsWith("@/") ? resolve("src", name.slice(2)) : name),
+      },
+    );
+    assert.equal(getTenantRequestContext(), undefined);
+    const httpRead = await http.GET!();
+    assert.equal(httpRead.status, 200, JSON.stringify(await httpRead.json()));
+    assert.equal(hostReads, 3);
+    assert.equal(
+      getTenantRequestContext(),
+      undefined,
+      "HTTP authority must not leak out of its handler",
+    );
+    for (const command of [
+      {
+        action: "create_plan",
+        requestId: randomUUID(),
+        plan: { name: "Fixture", currency: "usd", interval: "month", amount: 100 },
+      },
+      { action: "archive_plan", requestId: randomUUID(), planId: randomUUID() },
+    ]) {
+      const response = await http.POST!(
+        new NextRequest("https://fixture.test/api/admin/subscriptions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(command),
+        }),
+      );
+      assert.equal(response.status, 200, JSON.stringify(await response.json()));
+      assert.equal(getTenantRequestContext(), undefined);
+    }
+    assert.equal(planCommands, 2);
+    f.mem.rows("tenant_memberships")[0]!.status = "revoked";
+    assert.equal((await http.GET!()).status, 422);
+    assert.equal(hostReads, 3, "Revoked HTTP authority must fail before server reads");
+    f.mem.rows("tenant_memberships")[0]!.status = "active";
+    authorization = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    assert.equal((await http.GET!()).status, 401);
+    assert.equal(
+      (
+        await http.POST!(
+          new NextRequest("https://fixture.test/api/admin/subscriptions", { method: "POST" }),
+        )
+      ).status,
+      401,
+    );
+    assert.equal(hostReads, 3, "Denied HTTP reads must not reach the privileged host");
+    assert.equal(planCommands, 2);
+    hostReads = 0;
     await assert.rejects(() => executeBillingCommand(f.db, randomUUID(), f.email), /authenticated/);
     await runWithTenantRequestContext(f.actor, async () => {
       const workspace = await listSubscriptionWorkspace(f.db);
