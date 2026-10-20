@@ -61,6 +61,10 @@ try {
       break;
     }
     assert.equal(current, "dark", "An open demo tab must not revert the shared preference");
+    const sharedDarkPaint = await publicPage.locator("body").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { background: style.backgroundColor, foreground: style.color };
+    });
     await demo.bringToFront();
     assert.equal(await demo.locator("html").getAttribute("data-theme"), "accelerate");
     const choose = async (label) => {
@@ -167,6 +171,28 @@ try {
     await publicPage.evaluate(() => localStorage.setItem("theme", "signal"));
     await publicPage.reload({ waitUntil: "networkidle" });
     await publicPage.waitForFunction(() => document.documentElement.dataset.theme === "operator");
+    assert.deepEqual(
+      await publicPage.locator("body").evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { background: style.backgroundColor, foreground: style.color };
+      }),
+      sharedDarkPaint,
+      "A restored dark mode must apply the public dark palette",
+    );
+    const publicModeButton = publicPage
+      .getByRole("button", {
+        name: /^Switch to (light|dark) mode$/,
+      })
+      .filter({ visible: true })
+      .first();
+    let retiredPublicToggle = "omitted by configured header";
+    if (await publicModeButton.count()) {
+      assert.equal(await publicModeButton.getAttribute("aria-label"), "Switch to light mode");
+      await publicModeButton.focus();
+      await publicPage.keyboard.press("Enter");
+      await publicPage.waitForFunction(() => document.documentElement.dataset.theme === "light");
+      retiredPublicToggle = "keyboard switch to light passed";
+    }
     assert.equal(
       await demo.locator("html").getAttribute("data-theme"),
       "accelerate",
@@ -181,6 +207,7 @@ try {
       reload: true,
       retiredSharedPreference: "operator",
       retiredDemoPreference: "accelerate",
+      retiredPublicToggle,
     });
     await context.close();
   }

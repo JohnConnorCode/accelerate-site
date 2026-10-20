@@ -14,6 +14,11 @@ import {
 } from "../src/lib/revenue-os/branding-contract";
 
 for (const preset of themes) {
+  assert.ok(
+    parseInt(preset.tokens["--admin-control-height"]) >= 40,
+    `${preset.id}: built-in controls must retain the desktop target floor`,
+  );
+  assert.equal(preset.tokens["--admin-title-weight"], "600", `${preset.id}: shared heading weight`);
   const theme = validateAdminTheme(themeFromPreset(preset.id));
   const tokens = compileAdminTheme(theme);
   assert.ok(

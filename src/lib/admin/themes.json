@@ -2,7 +2,7 @@
   {
     "id": "light",
     "label": "Paper",
-    "description": "Calm light workspace · signal on system activity",
+    "description": "Calm light workspace \u00b7 signal on system activity",
     "icon": "Sun",
     "mode": "light",
     "tokens": {
@@ -86,7 +86,7 @@
   {
     "id": "dark",
     "label": "Night",
-    "description": "Ink workspace · signal orange",
+    "description": "Ink workspace \u00b7 signal orange",
     "icon": "Moon",
     "mode": "dark",
     "tokens": {
@@ -170,7 +170,7 @@
   {
     "id": "accelerate",
     "label": "Accelerate",
-    "description": "Ink rail · crisp geometry · signal orange",
+    "description": "Ink rail \u00b7 crisp geometry \u00b7 signal orange",
     "icon": "Sparkles",
     "mode": "light",
     "tokens": {
@@ -217,7 +217,7 @@
       "--admin-warning-soft": "rgba(217, 119, 6, 0.1)",
       "--admin-font": "var(--font-body-face), system-ui, sans-serif",
       "--admin-title-font": "var(--font-display-face), system-ui, sans-serif",
-      "--admin-title-weight": "650",
+      "--admin-title-weight": "600",
       "--admin-title-tracking": "-0.035em",
       "--admin-label-font": "var(--font-mono-face), ui-monospace, monospace",
       "--admin-surface-fill": "var(--admin-surface)",
@@ -254,7 +254,7 @@
   {
     "id": "operator",
     "label": "Operator",
-    "description": "Dense · keyboard-first · mono data layer",
+    "description": "Dense \u00b7 keyboard-first \u00b7 mono data layer",
     "icon": "Terminal",
     "mode": "dark",
     "tokens": {
@@ -325,7 +325,7 @@
       "--admin-hairline": "color-mix(in srgb, var(--admin-ink) 11%, transparent)",
       "--admin-label-transform": "uppercase",
       "--admin-label-tracking": "0.1em",
-      "--admin-control-height": "36px",
+      "--admin-control-height": "40px",
       "--admin-row-padding": "9px",
       "--admin-panel-padding": "16px",
       "--admin-section-gap": "16px",

@@ -203,7 +203,7 @@
   --admin-warning-soft: rgba(217, 119, 6, 0.1);
   --admin-font: var(--font-body-face), system-ui, sans-serif;
   --admin-title-font: var(--font-display-face), system-ui, sans-serif;
-  --admin-title-weight: 650;
+  --admin-title-weight: 600;
   --admin-title-tracking: -0.035em;
   --admin-label-font: var(--font-mono-face), ui-monospace, monospace;
   --admin-surface-fill: var(--admin-surface);
@@ -307,7 +307,7 @@
   --admin-hairline: color-mix(in srgb, var(--admin-ink) 11%, transparent);
   --admin-label-transform: uppercase;
   --admin-label-tracking: 0.1em;
-  --admin-control-height: 36px;
+  --admin-control-height: 40px;
   --admin-row-padding: 9px;
   --admin-panel-padding: 16px;
   --admin-section-gap: 16px;

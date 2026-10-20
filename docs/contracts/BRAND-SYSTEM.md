@@ -93,7 +93,7 @@ test enforces this.
 | Paper (`light`)           | Calm light workspace, light navigation, 12px surfaces, sentence-case labels.                   |
 | Night (`dark`)            | The same instrument after dark.                                                                |
 | Accelerate (`accelerate`) | The brand instrument: ink rail, 6px geometry, mono uppercase labels.                           |
-| Operator (`operator`)     | Dense and keyboard-first: 36px controls, 2px geometry, mono data layer, signal primary action. |
+| Operator (`operator`)     | Dense and keyboard-first: 40px controls, 2px geometry, mono data layer, signal primary action. |
 
 Retired ids (`signal`, `studio`, `frost`, `material`, `mac`, `capy`) map to
 their closest mode through `RETIRED_APPEARANCES` in
@@ -122,3 +122,7 @@ tracking tighter than `-0.04em`, text below 10.5px, and signal orange
 hard-coded outside the token files, and any heading above the 68px display cap. The micro scale is 10.5px for counts and
 badges and 11px for labels. A deliberate exception, such as a logo monogram,
 carries `/* brand-system: allow (reason) */` on the line before it.
+
+Shared controls keep a 40px desktop minimum and a 44px touch/phone minimum in
+both densities. Public light/dark controls resolve built-in and retired modes
+through the same appearance registry; Operator uses the public dark palette.

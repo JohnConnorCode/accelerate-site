@@ -933,13 +933,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   gap: 6px;
 }
 
-@media (pointer: coarse) {
-  .admin-field,
-  .admin-button {
-    min-height: max(44px, var(--admin-control-height));
-  }
-}
-
 /* One coordinated dropdown affordance for every native admin select, in all
  * themes. Selects that already paint their own overlay icon carry
  * `appearance-none` and are left alone. */
@@ -1970,4 +1963,18 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 }
 .admin-toolbar-date-range .admin-field {
   min-width: 0;
+}
+
+/* Keep tap targets after the shared recipes, so a later density or mode rule
+   cannot shrink a control on touch devices or phone-sized viewports. */
+@media (pointer: coarse), (max-width: 639px) {
+  .admin-field,
+  .admin-button,
+  .admin-icon-button,
+  :is(.admin-shell, .admin-overlay-token-scope) [data-ui-button] {
+    min-height: max(44px, var(--admin-control-height));
+  }
+  .admin-icon-button {
+    min-width: max(44px, var(--admin-control-height));
+  }
 }
