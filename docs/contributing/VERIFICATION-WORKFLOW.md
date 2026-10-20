@@ -9,7 +9,7 @@ release approval or evidence that a ticket is complete.
 | Commit                     | Staged whitespace/conflicts, JSON syntax, environment/key filenames and existing secret patterns                         | Every commit; offline, no dependencies beyond Git and Node |
 | Iteration                  | Closest behavioral tests; `npm run typecheck` when useful                                                                | After relevant changes                                     |
 | Local handoff              | `npm run verify:review` plus the card's scoped tests and visual/provider evidence                                        | Once for the final relevant source tree                    |
-| Pull request / merge queue | All repository contracts, strict lint/format, core tests and full type-checking build                                    | Every candidate; independent checks and build jobs         |
+| Pull request / merge queue | Scope-specific checks below; full builds for application changes and every merge-queue candidate                         | Every candidate; independent checks and build jobs         |
 | Production release         | Reconcile branches, verify the immutable release tree, build and deploy that exact revision, inspect production receipts | Only with explicit founder release authorization           |
 
 ## Install the project hooks
@@ -58,13 +58,34 @@ hook/CI changes need their own behavioral and workflow validation. Application
 source, dependencies, build configuration and release inputs still require a
 fresh build before a shipped code handoff.
 
-There is no cached-pass bypass. CI checks fresh checkouts independently. Its
-`checks` and `build` jobs run in parallel; the existing `verify` result fails if
-either fails, is cancelled, or is skipped. The compiler cache accelerates work,
-but every run still executes the build. Only superseded pull-request runs are
-cancelled; merge-queue and main receipts remain revision-specific. Strict CI
-lint/format policies are unchanged. Remote branch-protection settings must still
-require `verify`; changing YAML does not configure GitHub repository rules.
+CI checks fresh checkouts independently. The required `verify` result checks the
+exact jobs expected for the detected scope and rejects missing, failed, cancelled
+or unexpectedly skipped results. Full scope requires source checks, all-source
+typing, the application build and both fork verification jobs. Docs-only PRs keep
+their dedicated checks, application build and strict built documentation journeys.
+
+A PR that only modifies these existing fixture tests uses all-source typing and
+the entire `checks` job, including repository contracts, strict lint/format, core
+tests, native PostgreSQL checks and reference business journeys:
+
+- `scripts/test-first-value-business-journey.ts`
+- `scripts/test-demo-business-workflows.ts`
+- `scripts/test-stripe-workflow.ts`
+- `scripts/test-opportunity-create.ts`
+
+This narrow fixture scope skips application and fork builds and their browser
+suites. Each allowlisted test must remain wired into `test:core`; the executable
+workflow regression verifies that connection. A failed fixture test still fails
+the required `verify` result. Fixture additions, deletions, renames or type changes,
+mixed changes, unknown paths and missing or invalid diff data fall back to full verification.
+Workflow, dependency, application, configuration and shared-helper changes also
+take the full path. Main pushes, merge queues and manual runs retain their
+existing full or explicitly requested verification modes.
+
+There is no cached-pass bypass. The compiler cache accelerates required builds.
+Only superseded pull-request runs are cancelled; merge-queue and main receipts
+remain revision-specific. Remote branch-protection settings must still require
+`verify`; changing YAML does not configure GitHub repository rules.
 
 ## Why this replaces the old hook
 

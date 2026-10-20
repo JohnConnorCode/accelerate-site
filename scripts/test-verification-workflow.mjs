@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, cpSync, rmSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  readFileSync,
+  cpSync,
+  rmSync,
+  symlinkSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -216,14 +224,41 @@ try {
       /if ! node scripts\/qa-public-navigation-profile\.mjs --services-only; then browser_status=1; fi/,
     );
   });
-  check("docs-only CI scope excludes shared code and workflow edits", () => {
+  check("narrow CI scopes use real Git changes and fail closed", () => {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     const detector = workflow
       .match(
-        /- name: Detect docs-only pull request[\s\S]*?\n        run: \|\n((?:          .*\n)+)/,
+        /- name: Detect narrow pull request scope[\s\S]*?\n        run: \|\n((?:          .*\n)+)/,
       )?.[1]
       ?.replace(/^ {10}/gm, "");
     assert.ok(detector);
+    const fixtures = [
+      "scripts/test-first-value-business-journey.ts",
+      "scripts/test-demo-business-workflows.ts",
+      "scripts/test-stripe-workflow.ts",
+      "scripts/test-opportunity-create.ts",
+    ];
+    assert.deepEqual(
+      [...detector.matchAll(/scripts\/test-[a-z-]+\.ts/g)].map(([path]) => path).sort(),
+      [...fixtures].sort(),
+      "Every allowlist addition needs an execution-wiring check",
+    );
+    const { scripts } = JSON.parse(readFileSync(resolve(source, "package.json"), "utf8"));
+    for (const path of fixtures) {
+      const script = Object.entries(scripts).find(([, command]) =>
+        command.split(/\s+/).includes(path),
+      );
+      assert.ok(script, `${path} must have a runnable package command`);
+      assert.ok(
+        scripts["test:core"].split(" && ").includes(`npm run ${script[0]}`),
+        `${path} must execute in the unchanged checks job`,
+      );
+    }
+    assert.match(workflow, /run: npm run test:core/);
+    assert.match(
+      workflow,
+      /run: PATH="\$\(pg_config --bindir\):\$PATH" npm run test:reference-business-journeys/,
+    );
     const scopeRepo = resolve(scratch, "scope-repo");
     mkdirSync(scopeRepo);
     git(["init", "--template=", "--initial-branch=main"], scopeRepo);
@@ -231,47 +266,109 @@ try {
     git(["config", "user.email", "workflow@example.test"], scopeRepo);
     writeFileSync(resolve(scopeRepo, "README.md"), "base\n");
     git(["add", "."], scopeRepo);
-    git(["commit", "-qm", "Base"], scopeRepo);
+    git(["commit", "-qm", "Base without fixtures"], scopeRepo);
+    const withoutFixtures = git(["rev-parse", "HEAD"], scopeRepo);
+    mkdirSync(resolve(scopeRepo, "scripts"));
+    for (const path of fixtures) writeFileSync(resolve(scopeRepo, path), "base fixture\n");
+    git(["add", "."], scopeRepo);
+    git(["commit", "-qm", "Existing fixtures"], scopeRepo);
     const base = git(["rev-parse", "HEAD"], scopeRepo);
     const output = resolve(scratch, "scope-output");
-    const classify = (paths, eventName = "pull_request") => {
+    let scopeCases = 0;
+    const classify = (paths, eventName = "pull_request", options = {}) => {
       git(["reset", "--hard", base], scopeRepo);
       git(["clean", "-fd"], scopeRepo);
       for (const path of paths) {
         mkdirSync(dirname(resolve(scopeRepo, path)), { recursive: true });
         writeFileSync(resolve(scopeRepo, path), "changed\n");
       }
+      if (options.remove) git(["rm", options.remove], scopeRepo);
+      if (options.rename) git(["mv", ...options.rename], scopeRepo);
+      if (options.symlink) {
+        rmSync(resolve(scopeRepo, options.symlink));
+        symlinkSync("../README.md", resolve(scopeRepo, options.symlink));
+      }
       git(["add", "."], scopeRepo);
-      git(["commit", "-qm", "Change"], scopeRepo);
+      git(["commit", "--allow-empty", "-qm", "Change"], scopeRepo);
       writeFileSync(output, "");
       const result = spawnSync("bash", ["-e", "-c", detector], {
         cwd: scopeRepo,
         env: {
           ...env,
           GITHUB_EVENT_NAME: eventName,
-          BASE_SHA: base,
+          BASE_SHA: options.baseSha ?? base,
           RUNNER_TEMP: scratch,
           GITHUB_OUTPUT: output,
         },
         encoding: "utf8",
       });
       assert.equal(result.status, 0, result.stderr);
-      return readFileSync(output, "utf8").trim();
+      scopeCases++;
+      return Object.fromEntries(
+        readFileSync(output, "utf8")
+          .trim()
+          .split("\n")
+          .map((line) => line.split("=")),
+      );
     };
-    assert.equal(classify(["src/content/docs/start/overview.mdx"]), "docs_only=true");
-    assert.equal(
-      classify(["src/components/docs/DocsSearch.tsx", "scripts/qa-docs.ts"]),
-      "docs_only=true",
+    const docs = { docs_only: "true", fixtures_only: "false" };
+    const fixture = { docs_only: "false", fixtures_only: "true" };
+    const full = { docs_only: "false", fixtures_only: "false" };
+    assert.deepEqual(classify(["src/content/docs/start/overview.mdx"]), docs);
+    assert.deepEqual(classify(["src/components/docs/DocsSearch.tsx", "scripts/qa-docs.ts"]), docs);
+    assert.deepEqual(classify(["src/content/docs/start/file with spaces.mdx"]), docs);
+    for (const path of fixtures) assert.deepEqual(classify([path]), fixture);
+    assert.deepEqual(classify(fixtures), fixture);
+    for (const path of [
+      "src/app/admin/page.tsx",
+      "src/lib/admin/demo/business-runtime.ts",
+      "package.json",
+      "package-lock.json",
+      "next.config.ts",
+      ".env.example",
+      ".github/workflows/ci.yml",
+      "scripts/verify-docs.ts",
+      "scripts/lib/reference-journey-evidence.ts",
+      "scripts/test-verification-workflow.mjs",
+      "scripts/test-unknown-fixture.ts",
+      "scripts/test-first-value-business-journey.ts\nscripts/test-stripe-workflow.ts",
+    ])
+      assert.deepEqual(classify([fixtures[0], path]), full, path);
+    assert.deepEqual(classify([fixtures[0], "src/content/docs/start/overview.mdx"]), full);
+    assert.deepEqual(classify([]), full);
+    assert.deepEqual(
+      classify([fixtures[0]], "pull_request", { baseSha: withoutFixtures }),
+      full,
+      "Added fixtures",
     );
-    assert.equal(
-      classify(["src/content/docs/start/overview.mdx", "src/app/admin/page.tsx"]),
-      "docs_only=false",
+    assert.deepEqual(
+      classify([], "pull_request", { remove: fixtures[0] }),
+      full,
+      "Deleted fixture",
     );
-    assert.equal(classify([".github/workflows/ci.yml"]), "docs_only=false");
-    assert.equal(classify(["scripts/verify-docs.ts"]), "docs_only=false");
-    assert.equal(classify(["src/content/docs/start/overview.mdx"], "push"), "docs_only=false");
+    assert.deepEqual(
+      classify([], "pull_request", { rename: [fixtures[0], "scripts/test-renamed-fixture.ts"] }),
+      full,
+      "Renamed fixture",
+    );
+    assert.deepEqual(
+      classify([], "pull_request", { symlink: fixtures[0] }),
+      full,
+      "Type-changed fixture",
+    );
+    for (const baseSha of ["", "not-a-ref", "f".repeat(40)])
+      assert.deepEqual(
+        classify([fixtures[0]], "pull_request", { baseSha }),
+        full,
+        "Missing/invalid base",
+      );
+    for (const event of ["push", "merge_group", "workflow_dispatch"]) {
+      assert.deepEqual(classify([fixtures[0]], event), full, event);
+      assert.deepEqual(classify(["src/content/docs/start/overview.mdx"], event), full, event);
+    }
+    console.log(JSON.stringify({ scopeCases, allowlistedFixtures: fixtures.length }));
   });
-  check("CI aggregate requires the matching docs or full verification path", () => {
+  check("CI aggregate requires the matching docs, fixtures or full verification path", () => {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     assert.match(
       workflow,
@@ -282,17 +379,14 @@ try {
     assert.match(workflow, /cold_start_only:[\s\S]*?type: boolean\s+default: false/);
     assert.match(workflow, /scope:\s+runs-on: ubuntu-latest/);
     assert.match(workflow, /docs_only: \$\{\{ steps\.detect\.outputs\.docs_only \}\}/);
-    assert.match(
-      workflow,
-      /case "\$path" in[\s\S]*?'src\/app\/\(marketing\)\/docs\/'\*[\s\S]*?\*\) echo 'docs_only=false'/,
-    );
+    assert.match(workflow, /fixtures_only: \$\{\{ steps\.detect\.outputs\.fixtures_only \}\}/);
     assert.match(
       workflow,
       /docs-checks:\s+needs: scope\s+if: \$\{\{ needs\.scope\.outputs\.docs_only == 'true' \}\}/,
     );
     assert.match(
       workflow,
-      /build:\s+needs: \[scope, typecheck\]\s+if: \$\{\{ !inputs\.admin_design_only && !inputs\.cold_start_only && !inputs\.hero_target_url \}\}/,
+      /build:\s+needs: \[scope, typecheck\]\s+if: \$\{\{ !inputs\.admin_design_only && !inputs\.cold_start_only && !inputs\.hero_target_url && needs\.scope\.outputs\.fixtures_only != 'true' \}\}/,
     );
     assert.match(workflow, /hero_target_url:[\s\S]*?type: string\s+default: ""/);
     assert.match(
@@ -300,10 +394,20 @@ try {
       /hosted-homepage:\s+if: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.public_pages_only && inputs\.hero_target_url \}\}/,
     );
     assert.match(workflow, /checks:[\s\S]*?needs: scope[\s\S]*?docs_only != 'true'/);
+    for (const job of ["checks", "typecheck"]) {
+      const condition = workflow.match(
+        new RegExp(`  ${job}:\\n[\\s\\S]*?\\n    if: ([^\\n]+)`),
+      )?.[1];
+      assert.ok(condition, `${job} must have an explicit condition`);
+      assert.doesNotMatch(condition, /fixtures_only/, `${job} must run for fixture-only PRs`);
+    }
     for (const job of ["full-product-fork", "neutral-starter"])
       assert.match(
         workflow,
-        new RegExp(job + ":[\\s\\S]*?needs: \\[scope, typecheck\\][\\s\\S]*?docs_only != 'true'"),
+        new RegExp(
+          job +
+            ":[\\s\\S]*?needs: \\[scope, typecheck\\]\\s+if: [^\\n]*docs_only != 'true'[^\\n]*fixtures_only != 'true'",
+        ),
       );
     assert.match(workflow, /admin-design:\s+if: \$\{\{ inputs\.admin_design_only \}\}/);
     const command = workflow
@@ -318,6 +422,7 @@ try {
       SCOPE_RESULT: "success",
       TYPECHECK_RESULT: "success",
       DOCS_ONLY: "false",
+      FIXTURES_ONLY: "false",
       CHECKS_RESULT: "success",
       DOCS_CHECKS_RESULT: "skipped",
       BUILD_RESULT: "success",
@@ -332,16 +437,31 @@ try {
       NEUTRAL_RESULT: "skipped",
       FULL_FORK_RESULT: "skipped",
     };
+    const fixtures = {
+      ...full,
+      FIXTURES_ONLY: "true",
+      BUILD_RESULT: "skipped",
+      NEUTRAL_RESULT: "skipped",
+      FULL_FORK_RESULT: "skipped",
+    };
     assert.ok(verify(full));
     assert.ok(verify(docs));
-    for (const results of [full, docs]) {
+    assert.ok(verify(fixtures));
+    let refusedResults = 0;
+    for (const results of [full, docs, fixtures]) {
       for (const key of Object.keys(results)) {
-        assert.equal(verify({ ...results, [key]: "failure" }), false, key + " failed");
-        assert.equal(verify({ ...results, [key]: "cancelled" }), false, key + " cancelled");
+        for (const value of ["failure", "cancelled", "", "unexpected"]) {
+          assert.equal(verify({ ...results, [key]: value }), false, key + " " + value);
+          refusedResults++;
+        }
+        const mismatch = results[key] === "success" ? "skipped" : "success";
+        assert.equal(verify({ ...results, [key]: mismatch }), false, key + " mismatched");
+        refusedResults++;
       }
-      assert.equal(verify({ ...results, BUILD_RESULT: "skipped" }), false);
       assert.equal(verify({ ...results, TYPECHECK_RESULT: "skipped" }), false);
     }
+    assert.equal(verify({ ...fixtures, DOCS_ONLY: "true" }), false);
+    console.log(JSON.stringify({ aggregateScopes: 3, refusedResults }));
     assert.match(workflow, /merge_group:/);
     assert.match(workflow, /run: npm run typecheck/);
     assert.match(workflow, /run: npm run build/);
