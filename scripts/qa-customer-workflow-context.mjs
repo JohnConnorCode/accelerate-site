@@ -138,7 +138,7 @@ try {
         "Opening a workflow must not create a proposal",
       );
       await capture(page, `${activeCase}-onboarding`);
-      const title = `Review kickoff context ${scenario}`;
+      const title = `Review kickoff context ${activeCase} ${Date.now()}`;
       await page.getByRole("textbox", { name: "Task 1", exact: true }).fill(title);
       await page.getByRole("button", { name: "Review workflow", exact: true }).click();
       await page.getByRole("button", { name: "Request approval", exact: true }).waitFor();
@@ -195,11 +195,17 @@ try {
       await page.getByRole("button", { name: "Review workflow", exact: true }).click();
       await page.getByRole("button", { name: "Request approval", exact: true }).click();
       await page.getByRole("button", { name: "Approve & create tasks", exact: true }).click();
-      await page.getByText("Recorded task results", { exact: true }).waitFor();
+      await page
+        .getByRole("article")
+        .filter({ has: page.getByText(title, { exact: true }) })
+        .getByText("Recorded task results", { exact: true })
+        .waitFor();
       const saved = await read(page, "/api/admin/plugins/tasks?pluginId=client-onboarding");
-      const completed = saved.actions.find((action) =>
+      const matching = saved.actions.filter((action) =>
         action.result?.tasks?.some((task) => task.title === title),
       );
+      assert.equal(matching.length, 1, "Exactly one action must create the reviewed task");
+      const completed = matching[0];
       assert.equal(completed?.result.complete, true);
       assert.ok(completed.result.tasks.every((task) => saved.taskStates[task.id] === "pending"));
       await keyboardLink(page, page.getByRole("link", { name: "Open opportunity", exact: true }));
