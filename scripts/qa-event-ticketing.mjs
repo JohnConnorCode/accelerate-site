@@ -419,6 +419,13 @@ try {
     });
     await page.goto(base, { waitUntil: "domcontentloaded" });
     const announcement = page.getByRole("complementary", { name: "Upcoming workshop" });
+    await page.waitForLoadState("networkidle");
+    assert.equal(
+      await announcement.isVisible(),
+      false,
+      "The announcement must not cover the first screen and its primary call to action",
+    );
+    await page.evaluate(() => window.scrollTo({ top: window.innerHeight, behavior: "instant" }));
     await announcement.waitFor({ state: "visible" });
     assert.equal(await announcement.getByRole("heading").innerText(), event.headline);
     const ticketCta = announcement.getByRole("link", { name: "View workshop · $50" });
@@ -469,6 +476,7 @@ try {
     );
     assert.equal(await page.evaluate(() => document.body.dataset.workshopPromotion), undefined);
     await page.reload({ waitUntil: "domcontentloaded" });
+    await page.evaluate(() => window.scrollTo({ top: window.innerHeight, behavior: "instant" }));
     await announcement.waitFor({ state: "visible" });
     assert.equal(await announcement.count(), 1, "Every homepage reload shows the announcement");
     if (width === 390) {
@@ -499,6 +507,7 @@ try {
     if (width === 1440 && theme === "light") {
       await page.locator("header a").first().click();
       await page.waitForURL(base + "/");
+      await page.evaluate(() => window.scrollTo({ top: window.innerHeight, behavior: "instant" }));
       await announcement.waitFor({ state: "visible" });
       await announcement.getByRole("button", { name: "Dismiss workshop announcement" }).click();
       await announcement.waitFor({ state: "hidden" });
@@ -509,6 +518,7 @@ try {
       await page.waitForURL(`**/events/${event.slug}`);
       await page.locator("header a").first().click();
       await page.waitForURL(base + "/");
+      await page.evaluate(() => window.scrollTo({ top: window.innerHeight, behavior: "instant" }));
       await announcement.waitFor({ state: "visible" });
       results.push({ returningHomeReopensAnnouncement: true });
       await page.goto(`${base}/events/${event.slug}?utm_source=venue&utm_campaign=workshop`, {
@@ -1101,6 +1111,9 @@ try {
   await deadlinePage.clock.install({ time: new Date(Date.parse(event.starts_at) - 60000) });
   await deadlinePage.goto(base, { waitUntil: "domcontentloaded" });
   const deadlineBanner = deadlinePage.getByRole("complementary", { name: "Upcoming workshop" });
+  await deadlinePage.evaluate(() =>
+    window.scrollTo({ top: window.innerHeight, behavior: "instant" }),
+  );
   await deadlineBanner.waitFor({ state: "visible" });
   assert.equal(
     await deadlinePage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),

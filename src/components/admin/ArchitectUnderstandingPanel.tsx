@@ -86,7 +86,7 @@ export function ArchitectUnderstandingPanel() {
       {model && (
         <div className="mt-3 admin-grid">
           <section>
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
               Statements
             </h3>
             <ul className="mt-2 space-y-2">
@@ -104,7 +104,7 @@ export function ArchitectUnderstandingPanel() {
             </ul>
           </section>
           <section>
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
               Conflicts
             </h3>
             {model.conflicts.length === 0 ? (
@@ -131,7 +131,7 @@ export function ArchitectUnderstandingPanel() {
             )}
           </section>
           <section>
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
               Questions
             </h3>
             <ul className="mt-2 space-y-2">

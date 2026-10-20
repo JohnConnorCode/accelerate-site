@@ -15,7 +15,7 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(`${base}/demo/command-center/superdebate/branding`, { timeout: 120000 });
   await page.getByLabel("Start from").waitFor();
-  await page.getByLabel("Start from").selectOption("signal");
+  await page.getByLabel("Start from").selectOption("operator");
   await page.getByLabel("Theme name", { exact: true }).fill("Evergreen");
   const palette = {
     canvas: "#101d1a",

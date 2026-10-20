@@ -1,7 +1,7 @@
 ---
 title: "Campaigns"
 description: "Approve one version, then automation runs entirely inside the rules you set for it."
-updated: "2026-09-09"
+updated: "2026-10-20"
 ---
 
 Open `/admin/campaigns`. Each campaign carries a name, a status, a version, and an approved version, and copy that has not been through that approval never sends, regardless of how ready it looks in the editor.
@@ -24,7 +24,7 @@ A later edit bumps `version`. Sends keep using `approved_version` until you appr
 
 Any campaign card has a Duplicate action. It copies name, audience, steps, sender, schedule, limits, and stop rules into a fresh draft named `<name> (copy)`. No members, sends, receipts, or approvals carry over, so the copy cannot send until it is enrolled and approved. The assistant can propose the same copy for approval through the shared action queue.
 
-The source version is checked before copying. The draft, steps, provenance and audit save together. If the response is interrupted, retry Duplicate: the pending request survives a reload and returns the same copy. A changed source needs a fresh review. The fictional workspace also saves the copied draft, opens its dry run and keeps its recipient list empty.
+The source version is checked before copying. The draft, steps, provenance and audit save together. If the response is interrupted, retry Duplicate: the pending request survives a reload and returns the same copy. A changed source needs a fresh review. The demo workspace also saves the copied draft, opens its dry run and keeps its recipient list empty.
 
 ## What stops a send
 

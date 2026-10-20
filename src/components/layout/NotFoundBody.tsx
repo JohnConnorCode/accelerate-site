@@ -14,7 +14,8 @@ export function NotFoundBody() {
         <AnimateOnScroll className="flex items-end border-b border-[var(--rule)] pb-5 lg:min-h-[25rem]">
           <span
             aria-hidden
-            className="font-display text-[clamp(8rem,18vw,15rem)] font-medium leading-[.72] tracking-[-.09em] text-[var(--fg)]"
+            /* brand-system: allow (decorative 404 numeral) */
+            className="font-display text-[clamp(8rem,18vw,15rem)] font-medium leading-[.72] tracking-[-0.04em] text-[var(--fg)]"
           >
             404
           </span>
@@ -26,7 +27,7 @@ export function NotFoundBody() {
           <RevealHeading
             as="h1"
             lead="This page isn’t part of the system."
-            className="max-w-[12ch] text-balance font-display text-[clamp(3.3rem,8vw,7.5rem)] font-medium leading-[.88] tracking-[-.065em] text-[var(--fg)]"
+            className="max-w-[12ch] text-balance font-display text-[length:var(--type-display)] font-medium leading-[.88] tracking-[-0.035em] text-[var(--fg)]"
           />
           <AnimateOnScroll delay={0.12}>
             <p className="mt-8 max-w-xl text-pretty text-lg leading-8 text-[var(--mid)]">

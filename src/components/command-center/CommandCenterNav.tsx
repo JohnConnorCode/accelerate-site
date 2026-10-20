@@ -122,7 +122,7 @@ export function CommandCenterNav() {
                 href={`#${s.id}`}
                 data-id={s.id}
                 aria-current={active === s.id ? "location" : undefined}
-                className={`flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-full px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${
+                className={`flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-full px-3 py-2 font-mono text-[11px] uppercase tracking-[0.1em] transition-colors ${
                   active === s.id
                     ? "bg-white/[0.14] text-[var(--paper)]"
                     : "text-[rgba(251,251,250,0.5)] hover:text-[var(--paper)]"
@@ -137,7 +137,7 @@ export function CommandCenterNav() {
             onClick={() =>
               trackConversion("Strategy Call CTA Clicked", { location: "command_center_nav" })
             }
-            className="btn btn-inv ml-1 shrink-0 whitespace-nowrap !px-4 !py-2.5 !text-[10px] sm:!px-5 sm:!py-3"
+            className="btn btn-inv ml-1 shrink-0 whitespace-nowrap !px-4 !py-2.5 !text-[11px] sm:!px-5 sm:!py-3"
           >
             <span>Book</span>{" "}
             <span className="arw hidden sm:inline-block" aria-hidden="true">

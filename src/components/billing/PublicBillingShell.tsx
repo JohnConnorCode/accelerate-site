@@ -4,7 +4,9 @@ import { brandButtonInk, type WorkspaceBrand } from "@/lib/revenue-os/branding-c
 import { PublicBrandMark } from "./PublicBrandMark";
 
 const fontFor = (font: WorkspaceBrand["font"]) =>
-  font === "serif" ? "Georgia, Cambria, serif" : "var(--font-inter), Inter, system-ui, sans-serif";
+  font === "serif"
+    ? "Georgia, Cambria, serif"
+    : "var(--font-body-face), Inter, system-ui, sans-serif";
 
 export function PublicBillingShell({
   tenantSlug,

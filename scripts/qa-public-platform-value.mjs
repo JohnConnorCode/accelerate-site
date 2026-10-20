@@ -517,7 +517,7 @@ try {
     await isolateAnalytics(context);
     await context.addInitScript(() => {
       localStorage.setItem("theme", "dark");
-      sessionStorage.setItem("accelerate:admin-demo:northline-roofing:appearance:v1", "frost");
+      sessionStorage.setItem("accelerate:admin-demo:northline-roofing:appearance:v1", "operator");
     });
     const page = await context.newPage();
     for (const industry of industries) {
@@ -551,9 +551,9 @@ try {
         "Demo preserves public preference",
       );
       if (scenario === "northline-roofing") {
-        await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
+        await page.waitForFunction(() => document.documentElement.dataset.theme === "operator");
         await page.reload({ waitUntil: "domcontentloaded" });
-        await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
+        await page.waitForFunction(() => document.documentElement.dataset.theme === "operator");
       }
       await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded" });
       assert.equal(

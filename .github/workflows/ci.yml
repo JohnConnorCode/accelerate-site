@@ -571,7 +571,6 @@ jobs:
           mobile_status=0
           loading_status=0
           core_release_status=0
-          node scripts/test-hero-packet-observer.mjs || observer_status=$?
           node scripts/test-hero-motion-observer.mjs || observer_status=$?
           node scripts/qa-home-hero-timing.mjs || hero_status=$?
           node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
@@ -1070,7 +1069,9 @@ jobs:
   admin-design:
     if: ${{ inputs.admin_design_only }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
+    env:
+      NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -1078,10 +1079,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - name: Verify themes and token compatibility
         run: |
+          npm run verify:agent-contract
+          npm run verify:brand
           npm run test:admin-themes
+          npm run test:admin-demo-contract
           npm run verify:admin-tokens
           node --check scripts/qa-admin-core.mjs
       - name: Verify representative core routes
@@ -1090,16 +1094,75 @@ jobs:
           QA_SKIP_PREVIEW: "1"
           QA_OUTPUT: /tmp/admin-core-qa/routes
         run: npm run qa:admin-core
-      - name: Capture nine theme identities and keyboard interaction
+      - name: Capture workspace modes and keyboard interaction
         env:
           QA_ROUTES: today
           QA_OUTPUT: /tmp/admin-core-qa/identities
         run: npm run qa:admin-core
+      - name: Build the actual application once
+        id: design_build
+        run: npm run build
+      - name: Capture product screens and verify the compiled design
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3045
+          PRODUCT_SCREENSHOT_RECEIPT: /tmp/accelerate-design-capture/product.json
+          HERO_QA_OUTPUT: /tmp/accelerate-design-capture/hero
+        run: |
+          setsid npm run start -- --hostname localhost --port 3045 > /tmp/accelerate-design-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then
+              ready=true
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-design-server.log; exit 1; fi
+          node --import tsx scripts/capture-product-screenshots.ts
+          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/chooser.json node scripts/capture-docs-screenshots.mjs --group demo
+          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/docs.json node scripts/capture-docs-screenshots.mjs --group docs
+          node scripts/qa-home-hero-timing.mjs
+          node scripts/qa-theme-persistence.mjs
+          node scripts/qa-today-review-layout.mjs
+          node scripts/qa-collections-workspace.mjs
+          node scripts/qa-marketing-positioning.mjs
+      - name: Retain compiled preview
+        if: ${{ always() && steps.design_build.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: design-production-preview
+          path: |
+            .next/
+            !.next/cache/
+            !.next/diagnostics/
+          include-hidden-files: true
+          retention-days: 2
       - name: Retain visual evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
           name: admin-design-evidence
-          path: /tmp/admin-core-qa/
+          path: |
+            /tmp/admin-core-qa/
+            /tmp/accelerate-design-capture/
+            /tmp/accelerate-design-server.log
+            /tmp/accelerate-theme-persistence/
+            /tmp/accelerate-today-review/
+            /tmp/accelerate-collections-workspace/
+            /tmp/accelerate-positioning-qa/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain refreshed public images
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: design-public-images
+          path: |
+            public/images/docs/
+            public/images/demo/*-20261020-r2.png
+            public/images/open-source/*-20261020-r2.png
           if-no-files-found: ignore
           retention-days: 7

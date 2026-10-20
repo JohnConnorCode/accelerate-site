@@ -28,6 +28,21 @@ The offer has four parts:
 The outcomes are straightforward: give people time back, increase revenue, and
 let the team focus on the decisions, relationships, and work that matter most.
 
+### The value proposition
+
+The homepage states the offer in one sentence and one paragraph. Other pages
+may vary the wording but not the claim:
+
+> Custom AI systems that run the work behind your business.
+>
+> We find where time and revenue slip away, build the system that fixes it
+> around the tools you already use, then run and improve it with your team.
+
+Services lead and the Command Center is the proof. Outside its own pages, the
+Command Center appears as evidence that the work is real: the instrument our
+systems report into, shown with real screens or the fictional demo. Visual
+rules for that proof live in `docs/contracts/BRAND-SYSTEM.md`.
+
 ## The Command Center
 
 Command Center is an open-source AI business platform you can make your own.

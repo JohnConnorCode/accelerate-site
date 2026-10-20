@@ -143,7 +143,7 @@ for (const appearance of appearances) {
           `${appearance} ${viewportLabel} ${route}: ${runtimeErrors.splice(0).join("; ")}`,
         );
 
-      if (appearance === "signal" && screenshotRoutes.has(route))
+      if (appearance === "operator" && screenshotRoutes.has(route))
         await page.screenshot({ path: `${output}/${route}-${viewportLabel}.png`, fullPage: true });
     }
     await context.close();

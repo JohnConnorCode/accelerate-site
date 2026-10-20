@@ -24,7 +24,7 @@ export function websiteThemeStyle(theme: WebsiteDocument["theme"]): CSSPropertie
       ? {}
       : {
           fontFamily: {
-            sans: "var(--font-inter, Arial), sans-serif",
+            sans: "var(--font-body-face, Arial), sans-serif",
             serif: "Georgia, serif",
             mono: "var(--font-mono-face, monospace)",
           }[theme.font],

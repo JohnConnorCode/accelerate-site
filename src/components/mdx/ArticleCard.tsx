@@ -25,7 +25,7 @@ export function ArticleCard({ article, index, showCategory = true }: ArticleCard
       className="learning-card group flex h-full min-h-[17rem] flex-col p-6 sm:p-7"
     >
       <div className="mb-8 flex items-start justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white-muted">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-white-muted">
           {showCategory && (
             <span className="text-heading">{CATEGORY_LABELS[article.frontmatter.category]}</span>
           )}

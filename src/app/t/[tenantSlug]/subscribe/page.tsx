@@ -48,7 +48,7 @@ export default async function SubscribePage({
             </p>
           </div>
         )}
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--billing-accent)]">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--billing-accent)]">
           {brand.name} · Plans
         </p>
         <h1 className="mt-4 max-w-2xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">

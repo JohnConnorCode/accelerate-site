@@ -46,7 +46,7 @@ export function ProofStrip() {
 
         <motion.p
           {...rv(0.15)}
-          className="mt-10 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted"
+          className="mt-10 font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted"
         >
           Targets, not averages. Measured on your dashboard from week one.
         </motion.p>

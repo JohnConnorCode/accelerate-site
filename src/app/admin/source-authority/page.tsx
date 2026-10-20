@@ -394,16 +394,16 @@ export default function SourceAuthorityPage() {
                         {entry.display_name}
                       </p>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${tierTone[entry.authority_tier]}`}
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${tierTone[entry.authority_tier]}`}
                       >
                         {entry.authority_tier}
                       </span>
                       {stale ? (
-                        <span className="rounded-full bg-black/[0.055] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-warning)] dark:bg-white/[0.07]">
+                        <span className="rounded-full bg-black/[0.055] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-warning)] dark:bg-white/[0.07]">
                           Stale
                         </span>
                       ) : (
-                        <span className="rounded-full bg-black/[0.055] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-success)] dark:bg-white/[0.07]">
+                        <span className="rounded-full bg-black/[0.055] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-success)] dark:bg-white/[0.07]">
                           Current
                         </span>
                       )}

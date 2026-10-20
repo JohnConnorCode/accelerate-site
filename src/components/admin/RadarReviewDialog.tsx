@@ -61,7 +61,7 @@ export function RadarReviewDialog({
                 >
                   Read referenced source
                 </button>
-                <details className="group mt-2 text-[10px] text-[var(--admin-muted)]">
+                <details className="group mt-2 text-[11px] text-[var(--admin-muted)]">
                   <summary className="flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden">
                     Source reference
                     <ChevronDown

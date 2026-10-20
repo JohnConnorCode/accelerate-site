@@ -42,9 +42,23 @@ try {
       await page.goto(root + "/collections");
       await page.getByRole("button", { name: "Preview reminder", exact: true }).waitFor();
       const cases = page.locator("button[aria-pressed]");
-      await cases.first().waitFor();
       assert.equal(await cases.count(), 6);
-      assert.equal(await page.locator("h1").textContent(), "Collections Action Desk");
+      const accountPicker = page.getByRole("combobox", { name: "Collection account", exact: true });
+      if (width === 390) {
+        await accountPicker.waitFor();
+        assert.equal(await accountPicker.locator("option").count(), 6);
+      } else {
+        await cases.first().waitFor();
+      }
+      const addInvoice = page.getByText("Add an invoice", { exact: true });
+      assert.equal(await addInvoice.evaluate((summary) => summary.parentElement.open), false);
+      await addInvoice.focus();
+      await page.keyboard.press("Enter");
+      await page.getByRole("combobox", { name: "Invoice from Invoicing", exact: true }).waitFor();
+      await addInvoice.focus();
+      await page.keyboard.press("Enter");
+      assert.equal(await addInvoice.evaluate((summary) => summary.parentElement.open), false);
+      assert.equal(await page.locator("h1").textContent(), "Collections");
       await page.getByLabel("Owner email", { exact: true }).fill("finance@operator.example");
       await page.getByRole("button", { name: "Save case policy", exact: true }).press("Enter");
       await page.getByText("Case policy saved with a revision and history receipt.").waitFor();
@@ -68,7 +82,15 @@ try {
         .waitFor();
       await page.getByRole("button", { name: "Approve and send", exact: true }).press("Enter");
       await page.getByRole("alert").filter({ hasText: "Reminder skipped" }).waitFor();
-      await cases.nth(1).click();
+      if (width === 390) {
+        const option = accountPicker.locator("option").nth(1);
+        await accountPicker.selectOption(await option.getAttribute("value"));
+        await page
+          .getByRole("heading", { name: (await option.textContent()).split(" · ")[0], exact: true })
+          .waitFor();
+      } else {
+        await cases.nth(1).click();
+      }
       await page.getByRole("button", { name: "Preview reminder", exact: true }).click();
       await page
         .getByRole("button", { name: "Queue reviewed reminder", exact: true })
@@ -127,17 +149,11 @@ try {
         };
         await verifyCollectionCapabilities(true);
         await page.goto(root + "/plugins");
-        await page
-          .getByRole("button", { name: "Disable Collections Action Desk", exact: true })
-          .click();
-        await page
-          .getByRole("button", { name: "Enable Collections Action Desk", exact: true })
-          .waitFor();
+        await page.getByRole("button", { name: "Disable Collections", exact: true }).click();
+        await page.getByRole("button", { name: "Enable Collections", exact: true }).waitFor();
         await verifyCollectionCapabilities(false);
         await page.goto(root + "/plugins");
-        await page
-          .getByRole("button", { name: "Enable Collections Action Desk", exact: true })
-          .click();
+        await page.getByRole("button", { name: "Enable Collections", exact: true }).click();
         await verifyCollectionCapabilities(true);
         await page.goto(root + "/collections");
         await cases.nth(1).waitFor();
@@ -156,7 +172,7 @@ try {
       const followUp = page.getByRole("heading", { name: "Collections follow-up", exact: true });
       if (await followUp.count()) {
         await followUp.waitFor();
-        await page.getByRole("link", { name: "Open Collections Action Desk", exact: true }).click();
+        await page.getByRole("link", { name: "Open Collections", exact: true }).click();
       } else {
         await page.goto(root + "/collections");
       }

@@ -398,7 +398,7 @@ function SetupCheckCard({ check, bookingMode }: { check: SetupCheck; bookingMode
             </h3>
             <span
               className={cn(
-                "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.09em]",
+                "rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.09em]",
                 meta.className,
               )}
             >
@@ -413,7 +413,7 @@ function SetupCheckCard({ check, bookingMode }: { check: SetupCheck; bookingMode
             </p>
           )}
           {(check.lastSuccessAt || check.lastFailure || check.nextRun) && (
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] text-[var(--admin-muted)]">
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--admin-muted)]">
               {check.lastSuccessAt && (
                 <span>Last success {new Date(check.lastSuccessAt).toLocaleString()}</span>
               )}
@@ -430,7 +430,7 @@ function SetupCheckCard({ check, bookingMode }: { check: SetupCheck; bookingMode
               {check.keys.map((key) => (
                 <code
                   key={key}
-                  className="max-w-full break-all rounded-md bg-black/[0.045] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)] dark:bg-white/[0.065]"
+                  className="max-w-full break-all rounded-md bg-black/[0.045] px-2 py-1 font-mono text-[11px] text-[var(--admin-muted)] dark:bg-white/[0.065]"
                 >
                   {key}
                 </code>
@@ -473,7 +473,7 @@ function SetupCheckCard({ check, bookingMode }: { check: SetupCheck; bookingMode
             <ol className="space-y-3">
               {guide.steps.map((step, index) => (
                 <li key={step} className="flex gap-3 text-sm leading-6 text-[var(--admin-muted)]">
-                  <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-[var(--admin-ink)] font-mono text-[9px] tabular-nums text-[var(--admin-surface)]">
+                  <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-[var(--admin-ink)] font-mono text-[10.5px] tabular-nums text-[var(--admin-surface)]">
                     {index + 1}
                   </span>
                   <span>{step}</span>
@@ -743,7 +743,7 @@ export default function AdminSetupPage() {
                 <div className="relative">
                   <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.17em]">
+                      <p className="font-mono text-[11px] uppercase tracking-[0.17em]">
                         Production readiness
                       </p>
                       <h2 className="mt-3 text-balance text-2xl font-semibold tracking-[-0.035em] sm:text-3xl">
@@ -758,7 +758,7 @@ export default function AdminSetupPage() {
                       </p>
                     </div>
                     <div className="shrink-0 sm:text-right">
-                      <p className="font-mono text-4xl font-semibold tabular-nums tracking-[-0.05em]">
+                      <p className="font-mono text-4xl font-semibold tabular-nums tracking-[-0.035em]">
                         {data.summary.percent}%
                       </p>
                       <p className="mt-1 text-xs">required complete</p>
@@ -833,7 +833,7 @@ export default function AdminSetupPage() {
                         <span className="grid size-9 place-items-center rounded-lg bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-sm">
                           <Icon className="size-4" />
                         </span>
-                        <span className="font-mono text-[9px] tabular-nums text-[var(--admin-muted)]">
+                        <span className="font-mono text-[10.5px] tabular-nums text-[var(--admin-muted)]">
                           0{index + 1}
                         </span>
                       </div>
@@ -901,7 +901,7 @@ export default function AdminSetupPage() {
                         Access and refresh credentials use the supported authenticated envelope.
                         Values never leave the server.
                       </p>
-                      <p className="mt-3 font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">
+                      <p className="mt-3 font-mono text-[11px] tabular-nums text-[var(--admin-muted)]">
                         Access token expires{" "}
                         {data.google.tokenHealth.expiresAt
                           ? new Date(data.google.tokenHealth.expiresAt).toLocaleString()
@@ -919,7 +919,7 @@ export default function AdminSetupPage() {
                         {data.google.scopes.map((scope) => (
                           <code
                             key={scope}
-                            className="max-w-full break-all rounded-md bg-[var(--admin-surface)] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"
+                            className="max-w-full break-all rounded-md bg-[var(--admin-surface)] px-2 py-1 font-mono text-[11px] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"
                           >
                             {scope}
                           </code>

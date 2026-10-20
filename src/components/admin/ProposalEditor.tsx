@@ -129,7 +129,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
 
       {/* Share link */}
       <GlassCard hover="none" padding="sm">
-        <p className="text-[10px] text-white-muted uppercase font-semibold mb-1">Share Link</p>
+        <p className="text-[11px] text-white-muted uppercase font-semibold mb-1">Share Link</p>
         <div className="flex min-w-0 items-center gap-2">
           <input
             ref={shareLink}
@@ -213,7 +213,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
 
           {section.items && (
             <div className="mt-2 space-y-1">
-              <p className="text-[10px] text-white-muted uppercase font-semibold">Items</p>
+              <p className="text-[11px] text-white-muted uppercase font-semibold">Items</p>
               {section.items.map((item, itemIdx) => (
                 <Input
                   key={itemIdx}
@@ -231,7 +231,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
 
           {section.pricing && (
             <div className="mt-3 space-y-2">
-              <p className="text-[10px] text-white-muted uppercase font-semibold">Pricing</p>
+              <p className="text-[11px] text-white-muted uppercase font-semibold">Pricing</p>
               {section.pricing.map((price, priceIdx) => (
                 <div key={priceIdx} className="grid grid-cols-3 gap-2">
                   <Input

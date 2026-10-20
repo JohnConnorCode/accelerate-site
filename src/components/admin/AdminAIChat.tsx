@@ -549,7 +549,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
                     onClick={() => void ai.send(starter.prompt)}
                     className="min-h-12 rounded-xl px-3 py-2 text-left shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-40"
                   >
-                    <span className="block text-[10px] font-semibold uppercase tracking-[0.09em] text-[var(--admin-muted)]">
+                    <span className="block text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--admin-muted)]">
                       {starter.label}
                     </span>
                     <span className="mt-0.5 block text-xs font-medium text-[var(--admin-ink)]">
@@ -587,7 +587,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
                   )}
                   {isLatestAssistant && (ai.tools.length > 0 || ai.model) && (
                     <div className="mt-3 rounded-xl bg-black/[0.025] p-3 shadow-[var(--admin-shadow-border)] dark:bg-white/[0.035]">
-                      <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                         <Wrench className="size-3.5" />
                         {ai.running ? "Working" : "Run evidence"}
                         {ai.model && (
@@ -721,7 +721,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
                             >
                               Review: {proposal.title}
                             </button>
-                            <span className="text-[10px] uppercase tracking-[0.07em] text-[var(--admin-muted)]">
+                            <span className="text-[11px] uppercase tracking-[0.07em] text-[var(--admin-muted)]">
                               {proposal.impact.replace(/_/g, " ")}
                             </span>
                           </li>
@@ -847,7 +847,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             </button>
           )}
         </div>
-        <div className="mt-2 flex items-center justify-between text-[10px] text-[var(--admin-muted)]">
+        <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--admin-muted)]">
           <span>Enter sends · Shift+Enter adds a line</span>
           {ai.activeConversationId && (
             <button

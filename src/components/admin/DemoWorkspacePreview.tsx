@@ -8,8 +8,8 @@ export function DemoWorkspacePreview({ scenarioId }: { scenarioId: DemoScenarioI
       aria-hidden="true"
     >
       <div className="demo-workspace-preview-header flex items-center justify-between px-3 py-2">
-        <span className="text-[9px] font-semibold tracking-[0.01em]">Today</span>
-        <span className="font-mono text-[8px] uppercase tracking-[0.1em] opacity-70 tabular-nums">
+        <span className="text-[10.5px] font-semibold tracking-[0.01em]">Today</span>
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] opacity-70 tabular-nums">
           {scenario.story[0]}
         </span>
       </div>
@@ -19,7 +19,7 @@ export function DemoWorkspacePreview({ scenarioId }: { scenarioId: DemoScenarioI
             <span className="block truncate text-[11px] font-medium leading-4 text-[var(--demo-preview-ink)]">
               {opportunity.name}
             </span>
-            <span className="mt-0.5 block truncate text-[10px] leading-4 text-[var(--demo-preview-muted)]">
+            <span className="mt-0.5 block truncate text-[11px] leading-4 text-[var(--demo-preview-muted)]">
               {opportunity.nextAction}
             </span>
           </div>

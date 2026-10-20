@@ -39,10 +39,10 @@ export const homeFaqContent = {
 
 export const homeHeroContent = {
   eyebrow: "AI strategy · custom systems · ongoing execution",
-  heading: "We use AI to help your business",
-  emphasis: "make more money while you save more time.",
+  heading: "Custom AI systems that run",
+  emphasis: "the work behind your business.",
   support:
-    "We find where AI can make a difference, build it around the tools you already use, and help your team put it to work.",
+    "We find where time and revenue slip away, build the system that fixes it around the tools you already use, then run and improve it with your team.",
   ctaLabel: "Book a free strategy session",
   ctaHref: "/contact",
 };
@@ -178,7 +178,7 @@ export const homeCommandCenterContent = {
   slides: PRODUCT_SCREENSHOTS.map((slide) => ({ ...slide })),
   links: [
     { label: "Explore the Command Center", href: "/command-center" },
-    { label: "Explore six fictional businesses", href: "/demo/command-center" },
+    { label: "Explore six example businesses", href: "/demo/command-center" },
     {
       label: "Follow a customer workflow",
       href: "/demo/command-center/northline-roofing/today?workflow=client",

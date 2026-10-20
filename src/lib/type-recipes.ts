@@ -4,12 +4,11 @@
  * classes, which are owned by the CSS section-reveal system and would
  * double-animate. Using one constant keeps every page hero identical.
  *
- * HERO_HEADING matches the homepage hero (the flagship reference): ~66px on
- * desktop, capped at 4.75rem on very wide screens.
+ * Both map onto the shared --type-* heading scale in globals.css.
  */
 export const HERO_HEADING =
-  "font-display font-extrabold leading-[1.02] tracking-[-0.035em] text-[clamp(2.4rem,4.6vw,4.75rem)] text-heading";
+  "font-display font-semibold leading-[1.04] tracking-[-0.035em] text-[length:var(--type-display)] text-heading";
 
 /** Section-level heading (h2) — smaller than the hero, for in-page sections. */
 export const SECTION_HEADING =
-  "font-display font-bold leading-[1.06] tracking-[-0.03em] text-[clamp(1.9rem,3.4vw,3rem)] text-heading";
+  "font-display font-semibold leading-[1.08] tracking-[-0.03em] text-[length:var(--type-section)] text-heading";

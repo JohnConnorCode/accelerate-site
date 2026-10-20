@@ -1,24 +1,17 @@
 # Admin themes
 
-Admin appearances share geometry, motion and semantic colors while keeping their
-own character. Paper, Night, Signal, Studio, Frost, Material 2026, macOS,
-Accelerate and Capy live in `src/lib/admin/themes.json`. The picker and browser matrix derive from this
+Each admin appearance is a mode of work with its own geometry and density. Paper, Night, Accelerate
+and Operator live in `src/lib/admin/themes.json`; `docs/contracts/BRAND-SYSTEM.md`
+defines what each mode is for and what the signal accent means. Retired ids map
+to their closest mode through `RETIRED_APPEARANCES` in `src/lib/admin/appearances.ts`. The picker and browser matrix derive from this
 registry. `npm run themes:generate` produces `src/app/admin-themes.css`, including
 the dark utility selector from each definition's `mode`.
-
-Capy is a reference-led appearance based on the live [Capy AI](https://capy.ai/)
-product presentation reviewed on 2026-09-23. Reusable cues include a near-black
-header and workspace chrome, white canvas, seafoam calls to action, condensed
-display type, monospaced copy, compact activity cards, crisp dark outlines and
-small offset shadows. This theme translates those cues into a graphite navigation
-rail, mint actions, a warm-neutral canvas, monospaced titles and labels, compact
-corners and restrained depth. It uses this project's icons, illustrations and
-copy; no Capy logo, mascot art or proprietary assets are included.
 
 ## Add a built-in appearance
 
 Copy a definition in `themes.json`, give it a unique id, label and description,
-and adjust its tokens. Run `npm run themes:generate`, `npm run test:admin-themes`
+and adjust its tokens. A new mode must differ from every other built-in in a
+structural token (geometry, density or label face) as well as in color. Run `npm run themes:generate`, `npm run test:admin-themes`
 and `npm run verify:admin-tokens`. No route or picker changes are required.
 The picker generates its swatch from the palette and supplies a neutral icon
 for an unfamiliar id. The browser continuity matrix automatically includes it.
@@ -63,7 +56,7 @@ also inspect real text, controls, focus, menus and dialogs: token tests alone
 cannot prove rendered contrast or layout.
 
 Run the complete browser matrix against the production build with
-`QA_PRODUCTION=1 npm run qa:admin-polish`. It covers all eight built-ins,
+`QA_PRODUCTION=1 npm run qa:admin-polish`. It covers all four built-ins,
 desktop and phone layouts, board loading/error/empty/recovery states, shared
 controls, keyboard and touch interactions, reduced motion, custom-theme flows
 and scenario isolation. Screenshots and measurements go to

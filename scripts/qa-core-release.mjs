@@ -32,7 +32,7 @@ try {
     await button.focus();
     await page.keyboard.press("Enter");
     await page
-      .getByText("This fictional workspace has no installed core release.", { exact: false })
+      .getByText("This demo workspace has no installed core release.", { exact: false })
       .waitFor();
     await page.getByText("Unversioned", { exact: true }).waitFor();
     assert.equal(escaped.length, 0, "Demo release check escaped to a live API");

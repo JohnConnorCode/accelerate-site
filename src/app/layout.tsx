@@ -12,19 +12,20 @@ import { distributionProfile } from "@/lib/distribution/profile";
 import { neutralPublicIdentity } from "@/lib/distribution/public-identity";
 import "./globals.css";
 
-// High-contrast editorial type system: Jost (display), Inter (body),
-// JetBrains Mono (labels/utility), Newsreader italic (serif accent).
+// One type family: Funnel Display (headings), Funnel Sans (body and UI),
+// JetBrains Mono (data, timestamps, labels). Newsreader stays available only
+// as a workspace-theme choice for tenants; Accelerate surfaces never use it.
 const sans = localFont({
-  src: "../../public/fonts/inter.woff2",
-  variable: "--font-inter",
-  weight: "100 900",
+  src: "../../public/fonts/funnelsans.woff2",
+  variable: "--font-body-face",
+  weight: "300 800",
   display: "swap",
 });
 
 const display = localFont({
-  src: "../../public/fonts/jost.woff2",
-  variable: "--font-jost", // keep var name — @theme inline maps --font-display to it
-  weight: "100 900",
+  src: "../../public/fonts/funneldisplay.woff2",
+  variable: "--font-display-face",
+  weight: "300 800",
   display: "swap",
 });
 
@@ -34,6 +35,7 @@ const editorial = localFont({
   weight: "200 800",
   style: "italic",
   display: "swap",
+  preload: false,
 });
 
 const mono = localFont({

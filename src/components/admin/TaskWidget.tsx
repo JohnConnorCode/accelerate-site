@@ -121,7 +121,7 @@ export function TaskWidget() {
             <h3 className="font-display text-sm font-semibold text-white-primary">
               Today&apos;s Tasks
             </h3>
-            <span className="text-[10px] text-white-muted bg-white/10 rounded-full px-2 py-0.5">
+            <span className="text-[11px] text-white-muted bg-white/10 rounded-full px-2 py-0.5">
               {tasks.length}
             </span>
           </div>
@@ -154,13 +154,13 @@ export function TaskWidget() {
                   <p className="text-sm text-white-primary truncate">{task.title}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     {isOverdue && (
-                      <span className="flex items-center gap-1 text-[10px] text-red-400 font-medium">
+                      <span className="flex items-center gap-1 text-[11px] text-red-400 font-medium">
                         <AlertCircle className="h-3 w-3" />
                         Overdue
                       </span>
                     )}
                     {task.due_date && !isOverdue && (
-                      <span className="flex items-center gap-1 text-[10px] text-white-muted">
+                      <span className="flex items-center gap-1 text-[11px] text-white-muted">
                         <Clock className="h-3 w-3" />
                         {task.due_time || "Today"}
                       </span>
@@ -169,12 +169,12 @@ export function TaskWidget() {
                       (sourceLink ? (
                         <Link
                           href={sourceLink.href}
-                          className="text-[10px] text-white-muted hover:text-gold-light transition-colors truncate"
+                          className="text-[11px] text-white-muted hover:text-gold-light transition-colors truncate"
                         >
                           {task.related_name}
                         </Link>
                       ) : (
-                        <span className="truncate text-[10px] text-white-muted">
+                        <span className="truncate text-[11px] text-white-muted">
                           {task.related_name}
                         </span>
                       ))}
@@ -183,7 +183,7 @@ export function TaskWidget() {
 
                 <span
                   className={cn(
-                    "text-[10px] font-medium shrink-0",
+                    "text-[11px] font-medium shrink-0",
                     priorityColors[task.priority] || "text-white-muted",
                   )}
                 >

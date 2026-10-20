@@ -146,7 +146,7 @@ export function OpsFeed({ className }: { className?: string }) {
         >
           <span className="sr-only">{showPaused ? "resume live feed:" : "pause live feed:"}</span>
           {showPaused ? (
-            <span className="flex items-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[var(--gold-base)]">
+            <span className="flex items-center gap-1.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--gold-base)]">
               <span className="grid grid-cols-2 gap-[2px]">
                 <span className="h-2 w-[3px] rounded-[1px] bg-[var(--gold-base)]" />
                 <span className="h-2 w-[3px] rounded-[1px] bg-[var(--gold-base)]" />
@@ -254,7 +254,7 @@ export function OpsFeed({ className }: { className?: string }) {
       </ul>
 
       {/* footer — reinforces that we build & run it (not a platform you manage) */}
-      <div className="flex items-center justify-between border-t border-[var(--border-glass)] px-5 py-3 font-mono text-[0.64rem] uppercase tracking-[0.18em] text-[var(--white-muted)]">
+      <div className="flex items-center justify-between border-t border-[var(--border-glass)] px-5 py-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--white-muted)]">
         <span className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--gold-base)]" />
           running 24/7

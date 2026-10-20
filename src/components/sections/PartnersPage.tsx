@@ -129,7 +129,7 @@ export function PartnersPage() {
             </div>
             <HeroEntranceItem step={3} className="mx-auto w-full max-w-sm">
               <div className="relative overflow-hidden border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-8">
-                <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
+                <p className="mb-4 font-mono text-[10.5px] uppercase tracking-[0.22em] text-white-muted">
                   Partner earnings
                 </p>
                 <div className="flex items-baseline gap-3">
@@ -145,7 +145,7 @@ export function PartnersPage() {
                 <p className="mt-5 text-sm leading-relaxed text-white-secondary">
                   On every client you refer, paid monthly, for as long as they stay with us.
                 </p>
-                <div className="mt-6 border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] pt-4 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-white-muted">
+                <div className="mt-6 border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] pt-4 font-mono text-[10.5px] uppercase tracking-[0.16em] text-white-muted">
                   Referral · Agency · White-label · Technology
                 </div>
               </div>
@@ -215,7 +215,7 @@ export function PartnersPage() {
                   {tier.commission}
                 </p>
                 <div className="mb-5">
-                  <p className="mb-2 font-mono text-[0.6rem] uppercase tracking-[0.2em] text-white-muted">
+                  <p className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.2em] text-white-muted">
                     Benefits
                   </p>
                   <ul className="flex flex-col gap-2">
@@ -228,7 +228,7 @@ export function PartnersPage() {
                   </ul>
                 </div>
                 <div className="mt-auto border-t border-border-glass pt-4">
-                  <p className="mb-2 font-mono text-[0.6rem] uppercase tracking-[0.2em] text-white-muted">
+                  <p className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.2em] text-white-muted">
                     Requirements
                   </p>
                   <ul className="flex flex-col gap-1">

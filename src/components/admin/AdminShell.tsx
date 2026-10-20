@@ -745,7 +745,7 @@ export default function AdminShell({
                         <span className="block max-w-40 truncate text-sm">
                           {DEMO_SCENARIO_SHELL_NAMES[scenarioId]}
                         </span>
-                        <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] text-[var(--admin-nav-muted)]">
+                        <span className="mt-0.5 block font-mono text-[10.5px] uppercase tracking-[0.13em] text-[var(--admin-nav-muted)]">
                           Demo
                         </span>
                       </span>
@@ -906,7 +906,7 @@ export default function AdminShell({
                       >
                         <Bot className="size-3.5" />
                         Ask AI
-                        <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--admin-muted)]">
+                        <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--admin-muted)]">
                           ⌘J
                         </kbd>
                       </button>
@@ -917,7 +917,7 @@ export default function AdminShell({
                       >
                         <Search className="h-3.5 w-3.5" />
                         Search
-                        <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">
+                        <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
                           ⌘K
                         </kbd>
                       </button>
@@ -954,7 +954,7 @@ export default function AdminShell({
                         aria-current={committed ? "page" : undefined}
                         data-pending={isPendingActive(link.href) ? "true" : undefined}
                         className={cn(
-                          "admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--admin-surface-radius)] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]",
+                          "admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--admin-surface-radius)] px-1 text-[10.5px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]",
                           active && "is-active",
                         )}
                       >
@@ -968,7 +968,7 @@ export default function AdminShell({
                     type="button"
                     onClick={() => setMobileOpen(true)}
                     className={cn(
-                      "admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--admin-surface-radius)] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]",
+                      "admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--admin-surface-radius)] px-1 text-[10.5px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]",
                       mobileDockIndex === mobilePrimaryLinks.length && "is-active",
                     )}
                     aria-label="Open More"
@@ -1115,7 +1115,7 @@ function SidebarContent({
               <span className="block text-pretty text-[13px] font-semibold leading-4">
                 {DEMO_SCENARIO_SHELL_NAMES[demoScenarioId]}
               </span>
-              <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] text-[var(--admin-nav-muted)]">
+              <span className="mt-0.5 block font-mono text-[10.5px] uppercase tracking-[0.13em] text-[var(--admin-nav-muted)]">
                 Demo workspace
               </span>
             </span>
@@ -1225,7 +1225,7 @@ function SidebarContent({
                   {group.id === "today" && priorityCount > 0 && (
                     <span
                       className={cn(
-                        "rounded-full bg-[var(--admin-nav-hover)] px-1.5 py-0.5 font-mono text-[9px] font-semibold tabular-nums",
+                        "rounded-full bg-[var(--admin-nav-hover)] px-1.5 py-0.5 font-mono text-[10.5px] font-semibold tabular-nums",
                         collapsed && "absolute right-0 top-0 size-2 p-0 text-transparent",
                       )}
                       aria-label={`${priorityCount} urgent priorities`}
@@ -1289,7 +1289,7 @@ function SidebarContent({
           <div className="mb-2 px-1">
             <label
               htmlFor={`${idPrefix}-workspace`}
-              className="mb-1 block px-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-nav-faint)]"
+              className="mb-1 block px-1.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-nav-faint)]"
             >
               Workspace
             </label>
@@ -1325,7 +1325,7 @@ function SidebarContent({
           </div>
         )}
         {!collapsed && demoScenarioId && (
-          <p className="mb-1 px-2.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-nav-faint)]">
+          <p className="mb-1 px-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-nav-faint)]">
             Workspace
           </p>
         )}
@@ -1510,7 +1510,7 @@ function CmdKSearch({
           >
             <X className="size-4" />
           </button>
-          <kbd className="hidden rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-1 font-mono text-[9px] text-[var(--admin-muted)] sm:block">
+          <kbd className="hidden rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-1 font-mono text-[10.5px] text-[var(--admin-muted)] sm:block">
             ESC
           </kbd>
         </div>
@@ -1614,7 +1614,7 @@ function CmdKSearch({
             </p>
           )}
         </div>
-        <div className="flex items-center justify-between border-t border-[var(--admin-border)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:pb-2">
+        <div className="flex items-center justify-between border-t border-[var(--admin-border)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 font-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:pb-2">
           <span className="flex items-center gap-1.5">
             <Command className="h-3 w-3" /> Command Center
           </span>
@@ -1628,7 +1628,7 @@ function CmdKSearch({
 function ResultSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <section role="group" aria-label={label} className="mb-2 last:mb-0">
-      <p className="px-3 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-muted)]">
+      <p className="px-3 py-1.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-muted)]">
         {label}
       </p>
       {children}
@@ -1692,7 +1692,7 @@ function CommandRow({
           {description}
         </span>
       </span>
-      <span className="font-mono text-[10px] opacity-40">↵</span>
+      <span className="font-mono text-[11px] opacity-40">↵</span>
     </button>
   );
 }

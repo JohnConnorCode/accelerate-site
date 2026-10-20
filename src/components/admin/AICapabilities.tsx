@@ -28,7 +28,7 @@ function CapabilityCard({ item }: { item: AiCapability }) {
             <LockKeyhole className="size-4 text-amber-600 dark:text-amber-300" />
           )}
         </span>
-        <span className="rounded-full bg-[var(--admin-surface)] px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
+        <span className="rounded-full bg-[var(--admin-surface)] px-2 py-1 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
           {item.state === "available"
             ? readOnly
               ? "Registered read"
@@ -44,14 +44,14 @@ function CapabilityCard({ item }: { item: AiCapability }) {
         {item.packs.map((pack) => (
           <span
             key={pack}
-            className="rounded-md bg-black/[0.04] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)] dark:bg-white/[0.05]"
+            className="rounded-md bg-black/[0.04] px-2 py-1 font-mono text-[11px] text-[var(--admin-muted)] dark:bg-white/[0.05]"
           >
             {pack}
           </span>
         ))}
       </div>
       <p className="admin-copy mt-3 text-[11px] leading-5">{item.availabilityReason}</p>
-      <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+      <p className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--admin-muted)]">
         {item.serviceTarget} ·{" "}
         {item.connectionRequirement === "none"
           ? "No provider connection required"
@@ -287,7 +287,7 @@ export function AICapabilities() {
                   Reads and reports
                 </h2>
               </div>
-              <span className="font-mono text-[10px] text-[var(--admin-muted)]">
+              <span className="font-mono text-[11px] text-[var(--admin-muted)]">
                 Registry {data?.registryVersion}
               </span>
             </div>

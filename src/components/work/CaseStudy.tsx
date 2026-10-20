@@ -52,7 +52,7 @@ function VisualBreak({ block, project }: { block: WorkVisualBlock; project: Work
             </div>
             <div>
               {block.title ? (
-                <h2 className="max-w-[20ch] text-balance font-display text-[clamp(2rem,4.5vw,4.75rem)] font-medium leading-[0.94] tracking-[-0.05em]">
+                <h2 className="max-w-[20ch] text-balance font-display text-[length:var(--type-section)] font-medium leading-[0.94] tracking-[-0.035em]">
                   {block.title}
                 </h2>
               ) : null}
@@ -110,7 +110,7 @@ export function CaseStudy({ project }: { project: WorkProject }) {
           <div className="work-hero-enter work-hero-d1">
             <nav
               aria-label="Breadcrumb"
-              className="mb-10 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--mid)]"
+              className="mb-10 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--mid)]"
             >
               <ol className="flex flex-wrap items-center gap-x-2">
                 <li>
@@ -161,14 +161,14 @@ export function CaseStudy({ project }: { project: WorkProject }) {
                 as="h1"
                 delay={0.14}
                 stagger={0.05}
-                className="max-w-[13ch] text-balance font-display text-[clamp(3rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.065em] text-[var(--fg)]"
+                className="max-w-[13ch] text-balance font-display text-[length:var(--type-display)] font-semibold leading-[1.04] tracking-[-0.035em] text-[var(--fg)]"
               />
               <p className="work-hero-enter work-hero-d5 mt-8 max-w-[58ch] text-pretty text-[1.05rem] leading-8 text-[var(--mid)]">
                 {project.cardDescription}
               </p>
             </div>
             <div>
-              <dl className="work-hero-meta grid border-t-2 border-[var(--case-accent)] font-mono text-[10px] uppercase tracking-[0.11em] sm:grid-cols-2 lg:grid-cols-1">
+              <dl className="work-hero-meta grid border-t-2 border-[var(--case-accent)] font-mono text-[11px] uppercase tracking-[0.11em] sm:grid-cols-2 lg:grid-cols-1">
                 <div className="border-b border-[var(--rule)] py-4">
                   <dt className="text-[var(--mid)]">Industry</dt>
                   <dd className="mt-2 text-[var(--fg)]">{project.industry}</dd>
@@ -236,7 +236,7 @@ export function CaseStudy({ project }: { project: WorkProject }) {
                     {String(index + 1).padStart(2, "0")} / {section.label}
                   </Eyebrow>
                   <div>
-                    <h2 className="max-w-[21ch] text-balance font-display text-[clamp(2rem,4vw,4rem)] font-medium leading-[0.94] tracking-[-0.05em] text-[var(--fg)]">
+                    <h2 className="max-w-[21ch] text-balance font-display text-[clamp(2rem,4vw,4rem)] font-medium leading-[0.94] tracking-[-0.035em] text-[var(--fg)]">
                       {section.title}
                     </h2>
                     <p className="mt-6 max-w-[64ch] text-pretty text-[1.03rem] leading-8 text-[var(--mid)]">
@@ -262,14 +262,14 @@ export function CaseStudy({ project }: { project: WorkProject }) {
         <Container width="narrow">
           <WorkReveal role="group">
             <Eyebrow className="mb-6">What this carries forward</Eyebrow>
-            <p className="max-w-[42ch] text-balance font-display text-[clamp(2rem,4.5vw,4.3rem)] font-medium leading-[0.96] tracking-[-0.05em] text-[var(--fg)]">
+            <p className="max-w-[42ch] text-balance font-display text-[length:var(--type-display)] font-semibold leading-[1.04] tracking-[-0.035em] text-[var(--fg)]">
               {project.carryForward}
             </p>
             <div className="mt-10 flex flex-wrap gap-2">
               {project.capabilities.map((capability) => (
                 <span
                   key={capability}
-                  className="border border-[var(--rule)] bg-[var(--bg)] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--mid)]"
+                  className="border border-[var(--rule)] bg-[var(--bg)] px-3 py-2 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--mid)]"
                 >
                   {capability}
                 </span>
@@ -283,7 +283,7 @@ export function CaseStudy({ project }: { project: WorkProject }) {
                     <Link
                       key={service.id}
                       href={service.href}
-                      className="inline-flex min-h-11 items-center bg-[var(--fg)] py-3 pl-4 pr-3.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--bg)] transition-transform duration-150 ease-out active:scale-[0.96]"
+                      className="inline-flex min-h-11 items-center bg-[var(--fg)] py-3 pl-4 pr-3.5 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--bg)] transition-transform duration-150 ease-out active:scale-[0.96]"
                     >
                       {service.name}
                       <span aria-hidden="true" className="ml-2">
@@ -303,7 +303,7 @@ export function CaseStudy({ project }: { project: WorkProject }) {
           <WorkReveal role="group" className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <Eyebrow className="mb-4">More selected work</Eyebrow>
-              <h2 className="max-w-[18ch] text-balance font-display text-[clamp(2rem,4vw,4rem)] font-medium leading-[0.94] tracking-[-0.05em]">
+              <h2 className="max-w-[18ch] text-balance font-display text-[clamp(2rem,4vw,4rem)] font-medium leading-[0.94] tracking-[-0.035em]">
                 More systems built around how the business works.
               </h2>
             </div>
@@ -326,7 +326,7 @@ export function CaseStudy({ project }: { project: WorkProject }) {
         <Container>
           <WorkReveal role="group">
             <Eyebrow className="mb-6 !text-[var(--bg)]">Have a similar constraint?</Eyebrow>
-            <h2 className="max-w-[14ch] text-balance font-display text-[clamp(2.8rem,6vw,6rem)] font-medium leading-[0.9] tracking-[-0.06em]">
+            <h2 className="max-w-[14ch] text-balance font-display text-[length:var(--type-section)] font-semibold leading-[1.04] tracking-[-0.035em]">
               Tell us how the work runs today.
             </h2>
             <p className="mt-7 max-w-[62ch] text-pretty text-[1rem] leading-8 text-[color-mix(in_srgb,var(--bg)_72%,transparent)]">

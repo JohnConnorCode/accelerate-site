@@ -130,7 +130,7 @@ export function DemoStory() {
             </div>
           </div>
           <div className={styles.productFooter}>
-            <Check size={13} /> Fictional example · Try your own request in the workspace
+            <Check size={13} /> Workflow example · Try your own request in the workspace
           </div>
         </div>
       </div>

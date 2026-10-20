@@ -106,7 +106,7 @@ export function EmailBlockComposer({
                 key={entry.type}
                 type="button"
                 onClick={() => onChange([...blocks, createEmailBlock(entry.type)])}
-                className="inline-flex min-h-9 items-center gap-1 rounded-[var(--admin-control-radius)] px-2 text-[10px] font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
+                className="inline-flex min-h-9 items-center gap-1 rounded-[var(--admin-control-radius)] px-2 text-[11px] font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
               >
                 <Plus className="size-3" />
                 {entry.label}

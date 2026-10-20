@@ -49,9 +49,9 @@ const paper = themes.find((theme) => theme.id === "light")!;
 assert.ok(
   themeContrast(paper.tokens["--admin-nav-active-ink"]!, paper.tokens["--admin-nav-active-bg"]!) >=
     4.5,
-  "Paper selected navigation must keep a legible cobalt label on its softened tint",
+  "Paper selected navigation must keep a legible label on its softened tint",
 );
-const valid = themeFromPreset("signal");
+const valid = themeFromPreset("operator");
 assert.throws(
   () =>
     validateAdminTheme({ ...valid, palette: { ...valid.palette, muted: valid.palette.surface } }),
@@ -95,19 +95,21 @@ console.log(
   `Admin themes passed: ${themes.length} presets, token completeness, contrast, portable round trips, invalid definitions and legacy compatibility.`,
 );
 
-const material = themes.find((theme) => theme.id === "material")!;
-const mac = themes.find((theme) => theme.id === "mac")!;
-for (const key of [
-  "--admin-font",
+// Built-ins are modes of work, not color swaps: each pair must differ in at
+// least one structural token (geometry, density or label face) as well as color.
+const structural = [
   "--admin-surface-radius",
-  "--admin-control-radius",
-  "--admin-shadow",
-] as const)
-  assert.notEqual(
-    material.tokens[key],
-    mac.tokens[key],
-    `Material and macOS must differ in ${key}`,
-  );
+  "--admin-control-height",
+  "--admin-row-padding",
+  "--admin-label-font",
+] as const;
+for (const a of themes)
+  for (const b of themes)
+    if (a.id < b.id)
+      assert.ok(
+        structural.some((key) => a.tokens[key] !== b.tokens[key]),
+        `${a.id} and ${b.id} differ only in color`,
+      );
 for (const theme of themes) {
   const custom = compileAdminTheme(themeFromPreset(theme.id));
   assert.equal(

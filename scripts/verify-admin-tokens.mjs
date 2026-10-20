@@ -313,8 +313,8 @@ if (/^\.admin-(?!demo-)[\w-]+[^{}]*\{/m.test(publicCss))
 // -----------------------------------------------------------------------------
 const RUNTIME_INJECTED_TOKENS = new Set([
   "--accent", // written per published site by site-studio
-  "--font-inter", // next/font in src/app/layout.tsx
-  "--font-jost",
+  "--font-body-face", // next/font in src/app/layout.tsx
+  "--font-display-face",
   "--font-mono-face",
   "--hero-chat-shift", // ChatWidget setProperty
   "--port-x", // HeroArtwork inline style

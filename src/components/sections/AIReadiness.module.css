@@ -79,7 +79,7 @@
   gap: 0.8rem;
   color: var(--fg);
   font-family: var(--font-mono), monospace;
-  font-size: 0.65rem;
+  font-size: 10.5px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -97,7 +97,7 @@
   font-family: var(--font-display), sans-serif;
   font-size: 1.15rem;
   font-weight: 600;
-  letter-spacing: -0.08em;
+  letter-spacing: -0.035em;
 }
 
 .brandMark::after {
@@ -119,7 +119,7 @@
   gap: 0.7rem;
   color: var(--soft);
   font-family: var(--font-mono), monospace;
-  font-size: 0.62rem;
+  font-size: 10.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -177,7 +177,7 @@
 .flowLabel {
   color: var(--soft);
   font-family: var(--font-mono), monospace;
-  font-size: 0.62rem;
+  font-size: 10.5px;
   letter-spacing: 0.16em;
   line-height: 1.5;
   text-transform: uppercase;
@@ -193,7 +193,7 @@
 .flowCount {
   color: var(--soft);
   font-family: var(--font-mono), monospace;
-  font-size: 0.66rem;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -241,7 +241,7 @@
   gap: 0.65rem;
   color: var(--soft);
   font-family: var(--font-mono), monospace;
-  font-size: 0.68rem;
+  font-size: 11px;
   letter-spacing: 0.19em;
   text-transform: uppercase;
 }
@@ -258,9 +258,9 @@
   margin-top: 1.2rem;
   color: var(--fg);
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(3.4rem, 5.9vw, 6.1rem);
+  font-size: var(--type-display);
   font-weight: 600;
-  letter-spacing: -0.075em;
+  letter-spacing: -0.035em;
   line-height: 0.91;
   text-wrap: balance;
 }
@@ -271,7 +271,7 @@
   color: var(--mid);
   font-weight: 500;
   font-style: italic;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.035em;
 }
 
 .heroDescription {
@@ -487,14 +487,14 @@
   font-family: var(--font-display), sans-serif;
   font-size: clamp(1.8rem, 4vw, 2.35rem);
   font-weight: 600;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.035em;
   line-height: 1;
 }
 
 .coreCaption {
   color: color-mix(in srgb, var(--bg) 65%, transparent);
   font-family: var(--font-mono), monospace;
-  font-size: 0.48rem;
+  font-size: 10.5px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -566,7 +566,7 @@
   gap: 0.38rem;
   color: var(--soft);
   font-family: var(--font-mono), monospace;
-  font-size: 0.52rem;
+  font-size: 10.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -616,7 +616,7 @@
   gap: 1rem;
   color: var(--soft);
   font-family: var(--font-mono), monospace;
-  font-size: 0.58rem;
+  font-size: 10.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
@@ -653,7 +653,7 @@
 .deliverableIndex {
   color: var(--soft);
   font-family: var(--font-mono), monospace;
-  font-size: 0.59rem;
+  font-size: 10.5px;
   letter-spacing: 0.12em;
 }
 
@@ -684,7 +684,7 @@
 .stepEyebrow {
   color: var(--soft);
   font-family: var(--font-mono), monospace;
-  font-size: 0.66rem;
+  font-size: 11px;
   letter-spacing: 0.17em;
   text-transform: uppercase;
 }
@@ -693,9 +693,9 @@
   margin-top: 0.75rem;
   color: var(--fg);
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(2.7rem, 5.8vw, 5rem);
+  font-size: var(--type-section);
   font-weight: 600;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.035em;
   line-height: 0.98;
   text-wrap: balance;
 }
@@ -815,7 +815,7 @@
   gap: 0.75rem;
   color: var(--soft);
   font-family: var(--font-mono), monospace;
-  font-size: 0.62rem;
+  font-size: 10.5px;
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -832,7 +832,7 @@
   font-family: var(--font-display), sans-serif;
   font-size: clamp(2rem, 4.8vw, 3.55rem);
   font-weight: 600;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.038em;
   line-height: 1.03;
   text-wrap: balance;
 }
@@ -1022,10 +1022,11 @@
   position: relative;
   color: var(--bg);
   font-family: var(--font-display), sans-serif;
+  /* brand-system: allow (score numeral) */
   font-size: clamp(3rem, 7vw, 4.8rem);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  letter-spacing: -0.08em;
+  letter-spacing: -0.035em;
 }
 
 .scoreValue span {
@@ -1043,7 +1044,7 @@
 .previewEyebrow {
   color: color-mix(in srgb, var(--bg) 62%, transparent);
   font-family: var(--font-mono), monospace;
-  font-size: 0.62rem;
+  font-size: 10.5px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -1055,7 +1056,7 @@
   font-family: var(--font-display), sans-serif;
   font-size: clamp(2rem, 4.5vw, 3.25rem);
   font-weight: 600;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.038em;
   line-height: 1.02;
   text-wrap: balance;
 }
@@ -1250,7 +1251,7 @@
 
   .brandLockup {
     gap: 0.55rem;
-    font-size: 0.57rem;
+    font-size: 10.5px;
     letter-spacing: 0.11em;
   }
 
@@ -1261,7 +1262,7 @@
 
   .topMeta {
     gap: 0.45rem;
-    font-size: 0.55rem;
+    font-size: 10.5px;
     letter-spacing: 0.08em;
   }
 
@@ -1269,7 +1270,7 @@
     min-height: 2.4rem;
     gap: 0.35rem;
     padding-inline: 0.55rem;
-    font-size: 0.68rem;
+    font-size: 11px;
   }
 
   .flowMeta {
@@ -1309,7 +1310,7 @@
   }
 
   .dimensionTag {
-    font-size: 0.47rem;
+    font-size: 10.5px;
   }
 
   .dimensionTwo {
@@ -1324,7 +1325,7 @@
     right: 1.5rem;
     bottom: 1.73rem;
     left: 1.5rem;
-    font-size: 0.51rem;
+    font-size: 10.5px;
   }
 
   .deliverables {
@@ -1338,7 +1339,7 @@
   }
 
   .deliverableCopy {
-    font-size: 0.64rem;
+    font-size: 10.5px;
   }
 
   .questionSurface {

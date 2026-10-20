@@ -160,7 +160,7 @@ export function ResourceGate({ resourceId, onClose }: ResourceGateProps) {
             <h2
               id={headingId}
               className="text-xl font-bold text-white-primary mb-1"
-              style={{ fontFamily: "var(--font-jost), var(--font-inter), sans-serif" }}
+              style={{ fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif" }}
             >
               Get Your Free Download
             </h2>

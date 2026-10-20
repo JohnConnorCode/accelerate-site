@@ -146,7 +146,7 @@ export function NonprofitLanding({ pilotSection }: { pilotSection?: ReactNode })
               <HeroEntranceItem step={2}>
                 <RevealHeading
                   as="h1"
-                  className="max-w-[17ch] font-display font-extrabold leading-[1.0] tracking-[-0.04em] text-[clamp(2.5rem,5.6vw,5rem)] text-white"
+                  className="max-w-[17ch] font-display font-semibold leading-[1.04] tracking-[-0.04em] text-[length:var(--type-display)] text-white"
                   lead="Every supporter thanked, followed up,"
                   accent="and invited back."
                   entrance="parent"
@@ -200,7 +200,7 @@ export function NonprofitLanding({ pilotSection }: { pilotSection?: ReactNode })
                 <div className="group grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 border-t border-[color-mix(in_srgb,var(--fg)_18%,transparent)] pt-7">
                   <span
                     aria-hidden="true"
-                    className="font-serif text-[2.1rem] font-medium leading-none tracking-[-0.02em] text-[color-mix(in_srgb,var(--fg)_52%,transparent)] transition-colors duration-500 group-hover:text-[color-mix(in_srgb,var(--fg)_72%,transparent)]"
+                    className="font-display text-[2.1rem] font-medium leading-none tracking-[-0.02em] text-[color-mix(in_srgb,var(--fg)_52%,transparent)] transition-colors duration-500 group-hover:text-[color-mix(in_srgb,var(--fg)_72%,transparent)]"
                   >
                     {item.n}
                   </span>

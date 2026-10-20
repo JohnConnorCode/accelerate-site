@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-center-work-modes",
+    slug: "command-center-work-modes",
+    title: "Choose a Command Center mode that fits how you work",
+    description:
+      "Command Center offers four modes: Paper, Night, Accelerate and the dense, keyboard-first Operator. Today opens with the numbers your business runs on, marks the work that needs a person, and shows what the system has taken on. Signal orange appears only where the system acted. The workshop announcement now waits until you scroll past the first screen, so it never covers the page's main call to action. Signal, Studio, Frost, Material 2026, macOS and Capy have been retired; a saved choice opens in the closest mode, and workspace themes still carry your own brand.",
+    category: "improvement",
+    publishedAt: "2026-10-20",
+  },
+  {
     id: "homepage-sculpture-depth",
     slug: "homepage-sculpture-depth",
     title: "Explore a more responsive homepage animation",
@@ -1041,7 +1050,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "demo-workspace-design-audit",
     title: "A clearer contact history and a complete demo workspace",
     description:
-      "The contact relationship view now reads in plain language: interaction types use names like Message received instead of raw labels, record titles no longer repeat the type, and the collections follow-up and activity list have clear separation. The fictional workspaces also open Contact review and Subscriptions with realistic records instead of an unavailable message, demo pipeline stages show a varied funnel rather than the same count in every column, and the operator view tabs wrap instead of clipping the last view.",
+      "The contact relationship view now reads in plain language: interaction types use names like Message received instead of raw labels, record titles no longer repeat the type, and the collections follow-up and activity list have clear separation. The demo workspaces also open Contact review and Subscriptions with realistic records instead of an unavailable message, demo pipeline stages show a varied funnel rather than the same count in every column, and the operator view tabs wrap instead of clipping the last view.",
     category: "improvement",
     publishedAt: "2026-09-14",
   },
@@ -1319,7 +1328,7 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     id: "demo-layout-settings-read",
     slug: "demo-layout-settings-read",
-    title: "Inspect default layout settings in fictional workspaces",
+    title: "Inspect default layout settings in demo workspaces",
     description:
       "Demo Settings now loads the default sidebar and Today page layouts without an error notification. The layouts have no saved override or change history, so reverting remains unavailable. The settings guide explains these states with an example.",
     category: "fix",
@@ -1393,7 +1402,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "atomic-campaign-duplication",
     title: "Duplicate campaigns into fresh drafts with durable retry receipts",
     description:
-      "Copy a campaign's audience, steps, sender and policy into a fresh draft without members, sends or approvals. The source version is checked and the copy, provenance and audit commit together. Interrupted requests reuse the same receipt; the fictional workspace saves and previews its own copy.",
+      "Copy a campaign's audience, steps, sender and policy into a fresh draft without members, sends or approvals. The source version is checked and the copy, provenance and audit commit together. Interrupted requests reuse the same receipt; the demo workspace saves and previews its own copy.",
     category: "feature",
     publishedAt: "2026-09-08",
   },
@@ -1465,7 +1474,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "visual-plugin-guides",
     title: "Visual guides explain all ten bundled plugins",
     description:
-      "Explore dedicated plugin guides with fictional workspace screenshots, setup steps, approval and cost boundaries, and recovery instructions. The documentation introduction explains connected business context and extensibility. Collections demo invoices now retain complete simulated receipts, and incomplete invoice balances display as unknown instead of crashing the page.",
+      "Explore dedicated plugin guides with demo workspace screenshots, setup steps, approval and cost boundaries, and recovery instructions. The documentation introduction explains connected business context and extensibility. Collections demo invoices now retain complete simulated receipts, and incomplete invoice balances display as unknown instead of crashing the page.",
     category: "improvement",
     publishedAt: "2026-09-07",
   },
@@ -1564,7 +1573,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "admin-layout-continuity",
     title: "Admin pages keep one coherent rhythm in every workspace",
     description:
-      "Repaired the shared async content wrapper that had collapsed section spacing across Analytics, Bookings, Revenue Recovery, Pipeline, Integrations, Feature Board, and other loaded admin routes. The spacing contract now lives in the shared read primitive, so direct, cached, refreshing, live, and fictional-tenant views cannot silently push cards together. Bookings no longer leaks roofing language into other businesses, Analytics reflows its supporting note on phones, and the legacy Revenue cards and chart now use the same appearance-aware surfaces, ink, borders, and accent tokens as the rest of Command Center. Setup also receives the complete Google credential-health contract instead of crashing inside fictional workspaces. Inbox refresh no longer triggers a render-driven refetch loop: one click now performs one bounded read, exposes its busy state, and reliably returns the control to idle. Browser coverage measures real sibling gaps and overflow across the affected routes on desktop and mobile in Signal, Paper, and Night, while the complete five-business, 28-route desktop/mobile demo matrix verifies every enabled workspace and the Inbox refresh interaction.",
+      "Repaired the shared async content wrapper that had collapsed section spacing across Analytics, Bookings, Revenue Recovery, Pipeline, Integrations, Feature Board, and other loaded admin routes. The spacing contract now lives in the shared read primitive, so direct, cached, refreshing, live, and fictional-tenant views cannot silently push cards together. Bookings no longer leaks roofing language into other businesses, Analytics reflows its supporting note on phones, and the legacy Revenue cards and chart now use the same appearance-aware surfaces, ink, borders, and accent tokens as the rest of Command Center. Setup also receives the complete Google credential-health contract instead of crashing inside demo workspaces. Inbox refresh no longer triggers a render-driven refetch loop: one click now performs one bounded read, exposes its busy state, and reliably returns the control to idle. Browser coverage measures real sibling gaps and overflow across the affected routes on desktop and mobile in Signal, Paper, and Night, while the complete five-business, 28-route desktop/mobile demo matrix verifies every enabled workspace and the Inbox refresh interaction.",
     category: "fix",
     publishedAt: "2026-08-31",
   },

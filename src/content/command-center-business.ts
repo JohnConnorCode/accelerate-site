@@ -261,7 +261,7 @@ export const businessAreas: readonly BusinessArea[] = [
       "sequences",
     ],
     image: "plugins/site-studio",
-    imageAlt: "Site Studio in the fictional workspace, with a page draft and responsive preview.",
+    imageAlt: "Site Studio in the demo workspace, with a page draft and responsive preview.",
     guideHref: "/docs/outreach",
     demoHref: "/demo/command-center/northline-roofing/site",
     tasks: [
@@ -360,7 +360,7 @@ export const businessAreas: readonly BusinessArea[] = [
     example: {
       title: "Your team follows up after three quiet days",
       steps: [
-        "Run the source and explore the fictional workspace.",
+        "Run the source and explore the demo workspace.",
         "Change the existing Pipeline follow-up report's stale threshold from seven days to three.",
         "Run the controlled report fixture and verify which open opportunities now appear.",
       ],

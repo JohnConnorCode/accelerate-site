@@ -50,7 +50,7 @@ export default async function WorkPage() {
                 as="h1"
                 delay={0.12}
                 stagger={0.055}
-                className="max-w-[11ch] text-balance font-display text-[clamp(3.5rem,9vw,9rem)] font-medium leading-[0.86] tracking-[-0.07em] text-[var(--fg)]"
+                className="h1 max-w-[14ch] text-balance"
               />
               <p className="work-hero-enter work-hero-d5 mt-9 max-w-[64ch] text-pretty text-[1.07rem] leading-8 text-[var(--mid)]">
                 We start with the business, find where time or revenue is being lost, and build the

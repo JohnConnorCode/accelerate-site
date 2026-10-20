@@ -109,7 +109,7 @@ export default async function PlanPage({ params }: PageProps) {
           <h1
             className="text-2xl font-bold text-heading"
             style={{
-              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
             }}
           >
             Plan Viewer Not Available
@@ -139,7 +139,7 @@ export default async function PlanPage({ params }: PageProps) {
           <h1
             className="text-2xl font-bold text-heading"
             style={{
-              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
             }}
           >
             Plan Not Found

@@ -81,7 +81,7 @@ export function AdminTable<T>({
                         )}
                       />
                       {sortField === col.key && (
-                        <span className="text-[9px] normal-case tracking-normal">
+                        <span className="text-[10.5px] normal-case tracking-normal">
                           {sortOrder === "asc" ? "asc" : "desc"}
                         </span>
                       )}

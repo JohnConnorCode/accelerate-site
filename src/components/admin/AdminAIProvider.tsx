@@ -509,7 +509,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         const content =
           decision === "reject"
             ? `Rejected: ${reviewedAction.title}. It will not run.`
-            : `${receipt.simulated ? "Simulated result" : incomplete ? "Action needs attention" : "Action receipt"}: ${reviewedAction.title}. ${receipt.simulated ? "Saved in this fictional workspace; no real message or payment was sent." : "Open the action receipt in Work to inspect delivery and any partial result."}`;
+            : `${receipt.simulated ? "Simulated result" : incomplete ? "Action needs attention" : "Action receipt"}: ${reviewedAction.title}. ${receipt.simulated ? "Saved in this demo workspace; no real message or payment was sent." : "Open the action receipt in Work to inspect delivery and any partial result."}`;
         setMessages((current) => [
           ...current,
           {

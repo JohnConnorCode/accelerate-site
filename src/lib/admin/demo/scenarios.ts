@@ -108,7 +108,7 @@ function tenant(
       logoMark: name.slice(0, 1),
       accentColor,
       tagline: `${industry} operations`,
-      emailFooter: `${name} · Fictional demo workspace`,
+      emailFooter: `${name} · Demo workspace`,
     },
     founder: {
       name: first,
@@ -281,7 +281,7 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioPack> = {
     category: "Home services",
     description: "Storm response, inspections, estimates, production, invoices, and referrals.",
     accent: "#d97706",
-    appearance: "studio",
+    appearance: "accelerate",
     founder: "Evan Cole",
     domain: "northlineroofing.example",
     industry: "roofing and exterior services company",
@@ -355,7 +355,7 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioPack> = {
     description:
       "Proposals, document collection, monthly close, reporting, deadlines, and renewals.",
     accent: "#6d28d9",
-    appearance: "frost",
+    appearance: "light",
     founder: "Morgan Lee",
     domain: "ledgerstoneadvisory.example",
     industry: "accounting and advisory firm",
@@ -392,7 +392,7 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioPack> = {
     description:
       "Portal inquiries, showings, listings, long-term nurture, closings, and referrals.",
     accent: "#7c3aed",
-    appearance: "signal",
+    appearance: "operator",
     founder: "Avery Brooks",
     domain: "hearthlinerealty.example",
     industry: "residential real estate team",

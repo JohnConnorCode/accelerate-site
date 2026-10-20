@@ -67,7 +67,7 @@
   font-size: 3.5rem;
   font-weight: 450;
   line-height: 1;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
 }
 .date > span:last-child {
@@ -76,7 +76,7 @@
   width: calc(100% - 1.5rem);
   border-top: 1px solid rgb(255 255 255 / 15%);
   text-align: center;
-  font-size: 0.6rem;
+  font-size: 10.5px;
   color: rgb(251 251 250 / 70%);
 }
 .copy {
@@ -86,7 +86,7 @@
 .eyebrow {
   margin: 0 0 0.7rem;
   font-family: var(--util);
-  font-size: 0.6rem;
+  font-size: 10.5px;
   line-height: 1.5;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -141,7 +141,7 @@
   max-width: 20rem;
   margin: 0;
   color: rgb(251 251 250 / 84%);
-  font-size: 0.66rem;
+  font-size: 11px;
   line-height: 1.5;
 }
 .booking {
@@ -150,7 +150,7 @@
 }
 .clockLabel {
   margin: 0 0 0.65rem;
-  font-size: 0.63rem;
+  font-size: 10.5px;
   color: rgb(251 251 250 / 72%);
 }
 .countdown dl {
@@ -182,7 +182,7 @@
 .countdown dt {
   margin-top: 0.25rem;
   color: rgb(251 251 250 / 68%);
-  font-size: 0.55rem;
+  font-size: 10.5px;
 }
 .action {
   margin-top: 0.85rem;
@@ -231,7 +231,7 @@
 }
 .action > p {
   margin: 0.5rem 0 0;
-  font-size: 0.59rem;
+  font-size: 10.5px;
   color: rgb(251 251 250 / 70%);
 }
 .close {
@@ -286,7 +286,7 @@
     font-size: 2.3rem;
   }
   .date > span:first-child {
-    font-size: 0.6rem;
+    font-size: 10.5px;
   }
   .date > span:last-child {
     display: none;
@@ -295,7 +295,7 @@
     max-width: 15rem;
     margin-bottom: 0.55rem;
     padding-inline-end: 1.5rem;
-    font-size: 0.53rem;
+    font-size: 10.5px;
   }
   .copy h2 {
     padding-inline-end: 0.5rem;
@@ -303,7 +303,7 @@
   }
   .schedule {
     margin-top: 0.6rem;
-    font-size: 0.65rem;
+    font-size: 10.5px;
   }
   .schedule svg {
     display: none;
@@ -313,7 +313,7 @@
     margin-top: 0.85rem;
   }
   .hosts p {
-    font-size: 0.65rem;
+    font-size: 10.5px;
   }
   .booking {
     display: grid;
@@ -326,7 +326,7 @@
     border-top: 1px solid rgb(255 255 255 / 14%);
   }
   .clockLabel {
-    font-size: 0.58rem;
+    font-size: 10.5px;
     margin-bottom: 0.5rem;
   }
   .countdown dl {
@@ -354,7 +354,7 @@
     height: 28px;
   }
   .action > p {
-    font-size: 0.55rem;
+    font-size: 10.5px;
   }
 }
 @media (max-width: 359px) {
@@ -386,7 +386,7 @@
     font-size: 1.3rem;
   }
   .countdown dt {
-    font-size: 0.5rem;
+    font-size: 10.5px;
   }
   .cta {
     font-size: 0.75rem;

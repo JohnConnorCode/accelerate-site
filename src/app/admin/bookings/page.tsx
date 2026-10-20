@@ -137,7 +137,7 @@ export default function AdminBookingsPage() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="admin-eyebrow">{label}</p>
-                  <p className="mt-3 text-3xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)]">
+                  <p className="mt-3 text-3xl font-semibold tabular-nums tracking-[-0.035em] text-[var(--admin-ink)]">
                     {value}
                   </p>
                   <p className="admin-copy mt-1 text-xs">{note}</p>
@@ -152,7 +152,7 @@ export default function AdminBookingsPage() {
         <AdminSurface padding="none" className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="admin-table w-full min-w-[980px] text-left text-sm">
-              <thead className="border-b border-[var(--admin-border)] font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
+              <thead className="border-b border-[var(--admin-border)] font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
                 <tr>
                   <th className="px-5 py-4">Company</th>
                   <th className="px-4 py-4">Fit</th>

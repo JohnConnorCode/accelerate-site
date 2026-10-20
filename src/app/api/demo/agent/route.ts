@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       {
         error:
           gate.status === 503
-            ? "The demo agent is temporarily unavailable. You can still explore the fictional workspace."
+            ? "The demo agent is temporarily unavailable. You can still explore the demo workspace."
             : "The demo request limit has been reached. Please try again shortly.",
       },
       {
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
           ? "Invalid fictional demo request"
           : usageMessage
             ? message
-            : "The live demo agent is unavailable right now. You can still explore the fictional workspace.",
+            : "The live demo agent is unavailable right now. You can still explore the demo workspace.",
       },
       { status: validation ? 400 : 503, headers: { "Cache-Control": "no-store" } },
     );

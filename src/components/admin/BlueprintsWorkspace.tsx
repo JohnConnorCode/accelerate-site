@@ -61,7 +61,7 @@ export function BlueprintsWorkspace() {
       setDocumentText("");
       setChangeSummary("");
       setNotice(
-        `Saved as version ${saved.version}${demo ? " (simulated in this fictional workspace)" : ""}.`,
+        `Saved as version ${saved.version}${demo ? " (simulated in this demo workspace)" : ""}.`,
       );
       await cache.invalidateQueries({ queryKey: ["admin", "blueprints"] });
     } catch (saveError) {

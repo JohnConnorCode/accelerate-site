@@ -170,7 +170,7 @@ export function CaseMedia({
       )}
       {!compact ? (
         <figcaption
-          className={`${inverted ? "text-white/65" : "text-[var(--mid)]"} mt-3 text-pretty font-mono text-[9px] uppercase leading-5 tracking-[0.12em]`}
+          className={`${inverted ? "text-white/65" : "text-[var(--mid)]"} mt-3 text-pretty font-mono text-[10.5px] uppercase leading-5 tracking-[0.12em]`}
         >
           {media.caption}
         </figcaption>

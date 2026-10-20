@@ -100,7 +100,7 @@ await (async () => {
       }
       if (width === 1440) {
         await page.getByRole("button", { name: /^Appearance:/ }).click();
-        await page.getByRole("radio", { name: /^Studio/ }).click();
+        await page.getByRole("radio", { name: /^Operator/ }).click();
         await page.getByRole("dialog").waitFor({ state: "hidden" });
       }
       const search = page.getByLabel("Search tasks", { exact: true });

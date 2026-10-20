@@ -6,9 +6,9 @@ Learn the essentials and try your first complete workflow.
 
 - [An AI business platform you can make your own](https://www.acceleratewith.us/docs/start/overview) (updated 2026-10-10): Manage customers, sales, delivery, billing and marketing, then build workflows and Apps around your business.
 - [How Accelerate works](https://www.acceleratewith.us/docs/start/how-it-works) (updated 2026-10-10): The one path every entry point follows, from raw source data to a reviewed action and its receipt.
-- [Run your first useful business workflow](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-10-10): Choose a practical customer, sales, delivery, billing or marketing workflow and put it into use with your team.
-- [Build and hand over a client operation](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-10-10): Reuse the business foundation, adapt one client workflow and give the team an operation they can run.
-- [Follow one customer from inquiry to billing](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-10-10): Explore a connected client lifecycle in the fictional Northline workspace, from customer context to delivery and payment follow-up.
+- [Run your first useful business workflow](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-10-20): Choose a practical customer, sales, delivery, billing or marketing workflow and put it into use with your team.
+- [Build and hand over a client operation](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-10-20): Reuse the business foundation, adapt one client workflow and give the team an operation they can run.
+- [Follow one customer from inquiry to billing](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-10-20): Explore a connected client lifecycle in the fictional Northline workspace, from customer context to delivery and payment follow-up.
 - [Your first result](https://www.acceleratewith.us/docs/start/first-value) (updated 2026-10-06): Take one real inquiry from a connected workspace through to a reviewed action and its receipt.
 - [Core concepts](https://www.acceleratewith.us/docs/start/core-concepts) (updated 2026-09-19): The vocabulary every other guide assumes: workspace, record, approval, receipt, and how they connect.
 - [Your workspace](https://www.acceleratewith.us/docs/start/workspace) (updated 2026-09-27): Check your business context, membership, and available features.
@@ -28,37 +28,37 @@ Combine features and plugins around a specific business outcome.
 - [Review outstanding invoices and prepare follow-up](https://www.acceleratewith.us/docs/recipes/invoice-follow-up) (updated 2026-09-19): Review an overdue advisory invoice, customer context and payment evidence before preparing a reminder.
 - [Keep a buyer inquiry moving](https://www.acceleratewith.us/docs/recipes/buyer-follow-up) (updated 2026-09-19): Keep a property buyer’s preferences and next viewing follow-up attached to one opportunity.
 - [Prepare for an appointment and assign follow-up](https://www.acceleratewith.us/docs/recipes/appointment-follow-through) (updated 2026-10-10): Assign the questions and next appointments agreed during a property viewing.
-- [Review a quote request and its next action](https://www.acceleratewith.us/docs/recipes/quote-request) (updated 2026-09-19): Collect quantity, specification and delivery needs before assigning a manufacturing quote review.
-- [Track commitments from a customer delivery meeting](https://www.acceleratewith.us/docs/recipes/delivery-commitments) (updated 2026-10-10): Turn an order review into assigned specification, material and delivery confirmations.
-- [Review new customer inquiries and follow-up](https://www.acceleratewith.us/docs/recipes/sales-follow-up) (updated 2026-09-19): Connect a software evaluation inquiry to an owner, use case and next product discussion.
-- [Give a new customer a clear kickoff](https://www.acceleratewith.us/docs/recipes/customer-kickoff) (updated 2026-10-10): Create an implementation checklist for a won software customer with access, ownership and acceptance steps.
-- [Review a general appointment inquiry](https://www.acceleratewith.us/docs/recipes/practice-inquiry) (updated 2026-09-19): Route an administrative practice inquiry to the right coordinator with a clear follow-up.
-- [Track administrative meeting commitments](https://www.acceleratewith.us/docs/recipes/practice-admin) (updated 2026-10-10): Assign the operational follow-ups agreed in a practice meeting while keeping clinical records in their existing system.
-- [Review a quote inquiry and assign follow-up](https://www.acceleratewith.us/docs/recipes/insurance-inquiry) (updated 2026-09-19): Review an insurance inquiry and assign a licensed specialist to confirm the next conversation.
-- [Prepare an engagement onboarding checklist](https://www.acceleratewith.us/docs/recipes/insurance-onboarding) (updated 2026-10-10): Assign the service handoff for an agreed insurance engagement, including document and contact checks.
-- [Track a vehicle inquiry and the next conversation](https://www.acceleratewith.us/docs/recipes/vehicle-inquiry) (updated 2026-09-19): Keep a vehicle inquiry, availability check and appointment follow-up together for the sales team.
-- [Assign customer handoff commitments](https://www.acceleratewith.us/docs/recipes/vehicle-handoff) (updated 2026-10-10): Prepare a sold vehicle’s handoff with assigned preparation, document and collection checks.
+- [Review a quote request and its next action](https://www.acceleratewith.us/docs/recipes/quote-request) (updated 2026-10-20): Collect quantity, specification and delivery needs before assigning a manufacturing quote review.
+- [Track commitments from a customer delivery meeting](https://www.acceleratewith.us/docs/recipes/delivery-commitments) (updated 2026-10-20): Turn an order review into assigned specification, material and delivery confirmations.
+- [Review new customer inquiries and follow-up](https://www.acceleratewith.us/docs/recipes/sales-follow-up) (updated 2026-10-20): Connect a software evaluation inquiry to an owner, use case and next product discussion.
+- [Give a new customer a clear kickoff](https://www.acceleratewith.us/docs/recipes/customer-kickoff) (updated 2026-10-20): Create an implementation checklist for a won software customer with access, ownership and acceptance steps.
+- [Review a general appointment inquiry](https://www.acceleratewith.us/docs/recipes/practice-inquiry) (updated 2026-10-20): Route an administrative practice inquiry to the right coordinator with a clear follow-up.
+- [Track administrative meeting commitments](https://www.acceleratewith.us/docs/recipes/practice-admin) (updated 2026-10-20): Assign the operational follow-ups agreed in a practice meeting while keeping clinical records in their existing system.
+- [Review a quote inquiry and assign follow-up](https://www.acceleratewith.us/docs/recipes/insurance-inquiry) (updated 2026-10-20): Review an insurance inquiry and assign a licensed specialist to confirm the next conversation.
+- [Prepare an engagement onboarding checklist](https://www.acceleratewith.us/docs/recipes/insurance-onboarding) (updated 2026-10-20): Assign the service handoff for an agreed insurance engagement, including document and contact checks.
+- [Track a vehicle inquiry and the next conversation](https://www.acceleratewith.us/docs/recipes/vehicle-inquiry) (updated 2026-10-20): Keep a vehicle inquiry, availability check and appointment follow-up together for the sales team.
+- [Assign customer handoff commitments](https://www.acceleratewith.us/docs/recipes/vehicle-handoff) (updated 2026-10-20): Prepare a sold vehicle’s handoff with assigned preparation, document and collection checks.
 - [Review volunteer and partner interest](https://www.acceleratewith.us/docs/recipes/supporter-interest) (updated 2026-09-19): Review a volunteer or supporter inquiry and assign an appropriate program follow-up.
 - [Turn program meetings into assigned commitments](https://www.acceleratewith.us/docs/recipes/program-commitments) (updated 2026-10-10): Turn a program planning meeting into assigned venue, volunteer and communication tasks.
-- [Review a catering inquiry before quoting](https://www.acceleratewith.us/docs/recipes/catering-inquiry) (updated 2026-09-19): Capture event date, guest count, delivery location, budget range and dietary requirements and assign a reviewed next step.
-- [Prepare an agreed catering event for delivery](https://www.acceleratewith.us/docs/recipes/catering-event-handoff) (updated 2026-10-10): Confirm the agreed menu; verify dietary requirements with the organizer; assign delivery access confirmation. Keep each commitment attached to the agreed opportunity.
-- [Follow a wholesale inquiry through review](https://www.acceleratewith.us/docs/recipes/wholesale-inquiry) (updated 2026-09-19): Capture business name, requested products, quantities, delivery deadline and destination and assign a reviewed next step.
+- [Review a catering inquiry before quoting](https://www.acceleratewith.us/docs/recipes/catering-inquiry) (updated 2026-10-20): Capture event date, guest count, delivery location, budget range and dietary requirements and assign a reviewed next step.
+- [Prepare an agreed catering event for delivery](https://www.acceleratewith.us/docs/recipes/catering-event-handoff) (updated 2026-10-20): Confirm the agreed menu; verify dietary requirements with the organizer; assign delivery access confirmation. Keep each commitment attached to the agreed opportunity.
+- [Follow a wholesale inquiry through review](https://www.acceleratewith.us/docs/recipes/wholesale-inquiry) (updated 2026-10-20): Capture business name, requested products, quantities, delivery deadline and destination and assign a reviewed next step.
 - [Assign commitments for an agreed wholesale order](https://www.acceleratewith.us/docs/recipes/retail-order-handoff) (updated 2026-10-10): Confirm available stock; verify the delivery address; assign the shipping-date check. Keep each commitment linked to the source meeting.
-- [Review a salon consultation request](https://www.acceleratewith.us/docs/recipes/salon-consultation) (updated 2026-09-19): Capture requested service, preferred consultation window and general goals and assign a reviewed next step.
+- [Review a salon consultation request](https://www.acceleratewith.us/docs/recipes/salon-consultation) (updated 2026-10-20): Capture requested service, preferred consultation window and general goals and assign a reviewed next step.
 - [Assign follow-up after a service consultation](https://www.acceleratewith.us/docs/recipes/salon-follow-up) (updated 2026-10-10): Confirm the consultation outcome; assign preparation instructions; verify the agreed follow-up date. Keep each commitment linked to the source meeting.
-- [Follow a trial-session inquiry](https://www.acceleratewith.us/docs/recipes/fitness-trial) (updated 2026-09-19): Capture training interest, preferred session window and contact preference and assign a reviewed next step.
-- [Prepare a new member onboarding checklist](https://www.acceleratewith.us/docs/recipes/fitness-member-onboarding) (updated 2026-10-10): Confirm the chosen membership; assign orientation; check that the member received joining instructions. Keep each commitment attached to the agreed opportunity.
-- [Review a grooming or boarding inquiry](https://www.acceleratewith.us/docs/recipes/pet-service-inquiry) (updated 2026-09-19): Capture service type, requested dates, pet type and owner contact details and assign a reviewed next step.
-- [Prepare an agreed pet-service handoff](https://www.acceleratewith.us/docs/recipes/pet-service-handoff) (updated 2026-10-10): Confirm service dates; assign the required-records check; verify drop-off instructions. Keep each commitment attached to the agreed opportunity.
-- [Review an auto repair inquiry](https://www.acceleratewith.us/docs/recipes/repair-inquiry) (updated 2026-09-19): Capture vehicle make and model, reported symptom, preferred callback time and general urgency and assign a reviewed next step.
-- [Prepare an approved repair job for handoff](https://www.acceleratewith.us/docs/recipes/repair-job-handoff) (updated 2026-10-10): Verify customer authorization; assign the parts-availability check; confirm the agreed customer update. Keep each commitment attached to the agreed opportunity.
-- [Follow a property owner inquiry](https://www.acceleratewith.us/docs/recipes/property-owner-inquiry) (updated 2026-09-19): Capture property location, unit count, current management arrangement and desired start date and assign a reviewed next step.
-- [Prepare a property management engagement](https://www.acceleratewith.us/docs/recipes/property-engagement-onboarding) (updated 2026-10-10): Confirm the signed management scope; assign the property-document request; prepare the owner kickoff. Keep each commitment attached to the agreed opportunity.
-- [Review a cleaning quote request](https://www.acceleratewith.us/docs/recipes/cleaning-quote) (updated 2026-09-19): Capture site type, approximate size, preferred frequency and access window and assign a reviewed next step.
-- [Prepare a recurring cleaning service kickoff](https://www.acceleratewith.us/docs/recipes/cleaning-service-kickoff) (updated 2026-10-10): Confirm the agreed cleaning scope; assign access instructions; verify the first-service check-in. Keep each commitment attached to the agreed opportunity.
-- [Review an employer staffing inquiry](https://www.acceleratewith.us/docs/recipes/staffing-inquiry) (updated 2026-09-19): Capture employer name, role types, headcount, target start date and work location and assign a reviewed next step.
-- [Prepare a staffing client engagement](https://www.acceleratewith.us/docs/recipes/staffing-engagement) (updated 2026-10-10): Confirm the agreed role brief; assign the hiring-manager kickoff; record the reporting cadence. Keep each commitment attached to the agreed opportunity.
-- [Review an event or venue inquiry](https://www.acceleratewith.us/docs/recipes/venue-inquiry) (updated 2026-09-19): Capture event date, guest count, event type, layout needs and budget range and assign a reviewed next step.
+- [Follow a trial-session inquiry](https://www.acceleratewith.us/docs/recipes/fitness-trial) (updated 2026-10-20): Capture training interest, preferred session window and contact preference and assign a reviewed next step.
+- [Prepare a new member onboarding checklist](https://www.acceleratewith.us/docs/recipes/fitness-member-onboarding) (updated 2026-10-20): Confirm the chosen membership; assign orientation; check that the member received joining instructions. Keep each commitment attached to the agreed opportunity.
+- [Review a grooming or boarding inquiry](https://www.acceleratewith.us/docs/recipes/pet-service-inquiry) (updated 2026-10-20): Capture service type, requested dates, pet type and owner contact details and assign a reviewed next step.
+- [Prepare an agreed pet-service handoff](https://www.acceleratewith.us/docs/recipes/pet-service-handoff) (updated 2026-10-20): Confirm service dates; assign the required-records check; verify drop-off instructions. Keep each commitment attached to the agreed opportunity.
+- [Review an auto repair inquiry](https://www.acceleratewith.us/docs/recipes/repair-inquiry) (updated 2026-10-20): Capture vehicle make and model, reported symptom, preferred callback time and general urgency and assign a reviewed next step.
+- [Prepare an approved repair job for handoff](https://www.acceleratewith.us/docs/recipes/repair-job-handoff) (updated 2026-10-20): Verify customer authorization; assign the parts-availability check; confirm the agreed customer update. Keep each commitment attached to the agreed opportunity.
+- [Follow a property owner inquiry](https://www.acceleratewith.us/docs/recipes/property-owner-inquiry) (updated 2026-10-20): Capture property location, unit count, current management arrangement and desired start date and assign a reviewed next step.
+- [Prepare a property management engagement](https://www.acceleratewith.us/docs/recipes/property-engagement-onboarding) (updated 2026-10-20): Confirm the signed management scope; assign the property-document request; prepare the owner kickoff. Keep each commitment attached to the agreed opportunity.
+- [Review a cleaning quote request](https://www.acceleratewith.us/docs/recipes/cleaning-quote) (updated 2026-10-20): Capture site type, approximate size, preferred frequency and access window and assign a reviewed next step.
+- [Prepare a recurring cleaning service kickoff](https://www.acceleratewith.us/docs/recipes/cleaning-service-kickoff) (updated 2026-10-20): Confirm the agreed cleaning scope; assign access instructions; verify the first-service check-in. Keep each commitment attached to the agreed opportunity.
+- [Review an employer staffing inquiry](https://www.acceleratewith.us/docs/recipes/staffing-inquiry) (updated 2026-10-20): Capture employer name, role types, headcount, target start date and work location and assign a reviewed next step.
+- [Prepare a staffing client engagement](https://www.acceleratewith.us/docs/recipes/staffing-engagement) (updated 2026-10-20): Confirm the agreed role brief; assign the hiring-manager kickoff; record the reporting cadence. Keep each commitment attached to the agreed opportunity.
+- [Review an event or venue inquiry](https://www.acceleratewith.us/docs/recipes/venue-inquiry) (updated 2026-10-20): Capture event date, guest count, event type, layout needs and budget range and assign a reviewed next step.
 - [Assign agreed event planning commitments](https://www.acceleratewith.us/docs/recipes/event-planning-handoff) (updated 2026-10-10): Confirm the agreed event scope; assign supplier access checks; verify the organizer’s next planning deadline. Keep each commitment linked to the source meeting.
 
 ## Command Center
@@ -72,7 +72,7 @@ Find the workspace for your business work and use its daily priorities, records 
 - [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-10-06): Review tasks, approvals and AI work, and save task views for your workspace.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-30): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-27): Trace a change back to who made it, what happened, and when.
-- [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-10-08): Ask a specific question, see the records it used to answer, and review anything it proposes.
+- [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-10-20): Ask a specific question, see the records it used to answer, and review anything it proposes.
 
 ## Conversations
 The reply-ready inbox for Gmail, forms, chat, and transcripts.
@@ -107,9 +107,9 @@ The discipline that decides most inquiries: respond first, follow through, and l
 ## Marketing and publishing
 Campaigns, email templates, and reactivation of past demand.
 
-- [Marketing and publishing](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-10-16): Prepare website pages, email campaigns, sequences and supported social posts, then follow their actual publishing and delivery results.
+- [Marketing and publishing](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-10-20): Prepare website pages, email campaigns, sequences and supported social posts, then follow their actual publishing and delivery results.
 - [Review collection reminders](https://www.acceleratewith.us/docs/outreach/collections) (updated 2026-09-29): Chase what invoicing confirms is owed, with every reminder requiring your approval.
-- [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-09): Approve one version, then automation runs entirely inside the rules you set for it.
+- [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-10-20): Approve one version, then automation runs entirely inside the rules you set for it.
 - [Email Templates](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-10-05): Edit the actual live copy, check what really sent, and write a direct one-off follow-up.
 - [Review recovery outreach](https://www.acceleratewith.us/docs/outreach/recovery) (updated 2026-09-19): Check who qualifies and the proposed playbook before reopening a past lead.
 
@@ -145,7 +145,7 @@ Tenants, setup, settings, integrations, and the Feature Board.
 - [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-10-05): Turn a message, calendar event, or invoice sitting in another app into usable context here.
 - [Manage your subscription](https://www.acceleratewith.us/docs/workspace/customer-billing) (updated 2026-09-19): Subscribe, update payment details, and understand renewals from your customer account.
 - [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-10-05): Verify the connections one real workflow needs, before layering on more.
-- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-30): Change a notification or your workspace's look, then confirm the change saved.
+- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-10-20): Change a notification or your workspace's look, then confirm the change saved.
 
 ## Customize
 Configure your workspace or build around a different business process.
@@ -171,7 +171,7 @@ See what you can build: reports, reviewed workflows and dedicated business works
 - [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-20): See which meetings are approaching so you can plan preparation time.
 - [Opportunity Radar](https://www.acceleratewith.us/docs/plugins/opportunity-radar) (updated 2026-09-19): A business-specific workspace for source-backed growth opportunities and relationship reviews.
 - [Pipeline follow-up](https://www.acceleratewith.us/docs/plugins/pipeline-watch) (updated 2026-09-19): Find open opportunities whose next action or update needs attention.
-- [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-10-06): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.
+- [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-10-20): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.
 - [Social Marketing](https://www.acceleratewith.us/docs/plugins/social-marketing) (updated 2026-09-12): Prepare LinkedIn posts, approve their content and time, and follow publication receipts from your workspace.
 - [Stripe invoicing](https://www.acceleratewith.us/docs/plugins/stripe-invoicing) (updated 2026-10-19): Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.
 - [Stripe subscriptions](https://www.acceleratewith.us/docs/plugins/stripe-subscriptions) (updated 2026-09-19): Create recurring plans, send customers through secure checkout, and manage renewals from the account portal.
@@ -200,6 +200,6 @@ Run the Command Center yourself: what you need, how to start, and when to bring 
 - [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-10-07): Explore the real interface with zero credentials, then connect a workspace you control.
 - [Founder authority and tenant membership](https://www.acceleratewith.us/docs/self-hosting/permissions) (updated 2026-10-07): Platform administration is the ADMIN_EMAIL identity; tenant operators need an active membership in an active workspace.
 - [Recover a failing workspace](https://www.acceleratewith.us/docs/self-hosting/recovery) (updated 2026-10-05): Repair sign-in, schema and stalled work, then restore saved records and private files with verified recovery steps.
-- [Connect your installation](https://www.acceleratewith.us/docs/self-hosting/installation) (updated 2026-10-07): Create the owner account, apply the ordered schema, and sign in to a workspace you control.
+- [Connect your installation](https://www.acceleratewith.us/docs/self-hosting/installation) (updated 2026-10-20): Create the owner account, apply the ordered schema, and sign in to a workspace you control.
 
 - [Documentation landing](https://www.acceleratewith.us/docs): all guides.

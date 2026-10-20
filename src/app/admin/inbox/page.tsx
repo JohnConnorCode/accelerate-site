@@ -291,7 +291,7 @@ export default function AdminInboxPage() {
                 {filter.label}
                 <span
                   className={cn(
-                    "admin-number rounded px-1.5 py-0.5 text-[10px]",
+                    "admin-number rounded px-1.5 py-0.5 text-[11px]",
                     active ? "bg-white/12" : "bg-black/5 dark:bg-white/8",
                   )}
                 >
@@ -356,13 +356,13 @@ export default function AdminInboxPage() {
                     </div>
                     <div className="min-w-0">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">
+                        <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">
                           {meta.label}
                         </span>
                         {item.priority !== "normal" && (
                           <span
                             className={cn(
-                              "rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em]",
+                              "rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em]",
                               item.priority === "urgent"
                                 ? "bg-red-500/10 text-red-600 dark:text-red-400"
                                 : "bg-amber-500/10 text-amber-700 dark:text-amber-300",
@@ -371,7 +371,7 @@ export default function AdminInboxPage() {
                             {item.priority}
                           </span>
                         )}
-                        <span className="text-[10px] text-[var(--admin-muted)]">
+                        <span className="text-[11px] text-[var(--admin-muted)]">
                           {timeAgo(item.createdAt)}
                         </span>
                       </div>
@@ -379,7 +379,7 @@ export default function AdminInboxPage() {
                         {item.title}
                       </h2>
                       <p className="admin-copy mt-0.5 line-clamp-2 text-xs">{item.summary}</p>
-                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-[var(--admin-muted)]">
+                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--admin-muted)]">
                         <span>{item.meta}</span>
                         {item.person?.email && (
                           <span className="truncate">{item.person.email}</span>

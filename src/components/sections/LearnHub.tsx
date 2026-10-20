@@ -133,7 +133,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
       <section className="page-offset-roomy relative overflow-hidden pb-24">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute left-[8%] top-28 h-px w-24 bg-[var(--rule)]" />
-          <div className="absolute right-[8%] top-28 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white-muted">
+          <div className="absolute right-[8%] top-28 font-mono text-[10.5px] uppercase tracking-[0.2em] text-white-muted">
             Field notes / 2026
           </div>
         </div>
@@ -176,10 +176,10 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                   className="learning-feature group relative block p-7 sm:p-9"
                 >
                   <div className="mb-12 flex items-start justify-between gap-5">
-                    <p className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-heading">
+                    <p className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-heading">
                       Featured guide
                     </p>
-                    <span className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white-muted">
+                    <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-white-muted">
                       {CATEGORY_LABELS[featuredArticle.frontmatter.category]}
                     </span>
                   </div>
@@ -189,7 +189,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                   <p className="mt-5 line-clamp-3 text-pretty leading-relaxed text-white-secondary">
                     {featuredArticle.frontmatter.excerpt}
                   </p>
-                  <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--rule)] pt-5 font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted">
+                  <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--rule)] pt-5 font-mono text-[10.5px] uppercase tracking-[0.12em] text-white-muted">
                     <span className="inline-flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                       {featuredArticle.readingTime}

@@ -235,7 +235,7 @@ export default function WebsiteGradesPage() {
                                       {cat.issues?.length > 0 && (
                                         <ul className="mt-1 space-y-0.5">
                                           {cat.issues.slice(0, 2).map((issue, i) => (
-                                            <li key={i} className="text-[10px] text-white-muted">
+                                            <li key={i} className="text-[11px] text-white-muted">
                                               {issue}
                                             </li>
                                           ))}

@@ -137,11 +137,11 @@ export function MediaLightbox({
             <div className="mt-3 flex w-full items-center justify-between gap-3 px-1 sm:mt-4">
               <div className="min-w-0">
                 <p className="truncate text-pretty text-sm text-white/82">{active.caption}</p>
-                <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/45">
+                <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/45">
                   {groupLabel}
                 </p>
               </div>
-              <span className="shrink-0 font-mono text-[10px] tabular-nums tracking-[0.12em] text-white/55">
+              <span className="shrink-0 font-mono text-[11px] tabular-nums tracking-[0.12em] text-white/55">
                 {activeIndex! + 1} / {media.length}
               </span>
             </div>

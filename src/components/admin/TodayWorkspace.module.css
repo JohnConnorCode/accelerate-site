@@ -157,41 +157,55 @@
   color: var(--today-accent);
   flex-shrink: 0;
 }
+/* The pulse: the numbers the business runs on, read before anything else. */
 .briefFacts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 32px;
-  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  margin: 18px calc(var(--admin-panel-padding) * -0.75) 10px;
+  border-block: var(--admin-hairline-width) solid var(--admin-hairline);
 }
 .factButton {
   text-align: left;
   display: flex;
-  align-items: baseline;
-  flex-direction: row-reverse;
-  justify-content: flex-end;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   min-width: 0;
-  border-radius: var(--admin-control-radius);
-  padding: 8px 10px;
-  margin: -8px -10px;
+  padding: 16px calc(var(--admin-panel-padding) * 0.75);
+  border-inline-start: var(--admin-hairline-width) solid var(--admin-hairline);
+}
+.factButton:first-child {
+  border-inline-start: 0;
 }
 .factButton strong {
-  font-size: 18px;
+  font-family: var(--admin-title-font);
+  font-size: clamp(28px, 2.6vw, 38px);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
+  font-weight: var(--admin-title-weight);
+  line-height: 1;
+  letter-spacing: var(--admin-title-tracking);
 }
 .factButton span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--admin-muted);
+  font-family: var(--admin-label-font);
   font-size: var(--admin-text-caption);
-  line-height: 1.6;
+  text-transform: var(--admin-label-transform);
+  letter-spacing: var(--admin-label-tracking);
+  line-height: 1.4;
 }
-.factButton:hover strong {
-  color: var(--admin-accent);
+/* Signal: work the system did. The only place this card uses the accent. */
+.factButton[data-signal] span::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--admin-nav-accent);
+  flex-shrink: 0;
 }
 .factButton:hover {
-  background: var(--admin-surface-subtle);
+  background: var(--admin-hover-tint);
 }
 .briefMeta {
   margin-top: 22px;
@@ -232,8 +246,26 @@
   color: var(--admin-muted);
   margin: 10px 0 0;
 }
+/* Delegated work reads as a stream: a hollow mark while it runs or waits,
+   a filled signal mark once the system has finished it. */
 .automationRow {
+  position: relative;
+  padding-left: 22px;
   border-top: 1px solid var(--admin-border);
+}
+.automationRow::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 19px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--admin-muted);
+}
+.automationRow[data-status="completed"]::before {
+  background: var(--admin-nav-accent);
+  box-shadow: none;
 }
 .automationRow:first-child {
   border-top: 0;
@@ -444,7 +476,7 @@
 }
 .stats dd {
   font-size: 24px;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.028em;
   font-variant-numeric: tabular-nums;
 }
 .activityDot {
@@ -750,13 +782,22 @@
   margin: 14px 0 20px;
 }
 .reviewDomain {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 16px 24px;
-  padding: 18px 0;
+  padding: 18px 0 18px 16px;
   border-bottom: 1px solid var(--admin-border);
   min-width: 0;
+}
+/* A rail marks the rows that need a person. Clear rows carry no rail. */
+.reviewDomain[data-review-open]::before {
+  content: "";
+  position: absolute;
+  inset: 18px auto 18px 0;
+  width: 2px;
+  background: var(--admin-ink);
 }
 .reviewContent {
   min-width: 0;
@@ -767,8 +808,11 @@
 }
 .reviewDomain h3 {
   margin: 0;
+  font-family: var(--admin-label-font);
   font-size: var(--admin-text-caption);
   font-weight: 550;
+  text-transform: var(--admin-label-transform);
+  letter-spacing: var(--admin-label-tracking);
   color: var(--admin-muted);
 }
 .workflowGrid h3 {

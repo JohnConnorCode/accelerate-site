@@ -167,7 +167,7 @@ export function TenantProviderControls() {
             browser, and every rotation creates a new version.
           </p>
         </div>
-        <span className="w-fit rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] px-2.5 py-1.5 font-mono text-[9px] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
+        <span className="w-fit rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] px-2.5 py-1.5 font-mono text-[10.5px] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
           {workspaceSlug}
         </span>
       </div>
@@ -244,7 +244,7 @@ export function TenantProviderControls() {
                   <span className="text-xs font-medium text-[var(--admin-ink)]">
                     Verified sender email
                   </span>
-                  <span className="admin-copy mt-0.5 block text-pretty text-[10px] leading-4">
+                  <span className="admin-copy mt-0.5 block text-pretty text-[11px] leading-4">
                     The Resend-verified identity recipients see in campaign email.
                   </span>
                   <input
@@ -261,7 +261,7 @@ export function TenantProviderControls() {
                   <span className="text-xs font-medium text-[var(--admin-ink)]">
                     Reply-to inbox
                   </span>
-                  <span className="admin-copy mt-0.5 block text-pretty text-[10px] leading-4">
+                  <span className="admin-copy mt-0.5 block text-pretty text-[11px] leading-4">
                     A monitored inbox for prospect responses. Connect that inbox to Google Workspace
                     so replies enter the recovery queue.
                   </span>
@@ -426,7 +426,7 @@ function ProviderCard({
           </div>
           <span
             className={cn(
-              "shrink-0 rounded-full px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em]",
+              "shrink-0 rounded-full px-2.5 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.08em]",
               connected
                 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                 : "bg-black/[0.05] text-[var(--admin-muted)] dark:bg-white/[0.06]",
@@ -442,10 +442,10 @@ function ProviderCard({
         {endpoint && onCopy && (
           <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-2 rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] p-2 pl-3 shadow-[var(--admin-shadow-border)]">
             <div className="min-w-0">
-              <p className="font-mono text-[8px] font-semibold uppercase tracking-[0.11em] text-[var(--admin-muted)]">
+              <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.11em] text-[var(--admin-muted)]">
                 Signed webhook endpoint
               </p>
-              <p className="mt-1 truncate font-mono text-[10px] text-[var(--admin-ink)]">
+              <p className="mt-1 truncate font-mono text-[11px] text-[var(--admin-ink)]">
                 {endpoint}
               </p>
             </div>
@@ -473,7 +473,7 @@ function ProviderCard({
             </button>
           </div>
         )}
-        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[9px] text-[var(--admin-muted)]">
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10.5px] text-[var(--admin-muted)]">
           <span>{formatConnectedAt(connection?.connected_at)}</span>
           {connection && (
             <>
@@ -512,7 +512,7 @@ function KeyMetadata({ connection }: { connection: ProviderConnection }) {
           key={label}
           className="rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] p-3"
         >
-          <p className="font-mono text-[8px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">
+          <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">
             {label}
           </p>
           <p
@@ -546,7 +546,7 @@ function SecretField({
   return (
     <label className="block">
       <span className="text-xs font-medium text-[var(--admin-ink)]">{label}</span>
-      <span className="admin-copy mt-0.5 block text-pretty text-[10px] leading-4">
+      <span className="admin-copy mt-0.5 block text-pretty text-[11px] leading-4">
         {description}
       </span>
       <span className="relative mt-1.5 block">

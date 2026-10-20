@@ -129,7 +129,7 @@ export function RevenueSnapshot({
                   </span>
                 </div>
                 {dropOff !== null && dropOff > 0 && (
-                  <span className="text-[10px] text-white-muted w-12 shrink-0 text-right">
+                  <span className="text-[11px] text-white-muted w-12 shrink-0 text-right">
                     -{dropOff}%
                   </span>
                 )}

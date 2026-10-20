@@ -43,9 +43,8 @@ try {
     await page.getByRole("button", { name: "Refresh progress" }).click();
     await page.getByRole("heading", { name: "What has been verified" }).waitFor();
     assert(
-      (await page
-        .getByText("Fictional workspace. Verify this capability", { exact: false })
-        .count()) > 0,
+      (await page.getByText("Demo workspace. Verify this capability", { exact: false }).count()) >
+        0,
     );
     await page.evaluate(() => {
       const original = window.fetch;

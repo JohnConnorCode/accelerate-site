@@ -118,17 +118,15 @@
   max-width: 12ch;
   margin: 1.25rem 0 1.5rem;
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(2.9rem, 6.7vw, 6.25rem);
+  font-size: var(--type-display);
   font-weight: 500;
   line-height: 0.99;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
 .landingTitle em {
-  font-family: var(--font-serif), Georgia, serif;
-  font-weight: 400;
-  letter-spacing: -0.05em;
+  font-style: normal;
 }
 
 .landingLede {
@@ -222,7 +220,7 @@
   font-size: clamp(2rem, 3.5vw, 3.2rem);
   font-weight: 500;
   line-height: 1.09;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.032em;
   text-wrap: balance;
 }
 
@@ -290,9 +288,9 @@
 }
 
 .guideTitle {
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-size: var(--type-display);
   line-height: 1.015;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.038em;
 }
 
 .guideLede {
@@ -361,7 +359,7 @@
   background: var(--fg);
   color: var(--bg);
   font-family: var(--font-mono-face), ui-monospace, monospace;
-  font-size: 0.65rem;
+  font-size: 10.5px;
   font-weight: 600;
   line-height: 1;
 }

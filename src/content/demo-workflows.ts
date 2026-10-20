@@ -14,7 +14,7 @@ export interface DemoWorkflow {
   steps: Array<{ title: string; instruction: string; route: string }>;
 }
 
-/** Instructions for the shared fictional workspace, never a separate simulation. */
+/** Instructions for the shared demo workspace, never a separate simulation. */
 export const demoWorkflows: DemoWorkflow[] = [
   {
     id: "inquiry",
@@ -26,7 +26,7 @@ export const demoWorkflows: DemoWorkflow[] = [
       "A customer has asked about an inspection. The person replying needs the conversation and the opportunity in view.",
     result:
       "A simulated reply saved in the customer’s thread, ready for the next teammate to pick up.",
-    image: "/images/demo/northline-conversations.png",
+    image: "/images/demo/northline-conversations-20261020-r2.png",
     recipe: "roofing-inquiry",
     agent: "inquiry",
     steps: [
@@ -60,7 +60,7 @@ export const demoWorkflows: DemoWorkflow[] = [
       "The engagement is agreed. Delivery still needs an owner, client access and a kickoff checklist.",
     result:
       "Reviewed onboarding tasks linked to the engagement. If dates or ownership are missing, the agent asks for them.",
-    image: "/images/demo/ledgerstone-onboarding.png",
+    image: "/images/demo/ledgerstone-onboarding-20261020-r2.png",
     recipe: "engagement-onboarding",
     agent: "onboarding",
     steps: [
@@ -94,7 +94,7 @@ export const demoWorkflows: DemoWorkflow[] = [
       "A customer needs an invoice. The recipient, amount and terms need review before anything is sent.",
     result:
       "A fictional invoice with separate recorded results for creating the draft and sending it. Payment remains a separate event.",
-    image: "/images/demo/superdebate-invoicing.png",
+    image: "/images/demo/superdebate-invoicing-20261020-r2.png",
     recipe: "invoice-follow-up",
     steps: [
       {

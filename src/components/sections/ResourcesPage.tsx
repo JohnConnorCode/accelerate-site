@@ -74,7 +74,7 @@ export function ResourcesPage() {
                       <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
                         <FeaturedIcon className="h-6 w-6" strokeWidth={1.75} />
                       </span>
-                      <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-gold">
+                      <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-gold">
                         Featured · {categoryLabels[featured.category]}
                       </span>
                     </div>
@@ -118,7 +118,7 @@ export function ResourcesPage() {
                   <span className="grid h-10 w-10 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] text-gold">
                     <Icon className="h-5 w-5" strokeWidth={1.75} />
                   </span>
-                  <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-white-muted">
+                  <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-white-muted">
                     {categoryLabels[resource.category]}
                   </span>
                 </div>

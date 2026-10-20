@@ -14,10 +14,10 @@ const scenarios = process.argv.includes("--one")
       "superdebate",
     ];
 const defaultAppearances = {
-  "northline-roofing": "studio",
+  "northline-roofing": "accelerate",
   "alder-ridge-law": "dark",
-  "ledgerstone-advisory": "frost",
-  "hearthline-realty": "signal",
+  "ledgerstone-advisory": "light",
+  "hearthline-realty": "operator",
   "common-table-network": "light",
   superdebate: "light",
 };
@@ -761,7 +761,7 @@ for (const scenario of scenarios) {
         .selectOption("northline-roofing");
       await page.waitForURL(/\/northline-roofing\/today$/);
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
-      await page.waitForFunction(() => document.documentElement.dataset.theme === "studio");
+      await page.waitForFunction(() => document.documentElement.dataset.theme === "accelerate");
 
       // Run history contains executed demo work, not seeded pretend traces.
       await page.evaluate(async () => {
@@ -876,10 +876,10 @@ for (const scenario of scenarios) {
         waitUntil: "domcontentloaded",
       });
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
-      await page.waitForFunction(() => document.documentElement.dataset.theme === "studio");
+      await page.waitForFunction(() => document.documentElement.dataset.theme === "accelerate");
       await page.getByRole("button", { name: /^Appearance:/ }).click();
-      await page.getByRole("radio", { name: /Frost/ }).click();
-      await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
+      await page.getByRole("radio", { name: /^Paper/ }).click();
+      await page.waitForFunction(() => document.documentElement.dataset.theme === "light");
       await desktopSidebar.getByRole("button", { name: "Open demo controls" }).click();
       await desktopSidebar
         .getByRole("combobox", { name: "Demo business" })
@@ -892,11 +892,11 @@ for (const scenario of scenarios) {
         .getByRole("combobox", { name: "Demo business" })
         .selectOption("northline-roofing");
       await page.waitForURL(/\/northline-roofing\/today$/);
-      await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
+      await page.waitForFunction(() => document.documentElement.dataset.theme === "light");
       await page.reload({ waitUntil: "domcontentloaded" });
       await page.locator("[data-admin-demo-bar]").waitFor();
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
-      await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
+      await page.waitForFunction(() => document.documentElement.dataset.theme === "light");
       const persisted = await page.evaluate(
         async () =>
           (await fetch("/api/admin/revenue-os/priority").then((response) => response.json()))
@@ -916,7 +916,7 @@ for (const scenario of scenarios) {
         appearance: sessionStorage.getItem("accelerate:admin-demo:northline-roofing:appearance:v1"),
         theme: document.documentElement.dataset.theme,
       }));
-      if (reset.data === null || reset.appearance !== null || reset.theme !== "studio")
+      if (reset.data === null || reset.appearance !== null || reset.theme !== "accelerate")
         failures.push(
           "northline-roofing desktop: reset did not restore clean data and default appearance",
         );
@@ -1162,7 +1162,7 @@ for (const scenario of scenarios) {
 }
 
 const appearanceFingerprints = new Map();
-for (const appearance of ["light", "dark", "signal", "studio", "frost"]) {
+for (const appearance of ["light", "dark", "accelerate", "operator"]) {
   for (const [label, viewport] of [
     ["desktop", { width: 1280, height: 900 }],
     ["mobile", { width: 390, height: 844 }],
@@ -1235,11 +1235,11 @@ for (const appearance of ["light", "dark", "signal", "studio", "frost"]) {
         ].join("|"),
       );
     if (
-      appearance === "frost" &&
+      appearance === "accelerate" &&
       (tokens.activeBackground === "rgba(0, 0, 0, 0)" || tokens.activeColor === tokens.navInk)
     )
       failures.push(
-        `appearance frost ${label}: navigation does not have a distinct violet active treatment`,
+        `appearance accelerate ${label}: navigation does not have a distinct active treatment`,
       );
     await context.close();
   }

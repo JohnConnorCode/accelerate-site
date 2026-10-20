@@ -363,7 +363,7 @@ export default function SettingsPage() {
                           <p className="text-sm font-semibold text-[var(--admin-ink)]">
                             {item.label}
                           </p>
-                          <span className="flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                          <span className="flex items-center gap-1 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                             {configured ? (
                               <>
                                 <CheckCircle className="h-3.5 w-3.5 text-[var(--success)]" />
@@ -454,7 +454,7 @@ export default function SettingsPage() {
                               {key}
                             </p>
                             {setting?.is_secret && (
-                              <span className="rounded-md bg-black/[0.055] px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.07]">
+                              <span className="rounded-md bg-black/[0.055] px-1.5 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.07]">
                                 SECRET
                               </span>
                             )}

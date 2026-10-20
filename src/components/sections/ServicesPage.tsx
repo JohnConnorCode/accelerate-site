@@ -17,8 +17,7 @@ import {
 } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
-import { ApprovalQueue } from "@/components/command-center/ApprovalQueue";
-import type { LiveQueueItem } from "@/components/command-center/ApprovalQueue";
+import { ActivityStream } from "@/components/ui/ActivityStream";
 import { marketingPositioning } from "@/content/marketing-positioning";
 import { CATEGORY_META } from "@/content/command-center";
 import { workProjects } from "@/content/work";
@@ -32,6 +31,7 @@ import {
   scopingPromise,
   featuredServiceWorkSlugs,
   commandCenterFraming,
+  serviceEngagementActivity,
 } from "@/content/services-page";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -44,39 +44,6 @@ const iconMap: Record<string, LucideIcon> = {
 // Legacy catalog anchors the homepage modes route to: engagementModes hrefs
 // (#strategy, #automation, #sales, #reporting) land on these mode cards.
 const modeAnchors = ["strategy", "automation", "sales", "reporting"];
-
-const SERVICE_QUEUE: LiveQueueItem[] = [
-  {
-    id: "scope",
-    kind: "note",
-    title: "Scope mapped to the operating constraint",
-    because: "The sequence of work is ready for review.",
-  },
-  {
-    id: "workflow",
-    kind: "task",
-    title: "Workflow build moved into testing",
-    because: "The handoff is being tested against the real process.",
-  },
-  {
-    id: "integration",
-    kind: "deal",
-    title: "Core tools connected",
-    because: "The system can now pass the right context between teams.",
-  },
-  {
-    id: "handoff",
-    kind: "calendar",
-    title: "Team handoff scheduled",
-    because: "The people who run it are included before it goes live.",
-  },
-  {
-    id: "improve",
-    kind: "email",
-    title: "Weekly improvement brief prepared",
-    because: "The next useful change is waiting with the evidence.",
-  },
-];
 
 const SECTIONS = [
   { id: "start", label: "Where we start" },
@@ -471,13 +438,7 @@ export function ServicesPageContent() {
             </div>
 
             <HeroEntranceItem step={3} className="relative min-w-0">
-              <ApprovalQueue
-                items={SERVICE_QUEUE}
-                header="delivery queue"
-                actions={["Map", "Build", "Run"]}
-                footer={["Completed today", "Running / improving"]}
-                initialCount={18}
-              />
+              <ActivityStream {...serviceEngagementActivity} />
             </HeroEntranceItem>
           </div>
         </Container>

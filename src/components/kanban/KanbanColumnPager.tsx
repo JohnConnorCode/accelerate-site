@@ -61,7 +61,7 @@ export function KanbanColumnPager({
                 aria-hidden="true"
               />
               {column.label}
-              <span className="font-mono text-[10px] tabular-nums">{count}</span>
+              <span className="font-mono text-[11px] tabular-nums">{count}</span>
             </button>
           );
         })}

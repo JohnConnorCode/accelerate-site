@@ -142,7 +142,7 @@ export function LayoutCustomizeDialog({
               <span className="min-w-0 flex-1 truncate px-1.5 text-sm font-medium text-[var(--admin-ink)]">
                 {row.label}
                 {row.required && (
-                  <span className="ml-2 rounded bg-black/[0.06] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--admin-muted)] dark:bg-white/[0.08]">
+                  <span className="ml-2 rounded bg-black/[0.06] px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--admin-muted)] dark:bg-white/[0.08]">
                     Required
                   </span>
                 )}

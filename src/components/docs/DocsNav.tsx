@@ -36,7 +36,7 @@ export function DocsPager({ slug }: { slug: string[] }) {
         >
           <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span>
-            <span className="block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white-muted">
+            <span className="block font-mono text-[10.5px] uppercase tracking-[0.14em] text-white-muted">
               {prevLabel}
             </span>
             <span className="block text-sm font-medium">{prev.title}</span>
@@ -52,7 +52,7 @@ export function DocsPager({ slug }: { slug: string[] }) {
           className="docs-pager-link group flex items-center justify-end gap-2 rounded-xl border border-[var(--rule)] px-4 py-3 text-right hover:border-[var(--fg)] sm:col-start-2"
         >
           <span>
-            <span className="block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white-muted">
+            <span className="block font-mono text-[10.5px] uppercase tracking-[0.14em] text-white-muted">
               {nextLabel}
             </span>
             <span className="block text-sm font-medium">{next.title}</span>

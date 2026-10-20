@@ -416,7 +416,7 @@ export default function PipelinePage() {
                 ].map(([label, value, note]) => (
                   <AdminSurface key={String(label)} className="min-w-0 p-4 sm:p-5">
                     <p className="admin-eyebrow truncate">{String(label)}</p>
-                    <p className="mt-2 truncate text-[clamp(1.35rem,6vw,1.85rem)] font-semibold tabular-nums tracking-[-0.045em] sm:mt-3 sm:text-3xl">
+                    <p className="mt-2 truncate text-[clamp(1.35rem,6vw,1.85rem)] font-semibold tabular-nums tracking-[-0.035em] sm:mt-3 sm:text-3xl">
                       {String(value)}
                     </p>
                     <p className="admin-copy mt-1 hidden truncate text-xs sm:block">
@@ -1226,7 +1226,7 @@ function Card({
           <p className="mt-1 line-clamp-2 text-xs leading-5">
             {item.next_action || "Set a specific next action"}
           </p>
-          <p className="admin-copy mt-1 text-[10px] tabular-nums">
+          <p className="admin-copy mt-1 text-[11px] tabular-nums">
             {shortDate(item.next_action_at)}
             {item.next_meeting_at ? ` · Meeting ${shortDate(item.next_meeting_at)}` : ""}
           </p>
@@ -1235,12 +1235,12 @@ function Card({
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           {has(state, "source") && (
-            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+            <p className="truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
               {item.source || "Unknown source"}
             </p>
           )}
           {has(state, "owner") && (
-            <p className="mt-1 truncate text-[10px] text-[var(--admin-muted)]">
+            <p className="mt-1 truncate text-[11px] text-[var(--admin-muted)]">
               {item.owner_email || "Unassigned"}
             </p>
           )}
@@ -1300,7 +1300,7 @@ function ListView({
     <div className="border-t border-[var(--admin-border)]">
       <div className="hidden overflow-x-auto md:block">
         <table className="admin-table w-full min-w-[820px] text-left text-sm">
-          <thead className="bg-black/[0.018] font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
+          <thead className="bg-black/[0.018] font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
             <tr>
               <th scope="col" className="px-5 py-3.5">
                 Opportunity
@@ -1368,7 +1368,7 @@ function ListView({
                 {has(state, "next_action") && (
                   <td className="max-w-[240px] px-4">
                     <p className="truncate text-xs">{item.next_action || "No next action"}</p>
-                    <p className="admin-copy text-[10px]">{shortDate(item.next_action_at)}</p>
+                    <p className="admin-copy text-[11px]">{shortDate(item.next_action_at)}</p>
                   </td>
                 )}
                 {has(state, "owner") && (

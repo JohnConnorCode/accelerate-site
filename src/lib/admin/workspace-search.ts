@@ -1,4 +1,4 @@
-/** Browser-safe result formatting shared by connected and fictional workspaces. */
+/** Browser-safe result formatting shared by connected and demo workspaces. */
 export type SearchRecordKind = "people" | "work" | "opportunities" | "clients" | "proposals";
 
 export interface SearchRecord {

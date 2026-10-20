@@ -301,7 +301,7 @@ export async function handleDemoConfiguration(
       const change = { operation: "set_workspace_setting", key: body.key, value: body.value };
       await preview({ change });
       const result = apply(change);
-      record("Saved fictional workspace preference");
+      record("Saved demo workspace preference");
       return json({ success: true, result, simulated: true });
     }
     throw new Error("Unsupported configuration operation");

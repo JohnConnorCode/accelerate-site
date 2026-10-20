@@ -14,7 +14,7 @@ export default function Error({
       <div className="text-center max-w-md">
         <p
           className="text-6xl font-bold text-gold-gradient mb-4"
-          style={{ fontFamily: "var(--font-jost), var(--font-inter), sans-serif" }}
+          style={{ fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif" }}
         >
           Oops
         </p>

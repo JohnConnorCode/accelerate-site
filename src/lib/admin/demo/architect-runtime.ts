@@ -39,7 +39,7 @@ export async function handleDemoArchitect(
     if (method !== "POST" && !action)
       return respond({ error: "Unsupported Blueprint operation" }, 405);
     if (target && target[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId)
-      return respond({ error: "Blueprint not found in this fictional workspace" }, 404);
+      return respond({ error: "Blueprint not found in this demo workspace" }, 404);
     const version = state.blueprintEdits?.version ?? DEMO_BLUEPRINT_DETAIL.version;
     const before = {
       ...DEMO_BLUEPRINT_DETAIL.document,

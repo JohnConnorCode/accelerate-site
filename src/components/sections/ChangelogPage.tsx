@@ -111,7 +111,7 @@ export function ChangelogPage() {
                 type="button"
                 onClick={() => setActiveCategory("all")}
                 className={cn(
-                  "rounded-full border px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors",
+                  "rounded-full border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors",
                   activeCategory === "all"
                     ? "border-border-gold text-gold"
                     : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
@@ -129,7 +129,7 @@ export function ChangelogPage() {
                     type="button"
                     onClick={() => setActiveCategory(category)}
                     className={cn(
-                      "rounded-full border px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors",
+                      "rounded-full border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors",
                       activeCategory === category
                         ? "border-border-gold text-gold"
                         : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
@@ -188,7 +188,7 @@ export function ChangelogPage() {
                               </h3>
                               <span
                                 className={cn(
-                                  "font-mono text-[0.6rem] uppercase tracking-[0.18em]",
+                                  "font-mono text-[10.5px] uppercase tracking-[0.18em]",
                                   config.accent,
                                 )}
                               >

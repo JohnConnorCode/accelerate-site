@@ -249,7 +249,7 @@ export default function RecoveryPage() {
                       >
                         <Icon className="size-3.5 text-[var(--admin-muted)]" />
                         <p className="mt-2 font-mono text-lg font-semibold tabular-nums">{value}</p>
-                        <p className="admin-copy text-[10px]">{label}</p>
+                        <p className="admin-copy text-[11px]">{label}</p>
                       </div>
                     ))}
                   </div>
@@ -269,7 +269,7 @@ export default function RecoveryPage() {
                               <p className="text-lg font-semibold">
                                 {campaign?.name || "Recovery playbook"}
                               </p>
-                              <span className="rounded-full bg-violet-500/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[.08em] text-violet-700 dark:text-violet-300">
+                              <span className="rounded-full bg-violet-500/10 px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[.08em] text-violet-700 dark:text-violet-300">
                                 {campaign?.status || "draft"}
                               </span>
                             </div>
@@ -296,7 +296,7 @@ export default function RecoveryPage() {
                               <p className="font-mono text-base font-semibold tabular-nums">
                                 {value as number}
                               </p>
-                              <p className="admin-copy text-[10px]">{label}</p>
+                              <p className="admin-copy text-[11px]">{label}</p>
                             </div>
                           ))}
                         </div>
@@ -398,15 +398,15 @@ export default function RecoveryPage() {
                           <div className="grid grid-cols-3 gap-2">
                             <p className="font-mono text-sm font-semibold tabular-nums">
                               {audiencePreview.totals.eligible}
-                              <span className="admin-copy ml-1 text-[10px]">eligible</span>
+                              <span className="admin-copy ml-1 text-[11px]">eligible</span>
                             </p>
                             <p className="font-mono text-sm font-semibold tabular-nums">
                               {audiencePreview.totals.excluded}
-                              <span className="admin-copy ml-1 text-[10px]">excluded</span>
+                              <span className="admin-copy ml-1 text-[11px]">excluded</span>
                             </p>
                             <p className="font-mono text-sm font-semibold tabular-nums">
                               {formatMoney(audiencePreview.totals.estimatedValue)}
-                              <span className="admin-copy ml-1 text-[10px]">est.</span>
+                              <span className="admin-copy ml-1 text-[11px]">est.</span>
                             </p>
                           </div>
                           <p className="admin-copy mt-2 text-[11px] leading-4">

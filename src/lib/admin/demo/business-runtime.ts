@@ -305,7 +305,7 @@ export async function handleDemoBusinessRequest(
   };
   const invoice = (id: unknown) => {
     const item = state.invoices.find((x) => x.actionId === id);
-    if (!item) throw new Error("Invoice is unavailable in this fictional workspace");
+    if (!item) throw new Error("Invoice is unavailable in this demo workspace");
     return item;
   };
   const view = async (id: unknown, design: unknown) => {
@@ -803,7 +803,7 @@ export async function handleDemoBusinessRequest(
               }));
       record("Simulated " + def.name);
       return response({
-        summary: "Simulated report from this fictional workspace.",
+        summary: "Simulated report from this demo workspace.",
         items: rows.slice(0, 20),
         totalFindings: rows.length,
         receipt: {

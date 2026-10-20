@@ -326,7 +326,7 @@ export default function LearningInboxPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-sm font-semibold text-[var(--admin-ink)]">{p.rule}</p>
                           <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${statusTone[p.status]}`}
+                            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${statusTone[p.status]}`}
                           >
                             {p.status.replaceAll("_", " ")}
                           </span>
@@ -339,12 +339,12 @@ export default function LearningInboxPage() {
                           <p className="admin-copy mt-1 text-pretty text-xs">{p.rationale}</p>
                         )}
                         {p.affected_workers.length > 0 && (
-                          <p className="mt-1 font-mono text-[10px] text-[var(--admin-muted)]">
+                          <p className="mt-1 font-mono text-[11px] text-[var(--admin-muted)]">
                             Affects: {p.affected_workers.join(", ")}
                           </p>
                         )}
                         {p.conflicts != null && (
-                          <p className="mt-1 font-mono text-[10px] text-[var(--admin-warning)]">
+                          <p className="mt-1 font-mono text-[11px] text-[var(--admin-warning)]">
                             Conflicts:{" "}
                             {typeof p.conflicts === "string"
                               ? p.conflicts
@@ -352,12 +352,12 @@ export default function LearningInboxPage() {
                           </p>
                         )}
                         {p.learned_policy_id && (
-                          <p className="mt-1 break-all font-mono text-[10px] text-[var(--admin-muted)]">
+                          <p className="mt-1 break-all font-mono text-[11px] text-[var(--admin-muted)]">
                             Policy: {p.learned_policy_id}
                           </p>
                         )}
                         {p.status === "proposed" && p.approval_action_id && (
-                          <p className="mt-1 font-mono text-[10px] text-[var(--admin-warning)]">
+                          <p className="mt-1 font-mono text-[11px] text-[var(--admin-warning)]">
                             Awaiting approval in Today
                           </p>
                         )}

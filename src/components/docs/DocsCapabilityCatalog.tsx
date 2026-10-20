@@ -34,7 +34,7 @@ export function DocsCapabilityCatalog() {
                   <dt className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-medium text-heading">
                     {item.title}
                     {item.gated ? (
-                      <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-white-muted">
+                      <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-white-muted">
                         Review workflow
                       </span>
                     ) : null}

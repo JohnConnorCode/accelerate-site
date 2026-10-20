@@ -22,10 +22,7 @@ export function HomeSelectedWork({ content = homeWorkContent }: { content?: Home
             <div data-home-step="0">
               <Eyebrow className="mb-5">{content.eyebrow}</Eyebrow>
             </div>
-            <h2
-              data-home-step="1"
-              className="max-w-[16ch] text-balance font-display text-[clamp(2.2rem,5vw,5rem)] font-medium leading-[0.92] tracking-[-0.055em] text-[var(--fg)]"
-            >
+            <h2 data-home-step="1" className="h2 max-w-[16ch] text-balance">
               {content.heading}
             </h2>
             <p

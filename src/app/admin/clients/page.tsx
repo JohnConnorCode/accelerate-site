@@ -182,7 +182,7 @@ export default function ClientsPage() {
                         <th
                           key={label}
                           scope="col"
-                          className={`px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)] ${index === 1 ? "hidden md:table-cell" : index === 2 || index === 5 ? "hidden sm:table-cell" : ""}`}
+                          className={`px-4 py-3 text-left font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)] ${index === 1 ? "hidden md:table-cell" : index === 2 || index === 5 ? "hidden sm:table-cell" : ""}`}
                         >
                           {label}
                         </th>
@@ -227,7 +227,7 @@ export default function ClientsPage() {
                           >
                             {client.contact_name}
                           </Link>
-                          <p className="text-[10px] text-[var(--admin-muted)]">
+                          <p className="text-[11px] text-[var(--admin-muted)]">
                             {client.contact_email}
                           </p>
                         </div>

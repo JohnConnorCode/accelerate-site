@@ -131,7 +131,7 @@ export default function StyleGuide() {
                   <p className="mt-2.5 font-mono text-[0.7rem] uppercase tracking-[0.15em] text-heading">
                     {c.name}
                   </p>
-                  <p className="font-mono text-[0.65rem] text-white-muted">{c.note}</p>
+                  <p className="font-mono text-[11px] text-white-muted">{c.note}</p>
                 </div>
               ))}
             </div>
@@ -147,7 +147,7 @@ export default function StyleGuide() {
             </p>
             <div className="flex flex-col gap-8">
               <div>
-                <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white-muted">
                   display-1 · clamp(3.5rem, 11vw, 10rem)
                 </p>
                 <Heading size={1} className="mt-2">
@@ -155,7 +155,7 @@ export default function StyleGuide() {
                 </Heading>
               </div>
               <div>
-                <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white-muted">
                   display-2 · clamp(2rem, 5vw, 4.5rem)
                 </p>
                 <Heading size={2} className="mt-2">
@@ -163,7 +163,7 @@ export default function StyleGuide() {
                 </Heading>
               </div>
               <div>
-                <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white-muted">
                   display-3 · clamp(2.2rem, 4.5vw, 4rem)
                 </p>
                 <Heading size={3} className="mt-2">
@@ -171,7 +171,7 @@ export default function StyleGuide() {
                 </Heading>
               </div>
               <div>
-                <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white-muted">
                   eyebrow · &lt;Eyebrow&gt;
                 </p>
                 <div className="mt-3">
@@ -179,7 +179,7 @@ export default function StyleGuide() {
                 </div>
               </div>
               <div>
-                <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white-muted">
                   body
                 </p>
                 <p className="mt-2 max-w-xl text-lg leading-relaxed text-white-muted">
@@ -228,7 +228,7 @@ export default function StyleGuide() {
             </p>
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-border-glass text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">
+                <tr className="border-b border-border-glass text-[11px] uppercase tracking-[0.18em] text-white-muted">
                   <th className="py-3 font-medium">Token</th>
                   <th className="py-3 font-medium">Value</th>
                   <th className="py-3 font-medium">Use</th>

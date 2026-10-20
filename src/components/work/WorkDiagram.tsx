@@ -135,12 +135,12 @@ export function WorkDiagram({
             className={`${inverted ? "border-white/20" : "border-[var(--rule)]"} mb-9 flex items-baseline justify-between gap-5 border-b pb-4`}
           >
             <p
-              className={`${inverted ? "text-white/65" : "text-[var(--mid)]"} font-mono text-[10px] uppercase tracking-[0.15em]`}
+              className={`${inverted ? "text-white/65" : "text-[var(--mid)]"} font-mono text-[11px] uppercase tracking-[0.15em]`}
             >
               System model
             </p>
             <p
-              className={`${inverted ? "text-white/65" : "text-[var(--mid)]"} text-right font-mono text-[9px] uppercase tracking-[0.12em]`}
+              className={`${inverted ? "text-white/65" : "text-[var(--mid)]"} text-right font-mono text-[10.5px] uppercase tracking-[0.12em]`}
             >
               Conceptual · not product UI
             </p>
@@ -156,7 +156,7 @@ export function WorkDiagram({
               data-diagram-node="true"
             >
               <span
-                className={`font-mono text-[9px] tabular-nums tracking-[0.14em] ${node.emphasis ? "opacity-100" : inverted ? "text-white/65" : "text-[var(--mid)]"}`}
+                className={`font-mono text-[10.5px] tabular-nums tracking-[0.14em] ${node.emphasis ? "opacity-100" : inverted ? "text-white/65" : "text-[var(--mid)]"}`}
               >
                 {String(index + 1).padStart(2, "0")}
               </span>

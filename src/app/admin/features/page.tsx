@@ -270,7 +270,7 @@ function FeatureCard({
       <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:pl-[50px]">
         <span
           className={cn(
-            "inline-flex min-h-6 items-center gap-1.5 rounded-full px-2 text-[10px] font-semibold",
+            "inline-flex min-h-6 items-center gap-1.5 rounded-full px-2 text-[11px] font-semibold",
             priorityMeta[feature.priority].tone,
           )}
         >
@@ -280,14 +280,14 @@ function FeatureCard({
         {feature.seed_key && (
           <span
             title="Managed by scripts/feature-backlog-data.mjs"
-            className="inline-flex min-h-6 items-center gap-1 rounded-full bg-black/[0.045] px-2 text-[10px] font-medium text-[var(--admin-muted)] dark:bg-white/[0.06]"
+            className="inline-flex min-h-6 items-center gap-1 rounded-full bg-black/[0.045] px-2 text-[11px] font-medium text-[var(--admin-muted)] dark:bg-white/[0.06]"
           >
             <Lock className="size-2.5" />
             Managed
           </span>
         )}
         {feature.status === "blocked" && (
-          <span className="inline-flex min-h-6 items-center rounded-full bg-[var(--admin-danger-soft)] px-2 text-[10px] font-semibold text-[var(--admin-danger)]">
+          <span className="inline-flex min-h-6 items-center rounded-full bg-[var(--admin-danger-soft)] px-2 text-[11px] font-semibold text-[var(--admin-danger)]">
             Blocked
           </span>
         )}
@@ -297,7 +297,7 @@ function FeatureCard({
             <span
               key={label}
               title={label}
-              className="inline-flex min-h-6 items-center rounded-full bg-black/[0.045] px-2 text-[10px] font-medium capitalize text-[var(--admin-muted)] dark:bg-white/[0.06]"
+              className="inline-flex min-h-6 items-center rounded-full bg-black/[0.045] px-2 text-[11px] font-medium capitalize text-[var(--admin-muted)] dark:bg-white/[0.06]"
             >
               {taxonomyLabel(label)}
             </span>
@@ -305,7 +305,7 @@ function FeatureCard({
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--admin-border)] pt-2.5 sm:pl-[50px]">
         {onAssign || isOverlay ? (
-          <label className="inline-flex min-h-9 min-w-0 items-center gap-1.5 text-[10px] text-[var(--admin-muted)]">
+          <label className="inline-flex min-h-9 min-w-0 items-center gap-1.5 text-[11px] text-[var(--admin-muted)]">
             <UserRound className="size-3 shrink-0" />
             <select
               aria-label={`Assign ${feature.title}`}
@@ -323,7 +323,7 @@ function FeatureCard({
             </select>
           </label>
         ) : feature.owner ? (
-          <span className="inline-flex items-center gap-1.5 text-[10px] text-[var(--admin-muted)]">
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--admin-muted)]">
             <UserRound className="size-3" />
             {feature.owner}
           </span>
@@ -346,7 +346,7 @@ function FeatureCard({
         {feature.target_date && (
           <span
             className={cn(
-              "inline-flex items-center gap-1.5 font-mono text-[10px] tabular-nums text-[var(--admin-muted)]",
+              "inline-flex items-center gap-1.5 font-mono text-[11px] tabular-nums text-[var(--admin-muted)]",
               overdue && "font-semibold text-[var(--admin-danger)]",
             )}
           >
@@ -356,14 +356,14 @@ function FeatureCard({
           </span>
         )}
         {claimedBy && (
-          <span className="truncate text-[10px] text-[var(--admin-muted)]">
+          <span className="truncate text-[11px] text-[var(--admin-muted)]">
             Claimed {claimedBy.split(":")[0]}
           </span>
         )}
       </div>
       {progress.total > 0 && (
         <div className="mt-3 space-y-1.5 sm:pl-[50px]">
-          <div className="flex items-center justify-between gap-2 text-[10px] font-medium text-[var(--admin-muted)]">
+          <div className="flex items-center justify-between gap-2 text-[11px] font-medium text-[var(--admin-muted)]">
             <span>
               {progress.done}/{progress.total} subtasks
             </span>
@@ -688,7 +688,7 @@ function FeatureDialog({
               className={inputClass}
               placeholder="category:operator, milestone:later, phase:2, capability:admin-ux"
             />
-            <span className="admin-copy mt-1.5 block text-[10px]">
+            <span className="admin-copy mt-1.5 block text-[11px]">
               Use the controlled category, milestone, phase, and capability dimensions.
             </span>
           </label>
@@ -1265,7 +1265,7 @@ export default function FeaturesPage() {
                     <div className="flex items-start justify-between gap-2 sm:gap-3">
                       <div className="min-w-0">
                         <p className="admin-eyebrow truncate">{metricLabel}</p>
-                        <p className="mt-1.5 text-xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)] sm:mt-3 sm:text-3xl">
+                        <p className="mt-1.5 text-xl font-semibold tabular-nums tracking-[-0.035em] text-[var(--admin-ink)] sm:mt-3 sm:text-3xl">
                           {value}
                         </p>
                         <p className="admin-copy mt-1 hidden text-xs sm:block">{note}</p>
@@ -1401,7 +1401,7 @@ export default function FeaturesPage() {
                   </WorkViews>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="col-span-2 flex items-center gap-2 md:col-auto">
-                      <span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">
+                      <span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[11px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">
                         {filtered.length}
                       </span>
                       {filtersActive && (
@@ -1600,7 +1600,7 @@ export default function FeaturesPage() {
                   Check off subtasks on the card. Drag by the grip to reprioritize. Press / to
                   search, N to add a card.
                 </p>
-                <p className="shrink-0 font-mono text-[10px] tabular-nums">
+                <p className="shrink-0 font-mono text-[11px] tabular-nums">
                   Order saves automatically
                 </p>
               </div>

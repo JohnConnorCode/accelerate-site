@@ -6,6 +6,8 @@
  * work, no invented metrics, no formulaic contrast framing.
  */
 
+import type { ActivityEvent } from "./home-activity";
+
 export type ServiceProblem = { title: string; body: string };
 
 export const problemRows: ServiceProblem[] = [
@@ -40,7 +42,7 @@ export const buildGroups: BuildGroup[] = [
     id: "revenue",
     title: "Revenue",
     items: [
-      "Lead qualification and routing",
+      "Inquiry qualification and routing",
       "Pipeline follow-up and revival",
       "Proposal and estimate preparation",
       "Opportunity research",
@@ -155,3 +157,18 @@ export const featuredServiceWorkSlugs = ["work-shelter", "sparkblox", "superdeba
 
 export const commandCenterFraming =
   "If the honest answer is one workflow, one agent, or one integration, that is what we build. Some businesses grow into a shared operating layer: one place where records, conversations, pipeline, payments, and work are visible together, with AI coworkers acting through governed tools.";
+
+/** The services hero stream: one engagement, from the first session to a
+ * system that runs. `system` marks the steps the running system takes. */
+export const serviceEngagementActivity = {
+  label: "One engagement",
+  context: "Illustrative",
+  events: [
+    { time: "Session", text: "We map how inquiries, scheduling and invoicing run today" },
+    { time: "Plan", text: "A written plan: three changes, in the order they pay back" },
+    { time: "Build", text: "Built around the inbox, CRM and calendar you already use" },
+    { time: "Live", text: "First inquiry handled end to end", system: true },
+    { time: "Running", text: "Follow-ups and reminders sent under your rules", system: true },
+    { time: "Review", text: "We tighten what works and choose the next system to add" },
+  ] satisfies ActivityEvent[],
+};

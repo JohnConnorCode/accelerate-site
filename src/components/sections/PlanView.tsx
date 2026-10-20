@@ -120,7 +120,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           <h1
             className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3"
             style={{
-              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
             }}
           >
             Your <span className="text-gold-gradient">Digital Growth Plan</span>
@@ -137,7 +137,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           <h2
             className="text-lg font-bold text-gold-gradient mb-3"
             style={{
-              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
             }}
           >
             Executive Summary
@@ -156,7 +156,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           Recommended Solutions
@@ -173,7 +173,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           Implementation Roadmap
@@ -225,7 +225,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           ROI Projection
@@ -287,7 +287,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           Investment Summary
@@ -354,7 +354,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           Next Steps

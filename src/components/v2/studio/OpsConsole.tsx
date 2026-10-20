@@ -30,11 +30,11 @@ export function OpsConsole({
             <span className="h-2.5 w-2.5 rounded-full bg-rule" />
             <span className="h-2.5 w-2.5 rounded-full bg-gold/70" />
           </span>
-          <span className="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted">
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted">
             <span className="text-gold">● {label}</span> · {name} ops
           </span>
         </div>
-        <span className="font-mono text-[0.55rem] uppercase tracking-[0.2em] text-white-muted">
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-white-muted">
           built for you
         </span>
       </div>
@@ -58,7 +58,7 @@ export function OpsConsole({
               }}
               className="flex items-center gap-3 py-3"
             >
-              <span className="font-mono text-[0.62rem] tabular-nums text-white-muted">
+              <span className="font-mono text-[10.5px] tabular-nums text-white-muted">
                 {e.time}
               </span>
               <span className="font-mono text-sm leading-none" style={{ color: `rgb(${c.rgb})` }}>

@@ -35,7 +35,7 @@ export function Placeholder({
         }}
       />
       <div className="relative max-w-[82%] text-center">
-        <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-gold">
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.28em] text-gold">
           ◳ {label}
         </span>
         <p className="mt-2 text-xs leading-relaxed text-white-muted">{prompt}</p>

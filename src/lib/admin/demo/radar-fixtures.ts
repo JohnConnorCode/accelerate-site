@@ -230,7 +230,7 @@ export function demoRadarProfile(pack: DemoScenarioPack): RadarProfile {
     audiences: `Professional partners and customers of ${pack.name}`,
     topics: pack.content.resourceTitles.join("; "),
     ownedAssets: "Fictional demonstration records only; no independent recognition is claimed.",
-    region: "Fictional demo workspace",
+    region: "Demo workspace",
     timeZone: "America/Chicago",
   };
 }

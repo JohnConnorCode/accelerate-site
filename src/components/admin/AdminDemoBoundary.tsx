@@ -177,7 +177,7 @@ export function AdminDemoControls({
               <span className="block truncate text-xs font-semibold text-[var(--admin-nav-ink)]">
                 Demo controls
               </span>
-              <span className="mt-0.5 block truncate text-[10px] text-[var(--admin-nav-faint)]">
+              <span className="mt-0.5 block truncate text-[11px] text-[var(--admin-nav-faint)]">
                 {scenario.name}
               </span>
             </span>
@@ -209,7 +209,7 @@ export function AdminDemoControls({
             <div className={cn("space-y-2", !collapsed && "pt-2")}>
               <div className="admin-demo-control-panel rounded-[var(--admin-control-radius)] p-2 shadow-[inset_0_0_0_1px_var(--admin-nav-rule)]">
                 <label className="block">
-                  <span className="px-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--admin-nav-faint)]">
+                  <span className="px-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--admin-nav-faint)]">
                     Demo business
                   </span>
                   <select
@@ -254,8 +254,8 @@ export function AdminDemoControls({
                   </Link>
                 </div>
               </div>
-              <p className="px-2 text-pretty text-[9px] leading-3.5 text-[var(--admin-nav-faint)]">
-                Fictional data. Actions stay in this browser session and never reach live systems.
+              <p className="px-2 text-pretty text-[10.5px] leading-3.5 text-[var(--admin-nav-faint)]">
+                Demo data. Actions stay in this browser session and never reach live systems.
               </p>
             </div>
           </motion.div>

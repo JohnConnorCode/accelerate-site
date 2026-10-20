@@ -129,7 +129,7 @@ export function ProblemSolution() {
             <div className="space-y-8">
               {comparisons.map((item, i) => (
                 <div key={i}>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white-muted mb-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white-muted mb-2">
                     {item.label}
                   </p>
                   <p className="text-white-muted leading-relaxed text-sm sm:text-base">
@@ -166,14 +166,14 @@ export function ProblemSolution() {
             <div className="space-y-8">
               {comparisons.map((item, i) => (
                 <div key={i}>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white-muted mb-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white-muted mb-2">
                     {item.label}
                   </p>
                   <div className="flex items-baseline gap-1.5 mb-2">
                     <span className="text-xl sm:text-2xl font-bold text-gold-light leading-none">
                       {item.metric}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider text-white-muted">
+                    <span className="text-[11px] uppercase tracking-wider text-white-muted">
                       {item.metricLabel}
                     </span>
                   </div>

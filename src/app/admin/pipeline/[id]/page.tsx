@@ -151,7 +151,7 @@ function Section({
         <span className="flex items-center gap-2">
           {title}
           {count !== undefined && (
-            <span className="rounded-full bg-black/[0.05] px-2 py-0.5 font-mono text-[9px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.07]">
+            <span className="rounded-full bg-black/[0.05] px-2 py-0.5 font-mono text-[10.5px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.07]">
               {count}
             </span>
           )}
@@ -515,14 +515,14 @@ export default function OpportunityRecordPage() {
                               <p className="text-sm font-semibold text-[var(--admin-ink)]">
                                 {item.title}
                               </p>
-                              <time className="font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">
+                              <time className="font-mono text-[11px] tabular-nums text-[var(--admin-muted)]">
                                 {dateTime(item.occurred_at)}
                               </time>
                             </div>
                             {item.summary && (
                               <p className="admin-copy mt-1 text-xs text-pretty">{item.summary}</p>
                             )}
-                            <p className="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">
+                            <p className="mt-1.5 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">
                               {item.source.replaceAll("_", " ")}
                             </p>
                           </div>
@@ -600,7 +600,7 @@ export default function OpportunityRecordPage() {
                                 <p className="truncate text-xs font-semibold text-[var(--admin-ink)]">
                                   {String(item.title || item.subject || "Untitled")}
                                 </p>
-                                <p className="admin-copy mt-0.5 text-[10px] capitalize tabular-nums">
+                                <p className="admin-copy mt-0.5 text-[11px] capitalize tabular-nums">
                                   {line(item)}
                                 </p>
                               </li>
@@ -694,7 +694,7 @@ export default function OpportunityRecordPage() {
                         <p className="text-sm font-semibold text-[var(--admin-ink)]">
                           {record.engagement.business_name || "Engagement"}
                         </p>
-                        <span className="rounded-full bg-black/[0.05] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-[var(--admin-muted)] dark:bg-white/[0.07]">
+                        <span className="rounded-full bg-black/[0.05] px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.1em] text-[var(--admin-muted)] dark:bg-white/[0.07]">
                           {record.engagement.status || "onboarding"}
                         </span>
                       </div>
@@ -782,10 +782,10 @@ export default function OpportunityRecordPage() {
                         </a>
                       )}
                       <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full bg-black/[0.05] px-2.5 py-1 text-[10px] font-semibold capitalize text-[var(--admin-muted)] dark:bg-white/[0.07]">
+                        <span className="rounded-full bg-black/[0.05] px-2.5 py-1 text-[11px] font-semibold capitalize text-[var(--admin-muted)] dark:bg-white/[0.07]">
                           {record.contact.lifecycle_stage}
                         </span>
-                        <span className="rounded-full bg-black/[0.05] px-2.5 py-1 text-[10px] font-semibold capitalize text-[var(--admin-muted)] dark:bg-white/[0.07]">
+                        <span className="rounded-full bg-black/[0.05] px-2.5 py-1 text-[11px] font-semibold capitalize text-[var(--admin-muted)] dark:bg-white/[0.07]">
                           {record.contact.communication_status}
                         </span>
                       </div>

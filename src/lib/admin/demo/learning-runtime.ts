@@ -173,7 +173,7 @@ export function handleDemoLearning(
       [
         "workspace",
         "Confirm your business",
-        "Review the fictional workspace identity.",
+        "Review the demo workspace identity.",
         "branding",
         true,
       ],
@@ -242,7 +242,7 @@ export function handleDemoLearning(
       ].map((label) => ({
         label,
         state: "demo",
-        detail: "Fictional workspace. Verify this capability in your own installation.",
+        detail: "Demo workspace. Verify this capability in your own installation.",
       })),
     });
   }

@@ -53,12 +53,18 @@ export function WorkshopBanner({
       tick();
       if (Date.now() < start) interval = window.setInterval(tick, 1000);
     };
-    const entrance = window.setTimeout(() => {
+    // Enter once the visitor is past the first screen, so the announcement never
+    // covers the page's own primary call to action.
+    const enter = () => {
+      if (window.scrollY < window.innerHeight * 0.6) return;
+      window.removeEventListener("scroll", enter);
       document.addEventListener("visibilitychange", updateClock);
       updateClock();
-    }, 1800);
+    };
+    window.addEventListener("scroll", enter, { passive: true });
+    enter();
     return () => {
-      window.clearTimeout(entrance);
+      window.removeEventListener("scroll", enter);
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", updateClock);
     };

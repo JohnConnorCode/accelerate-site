@@ -256,7 +256,7 @@ export default function ChatLeadsPage() {
                           <td className="hidden px-4 py-3 text-xs text-white-muted md:table-cell">
                             {lead.utm_source || "Direct"}
                             {lead.utm_campaign && (
-                              <span className="block text-[10px] opacity-70">
+                              <span className="block text-[11px] opacity-70">
                                 {lead.utm_campaign}
                               </span>
                             )}
@@ -314,7 +314,7 @@ export default function ChatLeadsPage() {
                                         <div
                                           className={`max-w-[84%] rounded-xl px-3 py-2.5 text-sm leading-relaxed ${message.role === "user" ? "bg-white/10 text-white-primary" : "border border-border-glass bg-bg-subtle text-white-secondary"}`}
                                         >
-                                          <p className="mb-1 text-[10px] uppercase tracking-[0.1em] text-white-muted">
+                                          <p className="mb-1 text-[11px] uppercase tracking-[0.1em] text-white-muted">
                                             {message.role === "user"
                                               ? lead.name
                                               : tenant.brand.name}

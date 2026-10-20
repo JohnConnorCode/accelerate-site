@@ -921,7 +921,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "receivables-collections",
-    name: "Collections Action Desk",
+    name: "Collections",
     description:
       "Track verified overdue invoices, disputes, payment promises and collection follow-up for CRM billing contacts.",
     category: "revenue",

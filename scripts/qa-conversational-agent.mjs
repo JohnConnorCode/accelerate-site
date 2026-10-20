@@ -265,7 +265,7 @@ try {
     // With no funded inference setup the actual endpoint must refuse, not invent a run.
     await page.getByRole("button", { name: "Send AI command" }).first().click();
     await page
-      .getByText(/demo agent is.*unavailable.*explore the fictional workspace/i)
+      .getByText(/demo agent is.*unavailable.*explore the demo workspace/i)
       .first()
       .waitFor();
     await page.screenshot({ path: `${out}/unavailable-${viewport}.png`, fullPage: true });

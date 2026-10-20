@@ -68,7 +68,7 @@ export function CollectionCaseLinks({ contactId }: { contactId?: string }) {
           ))}
       </ul>
       <AdminLink className="mt-3 inline-block text-sm underline" href="/admin/collections">
-        Open Collections Action Desk
+        Open Collections
       </AdminLink>
     </AdminSurface>
   );
@@ -90,6 +90,12 @@ export function CollectionsWorkspace() {
   const cases = query.data?.cases ?? [],
     current = cases.find((c) => c.id === (selected || requestedCase)) ?? cases[0],
     summary = collectionSummary(cases);
+  function selectCase(id: string) {
+    setSelected(id);
+    setPreview(null);
+    setError("");
+    setNotice("");
+  }
   async function perform(work: () => Promise<unknown>) {
     setBusy(true);
     setError("");
@@ -138,8 +144,8 @@ export function CollectionsWorkspace() {
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
-        title="Collections Action Desk"
-        subtitle="Resolve overdue balances with clear ownership, verified facts and reviewed customer reminders."
+        title="Collections"
+        subtitle="Review overdue invoices and choose the next follow-up."
         actions={
           <AdminLink className={button} href="/admin/plugins">
             Manage plugins
@@ -189,33 +195,49 @@ export function CollectionsWorkspace() {
           </p>
         </>
       )}
-      <AdminSurface>
-        <form
-          className="flex flex-col gap-3 sm:flex-row sm:items-end"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void perform(() => refresh([invoice]));
-          }}
+      <details className="group" open={query.data?.cases.length === 0}>
+        <summary
+          className={`${button} w-fit cursor-pointer list-none [&::-webkit-details-marker]:hidden`}
         >
-          <label className="flex-1 text-sm">
-            Track a platform invoice
-            <select className={field} value={invoice} onChange={(e) => setInvoice(e.target.value)}>
-              <option value="">Choose an executed invoice operation</option>
-              {query.data?.invoiceOptions.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="submit" disabled={busy || !invoice} className={button}>
-            Refresh and track invoice
-          </button>
-          <AdminLink href="/admin/invoicing" className={button}>
-            Open invoicing
-          </AdminLink>
-        </form>
-      </AdminSurface>
+          Add an invoice
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className="transition-transform group-open:rotate-180"
+          />
+        </summary>
+        <AdminSurface className="mt-3">
+          <form
+            className="flex flex-col gap-3 sm:flex-row sm:items-end"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void perform(() => refresh([invoice]));
+            }}
+          >
+            <label className="flex-1 text-sm">
+              Invoice from Invoicing
+              <select
+                className={field}
+                value={invoice}
+                onChange={(e) => setInvoice(e.target.value)}
+              >
+                <option value="">Choose an invoice</option>
+                {query.data?.invoiceOptions.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="submit" disabled={busy || !invoice} className={button}>
+              Refresh and track invoice
+            </button>
+            <AdminLink href="/admin/invoicing" className={button}>
+              Open invoicing
+            </AdminLink>
+          </form>
+        </AdminSurface>
+      </details>
       {query.isPending && <p role="status">Loading verified case records…</p>}
       {query.data?.truncated && (
         <p role="status">
@@ -224,26 +246,34 @@ export function CollectionsWorkspace() {
       )}
       {query.data && !cases.length && (
         <AdminSurface>
-          No collection cases yet. Choose a platform invoice above to verify its current balance.
+          No collection cases yet. Add an invoice to check its current balance and prepare the next
+          follow-up.
         </AdminSurface>
       )}
       {!!cases.length && (
         <div className="admin-split admin-split--master">
           <AdminSurface padding="sm">
             <h2 className="px-2 py-3 font-semibold">Accounts and currencies</h2>
-            <ul className="space-y-1">
+            <select
+              aria-label="Collection account"
+              className="admin-field mb-2 sm:hidden"
+              value={current?.id ?? ""}
+              onChange={(event) => selectCase(event.target.value)}
+            >
+              {cases.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {c.currency.toUpperCase()}
+                </option>
+              ))}
+            </select>
+            <ul className="hidden space-y-1 sm:block">
               {cases.map((c) => (
                 <li key={c.id}>
                   <button
                     type="button"
                     className={`w-full rounded-xl p-3 text-left ${c.id === current?.id ? "bg-[var(--admin-surface-subtle)] shadow-[var(--admin-shadow-border)]" : "hover:bg-[var(--admin-surface-subtle)]"}`}
                     aria-pressed={c.id === current?.id}
-                    onClick={() => {
-                      setSelected(c.id);
-                      setPreview(null);
-                      setError("");
-                      setNotice("");
-                    }}
+                    onClick={() => selectCase(c.id)}
                   >
                     <span className="block text-sm font-semibold">{c.name}</span>
                     <span className="mt-1 block text-xs text-[var(--admin-muted)]">

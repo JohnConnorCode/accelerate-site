@@ -6,8 +6,8 @@ export type ProductScreenshot = WorkImage & {
   demoHref: string;
 };
 
-/** Real screenshots of the real demo, not mockups: seven screens across five
-    fictional businesses and five of the product's built-in appearances.
+/** Real screenshots of the demo: seven screens across five example businesses
+    and the product's four built-in appearances.
     Shared between the Open Source page and the Command Center page so
     both draw on one source of truth instead of maintaining separate
     screenshot sets. Use a new filename when refreshing a screenshot so
@@ -15,9 +15,9 @@ export type ProductScreenshot = WorkImage & {
 export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   {
     kind: "image",
-    src: "/images/open-source/slide-today-paper-20261010-review.png",
-    alt: "Today, with sales, customer follow-up, delivery and billing reviews in the Paper appearance for a fictional roofing business.",
-    caption: "Today · Paper theme",
+    src: "/images/open-source/slide-today-accelerate-20261020-r2.png",
+    alt: "Today, with customer priorities, delivery work and billing reviews in the Accelerate demo appearance.",
+    caption: "Today · Accelerate theme",
     width: 1400,
     height: 875,
     presentation: "interface",
@@ -25,8 +25,8 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-pipeline-night-20261010.png",
-    alt: "Pipeline, a nine-stage opportunity board, in the Night appearance for a fictional law firm.",
+    src: "/images/open-source/slide-pipeline-night-20261020-r2.png",
+    alt: "Customer opportunities and next actions on the pipeline board in the Night demo appearance.",
     caption: "Pipeline · Night theme",
     width: 1400,
     height: 875,
@@ -35,8 +35,8 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-conversations-paper-20261010.png",
-    alt: "Conversations, a linked reply-ready inbox, in the Paper appearance for a fictional roofing business.",
+    src: "/images/open-source/slide-conversations-paper-20261020-r2.png",
+    alt: "Customer conversations and reply context in the Paper demo appearance.",
     caption: "Conversations · Paper theme",
     width: 1400,
     height: 875,
@@ -45,8 +45,8 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-collections-night.png",
-    alt: "Collections, with unpaid invoice balances and payment follow-up for a fictional law firm, in the Night appearance.",
+    src: "/images/open-source/slide-collections-night-20261020-r2.png",
+    alt: "Overdue invoices, customer context and payment follow-up in the Night demo appearance.",
     caption: "Collections · Night theme",
     width: 1400,
     height: 875,
@@ -55,9 +55,9 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-delivery-signal.png",
-    alt: "Client onboarding, preparing owned delivery tasks from a won opportunity for a fictional advisory firm, in the Signal appearance.",
-    caption: "Client onboarding · Signal theme",
+    src: "/images/open-source/slide-delivery-operator-20261020-r2.png",
+    alt: "Client onboarding tasks with owners and due dates in the Operator demo appearance.",
+    caption: "Client onboarding · Operator theme",
     width: 1400,
     height: 875,
     presentation: "interface",
@@ -65,9 +65,9 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-website-studio.png",
-    alt: "Website and pages, with fictional real estate content ready to edit and preview, in the Studio appearance.",
-    caption: "Website & pages · Studio theme",
+    src: "/images/open-source/slide-website-accelerate-20261020-r2.png",
+    alt: "Website editing and page previews in the Accelerate demo appearance.",
+    caption: "Website & pages · Accelerate theme",
     width: 1400,
     height: 875,
     presentation: "interface",
@@ -75,9 +75,9 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-ai-frost-20261010.png",
-    alt: "The AI workspace, grounded chat with visible evidence, in the Frost appearance for a fictional nonprofit network.",
-    caption: "AI Workspace · Frost theme",
+    src: "/images/open-source/slide-ai-paper-20261020-r2.png",
+    alt: "The AI workspace with business context and source evidence in the Paper demo appearance.",
+    caption: "AI Workspace · Paper theme",
     width: 1400,
     height: 875,
     presentation: "interface",

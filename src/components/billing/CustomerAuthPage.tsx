@@ -39,7 +39,7 @@ export async function CustomerAuthPage({
     fontFamily:
       brand.font === "serif"
         ? "Georgia, Cambria, serif"
-        : "var(--font-inter), Inter, system-ui, sans-serif",
+        : "var(--font-body-face), Inter, system-ui, sans-serif",
   } as CSSProperties;
   return (
     <main

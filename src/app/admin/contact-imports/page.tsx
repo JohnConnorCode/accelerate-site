@@ -607,7 +607,7 @@ export default function ContactImportsPage() {
                   </div>
                   <span
                     className={cn(
-                      "rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em]",
+                      "rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em]",
                       statusTone(batch.status),
                     )}
                   >
@@ -829,7 +829,7 @@ function RowListItem({
             {row.reviewed_data.email || row.reviewed_data.phone || "Missing contact method"}
           </span>
         </span>
-        <span className="hidden rounded-full bg-black/[0.045] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.06] sm:block">
+        <span className="hidden rounded-full bg-black/[0.045] px-2 py-1 text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.06] sm:block">
           {row.action}
         </span>
         <ChevronRight className="size-4 shrink-0 text-[var(--admin-muted)]" />
@@ -870,7 +870,7 @@ function RowEditor({
         </div>
         <span
           className={cn(
-            "rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em]",
+            "rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em]",
             row.confidence === "low" ? statusTone("needs_review") : statusTone("ready"),
           )}
         >
@@ -1081,14 +1081,14 @@ function ImportHistory({
               <span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">
                 {item.original_filename || `${item.source_type.toUpperCase()} paste`}
               </span>
-              <span className="admin-copy admin-number mt-0.5 block text-[10px]">
+              <span className="admin-copy admin-number mt-0.5 block text-[11px]">
                 {item.proposed_row_count} rows · {new Date(item.created_at).toLocaleString()}
                 {item.ai_provider === "none" ? " · No AI used" : ""}
               </span>
             </span>
             <span
               className={cn(
-                "rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-[0.06em]",
+                "rounded-full px-2 py-1 text-[10.5px] font-bold uppercase tracking-[0.06em]",
                 statusTone(item.status),
               )}
             >

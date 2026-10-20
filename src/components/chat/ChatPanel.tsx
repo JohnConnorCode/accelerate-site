@@ -438,7 +438,7 @@ export function ChatPanel({ onClose, onReady }: ChatPanelProps) {
             or a quick reply) actually goes out. */}
         {messages.length === 1 && (
           <div className="pt-1">
-            <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-white-secondary">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-white-secondary">
               Good places to start
             </p>
             <div className="flex flex-wrap gap-2">
@@ -555,7 +555,7 @@ export function ChatPanel({ onClose, onReady }: ChatPanelProps) {
             </button>
           )}
         </form>
-        <p className="mt-1.5 px-0.5 text-[10px] text-white-secondary">
+        <p className="mt-1.5 px-0.5 text-[11px] text-white-secondary">
           Enter to send · Shift + Enter for a new line
         </p>
       </div>

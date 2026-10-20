@@ -43,7 +43,7 @@ export function ConversionFunnel({ funnel }: ConversionFunnelProps) {
                   <span className="text-white-primary font-medium">{stage.count}</span>
                   {i > 0 && <span className="text-white-muted">({convRate}%)</span>}
                   {dropOff !== null && dropOff > 0 && (
-                    <span className="text-red-400 text-[10px]">-{dropOff}%</span>
+                    <span className="text-red-400 text-[11px]">-{dropOff}%</span>
                   )}
                 </div>
               </div>

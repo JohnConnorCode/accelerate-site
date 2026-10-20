@@ -35,11 +35,11 @@ function RoadmapCard({ card }: { card: PublicRoadmapCard }) {
     >
       <div className="flex flex-wrap items-center gap-2">
         {card.category && (
-          <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-gold">
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-gold">
             {card.category}
           </span>
         )}
-        <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted">
           {card.priority}
         </span>
       </div>
@@ -232,7 +232,7 @@ export function RoadmapPageContent({
 
   const statusPill = (active: boolean) =>
     cn(
-      "shrink-0 rounded-full border px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors",
+      "shrink-0 rounded-full border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors",
       active
         ? "border-border-gold text-gold"
         : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",

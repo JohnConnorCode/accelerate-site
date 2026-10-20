@@ -76,7 +76,7 @@
 .eyebrow {
   font-family: var(--util);
   color: var(--gold-base);
-  font-size: 0.65rem;
+  font-size: 10.5px;
   font-weight: 500;
   line-height: 1.5;
   letter-spacing: 0.1em;
@@ -99,11 +99,11 @@
 }
 .hero h1 {
   max-width: 44rem;
-  font-size: clamp(2.8rem, 5vw, 4.6rem);
+  font-size: var(--type-display);
   font-weight: 450;
   color: var(--paper);
   line-height: 1.03;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.038em;
   text-wrap: balance;
   margin: 0 0 1.5rem;
 }
@@ -275,7 +275,7 @@
 }
 .datePlate small {
   color: rgb(251 251 250 / 65%);
-  font-size: 0.65rem;
+  font-size: 10.5px;
   letter-spacing: 0.16em;
 }
 .datePlate strong {
@@ -284,12 +284,12 @@
   font-size: 8rem;
   line-height: 0.95;
   font-weight: 350;
-  letter-spacing: -0.09em;
+  letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
 }
 .datePlate .dateDay {
   align-self: start;
-  font-size: 0.6rem;
+  font-size: 10.5px;
   color: rgb(251 251 250 / 65%);
 }
 .heroPresenters {
@@ -337,7 +337,7 @@
   display: block;
   margin-top: 0.3rem;
   color: rgb(251 251 250 / 75%);
-  font-size: 0.55rem;
+  font-size: 10.5px;
   line-height: 1.5;
 }
 .facts {
@@ -404,7 +404,7 @@
 }
 .heroFacts dt {
   font-family: var(--util);
-  font-size: 0.6rem;
+  font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: rgb(251 251 250 / 60%);
@@ -466,7 +466,7 @@
   margin-bottom: 0.8rem;
   font-family: var(--util);
   color: var(--white-muted);
-  font-size: 0.62rem;
+  font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.09em;
 }
@@ -561,7 +561,7 @@
   background: var(--surface-bg);
   color: var(--heading-color);
   text-align: center;
-  font-size: 0.65rem;
+  font-size: 10.5px;
   font-family: var(--util);
   font-variant-numeric: tabular-nums;
 }
@@ -581,7 +581,7 @@
 }
 .workshopSection .role {
   font-family: var(--util);
-  font-size: 0.6rem;
+  font-size: 10.5px;
   line-height: 1.6;
   color: var(--white-muted);
   margin-bottom: 0.6rem;
@@ -648,7 +648,7 @@
 .checkoutHeader .eyebrow {
   color: rgb(251 251 250 / 70%);
   margin-bottom: 1.25rem;
-  font-size: 0.6rem;
+  font-size: 10.5px;
 }
 .checkoutHeader > p:last-child {
   font-size: 0.8rem;
@@ -659,7 +659,7 @@
   font-size: 3.5rem;
   font-family: var(--display);
   line-height: 1.1;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.038em;
   color: var(--paper);
   font-weight: 450;
   font-variant-numeric: tabular-nums;
@@ -807,7 +807,7 @@
 .confirmation h1 {
   color: var(--heading-color);
   font-size: clamp(2.2rem, 5vw, 3.6rem);
-  letter-spacing: -0.045em;
+  letter-spacing: -0.032em;
   line-height: 1.1;
   margin: 0 0 1.5rem;
 }
@@ -873,7 +873,7 @@
     border-radius: 20px;
   }
   .hero .eyebrow {
-    font-size: 0.56rem;
+    font-size: 10.5px;
     margin-bottom: 1.25rem;
   }
   .hero h1 {
@@ -914,7 +914,7 @@
     letter-spacing: 0.08em;
   }
   .datePlate small {
-    font-size: 0.5rem;
+    font-size: 10.5px;
     letter-spacing: 0;
   }
   .datePlate strong {
@@ -922,7 +922,7 @@
   }
   .datePlate .dateDay {
     align-self: center;
-    font-size: 0.5rem;
+    font-size: 10.5px;
   }
   .heroPresenters {
     flex: 1;
@@ -951,7 +951,7 @@
     padding-top: 1.5rem;
   }
   .heroFacts dt {
-    font-size: 0.55rem;
+    font-size: 10.5px;
     margin-bottom: 0.2rem;
   }
   .heroFacts dd {
@@ -1019,7 +1019,7 @@
     gap: 0.8rem;
   }
   .agenda li > span {
-    font-size: 0.57rem;
+    font-size: 10.5px;
   }
   .speakers {
     grid-template-columns: 1fr;
@@ -1048,7 +1048,7 @@
     height: 115px;
   }
   .heroPresenters figcaption span {
-    font-size: 0.68rem;
+    font-size: 11px;
   }
   .checkout {
     padding: 1.25rem;

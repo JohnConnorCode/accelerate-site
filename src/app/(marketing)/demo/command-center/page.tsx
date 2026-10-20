@@ -29,7 +29,7 @@ const previews: Record<
 > = {
   "northline-roofing": {
     task: "“Find unanswered homeowner inquiries and prepare the next reply.”",
-    image: "northline-conversations.png",
+    image: "northline-conversations-20261020-r2.png",
     screen: "Conversations",
     explore: [
       "Ask what needs attention today",
@@ -39,7 +39,7 @@ const previews: Record<
   },
   "alder-ridge-law": {
     task: "“Show me the inquiries waiting on us and prepare a follow-up.”",
-    image: "alder-pipeline.png",
+    image: "alder-pipeline-20261020-r2.png",
     screen: "Pipeline",
     explore: [
       "Ask which inquiries need a response",
@@ -49,7 +49,7 @@ const previews: Record<
   },
   "ledgerstone-advisory": {
     task: "“Turn our client commitments into an assigned checklist.”",
-    image: "ledgerstone-onboarding.png",
+    image: "ledgerstone-onboarding-20261020-r2.png",
     screen: "Client onboarding",
     explore: [
       "Ask about a client’s commitments",
@@ -59,7 +59,7 @@ const previews: Record<
   },
   "hearthline-realty": {
     task: "“Find buyers who need a follow-up and explain the next step.”",
-    image: "hearthline-pipeline.png",
+    image: "hearthline-pipeline-20261020-r2.png",
     screen: "Pipeline",
     explore: [
       "Ask which buyers need a follow-up",
@@ -69,7 +69,7 @@ const previews: Record<
   },
   "common-table-network": {
     task: "“Turn the meeting commitments into follow-up tasks.”",
-    image: "common-table-commitments.png",
+    image: "common-table-commitments-20261020-r2.png",
     screen: "Meeting commitments",
     explore: [
       "Ask about a supporter’s recent activity",
@@ -79,7 +79,7 @@ const previews: Record<
   },
   superdebate: {
     task: "“Find invoices that need attention and prepare a reminder.”",
-    image: "superdebate-invoicing.png",
+    image: "superdebate-invoicing-20261020-r2.png",
     screen: "Invoicing",
     explore: [
       "Ask which relationships need attention",
@@ -167,7 +167,7 @@ export default function AdminDemoLauncher() {
         <div className="wrap">
           <AnimateOnScroll className={styles.sectionIntro}>
             <div>
-              <p className="label">Six fictional workspaces</p>
+              <p className="label">Six demo workspaces</p>
               <h2 className={styles.heading} id="business-demos-title">
                 Start with a job you recognize.
               </h2>

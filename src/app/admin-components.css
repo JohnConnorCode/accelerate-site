@@ -656,26 +656,10 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   background-color: var(--admin-action);
   color: var(--admin-action-ink);
 }
-[data-theme="signal"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="bg-[#d7ff5f]"],
-[data-theme="studio"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="bg-[#d7ff5f]"],
-[data-theme="frost"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="bg-[#d7ff5f]"] {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open) [class~="bg-[#d7ff5f]"] {
   background-color: var(--admin-accent);
 }
-[data-theme="signal"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="text-[#d7ff5f]"],
-[data-theme="studio"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="text-[#d7ff5f]"],
-[data-theme="frost"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="text-[#d7ff5f]"] {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open) [class~="text-[#d7ff5f]"] {
   color: var(--admin-accent);
 }
 
@@ -860,7 +844,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   border-radius: 999px;
   color: var(--admin-accent);
   background: color-mix(in srgb, var(--admin-accent) 14%, transparent);
-  font-size: 0.66rem;
+  font-size: 11px;
   font-weight: 750;
 }
 .admin-help-links {
@@ -1678,7 +1662,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 .admin-stat-value {
   font-size: 2rem;
   font-weight: 650;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.032em;
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
 }

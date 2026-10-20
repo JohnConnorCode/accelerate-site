@@ -2,6 +2,7 @@
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { usePathname } from "next/navigation";
+import { APPEARANCE_ATTRIBUTE_VALUES } from "@/lib/admin/appearances";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -17,6 +18,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       defaultTheme="light"
       enableSystem
       disableTransitionOnChange={true}
+      value={APPEARANCE_ATTRIBUTE_VALUES}
     >
       {children}
     </NextThemesProvider>

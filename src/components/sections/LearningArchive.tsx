@@ -36,7 +36,7 @@ export function LearningArchive({
               <Eyebrow className="mb-6">{eyebrow}</Eyebrow>
             </EntranceItem>
             <EntranceItem>
-              <h1 className="max-w-[18ch] text-balance font-display text-[clamp(2.75rem,7vw,6.5rem)] font-medium leading-[0.95] tracking-[-0.045em] text-heading">
+              <h1 className="max-w-[18ch] text-balance font-display text-[length:var(--type-display)] font-semibold leading-[1.04] tracking-[-0.035em] text-heading">
                 {title}
               </h1>
             </EntranceItem>

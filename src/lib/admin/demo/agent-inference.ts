@@ -57,7 +57,7 @@ export async function withDemoInference<T>(
     !modelId
   )
     throw new Error(
-      "The live demo agent is unavailable: its dedicated provider workspace is not configured. You can still explore the fictional workspace.",
+      "The live demo agent is unavailable: its dedicated provider workspace is not configured. You can still explore the demo workspace.",
     );
   const telemetry = createPlatformServiceRoleClient("public-demo-inference-budget");
   const admit = await telemetry.rpc("admit_demo_agent", {

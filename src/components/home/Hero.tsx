@@ -52,12 +52,11 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
         line++;
         top = currentTop;
       }
-      mask.style.setProperty("--hero-word-delay", `${320 + line * 200}ms`);
+      mask.style.setProperty("--hero-word-delay", `${160 + line * 140}ms`);
       mask.dataset.heroLine = String(line);
     });
-    section.style.setProperty("--hero-support-delay", `${720 + line * 200}ms`);
-    section.style.setProperty("--hero-action-delay", `${870 + line * 200}ms`);
-    section.style.setProperty("--hero-index-delay", `${1080 + line * 200}ms`);
+    section.style.setProperty("--hero-support-delay", `${520 + line * 140}ms`);
+    section.style.setProperty("--hero-action-delay", `${640 + line * 140}ms`);
   }, [content, sectionRef]);
   useEffect(() => {
     const section = sectionRef.current;
@@ -128,16 +127,13 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                 →
               </span>
             </Link>
-            <span className="home-hero-note">30 minutes · a clear next step</span>
+            <span className="home-hero-note">
+              <span>30 minutes</span> <span>A clear next step</span>
+            </span>
           </div>
         </div>
-        <div className="home-hero-index" aria-hidden="true">
-          <span>Strategy</span>
-          <span>Custom systems</span>
-          <span>Ongoing execution</span>
-        </div>
+        <HeroArtwork />
       </div>
-      <HeroArtwork />
     </section>
   );
 }

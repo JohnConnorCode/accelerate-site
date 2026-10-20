@@ -99,7 +99,7 @@ export function InvoiceDocument({
           </div>
           {design.layout === "editorial" && (
             <div className="min-w-0 border-l-2 pl-5" style={{ borderColor: accentColor }}>
-              <p className="text-[10px] font-semibold uppercase tracking-widest">Amount due</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest">Amount due</p>
               <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
                 {money(invoice.amountRemaining)}
               </p>
@@ -108,19 +108,19 @@ export function InvoiceDocument({
         </div>
         <div className="my-8 grid gap-5 border-y border-current/10 py-5 text-sm @sm:grid-cols-2">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest">Bill to</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest">Bill to</p>
             <p className="mt-2 font-semibold">{invoice.customerName}</p>
             <p className="mt-1 break-all">{invoice.customerEmail}</p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest">Payment due</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest">Payment due</p>
             <p className="mt-2 font-semibold">{invoice.dueLabel}</p>
           </div>
         </div>
         <table className="w-full table-fixed text-left text-sm">
           <caption className="sr-only">Invoice line items</caption>
           <thead>
-            <tr className="border-b border-current/10 text-[10px] uppercase tracking-widest">
+            <tr className="border-b border-current/10 text-[11px] uppercase tracking-widest">
               <th scope="col" className="pb-3 font-semibold">
                 Description
               </th>
