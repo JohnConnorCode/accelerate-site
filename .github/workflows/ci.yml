@@ -37,26 +37,42 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       docs_only: ${{ steps.detect.outputs.docs_only }}
+      fixtures_only: ${{ steps.detect.outputs.fixtures_only }}
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Detect docs-only pull request
+      - name: Detect narrow pull request scope
         id: detect
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          if [ "$GITHUB_EVENT_NAME" != pull_request ] || ! git diff --no-renames --name-only "$BASE_SHA" HEAD > "$RUNNER_TEMP/changed-files" || [ ! -s "$RUNNER_TEMP/changed-files" ]; then
+          if [ "$GITHUB_EVENT_NAME" != pull_request ] || [[ ! "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || ! git diff --no-renames --name-only -z "$BASE_SHA" HEAD -- > "$RUNNER_TEMP/changed-files" || [ ! -s "$RUNNER_TEMP/changed-files" ]; then
             echo 'docs_only=false' >> "$GITHUB_OUTPUT"
+            echo 'fixtures_only=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          while IFS= read -r path; do
+          docs_only=true
+          fixtures_only=true
+          while IFS= read -r -d '' path; do
             case "$path" in
               'src/app/(marketing)/docs/'*|src/components/docs/*|src/content/docs/*|src/lib/docs.ts|scripts/qa-docs.ts|public/images/docs/*|public/docs-llms.txt) ;;
-              *) echo 'docs_only=false' >> "$GITHUB_OUTPUT"; exit 0 ;;
+              *) docs_only=false ;;
+            esac
+            # These existing fixtures run in checks -> test:core. Keep the
+            # allowlist explicit; additions require execution-wiring proof.
+            case "$path" in
+              scripts/test-first-value-business-journey.ts|scripts/test-demo-business-workflows.ts|scripts/test-stripe-workflow.ts|scripts/test-opportunity-create.ts) ;;
+              *) fixtures_only=false ;;
             esac
           done < "$RUNNER_TEMP/changed-files"
-          echo 'docs_only=true' >> "$GITHUB_OUTPUT"
+          # A removed, added, renamed or type-changed fixture needs the full
+          # path, even when every pathname is on the allowlist.
+          if ! git diff --no-renames --diff-filter=ACDRTUXB --name-only -z "$BASE_SHA" HEAD -- > "$RUNNER_TEMP/non-modified-files" || [ -s "$RUNNER_TEMP/non-modified-files" ]; then
+            fixtures_only=false
+          fi
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+          echo "fixtures_only=$fixtures_only" >> "$GITHUB_OUTPUT"
 
   # Fail source typing once before starting the application/fork build fan-out.
   typecheck:
@@ -384,7 +400,7 @@ jobs:
 
   build:
     needs: [scope, typecheck]
-    if: ${{ !inputs.admin_design_only && !inputs.cold_start_only && !inputs.hero_target_url }}
+    if: ${{ !inputs.admin_design_only && !inputs.cold_start_only && !inputs.hero_target_url && needs.scope.outputs.fixtures_only != 'true' }}
     runs-on: ubuntu-latest
     # Full browser coverage includes native SVG interaction across viewports,
     # owner workflows and isolated navigation. Preserve every acceptance check
@@ -942,7 +958,7 @@ jobs:
 
   full-product-fork:
     needs: [scope, typecheck]
-    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.fixtures_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -988,7 +1004,7 @@ jobs:
 
   neutral-starter:
     needs: [scope, typecheck]
-    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.fixtures_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -1054,17 +1070,20 @@ jobs:
           CHECKS_RESULT: ${{ needs.checks.result }}
           DOCS_CHECKS_RESULT: ${{ needs.docs-checks.result }}
           DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
+          FIXTURES_ONLY: ${{ needs.scope.outputs.fixtures_only }}
           SCOPE_RESULT: ${{ needs.scope.result }}
           TYPECHECK_RESULT: ${{ needs.typecheck.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
           FULL_FORK_RESULT: ${{ needs.full-product-fork.result }}
         run: |
-          test "$SCOPE_RESULT" = success && test "$TYPECHECK_RESULT" = success && test "$BUILD_RESULT" = success || exit 1
-          if [ "$DOCS_ONLY" = true ]; then
-            test "$DOCS_CHECKS_RESULT" = success && test "$CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = skipped && test "$FULL_FORK_RESULT" = skipped || exit 1
+          test "$SCOPE_RESULT" = success && test "$TYPECHECK_RESULT" = success || exit 1
+          if [ "$FIXTURES_ONLY" = true ]; then
+            test "$DOCS_ONLY" = false && test "$CHECKS_RESULT" = success && test "$DOCS_CHECKS_RESULT" = skipped && test "$BUILD_RESULT" = skipped && test "$NEUTRAL_RESULT" = skipped && test "$FULL_FORK_RESULT" = skipped || exit 1
+          elif [ "$DOCS_ONLY" = true ]; then
+            test "$FIXTURES_ONLY" = false && test "$BUILD_RESULT" = success && test "$DOCS_CHECKS_RESULT" = success && test "$CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = skipped && test "$FULL_FORK_RESULT" = skipped || exit 1
           else
-            test "$DOCS_ONLY" = false && test "$CHECKS_RESULT" = success && test "$DOCS_CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = success && test "$FULL_FORK_RESULT" = success || exit 1
+            test "$DOCS_ONLY" = false && test "$FIXTURES_ONLY" = false && test "$BUILD_RESULT" = success && test "$CHECKS_RESULT" = success && test "$DOCS_CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = success && test "$FULL_FORK_RESULT" = success || exit 1
           fi
 
   admin-design:
