@@ -290,6 +290,13 @@ try {
         await page.screenshot({ path: `${out}/feature-filters-${width}.png` });
         await page.keyboard.press("Escape");
         await dialog.waitFor({ state: "hidden" });
+        // Radix returns focus from its deferred unmount callback, after the
+        // dialog leaves the accessibility tree. Wait for that actual handoff.
+        await page.waitForFunction(
+          (opener) => document.activeElement === opener,
+          await filters.elementHandle(),
+          { timeout: 3000 },
+        );
         assert.equal(await filters.evaluate((node) => node === document.activeElement), true);
       }
       if (route === "site/website") {
