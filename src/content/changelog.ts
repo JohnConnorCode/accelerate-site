@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-sculpture-depth",
+    slug: "homepage-sculpture-depth",
+    title: "Explore a more responsive homepage animation",
+    description:
+      "The homepage arrows turn and separate as work passes through them. Drag or use the arrow keys to change the perspective, and select a workflow to reshape the sculpture. Directional shading and soft shadows add depth. Reduced motion keeps the scene still between interactions.",
+    category: "improvement",
+    publishedAt: "2026-10-19",
+  },
+  {
     id: "workshop-payment-field-loading",
     slug: "workshop-payment-field-loading",
     title: "Load live workshop payment fields reliably",

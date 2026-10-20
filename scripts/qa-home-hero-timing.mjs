@@ -260,6 +260,28 @@ async function sameRenderedPixels(first, second, artwork, label) {
   return same;
 }
 
+async function arrowPose(artwork) {
+  return artwork.locator(".home-system-layer").evaluateAll((layers) =>
+    layers.map((layer) => {
+      const face = layer.lastElementChild;
+      const points = [...face.getAttribute("d").matchAll(/(-?\d+\.\d+) (-?\d+\.\d+)/g)].map(
+        ([, x, y]) => ({ x: Number(x), y: Number(y) }),
+      );
+      const edge = (index) => ({
+        x: points[(index + 1) % 6].x - points[index].x,
+        y: points[(index + 1) % 6].y - points[index].y,
+      });
+      const near = edge(0),
+        far = edge(3);
+      return {
+        angle: Math.atan2(near.y, near.x),
+        perspectiveRatio: Math.hypot(near.x, near.y) / Math.hypot(far.x, far.y),
+        sideShade: getComputedStyle(layer.firstElementChild).fill,
+      };
+    }),
+  );
+}
+
 async function exerciseArtwork(page, label, touch = false, reduced = false) {
   const artwork = page.locator(".home-system-artwork");
   const controls = artwork.locator(".home-system-input");
@@ -312,18 +334,27 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
       failures.push(`${label}: reduced-motion geometry or decoded pixels move at rest`);
   } else {
     const before = await renderedState(artwork),
+      arrowsBefore = await arrowPose(artwork),
       first = await artwork.screenshot();
     await page.waitForTimeout(750);
     const second = await artwork.screenshot(),
       after = await renderedState(artwork);
     const pixelsEqual = await sameRenderedPixels(first, second, artwork, `${label}-live`);
+    const arrowsAfter = await arrowPose(artwork);
     idle = {
       live: await artwork.getAttribute("data-motion"),
       geometryChanges: JSON.stringify(before) !== JSON.stringify(after),
       pixelsEqual,
+      arrowsBefore,
+      arrowsAfter,
     };
     if (idle.live !== "live" || !idle.geometryChanges || pixelsEqual)
       failures.push(`${label}: system does not visibly run without activation`);
+    if (
+      Math.max(...arrowsAfter.map((arrow, i) => Math.abs(arrow.angle - arrowsBefore[i].angle))) <
+      0.025
+    )
+      failures.push(`${label}: processing does not visibly turn the individual arrows`);
   }
   const journeys = [];
   for (let index = 0; index < 3; index++) {
@@ -377,8 +408,15 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
       failures.push(`${label}: input ${index} reached wrong outcomes`);
     if (!(await artwork.getByRole("status").textContent()))
       failures.push(`${label}: selected workflow has no accessible announcement`);
-    journeys.push({ index, destinations, travelled });
+    const arrows = await arrowPose(artwork);
+    if (!arrows.some((arrow) => Math.abs(arrow.perspectiveRatio - 1) > 0.04))
+      failures.push(`${label}: workflow ${index} has no rendered perspective depth`);
+    journeys.push({ index, destinations, travelled, arrows });
     await page.screenshot({ caret: "initial", path: `${output}/${label}-route-${index}.png` });
+  }
+  for (const index of [1, 2]) {
+    if (Math.abs(journeys[index].arrows[0].angle - journeys[0].arrows[0].angle) < 0.08)
+      failures.push(`${label}: workflow ${index} does not visibly reconfigure the arrows`);
   }
   const base = artwork.locator(".home-system-base");
   const pose = async () => (await artwork.getAttribute("data-pose")).split(",").map(Number);
