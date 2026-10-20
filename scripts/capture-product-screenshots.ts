@@ -94,15 +94,15 @@ async function main() {
         await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       });
       await page.waitForFunction(() => {
-        const visible = (element: Element) =>
-          element.getClientRects().length && getComputedStyle(element).visibility !== "hidden";
         return (
           [...document.querySelectorAll('main [aria-busy="true"]')].every(
-            (element) => !visible(element),
+            (element) =>
+              !element.getClientRects().length || getComputedStyle(element).visibility === "hidden",
           ) &&
           [...document.querySelectorAll('main p, main [role="status"]')].every(
             (element) =>
-              !visible(element) ||
+              !element.getClientRects().length ||
+              getComputedStyle(element).visibility === "hidden" ||
               !/^(?:Loading(?:[ .…]|$)|Checking…$)/.test(element.textContent?.trim() || ""),
           ) &&
           [...document.querySelectorAll<HTMLImageElement>("main img")].every(
