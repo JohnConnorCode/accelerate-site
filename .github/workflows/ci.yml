@@ -19,6 +19,10 @@ on:
         description: Capture admin appearance evidence without the full CI suite
         type: boolean
         default: false
+      admin_design_preview_run:
+        description: Optional previous design run; only capture script and workflow may differ
+        type: string
+        default: ""
   pull_request:
   merge_group:
   push:
@@ -1101,6 +1105,9 @@ jobs:
     if: ${{ inputs.admin_design_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
     env:
       NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
     steps:
@@ -1119,15 +1126,50 @@ jobs:
           npm run test:admin-demo-contract
           npm run verify:admin-tokens
           node --check scripts/qa-admin-core.mjs
+      - name: Verify reusable compiled design source
+        id: design_reuse
+        if: ${{ inputs.admin_design_preview_run }}
+        env:
+          PREVIEW_RUN: ${{ inputs.admin_design_preview_run }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$PREVIEW_RUN" =~ ^[0-9]+$ ]]
+          source_sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PREVIEW_RUN" --jq 'if .event == "workflow_dispatch" and .path == ".github/workflows/ci.yml" then .head_sha else "" end')
+          [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags --depth=1 origin "$source_sha"
+          git diff --no-renames --name-only -z "$source_sha" HEAD -- > "$RUNNER_TEMP/design-reuse-changes"
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              .github/workflows/ci.yml|scripts/capture-product-screenshots.ts|scripts/test-verification-workflow.mjs) ;;
+              *) echo "Compiled design changed: $path"; exit 1 ;;
+            esac
+          done < "$RUNNER_TEMP/design-reuse-changes"
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "deployment_id=${source_sha:0:12}" >> "$GITHUB_OUTPUT"
+      - name: Restore the verified compiled design
+        if: ${{ inputs.admin_design_preview_run }}
+        uses: actions/download-artifact@v7
+        with:
+          name: design-production-preview
+          run-id: ${{ inputs.admin_design_preview_run }}
+          github-token: ${{ github.token }}
+          path: .next
+      - name: Check restored release identity
+        if: ${{ inputs.admin_design_preview_run }}
+        env:
+          EXPECTED_RELEASE: ${{ steps.design_reuse.outputs.deployment_id }}
+        run: node -e 'const c=require("./.next/required-server-files.json").config; if(c.deploymentId!==process.env.EXPECTED_RELEASE || c.experimental?.runtimeServerDeploymentId!==false) process.exit(1)'
       # Build before dev QA: Next preserves .next/dev and tsconfig includes
       # both generated type trees. A fresh production build needs only its own.
       - name: Build the actual application once
         id: design_build
+        if: ${{ !inputs.admin_design_preview_run }}
         run: npm run build
       - name: Capture product screens and verify the compiled design
         id: design_captures
         continue-on-error: true
         env:
+          NEXT_DEPLOYMENT_ID: ${{ steps.design_reuse.outputs.deployment_id }}
           PLAYWRIGHT_BASE_URL: http://localhost:3045
           QA_BASE: http://localhost:3045
           CUSTOMER_WORKFLOW_QA_OUTPUT: /tmp/accelerate-design-capture/customer-workflow

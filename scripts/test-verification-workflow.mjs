@@ -497,6 +497,49 @@ try {
         );
       }
   });
+  check("compiled design reuse refuses every application or asset change", () => {
+    const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
+    const reuse = workflow
+      .split("- name: Verify reusable compiled design source")[1]
+      ?.split("- name: Restore")[0];
+    assert.ok(reuse);
+    assert.match(reuse, /git diff --no-renames --name-only -z "\$source_sha" HEAD --/);
+    const guard = reuse.match(
+      /          while IFS=[\s\S]*?done < "\$RUNNER_TEMP\/design-reuse-changes"/,
+    )?.[0];
+    assert.ok(guard);
+    const directory = resolve(scratch, "design-reuse");
+    mkdirSync(directory);
+    const changes = resolve(directory, "design-reuse-changes");
+    const permits = (paths) => {
+      writeFileSync(changes, paths.length ? paths.join("\0") + "\0" : "");
+      return (
+        spawnSync("bash", ["-e", "-c", guard], {
+          env: { ...env, RUNNER_TEMP: directory },
+        }).status === 0
+      );
+    };
+    const plumbing = [
+      ".github/workflows/ci.yml",
+      "scripts/capture-product-screenshots.ts",
+      "scripts/test-verification-workflow.mjs",
+    ];
+    assert.equal(permits([]), true);
+    assert.equal(permits(plumbing), true);
+    for (const path of [
+      "src/app/layout.tsx",
+      "public/images/demo/preview.png",
+      "next.config.ts",
+      "package.json",
+      "package-lock.json",
+      "src/content/docs/workspace/settings.mdx",
+      "scripts/capture-product-screenshots.ts.backup",
+      "unknown\npath",
+    ])
+      assert.equal(permits([...plumbing, path]), false, path);
+    assert.match(workflow, /id: design_build\s+if: \$\{\{ !inputs\.admin_design_preview_run \}\}/);
+    assert.match(workflow, /c\.deploymentId!==process\.env\.EXPECTED_RELEASE/);
+  });
   check("uninstall restores the previous hook lookup", () => {
     git(["config", "--worktree", "--unset", "core.hooksPath"]);
     assert.equal(run("git", ["config", "--get", "core.hooksPath"]).status, 1);
