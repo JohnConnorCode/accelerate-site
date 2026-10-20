@@ -5,6 +5,7 @@ import Script from "next/script";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { eventPath, ticketMoney } from "@/lib/revenue-os/event-ticketing-contract";
+import { stripeCheckoutClientSecretSchema } from "@/lib/revenue-os/stripe-contract";
 import styles from "./workshop.module.css";
 
 type Session = {
@@ -121,7 +122,7 @@ export function TicketPayment({
           !Number.isSafeInteger(payload.totalCents) ||
           payload.totalCents < 1 ||
           !/^pk_(?:live|test)_[A-Za-z0-9]{10,200}$/.test(payload.publishableKey) ||
-          !/^cs_[A-Za-z0-9_]+_secret_[A-Za-z0-9]+$/.test(payload.clientSecret)
+          !stripeCheckoutClientSecretSchema.safeParse(payload.clientSecret).success
         )
           throw new Error(
             "Secure payment fields are unavailable. Check this order before paying again.",

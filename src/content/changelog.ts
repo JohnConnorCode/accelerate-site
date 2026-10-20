@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "workshop-payment-field-loading",
+    slug: "workshop-payment-field-loading",
+    title: "Load live workshop payment fields reliably",
+    description:
+      "Workshop payment fields now load reliably inside the registration page. Retry a disrupted checkout without reserving another seat.",
+    category: "fix",
+    publishedAt: "2026-10-19",
+  },
+  {
     id: "today-review-action-layout",
     slug: "today-review-action-layout",
     title: "Review customer work in a clearer Today layout",
