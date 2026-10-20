@@ -47,7 +47,7 @@
     "src/app/admin/oauth/consent/page.tsx": "8256719d19b583b140fbb8d3346b4eef03474b04d2645ce2cf2b189f49780e97",
     "src/app/admin/page.tsx": "98c79d9db2288115c77c549e3ab5c391cecae1f0db649d2c3a3b84764203bed3",
     "src/app/admin/partners/page.tsx": "f8f10cdafdf18f44f63b50e1b5e92af4002cad7d3ee79e2efc28ef10d784d8cc",
-    "src/app/admin/pipeline/[id]/page.tsx": "4f70100572193b3eb7abedd911efe3f9605430266ff2a25f9ec4628347052817",
+    "src/app/admin/pipeline/[id]/page.tsx": "6bf618768b75fd8e7b9703a573dc2378652e2659b7f2c867be14bfedfbdc24a0",
     "src/app/admin/pipeline/page.tsx": "05c49f4209bd26a687218291d8af4f93c6388e2619ca9938d6d870846b889f21",
     "src/app/admin/plugins/page.tsx": "a377bebea912eca2a70f3418a5770948ea056bf60e67a2c6dfca434669fb4061",
     "src/app/admin/proposals/page.tsx": "bd5e54155a282b918e57e5d49f6482f0e5461702377845929c175d3b36abb765",
