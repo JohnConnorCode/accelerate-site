@@ -756,6 +756,7 @@ jobs:
             node scripts/qa-invoice-navigation.mjs
             node scripts/qa-home-polish.mjs
             node scripts/qa-demo-business-workflows.mjs
+            node scripts/qa-customer-workflow-context.mjs
           ) &
           public_qa_pid=$!
           (

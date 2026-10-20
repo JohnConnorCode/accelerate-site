@@ -165,7 +165,9 @@ export async function stripeBillingChoices(db: SupabaseClient, search = "", cont
     customers: (object.data as ProviderObject[])
       .filter((customer) => customer.livemode === (client.mode === "live") && !customer.deleted)
       .map((customer) => ({ id: customer.id, name: customer.name, email: customer.email })),
-    contacts: contacts ?? [],
+    contacts: contact
+      ? [contact, ...(contacts ?? []).filter((choice) => choice.id !== contact.id)].slice(0, 100)
+      : (contacts ?? []),
     truncated: Boolean(object.has_more) || (contacts?.length ?? 0) === 100,
   };
 }
