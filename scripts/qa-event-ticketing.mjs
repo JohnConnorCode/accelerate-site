@@ -14,10 +14,11 @@ import AxeBuilder from "@axe-core/playwright";
 // real persistence, payment verification and idempotency separately.
 const output = process.env.EVENT_TICKETING_QA_OUTPUT || "/tmp/accelerate-event-ticketing";
 const controlledTracking = process.env.EVENT_TICKETING_QA_TRACKING === "controlled";
+const controlledClientSecret = "cs_test_controlled_secret_fixture%2Fopaque%3D";
 
 // Model Stripe's documented Checkout SDK shape. The fixture never accepts
 // card details or calls Stripe; server receipts remain independently controlled.
-function controlledStripeSdk() {
+function controlledStripeSdk(expectedClientSecret) {
   const callbacks = new Map();
   const control = {
     mode: "decline",
@@ -42,6 +43,8 @@ function controlledStripeSdk() {
   });
   window.Stripe = (publishableKey) => ({
     initCheckout: (options) => {
+      if (options.clientSecret !== expectedClientSecret)
+        throw new Error("The opaque checkout secret must reach Stripe unchanged");
       control.initializations.push({ publishableKey, clientSecret: options.clientSecret });
       let mounted;
       const paymentElement = {
@@ -320,7 +323,7 @@ try {
         }
         return route.fulfill({
           contentType: "application/javascript",
-          body: `(${controlledStripeSdk.toString()})();`,
+          body: `(${controlledStripeSdk.toString()})(${JSON.stringify(controlledClientSecret)});`,
         });
       }
       if (url.origin !== base) {
@@ -403,8 +406,7 @@ try {
             testMode: receiptTestMode,
             ...(params.get("payment") === "1"
               ? {
-                  clientSecret:
-                    receiptState === "checkout" ? "cs_test_controlled_secret_fixture" : null,
+                  clientSecret: receiptState === "checkout" ? controlledClientSecret : null,
                   publishableKey: "pk_test_controlledworkshopfixture",
                   buyerName: "Workshop Buyer",
                   buyerEmail: "buyer@workshop.example",
@@ -753,7 +755,7 @@ try {
     );
     assert.equal(
       await page.evaluate(() => window.__ticketStripe.initializations[0].clientSecret),
-      "cs_test_controlled_secret_fixture",
+      controlledClientSecret,
     );
     assert.ok(paymentReads.length >= 2, "Failed SDK reload reads the same order again");
     const paymentReadsBeforeReload = paymentReads.length;
@@ -1018,7 +1020,7 @@ try {
             testMode: false,
             ...(params.get("payment") === "1"
               ? {
-                  clientSecret: "cs_test_controlled_secret_fixture",
+                  clientSecret: controlledClientSecret,
                   publishableKey: "pk_test_controlledworkshopfixture",
                   buyerName: "Workshop Buyer",
                   buyerEmail: "buyer@workshop.example",

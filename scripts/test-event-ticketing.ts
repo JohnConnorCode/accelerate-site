@@ -11,6 +11,7 @@ import { MemorySupabase } from "./lib/memory-supabase";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { encryptTenantSecret } from "../src/lib/revenue-os/encryption";
 import { stripeAdapter } from "../src/lib/revenue-os/stripe-adapter";
+import { stripeCheckoutClientSecretSchema } from "../src/lib/revenue-os/event-ticketing-contract";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/constants";
 import {
   createTicketCheckout,
@@ -265,7 +266,7 @@ async function serviceProof() {
             id: "cs_test_ticketfixture",
             url: null,
             ui_mode: "custom",
-            client_secret: "cs_test_ticketfixture_secret_controlled",
+            client_secret: "cs_test_ticketfixture_secret_controlled%2Fopaque%3D",
             expires_at: Number(body.get("expires_at")),
             mode: "payment",
             status: "open",
@@ -381,6 +382,19 @@ async function serviceProof() {
     assert.ok(typeof controlledOrderId === "string");
     const payment = await readTicketPayment(db, event.slug, controlledOrderId, input.requestId);
     assert.equal("clientSecret" in payment && payment.clientSecret, session.client_secret);
+    assert.equal(
+      stripeCheckoutClientSecretSchema.parse(session.client_secret),
+      "cs_test_ticketfixture_secret_controlled%2Fopaque%3D",
+      "Keep Stripe's encoded checkout secret unchanged",
+    );
+    for (const invalid of [
+      "cs_test_fixture_secret_",
+      "cs_test_fixture_secret_unsafe\nvalue",
+      "cs_test_fixture_secret_value\n",
+      "cs_test_fixture_secret_value\r\n",
+      "x".repeat(2049),
+    ])
+      assert.equal(stripeCheckoutClientSecretSchema.safeParse(invalid).success, false);
     assert.equal(
       "publishableKey" in payment && payment.publishableKey,
       "pk_test_eventfixture1234567890",

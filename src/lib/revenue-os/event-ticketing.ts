@@ -27,6 +27,7 @@ import { proposeAction } from "./actions";
 import { recordAudit } from "./audit";
 import {
   eventDefinitionSchema,
+  stripeCheckoutClientSecretSchema,
   saveTicketEventSchema,
   ticketCheckoutSchema,
   ticketAdminCommandSchema,
@@ -242,12 +243,13 @@ async function attachCheckout(
     `event-ticket:${order.tenant_id}:${order.request_id}`,
   );
   const session = result.object;
+  const secret = stripeCheckoutClientSecretSchema.safeParse(session.client_secret);
   if (
     session.ui_mode !== "custom" ||
-    typeof session.client_secret !== "string" ||
-    !/^cs_[A-Za-z0-9_]+_secret_[A-Za-z0-9]+$/.test(session.client_secret) ||
     typeof session.id !== "string" ||
     !/^cs_[A-Za-z0-9_]+$/.test(session.id) ||
+    !secret.success ||
+    !secret.data.startsWith(`${session.id}_secret_`) ||
     !Number.isInteger(session.expires_at)
   )
     throw new Error("Stripe returned an incomplete checkout receipt; retry with the same request");
@@ -656,6 +658,7 @@ export async function readTicketPayment(db: SupabaseClient, slug: string, id: st
     metadata.accelerate_purpose !== "event_ticket" ||
     metadata.accelerate_event_id !== order.event_id ||
     typeof session.client_secret !== "string" ||
+    !stripeCheckoutClientSecretSchema.safeParse(session.client_secret).success ||
     !session.client_secret.startsWith(`${order.stripe_session_id}_secret_`)
   )
     throw new Error("This payment session cannot be opened; check your order before paying again");
