@@ -1,31 +1,33 @@
 ---
 title: "Stripe invoicing"
 description: "Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted."
-updated: "2026-10-19"
+updated: "2026-10-20"
 ---
 
 Preparing an invoice means bringing a customer, amount and agreed terms together correctly. Stripe invoicing combines existing customer records, a configured Stripe connection and reviewed operations, with provider results recorded separately from the requests that produced them.
 
 <DocsFigure
-  src="/images/docs/plugins/stripe-invoicing.png"
-  alt="Create invoice in fictional Northline Roofing, with customer, line-item and payment-term inputs beside the invoice preview panel."
+  src="/images/docs/plugins/stripe-invoicing-context-2026-10-20.png"
+  alt="The invoice composer in fictional Ledgerstone Advisory, with a linked CRM contact, matching Stripe billing customer and sample line items."
   width={1440}
   height={1000}
-  caption="The invoice form in fictional Northline Roofing. Choose the customer and line items, then prepare a preview before requesting draft approval. Sending requires its own review."
+  caption="A fictional Ledgerstone Advisory invoice keeps the selected customer and billing profile while sample line items are filled."
 />
 
 ## Try a complete invoice
 
 Open **Plugins** at `/admin/plugins` and enable **Stripe invoicing**, then open **Billing** from the sidebar or mobile **More** menu. Select **Create invoice** to open the customer and line-item form. Command/Ctrl+K also finds **Create invoice**; if the module is off, search for **invoice** and choose **Set up invoicing** for enablement instructions.
 
-The direct creation link is `/admin/invoicing?view=create`. If Stripe is disconnected, connect it here first. Credentials belong in the server-only connection controls. Verify test or live mode before a provider action.
+From a won opportunity, **Create invoice** opens the form with its linked CRM contact selected. The general creation link is `/admin/invoicing?view=create`. If Stripe is disconnected, connect it here first. Credentials belong in the server-only connection controls. Verify test or live mode before a provider action.
 
 Enter the **Stripe account ID** shown in that business's Stripe settings with its API key. The connection rejects a key from another account. For workshop payments, also supply the matching **Publishable key for workshop payments** and webhook signing secret. Replacing a key preserves optional credentials only when the verified account stays the same; changing merchants requires that account's own credentials.
 
-1. Select an existing contact and its matching Stripe billing customer. If no billing customer exists, choose **Create billing customer** and approve the name and email shown. The new profile appears in the refreshed choices; creating it takes no payment.
+1. Check the selected CRM contact, or choose one if you started from Billing. Select its matching Stripe billing customer. If no billing customer exists, choose **Create billing customer** and approve the name and email shown. The new profile appears in the refreshed choices; creating it takes no payment.
 2. Enter currency, line items and payment terms. For a fictional example, use one consulting session at `125.00` USD, quantity one. The UI uses normal currency units; the corresponding API value is `12500` minor units.
 3. Preview the recipient, amount and terms, then submit the exact draft for approval.
 4. After approval execution, inspect the provider result. Use the separate reviewed send control when ready, and check its receipt.
+
+In the fictional demo, **Use sample invoice** fills example line items and terms while keeping a contact and billing customer you already selected. A link to a different customer clears the previous prepared invoice. If the linked contact is unavailable, search for a current contact before preparing it.
 
 A created draft, a sent invoice and a paid invoice are different states. The demo simulates provider actions with fictional records and does not create a live invoice.
 

@@ -405,7 +405,13 @@ export async function handleDemoBusinessRequest(
         return response(invoice(url.searchParams.get("actionId")).receipt);
       }
       const search = (url.searchParams.get("search") ?? "").toLowerCase();
-      const contacts = pack.people.filter((x) => x.name.toLowerCase().includes(search));
+      const selectedContactId = url.searchParams.get("contactId");
+      const selectedContact = pack.people.find((contact) => contact.id === selectedContactId);
+      if (selectedContactId && !selectedContact)
+        throw new Error("Customer billing identity is unavailable");
+      const contacts = pack.people.filter(
+        (x) => x.id === selectedContactId || x.name.toLowerCase().includes(search),
+      );
       return response({
         simulated: true,
         testMode: true,
@@ -427,6 +433,8 @@ export async function handleDemoBusinessRequest(
       const id = url.searchParams.get("pluginId");
       if (!["client-onboarding", "meeting-commitments"].includes(id ?? ""))
         throw new Error("Unknown workflow");
+      const sourceId = url.searchParams.get("sourceId");
+      if (sourceId) z.uuid().parse(sourceId);
       const records =
         id === "client-onboarding"
           ? pack.opportunities

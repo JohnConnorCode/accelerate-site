@@ -2914,9 +2914,11 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/module-guard",
-        "next/server"
+        "@/lib/revenue-os/workflow-tasks",
+        "next/server",
+        "zod"
       ],
-      "sourceSha256": "b99c65e9d43524894b64968e3e06d86593324435699e106d2bc4fab81f1013b0"
+      "sourceSha256": "4679a541996a4f4cfa8b215d0b6434b22091611403d180290a938d46563b72b6"
     },
     {
       "source": "src/app/api/admin/plugins/workflow/route.ts",

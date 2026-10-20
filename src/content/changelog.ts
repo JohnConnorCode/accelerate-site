@@ -2,11 +2,20 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "customer-workflow-context",
+    slug: "customer-workflow-context",
+    title: "Keep the customer selected through onboarding and invoicing",
+    description:
+      "Start a task checklist or invoice from a won opportunity with its source or contact already selected. Older linked records remain available outside the first page of choices, and unavailable sources offer recovery. Changing the linked record clears the previous preview. Task creation, invoice drafts and sending keep their existing separate approvals.",
+    category: "improvement",
+    publishedAt: "2026-10-20",
+  },
+  {
     id: "command-center-work-modes",
     slug: "command-center-work-modes",
     title: "Choose a Command Center mode that fits how you work",
     description:
-      "Command Center offers four modes: Paper, Night, Accelerate and the dense, keyboard-first Operator. Today opens with the numbers your business runs on, marks the work that needs a person, and shows what the system has taken on. Signal orange appears only where the system acted. The workshop announcement now waits until you scroll past the first screen, so it never covers the page's main call to action. Signal, Studio, Frost, Material 2026, macOS and Capy have been retired; a saved choice opens in the closest mode, and workspace themes still carry your own brand.",
+      "Command Center offers four modes: Paper, Night, Accelerate and the dense, keyboard-first Operator. Today opens with the numbers your business runs on, marks the work that needs a person, and shows what the system has taken on. The workshop announcement now waits until you scroll past the first screen, so it never covers the page's main call to action. Signal, Studio, Frost, Material 2026, macOS and Capy have been retired; a saved choice opens in the closest mode, and workspace themes still carry your own brand.",
     category: "improvement",
     publishedAt: "2026-10-20",
   },

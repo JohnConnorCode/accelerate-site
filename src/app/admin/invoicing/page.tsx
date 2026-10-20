@@ -56,6 +56,12 @@ function minorUnits(value: string) {
   return Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
 }
 export default function InvoicingPage() {
+  const params = useSearchParams();
+  const contactId = params.get("view") === "create" ? params.get("contactId") || "" : "";
+  return <InvoicingWorkspace key={contactId} initialContactId={contactId} />;
+}
+
+function InvoicingWorkspace({ initialContactId }: { initialContactId: string }) {
   const [designAction, setDesignAction] = useState<string | null>(null);
   const demo = useAdminDemo();
   const params = useSearchParams();
@@ -99,7 +105,7 @@ export default function InvoicingPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [contactId, setContactId] = useState("");
+  const [contactId, setContactId] = useState(initialContactId);
   const billing = useAdminQuery<Billing>(
     ["admin", "invoicing", connectionKey, appliedSearch, contactId],
     `/api/admin/invoicing?${new URLSearchParams({ search: appliedSearch, ...(contactId ? { contactId } : {}) })}`,
@@ -614,14 +620,17 @@ export default function InvoicingPage() {
                         className={button}
                         onClick={() => {
                           const sample = billing.data!.suggestedInput!;
-                          const contact = billing.data!.contacts[0];
+                          const contact =
+                            currentContact ?? (!contactId ? billing.data!.contacts[0] : undefined);
                           if (!contact) return;
                           edit();
-                          setContactId(contact.id);
-                          setCustomerId(
-                            billing.data!.customers.find((x) => x.email === contact.primary_email)
-                              ?.id ?? "",
-                          );
+                          if (!contactId) {
+                            setContactId(contact.id);
+                            setCustomerId(
+                              billing.data!.customers.find((x) => x.email === contact.primary_email)
+                                ?.id ?? "",
+                            );
+                          }
                           setMemo(sample.memo);
                           setLines(
                             sample.lines.map((x) => ({

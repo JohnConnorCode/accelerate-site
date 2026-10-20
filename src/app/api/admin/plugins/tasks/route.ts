@@ -1,29 +1,24 @@
 import { NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
+import { workflowTaskSources } from "@/lib/revenue-os/workflow-tasks";
+import { z } from "zod";
 const workflowIds = ["client-onboarding", "meeting-commitments"];
 export async function GET(request: Request) {
-  const pluginId = new URL(request.url).searchParams.get("pluginId") || "";
+  const params = new URL(request.url).searchParams;
+  const pluginId = params.get("pluginId") || "";
   if (!workflowIds.includes(pluginId))
     return NextResponse.json({ error: "Unknown task workflow" }, { status: 400 });
   const auth = await requireAdminForModule(pluginId);
   if (auth instanceof NextResponse) return auth;
+  const sourceId = params.get("sourceId") || undefined;
+  if (sourceId && !z.uuid().safeParse(sourceId).success)
+    return NextResponse.json(
+      { error: "The linked source is invalid. Choose another record." },
+      { status: 400 },
+    );
   try {
-    const onboarding = pluginId === "client-onboarding";
-    const source = onboarding
-      ? auth.database
-          .from("opportunities")
-          .select("id,name")
-          .eq("stage", "won")
-          .order("updated_at", { ascending: false })
-          .limit(100)
-      : auth.database
-          .from("calendar_events")
-          .select("id,title,start_at")
-          .neq("status", "cancelled")
-          .order("start_at", { ascending: false })
-          .limit(100);
     const [records, members, actions] = await Promise.all([
-      source,
+      workflowTaskSources(auth.database, pluginId, sourceId),
       auth.database
         .from("tenant_memberships")
         .select("user_id,invited_email")
@@ -38,8 +33,7 @@ export async function GET(request: Request) {
         .order("created_at", { ascending: false })
         .limit(30),
     ]);
-    if (records.error || members.error || actions.error)
-      throw new Error("Workflow workspace could not be read");
+    if (members.error || actions.error) throw new Error("Workflow workspace could not be read");
     const taskIds = [
       ...new Set(
         actions.data.flatMap((action) =>
@@ -55,11 +49,11 @@ export async function GET(request: Request) {
     if (liveTasks.error) throw new Error("Workflow task status is unavailable");
     return NextResponse.json({
       taskStates: Object.fromEntries((liveTasks.data || []).map((task) => [task.id, task.status])),
-      records: records.data,
+      records: records.records,
       members: members.data,
       actions: actions.data,
       currentUserId: auth.user.id,
-      truncated: records.data.length === 100 || members.data.length === 100,
+      truncated: records.truncated || members.data.length === 100,
     });
   } catch {
     console.error("[task-workflow] Read failed");

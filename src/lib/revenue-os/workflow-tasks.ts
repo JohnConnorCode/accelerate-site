@@ -2,10 +2,37 @@ import "server-only";
 import { workflowTaskEffectKey } from "./plugin-workflow-policy";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import { workflowTaskBatchSchema as batchSchema } from "./workflow-task-contract";
 import { createRevenueTask } from "./tasks";
 import { checkpointActionResult } from "./actions";
 import { requireEnabledPlugin } from "./plugin-host";
+
+export async function workflowTaskSources(db: SupabaseClient, pluginId: string, sourceId?: string) {
+  if (!tenantIdForDatabase(db)) throw new Error("Task workflows require a tenant-bound database");
+  z.enum(["client-onboarding", "meeting-commitments"]).parse(pluginId);
+  if (sourceId) z.uuid().parse(sourceId);
+  const onboarding = pluginId === "client-onboarding";
+  const eligibleSources = () =>
+    onboarding
+      ? db.from("opportunities").select("id,name").eq("stage", "won")
+      : db.from("calendar_events").select("id,title,start_at").neq("status", "cancelled");
+  const [recent, selected] = await Promise.all([
+    eligibleSources()
+      .order(onboarding ? "updated_at" : "start_at", { ascending: false })
+      .limit(100),
+    sourceId ? eligibleSources().eq("id", sourceId).maybeSingle() : null,
+  ]);
+  if (recent.error || selected?.error) throw new Error("Workflow sources could not be read");
+  const records = recent.data ?? [];
+  return {
+    records: selected?.data
+      ? [selected.data, ...records.filter((record) => record.id !== sourceId)].slice(0, 100)
+      : records,
+    truncated: records.length === 100,
+  };
+}
+
 export async function reviewWorkflowTasks(db: SupabaseClient, payload: Record<string, unknown>) {
   if (!tenantIdForDatabase(db)) throw new Error("Task workflows require a tenant-bound database");
   const input = batchSchema.parse(

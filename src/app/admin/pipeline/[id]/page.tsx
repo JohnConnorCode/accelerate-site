@@ -451,6 +451,43 @@ export default function OpportunityRecordPage() {
               ))}
             </nav>
 
+            {pipelineColumns.find((column) => column.column_key === stage)?.metadata?.role ===
+              "won" && (
+              <AdminSurface padding="lg" role="navigation" aria-label="Customer workflow">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Link
+                      href={`/admin/client-onboarding?${new URLSearchParams({ opportunityId: id })}`}
+                      className="admin-button admin-button--secondary w-full"
+                    >
+                      Create onboarding checklist
+                    </Link>
+                    <p className="admin-copy mt-2 text-xs">
+                      Review assigned kickoff tasks for this opportunity.
+                    </p>
+                  </div>
+                  {record.contact ? (
+                    <div>
+                      <Link
+                        href={`/admin/invoicing?${new URLSearchParams({ view: "create", contactId: record.contact.id })}`}
+                        className="admin-button admin-button--secondary w-full"
+                      >
+                        Create invoice
+                      </Link>
+                      <p className="admin-copy mt-2 text-xs">
+                        Start with {record.contact.full_name} selected, then review billing details
+                        and line items.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="admin-copy text-xs">
+                      Link a customer before preparing an invoice.
+                    </p>
+                  )}
+                </div>
+              </AdminSurface>
+            )}
+
             <section id="opportunity" className="scroll-mt-24 admin-grid admin-grid--metrics">
               {[
                 {
@@ -497,7 +534,7 @@ export default function OpportunityRecordPage() {
               ))}
             </section>
 
-            <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+            <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
               <div className="space-y-4">
                 <Section id="activity" title="Verified activity" count={record.activity.length}>
                   {record.activity.length ? (
@@ -545,7 +582,7 @@ export default function OpportunityRecordPage() {
                     record.proposals.length
                   }
                 >
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {[
                       {
                         title: "Tasks",
