@@ -157,6 +157,7 @@ function TaskWorkflowForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, decision }),
     });
+    window.dispatchEvent(new Event("admin:priority-refresh"));
     setNotice(
       decision === "approve"
         ? "Tasks created. Inspect the linked results below."
@@ -366,6 +367,7 @@ function TaskWorkflowForm({
                       requestId,
                     }),
                   });
+                  window.dispatchEvent(new Event("admin:priority-refresh"));
                   setPreview(null);
                   setNotice("The workflow is awaiting approval below.");
                 })
@@ -422,6 +424,7 @@ function TaskWorkflowForm({
                                   headers: { "Content-Type": "application/json" },
                                   body: JSON.stringify({ id: task.id, action: "complete" }),
                                 });
+                                window.dispatchEvent(new Event("admin:priority-refresh"));
                                 setNotice("Task marked complete.");
                               })
                             }

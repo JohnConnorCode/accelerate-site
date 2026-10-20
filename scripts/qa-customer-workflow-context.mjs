@@ -191,15 +191,33 @@ try {
       assert.ok(completed.result.tasks.every((task) => saved.taskStates[task.id] === "pending"));
       await keyboardLink(page, page.getByRole("link", { name: "Open opportunity", exact: true }));
       await actions.waitFor();
-      assert.ok(
-        (await page.getByText(title, { exact: true }).count()) > 0,
-        "Created tasks must be visible on the source record",
+      const relatedWork = page.locator("details").filter({
+        has: page.locator("summary").filter({ hasText: "Related work" }),
+      });
+      if (!(await relatedWork.evaluate((details) => details.open))) {
+        await relatedWork.locator("summary").focus();
+        await page.keyboard.press("Enter");
+      }
+      await relatedWork.getByText(title, { exact: true }).waitFor({ timeout: 10000 });
+      const sourceRecord = await read(
+        page,
+        `/api/admin/revenue-os/records/opportunity/${source.id}`,
       );
+      assert.ok(
+        sourceRecord.record.tasks.some((task) => task.title === title),
+        "The source record must contain its approved tasks",
+      );
+      const beforeInvoices = await read(page, "/api/admin/invoicing");
       await keyboardLink(page, actions.getByRole("link", { name: "Create invoice", exact: true }));
       const contact = page.getByLabel("CRM customer", { exact: true });
       await page.waitForFunction(
         (id) => document.querySelector('select[aria-label="CRM customer"]')?.value === id,
         contactId,
+      );
+      assert.equal(
+        (await read(page, `/api/admin/invoicing?contactId=${contactId}`)).actions.length,
+        beforeInvoices.actions.length,
+        "Opening the invoice composer must not create a billing action",
       );
       const stripeId = await billingCustomer(page, contactId);
       await page.getByRole("button", { name: "Use sample invoice", exact: true }).click();
