@@ -195,11 +195,17 @@ try {
         (await page.getByText(title, { exact: true }).count()) > 0,
         "Created tasks must be visible on the source record",
       );
+      const beforeInvoices = await read(page, "/api/admin/invoicing");
       await keyboardLink(page, actions.getByRole("link", { name: "Create invoice", exact: true }));
       const contact = page.getByLabel("CRM customer", { exact: true });
       await page.waitForFunction(
         (id) => document.querySelector('select[aria-label="CRM customer"]')?.value === id,
         contactId,
+      );
+      assert.equal(
+        (await read(page, `/api/admin/invoicing?contactId=${contactId}`)).actions.length,
+        beforeInvoices.actions.length,
+        "Opening the invoice composer must not create a billing action",
       );
       const stripeId = await billingCustomer(page, contactId);
       await page.getByRole("button", { name: "Use sample invoice", exact: true }).click();
