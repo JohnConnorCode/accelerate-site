@@ -28,8 +28,13 @@ policy rather than silently inheriting the single-owner configuration.
 
 CI runs a focused docs path only when every changed file is in the public docs
 allowlist. It still builds, checks strict docs coverage, exercises desktop and
-mobile docs journeys and reports the required `verify` result. Shared code,
-verification scripts, workflow edits and mixed PRs use the full matrix.
+mobile docs journeys and reports the required `verify` result. A separate narrow
+path for modifications to four existing fixture tests keeps all-source typing
+and the complete source checks job while skipping unchanged app/fork builds and
+browser suites. The [verification workflow](VERIFICATION-WORKFLOW.md) lists those
+tests and the fail-closed rules. Shared code, other verification scripts, workflow
+edits and mixed PRs use the full matrix. Main, merge-queue and manual runs retain
+their existing verification paths.
 
 ## Complete the handoff
 
