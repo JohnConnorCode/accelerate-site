@@ -22,7 +22,7 @@ export function LeadsChart({ data, days = 30, onDaysChange }: LeadsChartProps) {
     <GlassCard hover="none" padding="none">
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-sm font-semibold text-white-primary">
+          <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
             Leads (Last {days} Days)
           </h3>
           {onDaysChange && (
@@ -36,7 +36,7 @@ export function LeadsChart({ data, days = 30, onDaysChange }: LeadsChartProps) {
                     "px-2.5 py-1 rounded-md text-xs font-medium transition-[background-color,color,transform] cursor-pointer",
                     days === opt.value
                       ? "bg-[var(--admin-action)] text-[var(--admin-action-ink)]"
-                      : "glass text-white-muted hover:text-white-primary",
+                      : "glass text-[var(--admin-muted)] hover:text-[var(--admin-ink)]",
                   )}
                 >
                   {opt.label}

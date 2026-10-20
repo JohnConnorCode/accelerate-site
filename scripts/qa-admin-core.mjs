@@ -534,14 +534,31 @@ try {
       );
       await workspace.close();
     }
-    const second = await context.newPage();
-    await second.goto(`${base}/dev/admin-design`, { waitUntil: "networkidle" });
-    await page.getByRole("radio", { name: "Comfortable", exact: true }).check();
-    await second.waitForFunction(
-      () => document.documentElement.dataset.adminDensity === "comfortable",
-    );
-    await page.getByRole("radio", { name: "Compact", exact: true }).check();
-    await second.waitForFunction(() => document.documentElement.dataset.adminDensity === "compact");
+    try {
+      const second = await context.newPage();
+      await second.goto(`${base}/dev/admin-design`, { waitUntil: "networkidle" });
+      await page.getByRole("radio", { name: "Comfortable", exact: true }).check();
+      await second.waitForFunction(
+        () => document.documentElement.dataset.adminDensity === "comfortable",
+      );
+      await page.getByRole("radio", { name: "Compact", exact: true }).check();
+      await second.waitForFunction(
+        () => document.documentElement.dataset.adminDensity === "compact",
+      );
+    } catch (error) {
+      const densityState = await Promise.all(
+        context.pages().map((tab) =>
+          tab.evaluate(() => ({
+            url: location.href,
+            density: document.documentElement.dataset.adminDensity,
+            saved: localStorage.getItem("accelerate:admin:density:v1"),
+            selected: document.querySelector(".admin-density-control input:checked")?.value,
+          })),
+        ),
+      );
+      writeFileSync(`${out}/density-failure.json`, JSON.stringify(densityState, null, 2));
+      throw error;
+    }
     await context.close();
     const restricted = await browser.newContext({
       viewport: { width: 390, height: 844 },

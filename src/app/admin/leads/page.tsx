@@ -369,7 +369,7 @@ export default function AdminLeadsPage() {
           <p role="status" className="font-medium">
             {`${pendingUpdates.length} lead update${pendingUpdates.length === 1 ? " needs" : "s need"} attention`}
           </p>
-          <p className="mt-1 text-sm text-white-secondary">
+          <p className="mt-1 text-sm text-[var(--admin-muted)]">
             Some changes may already be saved. Review the details, then retry the incomplete
             updates.
           </p>
@@ -416,7 +416,7 @@ export default function AdminLeadsPage() {
               setPage(1);
             }}
             aria-label="Filter by status"
-            className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+            className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
           >
             {statusOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -431,7 +431,7 @@ export default function AdminLeadsPage() {
               setPage(1);
             }}
             aria-label="Filter by industry"
-            className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+            className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
           >
             {industryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -458,12 +458,12 @@ export default function AdminLeadsPage() {
           {savedViews.map((view) => (
             <span
               key={view.id}
-              className="inline-flex items-center gap-1.5 rounded-full bg-bg-subtle border border-border-glass pl-3 pr-1 py-1 text-xs text-white-secondary"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] pl-3 pr-1 py-1 text-xs text-[var(--admin-muted)]"
             >
               <button
                 type="button"
                 onClick={() => applyView(view.filters)}
-                className="hover:text-white-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] rounded cursor-pointer"
+                className="hover:text-[var(--admin-ink)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] rounded cursor-pointer"
               >
                 {view.name}
               </button>
@@ -471,7 +471,7 @@ export default function AdminLeadsPage() {
                 type="button"
                 onClick={() => handleRemoveView(view.id)}
                 aria-label={`Remove view ${view.name}`}
-                className="text-white-muted hover:text-red-400 transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+                className="text-[var(--admin-muted)] hover:text-red-400 transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -493,13 +493,13 @@ export default function AdminLeadsPage() {
                 }}
                 placeholder="View name"
                 autoFocus
-                className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-2.5 py-1 text-xs text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color] placeholder:text-white-muted w-32"
+                className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-2.5 py-1 text-xs text-[var(--admin-ink)] focus:outline-none focus:border-[var(--admin-action)] transition-[border-color,box-shadow,background-color] placeholder:text-[var(--admin-muted)] w-32"
               />
               <button
                 type="button"
                 onClick={handleSaveView}
                 disabled={!viewName.trim()}
-                className="text-xs text-gold-light hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-[filter,opacity,transform] rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer px-1"
+                className="text-xs text-[var(--admin-ink)] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-[filter,opacity,transform] rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer px-1"
               >
                 Save
               </button>
@@ -510,7 +510,7 @@ export default function AdminLeadsPage() {
                   setViewName("");
                 }}
                 aria-label="Cancel saving view"
-                className="text-white-muted hover:text-white-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+                className="text-[var(--admin-muted)] hover:text-[var(--admin-ink)] transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -519,7 +519,7 @@ export default function AdminLeadsPage() {
             <button
               type="button"
               onClick={() => setShowSaveView(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border-glass px-3 py-1 text-xs text-white-muted hover:text-white-secondary hover:border-white/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--admin-border)] px-3 py-1 text-xs text-[var(--admin-muted)] hover:text-[var(--admin-muted)] hover:border-white/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
             >
               <Save className="h-3 w-3" />
               Save current view

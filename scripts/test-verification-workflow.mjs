@@ -472,6 +472,31 @@ try {
       /ignoreBuildErrors\s*:\s*true/,
     );
   });
+  check("independent design checks still fail the run when any group fails", () => {
+    const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
+    const design = workflow.split("  admin-design:\n")[1];
+    assert.ok(design.indexOf("id: design_captures") < design.indexOf("id: design_modes"));
+    for (const id of ["design_captures", "design_routes", "design_modes"]) {
+      assert.match(design, new RegExp(`id: ${id}\\n        continue-on-error: true`));
+      assert.ok(design.includes(`steps.${id}.outcome`), "Aggregate must use original outcomes");
+    }
+    const command = design.match(/run: (test "\$CAPTURE_RESULT"[^\n]+)/)?.[1];
+    assert.ok(command);
+    const passing = { CAPTURE_RESULT: "success", ROUTE_RESULT: "success", MODE_RESULT: "success" };
+    assert.equal(
+      spawnSync("bash", ["-e", "-c", command], { env: { ...env, ...passing } }).status,
+      0,
+    );
+    for (const key of Object.keys(passing))
+      for (const value of ["failure", "cancelled", "skipped", ""]) {
+        assert.notEqual(
+          spawnSync("bash", ["-e", "-c", command], { env: { ...env, ...passing, [key]: value } })
+            .status,
+          0,
+          `${key}: ${value} cannot pass the design lane`,
+        );
+      }
+  });
   check("uninstall restores the previous hook lookup", () => {
     git(["config", "--worktree", "--unset", "core.hooksPath"]);
     assert.equal(run("git", ["config", "--get", "core.hooksPath"]).status, 1);

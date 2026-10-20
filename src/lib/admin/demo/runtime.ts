@@ -1600,7 +1600,7 @@ function bookings(pack: DemoScenarioPack) {
       scheduled_at:
         index % 4 === 0 ? null : new Date(Date.now() + (index - 2) * 86_400_000).toISOString(),
       utm_source: ["google", "referral", "email"][index % 3]!,
-      utm_campaign: "demo-growth-loop",
+      utm_campaign: ["spring-inspections", null, "past-customers"][index % 3],
       estimated_value: item.estimated_value,
       won_value: index % 6 === 4 ? item.estimated_value : 0,
       created_at: item.created_at,
@@ -2537,8 +2537,8 @@ function legacy(pack: DemoScenarioPack, path: string, state: DemoState) {
         .map((item, index) => ({
           ...item,
           organization: item.business_name,
-          partnership_type: index % 2 ? "referral" : "community",
-          status: index < 3 ? "new" : "contacted",
+          partner_type: index % 2 ? "referral" : "community",
+          status: index < 3 ? "pending" : index % 3 ? "approved" : "declined",
         })),
       total: 8,
       totalPages: 1,

@@ -20,7 +20,9 @@ export function ChannelBreakdown({ channels }: ChannelBreakdownProps) {
 
   return (
     <GlassCard hover="none">
-      <h3 className="font-display text-sm font-semibold text-white-primary mb-4">Lead Sources</h3>
+      <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)] mb-4">
+        Lead Sources
+      </h3>
       <div className="space-y-3">
         {channels.map((channel, i) => {
           const width = (channel.count / maxCount) * 100;
@@ -29,8 +31,8 @@ export function ChannelBreakdown({ channels }: ChannelBreakdownProps) {
           return (
             <div key={channel.name} className="space-y-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white-secondary">{channel.name}</span>
-                <span className="text-white-muted">
+                <span className="text-[var(--admin-muted)]">{channel.name}</span>
+                <span className="text-[var(--admin-muted)]">
                   {channel.count} ({pct}%)
                 </span>
               </div>

@@ -1300,11 +1300,9 @@ function ListView({
     <div className="border-t border-[var(--admin-border)]">
       <div className="hidden overflow-x-auto md:block">
         <table className="admin-table w-full min-w-[820px] text-left text-sm">
-          <thead className="bg-black/[0.018] font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
+          <thead>
             <tr>
-              <th scope="col" className="px-5 py-3.5">
-                Opportunity
-              </th>
+              <th scope="col">Opportunity</th>
               {has(state, "contact") && <th scope="col">Contact</th>}
               {has(state, "source") && <th scope="col">Source</th>}
               {has(state, "value") && (
@@ -1314,9 +1312,7 @@ function ListView({
               )}
               {has(state, "next_action") && <th scope="col">Next action</th>}
               {has(state, "owner") && <th scope="col">Owner</th>}
-              <th scope="col" className="px-5">
-                Stage
-              </th>
+              <th scope="col">Stage</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--admin-border)]">
@@ -1339,7 +1335,7 @@ function ListView({
                 }}
                 className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]"
               >
-                <td className="px-5 py-4">
+                <td>
                   <Link
                     href={`/admin/pipeline/${item.id}`}
                     className="flex min-h-11 w-full items-center gap-1.5 rounded-[var(--admin-control-radius)] font-semibold hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -1353,30 +1349,28 @@ function ListView({
                   </p>
                 </td>
                 {has(state, "contact") && (
-                  <td className="px-4">{item.contact?.full_name || item.email || "Unknown"}</td>
+                  <td>{item.contact?.full_name || item.email || "Unknown"}</td>
                 )}
                 {has(state, "source") && (
-                  <td className="px-4 text-xs text-[var(--admin-muted)]">
-                    {item.source || "Unknown"}
-                  </td>
+                  <td className="text-xs text-[var(--admin-muted)]">{item.source || "Unknown"}</td>
                 )}
                 {has(state, "value") && (
-                  <td className="px-4 text-right font-mono tabular-nums">
+                  <td className="text-right font-mono tabular-nums">
                     {formatMoney(item.estimated_value)}
                   </td>
                 )}
                 {has(state, "next_action") && (
-                  <td className="max-w-[240px] px-4">
+                  <td className="max-w-[240px]">
                     <p className="truncate text-xs">{item.next_action || "No next action"}</p>
                     <p className="admin-copy text-[11px]">{shortDate(item.next_action_at)}</p>
                   </td>
                 )}
                 {has(state, "owner") && (
-                  <td className="max-w-[180px] truncate px-4 text-xs">
+                  <td className="max-w-[180px] truncate text-xs">
                     {item.owner_email || "Unassigned"}
                   </td>
                 )}
-                <td className="px-5">
+                <td>
                   <StageSelect
                     item={item}
                     columns={columns}

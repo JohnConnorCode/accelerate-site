@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
+import ts from "typescript";
 import {
   adminThemeDefinitionSchema,
   compileAdminTheme,
@@ -128,3 +131,75 @@ for (const theme of themes) {
     "Portable typography owns its own title family",
   );
 }
+
+// A tab can miss a storage event between its first paint and React subscription.
+// Exercise the actual density module with that timing and blocked browser storage.
+const densityDocument = { documentElement: { dataset: { adminDensity: "compact" } } };
+let storedDensity = "comfortable";
+let storageBlocked = false;
+let storageWriteBlocked = false;
+let unsubscribeDensity = () => {};
+const densityExports: {
+  useAdminDensity?: () => string;
+  setAdminDensity?: (value: string) => void;
+} = {};
+runInNewContext(
+  ts.transpileModule(readFileSync("src/lib/admin/density.ts", "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText,
+  {
+    exports: densityExports,
+    document: densityDocument,
+    window: new EventTarget(),
+    Event,
+    localStorage: {
+      getItem: () => {
+        if (storageBlocked) throw new Error("Storage unavailable");
+        return storedDensity;
+      },
+      setItem: (_key: string, value: string) => {
+        if (storageBlocked || storageWriteBlocked) throw new Error("Storage unavailable");
+        storedDensity = value;
+      },
+    },
+    require: () => ({
+      useSyncExternalStore: (
+        subscribe: (callback: () => void) => () => void,
+        read: () => string,
+      ) => {
+        unsubscribeDensity = subscribe(() => {});
+        return read();
+      },
+    }),
+  },
+);
+assert.equal(
+  densityExports.useAdminDensity!(),
+  "comfortable",
+  "Opening tab catches a missed change",
+);
+unsubscribeDensity();
+storedDensity = "compact";
+densityDocument.documentElement.dataset.adminDensity = "comfortable";
+assert.equal(densityExports.useAdminDensity!(), "compact", "Catch-up works in both directions");
+unsubscribeDensity();
+storageBlocked = true;
+assert.equal(
+  densityExports.useAdminDensity!(),
+  "compact",
+  "Blocked storage preserves session density",
+);
+densityExports.setAdminDensity!("comfortable");
+assert.equal(densityDocument.documentElement.dataset.adminDensity, "comfortable");
+unsubscribeDensity();
+storageBlocked = false;
+storageWriteBlocked = true;
+storedDensity = "compact";
+densityExports.setAdminDensity!("comfortable");
+assert.equal(
+  densityExports.useAdminDensity!(),
+  "comfortable",
+  "Readable storage must not overwrite a session choice when its write failed",
+);
+unsubscribeDensity();
+console.log("Density subscription passed: missed changes, both directions and blocked storage.");

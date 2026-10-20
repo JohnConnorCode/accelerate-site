@@ -137,7 +137,7 @@ export default function ChatLeadsPage() {
             type="button"
             onClick={() => setRefreshKey((key) => key + 1)}
             disabled={refreshing}
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border-glass bg-bg-subtle px-3 text-xs font-medium text-white-secondary transition-[border-color,color,background-color,transform,opacity] hover:border-white/20 hover:text-white-primary active:scale-[0.96] disabled:cursor-wait disabled:opacity-60"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 text-xs font-medium text-[var(--admin-muted)] transition-[border-color,color,background-color,transform,opacity] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:cursor-wait disabled:opacity-60"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
@@ -155,7 +155,7 @@ export default function ChatLeadsPage() {
       >
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <div className="relative min-w-[220px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-white-muted" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
             <Input
               type="search"
               placeholder="Search every chat lead by name or email…"
@@ -166,7 +166,7 @@ export default function ChatLeadsPage() {
             />
           </div>
           {lastUpdated && (
-            <p className="text-xs text-white-muted" aria-live="polite">
+            <p className="text-xs text-[var(--admin-muted)]" aria-live="polite">
               Updated {relativeTime(new Date(lastUpdated).toISOString())}
             </p>
           )}
@@ -180,12 +180,14 @@ export default function ChatLeadsPage() {
           {error ? (
             <div className="flex min-h-56 flex-col items-center justify-center px-6 text-center">
               <AlertCircle className="mb-3 h-6 w-6 text-red-300" />
-              <p className="text-sm font-medium text-white-primary">Chat leads couldn’t load</p>
-              <p className="mt-1 max-w-sm text-xs text-white-muted">{error}</p>
+              <p className="text-sm font-medium text-[var(--admin-ink)]">
+                Chat leads couldn’t load
+              </p>
+              <p className="mt-1 max-w-sm text-xs text-[var(--admin-muted)]">{error}</p>
               <button
                 type="button"
                 onClick={() => setRefreshKey((key) => key + 1)}
-                className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-border-glass px-3 text-xs text-white-secondary transition-[border-color,color,transform] hover:border-white/20 hover:text-white-primary active:scale-[0.96]"
+                className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--admin-border)] px-3 text-xs text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.96]"
               >
                 <RefreshCw className="h-3.5 w-3.5" /> Try again
               </button>
@@ -194,19 +196,11 @@ export default function ChatLeadsPage() {
             <div className="w-[calc(100vw-2rem)] max-w-full overflow-x-auto overscroll-x-contain sm:w-full">
               <table className="admin-table w-full table-fixed text-sm md:min-w-[720px] md:table-auto">
                 <thead>
-                  <tr className="border-b border-border-glass">
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">
-                      Contact
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">
-                      Conversation
-                    </th>
-                    <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted md:table-cell">
-                      Source
-                    </th>
-                    <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted md:table-cell">
-                      Received
-                    </th>
+                  <tr>
+                    <th>Contact</th>
+                    <th>Conversation</th>
+                    <th className="hidden md:table-cell">Source</th>
+                    <th className="hidden md:table-cell">Received</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -219,9 +213,9 @@ export default function ChatLeadsPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: Math.min(index, 8) * 0.03 }}
-                          className="border-b border-border-glass transition-colors hover:bg-white/[0.025]"
+                          className="border-b border-[var(--admin-border)] transition-colors hover:bg-white/[0.025]"
                         >
-                          <td className="px-4 py-3">
+                          <td>
                             <button
                               type="button"
                               onClick={() => setExpandedId(expanded ? null : lead.id)}
@@ -230,30 +224,30 @@ export default function ChatLeadsPage() {
                               className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-elevated"
                             >
                               <span className="min-w-0">
-                                <span className="block font-medium text-white-primary">
+                                <span className="block font-medium text-[var(--admin-ink)]">
                                   {lead.name}
                                 </span>
-                                <span className="mt-0.5 block break-all text-xs text-white-muted">
+                                <span className="mt-0.5 block break-all text-xs text-[var(--admin-muted)]">
                                   {lead.email}
                                 </span>
                               </span>
                               {expanded ? (
                                 <ChevronUp
-                                  className="h-4 w-4 shrink-0 text-white-muted"
+                                  className="h-4 w-4 shrink-0 text-[var(--admin-muted)]"
                                   aria-hidden="true"
                                 />
                               ) : (
                                 <ChevronDown
-                                  className="h-4 w-4 shrink-0 text-white-muted"
+                                  className="h-4 w-4 shrink-0 text-[var(--admin-muted)]"
                                   aria-hidden="true"
                                 />
                               )}
                             </button>
                           </td>
-                          <td className="px-4 py-3 text-white-secondary">
+                          <td className="text-[var(--admin-muted)]">
                             {lead.conversation?.length || 0} messages
                           </td>
-                          <td className="hidden px-4 py-3 text-xs text-white-muted md:table-cell">
+                          <td className="hidden text-xs text-[var(--admin-muted)] md:table-cell">
                             {lead.utm_source || "Direct"}
                             {lead.utm_campaign && (
                               <span className="block text-[11px] opacity-70">
@@ -262,7 +256,7 @@ export default function ChatLeadsPage() {
                             )}
                           </td>
                           <td
-                            className="hidden px-4 py-3 text-xs text-white-muted md:table-cell"
+                            className="hidden text-xs text-[var(--admin-muted)] md:table-cell"
                             title={new Date(lead.created_at).toLocaleString()}
                           >
                             {relativeTime(lead.created_at)}
@@ -277,22 +271,22 @@ export default function ChatLeadsPage() {
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.2 }}
                             >
-                              <td colSpan={4} className="bg-bg-elevated px-4 py-4">
+                              <td colSpan={4} className="bg-[var(--admin-surface)] px-4 py-4">
                                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-white-muted">
+                                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--admin-muted)]">
                                     Conversation
                                   </p>
                                   <div className="flex flex-wrap items-center gap-2">
                                     <button
                                       type="button"
                                       onClick={() => void copyTranscript(lead)}
-                                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border-glass px-3 text-xs text-white-secondary transition-[border-color,color,transform] hover:border-white/20 hover:text-white-primary active:scale-[0.96]"
+                                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-[var(--admin-border)] px-3 text-xs text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.96]"
                                     >
                                       <Copy className="h-3.5 w-3.5" /> Copy
                                     </button>
                                     <a
                                       href={`mailto:${lead.email}`}
-                                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border-glass px-3 text-xs text-white-secondary transition-[border-color,color,transform] hover:border-white/20 hover:text-white-primary active:scale-[0.96]"
+                                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-[var(--admin-border)] px-3 text-xs text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.96]"
                                     >
                                       <Mail className="h-3.5 w-3.5" /> Reply
                                     </a>
@@ -312,9 +306,9 @@ export default function ChatLeadsPage() {
                                         className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                                       >
                                         <div
-                                          className={`max-w-[84%] rounded-xl px-3 py-2.5 text-sm leading-relaxed ${message.role === "user" ? "bg-white/10 text-white-primary" : "border border-border-glass bg-bg-subtle text-white-secondary"}`}
+                                          className={`max-w-[84%] rounded-xl px-3 py-2.5 text-sm leading-relaxed ${message.role === "user" ? "bg-white/10 text-[var(--admin-ink)]" : "border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]"}`}
                                         >
-                                          <p className="mb-1 text-[11px] uppercase tracking-[0.1em] text-white-muted">
+                                          <p className="mb-1 text-[11px] uppercase tracking-[0.1em] text-[var(--admin-muted)]">
                                             {message.role === "user"
                                               ? lead.name
                                               : tenant.brand.name}
@@ -326,7 +320,7 @@ export default function ChatLeadsPage() {
                                       </div>
                                     ))}
                                     {(!lead.conversation || lead.conversation.length === 0) && (
-                                      <p className="py-6 text-center text-sm text-white-muted">
+                                      <p className="py-6 text-center text-sm text-[var(--admin-muted)]">
                                         No conversation recorded
                                       </p>
                                     )}

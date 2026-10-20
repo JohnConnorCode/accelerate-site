@@ -230,7 +230,7 @@ export function ContentItemForm({
     >
       <div className="h-full w-full overflow-y-auto bg-[var(--admin-surface)] p-5 shadow-[-24px_0_70px_-34px_rgba(0,0,0,0.6)] sm:p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="font-display text-lg font-semibold text-white-primary">
+          <h3 className="font-display text-lg font-semibold text-[var(--admin-ink)]">
             {item ? "Edit Content" : "New Content"}
           </h3>
           <div className="flex items-center gap-2">
@@ -238,7 +238,7 @@ export function ContentItemForm({
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-[var(--error)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--error)] focus-visible:ring-offset-2"
+                className="grid min-h-10 min-w-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-colors hover:text-[var(--error)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--error)] focus-visible:ring-offset-2"
                 title="Delete"
                 aria-label="Delete content item"
               >
@@ -249,7 +249,7 @@ export function ContentItemForm({
               type="button"
               onClick={() => void requestClose()}
               aria-label="Close content editor"
-              className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-white-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)] focus-visible:ring-offset-2"
+              className="grid min-h-10 min-w-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)] focus-visible:ring-offset-2"
             >
               <X className="h-5 w-5" />
             </button>
@@ -272,7 +272,7 @@ export function ContentItemForm({
             size="sm"
             onClick={handleGenerateBrief}
             disabled={generatingBrief || !title}
-            className="w-full text-gold-light"
+            className="w-full text-[var(--admin-ink)]"
           >
             {generatingBrief ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -407,8 +407,10 @@ export function ContentItemForm({
           maxWidth="sm"
         >
           <AdminSurface padding="lg" className="admin-dialog-surface">
-            <h4 className="font-display text-white-primary font-semibold mb-2">Delete Content?</h4>
-            <p className="text-sm text-white-muted mb-4">
+            <h4 className="font-display text-[var(--admin-ink)] font-semibold mb-2">
+              Delete Content?
+            </h4>
+            <p className="text-sm text-[var(--admin-muted)] mb-4">
               This action cannot be undone. The content item will be permanently deleted.
             </p>
             <div className="flex gap-3">

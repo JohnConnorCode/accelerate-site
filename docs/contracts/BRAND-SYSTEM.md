@@ -126,3 +126,8 @@ carries `/* brand-system: allow (reason) */` on the line before it.
 Shared controls keep a 40px desktop minimum and a 44px touch/phone minimum in
 both densities. Public light/dark controls resolve built-in and retired modes
 through the same appearance registry; Operator uses the public dark palette.
+
+## Planned work
+
+The next design passes, in order, with scope and acceptance for each, are in
+`docs/planning/DESIGN-ROADMAP-2026-10-20.md`. Pick one up from there.

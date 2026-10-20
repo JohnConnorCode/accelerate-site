@@ -1,6 +1,7 @@
 // Enforces docs/contracts/BRAND-SYSTEM.md in source so the system cannot drift:
 // no serif faces, display tracking no tighter than -0.04em, no text under
-// 10.5px, and signal orange defined only by the token files.
+// 10.5px, signal orange defined only by the token files, admin code on admin
+// tokens, and table headers styled only by the shared .admin-table anatomy.
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -68,6 +69,19 @@ for (const file of files) {
     }
     if (!signalAllowed.has(path) && /#(ff5a1f|c2410c|ff7a45)\b/i.test(line))
       failures.push(`${at} hard-codes signal orange; use --signal or --admin-accent`);
+    if (!/^src\/(app\/admin|components\/admin)\//.test(path)) return;
+    if (
+      /(?<![\w-])(?:text-white-(?:primary|secondary|muted)|border-border-glass|bg-bg-(?:elevated|subtle)|(?:text|border|ring)-gold)(?![\w-])/.test(
+        line,
+      )
+    )
+      failures.push(`${at} uses a marketing-site color class; use the --admin-* tokens`);
+    if (
+      /<th\b[^>]*className=[^>]*(?<![\w-])(?:p[xy]?-[\d.]+|uppercase|tracking-|font-mono)\b/.test(
+        line,
+      )
+    )
+      failures.push(`${at} restyles a table header; .admin-table th owns header type and spacing`);
   });
 }
 

@@ -94,7 +94,7 @@ const settingSections = [
 const notificationSettings = [
   {
     key: "NOTIFY_NEW_LEADS",
-    label: "New lead submitted",
+    label: "New plan request",
     description: "Get notified when someone completes the plan builder",
   },
   {
@@ -104,8 +104,8 @@ const notificationSettings = [
   },
   {
     key: "NOTIFY_HOT_LEADS",
-    label: "Hot leads",
-    description: "Alert when a lead scores 70+ (hot)",
+    label: "High-fit inquiries",
+    description: "Alert when an inquiry scores 70 or higher",
   },
   {
     key: "NOTIFY_PROPOSAL_VIEWED",

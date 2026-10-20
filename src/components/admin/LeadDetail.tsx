@@ -85,7 +85,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
         {lead.revenue_os?.opportunity_id && (
           <Link
             href={`/admin/pipeline?search=${encodeURIComponent(lead.contact_email)}`}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border-glass px-3 text-xs font-medium text-white-secondary transition-[border-color,color,transform] hover:border-white/20 hover:text-white-primary active:scale-[0.97]"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[var(--admin-border)] px-3 text-xs font-medium text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.97]"
           >
             Pipeline · {lead.revenue_os.stage || "linked"}
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -145,12 +145,12 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Status */}
         <div>
-          <label className="block text-xs text-white-muted mb-1">Status</label>
+          <label className="block text-xs text-[var(--admin-muted)] mb-1">Status</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             aria-label="Status"
-            className="admin-field w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
+            className="admin-field w-full rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-2 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
           >
             {statusOptions.map((s) => (
               <option key={s} value={s}>
@@ -162,9 +162,9 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
 
         {/* Deal Value */}
         <div>
-          <label className="block text-xs text-white-muted mb-1">Deal Value</label>
+          <label className="block text-xs text-[var(--admin-muted)] mb-1">Deal Value</label>
           <div className="relative">
-            <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+            <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
             <input
               type="number"
               min="0"
@@ -172,7 +172,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
               value={dealValue}
               onChange={(e) => setDealValue(e.target.value)}
               placeholder="0"
-              className="admin-field admin-field--leading-icon w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-2 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
+              className="admin-field admin-field--leading-icon w-full rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] pl-9 pr-3 py-2 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
             />
           </div>
         </div>
@@ -181,8 +181,8 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Intake summary */}
         <div>
-          <label className="block text-xs text-white-muted mb-1">Intake Summary</label>
-          <div className="text-sm text-white-secondary">
+          <label className="block text-xs text-[var(--admin-muted)] mb-1">Intake Summary</label>
+          <div className="text-sm text-[var(--admin-muted)]">
             {lead.intake_data ? (
               <ul className="space-y-0.5">
                 {Object.entries(lead.intake_data)
@@ -190,7 +190,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
                   .slice(0, 6)
                   .map(([key, value]) => (
                     <li key={key} className="text-xs">
-                      <span className="text-white-muted">
+                      <span className="text-[var(--admin-muted)]">
                         {key.replace(/([A-Z])/g, " $1").trim()}:
                       </span>{" "}
                       {Array.isArray(value) ? value.join(", ") : String(value)}
@@ -198,15 +198,15 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
                   ))}
               </ul>
             ) : (
-              <span className="text-white-muted text-xs">No intake data</span>
+              <span className="text-[var(--admin-muted)] text-xs">No intake data</span>
             )}
           </div>
         </div>
 
         {/* Contact info */}
         <div>
-          <label className="block text-xs text-white-muted mb-1">Contact</label>
-          <div className="text-xs text-white-secondary space-y-0.5">
+          <label className="block text-xs text-[var(--admin-muted)] mb-1">Contact</label>
+          <div className="text-xs text-[var(--admin-muted)] space-y-0.5">
             <p>{lead.contact_email}</p>
             {lead.contact_phone && <p>{lead.contact_phone}</p>}
             {lead.business_name && <p>{lead.business_name}</p>}
@@ -217,8 +217,8 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
       {/* AI Plan Preview */}
       {lead.ai_plan && (
         <div>
-          <label className="block text-xs text-white-muted mb-1">AI Plan Summary</label>
-          <p className="text-sm text-white-secondary">
+          <label className="block text-xs text-[var(--admin-muted)] mb-1">AI Plan Summary</label>
+          <p className="text-sm text-[var(--admin-muted)]">
             {(lead.ai_plan as { executiveSummary?: string }).executiveSummary || "Plan generated"}
           </p>
         </div>

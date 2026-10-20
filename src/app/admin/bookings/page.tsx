@@ -55,11 +55,16 @@ const stages = [
   "lost",
 ];
 
+/** Stored enum values read as sentence-case words. */
+const words = (value: string) =>
+  value.replace(/_/g, " ").replace(/^./, (first) => first.toUpperCase());
+
 export default function AdminBookingsPage() {
-  const bookingsQuery = useAdminQuery<{ opportunities: Opportunity[]; metrics: Metrics }>(
-    ["admin", "bookings"],
-    "/api/admin/bookings?days=90",
-  );
+  const bookingsQuery = useAdminQuery<{
+    opportunities: Opportunity[];
+    metrics: Metrics;
+    hasDebateProductions?: boolean;
+  }>(["admin", "bookings"], "/api/admin/bookings?days=90");
   const items = bookingsQuery.data?.opportunities ?? [];
   const metrics = bookingsQuery.data?.metrics ?? null;
   const loading = bookingsQuery.isPending;
@@ -94,9 +99,11 @@ export default function AdminBookingsPage() {
         title={adminPageName("bookings")}
         subtitle="Review meeting requests, scheduled appointments, and booking details."
       />
-      <Link href="/admin/debates" className="admin-button admin-button--secondary inline-flex">
-        Open debate productions
-      </Link>
+      {bookingsQuery.data?.hasDebateProductions ? (
+        <Link href="/admin/debates" className="admin-button admin-button--secondary inline-flex">
+          Open debate productions
+        </Link>
+      ) : null}
       <AdminReadBody
         loading={loading}
         hasData={Boolean(bookingsQuery.data)}
@@ -152,20 +159,20 @@ export default function AdminBookingsPage() {
         <AdminSurface padding="none" className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="admin-table w-full min-w-[980px] text-left text-sm">
-              <thead className="border-b border-[var(--admin-border)] font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
+              <thead>
                 <tr>
-                  <th className="px-5 py-4">Company</th>
-                  <th className="px-4 py-4">Fit</th>
-                  <th className="px-4 py-4">Leak</th>
-                  <th className="px-4 py-4">Source</th>
-                  <th className="px-4 py-4">Call</th>
-                  <th className="px-4 py-4">Stage</th>
+                  <th>Company</th>
+                  <th>Fit</th>
+                  <th>Leak</th>
+                  <th>Source</th>
+                  <th>Call</th>
+                  <th>Stage</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--admin-border)]">
                 {items.map((item) => (
                   <tr key={item.id} className="text-[var(--admin-ink)]">
-                    <td className="px-5 py-4">
+                    <td>
                       <a
                         href={item.company_website}
                         target="_blank"
@@ -176,24 +183,26 @@ export default function AdminBookingsPage() {
                       </a>
                       <p className="admin-copy mt-1 text-xs">{item.email}</p>
                     </td>
-                    <td className="px-4 py-4">
+                    <td>
                       <span
                         className={
                           item.qualified
-                            ? "text-emerald-700 dark:text-emerald-300"
+                            ? "text-[var(--admin-success)]"
                             : "text-[var(--admin-muted)]"
                         }
                       >
-                        {item.revenue_band.replace(/_/g, " ")}
+                        {words(item.revenue_band)}
                       </span>
-                      <p className="admin-copy mt-1 text-xs">{item.role.replace(/_/g, " ")}</p>
+                      <p className="admin-copy mt-1 text-xs">{words(item.role)}</p>
                     </td>
-                    <td className="px-4 py-4">{item.primary_leak.replace(/_/g, " ")}</td>
-                    <td className="px-4 py-4">
-                      {item.utm_source || "Direct"}
-                      <p className="admin-copy mt-1 text-xs">{item.utm_campaign || "—"}</p>
+                    <td>{words(item.primary_leak)}</td>
+                    <td>
+                      {item.utm_source ? words(item.utm_source) : "Direct"}
+                      <p className="admin-copy mt-1 text-xs">
+                        {item.utm_campaign ? words(item.utm_campaign.replace(/-/g, " ")) : "—"}
+                      </p>
                     </td>
-                    <td className="px-4 py-4 tabular-nums">
+                    <td className="whitespace-nowrap tabular-nums">
                       {item.scheduled_at
                         ? new Date(item.scheduled_at).toLocaleString([], {
                             dateStyle: "medium",
@@ -201,7 +210,7 @@ export default function AdminBookingsPage() {
                           })
                         : "—"}
                     </td>
-                    <td className="px-4 py-4">
+                    <td>
                       <select
                         value={item.stage}
                         onChange={(event) => updateStage(item, event.target.value)}
@@ -210,7 +219,7 @@ export default function AdminBookingsPage() {
                       >
                         {stages.map((stage) => (
                           <option key={stage} value={stage}>
-                            {stage.replace(/_/g, " ")}
+                            {words(stage)}
                           </option>
                         ))}
                       </select>

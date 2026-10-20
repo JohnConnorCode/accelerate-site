@@ -95,12 +95,12 @@ export function TaskWidget() {
       >
         <GlassCard hover="none" padding="md">
           <div className="flex items-center gap-2 mb-3">
-            <CheckSquare className="h-4 w-4 text-gold-light" />
-            <h3 className="font-display text-sm font-semibold text-white-primary">
+            <CheckSquare className="h-4 w-4 text-[var(--admin-ink)]" />
+            <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
               Today&apos;s Tasks
             </h3>
           </div>
-          <p className="text-xs text-white-muted">No tasks due today. Nice work!</p>
+          <p className="text-xs text-[var(--admin-muted)]">No tasks due today. Nice work!</p>
           <TaskQuickAdd onTaskCreated={fetchTasks} />
         </GlassCard>
       </motion.div>
@@ -117,11 +117,11 @@ export function TaskWidget() {
       <GlassCard hover="none" padding="md">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-gold-light" />
-            <h3 className="font-display text-sm font-semibold text-white-primary">
+            <CheckSquare className="h-4 w-4 text-[var(--admin-ink)]" />
+            <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
               Today&apos;s Tasks
             </h3>
-            <span className="text-[11px] text-white-muted bg-white/10 rounded-full px-2 py-0.5">
+            <span className="text-[11px] text-[var(--admin-muted)] bg-white/10 rounded-full px-2 py-0.5">
               {tasks.length}
             </span>
           </div>
@@ -143,7 +143,7 @@ export function TaskWidget() {
                 <button
                   type="button"
                   onClick={() => handleComplete(task.id)}
-                  className="shrink-0 cursor-pointer text-white-muted hover:text-emerald-400 transition-colors"
+                  className="shrink-0 cursor-pointer text-[var(--admin-muted)] hover:text-emerald-400 transition-colors"
                   title="Mark complete"
                 >
                   <Circle className="h-4 w-4 group-hover:hidden" />
@@ -151,7 +151,7 @@ export function TaskWidget() {
                 </button>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white-primary truncate">{task.title}</p>
+                  <p className="text-sm text-[var(--admin-ink)] truncate">{task.title}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     {isOverdue && (
                       <span className="flex items-center gap-1 text-[11px] text-red-400 font-medium">
@@ -160,7 +160,7 @@ export function TaskWidget() {
                       </span>
                     )}
                     {task.due_date && !isOverdue && (
-                      <span className="flex items-center gap-1 text-[11px] text-white-muted">
+                      <span className="flex items-center gap-1 text-[11px] text-[var(--admin-muted)]">
                         <Clock className="h-3 w-3" />
                         {task.due_time || "Today"}
                       </span>
@@ -169,12 +169,12 @@ export function TaskWidget() {
                       (sourceLink ? (
                         <Link
                           href={sourceLink.href}
-                          className="text-[11px] text-white-muted hover:text-gold-light transition-colors truncate"
+                          className="text-[11px] text-[var(--admin-muted)] hover:text-[var(--admin-ink)] transition-colors truncate"
                         >
                           {task.related_name}
                         </Link>
                       ) : (
-                        <span className="truncate text-[11px] text-white-muted">
+                        <span className="truncate text-[11px] text-[var(--admin-muted)]">
                           {task.related_name}
                         </span>
                       ))}
@@ -184,7 +184,7 @@ export function TaskWidget() {
                 <span
                   className={cn(
                     "text-[11px] font-medium shrink-0",
-                    priorityColors[task.priority] || "text-white-muted",
+                    priorityColors[task.priority] || "text-[var(--admin-muted)]",
                   )}
                 >
                   {task.priority}

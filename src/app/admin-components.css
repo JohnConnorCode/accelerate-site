@@ -709,9 +709,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 .admin-page-introduction-compact {
   padding-block: 0;
 }
-.admin-page-introduction-compact .admin-page-title {
-  font-size: 1.75rem;
-}
 /* A small anchored popover, not a full-width band: the trigger is sized
    like any other secondary header action. The panel portals to
    document.body (see PageHeader.tsx) so it floats above page content
@@ -1630,15 +1627,28 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   font-size: var(--admin-text-body);
   border-collapse: collapse;
 }
+/* The one table anatomy. Header labels follow the mode's label tokens, so
+   Paper and Night read in sentence case and Accelerate and Operator in mono
+   caps. Pages set columns and content only, never cell padding or type. */
 .admin-table th {
   padding: var(--admin-space-2) var(--admin-panel-padding);
+  border-bottom: 1px solid var(--admin-border);
   text-align: left;
-  font: 600 var(--admin-text-label)/1.4 var(--admin-font);
+  vertical-align: bottom;
+  white-space: nowrap;
+  font: 600 0.75rem/1.4 var(--admin-label-font, var(--admin-font));
+  letter-spacing: var(--admin-label-tracking, 0.04em);
+  text-transform: var(--admin-label-transform, uppercase);
   color: var(--admin-muted);
   background: var(--admin-surface-subtle);
 }
 .admin-table td {
   padding: var(--admin-row-padding) var(--admin-panel-padding);
+  vertical-align: middle;
+  line-height: 1.4;
+}
+.admin-table :is(th, td).text-right {
+  text-align: right;
 }
 .admin-table tbody tr + tr {
   border-top: 1px solid var(--admin-border);

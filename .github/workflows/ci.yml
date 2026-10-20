@@ -587,12 +587,14 @@ jobs:
           mobile_status=0
           loading_status=0
           core_release_status=0
+          positioning_status=0
           node scripts/test-hero-motion-observer.mjs || observer_status=$?
           node scripts/qa-home-hero-timing.mjs || hero_status=$?
           node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
           node scripts/qa-public-loading.mjs || loading_status=$?
           node scripts/qa-core-release.mjs || core_release_status=$?
-          test "$core_release_status" -eq 0 && test "$admin_status" -eq 0 && test "$observer_status" -eq 0 && test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
+          QA_BASE="$PLAYWRIGHT_BASE_URL" node scripts/qa-marketing-positioning.mjs || positioning_status=$?
+          test "$positioning_status" -eq 0 && test "$core_release_status" -eq 0 && test "$admin_status" -eq 0 && test "$observer_status" -eq 0 && test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
       - name: Retain focused homepage motion diagnostics
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
         uses: actions/upload-artifact@v7
@@ -618,6 +620,7 @@ jobs:
             /tmp/accelerate-mobile-motion/
             /tmp/accelerate-public-loading/
             /tmp/accelerate-core-release-browser/
+            /tmp/accelerate-positioning-qa/
             /tmp/accelerate-mobile-motion-server.log
             /tmp/accelerate-full-admin-demo/
           if-no-files-found: ignore
@@ -1121,21 +1124,14 @@ jobs:
       - name: Build the actual application once
         id: design_build
         run: npm run build
-      - name: Verify representative core routes
-        env:
-          QA_ROUTES: today,features,contacts,settings,integrations
-          QA_SKIP_PREVIEW: "1"
-          QA_OUTPUT: /tmp/admin-core-qa/routes
-        run: npm run qa:admin-core
-      - name: Capture workspace modes and keyboard interaction
-        env:
-          QA_ROUTES: today
-          QA_OUTPUT: /tmp/admin-core-qa/identities
-        run: npm run qa:admin-core
       - name: Capture product screens and verify the compiled design
+        id: design_captures
+        continue-on-error: true
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3045
+          QA_BASE: http://localhost:3045
           CUSTOMER_WORKFLOW_QA_OUTPUT: /tmp/accelerate-design-capture/customer-workflow
+          TODAY_REVIEW_QA_OUTPUT: /tmp/accelerate-today-review
           PRODUCT_SCREENSHOT_RECEIPT: /tmp/accelerate-design-capture/product.json
           HERO_QA_OUTPUT: /tmp/accelerate-design-capture/hero
         run: |
@@ -1161,6 +1157,28 @@ jobs:
           node scripts/qa-today-review-layout.mjs
           node scripts/qa-collections-workspace.mjs
           node scripts/qa-marketing-positioning.mjs
+      - name: Verify representative core routes
+        id: design_routes
+        continue-on-error: true
+        env:
+          QA_ROUTES: today,features,contacts,settings,integrations
+          QA_SKIP_PREVIEW: "1"
+          QA_OUTPUT: /tmp/admin-core-qa/routes
+        run: npm run qa:admin-core
+      - name: Capture workspace modes and keyboard interaction
+        id: design_modes
+        continue-on-error: true
+        env:
+          QA_ROUTES: today
+          QA_OUTPUT: /tmp/admin-core-qa/identities
+        run: npm run qa:admin-core
+      - name: Require every design verification group
+        if: ${{ always() }}
+        env:
+          CAPTURE_RESULT: ${{ steps.design_captures.outcome }}
+          ROUTE_RESULT: ${{ steps.design_routes.outcome }}
+          MODE_RESULT: ${{ steps.design_modes.outcome }}
+        run: test "$CAPTURE_RESULT" = success && test "$ROUTE_RESULT" = success && test "$MODE_RESULT" = success
       - name: Retain compiled preview
         if: ${{ always() && steps.design_build.outcome == 'success' }}
         uses: actions/upload-artifact@v7

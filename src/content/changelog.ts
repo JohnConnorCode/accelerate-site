@@ -15,7 +15,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "command-center-work-modes",
     title: "Choose a Command Center mode that fits how you work",
     description:
-      "Command Center offers four modes: Paper, Night, Accelerate and the dense, keyboard-first Operator. Today opens with the numbers your business runs on, marks the work that needs a person, and shows what the system has taken on. The workshop announcement now waits until you scroll past the first screen, so it never covers the page's main call to action. Signal, Studio, Frost, Material 2026, macOS and Capy have been retired; a saved choice opens in the closest mode, and workspace themes still carry your own brand.",
+      "Command Center offers four modes: Paper, Night, Accelerate and the dense, keyboard-first Operator. Today opens with the numbers your business runs on, marks the work that needs a person, and shows what the system has taken on. Density stays in sync across tabs, including a tab that is still opening. The workshop announcement now waits until you scroll past the first screen, so it never covers the page's main call to action. Signal, Studio, Frost, Material 2026, macOS and Capy have been retired; a saved choice opens in the closest mode, and workspace themes still carry your own brand.",
     category: "improvement",
     publishedAt: "2026-10-20",
   },

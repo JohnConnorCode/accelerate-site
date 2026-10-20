@@ -60,8 +60,8 @@ export function TodaysPriorities({
     >
       <GlassCard variant="gold" hover="none">
         <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle className="h-4 w-4 text-gold-light" />
-          <h3 className="font-display text-sm font-semibold text-white-primary">
+          <AlertTriangle className="h-4 w-4 text-[var(--admin-ink)]" />
+          <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
             Today&apos;s Priorities
           </h3>
         </div>
@@ -77,7 +77,7 @@ export function TodaysPriorities({
                   </p>
                   <p className="text-xs text-red-400/70">Follow-ups past due date</p>
                 </div>
-                <ArrowRight className="h-3.5 w-3.5 text-white-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight className="h-3.5 w-3.5 text-[var(--admin-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
             </Link>
           )}
@@ -92,7 +92,7 @@ export function TodaysPriorities({
                   </p>
                   <p className="text-xs text-amber-400/70">Sent 3+ days ago, no reply</p>
                 </div>
-                <ArrowRight className="h-3.5 w-3.5 text-white-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight className="h-3.5 w-3.5 text-[var(--admin-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
             </Link>
           )}
@@ -112,8 +112,10 @@ export function TodaysPriorities({
                     <Clock className="h-4 w-4 text-yellow-400 shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white-primary font-medium truncate">{item.name}</p>
-                    <p className="text-xs text-white-muted">
+                    <p className="text-sm text-[var(--admin-ink)] font-medium truncate">
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-[var(--admin-muted)]">
                       {item.type === "hot_lead" ? "Hot lead, needs contact" : "Stuck in new, 48h+"}{" "}
                       · {item.timeAgo}
                     </p>
@@ -126,7 +128,7 @@ export function TodaysPriorities({
                   >
                     {item.scoreLabel} {item.score}
                   </span>
-                  <ArrowRight className="h-3.5 w-3.5 text-white-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  <ArrowRight className="h-3.5 w-3.5 text-[var(--admin-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </div>
               </Link>
             </motion.div>
@@ -137,12 +139,12 @@ export function TodaysPriorities({
               <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5 transition-colors group">
                 <Inbox className="h-4 w-4 text-blue-400 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm text-white-primary font-medium">
+                  <p className="text-sm text-[var(--admin-ink)] font-medium">
                     {unreadContacts} unread contact{unreadContacts !== 1 ? "s" : ""}
                   </p>
-                  <p className="text-xs text-white-muted">New form submissions</p>
+                  <p className="text-xs text-[var(--admin-muted)]">New form submissions</p>
                 </div>
-                <ArrowRight className="h-3.5 w-3.5 text-white-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight className="h-3.5 w-3.5 text-[var(--admin-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
             </Link>
           )}
@@ -152,12 +154,12 @@ export function TodaysPriorities({
               <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5 transition-colors group">
                 <Handshake className="h-4 w-4 text-purple-400 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm text-white-primary font-medium">
+                  <p className="text-sm text-[var(--admin-ink)] font-medium">
                     {pendingPartners} pending partner app{pendingPartners !== 1 ? "s" : ""}
                   </p>
-                  <p className="text-xs text-white-muted">Awaiting review</p>
+                  <p className="text-xs text-[var(--admin-muted)]">Awaiting review</p>
                 </div>
-                <ArrowRight className="h-3.5 w-3.5 text-white-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight className="h-3.5 w-3.5 text-[var(--admin-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
             </Link>
           )}

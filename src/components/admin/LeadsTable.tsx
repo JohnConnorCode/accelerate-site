@@ -289,7 +289,7 @@ export function LeadsTable({
       {/* Controls */}
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
           <Input
             type="text"
             placeholder="Search by name, email, or business..."
@@ -313,13 +313,13 @@ export function LeadsTable({
             exit={{ opacity: 0, height: 0 }}
           >
             <GlassCard padding="sm" hover="none" className="flex flex-wrap items-center gap-3 mb-3">
-              <span className="text-sm text-white-secondary">{selectedIds.size} selected</span>
+              <span className="text-sm text-[var(--admin-muted)]">{selectedIds.size} selected</span>
               <select
                 value={bulkStatus}
                 onChange={(e) => setBulkStatus(e.target.value)}
                 aria-label="Set status for selected leads"
                 disabled={bulkBusy}
-                className="rounded-lg glass px-3 py-1.5 text-sm text-white-primary bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2 disabled:opacity-50"
+                className="rounded-lg glass px-3 py-1.5 text-sm text-[var(--admin-ink)] bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2 disabled:opacity-50"
               >
                 <option value="">Change status to...</option>
                 {statusOptions.map((s) => (
@@ -338,13 +338,13 @@ export function LeadsTable({
               </Button>
 
               <span className="hidden h-5 w-px bg-white/10 sm:block" aria-hidden="true" />
-              <Tag className="h-3.5 w-3.5 text-white-muted" aria-hidden="true" />
+              <Tag className="h-3.5 w-3.5 text-[var(--admin-muted)]" aria-hidden="true" />
               <select
                 value={tagMode}
                 onChange={(e) => setTagMode(e.target.value === "remove" ? "remove" : "add")}
                 aria-label="Add or remove tags"
                 disabled={bulkBusy}
-                className="rounded-lg glass px-3 py-1.5 text-sm text-white-primary bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2 disabled:opacity-50"
+                className="rounded-lg glass px-3 py-1.5 text-sm text-[var(--admin-ink)] bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2 disabled:opacity-50"
               >
                 <option value="add">Add tags</option>
                 <option value="remove">Remove tags</option>
@@ -379,7 +379,7 @@ export function LeadsTable({
 
               {confirmSuppress ? (
                 <span className="inline-flex items-center gap-2">
-                  <span className="text-sm text-white-secondary">
+                  <span className="text-sm text-[var(--admin-muted)]">
                     Suppress {linkedContactIds().length} contact
                     {linkedContactIds().length === 1 ? "" : "s"} from campaign email?
                   </span>
@@ -414,7 +414,7 @@ export function LeadsTable({
                 </button>
               )}
               {unlinkedCount() > 0 && (
-                <span className="text-xs text-white-muted">
+                <span className="text-xs text-[var(--admin-muted)]">
                   {unlinkedCount()} selected lead{unlinkedCount() === 1 ? " has" : "s have"} no
                   contact record and will be skipped.
                 </span>
@@ -422,7 +422,9 @@ export function LeadsTable({
 
               {confirmDelete ? (
                 <span className="inline-flex items-center gap-2">
-                  <span className="text-sm text-white-secondary">Delete {selectedIds.size}?</span>
+                  <span className="text-sm text-[var(--admin-muted)]">
+                    Delete {selectedIds.size}?
+                  </span>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -466,8 +468,8 @@ export function LeadsTable({
       <GlassCard padding="none" hover="none" className="overflow-clip">
         <table className="admin-table w-full text-sm">
           <thead>
-            <tr className="border-b border-border-glass">
-              <th scope="col" className="px-4 py-3 w-10">
+            <tr>
+              <th scope="col" className="w-10">
                 <input
                   type="checkbox"
                   checked={selectedIds.size === filtered.length && filtered.length > 0}
@@ -505,28 +507,31 @@ export function LeadsTable({
                 aria-sort={
                   scoreSort ? (scoreSort === "asc" ? "ascending" : "descending") : undefined
                 }
-                className="px-4 py-3 text-left text-xs font-semibold text-white-muted uppercase select-none"
+                className="select-none"
               >
                 <button
                   type="button"
                   onClick={handleScoreSort}
-                  className="flex cursor-pointer items-center gap-1 uppercase hover:text-white-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
+                  className="flex cursor-pointer items-center gap-1 uppercase hover:text-[var(--admin-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
                 >
                   Score
                   {scoreSort &&
                     (scoreSort === "asc" ? (
                       <ArrowUp
-                        className="h-3 w-3 text-white-primary"
+                        className="h-3 w-3 text-[var(--admin-ink)]"
                         aria-label="sorted ascending"
                       />
                     ) : (
                       <ArrowDown
-                        className="h-3 w-3 text-white-primary"
+                        className="h-3 w-3 text-[var(--admin-ink)]"
                         aria-label="sorted descending"
                       />
                     ))}
                   {!scoreSort && (
-                    <ArrowUpDown className="h-3 w-3 text-white-muted/50" aria-hidden="true" />
+                    <ArrowUpDown
+                      className="h-3 w-3 text-[var(--admin-muted)]/50"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
               </th>
@@ -546,7 +551,7 @@ export function LeadsTable({
               >
                 Date
               </SortHeader>
-              <th scope="col" className="px-4 py-3 w-10"></th>
+              <th scope="col" className="w-10"></th>
             </tr>
           </thead>
           <tbody>
@@ -567,7 +572,7 @@ export function LeadsTable({
                     aria-label={`Open ${lead.contact_name}`}
                     aria-expanded={expanded}
                     aria-controls={panelId}
-                    className="border-b border-border-glass cursor-pointer transition-colors hover:bg-white/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--gold-base)]"
+                    className="border-b border-[var(--admin-border)] cursor-pointer transition-colors hover:bg-white/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--gold-base)]"
                     onClick={(event) => {
                       if (isInteractiveTarget(event.target)) return;
                       setExpandedId(expanded ? null : lead.id);
@@ -580,7 +585,7 @@ export function LeadsTable({
                       }
                     }}
                   >
-                    <td className="px-4 py-3">
+                    <td>
                       <input
                         type="checkbox"
                         checked={selectedIds.has(lead.id)}
@@ -589,22 +594,22 @@ export function LeadsTable({
                         className="rounded cursor-pointer"
                       />
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <div>
-                        <p className="text-white-primary font-medium">{lead.contact_name}</p>
+                        <p className="text-[var(--admin-ink)] font-medium">{lead.contact_name}</p>
                         <Link
                           href={`/admin/contacts/${encodeURIComponent(lead.contact_email)}`}
-                          className="text-xs text-white-muted hover:text-gold-light transition-colors"
+                          className="text-xs text-[var(--admin-muted)] hover:text-[var(--admin-ink)] transition-colors"
                         >
                           {lead.contact_email}
                         </Link>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-white-secondary">{lead.business_name || "-"}</td>
-                    <td className="px-4 py-3 text-white-secondary capitalize">
+                    <td className="text-[var(--admin-muted)]">{lead.business_name || "-"}</td>
+                    <td className="text-[var(--admin-muted)] capitalize">
                       {lead.industry.replace(/_/g, " ")}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <span
                         className={cn(
                           "inline-flex items-center whitespace-nowrap text-xs font-semibold rounded-full px-2 py-0.5",
@@ -614,17 +619,17 @@ export function LeadsTable({
                         {label} {score}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <StatusBadge status={lead.lead_status} />
                     </td>
-                    <td className="px-4 py-3 text-white-muted text-xs">
+                    <td className="text-[var(--admin-muted)] text-xs">
                       {new Date(lead.created_at).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       {expandedId === lead.id ? (
-                        <ChevronUp className="h-4 w-4 text-white-muted" />
+                        <ChevronUp className="h-4 w-4 text-[var(--admin-muted)]" />
                       ) : (
-                        <ChevronDown className="h-4 w-4 text-white-muted" />
+                        <ChevronDown className="h-4 w-4 text-[var(--admin-muted)]" />
                       )}
                     </td>
                   </motion.tr>
@@ -637,7 +642,7 @@ export function LeadsTable({
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <td colSpan={8} className="px-4 py-4 bg-bg-elevated">
+                        <td colSpan={8} className="px-4 py-4 bg-[var(--admin-surface)]">
                           <LeadDetail lead={lead} onUpdate={onUpdateLead} />
                         </td>
                       </motion.tr>
@@ -778,22 +783,22 @@ function SortHeader({ field, children, onSort, sortField, sortOrder }: SortHeade
     <th
       scope="col"
       aria-sort={active ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
-      className="px-4 py-3 text-left text-xs font-semibold text-white-muted uppercase select-none"
+      className="select-none"
     >
       <button
         type="button"
         onClick={() => onSort(field)}
-        className="flex cursor-pointer items-center gap-1 uppercase hover:text-white-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
+        className="flex cursor-pointer items-center gap-1 uppercase hover:text-[var(--admin-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
       >
         {children}
         {active ? (
           sortOrder === "asc" ? (
-            <ArrowUp className="h-3 w-3 text-white-primary" aria-label="sorted ascending" />
+            <ArrowUp className="h-3 w-3 text-[var(--admin-ink)]" aria-label="sorted ascending" />
           ) : (
-            <ArrowDown className="h-3 w-3 text-white-primary" aria-label="sorted descending" />
+            <ArrowDown className="h-3 w-3 text-[var(--admin-ink)]" aria-label="sorted descending" />
           )
         ) : (
-          <ArrowUpDown className="h-3 w-3 text-white-muted/50" aria-hidden="true" />
+          <ArrowUpDown className="h-3 w-3 text-[var(--admin-muted)]/50" aria-hidden="true" />
         )}
       </button>
     </th>
