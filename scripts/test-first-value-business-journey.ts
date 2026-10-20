@@ -21,6 +21,14 @@ import {
 
 type StageTiming = { stage: string; ms: number };
 const timings: StageTiming[] = [];
+const customerJourneys: Array<{
+  scenario: string;
+  opportunityId: string;
+  contactId: string;
+  onboardingTaskIds: string[];
+  invoiceActionId: string;
+  invoiceId: string;
+}> = [];
 async function stage<T>(name: string, fn: () => Promise<T> | T): Promise<T> {
   const start = performance.now();
   try {
@@ -67,7 +75,7 @@ function graphPackFor(pack: DemoScenarioPack, state: DemoBusinessState): DemoSce
   return { ...pack, tasks: [...demoTasksForGraph(state), ...pack.tasks] };
 }
 
-async function journeyForPack(pack: DemoScenarioPack) {
+async function journeyForPack(pack: DemoScenarioPack, invoiceContactId?: string) {
   const state = createDemoBusinessState(pack);
   const { request, modules } = makeClient(pack, state);
   const seededActionIds = new Set(state.actions.map((action) => action.id));
@@ -150,6 +158,8 @@ async function journeyForPack(pack: DemoScenarioPack) {
   // assigned due tasks through the shared action executor.
   const won = pack.opportunities.find((item) => item.stage === "won");
   assert.ok(won, "scenario provides a won opportunity");
+  const person = pack.people.find((item) => item.id === won.personId);
+  assert.ok(person, "won opportunity links a canonical person");
   let createdTaskIds: string[] = [];
   await stage(`AC02 won onboarding tasks (${pack.id})`, async () => {
     const workspace = await request("/api/admin/plugins/tasks?pluginId=client-onboarding");
@@ -244,6 +254,11 @@ async function journeyForPack(pack: DemoScenarioPack) {
       "PATCH",
     );
     assert.ok(Array.isArray(executed.result.tasks) && executed.result.tasks.length === 1);
+    assert.equal(proposal.action.payload.opportunityId, won.id);
+    for (const task of executed.result.tasks) {
+      assert.equal(task.sourceId, won.id, "onboarding task keeps the selected opportunity");
+      assert.equal(task.personId, person.id, "onboarding task keeps the selected customer");
+    }
     createdTaskIds = executed.result.tasks.map((task: { id: string }) => task.id);
     assert.ok(
       (await request("/api/admin/plugins/tasks?pluginId=client-onboarding")).taskStates[
@@ -262,21 +277,66 @@ async function journeyForPack(pack: DemoScenarioPack) {
   // then separately approve a test-mode send. No provider delivery occurs.
   let draftActionId = "";
   await stage(`AC03 invoice draft and test-mode send (${pack.id})`, async () => {
-    const billing = await request("/api/admin/invoicing");
+    let billing = await request("/api/admin/invoicing");
     assert.equal(billing.testMode, true);
-    const contact = billing.contacts[0];
-    assert.ok(contact, "invoice review starts from a canonical contact");
+    assert.notEqual(
+      billing.contacts[0].id,
+      person.id,
+      "fixture starts with an unrelated contact so list order cannot prove continuity",
+    );
+    const contact = billing.contacts.find(
+      (item: { id: string }) => item.id === (invoiceContactId ?? person.id),
+    );
+    assert.ok(contact, "invoice review resolves the onboarding customer by canonical ID");
+    assert.equal(contact.id, person.id, "invoice review must keep the onboarding customer");
+    assert.equal(contact.primary_email, person.email);
+    let customer = billing.customers.find((item: { email: string }) => item.email === person.email);
+    if (!customer) {
+      const command = {
+        operation: "create_customer",
+        contactId: person.id,
+        requestId: crypto.randomUUID(),
+      };
+      const preview = await request("/api/admin/invoicing/commands", {
+        mode: "preview",
+        command,
+      });
+      assert.equal(preview.snapshot.contactId, person.id);
+      const proposal = await request("/api/admin/invoicing/commands", {
+        mode: "propose",
+        command,
+        digest: preview.digest,
+      });
+      assert.equal(proposal.status, "pending");
+      assert.equal(proposal.payload.command.contactId, person.id);
+      const beforeApproval = await request("/api/admin/invoicing");
+      assert.ok(
+        !beforeApproval.customers.some((item: { email: string }) => item.email === person.email),
+        "preparing a billing customer does not execute its approval",
+      );
+      const approved = await request(
+        "/api/admin/revenue-os/actions",
+        { id: proposal.id, decision: "approve" },
+        "PATCH",
+      );
+      assert.equal(approved.result.status, "ready");
+      assert.equal(approved.result.testMode, true);
+      billing = await request("/api/admin/invoicing");
+      customer = billing.customers.find(
+        (item: { id: string }) => item.id === approved.result.providerId,
+      );
+    }
+    assert.ok(customer, "approved billing customer resolves for the onboarding customer");
+    assert.equal(customer.email, person.email);
     const input = {
       contactId: contact.id,
-      customerId: billing.customers.find(
-        (customer: { id: string; email: string }) => customer.email === contact.primary_email,
-      )?.id,
+      customerId: customer.id,
       currency: "usd",
       daysUntilDue: 14,
       memo: "First value journey",
       lines: [{ description: "Onboarding implementation", quantity: 1, unitAmount: 120000 }],
     };
-    assert.ok(input.customerId, "billing customer matches the CRM contact email");
+    assert.equal(input.contactId, won.personId, "invoice input keeps the onboarding customer");
     await request(
       "/api/admin/plugins/workflow",
       { pluginId: "stripe-invoicing", mode: "preview", input: { ...input, lines: [] } },
@@ -307,6 +367,8 @@ async function journeyForPack(pack: DemoScenarioPack) {
       requestId: crypto.randomUUID(),
     });
     draftActionId = proposal.action.id as string;
+    assert.equal(proposal.action.payload.contactId, person.id);
+    assert.equal(proposal.action.payload.customerId, customer.id);
     const approved = await request(
       "/api/admin/revenue-os/actions",
       { id: draftActionId, decision: "approve" },
@@ -315,6 +377,15 @@ async function journeyForPack(pack: DemoScenarioPack) {
     assert.equal(approved.result.testMode, true);
     assert.equal(approved.result.status, "draft");
     assert.equal(approved.result.hostedInvoiceUrl, null);
+    assert.equal(approved.result.customerEmail, person.email, "draft receipt keeps the customer");
+    const createdInvoice = state.invoices.find((item) => item.actionId === draftActionId);
+    assert.ok(createdInvoice, "invoice document belongs to the approved creation action");
+    assert.equal(
+      createdInvoice.document.customerEmail,
+      person.email,
+      "invoice document keeps the customer",
+    );
+    assert.equal(createdInvoice.document.customerName, person.name);
     await request(
       "/api/admin/revenue-os/actions",
       { id: draftActionId, decision: "approve" },
@@ -324,6 +395,7 @@ async function journeyForPack(pack: DemoScenarioPack) {
     const send = await request("/api/admin/invoicing", { creationActionId: draftActionId });
     assert.ok(send.action.id !== draftActionId, "sending is a separate approval");
     const sendActionId = send.action.id as string;
+    assert.equal(send.action.payload.creationActionId, draftActionId);
     const sendReplay = await request("/api/admin/invoicing", { creationActionId: draftActionId });
     assert.equal(sendReplay.action.id, sendActionId, "repeated send request reuses the approval");
     const sent = await request(
@@ -334,8 +406,20 @@ async function journeyForPack(pack: DemoScenarioPack) {
     assert.equal(sent.result.status, "open");
     assert.equal(sent.result.delivery, "not_sent_test_mode");
     assert.equal(sent.result.testMode, true);
+    assert.equal(sent.result.invoiceId, approved.result.invoiceId);
+    assert.equal(sent.result.customerEmail, person.email, "send receipt keeps the customer");
     const receipt = await request(`/api/admin/invoicing?actionId=${draftActionId}`);
     assert.equal(receipt.status, "open");
+    assert.equal(receipt.invoiceId, approved.result.invoiceId);
+    assert.equal(receipt.customerEmail, person.email, "reread receipt keeps the customer");
+    customerJourneys.push({
+      scenario: pack.id,
+      opportunityId: won.id,
+      contactId: person.id,
+      onboardingTaskIds: createdTaskIds,
+      invoiceActionId: draftActionId,
+      invoiceId: receipt.invoiceId,
+    });
   });
 
   // AC04: Today, record details and Activity expose the same tasks,
@@ -544,18 +628,23 @@ async function journeyForPack(pack: DemoScenarioPack) {
 async function main() {
   const packs = Object.values(DEMO_SCENARIOS);
   assert.ok(packs.length > 0);
+  const negativeControl = packs[0]!;
+  await assert.rejects(
+    journeyForPack(negativeControl, negativeControl.people[0]!.id),
+    /invoice review must keep the onboarding customer/,
+  );
+  timings.length = 0;
   for (const pack of packs) {
     await journeyForPack(pack);
   }
+  assert.equal(customerJourneys.length, packs.length, "each scenario records its customer journey");
   const byStage = new Map<string, number[]>();
   for (const timing of timings) {
     byStage.set(timing.stage, [...(byStage.get(timing.stage) ?? []), timing.ms]);
   }
-  // AC06: first-run trial report. Each pack starts from a fresh fictional
-  // workspace, so every journey above is a timed first-run trial. Measured
-  // machine timings are reported per stage; they are system costs, not product
-  // targets. Budgets below are local-trial guards, not UX promises.
-  console.log("First-run trial report (fresh fictional workspace per scenario):");
+  // These are machine execution timings for fictional fixtures. Parent AC06
+  // requires an observed new-user trial and remains unverified by this script.
+  console.log("Automated fixture timings (fictional workspace per scenario):");
   let total = 0;
   for (const [name, samples] of byStage) {
     const sum = samples.reduce((a, b) => a + b, 0);
@@ -563,17 +652,22 @@ async function main() {
     const avg = sum / samples.length;
     const max = Math.max(...samples);
     console.log(`- ${name}: n=${samples.length} avg=${avg.toFixed(1)}ms max=${max.toFixed(1)}ms`);
-    assert.ok(max < 5000, `${name} completes within the local trial budget`);
+    assert.ok(max < 5000, `${name} completes within the local fixture budget`);
   }
   writeJourneyEvidence("first-use", {
     scenarios: packs.map((pack) => pack.id),
     timings,
     totalMs: total,
     timingEvidence: "local-fixture-execution",
+    providerEvidence: "fictional-demo-no-provider",
+    customerJourneys,
+    negativeControl: { scenario: negativeControl.id, differentCustomer: "rejected" },
+    userTrial: { acceptanceId: "AC06", status: "not_performed" },
     redundantProviderCallsRemoved: 0,
     note: "No redundant provider call was demonstrated. Exact send approval remains separate from draft approval.",
   });
   console.log(`- total journey time: ${total.toFixed(1)}ms across ${packs.length} scenarios`);
+  console.log("Observed new-user trial (parent AC06): NOT PERFORMED by this automated check.");
   console.log(
     "Operator notes: the send approval is intentionally separate from the draft approval; " +
       "replayed proposals reuse the original action id; failed approvals retry only after an " +
@@ -582,8 +676,8 @@ async function main() {
       "the UI as they assert here.",
   );
   console.log(
-    "First value journey: import review, won onboarding tasks, invoice draft plus test-mode " +
-      "send, Today/record/Activity parity, correction and recovery passed.",
+    "Automated first-value fixtures: import review, won onboarding tasks, invoice draft plus " +
+      "test-mode send, Today/record/Activity parity, correction and recovery passed.",
   );
 }
 
