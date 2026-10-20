@@ -9,9 +9,9 @@ export function isApplicationWorkspace(pathname: string) {
   return /^\/demo\/command-center\/[^/]+(?:\/|$)/.test(path);
 }
 
-/** Guest admission links contain private order credentials. */
+/** Guest payment and admission links contain private order credentials. */
 export function isTicketConfirmationPath(pathname: string) {
-  return /^\/(?:t\/[^/]+\/)?events\/[^/]+\/confirmation\/?$/.test(pathname);
+  return /^\/(?:t\/[^/]+\/)?events\/[^/]+\/(?:checkout|confirmation)\/?$/.test(pathname);
 }
 
 /** Withdraw focus and hit testing immediately, before React's animated exit. */

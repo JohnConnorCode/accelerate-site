@@ -79,25 +79,72 @@ function onCurve([a, b, c, d]: Curve, t: number): Point {
     y: s ** 3 * a.y + 3 * s ** 2 * t * b.y + 3 * s * t ** 2 * c.y + t ** 3 * d.y,
   };
 }
-function geometry(pose: Point, phase: number, live: boolean) {
-  const center = { x: 300 + pose.x, y: 372 + pose.y };
-  const yaw = -0.22 + pose.x / 185;
-  const pitch = pose.y / 340;
-  const project = (x: number, y: number, z: number): Point => {
+function geometry(pose: Point, phase: number, live: boolean, formation = 0) {
+  const center = { x: 300 + pose.x * 0.5, y: 372 + pose.y * 0.45 };
+  const yaw = -0.28 + pose.x / 110;
+  const pitch = 0.58 + pose.y / 210;
+  const project = (x: number, y: number, z: number): Point & { depth: number } => {
     const u = x * Math.cos(yaw) - y * Math.sin(yaw);
     const v = x * Math.sin(yaw) + y * Math.cos(yaw);
-    const w = v * Math.cos(pitch) - z * Math.sin(pitch);
-    const h = v * Math.sin(pitch) + z * Math.cos(pitch);
-    return { x: center.x + (u - w) * 1.12, y: center.y + (u + w) * 0.55 - h * 0.94 };
+    const depth = (u + v) / Math.SQRT2;
+    const perspective = 720 / (720 - depth * Math.cos(pitch) - z * Math.sin(pitch));
+    return {
+      x: center.x + ((u - v) / Math.SQRT2) * 1.42 * perspective,
+      y: center.y + (depth * Math.sin(pitch) - z * Math.cos(pitch)) * 1.42 * perspective,
+      depth: depth * Math.cos(pitch) + z * Math.sin(pitch),
+    };
   };
-  const bloom = live ? Math.sin(clamp((phase - 0.26) / 0.55, 0, 1) * Math.PI) : 0;
+  const facesCamera = (a: Point, b: Point, c: Point) =>
+    (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) < 0;
   const layers = [0, 1, 2].map((layer) => {
-    const z = 42 + layer * (39 + bloom * 15) + bloom * 6;
-    const top = outline.map(([x, y]) => project(x, y, z));
-    const bottom = outline.map(([x, y]) => project(x, y, z - 16));
+    // The processing beat travels through the arrows instead of moving one rigid stack.
+    const wave = live ? Math.sin(clamp((phase - 0.18 - layer * 0.07) / 0.5, 0, 1) * Math.PI) : 0;
+    const turn =
+      (layer - 1) * formation +
+      (live ? Math.sin(phase * Math.PI * 2 - layer * 0.7) * 0.14 : 0) +
+      (layer - 1) * wave * 0.18;
+    const bank = (live ? Math.sin(phase * Math.PI * 2 - layer * 0.8) * 0.12 : 0) + pose.y / 650;
+    const spread = (layer - 1) * (formation * 50 + wave * 12);
+    const z = 34 + layer * 48 + wave * (12 + layer * 6);
+    const vertex = (x: number, y: number, height: number) => {
+      const u = x * Math.cos(turn) - y * Math.sin(turn);
+      const v = x * Math.sin(turn) + y * Math.cos(turn);
+      return project(
+        u + spread,
+        v * Math.cos(bank) - height * Math.sin(bank),
+        z + v * Math.sin(bank) + height * Math.cos(bank),
+      );
+    };
+    const top = outline.map(([x, y]) => vertex(x, y, 22));
+    const bottom = outline.map(([x, y]) => vertex(x, y, 0));
+    const sides = top
+      .map((p, i) => {
+        const nextTop = top[(i + 1) % 6]!,
+          lower = bottom[i]!,
+          nextLower = bottom[(i + 1) % 6]!;
+        const [x, y] = outline[i]!;
+        const next = outline[(i + 1) % 6]!;
+        const normal = Math.atan2(next[1] - y, next[0] - x) + turn + yaw;
+        return {
+          path: polygon([p, nextTop, nextLower, lower]),
+          shade: (42 + Math.cos(normal - 0.7) * 22).toFixed(1),
+          visible: facesCamera(p, nextTop, lower),
+          depth: (p.depth + nextTop.depth + nextLower.depth + lower.depth) / 4,
+        };
+      })
+      .sort((a, b) => a.depth - b.depth);
     return {
       top: polygon(top),
-      sides: top.map((p, i) => polygon([p, top[(i + 1) % 6]!, bottom[(i + 1) % 6]!, bottom[i]!])),
+      sides,
+      shadow: polygon(
+        outline.map(([x, y]) =>
+          project(
+            x * Math.cos(turn) - y * Math.sin(turn) + spread + z * 0.18,
+            x * Math.sin(turn) + y * Math.cos(turn) + z * 0.12,
+            2,
+          ),
+        ),
+      ),
     };
   });
   const base = baseOutline.map(([x, y]) => project(x, y, 0));
@@ -119,7 +166,14 @@ function geometry(pose: Point, phase: number, live: boolean) {
   return {
     layers,
     base: polygon(base),
-    baseEdge: polygon([base[1]!, base[2]!, base[3]!, baseLower[3]!, baseLower[2]!, baseLower[1]!]),
+    baseEdge: base
+      .map((p, i) => {
+        const next = (i + 1) % 4;
+        return facesCamera(p, base[next]!, baseLower[i]!)
+          ? polygon([p, base[next]!, baseLower[next]!, baseLower[i]!])
+          : "";
+      })
+      .join(""),
     incoming,
     outgoing,
     pins: [0, 1, 2, 3, 4].map((pin) => project(88, 48 - pin * 19, 1)),
@@ -141,6 +195,7 @@ export function HeroArtwork() {
     const root = element.parentElement!;
     const get = <T extends Element>(selector: string) => element.querySelector<T>(selector)!;
     const faces = [...element.querySelectorAll<SVGPathElement>(".home-system-layer path")];
+    const shadows = [...element.querySelectorAll<SVGPathElement>(".home-system-shadow")];
     const wires = [...element.querySelectorAll<SVGPathElement>(".home-system-wire")];
     const signals = [...element.querySelectorAll<SVGCircleElement>(".home-system-signal")];
     const pins = [...element.querySelectorAll<SVGCircleElement>(".home-system-pin")];
@@ -164,7 +219,10 @@ export function HeroArtwork() {
       elapsed = 0,
       previous = 0,
       painted = 0,
-      cycle = -1;
+      cycle = -1,
+      formation = 0;
+
+    const formations = [0, 0.36, -0.36];
 
     function choose(index: number) {
       selected = clamp(Math.floor(index), 0, 2) as Source;
@@ -179,10 +237,16 @@ export function HeroArtwork() {
     }
     function paint() {
       const phase = reduced ? 0 : (elapsed % 3200) / 3200;
-      const shape = geometry(pose, phase, !reduced);
+      const shape = geometry(pose, phase, !reduced, formation);
       shape.layers.forEach((layer, i) => {
-        layer.sides.forEach((d, side) => faces[i * 7 + side]!.setAttribute("d", d));
+        layer.sides.forEach((surface, side) => {
+          const face = faces[i * 7 + side]!;
+          face.setAttribute("d", surface.path);
+          face.setAttribute("visibility", surface.visible ? "visible" : "hidden");
+          face.setAttribute("fill", `color-mix(in srgb, var(--fg) ${surface.shade}%, var(--bg))`);
+        });
         faces[i * 7 + 6]!.setAttribute("d", layer.top);
+        shadows[i]!.setAttribute("d", layer.shadow);
       });
       base.setAttribute("d", shape.base);
       baseEdge.setAttribute("d", shape.baseEdge);
@@ -234,6 +298,7 @@ export function HeroArtwork() {
         const follow = 1 - Math.exp(-Math.max(now - painted, 16) / 85);
         pose.x += (target.x - pose.x) * follow;
         pose.y += (target.y - pose.y) * follow;
+        formation += (formations[selected]! - formation) * follow;
         paint();
         painted = now;
       }
@@ -246,6 +311,7 @@ export function HeroArtwork() {
       root.dataset.motion = reduced ? "reduced" : blocked() ? "suspended" : "live";
       root.dataset.routeState = reduced ? "settled" : "running";
       if (reduced) {
+        formation = formations[selected]!;
         pose.x = target.x;
         pose.y = target.y;
         paint();
@@ -265,6 +331,7 @@ export function HeroArtwork() {
         manual = true;
         elapsed = 0;
         choose(index);
+        if (reduced) formation = formations[selected]!;
         paint();
       },
       steer(x, y) {
@@ -381,9 +448,11 @@ export function HeroArtwork() {
               y2="380"
               gradientUnits="userSpaceOnUse"
             >
-              <stop stopColor="var(--bg)" />
-              <stop offset=".45" stopColor="var(--bg)" />
-              <stop offset="1" stopColor="color-mix(in srgb, var(--fg) 18%, var(--bg))" />
+              <stop stopColor="color-mix(in srgb, var(--fg) 14%, var(--bg))" />
+              <stop offset=".24" stopColor="var(--bg)" />
+              <stop offset=".48" stopColor="color-mix(in srgb, var(--fg) 10%, var(--bg))" />
+              <stop offset=".54" stopColor="var(--bg)" />
+              <stop offset="1" stopColor="color-mix(in srgb, var(--fg) 25%, var(--bg))" />
             </linearGradient>
             <linearGradient
               id={`${id}-edge`}
@@ -400,6 +469,9 @@ export function HeroArtwork() {
               <stop stopColor="var(--fg)" stopOpacity=".075" />
               <stop offset="1" stopColor="var(--fg)" stopOpacity="0" />
             </radialGradient>
+            <filter id={`${id}-shadow`} x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="5" />
+            </filter>
           </defs>
           <ellipse cx="300" cy="378" rx="234" ry="166" fill={`url(#${id}-light)`} />
           <g stroke="var(--fg)" strokeOpacity=".055" strokeWidth="1">
@@ -434,6 +506,11 @@ export function HeroArtwork() {
             stroke="var(--fg)"
             strokeOpacity=".3"
           />
+          <g fill="var(--fg)" fillOpacity=".12" filter={`url(#${id}-shadow)`}>
+            {initial.layers.map((layer, index) => (
+              <path className="home-system-shadow" key={index} d={layer.shadow} />
+            ))}
+          </g>
           <g
             className="home-system-core"
             stroke="var(--fg)"
@@ -442,8 +519,14 @@ export function HeroArtwork() {
           >
             {initial.layers.map((layer, index) => (
               <g key={index} className="home-system-layer">
-                {layer.sides.map((d, side) => (
-                  <path key={side} d={d} fill={`url(#${id}-edge)`} strokeOpacity=".38" />
+                {layer.sides.map((surface, side) => (
+                  <path
+                    key={side}
+                    d={surface.path}
+                    visibility={surface.visible ? "visible" : "hidden"}
+                    fill={`color-mix(in srgb, var(--fg) ${surface.shade}%, var(--bg))`}
+                    strokeOpacity=".38"
+                  />
                 ))}
                 <path d={layer.top} fill={`url(#${id}-metal)`} strokeOpacity=".7" />
               </g>

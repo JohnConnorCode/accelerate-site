@@ -621,12 +621,16 @@
 .checkoutWrap {
   grid-column: 2;
   grid-row: 1;
+  min-width: 0;
   position: sticky;
   top: 6rem;
 }
 .checkout {
   scroll-margin-top: 6rem;
-  overflow: hidden;
+  min-width: 0;
+  max-height: calc(100dvh - 7rem);
+  overflow: hidden auto;
+  overscroll-behavior-y: contain;
   background: var(--bg-elevated);
   padding: 1.75rem;
   border: 1px solid var(--border-glass);
@@ -671,10 +675,12 @@
 }
 .form {
   display: grid;
+  min-width: 0;
   gap: 1rem;
   margin-top: 1.5rem;
 }
 .form label {
+  min-width: 0;
   font-size: 0.8rem;
   color: var(--heading-color);
   font-weight: 550;
@@ -689,6 +695,7 @@
   color: var(--heading-color);
   border-radius: 7px;
   min-height: 46px;
+  min-width: 0;
   width: 100%;
   padding: 0.7rem 0.8rem;
   font: inherit;
@@ -772,6 +779,19 @@
   color: var(--error);
   font-size: 0.85rem;
   line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.checkoutError {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--error) 7%, var(--bg-elevated));
+  color: var(--error);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  scroll-margin-block: 1rem;
 }
 .preview {
   padding: 0.8rem 1rem;
@@ -957,6 +977,9 @@
   }
   .checkout {
     scroll-margin-top: 6rem;
+    max-height: none;
+    overflow: hidden;
+    overscroll-behavior-y: auto;
   }
   .workshopSection {
     padding-bottom: 2.25rem;
@@ -1047,4 +1070,44 @@
   .heroCta:active {
     transform: none;
   }
+}
+.paymentWrap {
+  width: min(100%, 38rem);
+  margin: 0 auto;
+  padding: 1rem 0 0;
+}
+
+.paymentTitle {
+  margin: 2rem 0;
+  color: var(--heading-color);
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.paymentSummary {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-glass);
+  border-radius: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.paymentSummary h2 {
+  color: var(--heading-color);
+  font-size: 1.2rem;
+  line-height: 1.5;
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  cursor: pointer;
 }

@@ -226,7 +226,7 @@ function TaskWorkflowForm({
             )}
             {workspace.truncated && (
               <p className="admin-copy text-xs">
-                Showing the most recent 100 source records and up to 100 workspace members.
+                Showing up to 100 source records and 100 workspace members.
               </p>
             )}
             {tasks.map((task, index) => (

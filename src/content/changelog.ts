@@ -8,6 +8,33 @@ export const changelogEntries: ChangelogEntry[] = [
     description:
       "Start a task checklist or invoice from a won opportunity with its source or contact already selected. Older linked records remain available outside the first page of choices, and unavailable sources offer recovery. Changing the linked record clears the previous preview. Task creation, invoice drafts and sending keep their existing separate approvals.",
     category: "improvement",
+    publishedAt: "2026-10-20",
+  },
+  {
+    id: "homepage-sculpture-depth",
+    slug: "homepage-sculpture-depth",
+    title: "Explore a more responsive homepage animation",
+    description:
+      "The homepage arrows turn and separate as work passes through them. Drag or use the arrow keys to change the perspective, and select a workflow to reshape the sculpture. Directional shading and soft shadows add depth. Reduced motion keeps the scene still between interactions.",
+    category: "improvement",
+    publishedAt: "2026-10-19",
+  },
+  {
+    id: "workshop-payment-field-loading",
+    slug: "workshop-payment-field-loading",
+    title: "Load live workshop payment fields reliably",
+    description:
+      "Workshop payment fields now load reliably inside the registration page. Retry a disrupted checkout without reserving another seat.",
+    category: "fix",
+    publishedAt: "2026-10-19",
+  },
+  {
+    id: "today-review-action-layout",
+    slug: "today-review-action-layout",
+    title: "Review customer work in a clearer Today layout",
+    description:
+      "Business review uses full-width rows with customer context and specific review actions. Source details expand on demand, empty areas stay compact, and workflow discovery follows the active work. Today removes repeated opening instructions and keeps consistent spacing between sections across desktop and mobile.",
+    category: "improvement",
     publishedAt: "2026-10-19",
   },
   {
@@ -15,7 +42,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "workshop-confidence",
     title: "Practice AI skills in a small Chicago workshop",
     description:
-      "The November 11 workshop now focuses on guided practice for people who want more confidence using AI. Meet the hosts, see what to bring, and explore three practical preparation guides. Homepage links open the workshop overview before checkout. The workshop is limited to 24 participants, with pizza included in the $50 admission. Article buttons retain readable contrast in both themes.",
+      "The November 11 workshop now focuses on guided practice for people who want more confidence using AI. Meet the hosts, see what to bring, and explore three practical preparation guides. Homepage links open the workshop overview before checkout. The workshop is limited to 24 participants, with pizza included in the $50 admission. Buyers pay through secure Stripe card fields on an internal payment page. Field recovery keeps the same order, and uncertain payment results lead to a status check before another submission. Payment and confirmation pages exclude marketing scripts. Stripe setup verifies the intended account and keeps each merchant's credentials separate. Article buttons retain readable contrast in both themes, and checkout errors remain within the ticket card.",
     category: "improvement",
     publishedAt: "2026-10-19",
   },

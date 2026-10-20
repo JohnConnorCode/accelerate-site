@@ -1,6 +1,10 @@
 "use client";
-import { useRef, useState } from "react";
-import { ticketMoney, type TicketEvent } from "@/lib/revenue-os/event-ticketing-contract";
+import { useEffect, useRef, useState } from "react";
+import {
+  eventPath,
+  ticketMoney,
+  type TicketEvent,
+} from "@/lib/revenue-os/event-ticketing-contract";
 import styles from "./workshop.module.css";
 
 export function EventCheckout({
@@ -18,7 +22,11 @@ export function EventCheckout({
   const [quantity, setQuantity] = useState(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const errorRef = useRef<HTMLParagraphElement>(null);
   const attempt = useRef({ fingerprint: "", key: "" });
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
   const available = Math.min(40, event.available_tickets ?? event.capacity);
   const open =
     !preview &&
@@ -97,9 +105,12 @@ export function EventCheckout({
       const url = new URL(payload.url);
       // A fresh private document cannot inherit marketing SDKs already loaded
       // on this public page. Its own chrome excludes those scripts.
-      if (payload.confirmed && url.origin === window.location.origin)
-        window.location.assign(url.href);
-      else if (url.protocol === "https:" && url.hostname === "checkout.stripe.com")
+      const path = eventPath(tenantSlug, event.slug);
+      if (
+        url.origin === window.location.origin &&
+        (url.pathname === `${path}/checkout` ||
+          (payload.confirmed && url.pathname === `${path}/confirmation`))
+      )
         window.location.assign(url.href);
       else throw new Error("Checkout returned an unexpected address");
     } catch (cause) {
@@ -122,7 +133,7 @@ export function EventCheckout({
         </p>
       </div>
       {open ? (
-        <form onSubmit={purchase} className={styles.form}>
+        <form onSubmit={purchase} className={styles.form} aria-busy={busy}>
           <label>
             Your name
             <input name="name" autoComplete="name" required maxLength={160} />
@@ -146,9 +157,14 @@ export function EventCheckout({
             <span>Total</span>
             <strong>{ticketMoney(event.price_cents * quantity)}</strong>
           </div>
+          {error && (
+            <p className={styles.checkoutError} role="alert" ref={errorRef} tabIndex={-1}>
+              {error}
+            </p>
+          )}
           <button type="submit" className={styles.primary} disabled={busy}>
             {busy
-              ? "Opening secure checkout…"
+              ? "Preparing your order…"
               : `Get ${quantity === 1 ? "a ticket" : `${quantity} tickets`} (${ticketMoney(event.price_cents * quantity)})`}
           </button>
           <p className={styles.small}>
@@ -167,8 +183,8 @@ export function EventCheckout({
                 : "Ticket sales are closed."}
         </p>
       )}
-      {error && (
-        <p className={styles.error} role="alert">
+      {!open && error && (
+        <p className={styles.checkoutError} role="alert" ref={errorRef} tabIndex={-1}>
           {error}
         </p>
       )}

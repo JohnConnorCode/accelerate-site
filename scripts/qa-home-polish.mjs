@@ -99,7 +99,30 @@ try {
           if (isSequence && wasPending) {
             await owner.screenshot({ path: `${output}/${label}-entry-${index}.png` });
           }
-          await page.waitForTimeout(1150);
+          // The final stagger can still be a frame short when a fixed timer fires.
+          // Observe exact completion before collecting the unchanged geometry proof.
+          try {
+            await page.waitForFunction(
+              (id) => {
+                const node = document.querySelector(`[data-qa-entry-id="${id}"]`);
+                const targets = node.classList.contains("home-sequence")
+                  ? [...node.querySelectorAll("[data-home-step]")]
+                  : [node];
+                return targets.every((target) => {
+                  const style = getComputedStyle(target);
+                  return (
+                    style.opacity === "1" &&
+                    (style.transform === "none" || style.transform === "matrix(1, 0, 0, 1, 0, 0)")
+                  );
+                });
+              },
+              index,
+              { timeout: 2000 },
+            );
+          } catch (error) {
+            if (error.name !== "TimeoutError") throw error;
+            // Retain the unsettled state below so the original assertion reports it.
+          }
           const receipt = await owner.evaluate((node) => {
             const targets = node.classList.contains("home-sequence")
               ? [...node.querySelectorAll("[data-home-step]")]

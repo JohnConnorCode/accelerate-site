@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
 
+// Checkout secrets are opaque, including Stripe's percent-encoded suffixes.
+// Validate their envelope without decoding or changing the provider value.
+export const stripeCheckoutClientSecretSchema = z
+  .string()
+  .max(2048)
+  .regex(/^cs_[A-Za-z0-9_]+_secret_[\x21-\x7e]+(?![\s\S])/);
+
 export const eventDefinitionSchema = z
   .object({
     slug: z

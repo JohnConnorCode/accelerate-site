@@ -141,6 +141,12 @@ try {
   assert.equal(sql(`SELECT status FROM ticket_events WHERE id='${WORKSHOP_EVENT_ID}'`), "draft");
 
   const future = Date.now() + 7 * 86400000;
+  const embeddedMigration = readFileSync(
+    new URL("../migrations/20261019212500_event_embedded_checkout.sql", import.meta.url),
+    "utf8",
+  );
+  sql(embeddedMigration);
+  sql(embeddedMigration);
   const published = {
     ...WORKSHOP_EVENT,
     // Keep the forty-place concurrency scenario independent of marketing defaults.
@@ -186,6 +192,33 @@ try {
   );
   fail(save({ ...published, capacity: 39 }, 2), /Capacity cannot be below/);
   const first = JSON.parse(races.find((result) => result.code === 0).output);
+  const embedded =
+    context() +
+    `SELECT record_event_checkout('${first.id}','cs_test_fixture',NULL,${literal(first.expires_at)});`;
+  const attached = JSON.parse(sql(embedded));
+  assert.equal(attached.state, "checkout");
+  assert.equal(attached.stripe_checkout_url, null);
+  assert.deepEqual(JSON.parse(sql(embedded)), attached, "The same embedded receipt is replayable");
+  fail(
+    context(b) +
+      `SELECT record_event_checkout('${first.id}','cs_test_other',NULL,${literal(first.expires_at)});`,
+    /Order not found/,
+  );
+  fail(
+    context() +
+      `SELECT record_event_checkout('${first.id}','cs_test_other',NULL,${literal(first.expires_at)});`,
+    /different checkout/,
+  );
+  fail(
+    context() +
+      `SELECT record_event_checkout('${first.id}','cs_test_fixture','https://attacker.example/',${literal(first.expires_at)});`,
+    /Invalid Stripe checkout receipt/,
+  );
+  fail(
+    context(a, "authenticated") +
+      `SELECT record_event_checkout('${first.id}','cs_test_fixture',NULL,${literal(first.expires_at)});`,
+    /permission denied/,
+  );
   assert.equal(first.unit_price_cents, 5000);
   const observation = {
     state: "paid",

@@ -78,7 +78,7 @@ try {
       await goto("northline-roofing", "today");
       await page.locator('[data-business-review="sales"]').waitFor();
       assert.equal(await page.locator("[data-business-review]").count(), 4);
-      await page.locator("[data-page-start-hint]").waitFor();
+      assert.equal(await page.locator("[data-page-start-hint]").count(), 0);
       const how = page.getByRole("button", { name: "How this works", exact: true });
       await stable(page);
       const panel = page.locator(".admin-help-panel");
@@ -209,9 +209,9 @@ try {
         // Screenshot annotations are capture-only DOM labels, never product UI.
         await page.evaluate(() => {
           for (const [selector, text] of [
-            ["[data-page-start-hint]", "1"],
+            [".admin-page-introduction", "1"],
             ['[data-today-module="brief"]', "2"],
-            ["details:has(summary)", "3"],
+            ["[data-today-workspace] > details", "3"],
           ]) {
             const target = document.querySelector(selector);
             if (!target) continue;
@@ -244,13 +244,13 @@ try {
         await page.getByRole("link", { name: "Daily work", exact: true }).waitFor();
         await page.getByRole("button", { name: /Expand sidebar/ }).click();
       }
-      const salesSources = page.locator('[data-business-review="sales"] a');
-      assert.ok(
-        (await salesSources.count()) > 1,
-        "Sales must offer a source record as well as its workspace",
-      );
-      const recordHref = new URL(await salesSources.last().getAttribute("href"), page.url());
-      await salesSources.last().click();
+      const sales = page.locator('[data-business-review="sales"]');
+      const salesSource = sales.locator("a.admin-button");
+      assert.equal(await salesSource.count(), 1, "Sales must offer one specific source action");
+      assert.equal(await sales.locator("details > summary").innerText(), "Source and next step");
+      const recordHref = new URL(await salesSource.getAttribute("href"), page.url());
+      assert.match(recordHref.pathname, /^\/demo\/command-center\/northline-roofing\//);
+      await salesSource.click();
       await page.waitForURL(
         (url) => url.pathname === recordHref.pathname && url.search === recordHref.search,
       );

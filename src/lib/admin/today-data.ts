@@ -250,7 +250,7 @@ export function todayBusinessReview(snapshot: TodaySnapshot) {
           ? "Collections is not included in this review. Open invoices for recorded billing status or check Apps & connections."
           : items.length
             ? "From the currently inspected records."
-            : "No follow-up surfaced in the inspected records. Open the full workspace for a broader review.";
+            : "No follow-up in the inspected records.";
     return {
       ...domain,
       items,

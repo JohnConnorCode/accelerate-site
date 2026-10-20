@@ -71,6 +71,10 @@ Deterministic draft preparation has no model charge. Actual Stripe services can
 incur provider charges; AI presentation and chat use the configured workspace
 model and its usage limits. There is no plugin-specific unlimited free tier.
 Credentials belong in the existing encrypted connection path, not module settings.
+Configuration requires the intended Stripe account ID and rejects a server key
+from another account. Workshop payment fields also need the matching publishable
+key. Rotating within the same verified account retains omitted optional keys;
+changing accounts never reuses the previous merchant's webhook or publishable key.
 
 ## Disable and recover
 

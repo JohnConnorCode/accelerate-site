@@ -133,8 +133,24 @@ const nextConfig: NextConfig = {
             // Keep the broad policy in reporting mode until custom connector origins are covered.
             key: "Content-Security-Policy-Report-Only",
             value:
-              "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://assets.calendly.com; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.supabase.co https://calendly.com https://*.calendly.com; frame-src 'self' https://calendly.com https://*.calendly.com https://www.youtube-nocookie.com",
+              "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://connect.facebook.net https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://assets.calendly.com; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.stripe.com https://*.stripe.network https://www.google-analytics.com https://*.supabase.co https://calendly.com https://*.calendly.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://calendly.com https://*.calendly.com https://www.youtube-nocookie.com",
           },
+        ],
+      },
+      {
+        source: "/events/:slug/:step(checkout|confirmation)",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/t/:tenantSlug/events/:slug/:step(checkout|confirmation)",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
       {

@@ -58,7 +58,7 @@ export function PageHeader({
     guidance === false
       ? undefined
       : (guidance ?? (destination ? adminPageGuidance[destination.id] : undefined));
-  const description = subtitle || (isRoot ? help?.description : undefined);
+  const description = subtitle ?? (isRoot ? help?.description : undefined);
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [helpOpenPathname, setHelpOpenPathname] = useState(identityHref);

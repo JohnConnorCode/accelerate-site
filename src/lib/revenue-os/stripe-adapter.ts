@@ -24,6 +24,7 @@ const stripeTransport = {
 const stripeCredentials: ExtsvcAdapterContract["credentialFields"] = [
   { formField: "apiKey", encryptedKey: "api_key", required: true },
   { formField: "webhookSecret", encryptedKey: "webhook_secret", required: false },
+  { formField: "publishableKey", encryptedKey: "publishable_key", required: false },
 ];
 type StripeObject = Record<string, unknown>;
 export function stripeKeyMode(value: string): "test" | "live" {
@@ -77,6 +78,30 @@ async function stripeRequest(
         ? ` Stripe request: ${requestId}.`
         : "";
     const resource = path.split("/")[1]?.split("?")[0];
+    let providerError: StripeObject = {};
+    try {
+      const parsed = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+      if (parsed?.error && typeof parsed.error === "object" && !Array.isArray(parsed.error))
+        providerError = parsed.error;
+    } catch {
+      // A non-JSON provider failure still retains its HTTP status and reference.
+      console.warn("[stripe] Provider error response was not JSON");
+    }
+    const [code, param] = ["code", "param"].map((field) => {
+      const value = providerError[field];
+      return typeof value === "string" &&
+        /^[a-z][a-z0-9_.\[\]]{0,119}$/i.test(value) &&
+        !/(?:rk|sk)_(?:test|live)_/.test(value)
+        ? value
+        : null;
+    });
+    console.error("[stripe] Provider request failed", {
+      status: response.status,
+      resource,
+      requestId: requestId && /^req_[A-Za-z0-9]{1,120}$/.test(requestId) ? requestId : null,
+      code,
+      param,
+    });
     const recovery =
       response.status === 403
         ? ` Check this workspace’s Stripe key permissions for ${resource ?? "the requested resource"} in Stripe, then reconnect it in Integrations.`
@@ -103,10 +128,27 @@ export const stripeAdapter: IntegrationAdapter & ExtsvcAdapterContract = {
   async verify(credentials) {
     try {
       const apiKey = typeof credentials.apiKey === "string" ? credentials.apiKey : "";
-      stripeKeyMode(apiKey);
+      const mode = stripeKeyMode(apiKey);
+      if (
+        credentials.publishableKey &&
+        (typeof credentials.publishableKey !== "string" ||
+          !new RegExp(`^pk_${mode}_[A-Za-z0-9]{10,200}$`).test(credentials.publishableKey))
+      )
+        return {
+          valid: false,
+          provider: "stripe",
+          error: "The publishable key must match the server key's test or live mode.",
+        };
       const { object } = await stripeRequest(apiKey, "/account");
       if (typeof object.id !== "string" || !object.id.startsWith("acct_"))
         throw new Error("Stripe account was not identified");
+      if (credentials.accountId && credentials.accountId !== object.id)
+        return {
+          valid: false,
+          provider: "stripe",
+          error:
+            "This key belongs to a different Stripe account. Check the account ID and choose a key from that account.",
+        };
       return { valid: true, provider: "stripe", accountDetails: { id: object.id } };
     } catch {
       console.error("[stripe] Credential verification failed");
@@ -178,6 +220,12 @@ export async function tenantStripeClient(db: SupabaseClient) {
       ? decryptTenantSecret(encryptedWebhook, tenantId, "stripe", "webhook_secret")
       : null;
   const mode = stripeKeyMode(apiKey);
+  const encryptedPublishable = (connection.encrypted_credentials as Record<string, unknown>)
+    ?.publishable_key;
+  const publishableKey =
+    typeof encryptedPublishable === "string"
+      ? decryptTenantSecret(encryptedPublishable, tenantId, "stripe", "publishable_key")
+      : null;
   const assertCurrentConnection = async () => {
     const current = await tenantStripeClient(db);
     if (
@@ -192,6 +240,10 @@ export async function tenantStripeClient(db: SupabaseClient) {
     mode,
     credentialVersion: connection.credential_version as number,
     accountId: connection.account_email as string,
+    publishableKey:
+      publishableKey && new RegExp(`^pk_${mode}_[A-Za-z0-9]{10,200}$`).test(publishableKey)
+        ? publishableKey
+        : null,
     account: () => stripeRequest(apiKey, "/account"),
     products: () => stripeRequest(apiKey, "/products?active=true&limit=100"),
     prices: (productId?: string) =>
