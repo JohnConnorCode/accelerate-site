@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "customer-workflow-context",
+    slug: "customer-workflow-context",
+    title: "Keep the customer selected through onboarding and invoicing",
+    description:
+      "Start a task checklist or invoice from a won opportunity with its source or contact already selected. Older linked records remain available outside the first page of choices, and unavailable sources offer recovery. Changing the linked record clears the previous preview. Task creation, invoice drafts and sending keep their existing separate approvals.",
+    category: "improvement",
+    publishedAt: "2026-10-20",
+  },
+  {
     id: "homepage-sculpture-depth",
     slug: "homepage-sculpture-depth",
     title: "Explore a more responsive homepage animation",

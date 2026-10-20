@@ -757,6 +757,7 @@ jobs:
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
             node scripts/qa-invoice-navigation.mjs
+            node scripts/qa-customer-workflow-context.mjs
             node scripts/qa-home-polish.mjs
             node scripts/qa-demo-business-workflows.mjs
           ) &
@@ -808,6 +809,14 @@ jobs:
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-navigation-runtime/
             /tmp/accelerate-navigation-filmstrip/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Retain customer handoff evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: customer-workflow-context-evidence
+          path: /tmp/accelerate-customer-workflow-context/
           retention-days: 7
           if-no-files-found: ignore
       - name: Retain focused contributor guide evidence

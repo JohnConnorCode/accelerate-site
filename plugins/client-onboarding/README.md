@@ -7,11 +7,16 @@ creates tasks only after a human approves the exact plan. It starts disabled.
 
 1. In **Plugins**, enable **Client onboarding**, then open `/admin/client-onboarding`.
    Use an authorized workspace with a stored opportunity and valid task assignees.
-2. Select the source and enter one to ten tasks. Each task has a title,
+2. From a won Pipeline opportunity, choose **Create onboarding checklist**, or open
+   `/admin/client-onboarding?opportunityId=<opportunity-uuid>` to preselect it.
+   Exact links retain eligible older sources outside the most recent 100.
+   Missing or no-longer-won sources require another selection.
+   Select the source and enter one to ten tasks. Each task has a title,
    description, due date and assignee. The selected opportunity must be won.
 3. Preview the checklist and inspect its source, assignments and dates. Submit
    the exact preview for approval, then approve through the shared action queue.
-4. Inspect the execution receipt and the created tasks. A preview or pending
+4. Inspect the execution receipt and the created tasks. **Open opportunity** returns
+   to the source; its **Create invoice** action keeps the linked CRM contact. A preview or pending
    proposal is not evidence that tasks were created.
 
 Select a fictional won website project and prepare two tasks: confirm kickoff and request brand assets. After approval, expect two assigned tasks linked to that source.

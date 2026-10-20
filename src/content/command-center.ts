@@ -98,7 +98,7 @@ const capabilityDefinitions: Capability[] = [
     promise:
       "Create an invoice for an existing customer and follow its sending and payment status.",
     detail:
-      "Search loaded invoices, review open and overdue balances by currency, create a missing billing customer, and approve invoice creation, sending or unpaid-invoice cancellation. Payments & refunds adds reviewed refunds, source receipts and selected-record CSV exports. Provider payment facts remain authoritative; reports state their loaded scope.",
+      "Open an invoice from a won opportunity with its linked contact selected. Search loaded invoices, review open and overdue balances by currency, create a missing billing customer, and approve invoice creation, sending or unpaid-invoice cancellation. Payments & refunds adds reviewed refunds, source receipts and selected-record CSV exports. Provider payment facts remain authoritative; reports state their loaded scope.",
     gated: true,
     guideHref: "/docs/plugins/stripe-invoicing",
   },
@@ -344,7 +344,7 @@ const capabilityDefinitions: Capability[] = [
     title: "Assigned task checklists",
     promise: "Break an onboarding or meeting follow-up into tasks the team can complete.",
     detail:
-      "The bundled workflow plugins prepare one to ten tasks with descriptions, dates and assignees. Review the plan and confirm the created tasks after execution.",
+      "A won opportunity opens its onboarding checklist with the source selected. The bundled workflow plugins prepare one to ten tasks with descriptions, dates and assignees. Review the plan and confirm the created tasks after execution.",
     gated: true,
   },
   {
