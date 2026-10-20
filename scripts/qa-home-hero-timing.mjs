@@ -392,7 +392,25 @@ async function exerciseArtwork(page, label, touch = false, reduced = false) {
   let hover = null;
   if (!touch) {
     await page.mouse.move(bounds.x + bounds.width * 0.82, bounds.y + bounds.height * 0.32);
-    await page.waitForTimeout(300);
+    // WebKit can deliver its first paint after a fixed sleep on a busy runner.
+    // Observe this single gesture's rendered movement before collecting evidence.
+    try {
+      await page.waitForFunction(
+        ({ neutralPose, neutral }) => {
+          const root = document.querySelector(".home-system-artwork");
+          const current = root.dataset.pose.split(",").map(Number);
+          return (
+            Math.hypot(current[0] - neutralPose[0], current[1] - neutralPose[1]) >= 8 &&
+            root.querySelector(".home-system-base").getAttribute("d") !== neutral
+          );
+        },
+        { neutralPose, neutral },
+        { timeout: 1000 },
+      );
+    } catch (error) {
+      if (error.name !== "TimeoutError") throw error;
+      // Preserve the failed pose and shape below when movement never arrives.
+    }
     hover = {
       startPose: neutralPose,
       pointer: { x: bounds.x + bounds.width * 0.82, y: bounds.y + bounds.height * 0.32 },

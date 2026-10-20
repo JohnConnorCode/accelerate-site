@@ -24,6 +24,15 @@ const providerSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("configure_stripe"),
     apiKey: z.string().trim().min(20).max(256),
+    accountId: z
+      .string()
+      .trim()
+      .regex(/^acct_[A-Za-z0-9]{1,100}$/),
+    publishableKey: z
+      .string()
+      .trim()
+      .regex(/^pk_(?:test|live)_[A-Za-z0-9]{10,200}$/)
+      .optional(),
     webhookSecret: z.string().trim().min(10).max(500).optional(),
   }),
   z.object({
@@ -188,6 +197,7 @@ async function configureAdapterProvider(
   credentialVersion: number,
   existingStatus: string | null | undefined,
   existingCredentials: unknown,
+  existingAccount: string | null | undefined,
   now: string,
 ): Promise<NextResponse> {
   const adapter = INTEGRATION_ADAPTERS.get(provider);
@@ -211,19 +221,19 @@ async function configureAdapterProvider(
       ? (value, field) => encryptTenantSecret(value, authorization.tenant.id, provider, field)
       : encryptSecret,
   );
-  // Rotating the Stripe API key should not silently remove a previously
-  // configured webhook signing secret when the operator leaves that optional
-  // field blank.
+  // Preserve optional credentials only within the same verified merchant.
   if (
     provider === "stripe" &&
-    !encryptedCredentials.webhook_secret &&
     existingStatus === "connected" &&
+    existingAccount === resolveAccountIdentifier(verification) &&
     existingCredentials &&
-    typeof existingCredentials === "object" &&
-    typeof (existingCredentials as Record<string, unknown>).webhook_secret === "string"
+    typeof existingCredentials === "object"
   ) {
-    const secret = (existingCredentials as Record<string, unknown>).webhook_secret;
-    if (typeof secret === "string") encryptedCredentials.webhook_secret = secret;
+    for (const field of ["webhook_secret", "publishable_key"]) {
+      const secret = (existingCredentials as Record<string, unknown>)[field];
+      if (!encryptedCredentials[field] && typeof secret === "string")
+        encryptedCredentials[field] = secret;
+    }
   }
   const { data, error } = await authorization.database
     .from("integration_connections")
@@ -306,7 +316,7 @@ export async function POST(request: NextRequest) {
                   : "resend";
   const { data: existing } = await authorization.database
     .from("integration_connections")
-    .select("credential_version,status,settings,encrypted_credentials")
+    .select("credential_version,status,settings,encrypted_credentials,account_email")
     .eq("provider", provider)
     .maybeSingle();
   const credentialVersion = Number(existing?.credential_version || 0) + 1;
@@ -370,6 +380,7 @@ export async function POST(request: NextRequest) {
       credentialVersion,
       existing?.status,
       existing?.encrypted_credentials,
+      existing?.account_email,
       now,
     );
   }

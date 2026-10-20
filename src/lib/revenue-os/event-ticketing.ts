@@ -22,7 +22,6 @@ import {
 import { assertCurrentTenantAdmin } from "./tenant-admin-authority";
 import { isModuleEnabled } from "./modules";
 import { tenantStripeClient } from "./stripe-adapter";
-import { stripeHostedUrl } from "./subscriptions-contract";
 import { sendRecordedEmail } from "./communications";
 import { proposeAction } from "./actions";
 import { recordAudit } from "./audit";
@@ -176,8 +175,10 @@ export async function saveTicketEvent(db: SupabaseClient, raw: unknown, actorEma
     if (Date.parse(input.event.starts_at) <= Date.now())
       throw new Error("Choose a future workshop before opening ticket sales");
     const client = await tenantStripeClient(db);
-    if (!client.webhookSecret)
-      throw new Error("Configure the Stripe webhook signing secret before opening ticket sales");
+    if (!client.webhookSecret || !client.publishableKey)
+      throw new Error(
+        "Configure the Stripe publishable key and webhook signing secret before opening ticket sales",
+      );
     const { object: account } = await client.account();
     if (
       account.id !== client.accountId ||
@@ -209,6 +210,7 @@ function checkoutBody(order: TicketOrder, origin: string, tenantSlug: string) {
   };
   const body = new URLSearchParams({
     mode: "payment",
+    ui_mode: "custom",
     "payment_method_types[0]": "card",
     customer_email: order.buyer_email,
     "line_items[0][price_data][currency]": "usd",
@@ -217,8 +219,7 @@ function checkoutBody(order: TicketOrder, origin: string, tenantSlug: string) {
     "line_items[0][quantity]": String(order.quantity),
     expires_at: String(Math.floor(Date.parse(order.expires_at) / 1000)),
     client_reference_id: order.id,
-    success_url: `${path}/confirmation?order=${order.id}&key=${order.request_id}`,
-    cancel_url: `${path}?checkout=cancelled`,
+    return_url: `${path}/confirmation?order=${order.id}&key=${order.request_id}`,
   });
   for (const [key, value] of Object.entries(metadata)) {
     body.set(`metadata[${key}]`, value);
@@ -235,15 +236,16 @@ async function attachCheckout(
 ) {
   if (client.accountId !== order.stripe_account_id || (client.mode === "live") !== order.livemode)
     throw new Error("The Stripe account changed; reconcile this reservation before retrying");
-  if (order.stripe_session_id && order.stripe_checkout_url) return order;
+  if (order.stripe_session_id) return order;
   const result = await client.checkoutSession(
     checkoutBody(order, origin, tenantSlug),
     `event-ticket:${order.tenant_id}:${order.request_id}`,
   );
   const session = result.object;
-  const url = stripeHostedUrl(session.url, "checkout.stripe.com");
   if (
-    !url ||
+    session.ui_mode !== "custom" ||
+    typeof session.client_secret !== "string" ||
+    !/^cs_[A-Za-z0-9_]+_secret_[A-Za-z0-9]+$/.test(session.client_secret) ||
     typeof session.id !== "string" ||
     !/^cs_[A-Za-z0-9_]+$/.test(session.id) ||
     !Number.isInteger(session.expires_at)
@@ -252,7 +254,7 @@ async function attachCheckout(
   return rpc<TicketOrder>(db, "record_event_checkout", {
     p_order_id: order.id,
     p_session_id: session.id,
-    p_checkout_url: url,
+    p_checkout_url: null,
     p_expires_at: new Date(Number(session.expires_at) * 1000).toISOString(),
   });
 }
@@ -268,16 +270,17 @@ export async function reconcileTicketReservations(db: SupabaseClient, eventId: s
     .limit(50);
   if (error) throw new Error("Ticket reservations could not be reconciled");
   let needsReview = 0;
+  const client = data?.length ? await tenantStripeClient(db) : null;
   for (const order of (data ?? []) as TicketOrder[]) {
+    if (
+      !client ||
+      client.accountId !== order.stripe_account_id ||
+      (client.mode === "live") !== order.livemode
+    ) {
+      needsReview++;
+      continue;
+    }
     if (!order.stripe_session_id) {
-      const client = await tenantStripeClient(db);
-      if (
-        client.accountId !== order.stripe_account_id ||
-        (client.mode === "live") !== order.livemode
-      ) {
-        needsReview++;
-        continue;
-      }
       const listing = await client.checkoutSessionsSince(
         Math.floor(Date.parse(order.created_at) / 1000) - 5,
       );
@@ -318,6 +321,8 @@ export async function createTicketCheckout(
   const event = await readTicketEvent(db, slug);
   if (!event) throw new Error("Workshop not found");
   const client = await tenantStripeClient(db);
+  if (!client.publishableKey)
+    throw new Error("Configure this workspace's Stripe publishable key before opening checkout");
   await reconcileTicketReservations(db, event.id);
   const digest = createHash("sha256")
     .update(
@@ -359,7 +364,11 @@ export async function createTicketCheckout(
     };
   if (attached.state === "expired" || attached.state === "refunded")
     throw new TicketCheckoutClosedError();
-  return { url: attached.stripe_checkout_url, orderId: order.id, expiresAt: attached.expires_at };
+  return {
+    url: `${origin}${eventPath(tenantSlug, slug)}/checkout?order=${order.id}&key=${order.request_id}`,
+    orderId: order.id,
+    expiresAt: attached.expires_at,
+  };
 }
 function object(value: unknown): ProviderObject {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -618,6 +627,44 @@ export async function readPublicTicketOrder(
       emailStatus: order.email_status,
       testMode: !order.livemode,
     },
+  };
+}
+/** Only an order's opaque guest credential can retrieve its payment fields. */
+export async function readTicketPayment(db: SupabaseClient, slug: string, id: string, key: string) {
+  const { order, public: receipt } = await readPublicTicketOrder(db, slug, id, key);
+  if (order.state === "paid" || order.state === "expired" || order.state === "refunded")
+    return receipt;
+  const client = await tenantStripeClient(db);
+  if (
+    !client.publishableKey ||
+    !order.stripe_session_id ||
+    client.accountId !== order.stripe_account_id ||
+    (client.mode === "live") !== order.livemode
+  )
+    throw new Error("Secure payment fields are unavailable for this order");
+  const session = (await client.retrieveCheckoutSession(order.stripe_session_id)).object;
+  const metadata = object(session.metadata);
+  if (
+    session.ui_mode !== "custom" ||
+    session.status !== "open" ||
+    session.id !== order.stripe_session_id ||
+    session.livemode !== order.livemode ||
+    session.amount_total !== order.total_cents ||
+    session.currency !== "usd" ||
+    metadata.accelerate_tenant_id !== scope(db) ||
+    metadata.accelerate_order_id !== order.id ||
+    metadata.accelerate_purpose !== "event_ticket" ||
+    metadata.accelerate_event_id !== order.event_id ||
+    typeof session.client_secret !== "string" ||
+    !session.client_secret.startsWith(`${order.stripe_session_id}_secret_`)
+  )
+    throw new Error("This payment session cannot be opened; check your order before paying again");
+  return {
+    ...receipt,
+    clientSecret: session.client_secret,
+    publishableKey: client.publishableKey,
+    buyerName: order.buyer_name,
+    buyerEmail: order.buyer_email,
   };
 }
 export async function saveTicketBusinessContext(db: SupabaseClient, slug: string, raw: unknown) {

@@ -14,6 +14,103 @@ import AxeBuilder from "@axe-core/playwright";
 // real persistence, payment verification and idempotency separately.
 const output = process.env.EVENT_TICKETING_QA_OUTPUT || "/tmp/accelerate-event-ticketing";
 const controlledTracking = process.env.EVENT_TICKETING_QA_TRACKING === "controlled";
+
+// Model Stripe's documented Checkout SDK shape. The fixture never accepts
+// card details or calls Stripe; server receipts remain independently controlled.
+function controlledStripeSdk() {
+  const callbacks = new Map();
+  const control = {
+    mode: "decline",
+    initializations: [],
+    mounts: 0,
+    autoReady: false,
+    sessionStatus: "open",
+    emit: (event, payload = {}) => callbacks.get(event)?.(payload),
+  };
+  window.__ticketStripe = control;
+  const session = () => ({
+    id: "cs_test_controlled",
+    canConfirm: true,
+    currency: "usd",
+    email: "buyer@workshop.example",
+    livemode: false,
+    status:
+      control.sessionStatus === "complete"
+        ? { type: "complete", paymentStatus: "paid" }
+        : { type: "open" },
+    total: { total: { minorUnitsAmount: 10000, amount: "$100.00" } },
+  });
+  window.Stripe = (publishableKey) => ({
+    initCheckout: (options) => {
+      control.initializations.push({ publishableKey, clientSecret: options.clientSecret });
+      let mounted;
+      const paymentElement = {
+        on: (event, handler) => {
+          callbacks.set(event, handler);
+          return paymentElement;
+        },
+        mount: (target) => {
+          const parent = typeof target === "string" ? document.querySelector(target) : target;
+          if (!parent) throw new Error("Payment Element mount target is missing");
+          mounted = document.createElement("div");
+          mounted.setAttribute("role", "group");
+          mounted.setAttribute("aria-label", "Controlled secure payment fields");
+          mounted.style.cssText =
+            "padding:24px;background:#fff;color:#222;border-radius:8px;min-height:120px";
+          const input = document.createElement("input");
+          input.setAttribute("aria-label", "Controlled payment method");
+          input.value = "Controlled fixture, no card data";
+          input.readOnly = true;
+          input.style.cssText = "width:100%;color:#222;background:#fff";
+          mounted.append(input);
+          parent.append(mounted);
+          control.mounts++;
+          sessionStorage.setItem(
+            "qa:ticket-mount-count",
+            String(Number(sessionStorage.getItem("qa:ticket-mount-count") || "0") + 1),
+          );
+          if (control.autoReady) queueMicrotask(() => control.emit("ready"));
+        },
+        unmount: () => mounted?.remove(),
+        destroy: () => mounted?.remove(),
+      };
+      return {
+        on: (event, handler) => callbacks.set(`checkout:${event}`, handler),
+        createPaymentElement: () => paymentElement,
+        loadActions: async () => ({
+          type: "success",
+          actions: {
+            getSession: session,
+            confirm: async (input) => {
+              control.lastConfirm = input;
+              const count = Number(sessionStorage.getItem("qa:ticket-confirm-count") || "0") + 1;
+              sessionStorage.setItem("qa:ticket-confirm-count", String(count));
+              if (control.mode === "decline")
+                return {
+                  type: "error",
+                  error: {
+                    code: "paymentFailed",
+                    message: "Your card was declined. Choose another payment method.",
+                    paymentFailed: { declineCode: "generic_decline" },
+                  },
+                };
+              if (control.mode === "unknown")
+                throw new Error("Controlled connection lost after payment confirmation");
+              if (control.mode === "unknown-result")
+                return {
+                  type: "error",
+                  error: { code: null, message: "Payment result is unavailable" },
+                };
+              control.sessionStatus = "complete";
+              return { type: "success", session: session() };
+            },
+          },
+        }),
+      };
+    },
+  });
+}
+
 await mkdir(output, { recursive: true });
 const tenant = {
   id: "acce1e8e-0000-4000-8000-000000000001",
@@ -162,20 +259,33 @@ try {
     });
     const page = await context.newPage();
     page.setDefaultTimeout(20000);
+    const ticketCheckout = page.getByRole("complementary", {
+      name: "Workshop tickets",
+      exact: true,
+    });
     const errors = [],
       purchases = [],
       contexts = [];
     let checkoutAttempts = 0,
       contextAttempts = 0,
       receiptState = "checkout",
-      receiptTestMode = false;
+      receiptTestMode = false,
+      failStripeScript = true,
+      plannedScriptFailures = 0;
+    const paymentReads = [],
+      privateTrackingRequests = [];
     const orderId = randomUUID(),
       key = randomUUID();
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => {
       if (
         message.type() === "error" &&
-        !(message.location().url.startsWith(api) && /\b(?:409|422|503)\b/.test(message.text()))
+        !(message.location().url.startsWith(api) && /\b(?:409|422|503)\b/.test(message.text())) &&
+        !(
+          plannedScriptFailures === 1 &&
+          message.location().url === "https://js.stripe.com/clover/stripe.js" &&
+          /\b503\b/.test(message.text())
+        )
       )
         errors.push(message.text());
     });
@@ -185,13 +295,34 @@ try {
         sessionStorage.setItem(`accelerate:workshop-announcement:${id}`, startsAt),
       { id: event.id, startsAt: event.starts_at },
     );
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (
+        url.pathname !== "/api/analytics/events" &&
+        !/googletagmanager|google-analytics|connect\.facebook|facebook\.com/.test(url.hostname)
+      )
+        return;
+      const path = new URL(request.frame().url() || base).pathname;
+      if (/\/(checkout|confirmation)$/.test(path))
+        privateTrackingRequests.push(url.origin + url.pathname);
+    });
     await page.route("**/*", (route) => {
       const url = new URL(route.request().url());
-      if (url.hostname === "checkout.stripe.com")
+      if (url.origin === "https://js.stripe.com" && url.pathname === "/clover/stripe.js") {
+        if (failStripeScript) {
+          failStripeScript = false;
+          plannedScriptFailures++;
+          return route.fulfill({
+            status: 503,
+            contentType: "application/javascript",
+            body: "/* Controlled Stripe CDN failure. */",
+          });
+        }
         return route.fulfill({
-          contentType: "text/html",
-          body: "<h1>Controlled Stripe handoff</h1>",
+          contentType: "application/javascript",
+          body: `(${controlledStripeSdk.toString()})();`,
         });
+      }
       if (url.origin !== base) {
         if (
           controlledTracking &&
@@ -218,7 +349,10 @@ try {
           checkoutAttempts === 1
             ? {
                 status: 503,
-                json: { error: "Checkout could not be started. Retry with the same details." },
+                json: {
+                  error:
+                    "Checkout could not be started. Your admission is not confirmed. Retry with the same details; if payment already succeeded, use your confirmation link.",
+                },
               }
             : checkoutAttempts === 2
               ? {
@@ -230,7 +364,12 @@ try {
                   },
                 }
               : checkoutAttempts === 3
-                ? { json: { url: "https://checkout.stripe.com/c/pay/cs_controlled", orderId } }
+                ? {
+                    json: {
+                      url: `${base}/events/${event.slug}/checkout?order=${orderId}&key=${key}`,
+                      orderId,
+                    },
+                  }
                 : {
                     json: {
                       confirmed: true,
@@ -248,7 +387,11 @@ try {
             : { json: { saved: true } },
         );
       }
-      if (new URL(request.url()).searchParams.has("order"))
+      const params = new URL(request.url()).searchParams;
+      if (params.has("order")) {
+        assert.equal(params.get("order"), orderId);
+        assert.equal(params.get("key"), key);
+        if (params.get("payment") === "1") paymentReads.push({ state: receiptState });
         return route.fulfill({
           json: {
             reference: orderId,
@@ -258,8 +401,18 @@ try {
             event,
             emailStatus: "attention",
             testMode: receiptTestMode,
+            ...(params.get("payment") === "1"
+              ? {
+                  clientSecret:
+                    receiptState === "checkout" ? "cs_test_controlled_secret_fixture" : null,
+                  publishableKey: "pk_test_controlledworkshopfixture",
+                  buyerName: "Workshop Buyer",
+                  buyerEmail: "buyer@workshop.example",
+                }
+              : {}),
           },
         });
+      }
       return route.continue();
     });
     await page.goto(base, { waitUntil: "domcontentloaded" });
@@ -382,9 +535,7 @@ try {
       false,
     );
     if (width === 390) {
-      const checkout = await page
-        .getByRole("complementary", { name: "Workshop tickets" })
-        .boundingBox();
+      const checkout = await ticketCheckout.boundingBox();
       const takeaways = await page
         .getByRole("heading", { name: "Practical skills you can use at work." })
         .boundingBox();
@@ -428,7 +579,7 @@ try {
     // Hold the real entrance at an unreadable early frame. Interaction must
     // expose the form immediately instead of waiting for its entrance clock.
     if (reducedMotion === "no-preference")
-      await page.getByLabel("Your name", { exact: true }).evaluate((input) => {
+      await ticketCheckout.getByLabel("Your name", { exact: true }).evaluate((input) => {
         const owner = input.closest(".ui-entrance");
         for (const animation of owner.getAnimations()) {
           const timing = animation.effect.getTiming();
@@ -436,25 +587,57 @@ try {
           animation.currentTime = timing.delay + Number(timing.duration) * 0.05;
         }
       });
-    await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
+    await ticketCheckout.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
     assert.equal(
-      await page
+      await ticketCheckout
         .getByLabel("Your name", { exact: true })
         .evaluate((input) => getComputedStyle(input.closest(".ui-entrance")).opacity),
       "1",
       "Focused checkout must finish its entrance immediately",
     );
-    await page
-      .getByRole("complementary", { name: "Workshop tickets" })
+    await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
-    await page.getByLabel("Number of tickets").selectOption("2");
-    const buy = page.getByRole("button", { name: "Get 2 tickets ($100)" });
+    await ticketCheckout.getByLabel("Number of tickets").selectOption("2");
+    // A failed checkout must remain usable on short laptops and small phones,
+    // including when the sticky card grows to contain its recovery message.
+    await page.setViewportSize(
+      width === 1440 ? { width: 1440, height: 720 } : { width: 320, height: 568 },
+    );
+    const buy = ticketCheckout.getByRole("button", { name: "Get 2 tickets ($100)" });
     await buy.focus();
     await page.keyboard.press("Enter");
-    await page.getByRole("alert").filter({ hasText: "Retry with the same details" }).waitFor();
+    const checkoutAlert = ticketCheckout.getByRole("alert");
+    await checkoutAlert.filter({ hasText: "Retry with the same details" }).waitFor();
+    await page.waitForFunction(() =>
+      document.activeElement?.matches('aside[aria-label="Workshop tickets"] [role="alert"]'),
+    );
+    const errorLayout = await checkoutAlert.evaluate((alert) => {
+      const card = alert.closest("aside");
+      const cardBox = card.getBoundingClientRect();
+      const alertBox = alert.getBoundingClientRect();
+      return {
+        pageFits: document.documentElement.scrollWidth <= innerWidth,
+        cardFits: card.scrollWidth <= card.clientWidth,
+        alertFits: alertBox.left >= cardBox.left && alertBox.right <= cardBox.right,
+        alertVisible: alertBox.top >= 0 && alertBox.bottom <= innerHeight,
+        stickyFits: innerWidth <= 800 || cardBox.height <= innerHeight - 112 + 1,
+      };
+    });
+    assert.deepEqual(errorLayout, {
+      pageFits: true,
+      cardFits: true,
+      alertFits: true,
+      alertVisible: true,
+      stickyFits: true,
+    });
+    await page.keyboard.press("Tab");
+    assert.equal(await buy.evaluate((button) => document.activeElement === button), true);
+    await ticketCheckout.screenshot({
+      path: `${output}/checkout-error-${theme}-${width}.png`,
+    });
     const errorAccessibility = await new AxeBuilder({ page })
-      .include('[role="alert"]')
+      .include('aside[aria-label="Workshop tickets"] [role="alert"]')
       .withRules(["color-contrast"])
       .analyze();
     assert.deepEqual(
@@ -467,25 +650,34 @@ try {
       })),
       [],
     );
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
     assert.equal(
-      await page.getByLabel("Your name", { exact: true }).inputValue(),
+      await ticketCheckout.getByLabel("Your name", { exact: true }).inputValue(),
       "Workshop Buyer",
     );
     await page.reload();
-    await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
-    await page
-      .getByRole("complementary", { name: "Workshop tickets" })
+    await ticketCheckout.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
+    await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
-    await page.getByLabel("Number of tickets").selectOption("2");
+    await ticketCheckout.getByLabel("Number of tickets").selectOption("2");
     assert.equal(
       await page.evaluate(() => JSON.stringify(sessionStorage).includes("buyer@workshop.example")),
       false,
     );
     await buy.click();
-    await page.getByRole("alert").filter({ hasText: "This reservation expired" }).waitFor();
+    await checkoutAlert.filter({ hasText: "This reservation expired" }).waitFor();
+    await page.evaluate(() => {
+      window.__ticketPublicDocument = true;
+    });
     await buy.click();
-    await page.waitForURL("https://checkout.stripe.com/**");
+    await page.waitForURL(`${base}/events/${event.slug}/checkout?order=${orderId}&key=${key}`);
+    assert.equal(new URL(page.url()).origin, base, "Payment stays on the workshop origin");
+    assert.equal(
+      await page.evaluate(() => window.__ticketPublicDocument),
+      undefined,
+      "Private payment starts a fresh document",
+    );
     assert.equal(purchases.length, 3);
     assert.deepEqual(purchases[0], purchases[1]);
     assert.notEqual(purchases[1].requestId, purchases[2].requestId);
@@ -493,18 +685,221 @@ try {
     assert.equal(purchases[0].quantity, 2);
     assert.equal(purchases[0].attribution.utm_source, "venue");
     assert.equal("price_cents" in purchases[0], false);
-    const initialReceipt = page.waitForResponse(
+    const paymentUrl = `${base}/events/${event.slug}/checkout?order=${orderId}&key=${key}`;
+    const confirmationUrl = `${base}/events/${event.slug}/confirmation?order=${orderId}&key=${key}`;
+    await page
+      .getByRole("heading", { level: 1, name: "Complete your registration.", exact: true })
+      .waitFor();
+    const paymentForm = page.getByRole("form", { name: "Workshop payment", exact: true });
+    const pay = paymentForm.getByRole("button", { name: /^Pay / });
+    const waitForPay = (disabled = false) =>
+      page.waitForFunction((expected) => {
+        const button = document.querySelector(
+          'form[aria-label="Workshop payment"] button[type="submit"]',
+        );
+        return button && button.disabled === expected;
+      }, disabled);
+    const privateDocument = async () => {
+      assert.equal(await page.locator("#gtag-init, #meta-pixel").count(), 0);
+      assert.equal(await page.evaluate(() => typeof window.gtag), "undefined");
+      assert.equal(await page.evaluate(() => typeof window.fbq), "undefined");
+      const referrers = await page
+        .locator('meta[name="referrer"]')
+        .evaluateAll((tags) => tags.map((tag) => tag.getAttribute("content")));
+      assert.ok(referrers.length > 0, "Private payment documents need a referrer policy");
+      for (const referrer of referrers) assert.equal(referrer, "no-referrer");
+      const robots = await page
+        .locator('meta[name="robots"]')
+        .evaluateAll((tags) => tags.map((tag) => tag.getAttribute("content")));
+      assert.ok(robots.length > 0, "Private payment documents need crawler exclusions");
+      for (const directives of robots) {
+        assert.match(directives ?? "", /\bnoindex\b/i);
+        assert.match(directives ?? "", /\bnofollow\b/i);
+      }
+      assert.equal(
+        await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+        false,
+      );
+    };
+    await paymentForm.getByRole("alert").filter({ hasText: "Stripe could not load" }).waitFor();
+    assert.equal(await pay.isDisabled(), true);
+    assert.equal(plannedScriptFailures, 1);
+    await privateDocument();
+    const recoveredSdk = page.waitForResponse(
+      (response) =>
+        response.url() === "https://js.stripe.com/clover/stripe.js" && response.status() === 200,
+    );
+    await page.evaluate(() => {
+      window.__ticketCdnFailureDocument = true;
+    });
+    await paymentForm
+      .getByRole("button", { name: "Reload secure payment fields", exact: true })
+      .click();
+    await recoveredSdk;
+    await page.waitForFunction(() => window.__ticketStripe?.mounts > 0);
+    assert.equal(page.url(), paymentUrl, "CDN recovery keeps the original order URL");
+    assert.equal(
+      await page.evaluate(() => window.__ticketCdnFailureDocument),
+      undefined,
+      "A failed SDK download requires a fresh document",
+    );
+    assert.equal(purchases.length, 3, "SDK recovery must not start another purchase");
+    await privateDocument();
+    assert.equal(await pay.isDisabled(), true, "Loading fields must not permit payment");
+    await page.getByRole("status").filter({ hasText: "Loading secure payment fields" }).waitFor();
+    assert.equal(
+      await page.evaluate(() => window.__ticketStripe.initializations[0].publishableKey),
+      "pk_test_controlledworkshopfixture",
+    );
+    assert.equal(
+      await page.evaluate(() => window.__ticketStripe.initializations[0].clientSecret),
+      "cs_test_controlled_secret_fixture",
+    );
+    assert.ok(paymentReads.length >= 2, "Failed SDK reload reads the same order again");
+    const paymentReadsBeforeReload = paymentReads.length;
+    // Reload reads the same private order; it never starts a new reservation.
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__ticketStripe?.mounts > 0);
+    await privateDocument();
+    assert.equal(purchases.length, 3);
+    assert.ok(paymentReads.length > paymentReadsBeforeReload);
+    await page.evaluate(() =>
+      window.__ticketStripe.emit("loaderror", { error: { message: "Controlled field failure" } }),
+    );
+    await paymentForm
+      .getByRole("alert")
+      .filter({ hasText: "Secure payment fields could not load" })
+      .waitFor();
+    assert.equal(await pay.isDisabled(), true);
+    const oldMounts = await page.evaluate(() => window.__ticketStripe.mounts);
+    const reloadedFields = page.waitForResponse(
       (response) =>
         response.url().startsWith(`${api}?`) &&
-        new URL(response.url()).searchParams.get("order") === orderId,
+        new URL(response.url()).searchParams.get("payment") === "1",
     );
-    await page.goto(`${base}/events/${event.slug}/confirmation?order=${orderId}&key=${key}`);
-    assert.equal((await (await initialReceipt).json()).state, "checkout");
-    assert.equal(await page.locator("#gtag-init, #meta-pixel").count(), 0);
-    assert.equal(await page.evaluate(() => typeof window.gtag), "undefined");
-    assert.equal(await page.evaluate(() => typeof window.fbq), "undefined");
+    await page.evaluate(() => {
+      window.__ticketStripe.autoReady = true;
+    });
+    await paymentForm
+      .getByRole("button", { name: "Reload secure payment fields", exact: true })
+      .click();
+    await reloadedFields;
+    await page.waitForFunction((before) => window.__ticketStripe.mounts > before, oldMounts);
+    await page.evaluate(() => window.__ticketStripe.emit("ready"));
+    await page.waitForFunction(
+      () =>
+        !document.querySelector('form[aria-label="Workshop payment"] button[type="submit"]')
+          ?.disabled,
+    );
+    await page.evaluate(() =>
+      window.__ticketStripe.emit("checkout:change", {
+        currency: "usd",
+        canConfirm: false,
+        total: { total: { minorUnitsAmount: 10000, amount: "$100.00" } },
+      }),
+    );
+    await waitForPay(true);
+    assert.equal(await pay.isDisabled(), true, "The SDK can withhold payment readiness");
+    await page.evaluate(() =>
+      window.__ticketStripe.emit("checkout:change", {
+        currency: "usd",
+        canConfirm: true,
+        total: { total: { minorUnitsAmount: 10000, amount: "$100.00" } },
+      }),
+    );
+    await waitForPay();
+    const paymentAccessibility = await new AxeBuilder({ page })
+      .include("main")
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .analyze();
+    assert.deepEqual(
+      paymentAccessibility.violations.map(({ id, impact }) => ({ id, impact })),
+      [],
+      "The internal payment page is accessible",
+    );
+    await page.locator("main").screenshot({ path: `${output}/payment-${theme}-${width}.png` });
+    await pay.focus();
+    await page.keyboard.press("Enter");
+    await paymentForm.getByRole("alert").filter({ hasText: "Your card was declined" }).waitFor();
+    assert.equal(await pay.isEnabled(), true, "A known decline permits a same-session retry");
+    assert.equal(await page.evaluate(() => sessionStorage.getItem("qa:ticket-confirm-count")), "1");
+    assert.equal(new URL(page.url()).pathname, `/events/${event.slug}/checkout`);
+    await page.evaluate(() => window.__ticketStripe.emit("change"));
+    await paymentForm.getByRole("alert").waitFor({ state: "detached" });
+    await page.evaluate(
+      (mode) => {
+        window.__ticketStripe.mode = mode;
+      },
+      theme === "light" ? "unknown" : "unknown-result",
+    );
+    await pay.click();
+    await paymentForm
+      .getByRole("alert")
+      .filter({ hasText: "Check this order before paying again" })
+      .waitFor();
+    assert.equal(await pay.count(), 0, "An uncertain result removes repeat payment");
+    const checkPayment = paymentForm.getByRole("link", { name: "Check this payment", exact: true });
+    assert.equal(
+      await checkPayment.getAttribute("href"),
+      `/events/${event.slug}/confirmation?order=${orderId}&key=${key}`,
+    );
+    // Even an explicit native submit must not bypass the unknown-outcome guard.
+    await paymentForm.evaluate((form) => form.requestSubmit());
+    assert.equal(await page.evaluate(() => sessionStorage.getItem("qa:ticket-confirm-count")), "2");
+    await checkPayment.focus();
+    await page.keyboard.press("Enter");
+    await page.waitForURL(confirmationUrl);
     await page.getByRole("button", { name: "Check payment status", exact: true }).waitFor();
     assert.equal(await page.getByRole("heading", { name: "You’re registered." }).count(), 0);
+    await privateDocument();
+    const mountsBeforeUnknownRevisit = await page.evaluate(() =>
+      sessionStorage.getItem("qa:ticket-mount-count"),
+    );
+    const readsBeforeUnknownRevisit = paymentReads.length;
+    await page.goto(paymentUrl, { waitUntil: "domcontentloaded" });
+    await page.waitForURL(confirmationUrl);
+    await page.getByRole("button", { name: "Check payment status", exact: true }).waitFor();
+    assert.equal(
+      await page.evaluate(() => sessionStorage.getItem("qa:ticket-confirm-count")),
+      "2",
+      "Revisiting an uncertain payment must not confirm again",
+    );
+    assert.equal(
+      await page.evaluate(() => sessionStorage.getItem("qa:ticket-mount-count")),
+      mountsBeforeUnknownRevisit,
+      "Revisiting an uncertain payment must not mount new payment fields",
+    );
+    assert.equal(
+      paymentReads.length,
+      readsBeforeUnknownRevisit,
+      "Uncertain recovery must use the confirmation status read",
+    );
+    await privateDocument();
+    // Fixture boundary: model a separate clean client for the success scenario.
+    // Clear only this fictional order's marker after proving reload protection;
+    // production has no marker-clearing control. The fixture server is still open.
+    await page.evaluate(
+      (id) => sessionStorage.removeItem(`ticket-payment-uncertain:${id}`),
+      orderId,
+    );
+    await page.goto(paymentUrl, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__ticketStripe?.mounts > 0);
+    await page.evaluate(() => {
+      window.__ticketStripe.mode = "success";
+      window.__ticketStripe.emit("ready");
+    });
+    await waitForPay();
+    await pay.focus();
+    await page.keyboard.press("Enter");
+    await page.waitForURL(confirmationUrl);
+    await page.getByRole("button", { name: "Check payment status", exact: true }).waitFor();
+    assert.equal(await page.evaluate(() => sessionStorage.getItem("qa:ticket-confirm-count")), "3");
+    assert.equal(
+      await page.getByRole("heading", { name: "You’re registered." }).count(),
+      0,
+      "SDK success alone cannot confirm admission",
+    );
+    await privateDocument();
     receiptState = "paid";
     await page.getByRole("button", { name: "Check payment status", exact: true }).click();
     await page.getByRole("heading", { name: "You’re registered." }).waitFor();
@@ -555,7 +950,7 @@ try {
     await page.getByLabel("Company", { exact: true }).fill("Local Business");
     await page.getByLabel("What would you like to improve?").fill("Customer follow-up");
     await page.getByRole("button", { name: "Save my answers" }).click();
-    await page.getByRole("alert").filter({ hasText: "Please retry" }).waitFor();
+    await page.getByRole("main").getByRole("alert").filter({ hasText: "Please retry" }).waitFor();
     assert.equal(await page.getByLabel("Company", { exact: true }).inputValue(), "Local Business");
     await page.getByRole("button", { name: "Save my answers" }).click();
     await page.getByRole("status").filter({ hasText: "Your answers are saved" }).waitFor();
@@ -581,32 +976,111 @@ try {
     await page.goto(`${base}/events/${event.slug}?utm_source=venue&utm_campaign=workshop`, {
       waitUntil: "networkidle",
     });
-    await page.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
-    await page
-      .getByRole("complementary", { name: "Workshop tickets" })
+    await ticketCheckout.getByLabel("Your name", { exact: true }).fill("Workshop Buyer");
+    await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
-    await page.getByLabel("Number of tickets").selectOption("2");
+    await ticketCheckout.getByLabel("Number of tickets").selectOption("2");
     await page.evaluate(() => {
       window.__ticketOriginalDocument = true;
     });
-    await page.getByRole("button", { name: "Get 2 tickets ($100)" }).click();
+    await buy.click();
     await page.waitForURL(`**/confirmation?order=${orderId}&key=${key}`);
     await page.getByRole("heading", { name: "You’re registered." }).waitFor();
     assert.equal(await page.evaluate(() => window.__ticketOriginalDocument), undefined);
     assert.equal(await page.locator("#gtag-init, #meta-pixel").count(), 0);
     assert.equal(await page.evaluate(() => typeof window.gtag), "undefined");
     assert.equal(await page.evaluate(() => typeof window.fbq), "undefined");
+    if (theme === "light") {
+      const scopedTenant = "controlled-business";
+      const scopedApi = `${base}/api/public/${scopedTenant}/events/${event.slug}`;
+      const scopedRoot = `${base}/t/${scopedTenant}/events/${event.slug}`;
+      let scopedPaid = false;
+      const scopedReads = [];
+      await page.route(`${scopedApi}**`, (route) => {
+        assert.equal(
+          route.request().method(),
+          "GET",
+          "Private tenant payment only reads its existing order",
+        );
+        const params = new URL(route.request().url()).searchParams;
+        assert.equal(params.get("order"), orderId);
+        assert.equal(params.get("key"), key);
+        scopedReads.push(route.request().url());
+        return route.fulfill({
+          json: {
+            reference: orderId,
+            quantity: 2,
+            totalCents: 10000,
+            state: scopedPaid ? "paid" : "checkout",
+            event,
+            emailStatus: "attention",
+            testMode: false,
+            ...(params.get("payment") === "1"
+              ? {
+                  clientSecret: "cs_test_controlled_secret_fixture",
+                  publishableKey: "pk_test_controlledworkshopfixture",
+                  buyerName: "Workshop Buyer",
+                  buyerEmail: "buyer@workshop.example",
+                }
+              : {}),
+          },
+        });
+      });
+      await page.goto(`${scopedRoot}/checkout?order=${orderId}&key=${key}`, {
+        waitUntil: "domcontentloaded",
+      });
+      await page.waitForFunction(() => window.__ticketStripe?.mounts > 0);
+      assert.equal(
+        await page
+          .getByRole("link", { name: "Back to workshop", exact: true })
+          .getAttribute("href"),
+        `/t/${scopedTenant}/events/${event.slug}`,
+      );
+      await privateDocument();
+      await page.evaluate(() => {
+        window.__ticketStripe.mode = "success";
+        window.__ticketStripe.emit("ready");
+      });
+      await waitForPay();
+      scopedPaid = true;
+      await pay.focus();
+      await page.keyboard.press("Enter");
+      await page.waitForURL(`${scopedRoot}/confirmation?order=${orderId}&key=${key}`);
+      await page.getByRole("heading", { name: "You’re registered.", exact: true }).waitFor();
+      await privateDocument();
+      assert.ok(scopedReads.some((href) => new URL(href).searchParams.get("payment") === "1"));
+      results.push({
+        width,
+        tenantScopedPrivatePayment: true,
+        tenantScopedConfirmation: true,
+        controlledReceipt: true,
+      });
+    }
     assert.deepEqual(errors, []);
+    assert.deepEqual(
+      privateTrackingRequests,
+      [],
+      "No marketing collector request from private payment documents",
+    );
     results.push({
       width,
       theme,
       reducedMotion,
       publicPage: true,
       privateDocument: true,
+      sameOriginPayment: true,
+      stripeLoadingAndReload: true,
+      stripeCdnFailureReloadSameOrder: true,
+      paymentAccessibility: true,
+      stripeKnownDeclineRetry: true,
+      unknownPaymentBlocksRepeat: theme === "light" ? "thrown" : "unclassified-result",
+      sdkSuccessRequiresServerReceipt: true,
       trackingExcluded: true,
       keyboardCheckout: true,
       identicalRetry: true,
+      containedCheckoutError: true,
+      focusedRecovery: true,
       pendingToConfirmed: true,
       confirmationAccessibility: true,
       paidDespiteEmailFailure: true,
@@ -920,8 +1394,8 @@ try {
         evidence:
           "Compiled Next pages against isolated read-only REST; browser-controlled payment responses; actual shared fictional admin. No live provider or production data.",
         marketingTracking: controlledTracking
-          ? "Public SDKs active against controlled stubs; direct and already-paid confirmation documents exclude both SDKs."
-          : "Private document exclusions verified without configured marketing SDKs.",
+          ? "Public marketing SDKs active against controlled stubs; internal payment, pending/paid confirmation and already-paid documents exclude both marketing SDKs."
+          : "Internal payment and confirmation document exclusions verified without configured marketing SDKs.",
         results,
       },
       null,

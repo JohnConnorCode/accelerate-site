@@ -95,6 +95,7 @@ export default function InvoicingPage() {
   const [appliedSearch, setAppliedSearch] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [webhookSecret, setWebhookSecret] = useState("");
+  const [publishableKey, setPublishableKey] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -143,6 +144,9 @@ export default function InvoicingPage() {
   }
   function connect(event: FormEvent) {
     event.preventDefault();
+    const accountId = String(
+      new FormData(event.currentTarget as HTMLFormElement).get("accountId") || "",
+    ).trim();
     void perform(async () => {
       await fetchJson("/api/admin/tenant/providers", {
         method: "POST",
@@ -150,11 +154,14 @@ export default function InvoicingPage() {
         body: JSON.stringify({
           action: "configure_stripe",
           apiKey,
+          accountId,
+          ...(publishableKey.trim() ? { publishableKey: publishableKey.trim() } : {}),
           ...(webhookSecret.trim() ? { webhookSecret: webhookSecret.trim() } : {}),
         }),
       });
       setApiKey("");
       setWebhookSecret("");
+      setPublishableKey("");
       setCustomerId("");
       edit();
       await cache.invalidateQueries({ queryKey: ["tenant", "providers"] });
@@ -367,6 +374,21 @@ export default function InvoicingPage() {
               </div>
             </div>
             <form onSubmit={connect} className="mt-5 max-w-xl">
+              <label className="text-sm font-medium" htmlFor="stripe-account-id">
+                Stripe account ID
+              </label>
+              <input
+                id="stripe-account-id"
+                name="accountId"
+                className={field}
+                required
+                pattern="acct_[A-Za-z0-9]+"
+                placeholder="acct_…"
+                autoComplete="off"
+              />
+              <p className="admin-copy mt-2 text-sm">
+                Copy the account ID from Stripe Settings. We reject keys from another account.
+              </p>
               <label className="text-sm font-medium" htmlFor="stripe-key">
                 Stripe API key
               </label>
@@ -379,6 +401,17 @@ export default function InvoicingPage() {
                 className={field}
                 required
                 minLength={20}
+              />
+              <label className="mt-4 block text-sm font-medium" htmlFor="stripe-publishable-key">
+                Publishable key for workshop payments
+              </label>
+              <input
+                id="stripe-publishable-key"
+                className={field}
+                autoComplete="off"
+                value={publishableKey}
+                onChange={(event) => setPublishableKey(event.target.value)}
+                placeholder="pk_live_… or pk_test_…"
               />
               <label className="mt-4 block text-sm font-medium" htmlFor="stripe-webhook-secret">
                 Stripe webhook signing secret{" "}
@@ -443,6 +476,18 @@ export default function InvoicingPage() {
                   history.
                 </p>
                 <form onSubmit={connect} className="my-4 max-w-xl">
+                  <label className="text-sm font-medium" htmlFor="stripe-replacement-account-id">
+                    Stripe account ID
+                  </label>
+                  <input
+                    id="stripe-replacement-account-id"
+                    name="accountId"
+                    className={field}
+                    required
+                    pattern="acct_[A-Za-z0-9]+"
+                    defaultValue={stripeConnection?.account_email || ""}
+                    autoComplete="off"
+                  />
                   <label className="text-sm font-medium" htmlFor="stripe-replacement-key">
                     Replacement Stripe key
                   </label>
@@ -456,6 +501,24 @@ export default function InvoicingPage() {
                     value={apiKey}
                     disabled={busy}
                     onChange={(event) => setApiKey(event.target.value)}
+                  />
+                  <label
+                    className="mt-4 block text-sm font-medium"
+                    htmlFor="stripe-replacement-publishable-key"
+                  >
+                    Publishable key for workshop payments{" "}
+                    <span className="font-normal text-[var(--admin-muted)]">
+                      (leave blank to keep it for the same account)
+                    </span>
+                  </label>
+                  <input
+                    id="stripe-replacement-publishable-key"
+                    className={field}
+                    autoComplete="off"
+                    value={publishableKey}
+                    disabled={busy}
+                    onChange={(event) => setPublishableKey(event.target.value)}
+                    placeholder="pk_live_… or pk_test_…"
                   />
                   <label
                     className="mt-4 block text-sm font-medium"

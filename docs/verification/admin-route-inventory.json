@@ -38,7 +38,7 @@
     "src/app/admin/identity-review/page.tsx": "93d875e879ea45822a3a66a45c017fee081c2ff13a89dc2f745fcf27549e7631",
     "src/app/admin/inbox/page.tsx": "e68393d6ed5462661be12b125eadf3543d2ca935f61454fa34e8914e0dc5e472",
     "src/app/admin/integrations/page.tsx": "66a05fecb574b1b3fa9b7178fb10cfd57bd7a4b10f4ee14dfc847264cd4e45a5",
-    "src/app/admin/invoicing/page.tsx": "2f54cf89a9d71c55ecbe89066353f0566cc9cc7bb96a4372272844dc1d1934e8",
+    "src/app/admin/invoicing/page.tsx": "f07a37e96da8c35cdf98ca146e9c9f50c0f62232af8044540a544f0aafb86581",
     "src/app/admin/leads/page.tsx": "3825c0c1d99ca81c8939249aa26e1051b587aa0f21d9bffcc770828cd6852724",
     "src/app/admin/learning/page.tsx": "a6722bfef692402e5da9ebe3eaff5ae776ca70ad07b89c8d863a93d4f7ed0f61",
     "src/app/admin/login/page.tsx": "198de31be5e2dfed5d09de6fceb3e99c7c921f02f7b6eca220a1d2886b917f98",
@@ -172,7 +172,7 @@
     "src/app/api/admin/tasks/route.ts": "a8dcf117107438acfd5642593039fa9b95d320ef557faa81359f9e549357b5ce",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
     "src/app/api/admin/tenant/modules/route.ts": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1",
-    "src/app/api/admin/tenant/providers/route.ts": "8f925911d4dc327e5e0f4cdd4d5547bfffcb069d8348d2a5f308c78fd582af58",
+    "src/app/api/admin/tenant/providers/route.ts": "06d5919064cbed5c1821d130ca5d30add157361ba478cb13d499e68843827916",
     "src/app/api/admin/tenants/route.ts": "803a84e5a2aba7ce93591c13bfc27e2e746bbfd0e615b315fea7328e0f4bea6a",
     "src/app/api/admin/website-grades/export/route.ts": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772",
     "src/app/api/admin/website-grades/route.ts": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98",
@@ -268,7 +268,7 @@
     "src/components/admin/ModuleDisabledNotice.tsx": "2c33a3e845a64efd7187388b61184aafc4725afab2c227585aaec42c85c73d17",
     "src/components/admin/ModuleSettingsForm.tsx": "07ba6bb965cf8bacb40be797e3b4d967c6db19bd7f4b03a134c9f3b8d02b2077",
     "src/components/admin/NotificationBell.tsx": "d2f0c34f9c3a711ed188c18a297a1c4098bf0960edaa42c74275990287790deb",
-    "src/components/admin/PageHeader.tsx": "0de2ff9a261860f8012c2a811b97cccf24c90d4a7bedbc8dccd7cc93d2efda52",
+    "src/components/admin/PageHeader.tsx": "ee9d5f3bfcbf6ea7377cb500d480a50c3a8bf9510fe2317e6f6c9403c2910b72",
     "src/components/admin/Pagination.tsx": "016836958a375d173f0a43a8b4ca24522c66e3eec2efdfaa02858f2d682f56b6",
     "src/components/admin/PaymentIndex.tsx": "72bc6923e4371c521d21475d5af6bdb9341c45514f9cb1f60d6148d39582abdf",
     "src/components/admin/PlausibleWidget.tsx": "250f81a9de33b8432d902c626757002def6ea084e88c26dfa0c933f6e54ebeed",
@@ -294,7 +294,7 @@
     "src/components/admin/TenantProviderControls.tsx": "0354102821caf417ec4e27abab5203a3338e5fe52e6a4de0a654ca7210d957db",
     "src/components/admin/Toaster.tsx": "1c1370f7cf7d2d19c06135f60174c8e493189f7e2701f21cb70d3e6eab110fcb",
     "src/components/admin/TodayViewEditor.tsx": "e1d59a1c8a0796a14af5d03d016fa5891222da2dd79f7bbb71c7d75d21ae0913",
-    "src/components/admin/TodayWorkspace.tsx": "beae89d37254f9cd5087d0d0f8bfd48fa250027856c8ede47e03e5afb1b99760",
+    "src/components/admin/TodayWorkspace.tsx": "9a659ae1045f3ac3e84af6bee1c4b12f0ad04d086072faac554a67810b04d2c2",
     "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
     "src/components/admin/WorkflowCalendar.tsx": "86a0e1972d87270f8d90a608eba1c48de9cd3122503a10300e8ece41223b90aa",
     "src/components/admin/WorkflowLayoutSwitcher.tsx": "5db8e60cfaa98c60310f44f93ee37ff390a3769d2a77454da55d4882810b67b4",
@@ -369,7 +369,7 @@
     "src/lib/revenue-os/document-extraction.ts": "8612e2e4c43bd0f5ea84e0238ed6a76a01d84599e50baa70edf24214592fa007",
     "src/lib/revenue-os/encryption.ts": "68748b621a25f182ba20a5b5f362220b4ac59b93103b6a81c202f0e34e09c405",
     "src/lib/revenue-os/event-ticketing-contract.ts": "ca4edb9254fae37bf4dea02eedade4d9c84856e29322851eceed7d898c4dafeb",
-    "src/lib/revenue-os/event-ticketing.ts": "8f0c96be6c49ae8b07e53a5c7158edcf2dbbdb8b78f886a61247e664875b3e51",
+    "src/lib/revenue-os/event-ticketing.ts": "1b73c47bcff58e3c2c1374874a6a2bec3789442e6b72743c81f4f9b3d34daa61",
     "src/lib/revenue-os/first-use.ts": "11163b96f7b92f510ac70dced96d1159e975c11fcc3d2f7d51a00d0e17fc6ded",
     "src/lib/revenue-os/form-builder-contract.ts": "a2a3403c5b9aff4d70c55a64cb3b672bb84484f81fcba33d5ab2deee015d280a",
     "src/lib/revenue-os/form-builder.ts": "3f2c181efe1dca678ccd9457e8f76d309657770badb16429cc70a27fc835f862",
@@ -1128,7 +1128,7 @@
           "directTables": []
         }
       ],
-      "boundary": "The module guard resolves an authenticated tenant administrator. The canonical event-ticketing service rechecks current authority; revision-checked event configuration uses the narrow host RPC bridge. Inventory, immutable payment observations, tenant-specific Stripe connections, and recorded confirmation emails remain in their owning services. AI proposals use the same command service after human approval.",
+      "boundary": "The module guard resolves an authenticated tenant administrator. The canonical event-ticketing service rechecks current authority; revision-checked event configuration uses the narrow host RPC bridge. Inventory, immutable payment observations, tenant-specific Stripe connections, and recorded confirmation emails remain in their owning services. AI proposals use the same command service after human approval. Opening sales requires the verified tenant merchant, a matching publishable key and webhook. Embedded checkout retains the same order and server payment proof.",
       "specialBoundary": null,
       "followUp": null
     },
@@ -1370,7 +1370,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning.",
+      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming. The creation query opens the customer form without history above it. Shared client module gating mirrors the server module owner and retained-history exemptions; disabled modules stay disabled. Navigation does not create or send an invoice. Private founder command approvals and rejections require fresh founder authority and retain private receipts without shared agent learning. Stripe setup requires the intended account ID, verifies that merchant before encrypting credentials, and retains optional payment keys only for the same connected account.",
       "followUp": null,
       "specialBoundary": null
     },

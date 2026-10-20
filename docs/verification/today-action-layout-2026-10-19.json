@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-19",
+  "task": "Repair Today layout, spacing and action clarity from the Alder Ridge Night screenshot.",
+  "baseCommit": "c6caf115838294612862c897c186341468fa4382",
+  "applicationBuildCommit": "ed578a4cf6664fa4f01cec54b2cb59d0f3afcba4",
+  "changes": [
+    "Four narrow equal-height review cards become full-width source-linked rows with specific action labels.",
+    "Source and next step expands the existing recommendation and timestamp; contextual AI prepares the same reviewed prompt without executing it.",
+    "Remove repeated opening copy while retaining How this works; workflow discovery follows active work.",
+    "Shared Today root has explicit section gaps; empty areas and pipeline figures use compact presentation."
+  ],
+  "verification": {
+    "productionBuild": "Passed, includes TypeScript and 587 generated static pages.",
+    "focusedDomainAndNavigation": "Today, breadcrumbs, product-story, API operation inventory and frontend route inventory passed",
+    "static": "lint, agent contract, open-source readiness, runtime boundaries, docs/index/coverage/search and admin tokens passed",
+    "browserRegression": "existing Today suite: 32 cases passed",
+    "visualBrowser": "7 verified appearance/viewport cases: Alder Ridge Night 1920/1440/390, Paper1440/390, Northline Signal1440/390; keyboard links, evidence disclosure, AI preparation, target size and overflow assertions passed",
+    "inspection": "Opened desktop/mobile Night, Paper and Signal captures; no clipped actions or overlapping rows observed.",
+    "externalEffects": "Fictional demo records only. No model request, real business mutation or deployment."
+  },
+  "initialFailures": [
+    "First build caught a nullable source reference in the contextual AI click handler; guarded before final passing build.",
+    "Initial geometry assertion sampled the entrance animation; final check waits for committed visible content.",
+    "Initial test used Night/Paper display names as theme IDs; final check uses dark/light and asserts the actual theme before capturing."
+  ],
+  "publicReview": {
+    "guides": [
+      "src/content/docs/command-center/today.mdx",
+      "public/images/docs/command-center/today.png",
+      "public/images/docs/command-center/today-owner-review.png"
+    ],
+    "releaseContent": [
+      "src/content/changelog.ts",
+      "src/content/command-center.ts",
+      "src/content/command-center-faq.ts"
+    ],
+    "generatedIndex": "public/docs-llms.txt",
+    "plugins": "Plugin behavior and provider permissions unchanged; no plugin guide update required."
+  },
+  "evidenceDirectory": ".agent-archives/today-action-layout-20261019",
+  "releaseState": "Implementation and local verification only; review, merge and deployment are separate.",
+  "compiledInputParity": "After the passing build, src/, package.json, package-lock.json and next.config.ts remain unchanged. Final additions are QA/CI wiring, public documentation screenshots and this evidence report."
+}

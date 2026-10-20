@@ -449,6 +449,9 @@ jobs:
       - name: Install browser for first-run verification
         id: browser-install
         run: npx playwright install --with-deps chromium webkit
+      - name: Verify internal workshop payment and confirmation
+        if: ${{ !cancelled() && steps.production-build.outcome == 'success' && steps.browser-install.outcome == 'success' && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        run: npm run qa:event-ticketing
       - name: Verify shared focus handoff and baseline comparison
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         env:
@@ -465,7 +468,7 @@ jobs:
           path: /tmp/accelerate-admin-focus-handoff/
           if-no-files-found: error
           retention-days: 7
-      - name: Verify import and opportunity recovery with Blueprint operating setup
+      - name: Verify owner review, import and opportunity recovery
         if: ${{ needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3018
@@ -481,6 +484,9 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-workspace-operations-server.log; exit 1; fi
+          npm run resources:run -- node scripts/qa-owner-workspace.mjs
+          npm run resources:run -- node scripts/qa-today-workspace.mjs
+          TODAY_REVIEW_QA_OUTPUT=/tmp/accelerate-today-review npm run resources:run -- node scripts/qa-today-review-layout.mjs
           npm run resources:run -- node scripts/qa-contact-import-source-review.mjs
           npm run resources:run -- node scripts/qa-opportunity-create-recovery.mjs
           npm run resources:run -- npm run qa:workspace-operations
@@ -723,11 +729,9 @@ jobs:
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
-            node scripts/qa-owner-workspace.mjs
             node scripts/qa-command-center-daily-work.mjs
             PRODUCT_STORY_QA_OUTPUT=/tmp/accelerate-product-story node scripts/qa-command-center-product-story.mjs
             node scripts/qa-content-calendar.mjs
-            node --import tsx scripts/qa-event-ticketing.mjs
             npx tsx scripts/qa-site-studio.ts
             node scripts/qa-campaign-duplicate.mjs
             node scripts/qa-delivery-handoff.mjs
@@ -739,7 +743,6 @@ jobs:
             node scripts/qa-radar-workspace.mjs
             node scripts/qa-command-center-offline-store.mjs
             node scripts/qa-operator-workspace.mjs
-            node scripts/qa-today-workspace.mjs
             node scripts/qa-booking-mode.mjs
             npm run test:work-completion -- --browser-fixtures
             node scripts/qa-work-completion.mjs
@@ -801,6 +804,7 @@ jobs:
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-daily-work-qa/
             /tmp/accelerate-today-workspace/
+            /tmp/accelerate-today-review/
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-navigation-runtime/
             /tmp/accelerate-navigation-filmstrip/
