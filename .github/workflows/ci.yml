@@ -1088,6 +1088,11 @@ jobs:
           npm run test:admin-demo-contract
           npm run verify:admin-tokens
           node --check scripts/qa-admin-core.mjs
+      # Build before dev QA: Next preserves .next/dev and tsconfig includes
+      # both generated type trees. A fresh production build needs only its own.
+      - name: Build the actual application once
+        id: design_build
+        run: npm run build
       - name: Verify representative core routes
         env:
           QA_ROUTES: today,features,contacts,settings,integrations
@@ -1099,9 +1104,6 @@ jobs:
           QA_ROUTES: today
           QA_OUTPUT: /tmp/admin-core-qa/identities
         run: npm run qa:admin-core
-      - name: Build the actual application once
-        id: design_build
-        run: npm run build
       - name: Capture product screens and verify the compiled design
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3045
@@ -1136,6 +1138,7 @@ jobs:
           name: design-production-preview
           path: |
             .next/
+            !.next/dev/
             !.next/cache/
             !.next/diagnostics/
           include-hidden-files: true

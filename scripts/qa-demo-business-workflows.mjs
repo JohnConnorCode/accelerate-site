@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { chromium } from "playwright";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3023";
 const output = "/tmp/accelerate-demo-business";
 await mkdir(output, { recursive: true });
+const appearances = JSON.parse(
+  await readFile(new URL("../src/lib/admin/themes.json", import.meta.url), "utf8"),
+);
 const scenarios = [
   "northline-roofing",
   "alder-ridge-law",
@@ -437,7 +440,7 @@ try {
       await plugin.getByRole("button", { name: /^Disable / }).waitFor();
       // Exercise the shared Appearance control on the actual branded admin screen.
       await page.goto(root + "/branding");
-      for (const theme of ["Paper", "Night", "Signal", "Studio", "Frost"]) {
+      for (const { label: theme } of appearances) {
         if (mobile) await page.getByRole("button", { name: "Open More", exact: true }).click();
         await page.getByRole("button", { name: /^Appearance:/ }).click();
         await page.getByRole("radio", { name: new RegExp(theme) }).click();
