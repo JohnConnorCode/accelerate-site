@@ -189,12 +189,6 @@ const SHOTS = [
     wait: { role: "heading", name: /ai|ask/i },
   },
   {
-    id: "plugins/stripe-invoicing",
-    scenario: "northline-roofing",
-    route: "invoicing?view=create",
-    wait: { role: "heading", name: /invoic/i },
-  },
-  {
     id: "plugins/example-inventory",
     scenario: "northline-roofing",
     route: "example-inventory",

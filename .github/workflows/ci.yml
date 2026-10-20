@@ -1135,6 +1135,7 @@ jobs:
       - name: Capture product screens and verify the compiled design
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3045
+          CUSTOMER_WORKFLOW_QA_OUTPUT: /tmp/accelerate-design-capture/customer-workflow
           PRODUCT_SCREENSHOT_RECEIPT: /tmp/accelerate-design-capture/product.json
           HERO_QA_OUTPUT: /tmp/accelerate-design-capture/hero
         run: |
@@ -1151,6 +1152,7 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-design-server.log; exit 1; fi
+          node scripts/qa-customer-workflow-context.mjs
           node --import tsx scripts/capture-product-screenshots.ts
           DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/chooser.json node scripts/capture-docs-screenshots.mjs --group demo
           DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/docs.json node scripts/capture-docs-screenshots.mjs --group docs

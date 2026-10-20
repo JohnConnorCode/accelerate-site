@@ -74,29 +74,39 @@ try {
           [
             "northline-roofing",
             "conversations",
-            "public/images/demo/northline-conversations.png",
+            "public/images/demo/northline-conversations-20261020-r2.png",
             "Conversations",
           ],
-          ["alder-ridge-law", "pipeline", "public/images/demo/alder-pipeline.png", "Pipeline"],
+          [
+            "alder-ridge-law",
+            "pipeline",
+            "public/images/demo/alder-pipeline-20261020-r2.png",
+            "Pipeline",
+          ],
           [
             "ledgerstone-advisory",
             "client-onboarding",
-            "public/images/demo/ledgerstone-onboarding.png",
+            "public/images/demo/ledgerstone-onboarding-20261020-r2.png",
             "Client onboarding",
           ],
           [
             "hearthline-realty",
             "pipeline",
-            "public/images/demo/hearthline-pipeline.png",
+            "public/images/demo/hearthline-pipeline-20261020-r2.png",
             "Pipeline",
           ],
           [
             "common-table-network",
             "meeting-commitments",
-            "public/images/demo/common-table-commitments.png",
+            "public/images/demo/common-table-commitments-20261020-r2.png",
             "Meeting commitments",
           ],
-          ["superdebate", "invoicing", "public/images/demo/superdebate-invoicing.png", "Invoicing"],
+          [
+            "superdebate",
+            "invoicing",
+            "public/images/demo/superdebate-invoicing-20261020-r2.png",
+            "Invoicing",
+          ],
         ]
       : [
           ["superdebate", "today", "public/images/demo/superdebate-today.png", "Today"],
@@ -369,8 +379,9 @@ try {
           await page.evaluate(() => window.scrollTo(0, 0));
           if (route === "/demo/command-center")
             assert(
-              (await page.locator('img[src^="/images/demo/superdebate-invoicing.png"]').count()) >
-                0,
+              (await page
+                .locator('img[src^="/images/demo/superdebate-invoicing-20261020-r2.png"]')
+                .count()) > 0,
               "Bundled demo screenshots load without runtime resizing",
             );
           assert.equal(

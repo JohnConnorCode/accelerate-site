@@ -1,15 +1,21 @@
 import assert from "node:assert/strict";
-import { mkdir, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { chromium } from "playwright";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3059";
 const output =
   process.env.CUSTOMER_WORKFLOW_QA_OUTPUT || "/tmp/accelerate-customer-workflow-context";
+const sourceCommit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 const results = [],
   errors = [],
   escaped = [];
+const frames = new Map();
+const screenshots = [];
 let activePage, activeCase;
 let passed = false;
 const read = (page, path) =>
@@ -19,6 +25,11 @@ const read = (page, path) =>
     return response.json();
   }, path);
 async function settled(page) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  });
   await page.waitForFunction(() => {
     const main = document.querySelector(".admin-main");
     return (
@@ -54,7 +65,13 @@ async function capture(page, name) {
   await settled(page);
   await page.locator("main h1").click();
   await page.locator(".admin-main").evaluate((main) => main.scrollTo({ top: 0 }));
-  await page.screenshot({ path: `${output}/${name}.png` });
+  const file = `${output}/${name}.png`;
+  await page.screenshot({ path: file });
+  frames.set(name, {
+    file,
+    url: page.url(),
+    theme: await page.locator("html").getAttribute("data-theme"),
+  });
 }
 async function keyboardLink(page, link) {
   await link.focus();
@@ -85,9 +102,16 @@ try {
       });
       const page = await context.newPage();
       activePage = page;
-      await page.addInitScript(() => {
-        window.__customerWorkflowDocument = Math.random();
-      });
+      await page.addInitScript(
+        ({ scenario, paper }) => {
+          window.__customerWorkflowDocument = Math.random();
+          if (paper) {
+            sessionStorage.setItem(`accelerate:admin-demo:${scenario}:appearance:v1`, "light");
+            localStorage.setItem(`accelerate:demo-theme:${scenario}`, "light");
+          }
+        },
+        { scenario, paper: scenario === "ledgerstone-advisory" && !mobile },
+      );
       page.on("pageerror", (error) => errors.push(`${activeCase}: ${error.message}`));
       page.on("console", (message) => {
         if (message.type() === "error" && !message.text().includes("favicon"))
@@ -323,6 +347,39 @@ try {
   }
   assert.deepEqual(escaped, [], "Protected/provider request escaped the demo");
   assert.deepEqual(errors, [], "Browser errors");
+  assert.equal(results.length, 4, "All four customer journeys must pass before publishing images");
+  const documentationCase = results.find(
+    (result) => result.scenario === "ledgerstone-advisory" && !result.mobile,
+  );
+  assert.ok(documentationCase);
+  for (const [state, file] of [
+    ["opportunity", "pipeline/customer-handoff-2026-10-20.png"],
+    ["onboarding", "plugins/client-onboarding-context-2026-10-20.png"],
+    ["invoice", "plugins/stripe-invoicing-context-2026-10-20.png"],
+  ]) {
+    const frame = frames.get(`ledgerstone-advisory-desktop-${state}`);
+    assert.ok(frame, `Missing verified customer workflow frame: ${state}`);
+    assert.equal(frame.theme, "light", "Documentation frames use Paper");
+    const target = path.resolve(`public/images/docs/${file}`);
+    await mkdir(path.dirname(target), { recursive: true });
+    await copyFile(frame.file, target);
+    const bytes = await readFile(target);
+    const width = bytes.readUInt32BE(16);
+    const height = bytes.readUInt32BE(20);
+    assert.equal(width, 1440);
+    assert.equal(height, 1000);
+    screenshots.push({
+      file: `/images/docs/${file}`,
+      sourceFile: frame.file,
+      url: frame.url,
+      theme: frame.theme,
+      sourceId: documentationCase.sourceId,
+      contactId: documentationCase.contactId,
+      width,
+      height,
+      sha256: createHash("sha256").update(bytes).digest("hex"),
+    });
+  }
   passed = true;
 } catch (error) {
   if (activePage && !activePage.isClosed()) {
@@ -341,7 +398,13 @@ try {
   await browser.close();
   await writeFile(
     `${output}/receipt.json`,
-    JSON.stringify({ passed, results, errors, escaped }, null, 2),
+    JSON.stringify({ sourceCommit, passed, results, errors, escaped, screenshots }, null, 2),
   );
 }
-console.log(JSON.stringify({ passed, cases: results.length, output }, null, 2));
+console.log(
+  JSON.stringify(
+    { passed, cases: results.length, screenshots: screenshots.length, output },
+    null,
+    2,
+  ),
+);
