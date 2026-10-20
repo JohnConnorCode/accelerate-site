@@ -83,7 +83,7 @@ function geometry(pose: Point, phase: number, live: boolean, formation = 0) {
   const center = { x: 300 + pose.x * 0.5, y: 372 + pose.y * 0.45 };
   const yaw = -0.28 + pose.x / 110;
   const pitch = 0.58 + pose.y / 210;
-  const project = (x: number, y: number, z: number): Point => {
+  const project = (x: number, y: number, z: number): Point & { depth: number } => {
     const u = x * Math.cos(yaw) - y * Math.sin(yaw);
     const v = x * Math.sin(yaw) + y * Math.cos(yaw);
     const depth = (u + v) / Math.SQRT2;
@@ -91,8 +91,11 @@ function geometry(pose: Point, phase: number, live: boolean, formation = 0) {
     return {
       x: center.x + ((u - v) / Math.SQRT2) * 1.42 * perspective,
       y: center.y + (depth * Math.sin(pitch) - z * Math.cos(pitch)) * 1.42 * perspective,
+      depth: depth * Math.cos(pitch) + z * Math.sin(pitch),
     };
   };
+  const facesCamera = (a: Point, b: Point, c: Point) =>
+    (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) < 0;
   const layers = [0, 1, 2].map((layer) => {
     // The processing beat travels through the arrows instead of moving one rigid stack.
     const wave = live ? Math.sin(clamp((phase - 0.18 - layer * 0.07) / 0.5, 0, 1) * Math.PI) : 0;
@@ -114,14 +117,25 @@ function geometry(pose: Point, phase: number, live: boolean, formation = 0) {
     };
     const top = outline.map(([x, y]) => vertex(x, y, 22));
     const bottom = outline.map(([x, y]) => vertex(x, y, 0));
-    return {
-      top: polygon(top),
-      sides: top.map((p, i) => polygon([p, top[(i + 1) % 6]!, bottom[(i + 1) % 6]!, bottom[i]!])),
-      shades: outline.map(([x, y], i) => {
+    const sides = top
+      .map((p, i) => {
+        const nextTop = top[(i + 1) % 6]!,
+          lower = bottom[i]!,
+          nextLower = bottom[(i + 1) % 6]!;
+        const [x, y] = outline[i]!;
         const next = outline[(i + 1) % 6]!;
         const normal = Math.atan2(next[1] - y, next[0] - x) + turn + yaw;
-        return (42 + Math.cos(normal - 0.7) * 22).toFixed(1);
-      }),
+        return {
+          path: polygon([p, nextTop, nextLower, lower]),
+          shade: (42 + Math.cos(normal - 0.7) * 22).toFixed(1),
+          visible: facesCamera(p, nextTop, lower),
+          depth: (p.depth + nextTop.depth + nextLower.depth + lower.depth) / 4,
+        };
+      })
+      .sort((a, b) => a.depth - b.depth);
+    return {
+      top: polygon(top),
+      sides,
       shadow: polygon(
         outline.map(([x, y]) =>
           project(
@@ -152,7 +166,14 @@ function geometry(pose: Point, phase: number, live: boolean, formation = 0) {
   return {
     layers,
     base: polygon(base),
-    baseEdge: polygon([base[1]!, base[2]!, base[3]!, baseLower[3]!, baseLower[2]!, baseLower[1]!]),
+    baseEdge: base
+      .map((p, i) => {
+        const next = (i + 1) % 4;
+        return facesCamera(p, base[next]!, baseLower[i]!)
+          ? polygon([p, base[next]!, baseLower[next]!, baseLower[i]!])
+          : "";
+      })
+      .join(""),
     incoming,
     outgoing,
     pins: [0, 1, 2, 3, 4].map((pin) => project(88, 48 - pin * 19, 1)),
@@ -218,13 +239,11 @@ export function HeroArtwork() {
       const phase = reduced ? 0 : (elapsed % 3200) / 3200;
       const shape = geometry(pose, phase, !reduced, formation);
       shape.layers.forEach((layer, i) => {
-        layer.sides.forEach((d, side) => {
+        layer.sides.forEach((surface, side) => {
           const face = faces[i * 7 + side]!;
-          face.setAttribute("d", d);
-          face.setAttribute(
-            "fill",
-            `color-mix(in srgb, var(--fg) ${layer.shades[side]}%, var(--bg))`,
-          );
+          face.setAttribute("d", surface.path);
+          face.setAttribute("visibility", surface.visible ? "visible" : "hidden");
+          face.setAttribute("fill", `color-mix(in srgb, var(--fg) ${surface.shade}%, var(--bg))`);
         });
         faces[i * 7 + 6]!.setAttribute("d", layer.top);
         shadows[i]!.setAttribute("d", layer.shadow);
@@ -500,11 +519,12 @@ export function HeroArtwork() {
           >
             {initial.layers.map((layer, index) => (
               <g key={index} className="home-system-layer">
-                {layer.sides.map((d, side) => (
+                {layer.sides.map((surface, side) => (
                   <path
                     key={side}
-                    d={d}
-                    fill={`color-mix(in srgb, var(--fg) ${layer.shades[side]}%, var(--bg))`}
+                    d={surface.path}
+                    visibility={surface.visible ? "visible" : "hidden"}
+                    fill={`color-mix(in srgb, var(--fg) ${surface.shade}%, var(--bg))`}
                     strokeOpacity=".38"
                   />
                 ))}
