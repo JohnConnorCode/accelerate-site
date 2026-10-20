@@ -4,8 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { eventPath, ticketMoney } from "@/lib/revenue-os/event-ticketing-contract";
-import { stripeCheckoutClientSecretSchema } from "@/lib/revenue-os/stripe-contract";
+import {
+  eventPath,
+  ticketMoney,
+  stripeCheckoutClientSecretSchema,
+} from "@/lib/revenue-os/event-ticketing-contract";
 import styles from "./workshop.module.css";
 
 type Session = {

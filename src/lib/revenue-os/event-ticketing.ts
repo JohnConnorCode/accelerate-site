@@ -22,12 +22,12 @@ import {
 import { assertCurrentTenantAdmin } from "./tenant-admin-authority";
 import { isModuleEnabled } from "./modules";
 import { tenantStripeClient } from "./stripe-adapter";
-import { stripeCheckoutClientSecretSchema } from "./stripe-contract";
 import { sendRecordedEmail } from "./communications";
 import { proposeAction } from "./actions";
 import { recordAudit } from "./audit";
 import {
   eventDefinitionSchema,
+  stripeCheckoutClientSecretSchema,
   saveTicketEventSchema,
   ticketCheckoutSchema,
   ticketAdminCommandSchema,

@@ -11,7 +11,7 @@ import { MemorySupabase } from "./lib/memory-supabase";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { encryptTenantSecret } from "../src/lib/revenue-os/encryption";
 import { stripeAdapter } from "../src/lib/revenue-os/stripe-adapter";
-import { stripeCheckoutClientSecretSchema } from "../src/lib/revenue-os/stripe-contract";
+import { stripeCheckoutClientSecretSchema } from "../src/lib/revenue-os/event-ticketing-contract";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/constants";
 import {
   createTicketCheckout,
