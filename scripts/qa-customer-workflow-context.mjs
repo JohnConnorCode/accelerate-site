@@ -32,9 +32,22 @@ async function settled(page) {
         )
     );
   });
+  const layout = await page.evaluate(() => {
+    const main = document.querySelector(".admin-main");
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: innerWidth,
+      contentWidth: main.clientWidth,
+      contentScrollWidth: main.scrollWidth,
+    };
+  });
   assert.ok(
-    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
-    "Page overflow",
+    layout.documentWidth <= layout.viewportWidth + 1,
+    "Page overflow: " + JSON.stringify(layout),
+  );
+  assert.ok(
+    layout.contentScrollWidth <= layout.contentWidth + 1,
+    "Content overflow: " + JSON.stringify(layout),
   );
 }
 async function capture(page, name) {

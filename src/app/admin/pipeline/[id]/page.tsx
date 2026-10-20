@@ -534,7 +534,7 @@ export default function OpportunityRecordPage() {
               ))}
             </section>
 
-            <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+            <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
               <div className="space-y-4">
                 <Section id="activity" title="Verified activity" count={record.activity.length}>
                   {record.activity.length ? (
