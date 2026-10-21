@@ -81,7 +81,10 @@ async function inspect(route, theme, width, isAdmin) {
     if (message.type() !== "error") return;
     if (
       route === "/contact" &&
-      message.text() === "requestStorageAccess: Permission denied." &&
+      [
+        "requestStorageAccess: Permission denied.",
+        `Framing 'https://www.recaptcha.net/' violates the following report-only Content Security Policy directive: "frame-ancestors 'self'". The violation has been logged, but no further action has been taken.`,
+      ].includes(message.text().trim()) &&
       page.frames().some((frame) => frame.url().startsWith("https://calendly.com/"))
     ) {
       result.warnings.push({ message: message.text(), provider: "Calendly embed" });

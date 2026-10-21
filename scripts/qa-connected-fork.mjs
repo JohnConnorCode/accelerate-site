@@ -396,9 +396,11 @@ if (mode === "diagnose-native") {
 
         if (label === "mobile") await page.getByRole("button", { name: "Open More" }).click();
         await page.getByRole("button", { name: "Sign out" }).click();
-        await page.waitForURL((url) => url.pathname === "/admin/login");
+        await page.waitForURL((url) => url.pathname === "/admin/login", { waitUntil: "commit" });
+        await page.getByRole("button", { name: "Forgot password?", exact: true }).waitFor();
         await page.goto(`${base}/admin/contacts`);
-        await page.waitForURL((url) => url.pathname.includes("/login"));
+        await page.waitForURL((url) => url.pathname.includes("/login"), { waitUntil: "commit" });
+        await page.getByRole("button", { name: "Forgot password?", exact: true }).waitFor();
         checks.push(`${label}-sign-out-protects-workspace`);
 
         const existingMail = new Set((await mail("messages")).messages.map((item) => item.ID));

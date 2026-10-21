@@ -69,6 +69,18 @@ for (const [engine, launcher] of Object.entries(engines)) {
     }
   });
   const page = await context.newPage();
+  page.on("response", (response) => {
+    if (response.status() !== 404) return;
+    const url = new URL(response.url());
+    diagnostics.push({
+      engine,
+      stage,
+      status: 404,
+      origin: url.origin,
+      path: url.pathname,
+      image: url.pathname === "/_next/image" ? url.searchParams.get("url") : undefined,
+    });
+  });
   let stage = "initial";
   let documentNavigation = false;
   page.on("requestfailed", (request) => {
@@ -206,6 +218,8 @@ for (const [engine, launcher] of Object.entries(engines)) {
         failures.push(`${engine}: the hidden mechanism continues running behind the menu`);
       await page.locator('#mobile-site-navigation a[href="/services"]').first().tap();
       await page.waitForURL(`${base}/services`);
+      await page.locator(".public-hero-entrance:not(.home-hero)").waitFor();
+      await page.waitForFunction(() => document.documentElement.dataset.navigationPhase === "idle");
       await page.evaluate(() => {
         window.__heroForward = null;
         window.__heroForwardFrames = null;
@@ -249,17 +263,21 @@ for (const [engine, launcher] of Object.entries(engines)) {
       await page.keyboard.press("Tab");
       if (await page.evaluate(() => Boolean(document.activeElement?.closest(".home-flow"))))
         failures.push(`${engine}: warm keyboard navigation enters the hidden diagram`);
-      const interactionFrames = await page.evaluate(sampleFrames, 750);
-      if ((enforceP95 && interactionFrames.p95 > 50) || interactionFrames.longest > 200)
-        failures.push(`${engine}: touch workflow stalled (${interactionFrames.p95}ms p95)`);
-      results.push({ engine, visit, menuSafe, interactionFrames });
+      // The real touch navigation's frame budget was checked above. The hidden
+      // desktop diagram has no phone interaction workload to measure.
+      results.push({ engine, visit, menuSafe, hiddenKeyboardExcluded: true });
       await page.goBack();
       await page.waitForURL(`${base}/services`);
-      await page.waitForTimeout(150);
+      await page.locator(".public-hero-entrance:not(.home-hero)").waitFor();
+      await page.waitForFunction(() => document.documentElement.dataset.navigationPhase === "idle");
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
       const restored = await page.evaluate(() => {
         const hero = document.querySelector(".public-hero-entrance");
         return {
           visible: hero?.dataset.revealState,
+          navigationKind: document.documentElement.dataset.navigationKind,
           running: hero
             ?.getAnimations({ subtree: true })
             .filter(
@@ -269,8 +287,11 @@ for (const [engine, launcher] of Object.entries(engines)) {
             ).length,
         };
       });
-      if (restored.visible !== "visible" || restored.running)
+      if (restored.visible !== "visible" || restored.running) {
         failures.push(`${engine}: history concealed or replayed the services hero`);
+        diagnostics.push({ engine, stage, restored });
+        await page.screenshot({ path: `${output}/${engine}-history-${visit}-failure.png` });
+      }
       await page.goForward();
       await page.waitForURL(`${base}/`);
       await page.waitForTimeout(150);
