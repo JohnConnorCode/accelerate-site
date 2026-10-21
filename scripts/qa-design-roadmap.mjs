@@ -68,6 +68,8 @@ async function inspect(route, theme, width, isAdmin) {
     },
     { theme, isAdmin },
   );
+  // Visual QA does not send public analytics to a connected database.
+  await context.route("**/api/analytics/events", (request) => request.fulfill({ status: 204 }));
   // The shared demo engine handles these operations in session storage.
   await context.route("**/api/admin/**", (request) => request.abort());
   const page = await context.newPage();

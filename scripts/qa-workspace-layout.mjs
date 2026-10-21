@@ -1,10 +1,8 @@
-import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
-const require = createRequire(import.meta.url);
 // Run through npm run resources:run. All edits use fictional demo session data.
 const themes = JSON.parse(fs.readFileSync(resolve("src/lib/admin/themes.json"), "utf8"));
 const updateDocs = process.argv.includes("--update-docs");
@@ -16,8 +14,8 @@ await (async () => {
   const server = process.env.PLAYWRIGHT_BASE_URL
     ? null
     : spawn(
-        process.execPath,
-        [require.resolve(resolve("node_modules/next/dist/bin/next")), "start", "-p", "3082"],
+        "npm",
+        ["run", "start", "--", "-p", "3082"],
         { stdio: ["ignore", log, log], env: { ...process.env, NODE_ENV: "production" } },
       );
   let browser;
@@ -49,9 +47,8 @@ await (async () => {
         waitUntil: "networkidle",
       });
       await page.getByRole("heading", { name: "Work", exact: true }).waitFor();
-      await page
-        .getByText("No open tasks assigned to you in this view.", { exact: true })
-        .waitFor();
+      await page.locator("[data-source-type=task]").first().waitFor();
+      assert.equal(await page.getByLabel("Ownership", { exact: true }).inputValue(), "me");
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
       const boxes = await page.locator("[role=search] .admin-field").evaluateAll((xs) =>
         xs.map((x) => ({
@@ -107,12 +104,8 @@ await (async () => {
         .waitFor();
       await search.fill("");
       // Clearing the search preserves the default My work ownership filter.
-      await page
-        .getByText("No open tasks assigned to you in this view.", { exact: true })
-        .waitFor();
-      if (width < 1024) await page.getByRole("button", { name: /^Filters/ }).click();
-      await page.getByLabel("Ownership", { exact: true }).selectOption("team");
       await page.locator("[data-source-type=task]").first().waitFor();
+      assert.equal(await page.getByLabel("Ownership", { exact: true }).inputValue(), "me");
       const first = page.getByRole("button", { name: /^Open task / }).first();
       await first.focus();
       await page.keyboard.press("Enter");
