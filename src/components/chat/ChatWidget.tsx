@@ -209,8 +209,8 @@ export function ChatWidget() {
     };
   }, [isOpen]);
 
-  // Hide on admin pages
-  if (isApplicationWorkspace(pathname)) return null;
+  // Keep workspace and event registration/payment controls clear of floating chat.
+  if (isApplicationWorkspace(pathname) || pathname.startsWith("/events/")) return null;
 
   return (
     <div

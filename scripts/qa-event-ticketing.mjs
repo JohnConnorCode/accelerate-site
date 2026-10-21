@@ -696,6 +696,22 @@ try {
       recoveryHitTargets.every((point) => point.clear),
       "The checkout recovery button must remain clear of floating overlays",
     );
+    assert.ok(
+      await buy.evaluate((button) => {
+        const chat = document.querySelector('.chat-widget-root [aria-label="Open chat"]');
+        if (!chat?.checkVisibility({ opacityProperty: true, visibilityProperty: true }))
+          return true;
+        const target = button.getBoundingClientRect();
+        const bubble = chat.getBoundingClientRect();
+        return (
+          bubble.right <= target.left - 4 ||
+          bubble.left >= target.right + 4 ||
+          bubble.bottom <= target.top - 4 ||
+          bubble.top >= target.bottom + 4
+        );
+      }),
+      "Floating chat must leave the whole recovery control and focus ring clear",
+    );
     const errorAccessibility = await new AxeBuilder({ page })
       .include('aside[aria-label="Workshop tickets"] [role="alert"]')
       .withRules(["color-contrast"])
