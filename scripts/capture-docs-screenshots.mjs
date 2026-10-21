@@ -197,12 +197,6 @@ const SHOTS = [
     wait: { role: "heading", name: /inventory/i },
   },
   {
-    id: "start/agencies",
-    scenario: "northline-roofing",
-    route: "tenants",
-    wait: { role: "heading", name: /workspace|tenant/i },
-  },
-  {
     id: "billing/payments-workspace-2026-10-18",
     route: "invoicing?view=payments",
     wait: { role: "heading", name: "Payment activity" },
@@ -396,6 +390,20 @@ async function ready(page, theme) {
     await new Promise((resolve) => requestAnimationFrame(resolve));
     await new Promise((resolve) => requestAnimationFrame(resolve));
   });
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll("main tbody tr")].every(
+        (row) => !row.style.opacity || Number(row.style.opacity) >= 0.99,
+      ) &&
+      document
+        .querySelector("main")
+        .getAnimations({ subtree: true })
+        .every(
+          (animation) =>
+            animation.playState !== "running" ||
+            animation.effect?.getTiming().iterations === Infinity,
+        ),
+  );
   assert.doesNotMatch(await page.locator("main").first().innerText(), /fictional\s+workspaces?/i);
   const labels = await page.getByText(/^Demo(?: workspace)?$/i).all();
   assert.ok(

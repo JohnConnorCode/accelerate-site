@@ -124,6 +124,20 @@ async function main() {
           if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
         });
       }
+      await page.waitForFunction(
+        () =>
+          [...document.querySelectorAll<HTMLElement>("main tbody tr")].every(
+            (row) => !row.style.opacity || Number(row.style.opacity) >= 0.99,
+          ) &&
+          document
+            .querySelector("main")!
+            .getAnimations({ subtree: true })
+            .every(
+              (animation) =>
+                animation.playState !== "running" ||
+                animation.effect?.getTiming().iterations === Infinity,
+            ),
+      );
       assert.doesNotMatch(
         await page.locator("main").first().innerText(),
         /fictional\s+workspaces?/i,
