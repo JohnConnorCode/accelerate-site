@@ -17,14 +17,8 @@ await (async () => {
     ? null
     : spawn(
         process.execPath,
-        [
-          require.resolve(resolve("node_modules/next/dist/bin/next")),
-          "dev",
-          "--webpack",
-          "-p",
-          "3082",
-        ],
-        { stdio: ["ignore", log, log], env: { ...process.env, NODE_ENV: "development" } },
+        [require.resolve(resolve("node_modules/next/dist/bin/next")), "start", "-p", "3082"],
+        { stdio: ["ignore", log, log], env: { ...process.env, NODE_ENV: "production" } },
       );
   let browser;
   try {
@@ -35,7 +29,7 @@ await (async () => {
           if ((await fetch(`${base}/demo/command-center/northline-roofing/work`)).status === 200)
             break;
         } catch {
-          /* Wait for the local development server. */
+          /* Wait for the local production server. */
         }
         await new Promise((r) => setTimeout(r, 1000));
       }
@@ -54,7 +48,10 @@ await (async () => {
       await page.goto(`${base}/demo/command-center/northline-roofing/work`, {
         waitUntil: "networkidle",
       });
-      await page.locator("[data-source-type=task]").first().waitFor();
+      await page.getByRole("heading", { name: "Work", exact: true }).waitFor();
+      await page
+        .getByText("No open tasks assigned to you in this view.", { exact: true })
+        .waitFor();
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
       const boxes = await page.locator("[role=search] .admin-field").evaluateAll((xs) =>
         xs.map((x) => ({
@@ -105,8 +102,16 @@ await (async () => {
       }
       const search = page.getByLabel("Search tasks", { exact: true });
       await search.fill("NO_MATCH_EXPECTED");
-      await page.getByText("No tasks match these filters.", { exact: true }).waitFor();
-      await page.getByRole("button", { name: "Reset filters", exact: true }).click();
+      await page
+        .getByText("No open tasks assigned to you in this view.", { exact: true })
+        .waitFor();
+      await search.fill("");
+      // Clearing the search preserves the default My work ownership filter.
+      await page
+        .getByText("No open tasks assigned to you in this view.", { exact: true })
+        .waitFor();
+      if (width < 1024) await page.getByRole("button", { name: /^Filters/ }).click();
+      await page.getByLabel("Ownership", { exact: true }).selectOption("team");
       await page.locator("[data-source-type=task]").first().waitFor();
       const first = page.getByRole("button", { name: /^Open task / }).first();
       await first.focus();

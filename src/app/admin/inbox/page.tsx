@@ -292,7 +292,7 @@ export default function AdminInboxPage() {
                 <span
                   className={cn(
                     "admin-number rounded px-1.5 py-0.5 text-[11px]",
-                    active ? "bg-white/12" : "bg-black/5 dark:bg-white/8",
+                    active ? "bg-[var(--admin-surface-subtle)]" : "bg-black/5 dark:bg-white/8",
                   )}
                 >
                   {data?.counts[filter.key] || 0}

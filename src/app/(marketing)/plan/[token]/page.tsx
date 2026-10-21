@@ -120,7 +120,7 @@ export default async function PlanPage({ params }: PageProps) {
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 text-sm text-gold-light hover:text-white-primary transition-colors mt-4"
+            className="inline-flex items-center gap-2 text-sm text-[var(--fg)] hover:text-white-primary transition-colors mt-4"
           >
             Contact Us
             <ArrowRight className="w-4 h-4" />
@@ -150,7 +150,7 @@ export default async function PlanPage({ params }: PageProps) {
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 text-sm text-gold-light hover:text-white-primary transition-colors mt-4"
+            className="inline-flex items-center gap-2 text-sm text-[var(--fg)] hover:text-white-primary transition-colors mt-4"
           >
             Book a Free Strategy Call
             <ArrowRight className="w-4 h-4" />

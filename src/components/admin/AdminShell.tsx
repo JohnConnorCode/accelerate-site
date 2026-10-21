@@ -1676,7 +1676,9 @@ function CommandRow({
       <span
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--admin-control-radius)]",
-          selected ? "bg-white/12" : "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]",
+          selected
+            ? "bg-[var(--admin-surface-subtle)]"
+            : "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]",
         )}
       >
         <Icon className="h-4 w-4" />

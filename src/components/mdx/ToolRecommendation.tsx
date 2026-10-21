@@ -35,7 +35,7 @@ export function ToolRecommendation({
           {bestFor && <p className="mt-2 mb-0 text-xs text-white-muted">Best for: {bestFor}</p>}
         </div>
         <div className="text-right shrink-0">
-          <span className="text-sm font-semibold text-gold-gradient">{pricing}</span>
+          <span className="text-sm font-semibold text-foreground">{pricing}</span>
           {link && (
             <a
               href={link}

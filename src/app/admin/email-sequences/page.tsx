@@ -155,7 +155,7 @@ export default function EmailSequencesPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.03 }}
-                    className="border-b border-[var(--admin-border)] hover:bg-white/[0.02]"
+                    className="border-b border-[var(--admin-border)] hover:bg-[var(--admin-hover-tint)]"
                   >
                     <td className="text-[var(--admin-ink)]">{seq.email}</td>
                     <td className="text-[var(--admin-muted)] capitalize">

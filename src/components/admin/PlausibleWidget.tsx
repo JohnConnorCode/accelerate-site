@@ -68,9 +68,9 @@ export function PlausibleWidget() {
           </h3>
         </div>
         <div className="animate-pulse space-y-3">
-          <div className="h-8 bg-white/5 rounded" />
-          <div className="h-4 bg-white/5 rounded w-3/4" />
-          <div className="h-4 bg-white/5 rounded w-1/2" />
+          <div className="h-8 bg-[var(--admin-surface-subtle)] rounded" />
+          <div className="h-4 bg-[var(--admin-surface-subtle)] rounded w-3/4" />
+          <div className="h-4 bg-[var(--admin-surface-subtle)] rounded w-1/2" />
         </div>
       </GlassCard>
     );

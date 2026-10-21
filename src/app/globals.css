@@ -170,27 +170,8 @@
   /* Accent (raw RGB channels for rgba() usage) — now ink, not lime */
   --accent-rgb: 11, 11, 11;
 
-  /* Accent ramp — aliased flat to ink (no more lime) */
-  --gold-base: var(--fg);
-  --gold-light: var(--fg);
-  --gold-champagne: var(--fg);
-
-  /* Accent gradient stops — aliased flat to ink */
-  --aurora-violet: var(--fg);
-  --aurora-magenta: var(--fg);
-  --aurora-cyan: var(--fg);
-
   /* Interactive grid-field dim-dot color */
   --field-dot-rgb: 110, 110, 107;
-
-  /* Gradient mesh / glow — neutralized (no atmosphere in the editorial system) */
-  --mesh-1: transparent;
-  --mesh-2: transparent;
-  --mesh-3: transparent;
-  --mesh-4: transparent;
-  --glow-soft: transparent;
-  --glow-medium: transparent;
-  --glow-strong: transparent;
 
   /* Text tiers */
   --white-primary: var(--fg);
@@ -200,8 +181,6 @@
   /* Borders */
   --border-glass: var(--rule);
   --border-glass-hover: var(--rule-dark);
-  --border-gold: var(--rule);
-  --border-gold-hover: var(--fg);
 
   /* Status */
   --success: #0f7a4b;
@@ -210,10 +189,10 @@
   /* Glass — flattened (no blur, no translucency) */
   --glass-default-bg: var(--bg);
   --glass-prominent-bg: var(--bg);
-  --glass-gold-bg: var(--bg);
+  --glass-emphasis-bg: var(--bg);
   --glass-default-hover: var(--bg);
   --glass-prominent-hover: var(--bg);
-  --glass-gold-hover: var(--bg);
+  --glass-emphasis-hover: var(--bg);
   --glass-blur: 0px;
   --glass-saturation: 100%;
 
@@ -281,16 +260,12 @@
   --color-bg-base: var(--bg-base);
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-subtle: var(--bg-subtle);
-  --color-gold: var(--gold-base);
-  --color-gold-light: var(--gold-light);
-  --color-gold-champagne: var(--gold-champagne);
   --color-white-primary: var(--white-primary);
   --color-white-secondary: var(--white-secondary);
   --color-white-muted: var(--white-muted);
   --color-heading: var(--heading-color);
   --color-btn-text: var(--btn-primary-text);
   --color-border-glass: var(--border-glass);
-  --color-border-gold: var(--border-gold);
   --color-success: var(--success);
   --color-error: var(--error);
 
@@ -533,8 +508,6 @@ h6 {
   white-space: nowrap;
   display: inline-block;
   background: var(--surface-bg);
-  -webkit-backdrop-filter: blur(14px) saturate(150%);
-  backdrop-filter: blur(14px) saturate(150%);
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }
 /* Entrance is handled by `.item-rv` on the same element (see Evidence.tsx),
@@ -582,7 +555,7 @@ a.tag:active {
   isolation: isolate;
   cursor: pointer;
   text-align: center;
-  will-change: transform;
+  min-height: 44px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
   /* Snappy down, springy back — the same asymmetry native touch UI uses:
      .btn:active below overrides this with a fast linear press, then on
@@ -625,6 +598,21 @@ a.tag:active {
 .mobile-nav button {
   touch-action: manipulation;
 }
+.btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.btn:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn:disabled::before {
+  display: none;
+}
+.btn-lg {
+  padding: 18px 32px;
+}
 .btn-sm {
   padding: 11px 18px;
   font-size: 11px;
@@ -643,8 +631,6 @@ a.tag:active {
 }
 .btn-ghost {
   background: var(--surface-bg);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  backdrop-filter: blur(16px) saturate(150%);
   color: var(--fg);
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }
@@ -1251,22 +1237,22 @@ a.tag:active {
    GOLD GRADIENT UTILITIES (aliased flat to ink — kept for ~100 consumers)
    ======================================== */
 
-.text-gold-gradient {
+.text-foreground {
   color: var(--fg);
 }
 
-.bg-gold-gradient {
+.bg-foreground {
   background: var(--fg);
   color: var(--bg);
 }
 
-.border-gold-glow,
-.hover\:border-gold-glow:hover {
+.border-foreground,
+.hover\:border-foreground:hover {
   border-color: var(--fg);
 }
 
-.border-gold-glow-strong,
-.hover\:border-gold-glow-strong:hover {
+.border-foreground-strong,
+.hover\:border-foreground-strong:hover {
   border-color: var(--fg);
 }
 
@@ -1513,11 +1499,6 @@ a.tag:active {
   .page-offset-roomy .btn {
     width: 100%;
     min-height: 52px;
-  }
-  .photo-hero .magnetic-btn,
-  .page-offset-roomy .magnetic-btn {
-    display: block;
-    width: 100%;
   }
 }
 
@@ -2491,9 +2472,9 @@ body.modal-open [data-dock] {
   -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
 }
 
-.glass-gold {
-  background: color-mix(in srgb, var(--gold-base) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--gold-base) 30%, transparent);
+.glass-emphasis {
+  background: color-mix(in srgb, var(--fg) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 30%, transparent);
   box-shadow: var(--surface-shadow);
   backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
   -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
@@ -2518,7 +2499,7 @@ body.modal-open [data-dock] {
 
 .glass:focus-visible,
 .glass-prominent:focus-visible,
-.glass-gold:focus-visible {
+.glass-emphasis:focus-visible {
   outline: 2px solid var(--fg);
   outline-offset: 2px;
 }
@@ -2581,7 +2562,7 @@ body.modal-open [data-dock] {
 
 /* ========================================
    BACKGROUND GRADIENT ORBS — aliased to near-invisible ink tint
-   (kept as shells; --accent-rgb, --mesh-*, --glow-* aliases above neutralize them)
+   (legacy neutral shells; no color aliases)
    ======================================== */
 
 @keyframes bokeh-drift-0 {
@@ -2719,11 +2700,11 @@ body.modal-open [data-dock] {
    UNDERLINE HOVER FOR LINKS
    ======================================== */
 
-.link-gold-underline {
+.link-underline {
   position: relative;
   display: inline-block;
 }
-.link-gold-underline::after {
+.link-underline::after {
   content: "";
   position: absolute;
   left: 0;
@@ -2733,7 +2714,7 @@ body.modal-open [data-dock] {
   background: currentColor;
   transition: width 0.3s ease;
 }
-.link-gold-underline:hover::after {
+.link-underline:hover::after {
   width: 100%;
 }
 
@@ -2741,7 +2722,7 @@ body.modal-open [data-dock] {
    PROGRESS BAR FILL
    ======================================== */
 
-.progress-gold {
+.progress-line {
   background: var(--fg);
 }
 
@@ -3160,9 +3141,9 @@ summary:focus-visible {
 
 .gradient-mesh {
   background:
-    radial-gradient(ellipse 80% 60% at 20% 40%, var(--mesh-1) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 80% at 80% 20%, var(--mesh-2) 0%, transparent 70%),
-    radial-gradient(ellipse 70% 50% at 50% 80%, var(--mesh-3) 0%, transparent 70%);
+    radial-gradient(ellipse 80% 60% at 20% 40%, transparent 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 80% 20%, transparent 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 80%, transparent 0%, transparent 70%);
   background-size: 100% 100%;
   animation: gradient-mesh 20s ease-in-out infinite;
 }
@@ -3571,11 +3552,6 @@ summary:focus-visible {
     /* JS tilt disabled via prefersReducedMotion() check */
   }
 
-  .magnetic-btn {
-    transform: none !important;
-    transition: none !important;
-  }
-
   *,
   *::before,
   *::after {
@@ -3663,23 +3639,6 @@ summary:focus-visible {
 }
 
 /* ========================================
-   MICROINTERACTIONS — MAGNETIC BUTTON
-   ======================================== */
-
-.magnetic-btn {
-  --mag-x: 0px;
-  --mag-y: 0px;
-  transform: translate(var(--mag-x), var(--mag-y));
-  transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
-}
-@media (hover: none) {
-  .magnetic-btn {
-    transform: none !important;
-    transition: none;
-  }
-}
-
-/* ========================================
    DOT / PERSPECTIVE / DIAMOND / GLOW GRID PATTERNS
    ======================================== */
 
@@ -3732,7 +3691,7 @@ summary:focus-visible {
   opacity: 0.5;
 }
 
-.gold-top-border {
+.surface-top-rule {
   border-top: 1px solid var(--fg);
 }
 
@@ -3744,9 +3703,6 @@ summary:focus-visible {
   50% {
     box-shadow: 0 0 0 8px rgba(var(--accent-rgb), 0);
   }
-}
-.pulse-gold {
-  /* neutralized — no pulsing glow */
 }
 
 @keyframes signal-pulse {
@@ -7041,7 +6997,7 @@ body.modal-open [data-dock] {
   .site-header.is-scrolled,
   .glass,
   .glass-prominent,
-  .glass-gold,
+  .glass-emphasis,
   .week-col,
   .cc-row,
   .ev-c,
@@ -7062,4 +7018,16 @@ body.modal-open [data-dock] {
   .st > * {
     filter: none !important;
   }
+}
+
+/* Shared controls use semantic local roles on either surface. */
+.ui-field-group,
+.ui-toast {
+  --control-ink: var(--fg);
+  --control-muted: var(--mid);
+  --control-surface: var(--bg);
+  --control-border: var(--rule);
+  --control-action: var(--fg);
+  --control-danger: var(--error);
+  --control-success: var(--success);
 }

@@ -79,19 +79,19 @@ export function RevenueSnapshot({
         )}
 
         <div className="admin-grid admin-grid--metrics mb-6">
-          <div className="rounded-lg bg-white/5 p-4">
+          <div className="rounded-lg bg-[var(--admin-surface-subtle)] p-4">
             <p className="text-xs text-[var(--admin-muted)] mb-1">Total Pipeline</p>
             <p className="text-xl font-display font-bold text-[var(--admin-ink)]">
               ${totalPipelineValue.toLocaleString()}
             </p>
           </div>
-          <div className="rounded-lg bg-white/5 p-4">
+          <div className="rounded-lg bg-[var(--admin-surface-subtle)] p-4">
             <p className="text-xs text-[var(--admin-muted)] mb-1">Won Revenue</p>
             <p className="text-xl font-display font-bold text-[var(--admin-success)]">
               ${wonRevenue.toLocaleString()}
             </p>
           </div>
-          <div className="rounded-lg bg-white/5 p-4">
+          <div className="rounded-lg bg-[var(--admin-surface-subtle)] p-4">
             <p className="text-xs text-[var(--admin-muted)] mb-1">Avg Deal Value</p>
             <p className="text-xl font-display font-bold text-[var(--admin-ink)]">
               {totalPipelineValue > 0 && Object.keys(pipelineValues).length > 0
@@ -122,7 +122,7 @@ export function RevenueSnapshot({
                 <span className="text-xs text-[var(--admin-muted)] w-20 shrink-0">
                   {stage.label}
                 </span>
-                <div className="flex-1 h-6 rounded bg-white/5 overflow-hidden relative">
+                <div className="flex-1 h-6 rounded bg-[var(--admin-surface-subtle)] overflow-hidden relative">
                   <motion.div
                     className={`h-full ${stage.color} rounded`}
                     initial={{ width: 0 }}

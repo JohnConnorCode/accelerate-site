@@ -1183,6 +1183,7 @@ jobs:
           TODAY_REVIEW_QA_OUTPUT: /tmp/accelerate-today-review
           PRODUCT_SCREENSHOT_RECEIPT: /tmp/accelerate-design-capture/product.json
           HERO_QA_OUTPUT: /tmp/accelerate-design-capture/hero
+          DESIGN_ROADMAP_QA_OUTPUT: /tmp/accelerate-design-roadmap
         run: |
           start_preview() {
             setsid npm run start -- --hostname localhost --port 3045 >> /tmp/accelerate-design-server.log 2>&1 &
@@ -1216,6 +1217,8 @@ jobs:
           node scripts/qa-today-review-layout.mjs || capture_status=1
           node scripts/qa-collections-workspace.mjs || capture_status=1
           node scripts/qa-marketing-positioning.mjs || capture_status=1
+          npm run qa:design-roadmap || capture_status=1
+          node scripts/qa-workspace-layout.mjs || capture_status=1
           exit "$capture_status"
       - name: Verify representative core routes
         id: design_routes
@@ -1264,6 +1267,8 @@ jobs:
             /tmp/accelerate-today-review/
             /tmp/accelerate-collections-workspace/
             /tmp/accelerate-positioning-qa/
+            /tmp/accelerate-design-roadmap/
+            /tmp/work-desktop-browser/
           if-no-files-found: ignore
           retention-days: 7
       - name: Retain refreshed public images
@@ -1274,6 +1279,21 @@ jobs:
           path: |
             public/images/docs/
             public/images/demo/*-20261020-r2.png
-            public/images/open-source/*-20261020-r2.png
+            public/images/open-source/*-20261020-roadmap.png
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain focused design review and source receipts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: design-review-evidence
+          path: |
+            /tmp/accelerate-design-capture/*.json
+            /tmp/accelerate-design-capture/customer-workflow/receipt.json
+            /tmp/accelerate-design-roadmap/results.json
+            /tmp/accelerate-design-roadmap/site-style-guide-*.png
+            /tmp/accelerate-design-roadmap/site-industries-*-light-390.png
+            /tmp/work-desktop-browser/*.png
+            /tmp/admin-core-qa/**/*.json
           if-no-files-found: ignore
           retention-days: 7

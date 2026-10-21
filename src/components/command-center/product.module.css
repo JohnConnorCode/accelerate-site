@@ -22,7 +22,7 @@
   box-shadow: 0 0 0 1px var(--fg);
 }
 .areaCard h3 {
-  font-size: 1.3rem;
+  font-size: var(--type-title);
   font-weight: 600;
   text-wrap: balance;
 }
@@ -235,7 +235,7 @@
 }
 .card h3 {
   font-family: var(--font-display), sans-serif;
-  font-size: 1.35rem;
+  font-size: var(--type-title);
   line-height: 1.25;
   letter-spacing: -0.025em;
   margin: 0.75rem 0;
@@ -333,7 +333,7 @@
 }
 .feature h3 {
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+  font-size: var(--type-title);
   line-height: 1.2;
   letter-spacing: -0.025em;
   margin: 0.75rem 0 1rem;
@@ -481,7 +481,7 @@
   padding: 1.5rem 0;
 }
 .featureGrid .feature h3 {
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-size: var(--type-title);
 }
 .featureGrid .figure {
   margin-top: auto;
@@ -522,7 +522,7 @@
   margin-top: 3rem;
 }
 .portfolio > h3 {
-  font-size: 1.6rem;
+  font-size: var(--type-title);
   margin: 0.75rem 0;
 }
 .portfolio > p:not(.label) {
@@ -911,7 +911,7 @@
   margin: 1.2rem 0 0.7rem;
   color: var(--fg);
   font-family: var(--font-display-face), system-ui, sans-serif;
-  font-size: clamp(1.25rem, 1.8vw, 1.7rem);
+  font-size: var(--type-title);
   font-weight: 500;
   line-height: 1.12;
   letter-spacing: -0.035em;

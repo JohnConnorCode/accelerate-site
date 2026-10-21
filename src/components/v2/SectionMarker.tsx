@@ -13,7 +13,7 @@ export function SectionMarker({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[var(--gold-base)]",
+        "inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[var(--fg)]",
         className,
       )}
     >

@@ -116,7 +116,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
           href={shareUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-[var(--admin-muted)] transition-colors hover:bg-white/5 hover:text-[var(--admin-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-[var(--admin-muted)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-[var(--admin-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
         >
           <Eye className="h-3.5 w-3.5" />
           Preview
@@ -153,7 +153,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
               }
             }}
             type="button"
-            className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-xs text-[var(--admin-ink)] transition-colors hover:bg-white/5 hover:text-[var(--admin-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-xs text-[var(--admin-ink)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-[var(--admin-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
           >
             Copy
           </button>
@@ -198,7 +198,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
               type="button"
               onClick={() => removeSection(idx)}
               aria-label={`Remove ${section.title} section`}
-              className="ml-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-[var(--admin-muted)] transition-colors hover:bg-white/5 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+              className="ml-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-[var(--admin-muted)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -278,7 +278,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
       <button
         type="button"
         onClick={addSection}
-        className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm text-[var(--admin-muted)] transition-colors hover:bg-white/5 hover:text-[var(--admin-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm text-[var(--admin-muted)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-[var(--admin-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
       >
         <Plus className="h-4 w-4" />
         Add Section

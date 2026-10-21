@@ -115,7 +115,7 @@ export default function ResourcesPage() {
               value={resourceFilter}
               onChange={(e) => setResourceFilter(e.target.value)}
               aria-label="Filter by resource type"
-              className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+              className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--admin-action)]/30 transition-[border-color,box-shadow,background-color]"
             >
               <option value="all">All Resources</option>
               {resourceTypes.map((type) => (
@@ -145,7 +145,7 @@ export default function ResourcesPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.03 }}
-                  className="border-b border-[var(--admin-border)] hover:bg-white/[0.02] transition-colors"
+                  className="border-b border-[var(--admin-border)] hover:bg-[var(--admin-hover-tint)] transition-colors"
                 >
                   <td className="text-[var(--admin-ink)] font-medium">{dl.name}</td>
                   <td>

@@ -261,6 +261,11 @@ export const commandCenterFaqs: FAQ[] = [
 /** The buying questions shown on the product page and in its structured data. */
 export const productFaqs = commandCenterFaqs.filter((faq) =>
   [
+    {
+      question: "Where do I inspect or configure a plugin?",
+      answer:
+        "Plugins and the Pluggable Modules tab in Integrations use the same module cards. Each shows status, ownership, declared autonomy and any supplied execution receipt. Open Documentation for the operating guide, expand Settings on an enabled module to configure it, or open its workflow from Plugins. Configuration-only modules link to Integrations. The autonomy label does not grant new permissions or change an action's approval requirements.",
+    },
     "What is Command Center?",
     "What business work can we do with it?",
     "How does AI help with the work?",

@@ -79,7 +79,7 @@ export function Integrations() {
             label="Integrations"
             heading={
               <>
-                Your Stack. <span className="text-gold-gradient">Our Glue.</span>
+                Your Stack. <span className="text-foreground">Our Glue.</span>
               </>
             }
             description="We're tool-agnostic. We connect to your existing stack and recommend what actually fits, not what pays us a commission."
@@ -98,9 +98,9 @@ export function Integrations() {
               <div
                 key={tool.name}
                 data-tool-card
-                className="card-outline rounded-xl p-3 sm:p-4 flex flex-col items-center gap-3 cursor-default group hover:border-border-gold transition-colors duration-300"
+                className="card-outline rounded-xl p-3 sm:p-4 flex flex-col items-center gap-3 cursor-default group hover:border-[var(--rule)] transition-colors duration-300"
               >
-                <div className="w-10 h-10 rounded-xl bg-transparent border border-border-glass flex items-center justify-center group-hover:border-border-gold group-hover:bg-[var(--glow-soft)] transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-transparent border border-border-glass flex items-center justify-center group-hover:border-[var(--rule)] group-hover:bg-[transparent] transition-colors">
                   {tool.logo ? (
                     <Image
                       src={tool.logo}
@@ -110,7 +110,7 @@ export function Integrations() {
                       className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity"
                     />
                   ) : Icon ? (
-                    <Icon className="w-5 h-5 text-gold-light" aria-hidden="true" />
+                    <Icon className="w-5 h-5 text-[var(--fg)]" aria-hidden="true" />
                   ) : null}
                 </div>
                 <span className="text-xs font-medium text-white-primary text-center leading-tight">

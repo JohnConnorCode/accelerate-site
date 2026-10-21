@@ -18,7 +18,7 @@ interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
 const variantClasses: Record<GlassVariant, string> = {
   default: "glass",
   prominent: "glass-prominent",
-  gold: "glass-gold",
+  gold: "glass-emphasis",
 };
 
 const paddingClasses: Record<string, string> = {
@@ -97,11 +97,11 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
 
     const hoverClass =
       hover === "glow"
-        ? "card-spotlight hover:border-gold-glow transition-[border-color,box-shadow,transform] duration-300"
+        ? "card-spotlight hover:border-foreground transition-[border-color,box-shadow,transform] duration-300"
         : hover === "lift"
-          ? "card-tilt card-spotlight hover:border-gold-glow transition-[border-color,box-shadow,transform] duration-300"
+          ? "card-tilt card-spotlight hover:border-foreground transition-[border-color,box-shadow,transform] duration-300"
           : hover === "shine"
-            ? "card-spotlight card-hover-shine hover:border-gold-glow transition-[border-color,box-shadow,transform] duration-300"
+            ? "card-spotlight card-hover-shine hover:border-foreground transition-[border-color,box-shadow,transform] duration-300"
             : "transition-[border-color,box-shadow,transform] duration-300";
 
     return (

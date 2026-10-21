@@ -35,7 +35,22 @@ const px = (value, unit) => (unit === "rem" ? Number(value) * 16 : Number(value)
 
 for (const file of files) {
   const path = relative(root, file);
-  const lines = readFileSync(file, "utf8").split("\n");
+  const source = readFileSync(file, "utf8");
+  const lines = source.split("\n");
+  if (/^src\/(app\/admin|components\/admin)\//.test(path)) {
+    for (const match of source.matchAll(/<th\b[^>]*>/g)) {
+      if (
+        /className=[\s\S]*(?<![\w-])(?:p[xy]?-[\d.]+|uppercase|tracking-|font-mono)\b/.test(
+          match[0],
+        )
+      ) {
+        const line = source.slice(0, match.index).split("\n").length;
+        failures.push(
+          `${path}:${line} restyles a table header; .admin-table th owns header type and spacing`,
+        );
+      }
+    }
+  }
   lines.forEach((line, index) => {
     const at = `${path}:${index + 1}`;
     // A documented exception sits on the line before: /* brand-system: allow (reason) */
@@ -76,12 +91,6 @@ for (const file of files) {
       )
     )
       failures.push(`${at} uses a marketing-site color class; use the --admin-* tokens`);
-    if (
-      /<th\b[^>]*className=[^>]*(?<![\w-])(?:p[xy]?-[\d.]+|uppercase|tracking-|font-mono)\b/.test(
-        line,
-      )
-    )
-      failures.push(`${at} restyles a table header; .admin-table th owns header type and spacing`);
   });
 }
 

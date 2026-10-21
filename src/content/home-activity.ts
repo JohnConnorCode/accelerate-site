@@ -30,3 +30,32 @@ export const homeActivity = {
     },
   ] satisfies ActivityEvent[],
 };
+
+export const commandCenterActivity = {
+  label: "A customer thread, across the business",
+  context: "Illustrative · configured roofing workflow",
+  events: [
+    { time: "09:12", text: "Conversations: Dana Ruiz requested an inspection for Cedar Court" },
+    {
+      time: "09:12",
+      text: "Contacts: connected Dana's request to the existing customer",
+      system: true,
+    },
+    {
+      time: "09:13",
+      text: "Pipeline: created the inspection opportunity and assigned its owner",
+      system: true,
+    },
+    { time: "11:30", text: "The office confirmed the scope and Dana accepted the job" },
+    {
+      time: "11:31",
+      text: "Invoicing: prepared the agreed deposit invoice for billing review",
+      system: true,
+    },
+    {
+      time: "11:32",
+      text: "Work: assigned the crew handoff and the customer's follow-up",
+      system: true,
+    },
+  ] satisfies ActivityEvent[],
+};

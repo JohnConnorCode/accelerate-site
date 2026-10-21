@@ -1,7 +1,7 @@
 ---
 title: "Modules"
 description: "Turn a whole area of the product on or off per workspace, without forking the application."
-updated: "2026-09-19"
+updated: "2026-10-20"
 ---
 
 A business should be able to enable the capabilities its team needs and keep optional screens out of the way. Modules control those areas of the workspace, while shared core capabilities remain available to support the connected records and workflows.
@@ -24,8 +24,20 @@ The Integrations screen is the one deliberate exception: it can always re-enable
 
 ## Where to change it
 
-Open Integrations in your workspace. Each module's card shows whether it is currently on, which AI tools it owns, and a documentation link that the build itself verifies is live, so a module can never ship pointing at a dead guide. See [Workspace](/docs/workspace) for the rest of what lives on that screen.
+Open **Integrations**, then choose **Pluggable Modules**. Each card shows the module's status, owner and autonomy policy. Enable an optional module to make its supported screens available. Expand **Settings** to change its configuration, or open **Documentation** for its setup and operating instructions.
+
+The same cards appear on **Plugins**, where you can open a business workflow or run an enabled report. A completed report adds a timestamped system entry to its card. If an owner or execution receipt has not been supplied, the card says so. An empty activity line does not establish that a module has never run.
+
+<DocsFigure
+  src="/images/docs/workspace/module-cards-20261020.png"
+  width={1440}
+  height={1000}
+  alt="Plugin cards with status, owner, autonomy policy and activity in the fictional Northline Roofing workspace."
+  caption="Plugins in the fictional Northline Roofing workspace. Cards share one layout, and their activity lines identify whether an execution receipt is available."
+/>
+
+The autonomy label describes the module's declared policy. It does not grant permission or change an action's approval requirements. See [Workspace](/docs/workspace) for the rest of the configuration screen.
 
 ## Adding one that does not exist yet
 
-A third party registers a new module as a manifest under `extensions/` in the source, rather than editing the core application directly. That keeps your changes separate from the parts of the product everyone shares. The full contract for what a manifest needs is in the repository's extending guide, and CI itself enforces one rule you cannot skip: a module that ships without a docs URL resolving to a real, live guide fails the build.
+A third party registers a new module as a manifest under `extensions/` in the source, rather than editing the core application directly. That keeps your changes separate from the parts of the product everyone shares. The full contract for what a manifest needs is in the repository's extending guide, and its identity card appears through the generated registry. The extension check requires a documentation URL and a bundled operator guide. Review the guide and follow its workflow before release; that structural check does not test a live page.

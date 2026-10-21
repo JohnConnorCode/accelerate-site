@@ -276,7 +276,7 @@ export default function ProposalsPage() {
                             tabIndex={0}
                             aria-label={`Open ${proposal.title}`}
                             aria-selected={selectedProposal?.id === proposal.id}
-                            className="cursor-pointer border-b border-[var(--admin-border)] transition-colors hover:bg-white/[0.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] last:border-b-0"
+                            className="cursor-pointer border-b border-[var(--admin-border)] transition-colors hover:bg-[var(--admin-hover-tint)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] last:border-b-0"
                             onClick={(event) => {
                               if (isInteractiveTarget(event.target)) return;
                               openProposal(proposal);
@@ -322,7 +322,7 @@ export default function ProposalsPage() {
                   <button
                     type="button"
                     onClick={closeProposal}
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-[var(--admin-muted)] transition-colors hover:bg-white/5 hover:text-[var(--admin-ink)] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] lg:hidden"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-[var(--admin-muted)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-[var(--admin-ink)] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] lg:hidden"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
                     Back to Proposals

@@ -337,7 +337,10 @@ export function LeadsTable({
                 Apply
               </Button>
 
-              <span className="hidden h-5 w-px bg-white/10 sm:block" aria-hidden="true" />
+              <span
+                className="hidden h-5 w-px bg-[var(--admin-surface-subtle)] sm:block"
+                aria-hidden="true"
+              />
               <Tag className="h-3.5 w-3.5 text-[var(--admin-muted)]" aria-hidden="true" />
               <select
                 value={tagMode}
@@ -512,7 +515,7 @@ export function LeadsTable({
                 <button
                   type="button"
                   onClick={handleScoreSort}
-                  className="flex cursor-pointer items-center gap-1 uppercase hover:text-[var(--admin-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
+                  className="flex cursor-pointer items-center gap-1 uppercase hover:text-[var(--admin-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]/40 focus-visible:ring-offset-2"
                 >
                   Score
                   {scoreSort &&
@@ -572,7 +575,7 @@ export function LeadsTable({
                     aria-label={`Open ${lead.contact_name}`}
                     aria-expanded={expanded}
                     aria-controls={panelId}
-                    className="border-b border-[var(--admin-border)] cursor-pointer transition-colors hover:bg-white/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--gold-base)]"
+                    className="border-b border-[var(--admin-border)] cursor-pointer transition-colors hover:bg-[var(--admin-hover-tint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]"
                     onClick={(event) => {
                       if (isInteractiveTarget(event.target)) return;
                       setExpandedId(expanded ? null : lead.id);
@@ -788,7 +791,7 @@ function SortHeader({ field, children, onSort, sortField, sortOrder }: SortHeade
       <button
         type="button"
         onClick={() => onSort(field)}
-        className="flex cursor-pointer items-center gap-1 uppercase hover:text-[var(--admin-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
+        className="flex cursor-pointer items-center gap-1 uppercase hover:text-[var(--admin-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]/40 focus-visible:ring-offset-2"
       >
         {children}
         {active ? (

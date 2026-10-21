@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "shared-module-cards-and-contact-navigation",
+    slug: "shared-module-cards-and-contact-navigation",
+    title: "Inspect modules and open customer records consistently",
+    description:
+      "Plugins and Integrations share module cards with status, ownership, autonomy and receipt context. Contact rows open their history directly. Pipeline and Clients use shared compact metrics, and conversations, contact imports, campaigns and analytics adapt their status surfaces to every workspace appearance.",
+    category: "improvement",
+    publishedAt: "2026-10-20",
+  },
+  {
     id: "customer-workflow-context",
     slug: "customer-workflow-context",
     title: "Keep the customer selected through onboarding and invoicing",

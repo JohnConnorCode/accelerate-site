@@ -81,7 +81,7 @@ export default async function PrivacyPage() {
               exercise these rights, contact us at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
-                className="text-gold-light underline underline-offset-2"
+                className="text-[var(--fg)] underline underline-offset-2"
               >
                 john@acceleratewith.us
               </a>
@@ -95,7 +95,7 @@ export default async function PrivacyPage() {
               If you have questions about this privacy policy, please contact us at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
-                className="text-gold-light underline underline-offset-2"
+                className="text-[var(--fg)] underline underline-offset-2"
               >
                 john@acceleratewith.us
               </a>

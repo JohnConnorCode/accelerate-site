@@ -251,6 +251,12 @@ const SHOTS = [
     state: "business-pulse",
   },
   {
+    id: "workspace/module-cards-20261020",
+    route: "plugins",
+    theme: "accelerate",
+    wait: { role: "heading", name: "Plugins" },
+  },
+  {
     id: "plugins/social-marketing",
     route: "social",
     wait: { role: "heading", name: "Social Marketing" },
@@ -324,7 +330,7 @@ async function prepareState(page, shot) {
     assert.match(await review.innerText(), /\$25\.00/);
     // Stop at review. Never approve a refund to manufacture a screenshot.
   } else if (shot.state === "business-pulse") {
-    const report = page.locator('[data-plugin="business-pulse"]');
+    const report = page.locator('[data-module-card="business-pulse"]');
     await report.getByRole("button", { name: "Run report", exact: true }).click();
     await report.getByText(/records inspected/).waitFor();
     await report.scrollIntoViewIfNeeded();

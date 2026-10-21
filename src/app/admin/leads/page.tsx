@@ -416,7 +416,7 @@ export default function AdminLeadsPage() {
               setPage(1);
             }}
             aria-label="Filter by status"
-            className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+            className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--admin-action)]/30 transition-[border-color,box-shadow,background-color]"
           >
             {statusOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -431,7 +431,7 @@ export default function AdminLeadsPage() {
               setPage(1);
             }}
             aria-label="Filter by industry"
-            className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+            className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--admin-action)]/30 transition-[border-color,box-shadow,background-color]"
           >
             {industryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -463,7 +463,7 @@ export default function AdminLeadsPage() {
               <button
                 type="button"
                 onClick={() => applyView(view.filters)}
-                className="hover:text-[var(--admin-ink)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] rounded cursor-pointer"
+                className="hover:text-[var(--admin-ink)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--admin-action)] rounded cursor-pointer"
               >
                 {view.name}
               </button>
@@ -471,7 +471,7 @@ export default function AdminLeadsPage() {
                 type="button"
                 onClick={() => handleRemoveView(view.id)}
                 aria-label={`Remove view ${view.name}`}
-                className="text-[var(--admin-muted)] hover:text-red-400 transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+                className="text-[var(--admin-muted)] hover:text-red-400 transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--admin-action)] cursor-pointer"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -499,7 +499,7 @@ export default function AdminLeadsPage() {
                 type="button"
                 onClick={handleSaveView}
                 disabled={!viewName.trim()}
-                className="text-xs text-[var(--admin-ink)] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-[filter,opacity,transform] rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer px-1"
+                className="text-xs text-[var(--admin-ink)] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-[filter,opacity,transform] rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--admin-action)] cursor-pointer px-1"
               >
                 Save
               </button>
@@ -510,7 +510,7 @@ export default function AdminLeadsPage() {
                   setViewName("");
                 }}
                 aria-label="Cancel saving view"
-                className="text-[var(--admin-muted)] hover:text-[var(--admin-ink)] transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+                className="text-[var(--admin-muted)] hover:text-[var(--admin-ink)] transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--admin-action)] cursor-pointer"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -519,7 +519,7 @@ export default function AdminLeadsPage() {
             <button
               type="button"
               onClick={() => setShowSaveView(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--admin-border)] px-3 py-1 text-xs text-[var(--admin-muted)] hover:text-[var(--admin-muted)] hover:border-white/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--admin-border)] px-3 py-1 text-xs text-[var(--admin-muted)] hover:text-[var(--admin-muted)] hover:border-[var(--admin-border)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--admin-action)] cursor-pointer"
             >
               <Save className="h-3 w-3" />
               Save current view

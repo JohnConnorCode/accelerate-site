@@ -1,4 +1,6 @@
 import { PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
+import { ActivityStream } from "@/components/ui/ActivityStream";
+import { industryActivity } from "@/content/industry-activity";
 import { distributionProfile } from "@/lib/distribution/profile";
 import Link from "next/link";
 import { IndustryPilot } from "./IndustryPilot";
@@ -9,6 +11,8 @@ import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScro
 import styles from "@/components/command-center/product.module.css";
 
 export function VerticalPage({ vertical }: { vertical: Vertical }) {
+  const activity = industryActivity[vertical.slug];
+  if (!activity) throw new Error(`Missing industry activity: ${vertical.slug}`);
   return (
     <div className={styles.page}>
       <PublicHeroEntrance className={styles.hero}>
@@ -19,29 +23,34 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
           <p className="label mt-8" data-hero-step={2}>
             AI &amp; automation for {vertical.name}
           </p>
-          <div className={`${styles.intro} ${styles.directoryIntro}`}>
-            <h1 className={styles.title} data-hero-step={3}>
-              {vertical.heroHeadlineWhite} <em>{vertical.heroHeadlineGold}</em>
-            </h1>
+          <div className="hero-statement-main mt-8">
             <div>
-              <p className={styles.lede} data-hero-step={4}>
-                {vertical.heroSubheadline}
-              </p>
-              <div data-hero-step={5}>
-                <div className={styles.actions}>
-                  <BookCallButton
-                    label="Discuss your workflow"
-                    location={`industry_${vertical.slug}_hero`}
-                  />
-                  <Link className={styles.secondary} href="#workflow-recipes">
-                    Explore the recipes
-                  </Link>
-                </div>
-                <p className={styles.note}>
-                  Bring one recent example and the tools your team uses. We will discuss where a
-                  focused improvement could help.
+              <h1 className={styles.title} data-hero-step={3}>
+                {vertical.heroHeadlineWhite} <em>{vertical.heroHeadlineGold}</em>
+              </h1>
+              <div>
+                <p className={styles.lede} data-hero-step={4}>
+                  {vertical.heroSubheadline}
                 </p>
+                <div data-hero-step={5}>
+                  <div className={styles.actions}>
+                    <BookCallButton
+                      label="Discuss your workflow"
+                      location={`industry_${vertical.slug}_hero`}
+                    />
+                    <Link className={styles.secondary} href="#workflow-recipes">
+                      Explore the recipes
+                    </Link>
+                  </div>
+                  <p className={styles.note}>
+                    Bring one recent example and the tools your team uses. We will discuss where a
+                    focused improvement could help.
+                  </p>
+                </div>
               </div>
+            </div>
+            <div data-hero-step={6}>
+              <ActivityStream {...activity} />
             </div>
           </div>
         </div>

@@ -33,7 +33,7 @@ export default function LegacyHomePage() {
       <Hero />
       <div className="relative bg-bg-base">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-px w-20 bg-gradient-to-r from-[var(--gold-base)] to-transparent" />
+          <div className="h-px w-20 bg-gradient-to-r from-[var(--fg)] to-transparent" />
         </div>
       </div>
       <ServicesOverview />

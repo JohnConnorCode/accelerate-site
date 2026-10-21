@@ -85,7 +85,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
         {lead.revenue_os?.opportunity_id && (
           <Link
             href={`/admin/pipeline?search=${encodeURIComponent(lead.contact_email)}`}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[var(--admin-border)] px-3 text-xs font-medium text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.97]"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[var(--admin-border)] px-3 text-xs font-medium text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-[var(--admin-border)] hover:text-[var(--admin-ink)] active:scale-[0.97]"
           >
             Pipeline · {lead.revenue_os.stage || "linked"}
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -150,7 +150,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             aria-label="Status"
-            className="admin-field w-full rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-2 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
+            className="admin-field w-full rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-2 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--admin-action)]/30 transition-[border-color,box-shadow,background-color] duration-200"
           >
             {statusOptions.map((s) => (
               <option key={s} value={s}>
@@ -172,7 +172,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
               value={dealValue}
               onChange={(e) => setDealValue(e.target.value)}
               placeholder="0"
-              className="admin-field admin-field--leading-icon w-full rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] pl-9 pr-3 py-2 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
+              className="admin-field admin-field--leading-icon w-full rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] pl-9 pr-3 py-2 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--admin-action)]/30 transition-[border-color,box-shadow,background-color] duration-200"
             />
           </div>
         </div>

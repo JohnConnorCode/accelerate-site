@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
+import { StatCard } from "@/components/admin/StatCard";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -414,15 +415,13 @@ export default function PipelinePage() {
                   ["At proposal", metrics.proposals, "Proposal or negotiation"],
                   ["Won revenue", formatMoney(metrics.won), "Recorded outcomes"],
                 ].map(([label, value, note]) => (
-                  <AdminSurface key={String(label)} className="min-w-0 p-4 sm:p-5">
-                    <p className="admin-eyebrow truncate">{String(label)}</p>
-                    <p className="mt-2 truncate text-[clamp(1.35rem,6vw,1.85rem)] font-semibold tabular-nums tracking-[-0.035em] sm:mt-3 sm:text-3xl">
-                      {String(value)}
-                    </p>
-                    <p className="admin-copy mt-1 hidden truncate text-xs sm:block">
-                      {String(note)}
-                    </p>
-                  </AdminSurface>
+                  <StatCard
+                    key={String(label)}
+                    label={String(label)}
+                    value={value}
+                    note={String(note)}
+                    density="compact"
+                  />
                 ))}
               </section>
 
