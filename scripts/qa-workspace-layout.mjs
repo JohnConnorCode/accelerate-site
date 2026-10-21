@@ -47,6 +47,20 @@ await (async () => {
       });
       await page.getByRole("heading", { name: "Work", exact: true }).waitFor();
       await page.locator("[data-source-type=task]").first().waitFor();
+      // Record settled controls, rather than a transient route-entry frame.
+      // Leave the independent navigation and motion assertions unchanged.
+      await page.waitForFunction(
+        () =>
+          ['[role="search"]', '[aria-label="Workflow layout"]'].every((selector) => {
+            let node = document.querySelector(selector);
+            if (!node?.checkVisibility({ visibilityProperty: true })) return false;
+            for (; node; node = node.parentElement)
+              if (Number(getComputedStyle(node).opacity) < 0.999) return false;
+            return true;
+          }),
+        undefined,
+        { timeout: 2000 },
+      );
       assert.equal(await page.getByLabel("Ownership", { exact: true }).inputValue(), "me");
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
       const boxes = await page.locator("[role=search] .admin-field").evaluateAll((xs) =>
