@@ -606,9 +606,33 @@ try {
       "1",
       "Focused checkout must finish its entrance immediately",
     );
-    // Capture the form after its real interaction handoff, keeping the early-frame
-    // recovery assertion above intact instead of photographing a deferred reveal.
-    await page.locator("main").screenshot({ path: `${output}/public-${theme}-${width}.png` });
+    // Keep the early-focus assertion above. Then visit the document's end so
+    // every real reveal owner enters, and return to the top for the fixed header.
+    await page.evaluate(() =>
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
+    );
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll("main [data-reveal-state]")].every(
+        (owner) => owner.dataset.revealState === "visible",
+      ),
+    );
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForFunction(
+      () =>
+        scrollY === 0 &&
+        [...document.querySelectorAll("main [data-hero-step]")].every(
+          (step) => getComputedStyle(step).opacity === "1",
+        ) &&
+        document
+          .querySelector("main")
+          .getAnimations({ subtree: true })
+          .every(
+            (animation) =>
+              animation.playState !== "running" ||
+              animation.effect?.getTiming().iterations === Infinity,
+          ),
+    );
+    await page.screenshot({ path: `${output}/public-${theme}-${width}.png`, fullPage: true });
     await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
