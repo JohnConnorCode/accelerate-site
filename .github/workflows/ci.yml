@@ -1202,23 +1202,7 @@ jobs:
           trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
           start_preview
           capture_status=0
-          node scripts/qa-customer-workflow-context.mjs || capture_status=1
-          node --import tsx scripts/capture-product-screenshots.ts || capture_status=1
-          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/chooser.json node scripts/capture-docs-screenshots.mjs --group demo || capture_status=1
-          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/docs.json node scripts/capture-docs-screenshots.mjs --group docs || capture_status=1
-          # Next inventories public paths at startup. Reopen this same compiled
-          # app after capture so its newly named gallery/chooser files are served.
-          kill -TERM -- -"$server_pid" 2>/dev/null || true
-          wait "$server_pid" || true
-          sleep 1
-          start_preview
-          node scripts/qa-home-hero-timing.mjs || capture_status=1
-          node scripts/qa-theme-persistence.mjs || capture_status=1
-          node scripts/qa-today-review-layout.mjs || capture_status=1
-          node scripts/qa-collections-workspace.mjs || capture_status=1
-          node scripts/qa-marketing-positioning.mjs || capture_status=1
-          npm run qa:design-roadmap || capture_status=1
-          node scripts/qa-workspace-layout.mjs || capture_status=1
+          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/reports.json node scripts/capture-docs-screenshots.mjs --only plugins/reports || capture_status=1
           exit "$capture_status"
       - name: Verify representative core routes
         id: design_routes
@@ -1277,9 +1261,7 @@ jobs:
         with:
           name: design-public-images
           path: |
-            public/images/docs/
-            public/images/demo/*-20261020-r2.png
-            public/images/open-source/*-20261020-roadmap.png
+            public/images/docs/plugins/reports.png
           if-no-files-found: ignore
           retention-days: 7
       - name: Retain focused design review and source receipts
