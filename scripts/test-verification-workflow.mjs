@@ -543,6 +543,30 @@ try {
     assert.match(workflow, /id: design_build\s+if: \$\{\{ !inputs\.admin_design_preview_run \}\}/);
     assert.match(workflow, /c\.deploymentId!==process\.env\.EXPECTED_RELEASE/);
   });
+  check("full CI retains design and Work failures in the existing browser group", () => {
+    const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
+    const body = workflow
+      .split("workspace_design_status=0\n")[1]
+      ?.split("          ) &\n          workspace_qa_pid=$!")[0];
+    assert.ok(body);
+    const stubs = `npm() { if [ "$*" = "run qa:design-roadmap" ]; then return "$DESIGN_EXIT"; fi; return 0; }
+node() { if [ "$*" = "scripts/qa-workspace-layout.mjs" ]; then return "$WORK_EXIT"; fi; return 0; }
+npx() { return 0; }
+set -e
+workspace_design_status=0
+`;
+    for (const [design, work] of [
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [1, 1],
+    ]) {
+      const result = spawnSync("bash", ["-c", stubs + body], {
+        env: { ...env, DESIGN_EXIT: String(design), WORK_EXIT: String(work) },
+      });
+      assert.equal(result.status, design || work ? 1 : 0, `${design}/${work}: ${result.stderr}`);
+    }
+  });
   check("uninstall restores the previous hook lookup", () => {
     git(["config", "--worktree", "--unset", "core.hooksPath"]);
     assert.equal(run("git", ["config", "--get", "core.hooksPath"]).status, 1);
