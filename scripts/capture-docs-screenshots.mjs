@@ -345,6 +345,7 @@ async function prepareState(page, shot) {
     await page.waitForFunction(
       () => window.scrollY === 0 && document.querySelector(".admin-main")?.scrollTop === 0,
     );
+    await page.mouse.move(0, 0);
     const [heading, toolbar] = await Promise.all([
       report.getByRole("heading", { name: /^Business pulse$/i }).boundingBox(),
       page.locator("[data-admin-workspace-toolbar]").boundingBox(),
