@@ -1668,6 +1668,9 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   border-radius: var(--admin-control-radius);
   padding: var(--admin-space-2) var(--admin-space-4);
   font: 600 var(--admin-text-body)/1.4 var(--admin-font);
+  text-transform: none;
+  letter-spacing: normal;
+  gap: var(--admin-space-2);
   transition:
     color var(--admin-motion-fast) var(--admin-motion-ease),
     background-color var(--admin-motion-fast) var(--admin-motion-ease),

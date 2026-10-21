@@ -191,6 +191,28 @@ async function inspect(route, theme, width, isAdmin) {
     );
     await page.screenshot({ path: filename, fullPage: !isAdmin });
     result.screenshots.push(filename);
+    if (route === "leads" && theme === "light" && width === 1440) {
+      await page.getByRole("button", { name: "New Lead", exact: true }).click();
+      const dialog = page.getByRole("dialog");
+      await dialog.waitFor();
+      const style = await dialog
+        .locator("[data-ui-button]")
+        .first()
+        .evaluate((element) => {
+          const computed = getComputedStyle(element);
+          return {
+            transform: computed.textTransform,
+            tracking: computed.letterSpacing,
+            gap: computed.columnGap,
+          };
+        });
+      assert.deepEqual(style, { transform: "none", tracking: "normal", gap: "8px" });
+      const modalFrame = `${output}/shared-button-dialog-paper.png`;
+      await page.screenshot({ path: modalFrame });
+      result.screenshots.push(modalFrame);
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({ state: "hidden" });
+    }
     if (route === "contacts") {
       assert.equal(await page.getByRole("link", { name: "Open history", exact: true }).count(), 0);
       const first = page.locator("[data-record-row] a").first();

@@ -1292,6 +1292,7 @@ jobs:
             /tmp/accelerate-design-capture/customer-workflow/receipt.json
             /tmp/accelerate-design-roadmap/results.json
             /tmp/accelerate-design-roadmap/site-style-guide-*.png
+            /tmp/accelerate-design-roadmap/shared-button-dialog-paper.png
             /tmp/accelerate-design-roadmap/site-industries-*-light-390.png
             /tmp/work-desktop-browser/*.png
             /tmp/admin-core-qa/**/*.json
