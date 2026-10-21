@@ -48,7 +48,14 @@ async function renderedState(artwork) {
     const round = (number) => Math.round(number * 100000) / 100000;
     return {
       route: element.dataset.routeState,
-      rootBox: [round(root.x), round(root.y), round(root.width), round(root.height)],
+      // Element screenshots scroll short viewports. Compare document geometry,
+      // while retaining strict local geometry, animation and decoded-pixel checks.
+      rootBox: [
+        round(root.x + scrollX),
+        round(root.y + scrollY),
+        round(root.width),
+        round(root.height),
+      ],
       activeAnimations: element
         .getAnimations({ subtree: true })
         .filter((animation) => animation.playState === "running").length,
