@@ -756,6 +756,9 @@ jobs:
           (
             set -e
             if [ "$PUBLIC_PAGES_ONLY" = "true" ] || [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
+            workspace_design_status=0
+            DESIGN_ROADMAP_QA_OUTPUT=/tmp/accelerate-design-roadmap npm run qa:design-roadmap || workspace_design_status=1
+            node scripts/qa-workspace-layout.mjs || workspace_design_status=1
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
@@ -776,6 +779,7 @@ jobs:
             node scripts/qa-booking-mode.mjs
             npm run test:work-completion -- --browser-fixtures
             node scripts/qa-work-completion.mjs
+            exit "$workspace_design_status"
           ) &
           workspace_qa_pid=$!
           (
@@ -825,6 +829,19 @@ jobs:
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
+      - name: Retain focused roadmap browser evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: design-roadmap-browser-evidence
+          path: |
+            /tmp/accelerate-design-roadmap/results.json
+            /tmp/accelerate-design-roadmap/site-style-guide-*.png
+            /tmp/accelerate-design-roadmap/shared-button-dialog-paper.png
+            /tmp/accelerate-design-roadmap/site-industries-*-light-390.png
+            /tmp/work-desktop-browser/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain owner workspace and guide evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -898,6 +915,7 @@ jobs:
           name: credential-free-browser-evidence
           path: |
             /tmp/accelerate-proposal-decisions/
+            /tmp/accelerate-design-roadmap/
             /tmp/accelerate-social-qa/
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-website-editor/

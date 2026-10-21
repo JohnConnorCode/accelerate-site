@@ -52,7 +52,7 @@ const browser = await chromium.launch({ headless: true });
 
 async function inspect(route, theme, width, isAdmin) {
   const id = `${isAdmin ? "admin" : "site"}-${route.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "home"}-${theme}-${width}`;
-  const result = { id, route, theme, width, errors: [], screenshots: [] };
+  const result = { id, route, theme, width, errors: [], warnings: [], screenshots: [] };
   const context = await browser.newContext({
     viewport: { width, height: 1000 },
     reducedMotion: "reduce",
@@ -77,7 +77,16 @@ async function inspect(route, theme, width, isAdmin) {
   page.setDefaultTimeout(12000);
   page.on("pageerror", (error) => result.errors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") result.errors.push(message.text());
+    if (message.type() !== "error") return;
+    if (
+      route === "/contact" &&
+      message.text() === "requestStorageAccess: Permission denied." &&
+      page.frames().some((frame) => frame.url().startsWith("https://calendly.com/"))
+    ) {
+      result.warnings.push({ message: message.text(), provider: "Calendly embed" });
+      return;
+    }
+    result.errors.push(message.text());
   });
   try {
     const href = isAdmin ? `/demo/command-center/northline-roofing/${route}` : route;
@@ -118,7 +127,7 @@ async function inspect(route, theme, width, isAdmin) {
       assert.equal(await stream.locator("li").count(), 6);
       assert((await stream.locator("li[data-system]").count()) >= 2);
       assert((await stream.locator("li:not([data-system])").count()) >= 2);
-      assert.match(await stream.locator("figcaption").innerText(), /Illustrative/);
+      assert.match(await stream.locator("figcaption").innerText(), /\billustrative\b/i);
       const straySignal = await page.evaluate(() =>
         [...document.querySelectorAll("main *")]
           .filter((element) => {

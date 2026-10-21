@@ -13,11 +13,10 @@ await (async () => {
   const log = fs.openSync(out + "/server.log", "w");
   const server = process.env.PLAYWRIGHT_BASE_URL
     ? null
-    : spawn(
-        "npm",
-        ["run", "start", "--", "-p", "3082"],
-        { stdio: ["ignore", log, log], env: { ...process.env, NODE_ENV: "production" } },
-      );
+    : spawn("npm", ["run", "start", "--", "-p", "3082"], {
+        stdio: ["ignore", log, log],
+        env: { ...process.env, NODE_ENV: "production" },
+      });
   let browser;
   try {
     if (server)
@@ -142,8 +141,21 @@ await (async () => {
       await page.getByRole("button", { name: "Filters (1)", exact: true }).click();
       assert.equal(await page.getByLabel("Filter by stage").isVisible(), false);
       await page.getByRole("button", { name: "Reset filters", exact: true }).click();
-      await page.getByRole("button", { name: "List view", exact: true }).click();
-      await page.getByRole("button", { name: "Board view", exact: true }).click();
+      const layout = page.getByRole("group", { name: "Workflow layout", exact: true });
+      await layout.getByRole("button", { name: "List", exact: true }).click();
+      assert.equal(
+        await layout
+          .getByRole("button", { name: "List", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      await layout.getByRole("button", { name: "Board", exact: true }).click();
+      assert.equal(
+        await layout
+          .getByRole("button", { name: "Board", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
       await page.getByText("View options", { exact: true }).click();
       await page.getByRole("button", { name: "Customize", exact: true }).click();
       await page.getByRole("button", { name: "Done", exact: true }).click();
@@ -174,6 +186,13 @@ await (async () => {
       await page.goto(`${base}/demo/command-center/northline-roofing/contacts`, {
         waitUntil: "networkidle",
       });
+      await page.locator("[data-record-row] a").first().waitFor();
+      if (width === 1440 && updateDocs)
+        await page.screenshot({ path: resolve("public/images/docs/contacts/overview.png") });
+      await page
+        .getByRole("navigation", { name: "Contact views", exact: true })
+        .getByRole("link", { name: "Website requests", exact: true })
+        .click();
       const from = page.getByLabel("From date", { exact: true });
       const to = page.getByLabel("To date", { exact: true });
       await from.waitFor();
@@ -192,11 +211,6 @@ await (async () => {
         style: "nextjs-portal { visibility: hidden; }",
         path: `${out}/contacts-${width}.png`,
       });
-      if (width === 1440 && updateDocs)
-        await page.screenshot({
-          style: "nextjs-portal { visibility: hidden; }",
-          path: resolve("public/images/docs/contacts/overview.png"),
-        });
       await page.goto(
         `${base}/demo/command-center/northline-roofing/contacts/lena.walsh%40northlineroofing.example`,
         { waitUntil: "networkidle" },
