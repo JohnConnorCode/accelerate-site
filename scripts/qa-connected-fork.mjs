@@ -249,12 +249,7 @@ if (mode === "diagnose-native") {
           checks.push("duplicate-email-refused");
         }
 
-        await page
-          .getByText(name, { exact: true })
-          .locator("..")
-          .locator("..")
-          .getByRole("link", { name: "Open history" })
-          .click();
+        await page.getByRole("link", { name: `Open ${name}`, exact: true }).click();
         await page.getByRole("button", { name: "Add follow-up" }).click();
         const taskDialog = page.getByRole("dialog", { name: "Add a follow-up" });
         const taskTitle = `Call ${name} about trial`;

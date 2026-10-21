@@ -295,7 +295,7 @@ for (const scenario of scenarios) {
           );
       }
       if (route === "contacts") {
-        const historyLinks = page.getByRole("link", { name: "Open history" });
+        const historyLinks = page.locator('[data-record-row] a[href*="/contacts/"]');
         if (!(await historyLinks.count())) {
           failures.push(`${scenario} ${label} contacts: demo has no populated contact rows`);
         } else {

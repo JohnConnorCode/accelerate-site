@@ -123,11 +123,7 @@ try {
     await page.keyboard.press("Escape");
 
     await page.goto(route("contacts"), { waitUntil: "networkidle" });
-    await page
-      .getByText("Lena Walsh", { exact: true })
-      .locator("../..")
-      .getByRole("link", { name: "Open history" })
-      .click();
+    await page.getByRole("link", { name: "Open Lena Walsh", exact: true }).click();
     await page.getByRole("heading", { name: "Next step" }).waitFor();
     await page.getByRole("heading", { name: "Open work" }).waitFor();
     await page.getByRole("heading", { name: "Conversations" }).waitFor();
