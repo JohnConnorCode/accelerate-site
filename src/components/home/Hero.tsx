@@ -57,7 +57,6 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
     });
     section.style.setProperty("--hero-support-delay", `${720 + line * 200}ms`);
     section.style.setProperty("--hero-action-delay", `${870 + line * 200}ms`);
-    section.style.setProperty("--hero-index-delay", `${1080 + line * 200}ms`);
   }, [content, sectionRef]);
   useEffect(() => {
     const section = sectionRef.current;
@@ -130,11 +129,6 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
             </Link>
             <span className="home-hero-note">30 minutes · a clear next step</span>
           </div>
-        </div>
-        <div className="home-hero-index" aria-hidden="true">
-          <span>Strategy</span>
-          <span>Custom systems</span>
-          <span>Ongoing execution</span>
         </div>
       </div>
       <HeroArtwork />

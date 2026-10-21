@@ -1,52 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent } from "react";
-import { CalendarDays, FileText, ListChecks, Mail, Send, UserRound } from "lucide-react";
+import { useId } from "react";
 
-// Concrete work enters a shared intelligence layer and branches into actions.
-// The sculpture, connections and signals all respond to the same steerable pose.
-const inputs = [
-  {
-    icon: Mail,
-    x: 94,
-    y: 180,
-    outputs: [0, 1],
-    label: "Select customer inquiry workflow",
-    result: "Example inquiry selected: prepare a reply and update a customer record.",
-  },
-  {
-    icon: CalendarDays,
-    x: 66,
-    y: 310,
-    outputs: [1, 2],
-    label: "Select meeting workflow",
-    result: "Example meeting selected: update a customer record and create a follow-up task.",
-  },
-  {
-    icon: FileText,
-    x: 108,
-    y: 448,
-    outputs: [0, 2],
-    label: "Select invoice workflow",
-    result: "Example invoice selected: prepare a reminder and create a follow-up task.",
-  },
-] as const;
-const outputs = [
-  { icon: Send, x: 490, y: 180 },
-  { icon: UserRound, x: 532, y: 310 },
-  { icon: ListChecks, x: 492, y: 448 },
-] as const;
 type Point = { x: number; y: number };
-type Source = 0 | 1 | 2;
-type Curve = [Point, Point, Point, Point];
-type Controller = {
-  select: (index: number) => void;
-  steer: (x: number, y: number) => void;
-  drag: (x: number, y: number) => void;
-  release: () => boolean;
-  nudge: (x: number, y: number) => void;
-  reset: () => void;
-};
 // LogoMark's exact six-point chevron, centered and scaled into a physical plane.
 const outline = [
   [-44, -64],
@@ -62,59 +18,29 @@ const baseOutline = [
   [92, 92],
   [-92, 92],
 ] as const;
-const directions: Record<string, readonly [number, number]> = {
-  ArrowLeft: [-14, 0],
-  ArrowRight: [14, 0],
-  ArrowUp: [0, -14],
-  ArrowDown: [0, 14],
-};
-const clamp = (number: number, min: number, max: number) => Math.max(min, Math.min(max, number));
+
 const point = ({ x, y }: Point) => `${x.toFixed(2)} ${y.toFixed(2)}`;
 const polygon = (points: Point[]) => `M${points.map(point).join("L")}Z`;
-const curvePath = ([a, b, c, d]: Curve) => `M${point(a)}C${point(b)} ${point(c)} ${point(d)}`;
-function onCurve([a, b, c, d]: Curve, t: number): Point {
-  const s = 1 - t;
-  return {
-    x: s ** 3 * a.x + 3 * s ** 2 * t * b.x + 3 * s * t ** 2 * c.x + t ** 3 * d.x,
-    y: s ** 3 * a.y + 3 * s ** 2 * t * b.y + 3 * s * t ** 2 * c.y + t ** 3 * d.y,
-  };
-}
-function geometry(pose: Point, phase: number, live: boolean, formation = 0) {
-  const center = { x: 300 + pose.x * 0.5, y: 372 + pose.y * 0.45 };
-  const yaw = -0.28 + pose.x / 110;
-  const pitch = 0.58 + pose.y / 210;
+
+function geometry() {
+  const yaw = -0.28,
+    pitch = 0.58;
   const project = (x: number, y: number, z: number): Point & { depth: number } => {
     const u = x * Math.cos(yaw) - y * Math.sin(yaw);
     const v = x * Math.sin(yaw) + y * Math.cos(yaw);
     const depth = (u + v) / Math.SQRT2;
     const perspective = 720 / (720 - depth * Math.cos(pitch) - z * Math.sin(pitch));
     return {
-      x: center.x + ((u - v) / Math.SQRT2) * 1.42 * perspective,
-      y: center.y + (depth * Math.sin(pitch) - z * Math.cos(pitch)) * 1.42 * perspective,
+      x: 300 + ((u - v) / Math.SQRT2) * 1.42 * perspective,
+      y: 372 + (depth * Math.sin(pitch) - z * Math.cos(pitch)) * 1.42 * perspective,
       depth: depth * Math.cos(pitch) + z * Math.sin(pitch),
     };
   };
   const facesCamera = (a: Point, b: Point, c: Point) =>
     (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) < 0;
   const layers = [0, 1, 2].map((layer) => {
-    // The processing beat travels through the arrows instead of moving one rigid stack.
-    const wave = live ? Math.sin(clamp((phase - 0.18 - layer * 0.07) / 0.5, 0, 1) * Math.PI) : 0;
-    const turn =
-      (layer - 1) * formation +
-      (live ? Math.sin(phase * Math.PI * 2 - layer * 0.7) * 0.14 : 0) +
-      (layer - 1) * wave * 0.18;
-    const bank = (live ? Math.sin(phase * Math.PI * 2 - layer * 0.8) * 0.12 : 0) + pose.y / 650;
-    const spread = (layer - 1) * (formation * 50 + wave * 12);
-    const z = 34 + layer * 48 + wave * (12 + layer * 6);
-    const vertex = (x: number, y: number, height: number) => {
-      const u = x * Math.cos(turn) - y * Math.sin(turn);
-      const v = x * Math.sin(turn) + y * Math.cos(turn);
-      return project(
-        u + spread,
-        v * Math.cos(bank) - height * Math.sin(bank),
-        z + v * Math.sin(bank) + height * Math.cos(bank),
-      );
-    };
+    const z = 34 + layer * 48;
+    const vertex = (x: number, y: number, height: number) => project(x, y, z + height);
     const top = outline.map(([x, y]) => vertex(x, y, 22));
     const bottom = outline.map(([x, y]) => vertex(x, y, 0));
     const sides = top
@@ -124,7 +50,7 @@ function geometry(pose: Point, phase: number, live: boolean, formation = 0) {
           nextLower = bottom[(i + 1) % 6]!;
         const [x, y] = outline[i]!;
         const next = outline[(i + 1) % 6]!;
-        const normal = Math.atan2(next[1] - y, next[0] - x) + turn + yaw;
+        const normal = Math.atan2(next[1] - y, next[0] - x) + yaw;
         return {
           path: polygon([p, nextTop, nextLower, lower]),
           shade: (42 + Math.cos(normal - 0.7) * 22).toFixed(1),
@@ -136,33 +62,12 @@ function geometry(pose: Point, phase: number, live: boolean, formation = 0) {
     return {
       top: polygon(top),
       sides,
-      shadow: polygon(
-        outline.map(([x, y]) =>
-          project(
-            x * Math.cos(turn) - y * Math.sin(turn) + spread + z * 0.18,
-            x * Math.sin(turn) + y * Math.cos(turn) + z * 0.12,
-            2,
-          ),
-        ),
-      ),
+      shadow: polygon(outline.map(([x, y]) => project(x + z * 0.18, y + z * 0.12, 2))),
     };
   });
   const base = baseOutline.map(([x, y]) => project(x, y, 0));
   const baseLower = baseOutline.map(([x, y]) => project(x, y, -12));
-  const socketIn = project(-76, 24, 8),
-    socketOut = project(76, -24, 8);
-  const incoming = inputs.map(({ x, y }): Curve => [
-    { x, y },
-    { x: x + 80, y },
-    { x: socketIn.x - 60, y: socketIn.y },
-    socketIn,
-  ]);
-  const outgoing = outputs.map(({ x, y }): Curve => [
-    socketOut,
-    { x: socketOut.x + 60, y: socketOut.y },
-    { x: x - 80, y },
-    { x, y },
-  ]);
+
   return {
     layers,
     base: polygon(base),
@@ -174,453 +79,80 @@ function geometry(pose: Point, phase: number, live: boolean, formation = 0) {
           : "";
       })
       .join(""),
-    incoming,
-    outgoing,
-    pins: [0, 1, 2, 3, 4].map((pin) => project(88, 48 - pin * 19, 1)),
-    center,
   };
 }
-const initial = geometry({ x: 0, y: 0 }, 0, false);
+const sculpture = geometry();
 
+/** One entrance, then rest. The mark has no ambient clock or workflow controls. */
 export function HeroArtwork() {
   const id = useId().replaceAll(":", "");
-  const scene = useRef<HTMLDivElement>(null);
-  const controller = useRef<Controller | null>(null);
-  const suppressClick = useRef(false);
-  const [announcement, setAnnouncement] = useState("");
-
-  useEffect(() => {
-    const element = scene.current;
-    if (!element) return;
-    const root = element.parentElement!;
-    const get = <T extends Element>(selector: string) => element.querySelector<T>(selector)!;
-    const faces = [...element.querySelectorAll<SVGPathElement>(".home-system-layer path")];
-    const shadows = [...element.querySelectorAll<SVGPathElement>(".home-system-shadow")];
-    const wires = [...element.querySelectorAll<SVGPathElement>(".home-system-wire")];
-    const signals = [...element.querySelectorAll<SVGCircleElement>(".home-system-signal")];
-    const pins = [...element.querySelectorAll<SVGCircleElement>(".home-system-pin")];
-    const ports = [...element.querySelectorAll<HTMLElement>(".home-system-port")];
-    const base = get<SVGPathElement>(".home-system-base"),
-      baseEdge = get<SVGPathElement>(".home-system-base-edge");
-    const media = matchMedia("(prefers-reduced-motion: reduce)");
-    const coarse = matchMedia("(pointer: coarse)").matches;
-    const pose = { x: 0, y: 0 },
-      target = { x: 0, y: 0 },
-      anchor = { x: 0, y: 0 };
-    let selected: Source = 0;
-    let manual = false,
-      dragging = false,
-      moved = false;
-    let dragStart = { x: 0, y: 0 },
-      dragPose = { x: 0, y: 0 };
-    let visible = true,
-      reduced = media.matches,
-      frame = 0,
-      elapsed = 0,
-      previous = 0,
-      painted = 0,
-      cycle = -1,
-      formation = 0;
-
-    const formations = [0, 0.36, -0.36];
-
-    function choose(index: number) {
-      selected = clamp(Math.floor(index), 0, 2) as Source;
-      root.dataset.source = String(index);
-      ports.forEach((port, i) => {
-        if (i < 3) port.setAttribute("aria-pressed", String(i === selected));
-        else
-          port.dataset.connected = String(
-            inputs[selected].outputs.some((output) => output === i - 3),
-          );
-      });
-    }
-    function paint() {
-      const phase = reduced ? 0 : (elapsed % 3200) / 3200;
-      const shape = geometry(pose, phase, !reduced, formation);
-      shape.layers.forEach((layer, i) => {
-        layer.sides.forEach((surface, side) => {
-          const face = faces[i * 7 + side]!;
-          face.setAttribute("d", surface.path);
-          face.setAttribute("visibility", surface.visible ? "visible" : "hidden");
-          face.setAttribute("fill", `color-mix(in srgb, var(--fg) ${surface.shade}%, var(--bg))`);
-        });
-        faces[i * 7 + 6]!.setAttribute("d", layer.top);
-        shadows[i]!.setAttribute("d", layer.shadow);
-      });
-      base.setAttribute("d", shape.base);
-      baseEdge.setAttribute("d", shape.baseEdge);
-      const paths = [...shape.incoming, ...shape.outgoing];
-      paths.forEach((path, i) => {
-        const active =
-          i < 3 ? i === selected : inputs[selected].outputs.some((output) => output === i - 3);
-        wires[i]!.setAttribute("d", curvePath(path));
-        wires[i]!.setAttribute("stroke-opacity", active ? ".6" : ".13");
-        // Signals enter, the layers separate to process, and two actions leave.
-        const t = i < 3 ? phase / 0.48 : (phase - 0.52) / 0.48;
-        const signal = signals[i]!,
-          p = onCurve(path, clamp(t, 0, 1));
-        signal.setAttribute("cx", p.x.toFixed(2));
-        signal.setAttribute("cy", p.y.toFixed(2));
-        signal.setAttribute("opacity", !reduced && active && t > 0 && t < 1 ? "1" : "0");
-      });
-      shape.pins.forEach((p, i) => {
-        pins[i]!.setAttribute("cx", p.x.toFixed(2));
-        pins[i]!.setAttribute("cy", p.y.toFixed(2));
-        pins[i]!.setAttribute(
-          "opacity",
-          reduced || Math.abs(phase - (0.36 + i * 0.065)) < 0.075 ? ".85" : ".18",
-        );
-      });
-      ports.slice(3).forEach((port, i) => {
-        port.dataset.complete = String(
-          inputs[selected].outputs.some((output) => output === i) && (reduced || phase > 0.9),
-        );
-      });
-      root.dataset.pose = `${pose.x.toFixed(2)},${pose.y.toFixed(2)}`;
-      root.dataset.phase = phase.toFixed(3);
-    }
-    function blocked() {
-      return !visible || document.hidden || document.body.dataset.mobileNavigation === "open";
-    }
-    function tick(now: number) {
-      frame = 0;
-      if (reduced || blocked()) return;
-      const delta = previous ? Math.min(now - previous, 64) : 0;
-      previous = now;
-      elapsed += delta;
-      const nextCycle = Math.floor(elapsed / 6400);
-      if (!manual && cycle !== nextCycle) {
-        cycle = nextCycle;
-        choose(nextCycle % 3);
-      }
-      if (now - painted >= (coarse ? 32 : 16)) {
-        const follow = 1 - Math.exp(-Math.max(now - painted, 16) / 85);
-        pose.x += (target.x - pose.x) * follow;
-        pose.y += (target.y - pose.y) * follow;
-        formation += (formations[selected]! - formation) * follow;
-        paint();
-        painted = now;
-      }
-      frame = requestAnimationFrame(tick);
-    }
-    function sync() {
-      cancelAnimationFrame(frame);
-      frame = 0;
-      previous = 0;
-      root.dataset.motion = reduced ? "reduced" : blocked() ? "suspended" : "live";
-      root.dataset.routeState = reduced ? "settled" : "running";
-      if (reduced) {
-        formation = formations[selected]!;
-        pose.x = target.x;
-        pose.y = target.y;
-        paint();
-      } else if (!blocked()) frame = requestAnimationFrame(tick);
-    }
-    function setTarget(x: number, y: number) {
-      target.x = clamp(x, -72, 72);
-      target.y = clamp(y, -55, 55);
-      if (reduced) {
-        pose.x = target.x;
-        pose.y = target.y;
-        paint();
-      }
-    }
-    controller.current = {
-      select(index) {
-        manual = true;
-        elapsed = 0;
-        choose(index);
-        if (reduced) formation = formations[selected]!;
-        paint();
-      },
-      steer(x, y) {
-        if (!dragging) setTarget(anchor.x + x, anchor.y + y);
-      },
-      drag(x, y) {
-        if (!dragging) {
-          dragging = true;
-          moved = false;
-          dragStart = { x, y };
-          dragPose = { ...pose };
-          root.dataset.dragging = "true";
-        }
-        const dx = x - dragStart.x,
-          dy = y - dragStart.y;
-        moved ||= Math.hypot(dx, dy) > 4;
-        setTarget(dragPose.x + dx, dragPose.y + dy);
-      },
-      release() {
-        dragging = false;
-        anchor.x = target.x;
-        anchor.y = target.y;
-        root.dataset.dragging = "false";
-        return moved;
-      },
-      nudge(x, y) {
-        anchor.x = clamp(target.x + x, -72, 72);
-        anchor.y = clamp(target.y + y, -55, 55);
-        setTarget(anchor.x, anchor.y);
-        // Keyboard manipulation is precise and immediate even between frames.
-        pose.x = target.x;
-        pose.y = target.y;
-        paint();
-      },
-      reset() {
-        anchor.x = 0;
-        anchor.y = 0;
-        setTarget(0, 0);
-        pose.x = 0;
-        pose.y = 0;
-        paint();
-      },
-    };
-    choose(0);
-    paint();
-    sync();
-    root.dataset.artworkReady = "true";
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry?.isIntersecting ?? false;
-      sync();
-    });
-    observer.observe(root);
-    const menu = new MutationObserver(sync);
-    menu.observe(document.body, { attributes: true, attributeFilter: ["data-mobile-navigation"] });
-    const onMotion = () => {
-      reduced = media.matches;
-      sync();
-    };
-    media.addEventListener("change", onMotion);
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-      menu.disconnect();
-      media.removeEventListener("change", onMotion);
-      document.removeEventListener("visibilitychange", sync);
-      controller.current = null;
-    };
-  }, []);
-
-  function select(index: number) {
-    const input = inputs[index];
-    if (!input) return;
-    controller.current?.select(index);
-    setAnnouncement(input.result);
-  }
-  function coordinates(event: PointerEvent): Point {
-    const bounds = scene.current!.getBoundingClientRect();
-    return {
-      x: ((event.clientX - bounds.x) * 600) / bounds.width,
-      y: ((event.clientY - bounds.y) * 600) / bounds.height,
-    };
-  }
-  function steer(event: PointerEvent) {
-    if (event.pointerType !== "mouse" || event.buttons) return;
-    const p = coordinates(event);
-    controller.current?.steer((p.x - 300) * 0.24, (p.y - 300) * 0.18);
-  }
   return (
     <div
-      className="home-hero-artwork home-system-artwork"
-      data-artwork-design="live-intelligence-routing"
-      data-artwork-ready="false"
-      data-source="0"
-      data-route-state="settled"
-      data-motion="fallback"
-      role="group"
-      aria-label="Interactive automation system. Select a workflow or steer the intelligence core."
+      className="home-hero-artwork home-sculpture"
+      data-artwork-design="brand-sculpture"
+      aria-hidden="true"
     >
-      <div
-        ref={scene}
-        className="home-system-scene"
-        onPointerEnter={steer}
-        onPointerMove={steer}
-        onPointerLeave={() => controller.current?.steer(0, 0)}
-      >
-        <svg className="home-system-diagram" viewBox="0 0 600 600" fill="none" aria-hidden="true">
-          <defs>
-            <linearGradient
-              id={`${id}-metal`}
-              x1="180"
-              y1="150"
-              x2="420"
-              y2="380"
-              gradientUnits="userSpaceOnUse"
-            >
-              <stop stopColor="color-mix(in srgb, var(--fg) 14%, var(--bg))" />
-              <stop offset=".24" stopColor="var(--bg)" />
-              <stop offset=".48" stopColor="color-mix(in srgb, var(--fg) 10%, var(--bg))" />
-              <stop offset=".54" stopColor="var(--bg)" />
-              <stop offset="1" stopColor="color-mix(in srgb, var(--fg) 25%, var(--bg))" />
-            </linearGradient>
-            <linearGradient
-              id={`${id}-edge`}
-              x1="220"
-              y1="250"
-              x2="400"
-              y2="400"
-              gradientUnits="userSpaceOnUse"
-            >
-              <stop stopColor="color-mix(in srgb, var(--fg) 28%, var(--bg))" />
-              <stop offset="1" stopColor="color-mix(in srgb, var(--fg) 65%, var(--bg))" />
-            </linearGradient>
-            <radialGradient id={`${id}-light`}>
-              <stop stopColor="var(--fg)" stopOpacity=".075" />
-              <stop offset="1" stopColor="var(--fg)" stopOpacity="0" />
-            </radialGradient>
-            <filter id={`${id}-shadow`} x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="5" />
-            </filter>
-          </defs>
-          <ellipse cx="300" cy="378" rx="234" ry="166" fill={`url(#${id}-light)`} />
-          <g stroke="var(--fg)" strokeOpacity=".055" strokeWidth="1">
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((line) => (
-              <g key={line}>
-                <path d={`M${60 + line * 30} ${270 + line * 15}l240 120`} />
-                <path d={`M${60 + line * 30} ${390 - line * 15}l240-120`} />
-              </g>
-            ))}
-          </g>
-          <g stroke="var(--fg)" strokeWidth="1.4">
-            {[...initial.incoming, ...initial.outgoing].map((path, index) => (
-              <path
-                key={index}
-                className="home-system-wire"
-                d={curvePath(path)}
-                strokeOpacity={index === 0 || index === 3 || index === 4 ? ".6" : ".13"}
-              />
-            ))}
-          </g>
-          <path
-            className="home-system-base-edge"
-            d={initial.baseEdge}
-            fill={`url(#${id}-edge)`}
-            stroke="var(--fg)"
-            strokeOpacity=".35"
-          />
-          <path
-            className="home-system-base"
-            d={initial.base}
-            fill={`url(#${id}-metal)`}
-            stroke="var(--fg)"
-            strokeOpacity=".3"
-          />
-          <g fill="var(--fg)" fillOpacity=".12" filter={`url(#${id}-shadow)`}>
-            {initial.layers.map((layer, index) => (
-              <path className="home-system-shadow" key={index} d={layer.shadow} />
-            ))}
-          </g>
-          <g
-            className="home-system-core"
-            stroke="var(--fg)"
-            strokeWidth="1.1"
-            strokeLinejoin="round"
+      <svg className="home-sculpture-diagram" viewBox="0 0 600 600" fill="none">
+        <defs>
+          <linearGradient
+            id={`${id}-metal`}
+            x1="180"
+            y1="150"
+            x2="420"
+            y2="380"
+            gradientUnits="userSpaceOnUse"
           >
-            {initial.layers.map((layer, index) => (
-              <g key={index} className="home-system-layer">
-                {layer.sides.map((surface, side) => (
+            <stop stopColor="color-mix(in srgb, var(--fg) 14%, var(--bg))" />
+            <stop offset=".24" stopColor="var(--bg)" />
+            <stop offset=".48" stopColor="color-mix(in srgb, var(--fg) 10%, var(--bg))" />
+            <stop offset=".54" stopColor="var(--bg)" />
+            <stop offset="1" stopColor="color-mix(in srgb, var(--fg) 25%, var(--bg))" />
+          </linearGradient>
+          <linearGradient
+            id={`${id}-edge`}
+            x1="220"
+            y1="250"
+            x2="400"
+            y2="400"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="color-mix(in srgb, var(--fg) 28%, var(--bg))" />
+            <stop offset="1" stopColor="color-mix(in srgb, var(--fg) 65%, var(--bg))" />
+          </linearGradient>
+          <filter id={`${id}-shadow`} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="5" />
+          </filter>
+        </defs>
+        <path
+          d={sculpture.baseEdge}
+          fill={`url(#${id}-edge)`}
+          stroke="var(--fg)"
+          strokeOpacity=".35"
+        />
+        <path d={sculpture.base} fill={`url(#${id}-metal)`} stroke="var(--fg)" strokeOpacity=".3" />
+        <g fill="var(--fg)" fillOpacity=".12" filter={`url(#${id}-shadow)`}>
+          {sculpture.layers.map((layer, index) => (
+            <path key={index} d={layer.shadow} />
+          ))}
+        </g>
+        <g stroke="var(--fg)" strokeWidth="1.1" strokeLinejoin="round">
+          {sculpture.layers.map((layer, index) => (
+            <g key={index} className="home-sculpture-layer">
+              {layer.sides
+                .filter((face) => face.visible)
+                .map((face, side) => (
                   <path
                     key={side}
-                    d={surface.path}
-                    visibility={surface.visible ? "visible" : "hidden"}
-                    fill={`color-mix(in srgb, var(--fg) ${surface.shade}%, var(--bg))`}
+                    d={face.path}
+                    fill={`color-mix(in srgb, var(--fg) ${face.shade}%, var(--bg))`}
                     strokeOpacity=".38"
                   />
                 ))}
-                <path d={layer.top} fill={`url(#${id}-metal)`} strokeOpacity=".7" />
-              </g>
-            ))}
-          </g>
-          <g fill="var(--fg)">
-            {initial.pins.map((p, index) => (
-              <circle
-                className="home-system-pin"
-                key={index}
-                cx={p.x}
-                cy={p.y}
-                r="2.2"
-                opacity=".18"
-              />
-            ))}
-          </g>
-          <g className="home-system-packets" fill="var(--fg)">
-            {[0, 1, 2, 3, 4, 5].map((index) => (
-              <circle className="home-system-signal" key={index} r="3.8" opacity="0" />
-            ))}
-          </g>
-        </svg>
-        {inputs.map(({ icon: Icon, x, y, label }, index) => (
-          <button
-            key={label}
-            type="button"
-            className="home-system-port home-system-input"
-            style={{ "--port-x": `${x / 6}%`, "--port-y": `${y / 6}%` } as CSSProperties}
-            aria-label={label}
-            aria-pressed={index === 0}
-            onClick={() => select(index)}
-          >
-            <Icon aria-hidden="true" strokeWidth={1.4} />
-            <span className="home-system-port-dot" aria-hidden="true" />
-          </button>
-        ))}
-        {outputs.map(({ icon: Icon, x, y }, index) => (
-          <span
-            key={index}
-            className="home-system-port home-system-output"
-            style={{ "--port-x": `${x / 6}%`, "--port-y": `${y / 6}%` } as CSSProperties}
-            data-connected={index !== 2}
-            data-complete="false"
-            aria-hidden="true"
-          >
-            <Icon strokeWidth={1.4} />
-            <span className="home-system-port-dot" />
-          </span>
-        ))}
-        <button
-          type="button"
-          className="home-system-handle"
-          aria-label="Steer automation core. Drag to reshape connections, use arrow keys to move, Home to center, or Enter to change workflow."
-          onPointerDown={(event) => {
-            const p = coordinates(event);
-            suppressClick.current = false;
-            event.currentTarget.setPointerCapture(event.pointerId);
-            controller.current?.drag(p.x, p.y);
-          }}
-          onPointerMove={(event) => {
-            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
-            const p = coordinates(event);
-            controller.current?.drag(p.x, p.y);
-          }}
-          onPointerUp={(event) => {
-            suppressClick.current = controller.current?.release() ?? false;
-            if (event.currentTarget.hasPointerCapture(event.pointerId))
-              event.currentTarget.releasePointerCapture(event.pointerId);
-          }}
-          onPointerCancel={() => {
-            suppressClick.current = true;
-            controller.current?.release();
-          }}
-          onClick={(event) => {
-            if (event.detail && suppressClick.current) return;
-            select((Number(scene.current?.parentElement?.dataset.source ?? 0) + 1) % 3);
-          }}
-          onKeyDown={(event) => {
-            const direction = directions[event.key];
-            if (direction) {
-              event.preventDefault();
-              controller.current?.nudge(direction[0], direction[1]);
-            }
-            if (event.key === "Home") {
-              event.preventDefault();
-              controller.current?.reset();
-            }
-          }}
-        />
-      </div>
-      <span className="sr-only" role="status" aria-live="polite">
-        {announcement}
-      </span>
+              <path d={layer.top} fill={`url(#${id}-metal)`} strokeOpacity=".7" />
+            </g>
+          ))}
+        </g>
+      </svg>
     </div>
   );
 }

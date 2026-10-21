@@ -38,7 +38,7 @@ classes, `src/lib/type-recipes.ts` and the product page modules:
 | Section | `--type-section` | 30 to 48px | Each section heading          |
 | Title   | `--type-title`   | 20 to 26px | Cards, rows and list groups   |
 
-All headings are weight 600. A section heading is never larger than its page
+Shared headings are weight 600; the restored homepage headline retains weight 500. A section heading is never larger than its page
 title. Use the classes or the tokens (`text-[length:var(--type-section)]`);
 never set a heading size by hand. Stat numerals and logo marks may exceed the
 cap with a documented exception.
@@ -69,19 +69,18 @@ outcome. Today's Automation module, the Activity page and the site's product
 proof all use this language. On the site, prove the claim with the real
 instrument (product screenshots or the demo), never an illustration of one.
 
-### Homepage hero: the interactive sculpture
+### Homepage hero: the resting brand sculpture
 
-The founder restored the previously published homepage composition on October 21,
-2026: Jost headings, the time-and-revenue headline, and the steerable SVG sculpture.
-`src/components/home/HeroArtwork.tsx` owns the three-dimensional chevrons, visible
-face culling, depth order, connections and workflow signals. Inquiry, meeting and
-invoice buttons change the sculpture's formation and show their example actions.
-The central grip supports drag, arrow keys, Home and workflow selection. The
-sculpture remains present at phone width. Its imperative controller pauses offscreen,
-in hidden tabs, behind navigation, and under reduced motion; static geometry and
-immediate keyboard interaction remain available. `npm run qa:home-hero-timing`
-checks desktop, touch, keyboard, normal motion and reduced motion. The activity
-stream remains product proof below the hero, without replacing its sculpture.
+Jost headings and the established time-and-revenue headline retain the site's
+identity. The native SVG artwork uses the three extruded logo chevrons, visible
+face culling, depth order and a grounded base. One shared hero entrance brings
+the composition into view; then it rests. There are no ambient animation loops,
+spinning layers, branching workflow diagrams, signals or decorative controls.
+The mark remains visible on phones and never captures input or keyboard focus.
+Reduced motion and unavailable JavaScript show the complete static composition.
+`npm run qa:home-hero-timing` checks the actual resting geometry and pixels,
+copy, desktop/phone layouts, keyboard actions and reduced motion. The activity
+stream remains product proof below the hero.
 
 ## Command Center modes
 

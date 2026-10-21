@@ -188,34 +188,15 @@ for (const [engine, launcher] of Object.entries(engines)) {
       stage = `warm-visit-${visit}`;
       await page.getByRole("button", { name: "Open navigation menu" }).tap();
       await page.waitForFunction(() => document.body.dataset.mobileNavigation === "open");
-      const menuSafe = await page.locator(".home-system-input, .home-system-handle").evaluateAll(
-        (inputs) =>
-          inputs.length === 4 &&
-          inputs.every((input) => {
-            const bounds = input.getBoundingClientRect();
-            const hit = document.elementFromPoint(
-              bounds.x + bounds.width / 2,
-              bounds.y + bounds.height / 2,
-            );
-            input.focus();
-            return (
-              !input.checkVisibility({ visibilityProperty: true }) &&
-              !input.contains(hit) &&
-              document.activeElement !== input
-            );
-          }),
-      );
-      if (!menuSafe)
-        failures.push(
-          `${engine}: open menu leaves workflow inputs visible, clickable, or focusable`,
+      const menuSafe = await page
+        .locator(".home-sculpture")
+        .evaluate(
+          (root) =>
+            root.getAttribute("aria-hidden") === "true" &&
+            !root.querySelector("a, button, input, [tabindex]"),
         );
-      await page.waitForFunction(
-        () => document.querySelector(".home-system-artwork")?.dataset.motion === "suspended",
-      );
-      const stoppedPhase = await page.locator(".home-system-artwork").getAttribute("data-phase");
-      await page.waitForTimeout(250);
-      if (stoppedPhase !== (await page.locator(".home-system-artwork").getAttribute("data-phase")))
-        failures.push(`${engine}: the hidden mechanism continues running behind the menu`);
+      if (!menuSafe)
+        failures.push(`${engine}: decorative artwork exposes controls behind navigation`);
       await page.locator('#mobile-site-navigation a[href="/services"]').first().tap();
       await page.waitForURL(`${base}/services`);
       await page.locator(".public-hero-entrance:not(.home-hero)").waitFor();
@@ -252,17 +233,17 @@ for (const [engine, launcher] of Object.entries(engines)) {
         failures.push(
           `${engine}: warm entrance stalled (${frames.p95}ms p95, ${frames.longest}ms longest frame)`,
         );
-      // The restored component must accept a real touch after the menu closes.
-      await page.locator(".home-system-input").first().tap();
-      const interactionFrames = await page.evaluate(sampleFrames, 750);
-      await page.waitForFunction(
-        () =>
-          document.querySelector(".home-system-artwork").dataset.source === "0" &&
-          document.querySelector(".home-system-artwork").dataset.motion === "live",
-      );
-      if ((enforceP95 && interactionFrames.p95 > 50) || interactionFrames.longest > 200)
-        failures.push(`${engine}: touch workflow stalled (${interactionFrames.p95}ms p95)`);
-      results.push({ engine, visit, menuSafe, interactionFrames });
+      // The brand sculpture settles; touch and keyboard navigation stay on real actions.
+      await page.locator(".home-sculpture").waitFor();
+      const restingArtwork = await page.locator(".home-sculpture svg").evaluate((svg) => ({
+        layers: svg.querySelectorAll(".home-sculpture-layer").length,
+        animations: svg
+          .getAnimations({ subtree: true })
+          .filter((animation) => animation.playState === "running").length,
+      }));
+      if (restingArtwork.layers !== 3 || restingArtwork.animations)
+        failures.push(`${engine}: warm visit did not retain the resting brand sculpture`);
+      results.push({ engine, visit, menuSafe, restingArtwork });
       await page.goBack();
       await page.waitForURL(`${base}/services`);
       await page.locator(".public-hero-entrance:not(.home-hero)").waitFor();
