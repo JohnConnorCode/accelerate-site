@@ -113,7 +113,7 @@ try {
         await settings.locator("summary").click();
       await radarModule.getByLabel(/^Outreach mode/).selectOption("approval-required");
       await radarModule.getByRole("button", { name: "Save settings", exact: true }).click();
-      await radarModule.getByText("Settings saved", { exact: true }).waitFor();
+      await page.getByText("Settings saved", { exact: true }).waitFor();
       await page.goto(detailUrl);
       await page
         .getByLabel(/^Saved outreach draft/)
