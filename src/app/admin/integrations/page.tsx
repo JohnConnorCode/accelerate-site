@@ -2,7 +2,7 @@
 
 import { adminPageName } from "@/lib/admin/navigation";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
@@ -415,13 +415,22 @@ function ConfiguredModuleCard({
   pending,
   onToggle,
   settings,
+  revealToggle,
 }: {
   module: RevenueOSModule;
   enabled: boolean;
   pending: boolean;
   onToggle: (moduleId: string, enabled: boolean) => void;
   settings: Record<string, string | number | boolean | undefined>;
+  revealToggle: boolean;
 }) {
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!revealToggle || document.documentElement.dataset.navigationKind === "restore") return;
+    // Target the existing control after the filtered card mounts. Centering
+    // keeps it above the phone dock without changing the shared card layout.
+    toggleRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
+  }, [revealToggle]);
   return (
     <ModuleCard
       module={module}
@@ -429,6 +438,7 @@ function ConfiguredModuleCard({
       actions={
         !module.isCore && (
           <button
+            ref={toggleRef}
             type="button"
             role="switch"
             aria-checked={enabled}
@@ -951,6 +961,11 @@ export default function IntegrationsPage() {
                     pending={pendingModuleId === mod.id}
                     onToggle={toggleModule}
                     settings={getModuleSettings(mod.id, modulesQuery.data?.moduleSettings)}
+                    revealToggle={
+                      focusedModuleSetup &&
+                      query.trim() === searchParams.get("search")?.trim() &&
+                      query.trim().toLowerCase() === mod.name.toLowerCase()
+                    }
                   />
                 ))}
               </section>
