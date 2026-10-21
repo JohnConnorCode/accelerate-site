@@ -512,6 +512,14 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-workspace-operations-server.log; exit 1; fi
+          # Capture only the two changed module views from this already-built
+          # application. Keep publication assets untouched during verification.
+          for shot in plugins/reports workspace/module-cards-20261020; do
+            DOCS_SCREENSHOT_OUTPUT_ROOT=/tmp/accelerate-design-docs-refresh DOCS_SCREENSHOT_RECEIPT="/tmp/accelerate-design-docs-refresh/${shot//\//-}.json" npm run resources:run -- node scripts/capture-docs-screenshots.mjs --only "$shot"
+          done
+          test -s /tmp/accelerate-design-docs-refresh/public/images/docs/plugins/reports.png
+          test -s /tmp/accelerate-design-docs-refresh/public/images/docs/workspace/module-cards-20261020.png
+          git diff --exit-code -- public/images/docs/
           npm run resources:run -- node scripts/qa-owner-workspace.mjs
           npm run resources:run -- node scripts/qa-today-workspace.mjs
           TODAY_REVIEW_QA_OUTPUT=/tmp/accelerate-today-review npm run resources:run -- node scripts/qa-today-review-layout.mjs
@@ -519,6 +527,14 @@ jobs:
           npm run resources:run -- node scripts/qa-opportunity-create-recovery.mjs
           npm run resources:run -- npm run qa:workspace-operations
           npm run resources:run -- node scripts/qa-architect-review.mjs
+      - name: Retain changed module documentation captures
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: changed-module-documentation-captures
+          path: /tmp/accelerate-design-docs-refresh/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain focused contact import evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         uses: actions/upload-artifact@v7

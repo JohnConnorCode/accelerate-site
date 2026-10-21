@@ -333,7 +333,32 @@ async function prepareState(page, shot) {
     const report = page.locator('[data-module-card="business-pulse"]');
     await report.getByRole("button", { name: "Run report", exact: true }).click();
     await report.getByText(/records inspected/).waitFor();
-    await report.scrollIntoViewIfNeeded();
+    // Keep the module heading visible above the generated report results.
+    await page.evaluate(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.querySelector(".admin-main")?.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "instant",
+      });
+    });
+    await page.waitForFunction(
+      () => window.scrollY === 0 && document.querySelector(".admin-main")?.scrollTop === 0,
+    );
+    await page.mouse.move(0, 0);
+    const [heading, toolbar] = await Promise.all([
+      report.getByRole("heading", { name: /^Business pulse$/i }).boundingBox(),
+      page.locator("[data-admin-workspace-toolbar]").boundingBox(),
+    ]);
+    assert.ok(heading && toolbar, "Business pulse heading and workspace toolbar must be visible");
+    assert.ok(
+      heading.y >= toolbar.y + toolbar.height + 8,
+      "Business pulse heading must clear the sticky workspace toolbar",
+    );
+    assert.ok(
+      heading.y + heading.height <= page.viewportSize().height,
+      "Business pulse heading must remain inside the screenshot viewport",
+    );
   } else if (shot.state === "cost-controls") {
     const controls = page.getByRole("region", { name: "AI cost controls", exact: true });
     for (const label of ["Allow model requests", "Run recurring AI and coworker work"]) {
@@ -516,7 +541,10 @@ async function main() {
         await ready(page, theme);
         assert.deepEqual(escaped, [], "A demo request reached the protected network fence");
         assert.deepEqual(errors, [], "Runtime or console errors prevent a publishable capture");
-        const outPath = path.resolve(shot.file || `public/images/docs/${shot.id}.png`);
+        const outPath = path.resolve(
+          process.env.DOCS_SCREENSHOT_OUTPUT_ROOT || ".",
+          shot.file || `public/images/docs/${shot.id}.png`,
+        );
         mkdirSync(path.dirname(outPath), { recursive: true });
         let target = page;
         if (shot.target === "revenue-chart")

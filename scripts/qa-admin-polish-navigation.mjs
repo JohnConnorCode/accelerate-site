@@ -385,6 +385,7 @@ try {
               headingWidth: header.width,
               regionWidth: region?.getBoundingClientRect().width ?? null,
               stackGaps: stacks.map((stack) => getComputedStyle(stack).rowGap),
+              sectionGap: getComputedStyle(main).getPropertyValue("--admin-section-gap").trim(),
               visibleLoading: !!document.querySelector('[data-admin-async-visible="true"]'),
               cards: document.querySelectorAll("[data-kanban-card]").length,
             };
@@ -409,7 +410,10 @@ try {
             "Read state stays inside the shared page region",
           );
           assert.ok(
-            geometry.stackGaps.every((gap) => parseFloat(gap) >= 20 && parseFloat(gap) <= 24),
+            parseFloat(geometry.sectionGap) > 0 &&
+              geometry.stackGaps.every(
+                (gap) => parseFloat(gap) === parseFloat(geometry.sectionGap),
+              ),
             JSON.stringify(geometry),
           );
         }

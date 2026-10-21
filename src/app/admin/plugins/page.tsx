@@ -141,7 +141,7 @@ export default function PluginsPage() {
                     ) : plugin.report ? (
                       <button
                         type="button"
-                        className={`${button} bg-[var(--admin-ink)] text-[var(--admin-surface)]`}
+                        className="admin-button admin-button--primary"
                         disabled={!enabled || !!busy}
                         onClick={() => void perform(plugin.id, enabled, true)}
                       >

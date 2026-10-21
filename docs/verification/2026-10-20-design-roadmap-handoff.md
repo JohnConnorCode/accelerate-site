@@ -27,7 +27,7 @@ result; this document records the pre-release handoff.
   separately owned.
 - First full CI candidate: `d1283a9e912f4ce9865c60f3d1705a2609044416`,
   tree `57b324b4f7a64a53b727f35119d2c346b4a4ac7c`. It includes the two page
-  fixes, 56 reviewed public images and the restored Modules guide figure.
+  fixes, 56 public images with validated capture hashes and the restored Modules guide figure.
   [CI 39527535567](https://github.com/JohnConnorCode/accelerate-site/actions/runs/39527535567)
   passed the application build, but its checks already report failures. It
   must not be cited as a green release run.
@@ -93,8 +93,10 @@ The overall run failed and is not final acceptance.
   images, forty generic documentation images (including the new module-card
   view) and three customer-workflow guide images: 56 validated captures.
   JSON receipts record the source commit, capture time and SHA-256 hashes.
-  The integration owner completed image review, import and guide restoration
-  in `d1283a9e`. The later public-page and flow-timing fixes do not change
+  All 56 images were imported and the guide figure restored in `d1283a9e`.
+  At this handoff, 55 images passed visual review; one Reports frame needs its
+  heading restored to view and is being recaptured from the same compiled source.
+  The later public-page and flow-timing fixes do not change
   the admin visual rules represented by those images.
 - The customer workflow, ten representative core routes and the four-mode
   accessibility/keyboard groups passed.

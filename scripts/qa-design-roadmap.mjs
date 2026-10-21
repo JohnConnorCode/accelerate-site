@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "playwright";
+import AxeBuilder from "@axe-core/playwright";
 import { verticals } from "../src/content/verticals.ts";
 import { EXTENSION_MODULES } from "../src/lib/revenue-os/extension-modules.generated.ts";
 
@@ -298,12 +299,26 @@ async function inspect(route, theme, width, isAdmin) {
       await page.waitForURL((url) => url.pathname === href);
       await page.locator(".admin-main h1").waitFor();
     }
-    if (route === "plugins" && theme === "light" && width === 1440) {
+    if (route === "plugins" && width === 1440) {
       const definition = EXTENSION_MODULES.find((entry) => entry.report);
       const card = page.locator(`[data-module-card="${definition.id}"]`);
       const enable = card.getByRole("button", { name: `Enable ${definition.name}`, exact: true });
       if (await enable.count()) await enable.click();
-      await card.getByRole("button", { name: "Run report", exact: true }).click();
+      const run = card.getByRole("button", { name: "Run report", exact: true });
+      await run.hover();
+      const hoverAccessibility = await new AxeBuilder({ page })
+        .include(`[data-module-card="${definition.id}"]`)
+        .withRules(["color-contrast"])
+        .analyze();
+      assert.deepEqual(
+        hoverAccessibility.violations.map(({ id, nodes }) => ({
+          id,
+          nodes: nodes.map(({ target, failureSummary }) => ({ target, failureSummary })),
+        })),
+        [],
+        `${id}: report controls must remain readable while hovered`,
+      );
+      await run.click();
       await card
         .locator("[data-module-activity]")
         .getByText("System:", { exact: true })

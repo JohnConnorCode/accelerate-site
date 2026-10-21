@@ -320,7 +320,7 @@ export function ActionReviewDialog({
                   inline && "whitespace-nowrap",
                   external
                     ? "bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]"
-                    : "bg-[var(--admin-accent-soft)] text-[var(--admin-accent)]",
+                    : "bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
                 )}
               >
                 {action.action_type === "create_gmail_draft"
