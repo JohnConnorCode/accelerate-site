@@ -587,7 +587,6 @@ try {
       accessibility.violations.map((item) => ({ id: item.id, impact: item.impact })),
       [],
     );
-    await page.locator("main").screenshot({ path: `${output}/public-${theme}-${width}.png` });
     // Hold the real entrance at an unreadable early frame. Interaction must
     // expose the form immediately instead of waiting for its entrance clock.
     if (reducedMotion === "no-preference")
@@ -607,6 +606,33 @@ try {
       "1",
       "Focused checkout must finish its entrance immediately",
     );
+    // Keep the early-focus assertion above. Then visit the document's end so
+    // every real reveal owner enters, and return to the top for the fixed header.
+    await page.evaluate(() =>
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
+    );
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll("main [data-reveal-state]")].every(
+        (owner) => owner.dataset.revealState === "visible",
+      ),
+    );
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForFunction(
+      () =>
+        scrollY === 0 &&
+        [...document.querySelectorAll("main [data-hero-step]")].every(
+          (step) => getComputedStyle(step).opacity === "1",
+        ) &&
+        document
+          .querySelector("main")
+          .getAnimations({ subtree: true })
+          .every(
+            (animation) =>
+              animation.playState !== "running" ||
+              animation.effect?.getTiming().iterations === Infinity,
+          ),
+    );
+    await page.screenshot({ path: `${output}/public-${theme}-${width}.png`, fullPage: true });
     await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
@@ -645,9 +671,31 @@ try {
     });
     await page.keyboard.press("Tab");
     assert.equal(await buy.evaluate((button) => document.activeElement === button), true);
-    await ticketCheckout.screenshot({
+    await page.screenshot({
       path: `${output}/checkout-error-${theme}-${width}.png`,
     });
+    const recoveryHitTargets = await buy.evaluate((button) => {
+      const box = button.getBoundingClientRect();
+      return [
+        [box.left + box.width / 2, box.top + box.height / 2],
+        [box.left + 8, box.top + 8],
+        [box.right - 8, box.top + 8],
+        [box.left + 8, box.bottom - 8],
+        [box.right - 8, box.bottom - 8],
+      ].map(([x, y]) => ({
+        x,
+        y,
+        clear: button.contains(document.elementFromPoint(x, y)),
+      }));
+    });
+    await writeFile(
+      `${output}/checkout-error-hit-targets-${theme}-${width}.json`,
+      JSON.stringify(recoveryHitTargets, null, 2),
+    );
+    assert.ok(
+      recoveryHitTargets.every((point) => point.clear),
+      "The checkout recovery button must remain clear of floating overlays",
+    );
     const errorAccessibility = await new AxeBuilder({ page })
       .include('aside[aria-label="Workshop tickets"] [role="alert"]')
       .withRules(["color-contrast"])
