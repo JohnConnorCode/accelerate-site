@@ -232,6 +232,9 @@ async function inspect(route, theme, width, isAdmin) {
             (pulse) => getComputedStyle(pulse).animationName === "home-flow-travel",
           ),
         );
+        const motionFrame = `${output}/${id}-ordinary-motion.png`;
+        await page.screenshot({ path: motionFrame });
+        result.screenshots.push(motionFrame);
         await page.emulateMedia({ reducedMotion: "reduce" });
         await page.evaluate(() => scrollTo(0, 0));
       }
@@ -321,6 +324,9 @@ async function inspect(route, theme, width, isAdmin) {
         [],
         `${id}: report controls must remain readable while hovered`,
       );
+      const hoverFrame = `${output}/${id}-report-hover.png`;
+      await page.screenshot({ path: hoverFrame });
+      result.screenshots.push(hoverFrame);
       await run.click();
       await card
         .locator("[data-module-activity]")
