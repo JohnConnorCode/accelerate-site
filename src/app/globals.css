@@ -6533,7 +6533,7 @@ body.modal-open [data-dock] {
   .home-flow-pulse,
 .home-flow[data-phase="acting"] .home-flow-wire-out[data-active="true"] .home-flow-pulse {
   stroke: var(--signal);
-  animation: home-flow-travel 700ms var(--hero-ease) both;
+  animation: home-flow-travel 700ms var(--hero-ease, var(--ease)) both;
 }
 .home-flow[data-phase="intake"]
   .home-flow-wire:not(.home-flow-wire-out)[data-active="true"]

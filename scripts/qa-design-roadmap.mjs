@@ -220,6 +220,17 @@ async function inspect(route, theme, width, isAdmin) {
           }),
         );
       assert.deepEqual(styles[0], styles[1], `${id}: component and link button recipes differ`);
+      if (width >= 641) {
+        await page.emulateMedia({ reducedMotion: "no-preference" });
+        await page.locator("[data-style-guide-artwork]").scrollIntoViewIfNeeded();
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll("[data-style-guide-artwork] .home-flow-pulse")].some(
+            (pulse) => getComputedStyle(pulse).animationName === "home-flow-travel",
+          ),
+        );
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await page.evaluate(() => scrollTo(0, 0));
+      }
     }
     if (route === "plugins" || route === "integrations?tab=modules") {
       const cards = page.locator("[data-module-card]");
