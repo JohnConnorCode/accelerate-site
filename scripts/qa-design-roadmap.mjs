@@ -198,9 +198,13 @@ async function inspect(route, theme, width, isAdmin) {
         ),
       );
       assert.doesNotMatch(await page.locator("main").innerText(), /gold|italic|retired themes/i);
+      const button = page.locator('main button.btn[data-ui-button="primary"]:not(:disabled)');
+      const link = page.locator("main a.btn");
+      assert.equal(await button.count(), 1);
+      assert.equal(await link.count(), 1);
       const styles = await page
         .locator("main")
-        .locator('.btn[data-ui-button="primary"], a.btn')
+        .locator('button.btn[data-ui-button="primary"]:not(:disabled), a.btn')
         .evaluateAll((elements) =>
           elements.map((element) => {
             const style = getComputedStyle(element);

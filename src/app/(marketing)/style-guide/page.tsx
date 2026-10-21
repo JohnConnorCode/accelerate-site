@@ -26,7 +26,10 @@ export default function StyleGuide() {
           One identity for the public site and the Command Center. Values below come from the active
           stylesheet and update with the appearance.
         </p>
-        <section className="mt-20 border-t border-[var(--rule)] pt-10" aria-labelledby="guide-color">
+        <section
+          className="mt-20 border-t border-[var(--rule)] pt-10"
+          aria-labelledby="guide-color"
+        >
           <h2 className="h2 mb-8" id="guide-color">
             Ink, paper and rules
           </h2>
@@ -70,7 +73,10 @@ export default function StyleGuide() {
             Links and buttons share the same recipe, focus ring and press feedback.
           </p>
         </section>
-        <section className="mt-20 border-t border-[var(--rule)] pt-10" aria-labelledby="guide-proof">
+        <section
+          className="mt-20 border-t border-[var(--rule)] pt-10"
+          aria-labelledby="guide-proof"
+        >
           <h2 className="h2 mb-8" id="guide-proof">
             Show the work
           </h2>
@@ -88,7 +94,10 @@ export default function StyleGuide() {
             flow follows the same language.
           </p>
         </section>
-        <section className="mt-20 border-t border-[var(--rule)] pt-10" aria-labelledby="guide-modes">
+        <section
+          className="mt-20 border-t border-[var(--rule)] pt-10"
+          aria-labelledby="guide-modes"
+        >
           <h2 className="h2 mb-8" id="guide-modes">
             Modes of work
           </h2>

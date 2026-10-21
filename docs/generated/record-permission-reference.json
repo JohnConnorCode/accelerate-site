@@ -222,7 +222,7 @@
     },
     {
       "id": "receivables-collections",
-      "name": "Collections Action Desk",
+      "name": "Collections",
       "core": false,
       "defaultEnabled": false
     },

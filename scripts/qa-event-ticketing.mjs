@@ -587,7 +587,6 @@ try {
       accessibility.violations.map((item) => ({ id: item.id, impact: item.impact })),
       [],
     );
-    await page.locator("main").screenshot({ path: `${output}/public-${theme}-${width}.png` });
     // Hold the real entrance at an unreadable early frame. Interaction must
     // expose the form immediately instead of waiting for its entrance clock.
     if (reducedMotion === "no-preference")
@@ -607,6 +606,9 @@ try {
       "1",
       "Focused checkout must finish its entrance immediately",
     );
+    // Capture the form after its real interaction handoff, keeping the early-frame
+    // recovery assertion above intact instead of photographing a deferred reveal.
+    await page.locator("main").screenshot({ path: `${output}/public-${theme}-${width}.png` });
     await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
