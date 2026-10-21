@@ -352,7 +352,7 @@ export default function ActivityPage() {
                     }}
                   >
                     <div className="min-w-0">
-                      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                      <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                         {entry.source} · {entry.entityType.replace(/_/g, " ")}
                       </p>
                       <h2 className="mt-1 truncate text-sm font-semibold text-[var(--admin-ink)]">

@@ -3,6 +3,7 @@ import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 import { sendNoShowRebookEmail } from "@/lib/email/booking";
 import { resolvePlaybook, tenant } from "@/config/tenant";
+import { hasDebateProductions } from "@/lib/revenue-os/debate-bookings";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdminForModule("bookings");
@@ -50,6 +51,7 @@ export async function GET(request: NextRequest) {
       bookedToShowed: booked ? Math.round((showed / booked) * 100) : 0,
     },
     days,
+    hasDebateProductions: await hasDebateProductions(supabase),
   });
 }
 

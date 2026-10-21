@@ -25,7 +25,7 @@ export function DocsAiToolCatalog() {
           <div key={tool.name} id={tool.name} className="scroll-mt-28 py-4">
             <dt className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <code className="text-sm text-heading">{tool.name}</code>
-              <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-white-muted">
+              <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-white-muted">
                 {tool.impact.replace("_", " ")}
                 {tool.confirmationRequired ? " · confirmation required" : ""}
               </span>

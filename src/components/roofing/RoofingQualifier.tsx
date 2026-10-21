@@ -110,7 +110,7 @@ export function RoofingQualifier() {
             className="rounded-[28px] bg-[#11120f] p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.09),0_28px_90px_rgba(0,0,0,0.3)] sm:p-8"
           >
             <div className="mb-7">
-              <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-[#d7ff5f]">
+              <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-[#d7ff5f]">
                 Check fit · about 60 seconds
               </p>
               <h2 className="text-balance font-display text-3xl font-medium tracking-[-0.035em] text-white sm:text-4xl">
@@ -260,7 +260,7 @@ export function RoofingQualifier() {
               <RoofingBookingEmbed email={form.email} token={token} />
             ) : (
               <div className="rounded-[28px] bg-[#11120f] p-7 shadow-[0_0_0_1px_rgba(255,255,255,0.09),0_28px_90px_rgba(0,0,0,0.3)] sm:p-10">
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#d7ff5f]">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#d7ff5f]">
                   Manual review is active
                 </p>
                 <h2 className="mt-5 text-balance font-display text-3xl font-medium tracking-[-0.035em] text-white sm:text-4xl">
@@ -277,7 +277,7 @@ export function RoofingQualifier() {
                         key={item}
                         className="rounded-xl bg-white/[0.05] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07)]"
                       >
-                        <span className="font-mono text-[9px] tabular-nums text-[#d7ff5f]">
+                        <span className="font-mono text-[10.5px] tabular-nums text-[#d7ff5f]">
                           0{index + 1}
                         </span>
                         <p className="mt-3 text-pretty text-sm leading-5 text-white/65">{item}</p>

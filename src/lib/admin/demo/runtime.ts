@@ -1600,7 +1600,7 @@ function bookings(pack: DemoScenarioPack) {
       scheduled_at:
         index % 4 === 0 ? null : new Date(Date.now() + (index - 2) * 86_400_000).toISOString(),
       utm_source: ["google", "referral", "email"][index % 3]!,
-      utm_campaign: "demo-growth-loop",
+      utm_campaign: ["spring-inspections", null, "past-customers"][index % 3],
       estimated_value: item.estimated_value,
       won_value: index % 6 === 4 ? item.estimated_value : 0,
       created_at: item.created_at,
@@ -1710,7 +1710,7 @@ function capabilityLabel(name: string): string {
 /** Kept in sync by hand with the real registry in
  *  src/lib/revenue-os/ai-tools.ts (AI_TOOL_REGISTRY_VERSION,
  *  registry, PACK_TOOL_NAMES) since the demo has no server context to read
- *  it from live. Every real tool is available in the fictional workspace. */
+ *  it from live. Every real tool is available in the demo workspace. */
 function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>> }) {
   const rows: Array<
     [
@@ -1915,7 +1915,7 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
         : ("unavailable" as const),
       availabilityReason:
         isAiToolModuleEnabled(name, tenantConfig).reason ??
-        "Available in this fictional workspace; outcomes are simulated.",
+        "Available in this demo workspace; outcomes are simulated.",
     }),
   );
   return {
@@ -2009,7 +2009,7 @@ function integrationCatalog(pack: DemoScenarioPack) {
     status,
     statusReason:
       status === "ready"
-        ? "Behavior verified in this fictional workspace"
+        ? "Behavior verified in this demo workspace"
         : status === "available"
           ? "Available to configure"
           : "Planned by client demand",
@@ -2537,8 +2537,8 @@ function legacy(pack: DemoScenarioPack, path: string, state: DemoState) {
         .map((item, index) => ({
           ...item,
           organization: item.business_name,
-          partnership_type: index % 2 ? "referral" : "community",
-          status: index < 3 ? "new" : "contacted",
+          partner_type: index % 2 ? "referral" : "community",
+          status: index < 3 ? "pending" : index % 3 ? "approved" : "declined",
         })),
       total: 8,
       totalPages: 1,
@@ -2636,10 +2636,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     const url = new URL(raw, window.location.origin);
     if (url.origin !== window.location.origin)
-      return jsonResponse(
-        { error: "External requests are blocked in this fictional workspace" },
-        403,
-      );
+      return jsonResponse({ error: "External requests are blocked in this demo workspace" }, 403);
     const path = url.pathname;
     const method = (
       init?.method || (input instanceof Request ? input.method : "GET")
@@ -2655,10 +2652,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/site/drafts" || /^\/api\/admin\/site\/drafts\/[^/]+$/.test(path)) {
       if (state.moduleOverrides["site-studio"] === false)
-        return jsonResponse(
-          { error: "Site Studio is disabled for this fictional workspace." },
-          403,
-        );
+        return jsonResponse({ error: "Site Studio is disabled for this demo workspace." }, 403);
       let body: unknown = {};
       try {
         if (typeof init?.body === "string") body = JSON.parse(init.body);
@@ -3184,10 +3178,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/site/models" && method === "GET") {
       if (state.moduleOverrides["site-studio"] === false)
-        return jsonResponse(
-          { error: "Site Studio is disabled for this fictional workspace." },
-          403,
-        );
+        return jsonResponse({ error: "Site Studio is disabled for this demo workspace." }, 403);
       return jsonResponse({
         models: SITE_STUDIO_MODELS,
         observedAt: SITE_MODELS_OBSERVED_AT,
@@ -3196,10 +3187,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/site/website" || path === "/api/admin/site/website/suggest") {
       if (state.moduleOverrides["site-studio"] === false)
-        return jsonResponse(
-          { error: "Site Studio is disabled for this fictional workspace." },
-          403,
-        );
+        return jsonResponse({ error: "Site Studio is disabled for this demo workspace." }, 403);
       if (path.endsWith("/suggest")) return demoWebsiteSuggestion(body);
       state.website ??= createDemoWebsiteState();
       const response = handleDemoWebsite(state.website, pack.name, method, body, url.searchParams);
@@ -3723,7 +3711,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         ) {
           provider.status = "action";
           provider.statusReason =
-            "Disconnected in this fictional workspace. Reconnect through secure setup.";
+            "Disconnected in this demo workspace. Reconnect through secure setup.";
           for (const capability of provider.capabilities) {
             capability.status = "action";
             capability.statusReason = "Provider disconnected; historical records remain.";
@@ -3742,7 +3730,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({
         status: "unknown",
         message:
-          "This fictional workspace has no installed core release. Check releases from your own connected installation.",
+          "This demo workspace has no installed core release. Check releases from your own connected installation.",
         checkedAt: new Date().toISOString(),
         installed: { coreVersion: null, coreCommit: null, forkCommit: null, customized: null },
         path: [],
@@ -3766,7 +3754,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         ) {
           check.status = "action";
           check.description =
-            "Provider disconnected in this fictional workspace. Reconnect through Integrations; historical records remain.";
+            "Provider disconnected in this demo workspace. Reconnect through Integrations; historical records remain.";
           check.action.label = "Reconnect provider";
         }
       }
@@ -5777,7 +5765,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       }
     }
     return jsonResponse(
-      { error: "This fictional workspace has no handler for this request.", simulated: true },
+      { error: "This demo workspace has no handler for this request.", simulated: true },
       404,
     );
   };

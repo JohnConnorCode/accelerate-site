@@ -1,4 +1,4 @@
-import { isAdminAppearance } from "@/lib/admin/appearances";
+import { canonicalAppearance, isAdminAppearance } from "@/lib/admin/appearances";
 import { DEMO_SCENARIOS, type DemoAppearance, type DemoScenarioId } from "./scenarios";
 
 const APPEARANCE_VERSION = "v1";
@@ -8,7 +8,7 @@ export function demoAppearanceKey(scenarioId: DemoScenarioId) {
 }
 
 export function readDemoAppearance(scenarioId: DemoScenarioId): DemoAppearance {
-  const saved = window.sessionStorage.getItem(demoAppearanceKey(scenarioId));
+  const saved = canonicalAppearance(window.sessionStorage.getItem(demoAppearanceKey(scenarioId)));
   return isAdminAppearance(saved) ? saved : DEMO_SCENARIOS[scenarioId].appearance;
 }
 

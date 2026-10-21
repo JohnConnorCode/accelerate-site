@@ -88,7 +88,7 @@ export function Hero() {
         <motion.div variants={heroStaggerDramatic} initial="hidden" animate="visible">
           <motion.p
             variants={heroTagline}
-            className="font-mono text-xs sm:text-sm font-medium text-gold tracking-wide mb-5"
+            className="font-mono text-xs sm:text-sm font-medium text-[var(--fg)] tracking-wide mb-5"
           >
             {"// ai · automation · systems we run"}
           </motion.p>
@@ -100,7 +100,7 @@ export function Hero() {
           >
             <span className="text-heading">Accelerate your business</span>
             <br />
-            <span className="text-gold">with AI.</span>
+            <span className="text-[var(--fg)]">with AI.</span>
           </motion.h1>
 
           <motion.p

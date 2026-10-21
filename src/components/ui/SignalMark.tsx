@@ -73,8 +73,8 @@ export function SignalMark({ size = "sm", className = "" }: SignalMarkProps) {
             strokeWidth="0.5"
           />
           {/* Center glow dot */}
-          <circle cx="160" cy="160" r="4" fill="var(--gold-base)" opacity="0.3" />
-          <circle cx="160" cy="160" r="2" fill="var(--gold-light)" opacity="0.5" />
+          <circle cx="160" cy="160" r="4" fill="var(--fg)" opacity="0.3" />
+          <circle cx="160" cy="160" r="2" fill="var(--fg)" opacity="0.5" />
         </svg>
       </div>
     );
@@ -93,30 +93,14 @@ export function SignalMark({ size = "sm", className = "" }: SignalMarkProps) {
         className="w-full h-full"
       >
         {/* Outer ring */}
-        <circle cx="12" cy="12" r="11" stroke="var(--gold-base)" strokeWidth="0.5" opacity="0.3" />
+        <circle cx="12" cy="12" r="11" stroke="var(--fg)" strokeWidth="0.5" opacity="0.3" />
         {/* Inner ring */}
-        <circle cx="12" cy="12" r="7" stroke="var(--gold-base)" strokeWidth="0.5" opacity="0.4" />
+        <circle cx="12" cy="12" r="7" stroke="var(--fg)" strokeWidth="0.5" opacity="0.4" />
         {/* Crosshair lines */}
-        <line
-          x1="12"
-          y1="1"
-          x2="12"
-          y2="23"
-          stroke="var(--gold-base)"
-          strokeWidth="0.3"
-          opacity="0.25"
-        />
-        <line
-          x1="1"
-          y1="12"
-          x2="23"
-          y2="12"
-          stroke="var(--gold-base)"
-          strokeWidth="0.3"
-          opacity="0.25"
-        />
+        <line x1="12" y1="1" x2="12" y2="23" stroke="var(--fg)" strokeWidth="0.3" opacity="0.25" />
+        <line x1="1" y1="12" x2="23" y2="12" stroke="var(--fg)" strokeWidth="0.3" opacity="0.25" />
         {/* Center dot */}
-        <circle cx="12" cy="12" r="1.5" fill="var(--gold-base)" opacity="0.6" />
+        <circle cx="12" cy="12" r="1.5" fill="var(--fg)" opacity="0.6" />
       </svg>
     </div>
   );

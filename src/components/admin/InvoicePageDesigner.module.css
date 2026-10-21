@@ -16,7 +16,7 @@
   font-family: Georgia, serif;
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 400;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.028em;
   text-wrap: balance;
 }
 
@@ -71,7 +71,7 @@
 
 .miniatureHeading {
   margin-top: 3px;
-  font-size: 8px;
+  font-size: 10.5px;
   line-height: 16px;
 }
 

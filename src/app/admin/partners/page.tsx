@@ -68,22 +68,20 @@ export default function PartnersPage() {
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <PageHeader
-        title={adminPageName("partners")}
-        actions={
-          <Select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            options={[
-              { value: "all", label: "All Statuses" },
-              { value: "pending", label: "Pending" },
-              { value: "approved", label: "Approved" },
-              { value: "declined", label: "Declined" },
-            ]}
-            className="w-40"
-          />
-        }
-      />
+      <PageHeader title={adminPageName("partners")} />
+      <div className="mb-4 w-48">
+        <Select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          aria-label="Filter by status"
+          options={[
+            { value: "all", label: "All statuses" },
+            { value: "pending", label: "Pending" },
+            { value: "approved", label: "Approved" },
+            { value: "declined", label: "Declined" },
+          ]}
+        />
+      </div>
       <AdminReadBody
         loading={loading}
         hasData={!loading || partners.length > 0}
@@ -97,25 +95,13 @@ export default function PartnersPage() {
         <GlassCard padding="none" hover="none" className="overflow-clip">
           <table className="admin-table w-full text-sm">
             <thead>
-              <tr className="border-b border-border-glass">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Name
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Company
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Type
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Status
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Date
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Actions
-                </th>
+              <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -125,37 +111,34 @@ export default function PartnersPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.03 }}
-                  className="border-b border-border-glass hover:bg-white/[0.02]"
                 >
-                  <td className="px-4 py-3">
+                  <td>
                     <div>
-                      <p className="text-white-primary font-medium">{partner.name}</p>
-                      <p className="text-xs text-white-muted">{partner.email}</p>
+                      <p className="text-[var(--admin-ink)] font-medium">{partner.name}</p>
+                      <p className="text-xs text-[var(--admin-muted)]">{partner.email}</p>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-white-secondary">
+                  <td className="text-[var(--admin-muted)]">
                     {partner.company}
                     {partner.website && (
-                      <p className="text-xs text-white-muted">{partner.website}</p>
+                      <p className="text-xs text-[var(--admin-muted)]">{partner.website}</p>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-white-secondary capitalize">
-                    {partner.partner_type}
-                  </td>
-                  <td className="px-4 py-3">
+                  <td className="text-[var(--admin-muted)] capitalize">{partner.partner_type}</td>
+                  <td>
                     <StatusBadge status={partner.status} />
                   </td>
-                  <td className="px-4 py-3 text-white-muted text-xs">
+                  <td className="text-[var(--admin-muted)] text-xs">
                     {new Date(partner.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3">
+                  <td>
                     {partner.status === "pending" && (
                       <div className="flex gap-2">
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={() => handleStatusChange(partner.id, "approved")}
-                          className="text-emerald-300 text-xs px-2 py-1"
+                          className="text-xs"
                         >
                           Approve
                         </Button>
@@ -163,7 +146,7 @@ export default function PartnersPage() {
                           variant="secondary"
                           size="sm"
                           onClick={() => handleStatusChange(partner.id, "declined")}
-                          className="text-red-300 text-xs px-2 py-1"
+                          className="text-xs text-[var(--admin-danger)]"
                         >
                           Decline
                         </Button>

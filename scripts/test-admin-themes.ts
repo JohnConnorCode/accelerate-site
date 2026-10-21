@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
+import ts from "typescript";
 import {
   adminThemeDefinitionSchema,
   compileAdminTheme,
@@ -14,6 +17,11 @@ import {
 } from "../src/lib/revenue-os/branding-contract";
 
 for (const preset of themes) {
+  assert.ok(
+    parseInt(preset.tokens["--admin-control-height"]) >= 40,
+    `${preset.id}: built-in controls must retain the desktop target floor`,
+  );
+  assert.equal(preset.tokens["--admin-title-weight"], "600", `${preset.id}: shared heading weight`);
   const theme = validateAdminTheme(themeFromPreset(preset.id));
   const tokens = compileAdminTheme(theme);
   assert.ok(
@@ -49,9 +57,9 @@ const paper = themes.find((theme) => theme.id === "light")!;
 assert.ok(
   themeContrast(paper.tokens["--admin-nav-active-ink"]!, paper.tokens["--admin-nav-active-bg"]!) >=
     4.5,
-  "Paper selected navigation must keep a legible cobalt label on its softened tint",
+  "Paper selected navigation must keep a legible label on its softened tint",
 );
-const valid = themeFromPreset("signal");
+const valid = themeFromPreset("operator");
 assert.throws(
   () =>
     validateAdminTheme({ ...valid, palette: { ...valid.palette, muted: valid.palette.surface } }),
@@ -95,19 +103,21 @@ console.log(
   `Admin themes passed: ${themes.length} presets, token completeness, contrast, portable round trips, invalid definitions and legacy compatibility.`,
 );
 
-const material = themes.find((theme) => theme.id === "material")!;
-const mac = themes.find((theme) => theme.id === "mac")!;
-for (const key of [
-  "--admin-font",
+// Built-ins are modes of work, not color swaps: each pair must differ in at
+// least one structural token (geometry, density or label face) as well as color.
+const structural = [
   "--admin-surface-radius",
-  "--admin-control-radius",
-  "--admin-shadow",
-] as const)
-  assert.notEqual(
-    material.tokens[key],
-    mac.tokens[key],
-    `Material and macOS must differ in ${key}`,
-  );
+  "--admin-control-height",
+  "--admin-row-padding",
+  "--admin-label-font",
+] as const;
+for (const a of themes)
+  for (const b of themes)
+    if (a.id < b.id)
+      assert.ok(
+        structural.some((key) => a.tokens[key] !== b.tokens[key]),
+        `${a.id} and ${b.id} differ only in color`,
+      );
 for (const theme of themes) {
   const custom = compileAdminTheme(themeFromPreset(theme.id));
   assert.equal(
@@ -121,3 +131,75 @@ for (const theme of themes) {
     "Portable typography owns its own title family",
   );
 }
+
+// A tab can miss a storage event between its first paint and React subscription.
+// Exercise the actual density module with that timing and blocked browser storage.
+const densityDocument = { documentElement: { dataset: { adminDensity: "compact" } } };
+let storedDensity = "comfortable";
+let storageBlocked = false;
+let storageWriteBlocked = false;
+let unsubscribeDensity = () => {};
+const densityExports: {
+  useAdminDensity?: () => string;
+  setAdminDensity?: (value: string) => void;
+} = {};
+runInNewContext(
+  ts.transpileModule(readFileSync("src/lib/admin/density.ts", "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText,
+  {
+    exports: densityExports,
+    document: densityDocument,
+    window: new EventTarget(),
+    Event,
+    localStorage: {
+      getItem: () => {
+        if (storageBlocked) throw new Error("Storage unavailable");
+        return storedDensity;
+      },
+      setItem: (_key: string, value: string) => {
+        if (storageBlocked || storageWriteBlocked) throw new Error("Storage unavailable");
+        storedDensity = value;
+      },
+    },
+    require: () => ({
+      useSyncExternalStore: (
+        subscribe: (callback: () => void) => () => void,
+        read: () => string,
+      ) => {
+        unsubscribeDensity = subscribe(() => {});
+        return read();
+      },
+    }),
+  },
+);
+assert.equal(
+  densityExports.useAdminDensity!(),
+  "comfortable",
+  "Opening tab catches a missed change",
+);
+unsubscribeDensity();
+storedDensity = "compact";
+densityDocument.documentElement.dataset.adminDensity = "comfortable";
+assert.equal(densityExports.useAdminDensity!(), "compact", "Catch-up works in both directions");
+unsubscribeDensity();
+storageBlocked = true;
+assert.equal(
+  densityExports.useAdminDensity!(),
+  "compact",
+  "Blocked storage preserves session density",
+);
+densityExports.setAdminDensity!("comfortable");
+assert.equal(densityDocument.documentElement.dataset.adminDensity, "comfortable");
+unsubscribeDensity();
+storageBlocked = false;
+storageWriteBlocked = true;
+storedDensity = "compact";
+densityExports.setAdminDensity!("comfortable");
+assert.equal(
+  densityExports.useAdminDensity!(),
+  "comfortable",
+  "Readable storage must not overwrite a session choice when its write failed",
+);
+unsubscribeDensity();
+console.log("Density subscription passed: missed changes, both directions and blocked storage.");

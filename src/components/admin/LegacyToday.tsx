@@ -353,7 +353,7 @@ export default function TodayPage() {
                   {item.label}
                 </p>
               </div>
-              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                 {item.status.replace(/_/g, " ")}
               </p>
               <p className="admin-copy mt-1 line-clamp-2 text-xs">
@@ -399,7 +399,7 @@ export default function TodayPage() {
         }
         utilityActions={
           <>
-            <span className="hidden text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:inline">
+            <span className="hidden text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:inline">
               {overview?.generatedAt
                 ? `Updated ${observedTime(overview.generatedAt).replace(/^Observed /, "")}`
                 : "Live read"}
@@ -587,13 +587,13 @@ export default function TodayPage() {
                             key={label}
                             className="min-w-0 px-4 py-3.5 sm:min-h-[96px] sm:px-5 sm:py-4"
                           >
-                            <dt className="truncate text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--admin-muted)] sm:text-[10px] sm:normal-case sm:tracking-normal">
+                            <dt className="truncate text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--admin-muted)] sm:text-[11px] sm:normal-case sm:tracking-normal">
                               {label}
                             </dt>
-                            <dd className="mt-1 truncate text-[clamp(1.25rem,6vw,1.75rem)] font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)] sm:text-2xl">
+                            <dd className="mt-1 truncate text-[clamp(1.25rem,6vw,1.75rem)] font-semibold tabular-nums tracking-[-0.035em] text-[var(--admin-ink)] sm:text-2xl">
                               {value}
                             </dd>
-                            <p className="admin-copy mt-0.5 truncate text-[9px] sm:text-[10px]">
+                            <p className="admin-copy mt-0.5 truncate text-[10.5px] sm:text-[11px]">
                               {note}
                             </p>
                           </div>

@@ -59,7 +59,7 @@ export function ModuleSettingsForm({
 
   return (
     <div className="space-y-3 border-t border-[var(--admin-border)] pt-4">
-      <p className="admin-eyebrow text-[10px]">Settings</p>
+      <p className="admin-eyebrow text-[11px]">Settings</p>
       <div className="grid gap-3 sm:grid-cols-2">
         {fields.map((field) => (
           <div key={field.key} className={field.type === "boolean" ? "sm:col-span-2" : undefined}>

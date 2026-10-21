@@ -116,20 +116,22 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
           href={shareUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-white-muted transition-colors hover:bg-white/5 hover:text-gold-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-[var(--admin-muted)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-[var(--admin-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
         >
           <Eye className="h-3.5 w-3.5" />
           Preview
         </a>
-        <div className="basis-full text-xs text-white-muted sm:ml-auto sm:basis-auto">
-          Status: <span className="text-white-secondary capitalize">{proposal.status}</span>
+        <div className="basis-full text-xs text-[var(--admin-muted)] sm:ml-auto sm:basis-auto">
+          Status: <span className="text-[var(--admin-muted)] capitalize">{proposal.status}</span>
           {proposal.viewed_at && proposal.status !== "viewed" && " · Viewed"}
         </div>
       </div>
 
       {/* Share link */}
       <GlassCard hover="none" padding="sm">
-        <p className="text-[10px] text-white-muted uppercase font-semibold mb-1">Share Link</p>
+        <p className="text-[11px] text-[var(--admin-muted)] uppercase font-semibold mb-1">
+          Share Link
+        </p>
         <div className="flex min-w-0 items-center gap-2">
           <input
             ref={shareLink}
@@ -151,7 +153,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
               }
             }}
             type="button"
-            className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-xs text-gold-light transition-colors hover:bg-white/5 hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-xs text-[var(--admin-ink)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-[var(--admin-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
           >
             Copy
           </button>
@@ -196,7 +198,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
               type="button"
               onClick={() => removeSection(idx)}
               aria-label={`Remove ${section.title} section`}
-              className="ml-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-white-muted transition-colors hover:bg-white/5 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+              className="ml-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-[var(--admin-muted)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -213,7 +215,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
 
           {section.items && (
             <div className="mt-2 space-y-1">
-              <p className="text-[10px] text-white-muted uppercase font-semibold">Items</p>
+              <p className="text-[11px] text-[var(--admin-muted)] uppercase font-semibold">Items</p>
               {section.items.map((item, itemIdx) => (
                 <Input
                   key={itemIdx}
@@ -231,7 +233,9 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
 
           {section.pricing && (
             <div className="mt-3 space-y-2">
-              <p className="text-[10px] text-white-muted uppercase font-semibold">Pricing</p>
+              <p className="text-[11px] text-[var(--admin-muted)] uppercase font-semibold">
+                Pricing
+              </p>
               {section.pricing.map((price, priceIdx) => (
                 <div key={priceIdx} className="grid grid-cols-3 gap-2">
                   <Input
@@ -274,7 +278,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
       <button
         type="button"
         onClick={addSection}
-        className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm text-white-muted transition-colors hover:bg-white/5 hover:text-gold-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm text-[var(--admin-muted)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-[var(--admin-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
       >
         <Plus className="h-4 w-4" />
         Add Section

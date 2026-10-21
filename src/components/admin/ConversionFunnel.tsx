@@ -18,7 +18,7 @@ export function ConversionFunnel({ funnel }: ConversionFunnelProps) {
 
   return (
     <GlassCard hover="none">
-      <h3 className="font-display text-sm font-semibold text-white-primary mb-4">
+      <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)] mb-4">
         Conversion Funnel
       </h3>
       <div className="space-y-2">
@@ -38,12 +38,12 @@ export function ConversionFunnel({ funnel }: ConversionFunnelProps) {
           return (
             <div key={stage.key}>
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-white-secondary">{stage.label}</span>
+                <span className="text-[var(--admin-muted)]">{stage.label}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-white-primary font-medium">{stage.count}</span>
-                  {i > 0 && <span className="text-white-muted">({convRate}%)</span>}
+                  <span className="text-[var(--admin-ink)] font-medium">{stage.count}</span>
+                  {i > 0 && <span className="text-[var(--admin-muted)]">({convRate}%)</span>}
                   {dropOff !== null && dropOff > 0 && (
-                    <span className="text-red-400 text-[10px]">-{dropOff}%</span>
+                    <span className="text-red-400 text-[11px]">-{dropOff}%</span>
                   )}
                 </div>
               </div>
@@ -63,7 +63,7 @@ export function ConversionFunnel({ funnel }: ConversionFunnelProps) {
 
       {/* Lost leads */}
       {(funnel["lost"] || 0) > 0 && (
-        <div className="mt-4 pt-3 border-t border-border-glass">
+        <div className="mt-4 pt-3 border-t border-[var(--admin-border)]">
           <div className="flex items-center justify-between text-xs">
             <span className="text-red-400">Lost</span>
             <span className="text-red-400 font-medium">{funnel["lost"]}</span>

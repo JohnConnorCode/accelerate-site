@@ -35,18 +35,18 @@ function RoadmapCard({ card }: { card: PublicRoadmapCard }) {
     >
       <div className="flex flex-wrap items-center gap-2">
         {card.category && (
-          <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-gold">
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--fg)]">
             {card.category}
           </span>
         )}
-        <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted">
           {card.priority}
         </span>
       </div>
       <h3 className="mt-2 font-display text-base font-semibold leading-snug tracking-[-0.01em] text-heading">
         <Link
           href={`/roadmap#roadmap-${encodeURIComponent(card.seed_key)}`}
-          className="underline decoration-dotted underline-offset-4 hover:text-gold"
+          className="underline decoration-dotted underline-offset-4 hover:text-[var(--fg)]"
         >
           {card.title}
         </Link>
@@ -59,7 +59,7 @@ function RoadmapCard({ card }: { card: PublicRoadmapCard }) {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="mt-3 text-xs font-medium text-white-muted underline decoration-dotted underline-offset-4 transition-colors hover:text-gold"
+            className="mt-3 text-xs font-medium text-white-muted underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--fg)]"
           >
             {open ? "Hide acceptance criteria" : `Acceptance criteria (${lines.length})`}
           </button>
@@ -142,7 +142,7 @@ function SuggestForm() {
           required
           maxLength={120}
           placeholder="What should we build?"
-          className="admin-field w-full rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] px-3.5 py-2.5 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none"
+          className="admin-field w-full rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] px-3.5 py-2.5 text-sm text-heading placeholder:text-white-muted focus:border-[var(--rule)] focus:outline-none"
         />
       </div>
       <div>
@@ -156,7 +156,7 @@ function SuggestForm() {
           maxLength={2000}
           rows={3}
           placeholder="What problem does it solve?"
-          className="admin-field w-full resize-none rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] px-3.5 py-2.5 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none"
+          className="admin-field w-full resize-none rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] px-3.5 py-2.5 text-sm text-heading placeholder:text-white-muted focus:border-[var(--rule)] focus:outline-none"
         />
       </div>
       <div>
@@ -169,14 +169,14 @@ function SuggestForm() {
           type="email"
           maxLength={254}
           placeholder="Email (optional, if you want a reply)"
-          className="admin-field w-full rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] px-3.5 py-2.5 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none"
+          className="admin-field w-full rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] px-3.5 py-2.5 text-sm text-heading placeholder:text-white-muted focus:border-[var(--rule)] focus:outline-none"
         />
       </div>
       {state === "error" && <p className="text-sm text-rose-400">{errorMessage}</p>}
       <button
         type="submit"
         disabled={state === "sending"}
-        className="inline-flex items-center justify-center gap-2 rounded-full border border-border-gold bg-gold/10 px-4 py-2.5 text-sm font-medium text-gold transition-colors hover:bg-gold/20 disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--rule)] bg-[var(--fg)]/10 px-4 py-2.5 text-sm font-medium text-[var(--fg)] transition-colors hover:bg-[var(--fg)]/20 disabled:opacity-60"
       >
         <Send className="h-4 w-4" />
         {state === "sending" ? "Sending…" : "Suggest a feature"}
@@ -232,9 +232,9 @@ export function RoadmapPageContent({
 
   const statusPill = (active: boolean) =>
     cn(
-      "shrink-0 rounded-full border px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors",
+      "shrink-0 rounded-full border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors",
       active
-        ? "border-border-gold text-gold"
+        ? "border-[var(--rule)] text-[var(--fg)]"
         : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
     );
 
@@ -272,7 +272,7 @@ export function RoadmapPageContent({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search the roadmap…"
-              className="admin-field w-full rounded-full border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] py-2.5 pl-10 pr-9 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none"
+              className="admin-field w-full rounded-full border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] py-2.5 pl-10 pr-9 text-sm text-heading placeholder:text-white-muted focus:border-[var(--rule)] focus:outline-none"
             />
             {query && (
               <button
@@ -329,7 +329,7 @@ export function RoadmapPageContent({
               className={cn(
                 "shrink-0 rounded-full border px-3 py-1 text-[0.7rem] font-medium transition-colors",
                 activeCategory === "all"
-                  ? "border-border-gold text-gold"
+                  ? "border-[var(--rule)] text-[var(--fg)]"
                   : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
               )}
             >
@@ -344,7 +344,7 @@ export function RoadmapPageContent({
                 className={cn(
                   "shrink-0 rounded-full border px-3 py-1 text-[0.7rem] font-medium capitalize transition-colors",
                   activeCategory === category
-                    ? "border-border-gold text-gold"
+                    ? "border-[var(--rule)] text-[var(--fg)]"
                     : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
                 )}
               >
@@ -430,9 +430,9 @@ export function RoadmapPageContent({
               <button
                 type="button"
                 onClick={() => setShowSuggest(true)}
-                className="inline-flex items-center gap-2 rounded-full border border-border-glass px-4 py-2 text-sm font-medium text-heading transition-colors hover:border-border-gold hover:text-gold"
+                className="inline-flex items-center gap-2 rounded-full border border-border-glass px-4 py-2 text-sm font-medium text-heading transition-colors hover:border-[var(--rule)] hover:text-[var(--fg)]"
               >
-                <Send className="h-4 w-4 text-gold" />
+                <Send className="h-4 w-4 text-[var(--fg)]" />
                 Suggest a feature
               </button>
             )}

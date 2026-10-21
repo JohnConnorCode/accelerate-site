@@ -99,22 +99,22 @@ export function ServicesOverview() {
               <div
                 key={service.name}
                 data-service-card
-                className={`${bentoSpan[idx] ?? "lg:col-span-2"} group relative flex flex-col overflow-hidden rounded-2xl border border-border-glass bg-[var(--glass-default-bg)] p-7 sm:p-8 backdrop-blur-md transition-[transform,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-[var(--border-gold-hover)] hover:bg-[var(--glass-gold-bg)]`}
+                className={`${bentoSpan[idx] ?? "lg:col-span-2"} group relative flex flex-col overflow-hidden rounded-2xl border border-border-glass bg-[var(--glass-default-bg)] p-7 sm:p-8 backdrop-blur-md transition-[transform,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-[var(--fg)] hover:bg-[var(--glass-emphasis-bg)]`}
               >
                 {/* top hairline that lights up on hover */}
-                <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--gold-base)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
+                <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--fg)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
 
                 <div className="mb-5 flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border-gold bg-[var(--glow-soft)] transition-colors group-hover:bg-[var(--glow-medium)]">
-                    <Icon className="h-6 w-6 text-gold" aria-hidden="true" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--rule)] bg-[transparent] transition-colors group-hover:bg-[transparent]">
+                    <Icon className="h-6 w-6 text-[var(--fg)]" aria-hidden="true" />
                   </div>
-                  <span className="font-display text-2xl font-bold leading-none text-gold opacity-15 transition-opacity group-hover:opacity-35">
+                  <span className="font-display text-2xl font-bold leading-none text-[var(--fg)] opacity-15 transition-opacity group-hover:opacity-35">
                     0{idx + 1}
                   </span>
                 </div>
 
                 <h3
-                  className={`mb-2 font-semibold text-heading transition-colors group-hover:text-gold-light ${
+                  className={`mb-2 font-semibold text-heading transition-colors group-hover:text-[var(--fg)] ${
                     featured ? "text-xl sm:text-2xl" : "text-lg sm:text-xl"
                   }`}
                 >
@@ -124,7 +124,7 @@ export function ServicesOverview() {
                   {service.description}
                 </p>
 
-                <ArrowUpRight className="mt-auto ml-auto h-5 w-5 translate-y-1 text-gold opacity-0 transition-[transform,opacity] duration-300 group-hover:translate-y-0 group-hover:opacity-100" />
+                <ArrowUpRight className="mt-auto ml-auto h-5 w-5 translate-y-1 text-[var(--fg)] opacity-0 transition-[transform,opacity] duration-300 group-hover:translate-y-0 group-hover:opacity-100" />
               </div>
             );
           })}

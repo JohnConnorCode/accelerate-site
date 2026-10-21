@@ -76,7 +76,7 @@ export async function handleDemoContentCalendar(
         action_type: "content_calendar_change",
         title: `${prepared.command.operation === "create" ? "Create" : prepared.command.operation === "delete" ? "Delete" : "Move"} content: ${title}`,
         description:
-          "This proposal uses fictional workspace records and saves a simulated result in this browser session.",
+          "This proposal uses demo workspace records and saves a simulated result in this browser session.",
         status: "pending",
         error: null,
         payload: prepared,

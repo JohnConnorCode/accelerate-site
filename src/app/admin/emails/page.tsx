@@ -384,7 +384,7 @@ export default function EmailsPage() {
                             )}
                           />
                         </div>
-                        <div className="mt-2 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                        <div className="mt-2 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                           <span>{email.category}</span>
                           {email.delayDays != null && (
                             <span>
@@ -423,7 +423,7 @@ export default function EmailsPage() {
                         <p className="mt-1 truncate text-xs text-[var(--admin-ink)]">
                           {item.subject || "(No subject)"}
                         </p>
-                        <p className="admin-copy mt-1 font-mono text-[9px] tabular-nums">
+                        <p className="admin-copy mt-1 font-mono text-[10.5px] tabular-nums">
                           {new Date(item.sentAt).toLocaleString()}
                         </p>
                       </button>
@@ -455,7 +455,7 @@ export default function EmailsPage() {
                         </h2>
                         <span
                           className={cn(
-                            "rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em]",
+                            "rounded-full px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.08em]",
                             detail.source === "draft"
                               ? "bg-amber-500/10 text-amber-700 dark:text-amber-300"
                               : detail.source === "published"
@@ -511,7 +511,7 @@ export default function EmailsPage() {
                             {detail.variables.map((variable) => (
                               <span
                                 key={variable}
-                                className="rounded-[var(--admin-control-radius)] bg-[var(--admin-surface-subtle)] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)]"
+                                className="rounded-[var(--admin-control-radius)] bg-[var(--admin-surface-subtle)] px-2 py-1 font-mono text-[11px] text-[var(--admin-muted)]"
                               >{`{{${variable}}}`}</span>
                             ))}
                           </div>
@@ -601,7 +601,7 @@ export default function EmailsPage() {
                         <h2 className="truncate text-lg font-semibold text-[var(--admin-ink)]">
                           {selectedHistory.subject || "(No subject)"}
                         </h2>
-                        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">
+                        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">
                           {selectedHistory.status}
                         </span>
                       </div>
@@ -621,7 +621,7 @@ export default function EmailsPage() {
                           {selectedHistory.body || "Message body was not recorded."}
                         </p>
                         {selectedHistory.providerId && (
-                          <p className="mt-6 font-mono text-[9px] text-[var(--admin-muted)]">
+                          <p className="mt-6 font-mono text-[10.5px] text-[var(--admin-muted)]">
                             Provider receipt {selectedHistory.providerId}
                           </p>
                         )}

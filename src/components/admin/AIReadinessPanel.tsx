@@ -46,7 +46,7 @@ export function AIReadinessPanel() {
   }, []);
   if (!data)
     return (
-      <div className="mb-6 flex items-center gap-2 text-sm text-white-muted">
+      <div className="mb-6 flex items-center gap-2 text-sm text-[var(--admin-muted)]">
         <Loader2 className="h-4 w-4 animate-spin" />
         Loading assessment analytics…
       </div>
@@ -54,7 +54,7 @@ export function AIReadinessPanel() {
   if (!data.schemaReady)
     return (
       <GlassCard className="mb-6">
-        <p className="text-sm text-white-secondary">
+        <p className="text-sm text-[var(--admin-muted)]">
           AI Readiness analytics will appear after the assessment migration is applied.
         </p>
       </GlassCard>
@@ -67,12 +67,12 @@ export function AIReadinessPanel() {
           <p className="admin-eyebrow">Lead magnet performance · last 30 days</p>
           <h2
             id="ai-readiness-analytics-heading"
-            className="mt-1 text-xl font-semibold text-white-primary"
+            className="mt-1 text-xl font-semibold text-[var(--admin-ink)]"
           >
             AI Readiness Assessment
           </h2>
         </div>
-        <p className="text-xs text-white-muted">Browser activity and saved reports</p>
+        <p className="text-xs text-[var(--admin-muted)]">Browser activity and saved reports</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
         <StatCard
@@ -106,7 +106,7 @@ export function AIReadinessPanel() {
         <GlassCard>
           <p className="admin-eyebrow">Assessment progress · unique sessions</p>
           {!data.eventAnalyticsReady ? (
-            <p className="mt-4 text-sm text-white-muted">
+            <p className="mt-4 text-sm text-[var(--admin-muted)]">
               Detailed step analytics are unavailable. Check first-party analytics access for this
               workspace.
             </p>
@@ -114,41 +114,44 @@ export function AIReadinessPanel() {
             <>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {(data.eventFunnel?.stepViews || []).map((item) => (
-                  <div key={item.label} className="rounded-xl border border-border-glass p-3">
-                    <p className="text-xs capitalize text-white-muted">{item.label}</p>
-                    <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                  <div
+                    key={item.label}
+                    className="rounded-xl border border-[var(--admin-border)] p-3"
+                  >
+                    <p className="text-xs capitalize text-[var(--admin-muted)]">{item.label}</p>
+                    <p className="mt-1 text-lg font-semibold tabular-nums text-[var(--admin-ink)]">
                       {number(item.value)}
                     </p>
                   </div>
                 ))}
-                <div className="rounded-xl border border-border-glass p-3">
-                  <p className="text-xs text-white-muted">PDF download clicks</p>
-                  <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                <div className="rounded-xl border border-[var(--admin-border)] p-3">
+                  <p className="text-xs text-[var(--admin-muted)]">PDF download clicks</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums text-[var(--admin-ink)]">
                     {number(data.eventFunnel?.pdfDownloads)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-border-glass p-3">
-                  <p className="text-xs text-white-muted">Website scans completed</p>
-                  <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                <div className="rounded-xl border border-[var(--admin-border)] p-3">
+                  <p className="text-xs text-[var(--admin-muted)]">Website scans completed</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums text-[var(--admin-ink)]">
                     {number(data.eventFunnel?.scanCompletions)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-border-glass p-3">
-                  <p className="text-xs text-white-muted">Website scans partial</p>
-                  <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                <div className="rounded-xl border border-[var(--admin-border)] p-3">
+                  <p className="text-xs text-[var(--admin-muted)]">Website scans partial</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums text-[var(--admin-ink)]">
                     {number(data.eventFunnel?.scanPartials)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-border-glass p-3">
-                  <p className="text-xs text-white-muted">Website scan failures</p>
-                  <p className="mt-1 text-lg font-semibold tabular-nums text-white-primary">
+                <div className="rounded-xl border border-[var(--admin-border)] p-3">
+                  <p className="text-xs text-[var(--admin-muted)]">Website scan failures</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums text-[var(--admin-ink)]">
                     {number(data.eventFunnel?.scanFailures)}
                   </p>
                 </div>
               </div>
               {!!data.eventFunnel?.questionViews.length && (
-                <details className="mt-4 rounded-xl border border-border-glass p-3">
-                  <summary className="cursor-pointer text-sm font-medium text-white-secondary">
+                <details className="mt-4 rounded-xl border border-[var(--admin-border)] p-3">
+                  <summary className="cursor-pointer text-sm font-medium text-[var(--admin-muted)]">
                     Question-by-question views
                   </summary>
                   <div className="mt-3 space-y-2">
@@ -157,8 +160,8 @@ export function AIReadinessPanel() {
                         key={item.label}
                         className="flex items-center justify-between gap-4 text-sm"
                       >
-                        <span className="text-white-muted">{item.label}</span>
-                        <span className="font-semibold tabular-nums text-white-primary">
+                        <span className="text-[var(--admin-muted)]">{item.label}</span>
+                        <span className="font-semibold tabular-nums text-[var(--admin-ink)]">
                           {number(item.value)} sessions
                         </span>
                       </div>
@@ -166,7 +169,7 @@ export function AIReadinessPanel() {
                   </div>
                 </details>
               )}
-              <p className="mt-4 text-xs leading-5 text-white-muted">
+              <p className="mt-4 text-xs leading-5 text-[var(--admin-muted)]">
                 Counts use anonymous, session-scoped visitor IDs. Answers, names, and email
                 addresses are not included in event analytics. Started sessions use browser events;
                 previews and unlocked reports use saved assessment records.
@@ -185,14 +188,14 @@ export function AIReadinessPanel() {
             {(data.bottlenecks || []).length ? (
               data.bottlenecks?.map((item) => (
                 <div key={item.label} className="flex items-center justify-between gap-4 text-sm">
-                  <span className="capitalize text-white-secondary">{item.label}</span>
-                  <span className="font-semibold tabular-nums text-white-primary">
+                  <span className="capitalize text-[var(--admin-muted)]">{item.label}</span>
+                  <span className="font-semibold tabular-nums text-[var(--admin-ink)]">
                     {item.value}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-white-muted">No answers yet.</p>
+              <p className="text-sm text-[var(--admin-muted)]">No answers yet.</p>
             )}
           </div>
         </GlassCard>
@@ -202,44 +205,46 @@ export function AIReadinessPanel() {
             {(data.sources || []).length ? (
               data.sources?.map((item) => (
                 <div key={item.label} className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-white-secondary">{item.label}</span>
-                  <span className="font-semibold tabular-nums text-white-primary">
+                  <span className="text-[var(--admin-muted)]">{item.label}</span>
+                  <span className="font-semibold tabular-nums text-[var(--admin-ink)]">
                     {item.value}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-white-muted">No attributed assessments yet.</p>
+              <p className="text-sm text-[var(--admin-muted)]">No attributed assessments yet.</p>
             )}
           </div>
         </GlassCard>
       </div>
       <GlassCard padding="none" className="overflow-hidden">
-        <div className="border-b border-border-glass px-4 py-3">
+        <div className="border-b border-[var(--admin-border)] px-4 py-3">
           <p className="admin-eyebrow">Recent unlocked reports</p>
         </div>
         <div className="overflow-x-auto">
           <table className="admin-table w-full text-sm">
             <thead>
-              <tr className="border-b border-border-glass">
-                <th className="px-4 py-3 text-left text-xs uppercase text-white-muted">Person</th>
-                <th className="px-4 py-3 text-left text-xs uppercase text-white-muted">Business</th>
-                <th className="px-4 py-3 text-left text-xs uppercase text-white-muted">Score</th>
-                <th className="px-4 py-3 text-left text-xs uppercase text-white-muted">Date</th>
+              <tr>
+                <th>Person</th>
+                <th>Business</th>
+                <th>Score</th>
+                <th>Date</th>
               </tr>
             </thead>
             <tbody>
               {(data.leads || []).map((lead) => (
-                <tr key={lead.id} className="border-b border-border-glass">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-white-primary">{lead.name || "Unknown"}</div>
-                    <div className="text-xs text-white-muted">{lead.email}</div>
+                <tr key={lead.id} className="border-b border-[var(--admin-border)]">
+                  <td>
+                    <div className="font-medium text-[var(--admin-ink)]">
+                      {lead.name || "Unknown"}
+                    </div>
+                    <div className="text-xs text-[var(--admin-muted)]">{lead.email}</div>
                   </td>
-                  <td className="px-4 py-3 text-white-secondary">{lead.business_name || "—"}</td>
-                  <td className="px-4 py-3 font-semibold tabular-nums text-white-primary">
+                  <td className="text-[var(--admin-muted)]">{lead.business_name || "—"}</td>
+                  <td className="font-semibold tabular-nums text-[var(--admin-ink)]">
                     {lead.score === null ? "—" : `${lead.score}/100`}
                   </td>
-                  <td className="px-4 py-3 text-xs text-white-muted">
+                  <td className="text-xs text-[var(--admin-muted)]">
                     {new Date(lead.created_at).toLocaleDateString()}
                   </td>
                 </tr>
@@ -247,7 +252,7 @@ export function AIReadinessPanel() {
             </tbody>
           </table>
           {!data.leads?.length && (
-            <p className="px-4 py-5 text-sm text-white-muted">No unlocked reports yet.</p>
+            <p className="px-4 py-5 text-sm text-[var(--admin-muted)]">No unlocked reports yet.</p>
           )}
         </div>
       </GlassCard>

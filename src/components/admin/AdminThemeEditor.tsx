@@ -433,11 +433,11 @@ export function AdminThemeEditor({
           >
             <div className="flex w-20 shrink-0 flex-col gap-3 rounded-xl bg-[var(--admin-sidebar)] p-3 text-[var(--admin-nav-ink)]">
               <span className="text-xs font-semibold">Workspace</span>
-              <span className="rounded-lg bg-[var(--admin-nav-active-bg)] px-2 py-2 text-[10px] text-[var(--admin-nav-active-ink)]">
+              <span className="rounded-lg bg-[var(--admin-nav-active-bg)] px-2 py-2 text-[11px] text-[var(--admin-nav-active-ink)]">
                 Today
               </span>
-              <span className="px-2 text-[10px]">Pipeline</span>
-              <span className="px-2 text-[10px]">People</span>
+              <span className="px-2 text-[11px]">Pipeline</span>
+              <span className="px-2 text-[11px]">People</span>
             </div>
             <div className="min-w-0 flex-1 p-4 text-[var(--admin-ink)]">
               <p className="text-xl font-semibold">Good morning</p>
@@ -445,7 +445,7 @@ export function AdminThemeEditor({
                 Everything you need to move work forward.
               </p>
               <AdminSurface className="mt-5">
-                <p className="text-[10px] uppercase tracking-wider text-[var(--admin-muted)]">
+                <p className="text-[11px] uppercase tracking-wider text-[var(--admin-muted)]">
                   Needs your attention
                 </p>
                 <p className="mt-2 text-sm font-semibold">Review the next proposal</p>

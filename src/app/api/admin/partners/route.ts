@@ -3,7 +3,8 @@ import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
 import { retainedSourceDispositions } from "@/lib/revenue-os/retained-source-dispositions";
 
-const VALID_PARTNER_STATUSES = new Set(["pending", "approved", "rejected", "active", "inactive"]);
+// Mirrors the partner_applications status CHECK constraint.
+const VALID_PARTNER_STATUSES = new Set(["pending", "approved", "declined"]);
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdminForModule("partners");

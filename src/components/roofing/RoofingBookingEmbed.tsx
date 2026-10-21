@@ -49,7 +49,7 @@ export function RoofingBookingEmbed({ email, token }: { email: string; token: st
       >
         <div className="flex flex-col items-center gap-4 text-center">
           <span className="size-7 animate-spin rounded-full border-2 border-white/15 border-t-[#d7ff5f]" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">
+          <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
             Loading available times
           </span>
         </div>

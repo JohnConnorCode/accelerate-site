@@ -90,7 +90,7 @@ const BUILT_IN_REGISTRATION: Omit<
 export const AI_JOBS: readonly JobRegistration[] = [
   {
     key: "public-demo-agent",
-    label: "Fictional workspace agent",
+    label: "Demo workspace assistant",
     consequential: false,
     requiresTools: true,
     requiresJson: false,

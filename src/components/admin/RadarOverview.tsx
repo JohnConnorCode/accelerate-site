@@ -50,7 +50,7 @@ export function RadarOverview({
                       <span className="text-2xl font-semibold tabular-nums">
                         {Math.round(item.score)}
                       </span>
-                      <p className="mt-1 text-[9px] uppercase tracking-wide text-[var(--admin-muted)]">
+                      <p className="mt-1 text-[10.5px] uppercase tracking-wide text-[var(--admin-muted)]">
                         Estimate
                       </p>
                     </div>

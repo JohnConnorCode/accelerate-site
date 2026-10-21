@@ -352,7 +352,7 @@ export default function ContactSubmissionsPage() {
                         {contact.message || "No message supplied"}
                       </span>
                       <span className="flex items-center justify-between gap-3 md:justify-end">
-                        <span className="font-mono text-[9px] font-medium uppercase tracking-[0.07em] text-[var(--admin-muted)]">
+                        <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.07em] text-[var(--admin-muted)]">
                           {formatDate(contact.created_at)}
                         </span>
                         <ChevronRight className="size-4 text-[var(--admin-muted)] transition-transform duration-150 group-hover:translate-x-0.5" />

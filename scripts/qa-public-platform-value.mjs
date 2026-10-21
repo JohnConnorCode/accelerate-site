@@ -74,29 +74,39 @@ try {
           [
             "northline-roofing",
             "conversations",
-            "public/images/demo/northline-conversations.png",
+            "public/images/demo/northline-conversations-20261020-r2.png",
             "Conversations",
           ],
-          ["alder-ridge-law", "pipeline", "public/images/demo/alder-pipeline.png", "Pipeline"],
+          [
+            "alder-ridge-law",
+            "pipeline",
+            "public/images/demo/alder-pipeline-20261020-r2.png",
+            "Pipeline",
+          ],
           [
             "ledgerstone-advisory",
             "client-onboarding",
-            "public/images/demo/ledgerstone-onboarding.png",
+            "public/images/demo/ledgerstone-onboarding-20261020-r2.png",
             "Client onboarding",
           ],
           [
             "hearthline-realty",
             "pipeline",
-            "public/images/demo/hearthline-pipeline.png",
+            "public/images/demo/hearthline-pipeline-20261020-r2.png",
             "Pipeline",
           ],
           [
             "common-table-network",
             "meeting-commitments",
-            "public/images/demo/common-table-commitments.png",
+            "public/images/demo/common-table-commitments-20261020-r2.png",
             "Meeting commitments",
           ],
-          ["superdebate", "invoicing", "public/images/demo/superdebate-invoicing.png", "Invoicing"],
+          [
+            "superdebate",
+            "invoicing",
+            "public/images/demo/superdebate-invoicing-20261020-r2.png",
+            "Invoicing",
+          ],
         ]
       : [
           ["superdebate", "today", "public/images/demo/superdebate-today.png", "Today"],
@@ -369,8 +379,9 @@ try {
           await page.evaluate(() => window.scrollTo(0, 0));
           if (route === "/demo/command-center")
             assert(
-              (await page.locator('img[src^="/images/demo/superdebate-invoicing.png"]').count()) >
-                0,
+              (await page
+                .locator('img[src^="/images/demo/superdebate-invoicing-20261020-r2.png"]')
+                .count()) > 0,
               "Bundled demo screenshots load without runtime resizing",
             );
           assert.equal(
@@ -517,7 +528,7 @@ try {
     await isolateAnalytics(context);
     await context.addInitScript(() => {
       localStorage.setItem("theme", "dark");
-      sessionStorage.setItem("accelerate:admin-demo:northline-roofing:appearance:v1", "frost");
+      sessionStorage.setItem("accelerate:admin-demo:northline-roofing:appearance:v1", "operator");
     });
     const page = await context.newPage();
     for (const industry of industries) {
@@ -551,9 +562,9 @@ try {
         "Demo preserves public preference",
       );
       if (scenario === "northline-roofing") {
-        await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
+        await page.waitForFunction(() => document.documentElement.dataset.theme === "operator");
         await page.reload({ waitUntil: "domcontentloaded" });
-        await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
+        await page.waitForFunction(() => document.documentElement.dataset.theme === "operator");
       }
       await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded" });
       assert.equal(

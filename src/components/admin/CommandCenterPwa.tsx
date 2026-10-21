@@ -376,7 +376,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
           <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-[var(--admin-surface-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-[var(--admin-shadow-hover)]">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--admin-muted)]">
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--admin-muted)]">
                   Command Center
                 </p>
                 <h2
@@ -433,7 +433,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--admin-muted)]">
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--admin-muted)]">
                   Stored on this device
                 </p>
                 <h2

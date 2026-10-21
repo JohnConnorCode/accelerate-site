@@ -46,7 +46,7 @@ export function handleDemoEventTickets(
   }
   if (state.moduleOverrides["event-ticketing"] !== true)
     return Response.json(
-      { error: "Events & Tickets is disabled in this fictional workspace.", simulated: true },
+      { error: "Events & Tickets is disabled in this demo workspace.", simulated: true },
       { status: 403 },
     );
   if (!business.eventTickets) {

@@ -8,6 +8,7 @@ import { Search } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { StatCard } from "@/components/admin/StatCard";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -119,32 +120,28 @@ export default function ClientsPage() {
 
         {/* MRR Summary Cards */}
         <div className="mb-6 admin-grid admin-grid--metrics">
-          <AdminSurface padding="sm">
-            <p className="admin-eyebrow">Monthly recurring</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
-              ${totalMRR.toLocaleString()}
-            </p>
-          </AdminSurface>
-          <AdminSurface padding="sm">
+          <StatCard
+            label="Monthly recurring"
+            value={`$${totalMRR.toLocaleString()}`}
+            density="compact"
+          />
+          <div className="relative min-w-0">
+            <StatCard label="Active clients" value={activeCount} density="compact" />
             <button
               type="button"
               aria-label="Show active clients"
               aria-pressed={statusFilter === "active"}
               onClick={() => setStatusFilter(statusFilter === "active" ? "all" : "active")}
-              className="min-h-11 w-full text-left focus-visible:outline focus-visible:outline-2"
-            >
-              <span className="admin-eyebrow">Active clients</span>
-              <span className="mt-1 block text-xl font-semibold tabular-nums text-[var(--admin-success)]">
-                {activeCount}
-              </span>
-            </button>
-          </AdminSurface>
-          <AdminSurface padding="sm" className="hidden sm:block">
-            <p className="admin-eyebrow">Average MRR / client</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
-              ${activeCount > 0 ? Math.round(totalMRR / activeCount).toLocaleString() : "0"}
-            </p>
-          </AdminSurface>
+              className="absolute inset-0 rounded-[var(--admin-surface-radius)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--admin-action)] focus-visible:outline-offset-4"
+            />
+          </div>
+          <div className="hidden min-w-0 sm:block">
+            <StatCard
+              label="Average MRR / client"
+              value={`$${activeCount > 0 ? Math.round(totalMRR / activeCount).toLocaleString() : "0"}`}
+              density="compact"
+            />
+          </div>
         </div>
 
         {error && (
@@ -176,13 +173,13 @@ export default function ClientsPage() {
             <div className="overflow-x-auto">
               <table className="admin-table w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]">
+                  <tr>
                     {["Business", "Contact", "Industry", "MRR", "Status", "Since"].map(
                       (label, index) => (
                         <th
                           key={label}
                           scope="col"
-                          className={`px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)] ${index === 1 ? "hidden md:table-cell" : index === 2 || index === 5 ? "hidden sm:table-cell" : ""}`}
+                          className={`${index === 1 ? "hidden md:table-cell" : index === 2 || index === 5 ? "hidden sm:table-cell" : ""}`}
                         >
                           {label}
                         </th>
@@ -211,7 +208,7 @@ export default function ClientsPage() {
                       }}
                       className="cursor-pointer border-b border-[var(--admin-border)] transition-colors last:border-b-0 hover:bg-[var(--admin-surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]"
                     >
-                      <td className="px-3 py-2.5">
+                      <td>
                         <Link
                           href={`/admin/clients/${client.id}`}
                           className="inline-flex min-h-11 items-center font-semibold text-[var(--admin-ink)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2"
@@ -219,29 +216,29 @@ export default function ClientsPage() {
                           {client.business_name}
                         </Link>
                       </td>
-                      <td className="hidden px-3 py-2.5 md:table-cell">
+                      <td className="hidden md:table-cell">
                         <div>
                           <Link
                             href={`/admin/contacts/${encodeURIComponent(client.contact_email)}`}
-                            className="inline-flex min-h-10 items-center text-xs text-[var(--admin-ink)] hover:underline"
+                            className="font-medium text-[var(--admin-ink)] hover:underline"
                           >
                             {client.contact_name}
                           </Link>
-                          <p className="text-[10px] text-[var(--admin-muted)]">
+                          <p className="mt-0.5 text-xs text-[var(--admin-muted)]">
                             {client.contact_email}
                           </p>
                         </div>
                       </td>
-                      <td className="hidden px-3 py-2.5 text-xs capitalize text-[var(--admin-muted)] sm:table-cell">
+                      <td className="hidden text-xs capitalize text-[var(--admin-muted)] sm:table-cell">
                         {client.industry?.replace(/_/g, " ") || "N/A"}
                       </td>
-                      <td className="px-3 py-2.5 font-semibold tabular-nums text-[var(--admin-ink)]">
+                      <td className="font-semibold tabular-nums text-[var(--admin-ink)]">
                         ${client.monthly_value?.toLocaleString() || "0"}
                       </td>
-                      <td className="px-3 py-2.5">
+                      <td>
                         <StatusBadge status={client.status} />
                       </td>
-                      <td className="hidden px-3 py-2.5 text-xs text-[var(--admin-muted)] sm:table-cell">
+                      <td className="hidden text-xs text-[var(--admin-muted)] sm:table-cell">
                         {client.contract_start
                           ? new Date(client.contract_start).toLocaleDateString()
                           : new Date(client.created_at).toLocaleDateString()}

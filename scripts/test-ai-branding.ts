@@ -31,7 +31,7 @@ async function main() {
     ])
       await assert.rejects(() => previewWorkspaceBrandUpdate(db, input));
     const changes = {
-      adminTheme: themeFromPreset("signal"),
+      adminTheme: themeFromPreset("operator"),
       accentColor: "#234567",
       name: "Updated Studio",
       logoUrl: "https://assets.example.test/logo.svg",

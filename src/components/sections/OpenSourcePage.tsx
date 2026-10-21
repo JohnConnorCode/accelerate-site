@@ -38,7 +38,7 @@ function PathCard({ path, index }: { path: OpenSourcePath; index: number }) {
         id={path.id}
         className="flex h-full flex-1 flex-col rounded-[24px] border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] bg-[color-mix(in_srgb,var(--fg)_4%,transparent)] p-6 sm:p-8"
       >
-        <p className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
+        <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-white-muted">
           {path.eyebrow}
         </p>
         <h2 className="mt-4 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
@@ -166,7 +166,7 @@ export function OpenSourcePageContent() {
                   <Link
                     href="/demo/command-center"
                     data-cursor="link"
-                    className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+                    className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
                   >
                     Try the fictional demo
                   </Link>
@@ -213,7 +213,7 @@ export function OpenSourcePageContent() {
             <Link
               href="/docs/self-hosting"
               data-cursor="link"
-              className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
             >
               Read the self-hosting docs
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -221,7 +221,7 @@ export function OpenSourcePageContent() {
             <Link
               href="/docs/extend/ai-authoring"
               data-cursor="link"
-              className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+              className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
             >
               Describe the workflow you want built
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -251,7 +251,7 @@ Hand off deployment separately.`}
               {TECH_STACK.map((tech) => (
                 <span
                   key={tech}
-                  className="rounded-full border border-[color-mix(in_srgb,var(--fg)_16%,transparent)] px-3.5 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white-muted"
+                  className="rounded-full border border-[color-mix(in_srgb,var(--fg)_16%,transparent)] px-3.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-white-muted"
                 >
                   {tech}
                 </span>

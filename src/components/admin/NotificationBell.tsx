@@ -311,7 +311,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
         type="button"
         onClick={togglePanel}
         className={cn(
-          "admin-notification-trigger relative inline-flex items-center justify-center rounded-[var(--admin-control-radius)] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96]",
+          "admin-notification-trigger relative inline-flex items-center justify-center rounded-[var(--admin-control-radius)] text-[var(--admin-muted)] transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-[var(--admin-ink)] active:scale-[0.96]",
           placement === "mobile" ? "size-11" : "size-10",
         )}
         aria-label={
@@ -326,7 +326,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
         {signalCount > 0 && (
           <span
             className={cn(
-              "admin-notification-count absolute right-0 top-0 flex size-[15px] items-center justify-center rounded-full font-mono text-[8px] font-bold tabular-nums text-white",
+              "admin-notification-count absolute right-0 top-0 flex size-[15px] items-center justify-center rounded-full font-mono text-[10.5px] font-bold tabular-nums text-white",
               hasCriticalSignal ? "bg-rose-500" : "bg-[var(--error)]",
             )}
           >
@@ -431,7 +431,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
                           {priority.summary.total} priority{" "}
                           {priority.summary.total === 1 ? "item" : "items"}
                         </span>
-                        <span className="mt-0.5 block text-[10px] text-[var(--admin-muted)]">
+                        <span className="mt-0.5 block text-[11px] text-[var(--admin-muted)]">
                           {priority.summary.urgent ? `${priority.summary.urgent} urgent · ` : ""}
                           Open Today
                         </span>
@@ -440,11 +440,11 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
                     </Link>
                   )}
                   <div className="flex items-center justify-between px-4 pb-2 pt-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">
                       Notifications
                     </p>
                     {unreadCount > 0 && (
-                      <span className="font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">
+                      <span className="font-mono text-[11px] tabular-nums text-[var(--admin-muted)]">
                         {unreadCount} unread
                       </span>
                     )}
@@ -481,7 +481,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
                                 {notification.description}
                               </p>
                             )}
-                            <p className="mt-1 text-[10px] text-[var(--admin-muted)]">
+                            <p className="mt-1 text-[11px] text-[var(--admin-muted)]">
                               {timeAgo(notification.created_at)} ago
                             </p>
                           </div>

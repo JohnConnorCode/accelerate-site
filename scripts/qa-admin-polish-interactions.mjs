@@ -87,7 +87,7 @@ try {
   await context.addInitScript(
     () =>
       window === window.top &&
-      sessionStorage.setItem("accelerate:admin-demo:superdebate:appearance:v1", "signal"),
+      sessionStorage.setItem("accelerate:admin-demo:superdebate:appearance:v1", "operator"),
   );
   const page = await context.newPage();
   const errors = [];

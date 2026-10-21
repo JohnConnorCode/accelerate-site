@@ -152,14 +152,14 @@ export function ProductSlider({
         <p
           aria-live="polite"
           aria-atomic="true"
-          className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-mid"
+          className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-mid"
         >
           {slide.caption}
         </p>
         <Link
           href={slide.demoHref}
           data-cursor="link"
-          className="inline-flex min-h-11 items-center gap-1 font-mono text-[0.6rem] uppercase tracking-[0.18em] text-mid underline-offset-4 transition-colors hover:text-gold hover:underline"
+          className="inline-flex min-h-11 items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-mid underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
         >
           Explore this screen
           <ArrowUpRight className="h-3 w-3" />

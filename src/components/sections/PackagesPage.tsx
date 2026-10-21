@@ -49,7 +49,7 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
       className={cn("relative flex h-full flex-col", featured && "lg:-mt-4 lg:mb-4 lg:z-10")}
     >
       {featured && (
-        <p className="mb-3 text-center font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
+        <p className="mb-3 text-center font-mono text-[10.5px] uppercase tracking-[0.22em] text-white-muted">
           Most popular
         </p>
       )}
@@ -135,7 +135,7 @@ function ComparisonTable() {
           <tr>
             <th
               scope="col"
-              className="sticky top-[calc(var(--site-header-h)+var(--safe-top))] z-10 bg-[color-mix(in_srgb,var(--bg-base)_94%,transparent)] py-4 pl-4 pr-4 text-left font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white-muted backdrop-blur-md sm:pl-0"
+              className="sticky top-[calc(var(--site-header-h)+var(--safe-top))] z-10 bg-[color-mix(in_srgb,var(--bg-base)_94%,transparent)] py-4 pl-4 pr-4 text-left font-mono text-[10.5px] uppercase tracking-[0.2em] text-white-muted backdrop-blur-md sm:pl-0"
             >
               Feature
             </th>
@@ -150,7 +150,7 @@ function ComparisonTable() {
               >
                 {pkg.name}
                 {pkg.highlighted && (
-                  <span className="mt-0.5 block font-mono text-[0.52rem] font-normal uppercase tracking-[0.2em] text-white-muted">
+                  <span className="mt-0.5 block font-mono text-[10.5px] font-normal uppercase tracking-[0.2em] text-white-muted">
                     Most popular
                   </span>
                 )}
@@ -225,7 +225,7 @@ export function PackagesPageContent() {
             </div>
             <HeroEntranceItem step={3} className="mx-auto w-full max-w-sm">
               <div className="relative overflow-hidden border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-7">
-                <p className="mb-5 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
+                <p className="mb-5 font-mono text-[10.5px] uppercase tracking-[0.22em] text-white-muted">
                   In every package
                 </p>
                 <ul className="flex flex-col gap-3.5">
@@ -274,7 +274,7 @@ export function PackagesPageContent() {
         <p className="mb-6 max-w-2xl text-base leading-relaxed text-white-muted sm:mb-10">
           See exactly what&apos;s included in each package so you can choose with confidence.
         </p>
-        <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted sm:hidden">
+        <p className="mb-4 font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted sm:hidden">
           Swipe the table to compare all three →
         </p>
         {/* fade-only reveal: a y-transform here would make this card a containing

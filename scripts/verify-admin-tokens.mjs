@@ -70,21 +70,19 @@ console.log(`Admin token contract passed: ${used.size} used tokens are defined.`
 // count) is what keeps a ratchet a ratchet instead of a ceiling nobody ever
 // lowers.
 const COLOR_BUDGET = {
-  "src/app/admin/analytics/page.tsx": 9,
-  "src/app/admin/bookings/page.tsx": 2,
-  "src/app/admin/campaigns/page.tsx": 19,
+  "src/app/admin/analytics/page.tsx": 0,
+  "src/app/admin/campaigns/page.tsx": 0,
   "src/app/admin/chat-leads/page.tsx": 1,
   "src/app/admin/clients/page.tsx": 0,
-  "src/app/admin/contact-imports/page.tsx": 29,
+  "src/app/admin/contact-imports/page.tsx": 0,
   "src/app/admin/contacts/[email]/page.tsx": 3,
   "src/app/admin/contacts/page.tsx": 0,
-  "src/app/admin/conversations/page.tsx": 33,
+  "src/app/admin/conversations/page.tsx": 0,
   "src/app/admin/emails/page.tsx": 17,
   "src/app/admin/features/page.tsx": 16,
   "src/app/admin/inbox/page.tsx": 12,
-  "src/app/admin/integrations/page.tsx": 44,
+  "src/app/admin/integrations/page.tsx": 32,
   "src/app/admin/leads/page.tsx": 1,
-  "src/app/admin/partners/page.tsx": 2,
   "src/app/admin/pipeline/[id]/page.tsx": 3,
   "src/app/admin/pipeline/page.tsx": 6,
   "src/app/admin/proposals/page.tsx": 1,
@@ -313,8 +311,8 @@ if (/^\.admin-(?!demo-)[\w-]+[^{}]*\{/m.test(publicCss))
 // -----------------------------------------------------------------------------
 const RUNTIME_INJECTED_TOKENS = new Set([
   "--accent", // written per published site by site-studio
-  "--font-inter", // next/font in src/app/layout.tsx
-  "--font-jost",
+  "--font-body-face", // next/font in src/app/layout.tsx
+  "--font-display-face",
   "--font-mono-face",
   "--hero-chat-shift", // ChatWidget setProperty
   "--port-x", // HeroArtwork inline style

@@ -49,7 +49,7 @@ export function AIReadinessReport({
         <div className="relative max-w-3xl">
           <p
             data-hero-step="1"
-            className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-white/60"
+            className="font-mono text-[11px] uppercase tracking-[0.24em] text-white/60"
           >
             Accelerate / AI readiness
           </p>
@@ -57,7 +57,7 @@ export function AIReadinessReport({
             ref={headingRef}
             data-hero-step="2"
             tabIndex={-1}
-            className="mt-5 max-w-2xl text-balance font-display text-4xl font-semibold tracking-[-0.045em] focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-6xl"
+            className="mt-5 max-w-2xl text-balance font-display text-4xl font-semibold tracking-[-0.035em] focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-6xl"
           >
             Your next useful move is clearer now.
           </h1>
@@ -69,10 +69,10 @@ export function AIReadinessReport({
           </p>
           <div data-hero-step="4" className="mt-9 flex flex-wrap items-end gap-8">
             <div>
-              <p className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/50">
+              <p className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-white/50">
                 Readiness score
               </p>
-              <p className="mt-1 font-display text-6xl font-semibold tabular-nums tracking-[-0.06em] text-white">
+              <p className="mt-1 font-display text-6xl font-semibold tabular-nums tracking-[-0.035em] text-white">
                 {scoreText(report.score)}
                 <span className="ml-2 text-2xl text-white/50">/100</span>
               </p>
@@ -95,7 +95,7 @@ export function AIReadinessReport({
             className="rounded-2xl border border-black/10 bg-white/70 p-5 shadow-[0_12px_36px_-28px_rgba(0,0,0,.55)] dark:border-white/10 dark:bg-white/[0.04]"
           >
             <div className="flex items-start justify-between gap-3">
-              <p className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-[var(--soft)]">
+              <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--soft)]">
                 {dimension.label}
               </p>
               <span className="font-display text-2xl font-semibold tabular-nums">
@@ -118,7 +118,7 @@ export function AIReadinessReport({
         className={`${styles.reportSection} grid gap-6 rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] lg:grid-cols-[.8fr_1.2fr] sm:p-8`}
       >
         <div>
-          <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--soft)]">
             Read your score
           </p>
           <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.035em]">
@@ -131,7 +131,7 @@ export function AIReadinessReport({
           </p>
         </div>
         <div>
-          <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--soft)]">
             {report.score === null ? "Signals so far" : "Evidence from your answers"}
           </p>
           <p className="mt-2 text-sm leading-6 text-[var(--soft)]">
@@ -167,7 +167,7 @@ export function AIReadinessReport({
       <Section bleed className={`${styles.reportSection} grid gap-8 lg:grid-cols-[1.2fr_.8fr]`}>
         <div className="space-y-4">
           <div>
-            <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--soft)]">
               Priorities
             </p>
             <h2 className="mt-2 font-display text-3xl font-semibold tracking-[-0.04em]">
@@ -233,7 +233,7 @@ export function AIReadinessReport({
           <div className="rounded-2xl bg-[var(--ink)] p-7 text-[var(--paper)]">
             <div className="flex items-center gap-3">
               <Sparkles className="h-5 w-5" />
-              <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white/60">
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60">
                 First pilot
               </p>
             </div>
@@ -258,7 +258,7 @@ export function AIReadinessReport({
           <div className="rounded-2xl border border-black/10 bg-white/70 p-7 dark:border-white/10 dark:bg-white/[0.04]">
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-5 w-5" />
-              <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--soft)]">
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--soft)]">
                 How to use this
               </p>
             </div>
@@ -278,7 +278,7 @@ export function AIReadinessReport({
         bleed
         className={`${styles.reportSection} rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8`}
       >
-        <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--soft)]">
           90-day action plan
         </p>
         <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -335,7 +335,7 @@ function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
         <div>
           <div className="flex items-center gap-3">
             <Globe2 className="h-5 w-5" />
-            <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--soft)]">
               Website snapshot
             </p>
           </div>
@@ -346,7 +346,7 @@ function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
         </div>
         {audit.score !== null && (
           <div className="shrink-0 rounded-2xl bg-[var(--ink)] px-5 py-4 text-right text-[var(--paper)]">
-            <p className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-white/60">
+            <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/60">
               Sampled-page score
             </p>
             <p className="mt-1 font-display text-4xl font-semibold tabular-nums">
@@ -387,7 +387,7 @@ function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
           </div>
           {audit.findings.length > 0 && (
             <div className="mt-7 border-t border-black/10 pt-6 dark:border-white/10">
-              <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--soft)]">
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--soft)]">
                 What to improve first
               </p>
               <div className="mt-4 grid gap-3 md:grid-cols-2">

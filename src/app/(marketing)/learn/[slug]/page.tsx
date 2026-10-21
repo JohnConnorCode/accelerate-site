@@ -207,7 +207,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         <div className="relative z-10 mx-auto max-w-[80rem] px-6 lg:px-10">
           <EntranceGroup className="max-w-4xl" delay={0.04}>
             <EntranceItem>
-              <nav className="mb-10 flex min-h-10 items-center gap-1.5 overflow-hidden font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted">
+              <nav className="mb-10 flex min-h-10 items-center gap-1.5 overflow-hidden font-mono text-[10.5px] uppercase tracking-[0.12em] text-white-muted">
                 <Link href="/learn" className="hover:text-white-secondary transition-colors">
                   Learn
                 </Link>
@@ -232,7 +232,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             </EntranceItem>
 
             <EntranceItem>
-              <h1 className="max-w-[19ch] text-balance font-display text-[clamp(2.65rem,6vw,5.75rem)] font-medium leading-[0.98] tracking-[-0.045em] text-heading">
+              <h1 className="max-w-[19ch] text-balance font-display text-[length:var(--type-display)] font-semibold leading-[1.04] tracking-[-0.035em] text-heading">
                 {frontmatter.title}
               </h1>
             </EntranceItem>
@@ -282,7 +282,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   <Link
                     key={tag}
                     href={`/learn/tag/${encodeURIComponent(tag)}`}
-                    className="inline-flex min-h-10 items-center border border-[var(--rule)] px-3 font-mono text-[0.64rem] uppercase tracking-[0.1em] text-white-muted transition-[color,border-color,transform] duration-200 hover:border-[var(--fg)] hover:text-heading active:scale-[0.96]"
+                    className="inline-flex min-h-10 items-center border border-[var(--rule)] px-3 font-mono text-[10.5px] uppercase tracking-[0.1em] text-white-muted transition-[color,border-color,transform] duration-200 hover:border-[var(--fg)] hover:text-heading active:scale-[0.96]"
                   >
                     {tag}
                   </Link>
@@ -315,7 +315,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   <TableOfContents />
 
                   {/* Sidebar CTA */}
-                  <div className="glass-gold rounded-xl p-5 text-center">
+                  <div className="glass-emphasis rounded-xl p-5 text-center">
                     <p className="text-sm font-medium text-white-primary mb-2">
                       Need help implementing this?
                     </p>
@@ -334,7 +334,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                     {contextualLink && (
                       <Link
                         href={contextualLink.href}
-                        className="mt-3 inline-flex items-center justify-center gap-1 text-xs font-medium text-gold-light hover:text-gold transition-colors"
+                        className="mt-3 inline-flex items-center justify-center gap-1 text-xs font-medium text-[var(--fg)] hover:text-[var(--fg)] transition-colors"
                       >
                         {contextualLink.label}
                         <ChevronRight className="h-3 w-3" />

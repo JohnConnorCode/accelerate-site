@@ -5,14 +5,14 @@ import Link from "./AdminLink";
 import { AdminDensityControl } from "./AdminDensityControl";
 import { useWorkspaceTheme } from "./AdminThemeProvider";
 import { useTheme } from "next-themes";
-import { Check, ChevronUp, Moon, Palette, Snowflake, Sparkles, Sun } from "lucide-react";
+import { Check, ChevronUp, Moon, Palette, Sparkles, Sun, Terminal } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { saveDemoAppearance } from "@/lib/admin/demo/appearance-state";
 import type { DemoScenarioId } from "@/lib/admin/demo/scenarios";
-import { ADMIN_APPEARANCES, isAdminAppearance } from "@/lib/admin/appearances";
+import { ADMIN_APPEARANCES, canonicalAppearance, isAdminAppearance } from "@/lib/admin/appearances";
 
-const appearanceIcons: Record<string, typeof Sun> = { Sun, Moon, Sparkles, Palette, Snowflake };
+const appearanceIcons: Record<string, typeof Sun> = { Sun, Moon, Sparkles, Palette, Terminal };
 
 const appearances = ADMIN_APPEARANCES.map((appearance) => ({
   ...appearance,
@@ -51,10 +51,12 @@ export function AdminAppearancePicker({
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
-  const currentTheme = isAdminAppearance(theme)
-    ? theme
-    : isAdminAppearance(resolvedTheme)
-      ? resolvedTheme
+  const stored = canonicalAppearance(theme);
+  const resolved = canonicalAppearance(resolvedTheme);
+  const currentTheme = isAdminAppearance(stored)
+    ? stored
+    : isAdminAppearance(resolved)
+      ? resolved
       : "light";
   const current = available.find((appearance) => appearance.id === currentTheme) ?? appearances[0]!;
 
@@ -146,7 +148,7 @@ export function AdminAppearancePicker({
             )}
           >
             <div className="px-2 pb-2 pt-1">
-              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--admin-nav-faint)]">
+              <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--admin-nav-faint)]">
                 Appearance
               </p>
               <p className="mt-1 text-[11px] leading-4 text-[var(--admin-nav-muted)]">

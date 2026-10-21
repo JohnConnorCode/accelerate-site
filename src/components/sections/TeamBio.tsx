@@ -128,7 +128,7 @@ export function TeamBioContent({ slug }: { slug: string }) {
               <Reveal key={highlight} delay={Math.min(i, 3) * 0.06}>
                 <li className="group flex items-baseline gap-5 border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] py-5 transition-colors last:border-b hover:bg-[color-mix(in_srgb,var(--fg)_4%,transparent)]">
                   <span
-                    className="font-mono text-[0.62rem] tracking-[0.2em] text-white-muted transition-colors group-hover:text-heading"
+                    className="font-mono text-[10.5px] tracking-[0.2em] text-white-muted transition-colors group-hover:text-heading"
                     aria-hidden="true"
                   >
                     {String(i + 1).padStart(2, "0")}
@@ -164,7 +164,7 @@ export function TeamBioContent({ slug }: { slug: string }) {
                     aria-hidden="true"
                   />
                   <span>
-                    <span className="block font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+                    <span className="block font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted">
                       Previous
                     </span>
                     <span className="block font-display text-lg font-bold text-heading">
@@ -184,7 +184,7 @@ export function TeamBioContent({ slug }: { slug: string }) {
                   className="team-card-float group flex h-full items-center justify-end gap-4 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] bg-[var(--bg)] p-4 text-right motion-reduce:transform-none"
                 >
                   <span>
-                    <span className="block font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+                    <span className="block font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted">
                       Next{next.group === "Advisors" ? " advisor" : ""}
                     </span>
                     <span className="block font-display text-lg font-bold text-heading">

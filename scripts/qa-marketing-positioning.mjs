@@ -152,10 +152,10 @@ await motionPage.screenshot({ path: `${output}/home-phone-motion-settled.png`, f
 await motionPage.locator(".hero-statement").scrollIntoViewIfNeeded();
 await motionPage.waitForTimeout(1100);
 const statement = await motionPage.evaluate(() => ({
-  revealed: document.querySelector(".hero-statement")?.classList.contains("is-revealed"),
+  revealed: document.querySelector(".hero-statement")?.classList.contains("in"),
   copyAnimation: getComputedStyle(document.querySelector(".hero-statement-copy")).animationName,
 }));
-if (!statement.revealed || !statement.copyAnimation.includes("hero-statement-copy-in"))
+if (!statement.revealed || !statement.copyAnimation.includes("home-content-enter"))
   failures.push("phone hero statement: custom scroll reveal did not run");
 await motionPage.screenshot({ path: `${output}/home-phone-statement.png`, fullPage: false });
 await motionContext.close();

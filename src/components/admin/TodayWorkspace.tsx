@@ -11,6 +11,7 @@ import {
   CircleAlert,
   Focus,
   Layers,
+  MessageCircleQuestion,
   Pin,
   RefreshCw,
   Sparkles,
@@ -557,6 +558,39 @@ export function TodayWorkspace() {
             })}
             .
           </p>
+          <SourceState region={snapshot.metrics} />
+          <div className={styles.briefFacts}>
+            <Link className={styles.factButton} href="/admin/pipeline">
+              <span>Open opportunities</span>
+              <strong>{snapshot.metrics.data?.openOpportunities ?? "—"}</strong>
+            </Link>
+            <Link className={styles.factButton} href="/admin/pipeline">
+              <span>Recorded pipeline value</span>
+              <strong>
+                {snapshot.metrics.data
+                  ? snapshot.metrics.data.openOpportunities > 0 &&
+                    snapshot.metrics.data.pipelineValue === 0
+                    ? "No positive estimates"
+                    : new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                        maximumFractionDigits: 0,
+                        notation: "compact",
+                      }).format(snapshot.metrics.data.pipelineValue)
+                  : "—"}
+              </strong>
+            </Link>
+            {snapshot.handling.data.length > 0 && (
+              <Link className={styles.factButton} href="/admin/activity" data-signal="true">
+                <span>Delegated to the system</span>
+                <strong>{snapshot.handling.data.length}</strong>
+              </Link>
+            )}
+          </div>
+          <p className={styles.muted}>
+            Pipeline value is the recorded estimate on open opportunities. Check invoices for money
+            collected.
+          </p>
           <div className={styles.businessReview}>
             {todayBusinessReview(snapshot).map((domain) => (
               <article
@@ -564,6 +598,7 @@ export function TodayWorkspace() {
                 className={styles.reviewDomain}
                 data-business-review={domain.id}
                 data-review-state={domain.state}
+                data-review-open={domain.items[0] ? "true" : undefined}
               >
                 <div className={styles.reviewContent}>
                   <h3>{domain.title}</h3>
@@ -623,7 +658,7 @@ export function TodayWorkspace() {
                           );
                         }}
                       >
-                        <Sparkles size={17} aria-hidden="true" />
+                        <MessageCircleQuestion size={17} aria-hidden="true" />
                       </button>
                     </>
                   ) : (
@@ -635,33 +670,6 @@ export function TodayWorkspace() {
               </article>
             ))}
           </div>
-          <SourceState region={snapshot.metrics} />
-          <div className={styles.briefFacts}>
-            <Link className={styles.factButton} href="/admin/pipeline">
-              <span>Open opportunities</span>
-              <strong>{snapshot.metrics.data?.openOpportunities ?? "—"}</strong>
-            </Link>
-            <Link className={styles.factButton} href="/admin/pipeline">
-              <span>Recorded pipeline value</span>
-              <strong>
-                {snapshot.metrics.data
-                  ? snapshot.metrics.data.openOpportunities > 0 &&
-                    snapshot.metrics.data.pipelineValue === 0
-                    ? "No positive estimates"
-                    : new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                        maximumFractionDigits: 0,
-                        notation: "compact",
-                      }).format(snapshot.metrics.data.pipelineValue)
-                  : "—"}
-              </strong>
-            </Link>
-          </div>
-          <p className={styles.muted}>
-            Pipeline value is the recorded estimate on open opportunities. Check invoices for money
-            collected.
-          </p>
           <SourceState region={snapshot.brief} />
           {interpretations.map((entry, i) => (
             <div key={i} className={styles.sourceBox}>
@@ -690,7 +698,7 @@ export function TodayWorkspace() {
       const work = snapshot.handling.data.filter((item) => item.status !== "completed");
       const completed = snapshot.handling.data.filter((item) => item.status === "completed");
       const renderWork = (item: (typeof work)[number]) => (
-        <article className={styles.automationRow} key={item.id}>
+        <article className={styles.automationRow} key={item.id} data-status={item.status}>
           <details>
             <summary className={styles.automationSummary}>
               <strong>{item.title}</strong>

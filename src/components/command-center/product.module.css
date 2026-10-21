@@ -22,7 +22,7 @@
   box-shadow: 0 0 0 1px var(--fg);
 }
 .areaCard h3 {
-  font-size: 1.3rem;
+  font-size: var(--type-title);
   font-weight: 600;
   text-wrap: balance;
 }
@@ -137,16 +137,15 @@
 }
 .title {
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(2.8rem, 5.7vw, 5.8rem);
-  line-height: 1.02;
-  letter-spacing: -0.055em;
-  font-weight: 500;
+  font-size: var(--type-display);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  font-weight: var(--type-heading-weight);
   text-wrap: balance;
   margin: 1.2rem 0 0;
 }
 .title em {
-  font-family: var(--font-serif), Georgia, serif;
-  font-weight: 400;
+  font-style: normal;
 }
 .lede {
   color: var(--mid);
@@ -207,10 +206,10 @@
 }
 .heading {
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(1.85rem, 3.4vw, 3.1rem);
-  line-height: 1.12;
-  letter-spacing: -0.035em;
-  font-weight: 500;
+  font-size: var(--type-section);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: var(--type-heading-weight);
   text-wrap: balance;
   max-width: 25ch;
   margin: 0.75rem 0 1.25rem;
@@ -236,7 +235,7 @@
 }
 .card h3 {
   font-family: var(--font-display), sans-serif;
-  font-size: 1.35rem;
+  font-size: var(--type-title);
   line-height: 1.25;
   letter-spacing: -0.025em;
   margin: 0.75rem 0;
@@ -334,7 +333,7 @@
 }
 .feature h3 {
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+  font-size: var(--type-title);
   line-height: 1.2;
   letter-spacing: -0.025em;
   margin: 0.75rem 0 1rem;
@@ -482,7 +481,7 @@
   padding: 1.5rem 0;
 }
 .featureGrid .feature h3 {
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-size: var(--type-title);
 }
 .featureGrid .figure {
   margin-top: auto;
@@ -523,7 +522,7 @@
   margin-top: 3rem;
 }
 .portfolio > h3 {
-  font-size: 1.6rem;
+  font-size: var(--type-title);
   margin: 0.75rem 0;
 }
 .portfolio > p:not(.label) {
@@ -679,21 +678,18 @@
 .launcherPage .title {
   margin: 1.35rem 0 1.8rem;
   max-width: 10ch;
-  font-family: var(--font-jost), system-ui, sans-serif;
-  font-size: clamp(3.5rem, 7.3vw, 8rem);
+  font-family: var(--font-display-face), system-ui, sans-serif;
+  font-size: var(--type-display);
   font-weight: 600;
   line-height: 0.91;
-  letter-spacing: -0.068em;
+  letter-spacing: -0.035em;
   color: var(--fg);
   text-wrap: balance;
 }
 .launcherPage .title em {
   display: inline-block;
   color: var(--mid);
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 0.92em;
-  font-weight: 300;
-  letter-spacing: -0.045em;
+  font-style: normal;
 }
 .launcherPage .lede {
   max-width: 49ch;
@@ -707,7 +703,7 @@
   margin-top: 1rem;
   color: var(--soft);
   font-family: var(--font-mono-face), ui-monospace, monospace;
-  font-size: 0.68rem;
+  font-size: 11px;
   letter-spacing: 0.045em;
   line-height: 1.6;
 }
@@ -782,11 +778,11 @@
   max-width: 18ch;
   margin: 1rem 0 0;
   color: var(--fg);
-  font-family: var(--font-jost), system-ui, sans-serif;
-  font-size: clamp(2rem, 4.4vw, 4.9rem);
+  font-family: var(--font-display-face), system-ui, sans-serif;
+  font-size: var(--type-section);
   font-weight: 600;
   line-height: 0.98;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.038em;
   text-wrap: balance;
 }
 .launcherPage .workflowShell {
@@ -820,7 +816,7 @@
   letter-spacing: 0.08em;
 }
 .launcherPage .workflow li strong {
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
   font-size: 1.08rem;
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -846,7 +842,7 @@
   border-radius: 0;
   color: var(--mid);
   font-family: var(--font-mono-face), ui-monospace, monospace;
-  font-size: 0.68rem;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transition:
@@ -914,8 +910,8 @@
 .launcherPage .card h3 {
   margin: 1.2rem 0 0.7rem;
   color: var(--fg);
-  font-family: var(--font-jost), system-ui, sans-serif;
-  font-size: clamp(1.25rem, 1.8vw, 1.7rem);
+  font-family: var(--font-display-face), system-ui, sans-serif;
+  font-size: var(--type-title);
   font-weight: 500;
   line-height: 1.12;
   letter-spacing: -0.035em;
@@ -1008,7 +1004,7 @@
   }
   .launcherPage .title {
     max-width: 11ch;
-    font-size: clamp(3.45rem, 15vw, 5.6rem);
+    font-size: var(--type-display);
   }
   .launcherPage .heading {
     max-width: 13ch;

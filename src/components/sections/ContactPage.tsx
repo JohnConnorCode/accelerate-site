@@ -78,7 +78,7 @@ export function ContactPageContent() {
                         <Icon className="h-5 w-5" strokeWidth={1.75} />
                       </span>
                       <span className="flex flex-col">
-                        <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+                        <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted">
                           {card.label}
                         </span>
                         <span className="text-sm font-medium text-heading">{card.value}</span>
@@ -104,7 +104,7 @@ export function ContactPageContent() {
               as a fallback for visitors who prefer to send context first. */}
             <HeroEntranceItem step={3} className="lg:sticky lg:top-32">
               <div className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-4 sm:p-6">
-                <p className="mb-1 px-2 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
+                <p className="mb-1 px-2 font-mono text-[10.5px] uppercase tracking-[0.22em] text-white-muted">
                   Start here
                 </p>
                 <h2 className="mb-2 px-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">

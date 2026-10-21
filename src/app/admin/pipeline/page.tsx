@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
+import { StatCard } from "@/components/admin/StatCard";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -414,15 +415,13 @@ export default function PipelinePage() {
                   ["At proposal", metrics.proposals, "Proposal or negotiation"],
                   ["Won revenue", formatMoney(metrics.won), "Recorded outcomes"],
                 ].map(([label, value, note]) => (
-                  <AdminSurface key={String(label)} className="min-w-0 p-4 sm:p-5">
-                    <p className="admin-eyebrow truncate">{String(label)}</p>
-                    <p className="mt-2 truncate text-[clamp(1.35rem,6vw,1.85rem)] font-semibold tabular-nums tracking-[-0.045em] sm:mt-3 sm:text-3xl">
-                      {String(value)}
-                    </p>
-                    <p className="admin-copy mt-1 hidden truncate text-xs sm:block">
-                      {String(note)}
-                    </p>
-                  </AdminSurface>
+                  <StatCard
+                    key={String(label)}
+                    label={String(label)}
+                    value={value}
+                    note={String(note)}
+                    density="compact"
+                  />
                 ))}
               </section>
 
@@ -1226,7 +1225,7 @@ function Card({
           <p className="mt-1 line-clamp-2 text-xs leading-5">
             {item.next_action || "Set a specific next action"}
           </p>
-          <p className="admin-copy mt-1 text-[10px] tabular-nums">
+          <p className="admin-copy mt-1 text-[11px] tabular-nums">
             {shortDate(item.next_action_at)}
             {item.next_meeting_at ? ` · Meeting ${shortDate(item.next_meeting_at)}` : ""}
           </p>
@@ -1235,12 +1234,12 @@ function Card({
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           {has(state, "source") && (
-            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+            <p className="truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
               {item.source || "Unknown source"}
             </p>
           )}
           {has(state, "owner") && (
-            <p className="mt-1 truncate text-[10px] text-[var(--admin-muted)]">
+            <p className="mt-1 truncate text-[11px] text-[var(--admin-muted)]">
               {item.owner_email || "Unassigned"}
             </p>
           )}
@@ -1300,11 +1299,9 @@ function ListView({
     <div className="border-t border-[var(--admin-border)]">
       <div className="hidden overflow-x-auto md:block">
         <table className="admin-table w-full min-w-[820px] text-left text-sm">
-          <thead className="bg-black/[0.018] font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
+          <thead>
             <tr>
-              <th scope="col" className="px-5 py-3.5">
-                Opportunity
-              </th>
+              <th scope="col">Opportunity</th>
               {has(state, "contact") && <th scope="col">Contact</th>}
               {has(state, "source") && <th scope="col">Source</th>}
               {has(state, "value") && (
@@ -1314,9 +1311,7 @@ function ListView({
               )}
               {has(state, "next_action") && <th scope="col">Next action</th>}
               {has(state, "owner") && <th scope="col">Owner</th>}
-              <th scope="col" className="px-5">
-                Stage
-              </th>
+              <th scope="col">Stage</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--admin-border)]">
@@ -1339,7 +1334,7 @@ function ListView({
                 }}
                 className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]"
               >
-                <td className="px-5 py-4">
+                <td>
                   <Link
                     href={`/admin/pipeline/${item.id}`}
                     className="flex min-h-11 w-full items-center gap-1.5 rounded-[var(--admin-control-radius)] font-semibold hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -1353,30 +1348,28 @@ function ListView({
                   </p>
                 </td>
                 {has(state, "contact") && (
-                  <td className="px-4">{item.contact?.full_name || item.email || "Unknown"}</td>
+                  <td>{item.contact?.full_name || item.email || "Unknown"}</td>
                 )}
                 {has(state, "source") && (
-                  <td className="px-4 text-xs text-[var(--admin-muted)]">
-                    {item.source || "Unknown"}
-                  </td>
+                  <td className="text-xs text-[var(--admin-muted)]">{item.source || "Unknown"}</td>
                 )}
                 {has(state, "value") && (
-                  <td className="px-4 text-right font-mono tabular-nums">
+                  <td className="text-right font-mono tabular-nums">
                     {formatMoney(item.estimated_value)}
                   </td>
                 )}
                 {has(state, "next_action") && (
-                  <td className="max-w-[240px] px-4">
+                  <td className="max-w-[240px]">
                     <p className="truncate text-xs">{item.next_action || "No next action"}</p>
-                    <p className="admin-copy text-[10px]">{shortDate(item.next_action_at)}</p>
+                    <p className="admin-copy text-[11px]">{shortDate(item.next_action_at)}</p>
                   </td>
                 )}
                 {has(state, "owner") && (
-                  <td className="max-w-[180px] truncate px-4 text-xs">
+                  <td className="max-w-[180px] truncate text-xs">
                     {item.owner_email || "Unassigned"}
                   </td>
                 )}
-                <td className="px-5">
+                <td>
                   <StageSelect
                     item={item}
                     columns={columns}

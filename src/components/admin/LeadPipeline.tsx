@@ -15,7 +15,7 @@ export function LeadPipeline({ pipeline, pipelineValues }: LeadPipelineProps) {
   return (
     <GlassCard hover="none" padding="none">
       <div className="p-5">
-        <h3 className="font-display text-sm font-semibold text-white-primary mb-4">
+        <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)] mb-4">
           Lead Pipeline
         </h3>
         <div className="space-y-3">
@@ -32,8 +32,10 @@ export function LeadPipeline({ pipeline, pipelineValues }: LeadPipelineProps) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.06 }}
               >
-                <span className="text-xs text-white-muted w-20 shrink-0">{stage.label}</span>
-                <div className="flex-1 h-7 rounded-md bg-white/5 overflow-hidden relative">
+                <span className="text-xs text-[var(--admin-muted)] w-20 shrink-0">
+                  {stage.label}
+                </span>
+                <div className="flex-1 h-7 rounded-md bg-[var(--admin-surface-subtle)] overflow-hidden relative">
                   <motion.div
                     className={`h-full ${stage.color} rounded-md`}
                     initial={{ width: 0 }}
@@ -41,10 +43,12 @@ export function LeadPipeline({ pipeline, pipelineValues }: LeadPipelineProps) {
                     transition={{ duration: 0.7, delay: 0.2 + i * 0.06, ease: "easeOut" }}
                     style={{ opacity: 0.7 }}
                   />
-                  <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-white-primary">
+                  <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-[var(--admin-ink)]">
                     {count}
                     {value > 0 && (
-                      <span className="ml-1.5 text-white-muted">· ${value.toLocaleString()}</span>
+                      <span className="ml-1.5 text-[var(--admin-muted)]">
+                        · ${value.toLocaleString()}
+                      </span>
                     )}
                   </span>
                 </div>

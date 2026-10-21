@@ -42,7 +42,7 @@ export function CalendlyEmbed() {
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-3 px-2">
-        <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted">
           Live availability
         </span>
         <a
@@ -74,7 +74,7 @@ export function CalendlyEmbed() {
           }`}
         >
           <div className="w-full max-w-sm px-7 text-center">
-            <span className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-neutral-500">
+            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-neutral-500">
               Loading available times
             </span>
             <div className="mt-7 grid grid-cols-7 gap-2" aria-hidden="true">

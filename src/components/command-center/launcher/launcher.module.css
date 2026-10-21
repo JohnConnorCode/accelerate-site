@@ -19,7 +19,7 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.13em;
   line-height: 1.6;
@@ -33,9 +33,9 @@
 .hero h1 {
   margin: 1.6rem 0;
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(3.3rem, 5.5vw, 5.1rem);
+  font-size: var(--type-display);
   line-height: 0.99;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.035em;
   font-weight: 550;
 }
 .hero h1 > span {
@@ -116,7 +116,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.9rem;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.08em;
   color: var(--demo-launcher-muted);
 }
@@ -160,6 +160,7 @@
   font-weight: 700;
   color: #d6ef96;
   margin-bottom: 1.5rem;
+  /* brand-system: allow (fictional logo monogram) */
   letter-spacing: -0.1em;
 }
 .miniLogo span {
@@ -170,7 +171,7 @@
   margin-top: auto;
   padding: 7px;
   border-radius: 50%;
-  font-size: 9px;
+  font-size: 10.5px;
   background: #364132;
   color: #d3dfc8;
 }
@@ -186,14 +187,14 @@
   gap: 1rem;
 }
 .eyebrow {
-  font-size: 8px;
+  font-size: 10.5px;
   letter-spacing: 0.12em;
   color: #9eada2;
 }
 .productHeading h2 {
   margin-top: 0.4rem;
   font-size: 23px;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.028em;
   font-weight: 550;
 }
 .demoPill {
@@ -201,7 +202,7 @@
   padding: 4px 6px;
   border-radius: 4px;
   color: #aabaaf;
-  font-size: 8px;
+  font-size: 10.5px;
   letter-spacing: 0.08em;
 }
 .flow {
@@ -215,7 +216,7 @@
   display: flex;
   gap: 0.4rem;
   align-items: center;
-  font-size: 10px;
+  font-size: 11px;
   white-space: nowrap;
   transition: color 180ms;
 }
@@ -244,7 +245,7 @@
   border-radius: 50%;
   background: #e7dab5;
   color: #534a33;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 650;
 }
 .messageHeader > div {
@@ -258,7 +259,7 @@
 .messageHeader > div > span {
   display: block;
   margin-top: 3px;
-  font-size: 9px;
+  font-size: 10.5px;
   color: #9ba89e;
 }
 .messageHeader > svg {
@@ -275,7 +276,7 @@
   align-items: center;
   gap: 0.5rem;
   margin: 0.85rem 0;
-  font-size: 9px;
+  font-size: 10.5px;
   color: #91a18e;
 }
 .actionCard {
@@ -296,7 +297,7 @@
   font-weight: 550;
 }
 .actionStatus {
-  font-size: 8px;
+  font-size: 10.5px;
   margin-left: auto;
   color: #abbc9d;
 }
@@ -312,7 +313,7 @@
   gap: 0.6rem;
   color: #e4f6c0;
   min-height: 40px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   margin-top: 0.35rem;
   cursor: pointer;
@@ -326,7 +327,7 @@
   align-items: center;
   gap: 0.4rem;
   color: #89988c;
-  font-size: 8px;
+  font-size: 10.5px;
   border-top: 1px solid #ffffff0d;
   padding-top: 0.8rem;
   margin-top: 0.4rem;
@@ -347,7 +348,7 @@
   padding: 0.4rem;
   border-radius: 7px;
   color: var(--demo-launcher-muted);
-  font-size: 10px;
+  font-size: 11px;
   cursor: pointer;
   transition:
     background-color 180ms,
@@ -355,7 +356,7 @@
 }
 .storyControls button > span {
   opacity: 0.55;
-  font-size: 9px;
+  font-size: 10.5px;
 }
 .storyControls button[aria-pressed="true"] {
   background: var(--demo-card-action);
@@ -417,7 +418,7 @@
   font-family: var(--font-display), sans-serif;
   font-size: clamp(2.2rem, 3.6vw, 3.25rem);
   line-height: 1.08;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.035em;
   font-weight: 550;
   margin-top: 0.9rem;
   text-wrap: balance;
@@ -455,7 +456,7 @@
 }
 .scenarioIdentity > span:nth-child(2) {
   flex: 1;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--demo-card-muted);
 }
 .scenarioIdentity > svg {
@@ -529,7 +530,7 @@
   gap: 0.5rem;
 }
 .closing .closingActions > p {
-  font-size: 10px;
+  font-size: 11px;
   margin-top: 0.4rem;
 }
 @keyframes panelIn {
@@ -575,7 +576,7 @@
     max-width: 34rem;
   }
   .hero h1 {
-    font-size: clamp(3.3rem, 8vw, 4.8rem);
+    font-size: var(--type-display);
   }
   .intro {
     font-size: 16px;
@@ -644,7 +645,7 @@
     min-height: 290px;
   }
   .storyControls button {
-    font-size: 9px;
+    font-size: 10.5px;
     gap: 0.3rem;
   }
   .actionStatus {
@@ -723,7 +724,7 @@
   margin-bottom: 1rem;
   color: var(--mid);
   font-family: var(--font-mono-face), ui-monospace, monospace;
-  font-size: 0.62rem;
+  font-size: 10.5px;
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -761,9 +762,10 @@
 .miniLogo {
   margin-bottom: 1.2rem;
   color: var(--paper);
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
   font-size: 1.7rem;
   font-weight: 500;
+  /* brand-system: allow (fictional logo monogram) */
   letter-spacing: -0.12em;
 }
 .miniLogo span {
@@ -778,10 +780,10 @@
 }
 .productHeading h2 {
   color: var(--paper);
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
   font-size: clamp(1.4rem, 2.2vw, 2rem);
   font-weight: 500;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.032em;
 }
 .eyebrow {
   color: color-mix(in srgb, var(--paper) 62%, var(--ink));
@@ -816,7 +818,7 @@
 }
 .messageHeader strong {
   color: var(--paper);
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
   font-size: 0.92rem;
   font-weight: 500;
 }
@@ -847,7 +849,7 @@
 }
 .actionTitle strong {
   color: var(--paper);
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
   font-weight: 500;
 }
 .actionStatus {
@@ -893,7 +895,7 @@
   border-radius: 0;
   color: var(--mid);
   font-family: var(--font-mono-face), ui-monospace, monospace;
-  font-size: 0.62rem;
+  font-size: 10.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   transition:
@@ -982,7 +984,7 @@
     flex-direction: column;
     gap: 0.2rem;
     padding: 0.7rem 0.55rem;
-    font-size: 0.56rem;
+    font-size: 10.5px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

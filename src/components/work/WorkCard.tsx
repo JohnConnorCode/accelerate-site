@@ -30,7 +30,7 @@ export function WorkVisual({
       />
       <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 bg-[var(--fg)] px-3 py-2 text-[var(--bg)] shadow-[0_8px_22px_-14px_rgba(0,0,0,.34)] sm:left-4 sm:top-4">
         <span className="h-1.5 w-1.5 rounded-full bg-[var(--case-accent)]" aria-hidden="true" />
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em]">{project.name}</span>
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.14em]">{project.name}</span>
       </div>
     </div>
   );
@@ -75,7 +75,7 @@ export function WorkCard({
             <div data-work-stagger="2" className="flex items-start justify-between gap-5">
               <p className="eyebrow mb-4">{project.category}</p>
               {typeof index === "number" ? (
-                <span className="font-mono text-[10px] tabular-nums tracking-[0.14em] text-[var(--mid)]">
+                <span className="font-mono text-[11px] tabular-nums tracking-[0.14em] text-[var(--mid)]">
                   {String(index + 1).padStart(2, "0")}
                 </span>
               ) : null}
@@ -94,7 +94,7 @@ export function WorkCard({
             </p>
             <div
               data-work-stagger="5"
-              className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-3 pt-6 font-mono text-[10px] uppercase tracking-[0.12em]"
+              className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-3 pt-6 font-mono text-[11px] uppercase tracking-[0.12em]"
             >
               {project.proof && project.showProofOnCard !== false ? (
                 <span className="border-l-2 border-[var(--case-accent)] pl-4 tabular-nums text-[var(--fg)]">

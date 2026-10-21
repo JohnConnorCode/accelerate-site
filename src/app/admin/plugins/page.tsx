@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Play, PlugZap } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { ModuleCard } from "@/components/admin/ModuleCard";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import AdminLink from "@/components/admin/AdminLink";
 import { DemoBusinessNotice } from "@/components/admin/DemoBusinessNotice";
@@ -10,13 +11,7 @@ import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { EXTENSION_MODULES } from "@/lib/revenue-os/extension-modules.generated";
 import type { PluginReport } from "@/lib/revenue-os/report-plugins";
-const plugins = EXTENSION_MODULES.filter(
-  (moduleDef) => moduleDef.report || moduleDef.workflow || moduleDef.routes?.length,
-).sort(
-  (a, b) =>
-    Number(Boolean(b.workflow || b.routes?.length)) -
-      Number(Boolean(a.workflow || a.routes?.length)) || a.name.localeCompare(b.name),
-);
+const plugins = [...EXTENSION_MODULES].sort((a, b) => a.name.localeCompare(b.name));
 const button = "admin-button admin-button--secondary";
 export default function PluginsPage() {
   const cache = useQueryClient();
@@ -110,52 +105,60 @@ export default function PluginsPage() {
             const enabled = modules.data?.modules.includes(plugin.id) ?? false;
             const report = reports[plugin.id];
             return (
-              <AdminSurface
+              <ModuleCard
                 key={plugin.id}
-                padding="lg"
-                className="flex min-w-0 flex-col"
-                data-plugin={plugin.id}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="admin-eyebrow">
-                    {plugin.workflow
-                      ? "Business workflow"
-                      : plugin.report
-                        ? "Read-only runtime example"
-                        : "Business workspace"}
-                  </p>
-                  <span className="text-xs font-medium">{enabled ? "Enabled" : "Disabled"}</span>
-                </div>
-                <h2 className="mt-3 text-lg font-semibold text-balance">{plugin.name}</h2>
-                <p className="admin-copy mt-2 flex-1 text-sm leading-6">{plugin.description}</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className={button}
-                    disabled={!!busy || !modules.data || !!modules.error}
-                    aria-label={`${enabled ? "Disable" : "Enable"} ${plugin.name}`}
-                    onClick={() => void perform(plugin.id, !enabled, false)}
-                  >
-                    {enabled ? "Disable" : "Enable"}
-                  </button>
-                  {!plugin.report && plugin.routes?.length ? (
-                    enabled && (
-                      <AdminLink className={button} href={plugin.routes?.[0] || "/admin/plugins"}>
-                        {plugin.workflow ? "Open workflow" : "Open workspace"}
-                      </AdminLink>
-                    )
-                  ) : (
+                module={plugin}
+                enabled={modules.data ? enabled : undefined}
+                lastAction={
+                  report
+                    ? {
+                        text: report.summary,
+                        system: true,
+                        time: new Date(report.receipt.generatedAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }),
+                      }
+                    : undefined
+                }
+                actions={
+                  <>
                     <button
                       type="button"
-                      className={`${button} bg-[var(--admin-ink)] text-[var(--admin-surface)]`}
-                      disabled={!enabled || !!busy}
-                      onClick={() => void perform(plugin.id, enabled, true)}
+                      className={button}
+                      disabled={!!busy || !modules.data || !!modules.error}
+                      aria-label={`${enabled ? "Disable" : "Enable"} ${plugin.name}`}
+                      onClick={() => void perform(plugin.id, !enabled, false)}
                     >
-                      <Play aria-hidden="true" className="size-3.5" />
-                      {busy === plugin.id ? "Working…" : "Run report"}
+                      {enabled ? "Disable" : "Enable"}
                     </button>
-                  )}
-                </div>
+                    {!plugin.report && plugin.routes?.length ? (
+                      enabled && (
+                        <AdminLink className={button} href={plugin.routes?.[0] || "/admin/plugins"}>
+                          {plugin.workflow ? "Open workflow" : "Open workspace"}
+                        </AdminLink>
+                      )
+                    ) : plugin.report ? (
+                      <button
+                        type="button"
+                        className="admin-button admin-button--primary"
+                        disabled={!enabled || !!busy}
+                        onClick={() => void perform(plugin.id, enabled, true)}
+                      >
+                        <Play aria-hidden="true" className="size-3.5" />
+                        {busy === plugin.id ? "Working…" : "Run report"}
+                      </button>
+                    ) : (
+                      <AdminLink
+                        className={button}
+                        href={`/admin/integrations?tab=modules&search=${encodeURIComponent(plugin.name)}`}
+                      >
+                        Configure module
+                      </AdminLink>
+                    )}
+                  </>
+                }
+              >
                 {enabled && report && (
                   <div
                     className="mt-6 border-t border-[var(--admin-border)] pt-5"
@@ -200,7 +203,7 @@ export default function PluginsPage() {
                     </ul>
                   </div>
                 )}
-              </AdminSurface>
+              </ModuleCard>
             );
           })}
         </div>

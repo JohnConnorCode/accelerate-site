@@ -1,4 +1,4 @@
-/** Browser-safe discovery version shared by live and fictional workspaces. */
+/** Browser-safe discovery version shared by live and demo workspaces. */
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v34";
 export const AI_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type AiToolPackId = (typeof AI_TOOL_PACKS)[number];

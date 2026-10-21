@@ -1,10 +1,8 @@
-import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
-const require = createRequire(import.meta.url);
 // Run through npm run resources:run. All edits use fictional demo session data.
 const themes = JSON.parse(fs.readFileSync(resolve("src/lib/admin/themes.json"), "utf8"));
 const updateDocs = process.argv.includes("--update-docs");
@@ -15,17 +13,10 @@ await (async () => {
   const log = fs.openSync(out + "/server.log", "w");
   const server = process.env.PLAYWRIGHT_BASE_URL
     ? null
-    : spawn(
-        process.execPath,
-        [
-          require.resolve(resolve("node_modules/next/dist/bin/next")),
-          "dev",
-          "--webpack",
-          "-p",
-          "3082",
-        ],
-        { stdio: ["ignore", log, log], env: { ...process.env, NODE_ENV: "development" } },
-      );
+    : spawn("npm", ["run", "start", "--", "-p", "3082"], {
+        stdio: ["ignore", log, log],
+        env: { ...process.env, NODE_ENV: "production" },
+      });
   let browser;
   try {
     if (server)
@@ -35,7 +26,7 @@ await (async () => {
           if ((await fetch(`${base}/demo/command-center/northline-roofing/work`)).status === 200)
             break;
         } catch {
-          /* Wait for the local development server. */
+          /* Wait for the local production server. */
         }
         await new Promise((r) => setTimeout(r, 1000));
       }
@@ -54,7 +45,23 @@ await (async () => {
       await page.goto(`${base}/demo/command-center/northline-roofing/work`, {
         waitUntil: "networkidle",
       });
+      await page.getByRole("heading", { name: "Work", exact: true }).waitFor();
       await page.locator("[data-source-type=task]").first().waitFor();
+      // Record settled controls, rather than a transient route-entry frame.
+      // Leave the independent navigation and motion assertions unchanged.
+      await page.waitForFunction(
+        () =>
+          ['[role="search"]', '[aria-label="Workflow layout"]'].every((selector) => {
+            let node = document.querySelector(selector);
+            if (!node?.checkVisibility({ visibilityProperty: true })) return false;
+            for (; node; node = node.parentElement)
+              if (Number(getComputedStyle(node).opacity) < 0.999) return false;
+            return true;
+          }),
+        undefined,
+        { timeout: 2000 },
+      );
+      assert.equal(await page.getByLabel("Ownership", { exact: true }).inputValue(), "me");
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
       const boxes = await page.locator("[role=search] .admin-field").evaluateAll((xs) =>
         xs.map((x) => ({
@@ -100,14 +107,18 @@ await (async () => {
       }
       if (width === 1440) {
         await page.getByRole("button", { name: /^Appearance:/ }).click();
-        await page.getByRole("radio", { name: /^Studio/ }).click();
+        await page.getByRole("radio", { name: /^Operator/ }).click();
         await page.getByRole("dialog").waitFor({ state: "hidden" });
       }
       const search = page.getByLabel("Search tasks", { exact: true });
       await search.fill("NO_MATCH_EXPECTED");
-      await page.getByText("No tasks match these filters.", { exact: true }).waitFor();
-      await page.getByRole("button", { name: "Reset filters", exact: true }).click();
+      await page
+        .getByText("No open tasks assigned to you in this view.", { exact: true })
+        .waitFor();
+      await search.fill("");
+      // Clearing the search preserves the default My work ownership filter.
       await page.locator("[data-source-type=task]").first().waitFor();
+      assert.equal(await page.getByLabel("Ownership", { exact: true }).inputValue(), "me");
       const first = page.getByRole("button", { name: /^Open task / }).first();
       await first.focus();
       await page.keyboard.press("Enter");
@@ -144,8 +155,21 @@ await (async () => {
       await page.getByRole("button", { name: "Filters (1)", exact: true }).click();
       assert.equal(await page.getByLabel("Filter by stage").isVisible(), false);
       await page.getByRole("button", { name: "Reset filters", exact: true }).click();
-      await page.getByRole("button", { name: "List view", exact: true }).click();
-      await page.getByRole("button", { name: "Board view", exact: true }).click();
+      const layout = page.getByRole("group", { name: "Workflow layout", exact: true });
+      await layout.getByRole("button", { name: "List", exact: true }).click();
+      assert.equal(
+        await layout
+          .getByRole("button", { name: "List", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      await layout.getByRole("button", { name: "Board", exact: true }).click();
+      assert.equal(
+        await layout
+          .getByRole("button", { name: "Board", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
       await page.getByText("View options", { exact: true }).click();
       await page.getByRole("button", { name: "Customize", exact: true }).click();
       await page.getByRole("button", { name: "Done", exact: true }).click();
@@ -176,6 +200,13 @@ await (async () => {
       await page.goto(`${base}/demo/command-center/northline-roofing/contacts`, {
         waitUntil: "networkidle",
       });
+      await page.locator("[data-record-row] a").first().waitFor();
+      if (width === 1440 && updateDocs)
+        await page.screenshot({ path: resolve("public/images/docs/contacts/overview.png") });
+      await page
+        .getByRole("navigation", { name: "Contact views", exact: true })
+        .getByRole("link", { name: "Website requests", exact: true })
+        .click();
       const from = page.getByLabel("From date", { exact: true });
       const to = page.getByLabel("To date", { exact: true });
       await from.waitFor();
@@ -194,11 +225,6 @@ await (async () => {
         style: "nextjs-portal { visibility: hidden; }",
         path: `${out}/contacts-${width}.png`,
       });
-      if (width === 1440 && updateDocs)
-        await page.screenshot({
-          style: "nextjs-portal { visibility: hidden; }",
-          path: resolve("public/images/docs/contacts/overview.png"),
-        });
       await page.goto(
         `${base}/demo/command-center/northline-roofing/contacts/lena.walsh%40northlineroofing.example`,
         { waitUntil: "networkidle" },

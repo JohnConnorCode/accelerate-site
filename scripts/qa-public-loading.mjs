@@ -51,7 +51,7 @@ try {
       );
       assert.equal(
         await page
-          .locator('link[rel="preload"][as="image"][imagesrcset*="slide-today-paper"]')
+          .locator('link[rel="preload"][as="image"][imagesrcset*="/images/open-source/slide-"]')
           .count(),
         0,
         "The lower homepage gallery must not preload its screenshots",

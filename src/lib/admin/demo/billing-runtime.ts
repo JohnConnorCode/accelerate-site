@@ -30,7 +30,7 @@ export async function handleDemoBilling(
   )
     return null;
   if (!modules["stripe-invoicing"])
-    throw new Error("Stripe invoicing is disabled in this fictional workspace.");
+    throw new Error("Stripe invoicing is disabled in this demo workspace.");
   const respond = (value: unknown) => Response.json({ ...(value as object), simulated: true });
   if (!state.billing) {
     const paid = state.invoices.find((item) => item.receipt.status === "paid")!;
@@ -132,7 +132,7 @@ export async function handleDemoBilling(
     } else {
       const payment = billing.payments.find((item) => item.id === command.chargeId);
       if (!payment?.refundable || command.amount > payment.captured - payment.refunded)
-        throw new Error("Choose a refundable fictional workspace payment and an available amount.");
+        throw new Error("Choose a refundable demo workspace payment and an available amount.");
       snapshot = { chargeId: payment.id, captured: payment.captured, refunded: payment.refunded };
       review = {
         Operation: "Refund payment",

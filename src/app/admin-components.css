@@ -2,26 +2,6 @@
    ADMIN OPERATIONS SYSTEM
    Shared geometry and interaction recipes; themes own visual expression.
    ======================================== */
-:is(
-  .admin-shell,
-  .admin-overlay-token-scope,
-  body.admin-dialog-open,
-  body.admin-notifications-open
-) {
-  --white-primary: var(--admin-ink);
-  --white-secondary: var(--admin-muted);
-  --white-muted: var(--admin-muted);
-  --bg-base: var(--admin-canvas);
-  --bg-elevated: var(--admin-surface);
-  --bg-subtle: var(--admin-surface-subtle);
-  --border-glass: var(--admin-border);
-  --border-glass-hover: var(--admin-accent);
-  --gold-base: var(--admin-accent);
-  --gold-light: var(--admin-accent);
-  --gold-champagne: var(--admin-accent);
-  --heading-color: var(--admin-ink);
-  --display: var(--admin-font);
-}
 .admin-shell {
   min-height: 100dvh;
   color: var(--admin-ink);
@@ -320,8 +300,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   scrollbar-gutter: stable;
 }
 .admin-nav-brand {
-  --gold-base: var(--admin-nav-brand-color) !important;
-  --heading-color: var(--admin-nav-ink) !important;
 }
 .admin-nav-control,
 .admin-nav-utility,
@@ -606,14 +584,14 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 /* Retained GlassCard consumers use the same theme surface material. */
 .admin-shell .glass,
 .admin-shell .glass-prominent,
-.admin-shell .glass-gold {
+.admin-shell .glass-emphasis {
   background: var(--admin-surface-fill);
   border-color: transparent;
   box-shadow: var(--admin-shadow);
   -webkit-backdrop-filter: var(--admin-surface-filter);
   backdrop-filter: var(--admin-surface-filter);
 }
-.admin-shell .glass-gold {
+.admin-shell .glass-emphasis {
   background: color-mix(in srgb, var(--admin-surface) 94%, var(--admin-accent) 6%);
 }
 
@@ -656,26 +634,10 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   background-color: var(--admin-action);
   color: var(--admin-action-ink);
 }
-[data-theme="signal"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="bg-[#d7ff5f]"],
-[data-theme="studio"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="bg-[#d7ff5f]"],
-[data-theme="frost"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="bg-[#d7ff5f]"] {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open) [class~="bg-[#d7ff5f]"] {
   background-color: var(--admin-accent);
 }
-[data-theme="signal"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="text-[#d7ff5f]"],
-[data-theme="studio"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="text-[#d7ff5f]"],
-[data-theme="frost"]
-  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
-  [class~="text-[#d7ff5f]"] {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open) [class~="text-[#d7ff5f]"] {
   color: var(--admin-accent);
 }
 
@@ -724,9 +686,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 .admin-page-introduction-compact {
   padding-block: 0;
-}
-.admin-page-introduction-compact .admin-page-title {
-  font-size: 1.75rem;
 }
 /* A small anchored popover, not a full-width band: the trigger is sized
    like any other secondary header action. The panel portals to
@@ -860,7 +819,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   border-radius: 999px;
   color: var(--admin-accent);
   background: color-mix(in srgb, var(--admin-accent) 14%, transparent);
-  font-size: 0.66rem;
+  font-size: 11px;
   font-weight: 750;
 }
 .admin-help-links {
@@ -947,13 +906,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-@media (pointer: coarse) {
-  .admin-field,
-  .admin-button {
-    min-height: max(44px, var(--admin-control-height));
-  }
 }
 
 /* One coordinated dropdown affordance for every native admin select, in all
@@ -1653,15 +1605,28 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   font-size: var(--admin-text-body);
   border-collapse: collapse;
 }
+/* The one table anatomy. Header labels follow the mode's label tokens, so
+   Paper and Night read in sentence case and Accelerate and Operator in mono
+   caps. Pages set columns and content only, never cell padding or type. */
 .admin-table th {
   padding: var(--admin-space-2) var(--admin-panel-padding);
+  border-bottom: 1px solid var(--admin-border);
   text-align: left;
-  font: 600 var(--admin-text-label)/1.4 var(--admin-font);
+  vertical-align: bottom;
+  white-space: nowrap;
+  font: 600 0.75rem/1.4 var(--admin-label-font, var(--admin-font));
+  letter-spacing: var(--admin-label-tracking, 0.04em);
+  text-transform: var(--admin-label-transform, uppercase);
   color: var(--admin-muted);
   background: var(--admin-surface-subtle);
 }
 .admin-table td {
   padding: var(--admin-row-padding) var(--admin-panel-padding);
+  vertical-align: middle;
+  line-height: 1.4;
+}
+.admin-table :is(th, td).text-right {
+  text-align: right;
 }
 .admin-table tbody tr + tr {
   border-top: 1px solid var(--admin-border);
@@ -1678,7 +1643,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 .admin-stat-value {
   font-size: 2rem;
   font-weight: 650;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.032em;
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
 }
@@ -1703,6 +1668,9 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   border-radius: var(--admin-control-radius);
   padding: var(--admin-space-2) var(--admin-space-4);
   font: 600 var(--admin-text-body)/1.4 var(--admin-font);
+  text-transform: none;
+  letter-spacing: normal;
+  gap: var(--admin-space-2);
   transition:
     color var(--admin-motion-fast) var(--admin-motion-ease),
     background-color var(--admin-motion-fast) var(--admin-motion-ease),
@@ -1986,4 +1954,46 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 }
 .admin-toolbar-date-range .admin-field {
   min-width: 0;
+}
+
+/* Keep tap targets after the shared recipes, so a later density or mode rule
+   cannot shrink a control on touch devices or phone-sized viewports. */
+@media (pointer: coarse), (max-width: 639px) {
+  .admin-field,
+  .admin-button,
+  .admin-icon-button,
+  :is(.admin-shell, .admin-overlay-token-scope) [data-ui-button] {
+    min-height: max(44px, var(--admin-control-height));
+  }
+  .admin-icon-button {
+    min-width: max(44px, var(--admin-control-height));
+  }
+}
+
+:is(.admin-shell, .admin-overlay-token-scope) :is(.ui-field-group, .ui-toast) {
+  --control-ink: var(--admin-ink);
+  --control-muted: var(--admin-muted);
+  --control-surface: var(--admin-surface-subtle);
+  --control-border: var(--admin-border);
+  --control-action: var(--admin-action);
+  --control-danger: var(--admin-danger);
+  --control-success: var(--admin-success);
+}
+:is(.admin-shell, .admin-overlay-token-scope) [data-ui-button]::before {
+  display: none;
+}
+:is(.admin-shell, .admin-overlay-token-scope) .ui-toast {
+  color: var(--admin-ink);
+  background: var(--admin-surface);
+}
+
+[data-stat-density="compact"] .admin-stat-value {
+  margin-top: var(--admin-space-2);
+  font-size: clamp(1.35rem, 6vw, 1.85rem);
+}
+.admin-nav-brand .logo-mark {
+  fill: var(--admin-nav-brand-color);
+}
+.admin-nav-brand .logo-letter {
+  color: var(--admin-nav-ink);
 }

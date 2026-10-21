@@ -109,7 +109,7 @@ export function HowItWorks() {
             label="How It Works"
             heading={
               <>
-                From Strategy Call to <span className="text-gold">Live Systems</span>, Fast
+                From Strategy Call to <span className="text-[var(--fg)]">Live Systems</span>, Fast
               </>
             }
             className="mb-20"
@@ -123,8 +123,7 @@ export function HowItWorks() {
             data-timeline-rail
             className="absolute left-6 sm:left-8 top-0 bottom-0 w-px origin-top"
             style={{
-              background:
-                "linear-gradient(to bottom, var(--gold-base), rgba(var(--accent-rgb), 0.15))",
+              background: "linear-gradient(to bottom, var(--fg), rgba(var(--accent-rgb), 0.15))",
             }}
           />
 
@@ -137,14 +136,14 @@ export function HowItWorks() {
                   {/* Dot node on the rail */}
                   <div
                     data-timeline-dot
-                    className="absolute left-[14px] sm:left-[22px] top-2 w-6 h-6 rounded-full border-2 border-gold bg-[var(--bg-section-deep)] flex items-center justify-center"
+                    className="absolute left-[14px] sm:left-[22px] top-2 w-6 h-6 rounded-full border-2 border-[var(--fg)] bg-[var(--bg-section-deep)] flex items-center justify-center"
                   >
-                    <div className="w-2 h-2 rounded-full bg-[var(--gold-light)]" />
+                    <div className="w-2 h-2 rounded-full bg-[var(--fg)]" />
                   </div>
 
                   {/* Large faded step number */}
                   <span
-                    className="absolute left-14 sm:left-20 -top-4 text-gold-gradient font-display text-5xl sm:text-7xl font-bold leading-none opacity-[0.07] pointer-events-none select-none"
+                    className="absolute left-14 sm:left-20 -top-4 text-foreground font-display text-5xl sm:text-7xl font-bold leading-none opacity-[0.07] pointer-events-none select-none"
                     aria-hidden="true"
                   >
                     {step.number}
@@ -153,7 +152,7 @@ export function HowItWorks() {
                   {/* Content */}
                   <div className="relative">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <Icon className="w-4 h-4 text-gold" aria-hidden="true" />
+                      <Icon className="w-4 h-4 text-[var(--fg)]" aria-hidden="true" />
                       <h3 className="text-xl font-semibold text-heading">{step.title}</h3>
                     </div>
                     <p className="text-white-muted leading-relaxed max-w-lg">{step.description}</p>

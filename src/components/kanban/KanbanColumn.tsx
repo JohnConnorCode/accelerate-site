@@ -480,7 +480,7 @@ export function KanbanColumn<T>({
             return (
               <span
                 className={cn(
-                  "rounded-full px-2 py-1 font-mono text-[10px] tabular-nums",
+                  "rounded-full px-2 py-1 font-mono text-[11px] tabular-nums",
                   overLimit
                     ? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
                     : "bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]",

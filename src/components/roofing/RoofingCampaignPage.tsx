@@ -64,13 +64,14 @@ export function RoofingCampaignPage() {
           >
             <motion.p
               variants={reveal}
-              className="roofing-hero-reveal mb-7 font-mono text-[10px] uppercase tracking-[0.2em] text-[#151611]/68"
+              className="roofing-hero-reveal mb-7 font-mono text-[11px] uppercase tracking-[0.2em] text-[#151611]/68"
             >
               For established roofing + exterior operators
             </motion.p>
             <motion.h1
               variants={reveal}
-              className="roofing-hero-reveal max-w-[800px] text-balance font-display text-[clamp(3.25rem,8.4vw,7.2rem)] font-medium leading-[0.88] tracking-[-0.065em]"
+              /* brand-system: allow (client campaign brand) */
+              className="roofing-hero-reveal max-w-[800px] text-balance font-display text-[clamp(3.25rem,8.4vw,7.2rem)] font-medium leading-[0.88] tracking-[-0.035em]"
             >
               Your next job may already be in the pipeline.
             </motion.h1>
@@ -92,7 +93,7 @@ export function RoofingCampaignPage() {
               >
                 Find the best first use <ArrowRight className="size-4" />
               </button>
-              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#151611]/68">
+              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#151611]/68">
                 Free · 30 minutes · written findings
               </span>
             </motion.div>
@@ -105,10 +106,10 @@ export function RoofingCampaignPage() {
             className="relative rounded-[28px] bg-[#151611] p-5 text-white shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_30px_80px_rgba(0,0,0,0.2)] sm:p-7"
           >
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/72">
+              <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-white/72">
                 Revenue path
               </span>
-              <span className="rounded-full bg-[var(--acid)]/12 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--acid)]">
+              <span className="rounded-full bg-[var(--acid)]/12 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.15em] text-[var(--acid)]">
                 Managed by Accelerate
               </span>
             </div>
@@ -123,7 +124,7 @@ export function RoofingCampaignPage() {
                   key={item}
                   className="flex items-center gap-3 rounded-xl bg-white/[0.045] px-3 py-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.055)]"
                 >
-                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-white/6 font-mono text-[9px] tabular-nums text-white/72">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-white/6 font-mono text-[10.5px] tabular-nums text-white/72">
                     0{index + 1}
                   </span>
                   <span className="text-sm text-white/72">{item}</span>
@@ -149,11 +150,11 @@ export function RoofingCampaignPage() {
 
       <section className="bg-[#151611] py-24 text-white sm:py-32">
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--acid)]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--acid)]">
             The managed system
           </p>
           <div className="mt-5 grid gap-8 lg:grid-cols-[.85fr_1.15fr]">
-            <h2 className="text-balance font-display text-5xl font-medium leading-[0.96] tracking-[-0.055em] sm:text-6xl">
+            <h2 className="text-balance font-display text-5xl font-medium leading-[0.96] tracking-[-0.035em] sm:text-6xl">
               Every inquiry stays in motion.
             </h2>
             <p className="max-w-xl text-pretty text-lg leading-8 text-white/58 lg:justify-self-end">
@@ -167,7 +168,7 @@ export function RoofingCampaignPage() {
               <article key={title} className="bg-[#151611] p-6 sm:p-7">
                 <div className="flex items-center justify-between">
                   <Icon className="size-5 text-[var(--acid)]" />
-                  <span className="font-mono text-[10px] tabular-nums text-white/72">{n}</span>
+                  <span className="font-mono text-[11px] tabular-nums text-white/72">{n}</span>
                 </div>
                 <h3 className="mt-12 font-display text-2xl font-medium tracking-[-0.03em]">
                   {title}
@@ -182,10 +183,10 @@ export function RoofingCampaignPage() {
       <section className="border-b border-black/10 py-24 sm:py-32">
         <div className="mx-auto grid max-w-[1180px] gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:items-center">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#151611]/68">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#151611]/68">
               Anonymized operator outcome
             </p>
-            <h2 className="mt-5 max-w-xl text-balance font-display text-5xl font-medium leading-[0.96] tracking-[-0.055em] sm:text-6xl">
+            <h2 className="mt-5 max-w-xl text-balance font-display text-5xl font-medium leading-[0.96] tracking-[-0.035em] sm:text-6xl">
               Faster response. Consistent follow-up. Fewer invisible gaps.
             </h2>
           </div>
@@ -211,10 +212,10 @@ export function RoofingCampaignPage() {
       <section id="qualify" className="scroll-mt-0 bg-[#ebeae4] py-24 sm:py-32">
         <div className="mx-auto grid max-w-[1180px] gap-10 px-5 sm:px-8 lg:grid-cols-[.72fr_1.28fr] lg:items-start">
           <div className="lg:sticky lg:top-8">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#151611]/68">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#151611]/68">
               Free Roofing AI Strategy Session
             </p>
-            <h2 className="mt-5 text-balance font-display text-5xl font-medium leading-[0.96] tracking-[-0.055em]">
+            <h2 className="mt-5 text-balance font-display text-5xl font-medium leading-[0.96] tracking-[-0.035em]">
               Leave with the first fix in writing.
             </h2>
             <div className="mt-8 space-y-4">
@@ -232,7 +233,7 @@ export function RoofingCampaignPage() {
                 </p>
               ))}
             </div>
-            <p className="mt-8 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.15em] text-[#151611]/68">
+            <p className="mt-8 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.15em] text-[#151611]/68">
               <ShieldCheck className="size-4" /> You talk to John, not a sales rep
             </p>
           </div>
@@ -243,10 +244,10 @@ export function RoofingCampaignPage() {
       <section className="bg-[#d7ff5f] py-20">
         <div className="mx-auto flex max-w-[1180px] flex-col items-start justify-between gap-7 px-5 sm:px-8 lg:flex-row lg:items-center">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#151611]/68">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#151611]/68">
               One useful conversation
             </p>
-            <h2 className="mt-3 text-balance font-display text-4xl font-medium tracking-[-0.045em] sm:text-5xl">
+            <h2 className="mt-3 text-balance font-display text-4xl font-medium tracking-[-0.035em] sm:text-5xl">
               Choose the right first use before buying anything.
             </h2>
           </div>

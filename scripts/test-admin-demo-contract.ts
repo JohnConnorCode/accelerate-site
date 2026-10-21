@@ -244,7 +244,7 @@ assert.doesNotMatch(
 );
 assert.match(
   demoRuntime,
-  /This fictional workspace has no handler for this request/,
+  /This demo workspace has no handler for this request/,
   "Unknown demo admin APIs must fail closed with an explicit error",
 );
 assert.match(

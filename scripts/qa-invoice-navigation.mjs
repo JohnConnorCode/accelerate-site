@@ -167,7 +167,7 @@ try {
       assert.ok(page.url().startsWith(root + "/invoicing?view=create"));
 
       await page.goto(root + "/plugins");
-      const plugin = page.locator('[data-plugin="stripe-invoicing"]');
+      const plugin = page.locator('[data-module-card="stripe-invoicing"]');
       await plugin.getByRole("button", { name: /^Disable / }).click();
       await plugin.getByRole("button", { name: /^Enable / }).click({ trial: true });
       const disabledSearch = await search(page, "invoice");

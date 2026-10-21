@@ -78,7 +78,7 @@ export function WhyAccelerate() {
             label="Why Us"
             heading={
               <>
-                Strategy + <span className="text-gold">Systems</span> + Management = Growth
+                Strategy + <span className="text-[var(--fg)]">Systems</span> + Management = Growth
               </>
             }
             description="We build and run AI systems for your business. Strategy, implementation, and ongoing management, all from one team that actually understands your operations."
@@ -102,8 +102,8 @@ export function WhyAccelerate() {
                 >
                   <div className="p-6 sm:p-8 md:p-10 flex flex-col h-full min-h-[160px] sm:min-h-[200px]">
                     <div className="flex items-center gap-4 mb-5">
-                      <div className="w-14 h-14 rounded-xl bg-[var(--glow-soft)] flex items-center justify-center shrink-0">
-                        <Icon className="w-7 h-7 text-gold" aria-hidden="true" />
+                      <div className="w-14 h-14 rounded-xl bg-[transparent] flex items-center justify-center shrink-0">
+                        <Icon className="w-7 h-7 text-[var(--fg)]" aria-hidden="true" />
                       </div>
                       <h3 className="text-xl font-semibold text-heading">{item.title}</h3>
                     </div>
@@ -129,7 +129,7 @@ export function WhyAccelerate() {
                   padding="lg"
                   className="overflow-hidden"
                 >
-                  <Icon className="w-6 h-6 text-gold mb-4" aria-hidden="true" />
+                  <Icon className="w-6 h-6 text-[var(--fg)] mb-4" aria-hidden="true" />
                   <h3 className="text-base font-semibold text-heading mb-2">{item.title}</h3>
                   <p className="text-sm text-white-muted leading-relaxed">{item.description}</p>
                 </GlassCard>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { homeStatementContent } from "@/content/site-studio/home";
 import type { HomeStatementContent } from "@/lib/site-studio/native-templates";
+import { homeActivity } from "@/content/home-activity";
+import { ActivityStream } from "@/components/ui/ActivityStream";
 import { Reveal } from "./reveal";
 
 /** The original hero explanation, held for the next scroll beat. */
@@ -30,13 +32,18 @@ export function HeroStatement({
             </Link>
           </nav>
         </div>
-        <div>
-          <p className="hero-statement-copy" data-home-step="1">
-            {content.heading}
-          </p>
-          <p className="hero-statement-detail" data-home-step="2">
-            {content.body}
-          </p>
+        <div className="hero-statement-main">
+          <div>
+            <p className="hero-statement-copy" data-home-step="1">
+              {content.heading}
+            </p>
+            <p className="hero-statement-detail" data-home-step="2">
+              {content.body}
+            </p>
+          </div>
+          <div data-home-step="3">
+            <ActivityStream {...homeActivity} />
+          </div>
         </div>
       </div>
     </Reveal>

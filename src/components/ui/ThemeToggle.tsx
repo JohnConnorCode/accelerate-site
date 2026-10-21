@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ADMIN_APPEARANCES, canonicalAppearance } from "@/lib/admin/appearances";
 
 interface ThemeToggleProps {
   /** The sidebar treatment uses the existing global theme preference but
@@ -16,7 +17,8 @@ export function ThemeToggle({ variant = "default", collapsed = false }: ThemeTog
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
   const adminSidebar = variant === "admin-sidebar";
-  const isLight = resolvedTheme !== "dark";
+  const appearance = canonicalAppearance(resolvedTheme);
+  const isLight = !ADMIN_APPEARANCES.some((mode) => mode.id === appearance && mode.mode === "dark");
   const nextLabel = `Switch to ${isLight ? "dark" : "light"} mode`;
 
   const sizeClass = adminSidebar

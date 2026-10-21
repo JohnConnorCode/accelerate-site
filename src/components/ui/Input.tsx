@@ -14,9 +14,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const controlId = id || `input-${generatedId}`;
     const errorId = `${controlId}-error`;
     return (
-      <div className="w-full">
+      <div className="ui-field-group w-full">
         {label && (
-          <label htmlFor={controlId} className="block text-sm text-white-secondary mb-2">
+          <label htmlFor={controlId} className="block text-sm text-[var(--control-muted)] mb-2">
             {label}
           </label>
         )}
@@ -28,18 +28,18 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           aria-invalid={error ? true : props["aria-invalid"]}
           className={cn(
             "w-full px-4 py-3 rounded-lg",
-            "bg-bg-subtle border border-border-glass",
-            "text-white-primary placeholder:text-white-muted",
-            "focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30",
+            "bg-[var(--control-surface)] border border-[var(--control-border)]",
+            "text-[var(--control-ink)] placeholder:text-[var(--control-muted)]",
+            "focus:outline-none focus:border-[var(--control-action)] focus:ring-1 focus:ring-[var(--control-action)]/30",
             "transition-[border-color,box-shadow] duration-200",
             error &&
-              "border-[var(--error)] focus:border-[var(--error)] focus:ring-[var(--error)]/30",
+              "border-[var(--control-danger)] focus:border-[var(--control-danger)] focus:ring-[var(--control-danger)]/30",
             className,
           )}
           {...props}
         />
         {error && (
-          <p id={errorId} className="mt-1.5 text-sm text-[var(--error)]">
+          <p id={errorId} className="mt-1.5 text-sm text-[var(--control-danger)]">
             {error}
           </p>
         )}

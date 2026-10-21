@@ -184,7 +184,7 @@ export function SearchDialog({
                     aria-label="Search query"
                     className="h-16 w-full bg-transparent font-[var(--body)] text-[17px] text-[var(--fg)] outline-none placeholder:text-[var(--soft)]"
                   />
-                  <kbd className="hidden shrink-0 rounded-md border border-[var(--rule)] px-1.5 py-0.5 font-[var(--util)] text-[10px] uppercase tracking-[0.08em] text-[var(--soft)] sm:block dark:border-[var(--rule-dark)]">
+                  <kbd className="hidden shrink-0 rounded-md border border-[var(--rule)] px-1.5 py-0.5 font-[var(--util)] text-[11px] uppercase tracking-[0.08em] text-[var(--soft)] sm:block dark:border-[var(--rule-dark)]">
                     Esc
                   </kbd>
                 </div>
@@ -209,7 +209,7 @@ export function SearchDialog({
 
                   {!failed && !query.trim() && (
                     <div className="px-5 py-6">
-                      <p className="font-[var(--util)] text-[10px] uppercase tracking-[0.14em] text-[var(--soft)]">
+                      <p className="font-[var(--util)] text-[11px] uppercase tracking-[0.14em] text-[var(--soft)]">
                         Try
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -247,7 +247,7 @@ export function SearchDialog({
 
                   {grouped.map((bucket) => (
                     <div key={bucket.group} className="py-2">
-                      <p className="px-5 py-1.5 font-[var(--util)] text-[10px] uppercase tracking-[0.14em] text-[var(--soft)]">
+                      <p className="px-5 py-1.5 font-[var(--util)] text-[11px] uppercase tracking-[0.14em] text-[var(--soft)]">
                         {bucket.group}
                       </p>
                       {bucket.items.map((entry) => {
@@ -287,7 +287,7 @@ export function SearchDialog({
                   ))}
                 </div>
 
-                <div className="hidden items-center gap-4 border-t border-[var(--rule)] px-5 py-2.5 font-[var(--util)] text-[10px] uppercase tracking-[0.1em] text-[var(--soft)] sm:flex dark:border-[var(--rule-dark)]">
+                <div className="hidden items-center gap-4 border-t border-[var(--rule)] px-5 py-2.5 font-[var(--util)] text-[11px] uppercase tracking-[0.1em] text-[var(--soft)] sm:flex dark:border-[var(--rule-dark)]">
                   <span className="flex items-center gap-1">
                     <ArrowUp className="size-3" />
                     <ArrowDown className="size-3" /> Move

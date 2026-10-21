@@ -132,7 +132,7 @@ export function MobileNav({
                     <span className="flex items-baseline gap-4">
                       <span
                         aria-hidden="true"
-                        className="font-mono text-[10px] tabular-nums tracking-[0.14em] text-[var(--soft)]"
+                        className="font-mono text-[11px] tabular-nums tracking-[0.14em] text-[var(--soft)]"
                       >
                         {String(currentIndex + 1).padStart(2, "0")}
                       </span>
@@ -186,7 +186,7 @@ export function MobileNav({
                   >
                     <span
                       aria-hidden="true"
-                      className="font-mono text-[10px] tabular-nums tracking-[0.14em] text-[var(--soft)]"
+                      className="font-mono text-[11px] tabular-nums tracking-[0.14em] text-[var(--soft)]"
                     >
                       {String(currentIndex + 1).padStart(2, "0")}
                     </span>
@@ -216,7 +216,7 @@ export function MobileNav({
           </Link>
           <div className="mt-5 flex items-center justify-between">
             {showThemeToggle && <ThemeToggle />}
-            <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--soft)]">
+            <span className="font-mono text-[11px] tracking-[0.14em] uppercase text-[var(--soft)]">
               Accelerate
             </span>
           </div>

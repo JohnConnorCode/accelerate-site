@@ -249,12 +249,7 @@ if (mode === "diagnose-native") {
           checks.push("duplicate-email-refused");
         }
 
-        await page
-          .getByText(name, { exact: true })
-          .locator("..")
-          .locator("..")
-          .getByRole("link", { name: "Open history" })
-          .click();
+        await page.getByRole("link", { name: `Open ${name}`, exact: true }).click();
         await page.getByRole("button", { name: "Add follow-up" }).click();
         const taskDialog = page.getByRole("dialog", { name: "Add a follow-up" });
         const taskTitle = `Call ${name} about trial`;
@@ -401,9 +396,11 @@ if (mode === "diagnose-native") {
 
         if (label === "mobile") await page.getByRole("button", { name: "Open More" }).click();
         await page.getByRole("button", { name: "Sign out" }).click();
-        await page.waitForURL((url) => url.pathname === "/admin/login");
+        await page.waitForURL((url) => url.pathname === "/admin/login", { waitUntil: "commit" });
+        await page.getByRole("button", { name: "Forgot password?", exact: true }).waitFor();
         await page.goto(`${base}/admin/contacts`);
-        await page.waitForURL((url) => url.pathname.includes("/login"));
+        await page.waitForURL((url) => url.pathname.includes("/login"), { waitUntil: "commit" });
+        await page.getByRole("button", { name: "Forgot password?", exact: true }).waitFor();
         checks.push(`${label}-sign-out-protects-workspace`);
 
         const existingMail = new Set((await mail("messages")).messages.map((item) => item.ID));

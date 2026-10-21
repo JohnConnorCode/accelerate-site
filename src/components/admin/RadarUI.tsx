@@ -5,7 +5,7 @@ export const label = "block text-xs font-semibold text-[var(--admin-muted)]";
 export const words = (value: string) => value.replaceAll("_", " ");
 export function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex rounded-full bg-[var(--admin-surface-subtle)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--admin-muted)]">
+    <span className="inline-flex rounded-full bg-[var(--admin-surface-subtle)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--admin-muted)]">
       {children}
     </span>
   );

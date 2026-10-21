@@ -80,7 +80,7 @@ export default async function ProposalPage({
       {/* Header */}
       <header className="border-b border-border-glass">
         <div className="max-w-4xl mx-auto px-6 py-8">
-          <p className="text-xs text-gold-light uppercase tracking-wider mb-2">
+          <p className="text-xs text-[var(--fg)] uppercase tracking-wider mb-2">
             Proposal for {proposal.client_name}
           </p>
           <h1 className="text-3xl font-display font-bold text-white-primary mb-2">
@@ -116,7 +116,7 @@ export default async function ProposalPage({
                 <ul className="mt-3 space-y-2">
                   {section.items.map((item, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-white-secondary">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--gold-light)] mt-1.5 shrink-0" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--fg)] mt-1.5 shrink-0" />
                       {item}
                     </li>
                   ))}
@@ -180,7 +180,7 @@ export default async function ProposalPage({
         <footer className="mt-16 pt-8 border-t border-border-glass text-center">
           <p className="text-sm text-white-muted">
             Powered by{" "}
-            <Link href="/" className="text-gold-light hover:text-gold transition-colors">
+            <Link href="/" className="text-[var(--fg)] hover:text-[var(--fg)] transition-colors">
               Accelerate
             </Link>
           </p>

@@ -235,8 +235,8 @@ export default function ProposalsPage() {
         {generating && (
           <GlassCard hover="none" padding="md" className="mb-4">
             <div className="flex items-center gap-3">
-              <Loader2 className="h-4 w-4 animate-spin text-gold-light" />
-              <p className="text-sm text-white-secondary">Generating proposal with AI...</p>
+              <Loader2 className="h-4 w-4 animate-spin text-[var(--admin-ink)]" />
+              <p className="text-sm text-[var(--admin-muted)]">Generating proposal with AI...</p>
             </div>
           </GlassCard>
         )}
@@ -257,25 +257,13 @@ export default function ProposalsPage() {
                   <div className="overflow-x-auto">
                     <table className="admin-table w-full text-sm">
                       <thead>
-                        <tr className="border-b border-border-glass">
-                          <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
-                            Title
-                          </th>
-                          <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
-                            Client
-                          </th>
-                          <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
-                            Monthly
-                          </th>
-                          <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
-                            One-Time
-                          </th>
-                          <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
-                            Status
-                          </th>
-                          <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
-                            Created
-                          </th>
+                        <tr>
+                          <th>Title</th>
+                          <th>Client</th>
+                          <th className="hidden 2xl:table-cell">Monthly</th>
+                          <th className="hidden 2xl:table-cell">One-Time</th>
+                          <th>Status</th>
+                          <th className="hidden 2xl:table-cell">Created</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -288,7 +276,7 @@ export default function ProposalsPage() {
                             tabIndex={0}
                             aria-label={`Open ${proposal.title}`}
                             aria-selected={selectedProposal?.id === proposal.id}
-                            className="cursor-pointer border-b border-border-glass transition-colors hover:bg-white/[0.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] last:border-b-0"
+                            className="cursor-pointer border-b border-[var(--admin-border)] transition-colors hover:bg-[var(--admin-hover-tint)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] last:border-b-0"
                             onClick={(event) => {
                               if (isInteractiveTarget(event.target)) return;
                               openProposal(proposal);
@@ -301,22 +289,20 @@ export default function ProposalsPage() {
                               }
                             }}
                           >
-                            <td className="px-3 py-2.5 font-medium text-white-primary">
+                            <td className="font-medium text-[var(--admin-ink)]">
                               {proposal.title}
                             </td>
-                            <td className="px-3 py-2.5 text-white-secondary">
-                              {proposal.client_name}
-                            </td>
-                            <td className="hidden px-3 py-2.5 text-emerald-400 2xl:table-cell">
+                            <td className="text-[var(--admin-muted)]">{proposal.client_name}</td>
+                            <td className="hidden text-emerald-400 2xl:table-cell">
                               ${proposal.total_monthly?.toLocaleString() || "0"}/mo
                             </td>
-                            <td className="hidden px-3 py-2.5 text-white-secondary 2xl:table-cell">
+                            <td className="hidden text-[var(--admin-muted)] 2xl:table-cell">
                               ${proposal.total_one_time?.toLocaleString() || "0"}
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td>
                               <StatusBadge status={statusMap[proposal.status] || proposal.status} />
                             </td>
-                            <td className="hidden px-3 py-2.5 text-xs text-white-muted 2xl:table-cell">
+                            <td className="hidden text-xs text-[var(--admin-muted)] 2xl:table-cell">
                               {new Date(proposal.created_at).toLocaleDateString()}
                             </td>
                           </motion.tr>
@@ -336,19 +322,21 @@ export default function ProposalsPage() {
                   <button
                     type="button"
                     onClick={closeProposal}
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-white-muted transition-colors hover:bg-white/5 hover:text-white-primary focus-visible:outline focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] lg:hidden"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-[var(--admin-muted)] transition-colors hover:bg-[var(--admin-hover-tint)] hover:text-[var(--admin-ink)] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] lg:hidden"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
                     Back to Proposals
                   </button>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white-muted">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--admin-muted)]">
                       Selected proposal
                     </p>
-                    <h2 className="mt-1 text-lg font-semibold text-white-primary">
+                    <h2 className="mt-1 text-lg font-semibold text-[var(--admin-ink)]">
                       {selectedProposal.title}
                     </h2>
-                    <p className="text-sm text-white-muted">{selectedProposal.client_name}</p>
+                    <p className="text-sm text-[var(--admin-muted)]">
+                      {selectedProposal.client_name}
+                    </p>
                   </div>
                   <ProposalEditor
                     key={selectedProposal.id}
@@ -362,8 +350,10 @@ export default function ProposalsPage() {
                   className="hidden min-h-56 place-items-center text-center lg:grid"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-white-primary">Select a proposal</p>
-                    <p className="mt-1 text-xs text-white-muted">
+                    <p className="text-sm font-semibold text-[var(--admin-ink)]">
+                      Select a proposal
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--admin-muted)]">
                       Choose a row to edit its content, pricing, status, or share link.
                     </p>
                   </div>

@@ -316,11 +316,11 @@ export function ActionReviewDialog({
               <p className={cn("admin-eyebrow", inline && "sr-only")}>Approval queue</p>
               <span
                 className={cn(
-                  "rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
+                  "rounded-full px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider",
                   inline && "whitespace-nowrap",
                   external
                     ? "bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]"
-                    : "bg-[var(--admin-accent-soft)] text-[var(--admin-accent)]",
+                    : "bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
                 )}
               >
                 {action.action_type === "create_gmail_draft"
@@ -341,7 +341,7 @@ export function ActionReviewDialog({
             >
               {action.title}
             </h2>
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+            <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--admin-muted)]">
               {isCalendar ? "Editorial calendar" : action.action_type.replace(/_/g, " ")}
             </p>
           </div>
@@ -508,7 +508,7 @@ export function ActionReviewDialog({
                             aria-hidden="true"
                           />
                         </summary>
-                        <pre className="overflow-auto whitespace-pre-wrap break-all text-[10px]">
+                        <pre className="overflow-auto whitespace-pre-wrap break-all text-[11px]">
                           {JSON.stringify(todayPreview.data![phase], null, 2)}
                         </pre>
                       </details>
@@ -521,7 +521,7 @@ export function ActionReviewDialog({
           {layoutSummary && (
             <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
               <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                   scope
                 </dt>
                 <dd className="break-words text-xs text-[var(--admin-ink)]">
@@ -529,7 +529,7 @@ export function ActionReviewDialog({
                 </dd>
               </div>
               <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                   new order
                 </dt>
                 <dd className="break-words text-xs text-[var(--admin-ink)]">
@@ -538,7 +538,7 @@ export function ActionReviewDialog({
               </div>
               {layoutSummary.hiddenText && (
                 <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                  <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                  <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                     hidden
                   </dt>
                   <dd className="break-words text-xs text-[var(--admin-ink)]">
@@ -637,7 +637,7 @@ export function ActionReviewDialog({
               <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
                 {fields.map(([key, value]) => (
                   <div key={key} className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                    <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                    <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                       {key.replace(/_/g, " ")}
                     </dt>
                     <dd className="break-words text-xs text-[var(--admin-ink)]">{value}</dd>
@@ -648,7 +648,7 @@ export function ActionReviewDialog({
 
           {body && !invitation && !milestone && (
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                 Exact content
               </p>
               <pre className="mt-1.5 max-h-72 overflow-y-auto whitespace-pre-wrap break-words rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3 font-sans text-xs leading-6 text-[var(--admin-ink)]">
@@ -678,7 +678,7 @@ export function ActionReviewDialog({
             (!isCalendar || action.reasoning) &&
             (!isConfiguration || action.reasoning || action.description !== consequence) && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                   Why the copilot proposed this
                 </p>
                 <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">
@@ -689,7 +689,7 @@ export function ActionReviewDialog({
 
           {triageReason(action.triage) && (
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                 Why this reached you
               </p>
               <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">

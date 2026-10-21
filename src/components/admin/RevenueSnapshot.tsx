@@ -45,14 +45,14 @@ export function RevenueSnapshot({
       <GlassCard hover="none">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-gold-light" />
-            <h3 className="font-display text-sm font-semibold text-white-primary">
+            <DollarSign className="h-4 w-4 text-[var(--admin-ink)]" />
+            <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
               Revenue Snapshot
             </h3>
           </div>
           <Link
             href="/admin/revenue"
-            className="flex items-center gap-1 text-xs text-white-muted hover:text-gold-light transition-colors"
+            className="flex items-center gap-1 text-xs text-[var(--admin-muted)] hover:text-[var(--admin-ink)] transition-colors"
           >
             View details <ArrowRight className="h-3 w-3" />
           </Link>
@@ -69,29 +69,31 @@ export function RevenueSnapshot({
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-white-muted">Active Clients</p>
-                <p className="text-lg font-display font-bold text-white-primary">{activeClients}</p>
+                <p className="text-xs text-[var(--admin-muted)]">Active Clients</p>
+                <p className="text-lg font-display font-bold text-[var(--admin-ink)]">
+                  {activeClients}
+                </p>
               </div>
             </div>
           </div>
         )}
 
         <div className="admin-grid admin-grid--metrics mb-6">
-          <div className="rounded-lg bg-white/5 p-4">
-            <p className="text-xs text-white-muted mb-1">Total Pipeline</p>
+          <div className="rounded-lg bg-[var(--admin-surface-subtle)] p-4">
+            <p className="text-xs text-[var(--admin-muted)] mb-1">Total Pipeline</p>
             <p className="text-xl font-display font-bold text-[var(--admin-ink)]">
               ${totalPipelineValue.toLocaleString()}
             </p>
           </div>
-          <div className="rounded-lg bg-white/5 p-4">
-            <p className="text-xs text-white-muted mb-1">Won Revenue</p>
+          <div className="rounded-lg bg-[var(--admin-surface-subtle)] p-4">
+            <p className="text-xs text-[var(--admin-muted)] mb-1">Won Revenue</p>
             <p className="text-xl font-display font-bold text-[var(--admin-success)]">
               ${wonRevenue.toLocaleString()}
             </p>
           </div>
-          <div className="rounded-lg bg-white/5 p-4">
-            <p className="text-xs text-white-muted mb-1">Avg Deal Value</p>
-            <p className="text-xl font-display font-bold text-white-primary">
+          <div className="rounded-lg bg-[var(--admin-surface-subtle)] p-4">
+            <p className="text-xs text-[var(--admin-muted)] mb-1">Avg Deal Value</p>
+            <p className="text-xl font-display font-bold text-[var(--admin-ink)]">
               {totalPipelineValue > 0 && Object.keys(pipelineValues).length > 0
                 ? `$${Math.round(totalPipelineValue / Object.values(pipeline).reduce((a, b) => a + b, 0) || 1).toLocaleString()}`
                 : "$0"}
@@ -101,8 +103,10 @@ export function RevenueSnapshot({
 
         {/* Conversion funnel */}
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="h-3.5 w-3.5 text-white-muted" />
-          <p className="text-xs text-white-muted uppercase font-semibold">Conversion Funnel</p>
+          <TrendingUp className="h-3.5 w-3.5 text-[var(--admin-muted)]" />
+          <p className="text-xs text-[var(--admin-muted)] uppercase font-semibold">
+            Conversion Funnel
+          </p>
         </div>
         <div className="space-y-2">
           {stageData.map((stage, i) => {
@@ -115,8 +119,10 @@ export function RevenueSnapshot({
 
             return (
               <div key={stage.key} className="flex items-center gap-3">
-                <span className="text-xs text-white-muted w-20 shrink-0">{stage.label}</span>
-                <div className="flex-1 h-6 rounded bg-white/5 overflow-hidden relative">
+                <span className="text-xs text-[var(--admin-muted)] w-20 shrink-0">
+                  {stage.label}
+                </span>
+                <div className="flex-1 h-6 rounded bg-[var(--admin-surface-subtle)] overflow-hidden relative">
                   <motion.div
                     className={`h-full ${stage.color} rounded`}
                     initial={{ width: 0 }}
@@ -124,12 +130,12 @@ export function RevenueSnapshot({
                     transition={{ duration: 0.7, delay: 0.1 + i * 0.06, ease: "easeOut" }}
                     style={{ opacity: 0.7 }}
                   />
-                  <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-white-primary">
+                  <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-[var(--admin-ink)]">
                     {stage.count}
                   </span>
                 </div>
                 {dropOff !== null && dropOff > 0 && (
-                  <span className="text-[10px] text-white-muted w-12 shrink-0 text-right">
+                  <span className="text-[11px] text-[var(--admin-muted)] w-12 shrink-0 text-right">
                     -{dropOff}%
                   </span>
                 )}

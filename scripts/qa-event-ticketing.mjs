@@ -419,6 +419,13 @@ try {
     });
     await page.goto(base, { waitUntil: "domcontentloaded" });
     const announcement = page.getByRole("complementary", { name: "Upcoming workshop" });
+    await page.waitForLoadState("networkidle");
+    assert.equal(
+      await announcement.isVisible(),
+      false,
+      "The announcement must not cover the first screen and its primary call to action",
+    );
+    await page.evaluate(() => window.scrollTo({ top: window.innerHeight, behavior: "instant" }));
     await announcement.waitFor({ state: "visible" });
     assert.equal(await announcement.getByRole("heading").innerText(), event.headline);
     const ticketCta = announcement.getByRole("link", { name: "View workshop · $50" });
@@ -469,6 +476,7 @@ try {
     );
     assert.equal(await page.evaluate(() => document.body.dataset.workshopPromotion), undefined);
     await page.reload({ waitUntil: "domcontentloaded" });
+    await page.evaluate(() => window.scrollTo({ top: window.innerHeight, behavior: "instant" }));
     await announcement.waitFor({ state: "visible" });
     assert.equal(await announcement.count(), 1, "Every homepage reload shows the announcement");
     if (width === 390) {
@@ -499,6 +507,7 @@ try {
     if (width === 1440 && theme === "light") {
       await page.locator("header a").first().click();
       await page.waitForURL(base + "/");
+      await page.evaluate(() => window.scrollTo({ top: window.innerHeight, behavior: "instant" }));
       await announcement.waitFor({ state: "visible" });
       await announcement.getByRole("button", { name: "Dismiss workshop announcement" }).click();
       await announcement.waitFor({ state: "hidden" });
@@ -509,6 +518,7 @@ try {
       await page.waitForURL(`**/events/${event.slug}`);
       await page.locator("header a").first().click();
       await page.waitForURL(base + "/");
+      await page.evaluate(() => window.scrollTo({ top: window.innerHeight, behavior: "instant" }));
       await announcement.waitFor({ state: "visible" });
       results.push({ returningHomeReopensAnnouncement: true });
       await page.goto(`${base}/events/${event.slug}?utm_source=venue&utm_campaign=workshop`, {
@@ -577,7 +587,6 @@ try {
       accessibility.violations.map((item) => ({ id: item.id, impact: item.impact })),
       [],
     );
-    await page.locator("main").screenshot({ path: `${output}/public-${theme}-${width}.png` });
     // Hold the real entrance at an unreadable early frame. Interaction must
     // expose the form immediately instead of waiting for its entrance clock.
     if (reducedMotion === "no-preference")
@@ -597,6 +606,33 @@ try {
       "1",
       "Focused checkout must finish its entrance immediately",
     );
+    // Keep the early-focus assertion above. Then visit the document's end so
+    // every real reveal owner enters, and return to the top for the fixed header.
+    await page.evaluate(() =>
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
+    );
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll("main [data-reveal-state]")].every(
+        (owner) => owner.dataset.revealState === "visible",
+      ),
+    );
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForFunction(
+      () =>
+        scrollY === 0 &&
+        [...document.querySelectorAll("main [data-hero-step]")].every(
+          (step) => getComputedStyle(step).opacity === "1",
+        ) &&
+        document
+          .querySelector("main")
+          .getAnimations({ subtree: true })
+          .every(
+            (animation) =>
+              animation.playState !== "running" ||
+              animation.effect?.getTiming().iterations === Infinity,
+          ),
+    );
+    await page.screenshot({ path: `${output}/public-${theme}-${width}.png`, fullPage: true });
     await ticketCheckout
       .getByLabel("Email address", { exact: true })
       .fill("buyer@workshop.example");
@@ -635,9 +671,47 @@ try {
     });
     await page.keyboard.press("Tab");
     assert.equal(await buy.evaluate((button) => document.activeElement === button), true);
-    await ticketCheckout.screenshot({
+    await page.screenshot({
       path: `${output}/checkout-error-${theme}-${width}.png`,
     });
+    const recoveryHitTargets = await buy.evaluate((button) => {
+      const box = button.getBoundingClientRect();
+      return [
+        [box.left + box.width / 2, box.top + box.height / 2],
+        [box.left + 8, box.top + 8],
+        [box.right - 8, box.top + 8],
+        [box.left + 8, box.bottom - 8],
+        [box.right - 8, box.bottom - 8],
+      ].map(([x, y]) => ({
+        x,
+        y,
+        clear: button.contains(document.elementFromPoint(x, y)),
+      }));
+    });
+    await writeFile(
+      `${output}/checkout-error-hit-targets-${theme}-${width}.json`,
+      JSON.stringify(recoveryHitTargets, null, 2),
+    );
+    assert.ok(
+      recoveryHitTargets.every((point) => point.clear),
+      "The checkout recovery button must remain clear of floating overlays",
+    );
+    assert.ok(
+      await buy.evaluate((button) => {
+        const chat = document.querySelector('.chat-widget-root [aria-label="Open chat"]');
+        if (!chat?.checkVisibility({ opacityProperty: true, visibilityProperty: true }))
+          return true;
+        const target = button.getBoundingClientRect();
+        const bubble = chat.getBoundingClientRect();
+        return (
+          bubble.right <= target.left - 4 ||
+          bubble.left >= target.right + 4 ||
+          bubble.bottom <= target.top - 4 ||
+          bubble.top >= target.bottom + 4
+        );
+      }),
+      "Floating chat must leave the whole recovery control and focus ring clear",
+    );
     const errorAccessibility = await new AxeBuilder({ page })
       .include('aside[aria-label="Workshop tickets"] [role="alert"]')
       .withRules(["color-contrast"])
@@ -1101,6 +1175,9 @@ try {
   await deadlinePage.clock.install({ time: new Date(Date.parse(event.starts_at) - 60000) });
   await deadlinePage.goto(base, { waitUntil: "domcontentloaded" });
   const deadlineBanner = deadlinePage.getByRole("complementary", { name: "Upcoming workshop" });
+  await deadlinePage.evaluate(() =>
+    window.scrollTo({ top: window.innerHeight, behavior: "instant" }),
+  );
   await deadlineBanner.waitFor({ state: "visible" });
   assert.equal(
     await deadlinePage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),

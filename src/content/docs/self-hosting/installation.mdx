@@ -1,7 +1,7 @@
 ---
 title: "Connect your installation"
 description: "Create the owner account, apply the ordered schema, and sign in to a workspace you control."
-updated: "2026-10-07"
+updated: "2026-10-20"
 ---
 
 Once the demo shows a workflow your team wants to use, a coding agent can follow this walkthrough to connect your own database, sign-in and owner account. The guided setup reuses the migration catalog and owner verification, which saves assembling those steps separately and gives the next maintainer a repeatable installation path.
@@ -95,7 +95,7 @@ Check Setup, then run a controlled workflow with fictional records and a destina
 
 ## 7. Establish readiness before real use
 
-Follow the verification sequence in your checkout's `docs/self-hosting/SELF-HOSTING.md`, including tenant isolation checks with fictional workspaces. Run heavy checks sequentially through the repository's resource gate or in CI.
+Follow the verification sequence in your checkout's `docs/self-hosting/SELF-HOSTING.md`, including tenant isolation checks with demo workspaces. Run heavy checks sequentially through the repository's resource gate or in CI.
 
 Before importing real data, establish backup and restore ownership, update procedures, and failure reporting. Hosting requires configuring secrets in your own hosting project and verifying authentication and the canonical domain after release. A working local demo does not establish production readiness.
 

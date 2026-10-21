@@ -35,9 +35,9 @@
 }
 
 /* ========================================
-   ACCELERATE DESIGN SYSTEM
-   High-contrast black / white editorial system
-   Light = default (paper/ink). Dark = classic inversion.
+   ACCELERATE DESIGN SYSTEM (docs/contracts/BRAND-SYSTEM.md)
+   Ink and paper carry everything. Signal orange means one thing only:
+   the system acted. Light = default (paper/ink). Dark = inversion.
    ======================================== */
 
 :root {
@@ -51,6 +51,23 @@
   --soft: #6a6a66;
   --rule: #e3e3df;
   --rule-dark: #282826;
+
+  /* ─────────── Signal: the system acted ───────────
+     --signal fills glyphs, dots, rules and buttons (ink text on it is 6.3:1).
+     --signal-ink is the text-safe variant (5.0:1 on paper, 7.6:1 on ink).
+     Never decorative: a heading, background wash or hover glow is not an
+     action the system took. */
+  --signal: #ff5a1f;
+  --signal-ink: #c2410c;
+  --signal-soft: color-mix(in srgb, var(--signal) 12%, transparent);
+
+  /* ─────────── Heading scale (BRAND-SYSTEM.md) ───────────
+     Three steps for every page. Display titles a page, section heads a
+     section, title heads a card or row. Never set a heading size by hand. */
+  --type-display: clamp(2.5rem, 4.8vw, 4.25rem);
+  --type-section: clamp(1.875rem, 3.2vw, 3rem);
+  --type-title: clamp(1.25rem, 1.7vw, 1.625rem);
+  --type-heading-weight: 600;
 
   /* ─────────── Surface material — the same frosted glass the header/
      mobile-nav/dock already use, extended to content cards so the page
@@ -106,10 +123,9 @@
 
   /* Reference-mockup font aliases (so section CSS ported from the mockup can
      use these names verbatim instead of the next/font variable names below) */
-  --display: var(--font-jost), system-ui, sans-serif;
-  --body: var(--font-inter), system-ui, sans-serif;
+  --display: var(--font-display-face), system-ui, sans-serif;
+  --body: var(--font-body-face), system-ui, sans-serif;
   --util: var(--font-mono-face), ui-monospace, monospace;
-  --serif: var(--font-editorial), Georgia, serif;
 
   /* ─────────── Layout tiers — single source of truth for section width ─────────── */
   --content-max: 100rem; /* 1600px — wide: editorial / full-bleed / list / nav / footer */
@@ -154,27 +170,8 @@
   /* Accent (raw RGB channels for rgba() usage) — now ink, not lime */
   --accent-rgb: 11, 11, 11;
 
-  /* Accent ramp — aliased flat to ink (no more lime) */
-  --gold-base: var(--fg);
-  --gold-light: var(--fg);
-  --gold-champagne: var(--fg);
-
-  /* Accent gradient stops — aliased flat to ink */
-  --aurora-violet: var(--fg);
-  --aurora-magenta: var(--fg);
-  --aurora-cyan: var(--fg);
-
   /* Interactive grid-field dim-dot color */
   --field-dot-rgb: 110, 110, 107;
-
-  /* Gradient mesh / glow — neutralized (no atmosphere in the editorial system) */
-  --mesh-1: transparent;
-  --mesh-2: transparent;
-  --mesh-3: transparent;
-  --mesh-4: transparent;
-  --glow-soft: transparent;
-  --glow-medium: transparent;
-  --glow-strong: transparent;
 
   /* Text tiers */
   --white-primary: var(--fg);
@@ -184,8 +181,6 @@
   /* Borders */
   --border-glass: var(--rule);
   --border-glass-hover: var(--rule-dark);
-  --border-gold: var(--rule);
-  --border-gold-hover: var(--fg);
 
   /* Status */
   --success: #0f7a4b;
@@ -194,10 +189,10 @@
   /* Glass — flattened (no blur, no translucency) */
   --glass-default-bg: var(--bg);
   --glass-prominent-bg: var(--bg);
-  --glass-gold-bg: var(--bg);
+  --glass-emphasis-bg: var(--bg);
   --glass-default-hover: var(--bg);
   --glass-prominent-hover: var(--bg);
-  --glass-gold-hover: var(--bg);
+  --glass-emphasis-hover: var(--bg);
   --glass-blur: 0px;
   --glass-saturation: 100%;
 
@@ -224,8 +219,9 @@
    DARK MODE — classic inversion
    ======================================== */
 
-[data-theme="dark"] {
+:is([data-theme="dark"], [data-theme="operator"]) {
   --error: #f28b82;
+  --signal-ink: #ff7a45;
   --bg: var(--ink);
   --fg: var(--paper);
   --mid: #a8a8a4;
@@ -251,24 +247,25 @@
   outline-offset: -1px;
 }
 
-[data-theme="dark"] .work-media-image {
+:is([data-theme="dark"], [data-theme="operator"]) .work-media-image {
   outline-color: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
+  --font-weight-extrabold: 600;
+  --font-weight-black: 600;
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
+  --color-signal-soft: var(--signal-soft);
   --color-bg-base: var(--bg-base);
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-subtle: var(--bg-subtle);
-  --color-gold: var(--gold-base);
-  --color-gold-light: var(--gold-light);
-  --color-gold-champagne: var(--gold-champagne);
   --color-white-primary: var(--white-primary);
   --color-white-secondary: var(--white-secondary);
   --color-white-muted: var(--white-muted);
   --color-heading: var(--heading-color);
   --color-btn-text: var(--btn-primary-text);
   --color-border-glass: var(--border-glass);
-  --color-border-gold: var(--border-gold);
   --color-success: var(--success);
   --color-error: var(--error);
 
@@ -283,10 +280,9 @@
   --color-fg: var(--fg);
   --color-panel: var(--panel);
 
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-jost);
+  --font-sans: var(--font-body-face);
+  --font-display: var(--font-display-face);
   --font-editorial: var(--font-editorial);
-  --font-serif: var(--font-editorial);
   --font-mono: var(--font-mono-face), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* Public editorial geometry stays square; the admin resolves utility
@@ -340,7 +336,7 @@ html {
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: var(--font-inter, "Inter", system-ui, sans-serif);
+  font-family: var(--font-body-face, "Funnel Sans", system-ui, sans-serif);
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -356,7 +352,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
 }
 
 /* ========================================
@@ -411,29 +407,29 @@ h6 {
 }
 
 .h1 {
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
   font-weight: 600;
   /* One continuous curve from the smallest phone to desktop — no
      breakpoint jump. 24px floor keeps 2-4 words per line on a narrow
      phone instead of the ~40px an old mobile-only override produced,
      which was wide enough that most words got a line to themselves. */
-  font-size: clamp(24px, 7.4vw, 98px);
-  line-height: 1;
-  letter-spacing: -0.038em;
+  font-size: var(--type-display);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
   color: var(--fg);
 }
 .h2 {
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
   font-weight: 600;
-  font-size: clamp(27px, 4.3vw, 56px);
-  line-height: 1.07;
-  letter-spacing: -0.034em;
+  font-size: var(--type-section);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   color: var(--fg);
 }
 .h3 {
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
   font-weight: 600;
-  font-size: clamp(18.5px, 1.9vw, 24px);
+  font-size: var(--type-title);
   line-height: 1.2;
   letter-spacing: -0.024em;
   color: var(--fg);
@@ -457,11 +453,16 @@ h6 {
   color: var(--muted-on-dark);
 }
 
-.it {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-style: italic;
-  font-weight: 200;
-  letter-spacing: -0.014em;
+/* Serif-italic accents are banned (BRAND-SYSTEM.md). These legacy accent
+   classes render as the surrounding type so no heading carries a flourish. */
+.it,
+.display-italic,
+.font-editorial {
+  font-family: inherit;
+  font-style: normal;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  color: inherit;
 }
 
 .body-c {
@@ -499,7 +500,7 @@ h6 {
 
 .tag {
   font-family: var(--font-mono-face), ui-monospace, monospace;
-  font-size: 9.5px;
+  font-size: 10.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 8px 13px;
@@ -507,8 +508,6 @@ h6 {
   white-space: nowrap;
   display: inline-block;
   background: var(--surface-bg);
-  -webkit-backdrop-filter: blur(14px) saturate(150%);
-  backdrop-filter: blur(14px) saturate(150%);
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }
 /* Entrance is handled by `.item-rv` on the same element (see Evidence.tsx),
@@ -556,7 +555,7 @@ a.tag:active {
   isolation: isolate;
   cursor: pointer;
   text-align: center;
-  will-change: transform;
+  min-height: 44px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
   /* Snappy down, springy back — the same asymmetry native touch UI uses:
      .btn:active below overrides this with a fast linear press, then on
@@ -599,9 +598,24 @@ a.tag:active {
 .mobile-nav button {
   touch-action: manipulation;
 }
+.btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.btn:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn:disabled::before {
+  display: none;
+}
+.btn-lg {
+  padding: 18px 32px;
+}
 .btn-sm {
   padding: 11px 18px;
-  font-size: 10px;
+  font-size: 11px;
 }
 .btn-inv {
   background: var(--bg);
@@ -617,8 +631,6 @@ a.tag:active {
 }
 .btn-ghost {
   background: var(--surface-bg);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  backdrop-filter: blur(16px) saturate(150%);
   color: var(--fg);
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }
@@ -827,7 +839,7 @@ a.tag:active {
   --demo-preview-rule: rgba(11, 11, 11, 0.07);
   --demo-preview-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
-[data-theme="dark"] .demo-launcher {
+:is([data-theme="dark"], [data-theme="operator"]) .demo-launcher {
   --demo-launcher-canvas: #0a0a0a;
   --demo-launcher-ink: #fbfbfa;
   --demo-launcher-muted: rgba(251, 251, 250, 0.64);
@@ -1225,22 +1237,22 @@ a.tag:active {
    GOLD GRADIENT UTILITIES (aliased flat to ink — kept for ~100 consumers)
    ======================================== */
 
-.text-gold-gradient {
+.text-foreground {
   color: var(--fg);
 }
 
-.bg-gold-gradient {
+.bg-foreground {
   background: var(--fg);
   color: var(--bg);
 }
 
-.border-gold-glow,
-.hover\:border-gold-glow:hover {
+.border-foreground,
+.hover\:border-foreground:hover {
   border-color: var(--fg);
 }
 
-.border-gold-glow-strong,
-.hover\:border-gold-glow-strong:hover {
+.border-foreground-strong,
+.hover\:border-foreground-strong:hover {
   border-color: var(--fg);
 }
 
@@ -1488,11 +1500,6 @@ a.tag:active {
     width: 100%;
     min-height: 52px;
   }
-  .photo-hero .magnetic-btn,
-  .page-offset-roomy .magnetic-btn {
-    display: block;
-    width: 100%;
-  }
 }
 
 .services-subnav {
@@ -1526,7 +1533,7 @@ a.tag:active {
   padding: 0 15px;
   color: color-mix(in srgb, var(--fg) 58%, transparent);
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.045em;
   line-height: 1;
@@ -1631,7 +1638,7 @@ a.tag:active {
 }
 .svc-mode-number {
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   color: var(--soft);
 }
@@ -1647,7 +1654,7 @@ a.tag:active {
 .svc-mode-label {
   margin-top: 6px;
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1655,9 +1662,9 @@ a.tag:active {
 }
 .svc-mode-title {
   font-family: var(--display);
-  font-size: clamp(1.45rem, 2.2vw, 1.9rem);
+  font-size: var(--type-title);
   font-weight: 600;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.032em;
   line-height: 1.08;
   color: var(--fg);
 }
@@ -1698,7 +1705,7 @@ a.tag:active {
   font-family: var(--display);
   font-size: 1.3rem;
   font-weight: 600;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.028em;
   color: var(--fg);
 }
 .svc-build-list {
@@ -1837,7 +1844,7 @@ a.tag:active {
 }
 .svc-work-category {
   font-family: var(--util);
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1847,7 +1854,7 @@ a.tag:active {
   font-family: var(--display);
   font-size: 1.35rem;
   font-weight: 600;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.028em;
   color: var(--fg);
 }
 .svc-work-headline {
@@ -1879,7 +1886,7 @@ a.tag:active {
   margin-top: auto;
   padding-top: 14px;
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1899,7 +1906,7 @@ a.tag:active {
 .svc-shape-number {
   margin: 0 0 14px;
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   color: color-mix(in srgb, var(--fg) 62%, transparent);
 }
@@ -2398,7 +2405,7 @@ body.modal-open [data-dock] {
 }
 @media (max-width: 400px) {
   .eyebrow {
-    font-size: 0.625rem;
+    font-size: 10.5px;
     letter-spacing: 0.11em;
     gap: 0.5rem;
   }
@@ -2414,46 +2421,40 @@ body.modal-open [data-dock] {
   vertical-align: middle;
 }
 
-/* Display heading scale — Inter Tight, weight capped at the loaded 600. */
+/* Display heading classes map onto the shared --type-* scale. */
 @layer components {
   .display-1 {
-    font-family: var(--font-jost), system-ui, sans-serif;
+    font-family: var(--font-display-face), system-ui, sans-serif;
     font-weight: 600;
-    line-height: 0.95;
-    letter-spacing: -0.038em;
-    font-size: clamp(3.5rem, 11vw, 10rem);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-size: var(--type-display);
     color: var(--heading-color);
   }
   .display-2 {
-    font-family: var(--font-jost), system-ui, sans-serif;
+    font-family: var(--font-display-face), system-ui, sans-serif;
     font-weight: 600;
     line-height: 1.08;
-    letter-spacing: -0.034em;
-    font-size: clamp(2rem, 5vw, 4.5rem);
+    letter-spacing: -0.03em;
+    font-size: var(--type-section);
     color: var(--heading-color);
   }
   .display-3 {
-    font-family: var(--font-jost), system-ui, sans-serif;
+    font-family: var(--font-display-face), system-ui, sans-serif;
     font-weight: 600;
-    line-height: 1.05;
+    line-height: 1.08;
     letter-spacing: -0.03em;
-    font-size: clamp(2.2rem, 4.5vw, 4rem);
+    font-size: var(--type-section);
     color: var(--heading-color);
   }
   .display-hero {
-    font-family: var(--font-jost), system-ui, sans-serif;
+    font-family: var(--font-display-face), system-ui, sans-serif;
     font-weight: 600;
-    line-height: 1.08;
+    line-height: 1.04;
     letter-spacing: -0.035em;
-    font-size: clamp(2.4rem, 4.6vw, 4.75rem);
+    font-size: var(--type-display);
     color: var(--heading-color);
   }
-}
-.display-italic {
-  font-family: var(--font-editorial), serif;
-  font-style: italic;
-  font-weight: 500;
-  color: var(--heading-color);
 }
 
 .glass {
@@ -2471,9 +2472,9 @@ body.modal-open [data-dock] {
   -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
 }
 
-.glass-gold {
-  background: color-mix(in srgb, var(--gold-base) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--gold-base) 30%, transparent);
+.glass-emphasis {
+  background: color-mix(in srgb, var(--fg) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 30%, transparent);
   box-shadow: var(--surface-shadow);
   backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
   -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
@@ -2498,7 +2499,7 @@ body.modal-open [data-dock] {
 
 .glass:focus-visible,
 .glass-prominent:focus-visible,
-.glass-gold:focus-visible {
+.glass-emphasis:focus-visible {
   outline: 2px solid var(--fg);
   outline-offset: 2px;
 }
@@ -2514,7 +2515,7 @@ body.modal-open [data-dock] {
 .section-heading {
   font-size: clamp(1.875rem, 1.2rem + 2.4vw, 3rem);
   font-weight: 600;
-  font-family: var(--font-jost), var(--font-inter), sans-serif;
+  font-family: var(--font-display-face), var(--font-body-face), sans-serif;
   letter-spacing: -0.034em;
   line-height: 1.08;
   color: var(--heading-color);
@@ -2529,7 +2530,7 @@ body.modal-open [data-dock] {
 }
 
 .page-heading {
-  font-family: var(--font-jost), system-ui, sans-serif;
+  font-family: var(--font-display-face), system-ui, sans-serif;
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -2555,13 +2556,13 @@ body.modal-open [data-dock] {
   background-repeat: repeat;
   background-size: 256px 256px;
 }
-[data-theme="dark"] .noise-overlay::before {
+:is([data-theme="dark"], [data-theme="operator"]) .noise-overlay::before {
   opacity: 0.04;
 }
 
 /* ========================================
    BACKGROUND GRADIENT ORBS — aliased to near-invisible ink tint
-   (kept as shells; --accent-rgb, --mesh-*, --glow-* aliases above neutralize them)
+   (legacy neutral shells; no color aliases)
    ======================================== */
 
 @keyframes bokeh-drift-0 {
@@ -2699,11 +2700,11 @@ body.modal-open [data-dock] {
    UNDERLINE HOVER FOR LINKS
    ======================================== */
 
-.link-gold-underline {
+.link-underline {
   position: relative;
   display: inline-block;
 }
-.link-gold-underline::after {
+.link-underline::after {
   content: "";
   position: absolute;
   left: 0;
@@ -2713,7 +2714,7 @@ body.modal-open [data-dock] {
   background: currentColor;
   transition: width 0.3s ease;
 }
-.link-gold-underline:hover::after {
+.link-underline:hover::after {
   width: 100%;
 }
 
@@ -2721,7 +2722,7 @@ body.modal-open [data-dock] {
    PROGRESS BAR FILL
    ======================================== */
 
-.progress-gold {
+.progress-line {
   background: var(--fg);
 }
 
@@ -2829,7 +2830,7 @@ body.modal-open [data-dock] {
   min-height: 40px;
   padding: 0.55rem 0.85rem;
   font-family: var(--font-mono-face), ui-monospace, monospace;
-  font-size: 0.66rem;
+  font-size: 11px;
   line-height: 1;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -3140,9 +3141,9 @@ summary:focus-visible {
 
 .gradient-mesh {
   background:
-    radial-gradient(ellipse 80% 60% at 20% 40%, var(--mesh-1) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 80% at 80% 20%, var(--mesh-2) 0%, transparent 70%),
-    radial-gradient(ellipse 70% 50% at 50% 80%, var(--mesh-3) 0%, transparent 70%);
+    radial-gradient(ellipse 80% 60% at 20% 40%, transparent 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 80% 20%, transparent 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 80%, transparent 0%, transparent 70%);
   background-size: 100% 100%;
   animation: gradient-mesh 20s ease-in-out infinite;
 }
@@ -3551,11 +3552,6 @@ summary:focus-visible {
     /* JS tilt disabled via prefersReducedMotion() check */
   }
 
-  .magnetic-btn {
-    transform: none !important;
-    transition: none !important;
-  }
-
   *,
   *::before,
   *::after {
@@ -3643,23 +3639,6 @@ summary:focus-visible {
 }
 
 /* ========================================
-   MICROINTERACTIONS — MAGNETIC BUTTON
-   ======================================== */
-
-.magnetic-btn {
-  --mag-x: 0px;
-  --mag-y: 0px;
-  transform: translate(var(--mag-x), var(--mag-y));
-  transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
-}
-@media (hover: none) {
-  .magnetic-btn {
-    transform: none !important;
-    transition: none;
-  }
-}
-
-/* ========================================
    DOT / PERSPECTIVE / DIAMOND / GLOW GRID PATTERNS
    ======================================== */
 
@@ -3712,7 +3691,7 @@ summary:focus-visible {
   opacity: 0.5;
 }
 
-.gold-top-border {
+.surface-top-rule {
   border-top: 1px solid var(--fg);
 }
 
@@ -3724,15 +3703,6 @@ summary:focus-visible {
   50% {
     box-shadow: 0 0 0 8px rgba(var(--accent-rgb), 0);
   }
-}
-.pulse-gold {
-  /* neutralized — no pulsing glow */
-}
-
-.font-editorial {
-  font-family: var(--font-editorial), "Georgia", serif;
-  font-style: italic;
-  font-weight: 300;
 }
 
 @keyframes signal-pulse {
@@ -3749,7 +3719,7 @@ summary:focus-visible {
 
 .watermark-text {
   position: absolute;
-  font-family: var(--font-jost), var(--font-inter), sans-serif;
+  font-family: var(--font-display-face), var(--font-body-face), sans-serif;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -3766,7 +3736,7 @@ summary:focus-visible {
    ======================================== */
 
 .prose-dark h1 {
-  font-family: var(--font-jost, "Jost", sans-serif);
+  font-family: var(--font-display-face, "Funnel Display", sans-serif);
   font-weight: 600;
   font-size: 2rem;
   line-height: 1.2;
@@ -3780,7 +3750,7 @@ summary:focus-visible {
 }
 
 .prose-dark h2 {
-  font-family: var(--font-jost, "Jost", sans-serif);
+  font-family: var(--font-display-face, "Funnel Display", sans-serif);
   font-weight: 600;
   font-size: clamp(1.65rem, 3vw, 2.15rem);
   line-height: 1.15;
@@ -3792,7 +3762,7 @@ summary:focus-visible {
 }
 
 .prose-dark h3 {
-  font-family: var(--font-jost, "Jost", sans-serif);
+  font-family: var(--font-display-face, "Funnel Display", sans-serif);
   font-weight: 600;
   font-size: 1.35rem;
   line-height: 1.25;
@@ -3806,7 +3776,7 @@ summary:focus-visible {
 .prose-dark h4,
 .prose-dark h5,
 .prose-dark h6 {
-  font-family: var(--font-jost, "Jost", sans-serif);
+  font-family: var(--font-display-face, "Funnel Display", sans-serif);
   font-weight: 600;
   font-size: 1.1rem;
   color: var(--fg);
@@ -3845,8 +3815,6 @@ summary:focus-visible {
   padding: 0.5rem 0 0.5rem 1.5rem;
   margin: 2.25rem 0;
   color: var(--mid);
-  font-family: var(--font-editorial), Georgia, serif;
-  font-style: italic;
 }
 
 .prose-dark code {
@@ -3873,7 +3841,7 @@ summary:focus-visible {
 .prose-dark th {
   text-align: left;
   padding: 0.75rem 1rem;
-  font-family: var(--font-jost, "Jost", sans-serif);
+  font-family: var(--font-display-face, "Funnel Display", sans-serif);
   font-weight: 600;
   border-bottom: 1px solid var(--rule);
   color: var(--fg);
@@ -3915,7 +3883,7 @@ summary:focus-visible {
   outline-offset: -1px;
 }
 
-[data-theme="dark"] .prose-dark img {
+:is([data-theme="dark"], [data-theme="operator"]) .prose-dark img {
   outline-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -3931,7 +3899,7 @@ summary:focus-visible {
 }
 
 .prose-docs h1 {
-  font-family: var(--font-jost, "Jost", sans-serif);
+  font-family: var(--font-display-face, "Funnel Display", sans-serif);
   font-weight: 600;
   font-size: 1.75rem;
   line-height: 1.2;
@@ -3941,7 +3909,7 @@ summary:focus-visible {
 }
 
 .prose-docs h2 {
-  font-family: var(--font-jost, "Jost", sans-serif);
+  font-family: var(--font-display-face, "Funnel Display", sans-serif);
   font-weight: 600;
   font-size: clamp(1.35rem, 2.4vw, 1.65rem);
   line-height: 1.2;
@@ -3953,7 +3921,7 @@ summary:focus-visible {
 }
 
 .prose-docs h3 {
-  font-family: var(--font-jost, "Jost", sans-serif);
+  font-family: var(--font-display-face, "Funnel Display", sans-serif);
   font-weight: 600;
   font-size: 1.15rem;
   line-height: 1.3;
@@ -3967,7 +3935,7 @@ summary:focus-visible {
 .prose-docs h4,
 .prose-docs h5,
 .prose-docs h6 {
-  font-family: var(--font-jost, "Jost", sans-serif);
+  font-family: var(--font-display-face, "Funnel Display", sans-serif);
   font-weight: 600;
   font-size: 1rem;
   color: var(--fg);
@@ -4181,9 +4149,10 @@ summary:focus-visible {
 .ev-n {
   font-family: var(--display);
   font-weight: 600;
+  /* brand-system: allow (stat numeral) */
   font-size: clamp(46px, 8vw, 100px);
   line-height: 0.9;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.035em;
   display: block;
   margin-bottom: 16px;
   color: var(--fg);
@@ -4196,7 +4165,7 @@ summary:focus-visible {
 }
 .ev-src {
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--mid);
@@ -4585,7 +4554,7 @@ a.team-card-float:focus-visible {
   padding: 16px clamp(18px, 2.4vw, 28px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: #9a9a96;
@@ -4635,7 +4604,7 @@ a.team-card-float:focus-visible {
 }
 .page-s {
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #8a8a86;
@@ -4742,7 +4711,7 @@ a.team-card-float:focus-visible {
     padding-top: 18px;
   }
   .deck-hd {
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.12em;
   }
 }
@@ -4821,7 +4790,7 @@ a.team-card-float:focus-visible {
 }
 .swipe-hint {
   font-family: var(--util);
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #6e6e6b;
@@ -4856,9 +4825,10 @@ a.team-card-float:focus-visible {
 .who-n {
   font-family: var(--display);
   font-weight: 600;
+  /* brand-system: allow (stat numeral) */
   font-size: clamp(64px, 9vw, 128px);
   line-height: 0.86;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.035em;
   color: var(--fg);
 }
 .who-n-label {
@@ -4914,7 +4884,7 @@ a.team-card-float:focus-visible {
 }
 .engagement-label {
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.6;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -4990,7 +4960,7 @@ a.team-card-float:focus-visible {
     grid-row: 1;
   }
   .engagement-label {
-    font-size: 9px;
+    font-size: 10.5px;
     margin-bottom: 8px;
   }
   .engagement-detail p {
@@ -5077,14 +5047,16 @@ a.team-card-float:focus-visible {
 .week-n {
   font-family: var(--display);
   font-weight: 600;
+  /* brand-system: allow (stat numeral) */
   font-size: clamp(56px, 8vw, 112px);
   line-height: 0.86;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.035em;
   color: var(--fg);
 }
 .week-n-word {
+  /* brand-system: allow (stat numeral) */
   font-size: clamp(40px, 6vw, 72px);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.028em;
 }
 .week-n-label {
   font-family: var(--util);
@@ -5106,7 +5078,7 @@ a.team-card-float:focus-visible {
   font-family: var(--display);
   font-weight: 600;
   font-size: clamp(2rem, 4.5vw, 3.4rem);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.028em;
   line-height: 0.95;
   color: var(--fg);
 }
@@ -5189,7 +5161,7 @@ a.team-card-float:focus-visible {
   border: 1px solid rgba(0, 0, 0, 0.1);
   pointer-events: none;
 }
-[data-theme="dark"] .trade::after {
+:is([data-theme="dark"], [data-theme="operator"]) .trade::after {
   border-color: rgba(255, 255, 255, 0.1);
 }
 .trade-caption-index {
@@ -5462,13 +5434,9 @@ a.team-card-float:focus-visible {
 }
 .home-process .h2 {
   max-width: 20ch;
-  font-size: clamp(2rem, 4vw, 3.75rem);
 }
 .home-process .steps {
   margin-top: 40px;
-}
-.home-plan .h2 {
-  font-size: clamp(2rem, 3.5vw, 3.25rem);
 }
 @media (min-width: 1001px) {
   .home-services .engagement-list {
@@ -5531,6 +5499,95 @@ a.team-card-float:focus-visible {
   color: var(--mid);
   text-wrap: pretty;
 }
+/* The activity stream: the brand motif (BRAND-SYSTEM.md). People are hollow
+   marks; the system is a filled signal mark. Signal appears nowhere else here. */
+.hero-statement-main {
+  display: grid;
+  gap: clamp(36px, 5vw, 64px);
+}
+@media (min-width: 1100px) {
+  .hero-statement-layout {
+    grid-template-columns: minmax(200px, 0.6fr) 2.4fr;
+  }
+  .hero-statement-main {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    align-items: start;
+  }
+}
+.activity-stream {
+  margin: 0;
+  border: 1px solid var(--rule);
+  background: var(--bg);
+}
+.activity-stream-head,
+.activity-stream-key {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 14px 18px;
+  font-family: var(--util);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.activity-stream-head {
+  border-bottom: 1px solid var(--rule);
+}
+.activity-stream-head span:first-child {
+  color: var(--fg);
+}
+.activity-stream ol {
+  margin: 0;
+  padding: 8px 18px;
+  list-style: none;
+}
+.activity-stream li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.4rem 14px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mid);
+}
+.activity-stream-time {
+  font-family: var(--util);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--soft);
+}
+.activity-stream li[data-system] {
+  color: var(--fg);
+}
+.activity-stream-mark {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--soft);
+  transform: translateY(-1px);
+}
+li[data-system] > .activity-stream-mark,
+.activity-stream-mark[data-system] {
+  background: var(--signal);
+  box-shadow: none;
+}
+.activity-stream-key {
+  justify-content: flex-start;
+  align-items: center;
+  border-top: 1px solid var(--rule);
+  letter-spacing: 0.08em;
+}
+.activity-stream-key > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
 .home-section-links {
   display: grid;
   max-width: 280px;
@@ -5571,7 +5628,7 @@ a.team-card-float:focus-visible {
   font-family: var(--display);
   font-size: clamp(1.65rem, 2.75vw, 3.1rem);
   font-weight: 600;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.038em;
   line-height: 1.03;
   text-wrap: pretty;
 }
@@ -5685,7 +5742,7 @@ a.team-card-float:focus-visible {
 }
 .cc-qbtn {
   font-family: var(--util);
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 5px 9px;
@@ -5700,7 +5757,7 @@ a.team-card-float:focus-visible {
 }
 .cc-qft {
   font-family: var(--util);
-  font-size: 9.5px;
+  font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #8a8a86;
@@ -5783,7 +5840,7 @@ a.team-card-float:focus-visible {
   width: 20px;
   height: 20px;
   font-family: var(--util);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1;
 }
 .cc-sum-body {
@@ -5862,7 +5919,7 @@ a.team-card-float:focus-visible {
   display: inline-block;
   margin: 0 22px 20px;
   font-family: var(--util);
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 5px 9px;
@@ -5874,7 +5931,7 @@ a.team-card-float:focus-visible {
   width: fit-content;
   margin-top: 10px;
   font-family: var(--util);
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 3px 7px;
@@ -5918,7 +5975,7 @@ a.team-card-float:focus-visible {
   }
   .cc-hero h1.h1 {
     font-size: clamp(38px, 11vw, 54px);
-    letter-spacing: -0.04em;
+    letter-spacing: -0.028em;
     line-height: 1.08;
   }
   .cc-hero .lede {
@@ -6157,10 +6214,10 @@ body.modal-open [data-dock] {
 .cc-product-title {
   margin-top: 20px;
   font-family: var(--font-display);
-  font-size: clamp(3rem, 6.5vw, 6.5rem);
+  font-size: var(--type-display);
   font-weight: 500;
   line-height: 1.02;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.032em;
   text-wrap: balance;
 }
 .cc-product-gallery {
@@ -6389,11 +6446,11 @@ body.modal-open [data-dock] {
   margin-bottom: clamp(28px, 3.8vw, 46px);
 }
 .home-hero-heading {
-  max-width: 23ch;
+  max-width: 20ch;
   margin: 0;
   color: var(--fg);
-  font: 500 clamp(48px, 6.2vw, 88px)/1.08 var(--display);
-  letter-spacing: -0.035em;
+  font: 600 clamp(40px, 5vw, 68px)/1.04 var(--display);
+  letter-spacing: -0.028em;
   text-wrap: balance;
 }
 .home-hero-lead,
@@ -6418,220 +6475,236 @@ body.modal-open [data-dock] {
 .home-hero-artwork {
   position: absolute;
   z-index: 2;
-  top: 13%;
-  right: max(30px, calc((100vw - 1320px) / 2));
-  width: min(44vw, 630px);
-  height: min(75svh, 700px);
-  pointer-events: none;
+  top: 46%;
+  translate: 0 -50%;
+  right: var(--gut);
+  width: min(42vw, 600px);
 }
-.home-hero-poster,
-.home-hero-canvas {
+/* The labeled flow: work comes in, the system decides, actions land. */
+.home-flow {
+  container-type: inline-size;
+  color: var(--fg);
+}
+.home-flow-heads {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--soft);
+  font: 11px/1.4 var(--util);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.home-flow-heads > :nth-child(2) {
+  text-align: center;
+}
+.home-flow-heads > :nth-child(3) {
+  padding-left: 0;
+}
+.home-flow-stage {
+  position: relative;
+  aspect-ratio: 600 / 340;
+}
+.home-flow-wires {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  transition: opacity 240ms var(--ease);
+  overflow: visible;
 }
-.home-hero-canvas {
-  opacity: 0;
+.home-flow-wire path {
+  stroke: var(--rule-dark, var(--rule));
+  stroke-width: 1.25;
+  transition: stroke var(--dur-fast, 200ms) var(--ease);
 }
-.home-hero-poster {
-  object-fit: contain;
+.home-flow-wire[data-active="true"] path:first-child {
+  stroke: var(--fg);
 }
-[data-theme="dark"] .home-hero-poster {
-  filter: invert(1);
+.home-flow-wire .home-flow-pulse {
+  stroke: transparent;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.24 1.24;
+  stroke-dashoffset: 0.24;
 }
-.home-hero-artwork[data-artwork-ready="true"] .home-hero-canvas {
-  opacity: 1;
+.home-flow[data-phase="intake"]
+  .home-flow-wire:not(.home-flow-wire-out)[data-active="true"]
+  .home-flow-pulse,
+.home-flow[data-phase="acting"] .home-flow-wire-out[data-active="true"] .home-flow-pulse {
+  stroke: var(--signal);
+  animation: home-flow-travel 700ms var(--hero-ease, var(--ease)) both;
 }
-.home-hero-artwork[data-artwork-ready="true"] .home-hero-poster {
-  opacity: 0;
+.home-flow[data-phase="intake"]
+  .home-flow-wire:not(.home-flow-wire-out)[data-active="true"]
+  .home-flow-pulse {
+  stroke: var(--fg);
 }
-.home-hero-artwork-caption {
+@keyframes home-flow-travel {
+  from {
+    stroke-dashoffset: 0.24;
+  }
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+.home-flow-chip {
   position: absolute;
-  right: 9%;
-  left: 9%;
-  bottom: -1%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  color: var(--soft);
-  font: 10px/1.4 var(--util);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.home-hero-artwork-pause {
-  display: none;
-  align-items: center;
-  gap: 9px;
-  min-height: 40px;
-  padding: 0 8px;
+  gap: 10px;
+  width: 33.333%;
+  height: 17.65%;
+  padding: 0 clamp(10px, 2.2cqw, 14px);
+  translate: 0 -50%;
+  border: 1px solid var(--rule);
+  background: var(--bg);
   color: var(--mid);
+  font: 500 clamp(12px, 2.3cqw, 14px)/1.2 var(--body);
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  text-align: left;
+  transition:
+    border-color var(--dur-fast, 200ms) var(--ease),
+    color var(--dur-fast, 200ms) var(--ease),
+    background-color var(--dur-fast, 200ms) var(--ease);
+}
+.home-flow-chip svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+.home-flow-input {
+  left: 0;
   cursor: pointer;
-  pointer-events: auto;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
 }
-.home-hero-artwork-pause span {
-  font-size: 16px;
+.home-flow-output {
+  right: 0;
 }
-.home-hero-artwork[data-artwork-ready="true"] .home-hero-artwork-pause {
-  display: inline-flex;
+.home-flow-input:hover,
+.home-flow-input[aria-pressed="true"] {
+  border-color: var(--fg);
+  color: var(--fg);
 }
-.home-hero-artwork:focus-within {
-  opacity: 1 !important;
-  transform: none !important;
-}
-.home-hero-artwork-pause:focus-visible {
+.home-flow-input:focus-visible {
   outline: 2px solid var(--fg);
   outline-offset: 3px;
 }
-/* A live intelligence mechanism: inputs, processing layers and branched actions
-   share a steerable geometry. Direct touch manipulation belongs to the core. */
-.home-system-artwork {
-  pointer-events: none;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr);
-  place-items: center;
-}
-.home-system-scene {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  /* Keep transparent parts of the stage from covering nearby copy or CTAs. */
-  pointer-events: none;
-}
-.home-system-diagram {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-.home-system-port {
-  position: absolute;
-  z-index: 2;
-  display: grid;
-  pointer-events: auto;
-  place-items: center;
-  --port-size: clamp(48px, 5vw, 64px);
-  width: var(--port-size);
-  height: var(--port-size);
-  left: calc(var(--port-x) - var(--port-size) / 2);
-  top: calc(var(--port-y) - var(--port-size) / 2);
-  border-radius: 14px;
+.home-flow-output[data-connected="true"] {
   color: var(--fg);
-  background: var(--bg);
-  box-shadow:
-    var(--card-shadow),
-    0 6px 0 -1px color-mix(in srgb, var(--fg) 9%, var(--bg));
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease,
-    scale 180ms ease;
 }
-.home-system-port svg {
-  width: 24px;
-  height: 24px;
+.home-flow-output[data-complete="true"] {
+  border-color: var(--signal);
+  background: var(--signal-soft);
 }
-.home-system-input {
-  pointer-events: auto;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.home-system-output svg {
-  stroke: var(--fg);
-}
-.home-system-output[data-complete="true"] svg {
-  stroke: var(--bg);
-}
-.home-system-input:hover,
-.home-system-input:focus-visible {
-  box-shadow:
-    0 0 0 1px var(--fg),
-    var(--card-shadow-hover),
-    0 6px 0 -1px color-mix(in srgb, var(--fg) 18%, var(--bg));
-}
-.home-system-input:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: 5px;
-}
-.home-system-input:active {
-  scale: 0.96;
-}
-.home-system-input[aria-pressed="true"],
-.home-system-output[data-complete="true"] {
-  background: var(--fg);
-  color: var(--bg);
-}
-.home-system-output[data-connected="true"]:not([data-complete="true"]) {
-  box-shadow:
-    0 0 0 1px var(--fg),
-    var(--card-shadow);
-}
-.home-system-port-dot {
-  position: absolute;
-  bottom: 6px;
-  width: 3px;
-  height: 3px;
+/* Hollow mark: the outside world. Filled signal mark: the system acted. */
+.home-flow-mark {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid currentColor;
   border-radius: 50%;
-  background: currentColor;
-  opacity: 0.35;
+  order: 3;
+  margin-left: auto;
 }
-.home-system-output[data-complete="true"] .home-system-port-dot {
-  width: 12px;
-  height: 2px;
-  border-radius: 1px;
-  opacity: 1;
+.home-flow-output .home-flow-mark {
+  border-color: var(--rule-dark, var(--rule));
 }
-.home-system-handle {
+.home-flow-output[data-complete="true"] .home-flow-mark {
+  border-color: var(--signal);
+  background: var(--signal);
+}
+.home-flow-core {
   position: absolute;
-  z-index: 1;
-  width: 42%;
-  height: 42%;
-  /* A fixed grip keeps the moving sculpture from leaving the pointer's hit area. */
-  left: 29%;
-  top: 29%;
-  border: 0;
-  padding: 0;
-  border-radius: 32%;
-  background: transparent;
-  cursor: grab;
-  pointer-events: auto;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 20%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  transform: perspective(600px) rotateX(var(--flow-tilt-x, 0deg)) rotateY(var(--flow-tilt-y, 0deg));
+  transition: transform 300ms var(--ease);
 }
-.home-system-artwork[data-dragging="true"] .home-system-handle {
-  cursor: grabbing;
+.home-flow-core svg {
+  width: 140%;
+  overflow: visible;
 }
-.home-system-artwork[data-motion="suspended"] .home-system-port {
-  transition: none;
+.home-flow-sculpture-layer {
+  transform-box: fill-box;
+  transform-origin: center;
 }
-.home-system-handle:focus-visible {
-  outline: 1px dashed var(--fg);
-  outline-offset: 4px;
+.home-flow[data-phase="thinking"] .home-flow-sculpture-layer {
+  animation: home-flow-think 1100ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 100ms);
+}
+@keyframes home-flow-think {
+  0%,
+  100% {
+    transform: none;
+  }
+  45% {
+    transform: translateY(-12px) rotate(-4deg);
+  }
+}
+.home-flow:not([data-motion="live"]) .home-flow-core {
+  transform: none;
+}
+.home-flow-caption {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  margin: 24px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  color: var(--fg);
+  font: 12px/1.5 var(--util);
+  letter-spacing: 0.04em;
+}
+.home-flow-caption-key {
+  flex: 0 0 auto;
+  min-width: 7ch;
+  color: var(--soft);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.home-flow[data-phase="done"] .home-flow-caption-key {
+  color: var(--signal-ink);
+}
+.home-flow[data-motion="live"] .home-flow-caption > :last-child {
+  animation: home-flow-caption-in 320ms var(--ease) both;
+}
+@keyframes home-flow-caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@container (max-width: 500px) {
+  .home-flow-chip {
+    gap: 7px;
+    padding: 0 9px;
+    font-size: 12px;
+  }
+  .home-flow-chip svg {
+    width: 14px;
+    height: 14px;
+  }
+  .home-flow-mark {
+    width: 7px;
+    height: 7px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-system-port {
-    transition: none;
-  }
-  .home-system-packets {
-    display: none;
-  }
-}
-@media (max-width: 640px) {
-  .home-hero-artwork.home-system-artwork {
-    right: 8px;
-    width: max(70vw, 260px);
-  }
-  .home-system-port {
-    border-radius: 12px;
-  }
-  .home-system-port svg {
-    width: 24px;
-    height: 24px;
+  .home-flow *,
+  .home-flow *::before {
+    animation: none !important;
+    transition: none !important;
   }
 }
 .home-hero-bottom {
@@ -6661,33 +6734,13 @@ body.modal-open [data-dock] {
   min-height: 56px;
 }
 .home-hero-note {
-  max-width: 110px;
+  display: grid;
+  gap: 2px;
+  white-space: nowrap;
   color: var(--mid);
-  font: 10px/1.5 var(--util);
+  font: 11px/1.5 var(--util);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-.home-hero-index {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-top: auto;
-  padding-top: 18px;
-  border-top: 1px solid var(--rule);
-  color: var(--mid);
-  font: 10px/1.4 var(--util);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.home-hero-index span::before {
-  content: "0" counter(hero-step) " / ";
-  color: var(--soft);
-}
-.home-hero-index span {
-  counter-increment: hero-step;
-}
-.home-hero-index {
-  counter-reset: hero-step;
 }
 .home-hero + .hero-statement {
   border-top-color: var(--rule);
@@ -6704,11 +6757,7 @@ body.modal-open [data-dock] {
     .home-hero-support,
   .motion-ready:not([data-navigation-kind="restore"])
     .home-hero[data-reveal-state="pending"]
-    .home-hero-actions,
-  .motion-ready:not([data-navigation-kind="restore"])
-    .home-hero[data-reveal-state="pending"]
-    .home-hero-index
-    > span {
+    .home-hero-actions {
     opacity: 0;
   }
   .motion-ready:not([data-navigation-kind="restore"])
@@ -6725,30 +6774,20 @@ body.modal-open [data-dock] {
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-eyebrow {
     animation: home-hero-label-enter 900ms var(--hero-ease) both;
   }
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-support,
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-index > span {
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-support {
     animation: home-hero-detail-enter 900ms var(--hero-ease) var(--hero-entry-delay, 0ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-actions {
     animation: home-hero-action-enter 900ms var(--hero-ease) var(--hero-action-delay, 1270ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-word {
-    animation: home-hero-word-enter 1500ms var(--hero-ease) var(--hero-word-delay, 0ms) both;
+    animation: home-hero-word-enter 900ms var(--hero-ease) var(--hero-word-delay, 0ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-artwork {
-    animation: home-hero-detail-enter 1200ms var(--hero-ease) 300ms backwards;
+    animation: home-hero-detail-enter 900ms var(--hero-ease) 700ms backwards;
   }
   .motion-ready .home-hero.in .home-hero-support {
     --hero-entry-delay: var(--hero-support-delay, 1120ms);
-  }
-  .motion-ready .home-hero.in .home-hero-index > span {
-    --hero-entry-delay: var(--hero-index-delay, 1480ms);
-  }
-  .motion-ready .home-hero.in .home-hero-index > span:nth-child(2) {
-    --hero-entry-delay: calc(var(--hero-index-delay, 1480ms) + 100ms);
-  }
-  .motion-ready .home-hero.in .home-hero-index > span:nth-child(3) {
-    --hero-entry-delay: calc(var(--hero-index-delay, 1480ms) + 200ms);
   }
   /* Keep a reached action visible after focus leaves, until a fresh entrance.
      A transient focus-only override restarts its delayed animation on blur. */
@@ -6758,15 +6797,6 @@ body.modal-open [data-dock] {
     opacity: 1;
     transform: none;
     pointer-events: auto;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .home-hero-artwork-pause {
-    display: none !important;
-  }
-  .home-hero-poster,
-  .home-hero-canvas {
-    transition: none;
   }
 }
 @keyframes home-hero-word-enter {
@@ -6815,11 +6845,11 @@ body.modal-open [data-dock] {
 @media (min-width: 1001px) {
   .home-hero-heading {
     max-width: min(16ch, 57%);
-    font-size: clamp(58px, 4.8vw, 74px);
+    font-size: clamp(52px, 4.4vw, 68px);
   }
   .home-hero-bottom {
     grid-template-columns: 1fr;
-    width: 51%;
+    width: 46%;
     gap: 26px;
   }
   .home-hero-support {
@@ -6829,52 +6859,23 @@ body.modal-open [data-dock] {
     align-items: center;
   }
 }
-@media (min-width: 641px) and (max-width: 1000px) {
+@media (min-width: 1001px) and (max-width: 1180px) {
   .home-hero-artwork {
-    top: auto;
-    bottom: 30px;
-    width: 40vw;
-    height: 35svh;
+    width: 46vw;
   }
-  .home-hero-artwork-caption {
-    left: auto;
-    right: 0;
-    bottom: 0;
-  }
-  .home-hero-artwork-caption > span {
-    display: none;
+  .home-hero-heading {
+    max-width: 46%;
   }
 }
-
-/* Integer layout avoids independently composited fractional card rasters.
-   The fallback above retains the same geometry in older CSS engines. */
-@supports (width: round(nearest, 10px, 2px)) {
-  .home-hero-artwork.home-system-artwork {
-    width: round(nearest, min(44vw, 630px), 2px);
-    height: round(nearest, min(75svh, 700px), 2px);
-  }
-  .home-system-port {
-    --port-size: round(nearest, clamp(48px, 5vw, 64px), 2px);
-    left: round(nearest, calc(var(--port-x) - var(--port-size) / 2), 1px);
-    top: round(nearest, calc(var(--port-y) - var(--port-size) / 2), 1px);
-  }
-  @media (min-width: 641px) and (max-width: 1000px) {
-    .home-hero-artwork.home-system-artwork {
-      top: auto;
-      width: round(nearest, 40vw, 2px);
-      height: round(nearest, 35svh, 2px);
-    }
-  }
-  @media (max-width: 640px) {
-    .home-hero-artwork.home-system-artwork {
-      top: auto;
-      width: round(nearest, max(70vw, 260px), 2px);
-      height: round(nearest, 28svh, 2px);
-    }
-    .home-system-port svg {
-      width: 24px;
-      height: 24px;
-    }
+@media (max-width: 1000px) {
+  /* Below desktop the flow joins the column under the call to action. */
+  .home-hero-artwork {
+    position: relative;
+    top: auto;
+    right: auto;
+    translate: none;
+    width: min(100%, 560px);
+    margin-top: 8px;
   }
 }
 
@@ -6956,24 +6957,8 @@ body.modal-open [data-dock] {
     line-height: 1.12;
     letter-spacing: -0.03em;
   }
+  /* The activity stream directly below tells the same story at phone width. */
   .home-hero-artwork {
-    top: auto;
-    bottom: 70px;
-    right: -20px;
-    width: 70vw;
-    height: 28svh;
-  }
-  .home-hero-canvas,
-  .home-hero-poster {
-    transform: translateY(-12px);
-  }
-  .home-hero-artwork-caption {
-    /* Align the control to the page gutter, beside the smaller sculpture. */
-    left: calc(2px - 30vw);
-    right: auto;
-    bottom: 0;
-  }
-  .home-hero-artwork-caption > span {
     display: none;
   }
   .home-hero-eyebrow {
@@ -7002,11 +6987,8 @@ body.modal-open [data-dock] {
     margin-top: 10px;
     text-align: center;
   }
-  .home-hero-index {
-    margin-top: auto;
-    gap: 10px;
-    font-size: 9px;
-    letter-spacing: 0.06em;
+  .home-hero-note > span + span::before {
+    content: "· ";
   }
 }
 /* Touch scrolling keeps crisp entrances without repeatedly rasterizing blur
@@ -7015,7 +6997,7 @@ body.modal-open [data-dock] {
   .site-header.is-scrolled,
   .glass,
   .glass-prominent,
-  .glass-gold,
+  .glass-emphasis,
   .week-col,
   .cc-row,
   .ev-c,
@@ -7036,4 +7018,16 @@ body.modal-open [data-dock] {
   .st > * {
     filter: none !important;
   }
+}
+
+/* Shared controls use semantic local roles on either surface. */
+.ui-field-group,
+.ui-toast {
+  --control-ink: var(--fg);
+  --control-muted: var(--mid);
+  --control-surface: var(--bg);
+  --control-border: var(--rule);
+  --control-action: var(--fg);
+  --control-danger: var(--error);
+  --control-success: var(--success);
 }

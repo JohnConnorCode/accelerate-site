@@ -1,0 +1,14 @@
+// Business-owned activity examples start empty in the neutral distribution.
+export interface ActivityEvent {
+  time: string;
+  text: string;
+  system?: boolean;
+}
+
+export const homeActivity = {
+  label: "Business activity",
+  context: "Illustrative",
+  events: [] as ActivityEvent[],
+};
+
+export const commandCenterActivity = homeActivity;

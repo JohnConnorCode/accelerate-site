@@ -31,7 +31,7 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
             <h4 className="font-semibold text-white-primary">{solution.name}</h4>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gold-gradient font-medium shrink-0">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-foreground font-medium shrink-0">
               {solution.estimatedImpact}
             </span>
           </div>
@@ -51,7 +51,7 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
           className="px-6 pb-5 space-y-4"
         >
           <div>
-            <p className="text-sm font-medium text-gold mb-1">Why it matters</p>
+            <p className="text-sm font-medium text-[var(--fg)] mb-1">Why it matters</p>
             <p className="text-sm text-white-secondary">{solution.whyItMatters}</p>
           </div>
 
@@ -60,7 +60,7 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
             <ul className="space-y-1.5">
               {solution.features.map((feature, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-white-secondary">
-                  <span className="text-gold mt-0.5 shrink-0">-</span>
+                  <span className="text-[var(--fg)] mt-0.5 shrink-0">-</span>
                   {feature}
                 </li>
               ))}
@@ -120,10 +120,10 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           <h1
             className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3"
             style={{
-              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
             }}
           >
-            Your <span className="text-gold-gradient">Digital Growth Plan</span>
+            Your <span className="text-foreground">Digital Growth Plan</span>
           </h1>
           <p className="text-lg text-white-secondary">
             A personalized roadmap built for your business.
@@ -135,9 +135,9 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
       <motion.div variants={fadeUp} initial="hidden" animate="visible">
         <GlassCard variant="gold" padding="lg">
           <h2
-            className="text-lg font-bold text-gold-gradient mb-3"
+            className="text-lg font-bold text-foreground mb-3"
             style={{
-              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
             }}
           >
             Executive Summary
@@ -156,7 +156,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           Recommended Solutions
@@ -173,13 +173,13 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           Implementation Roadmap
         </h2>
         <div className="relative">
-          <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[var(--gold-base)] via-[var(--gold-light)] to-[var(--gold-champagne)]" />
+          <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[var(--fg)] via-[var(--fg)] to-[var(--fg)]" />
 
           <div className="space-y-8">
             {plan.implementationRoadmap.map((phase) => (
@@ -191,14 +191,14 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
                 viewport={{ once: true }}
                 className="relative pl-14"
               >
-                <div className="absolute left-2 top-1 w-7 h-7 rounded-full bg-gold-gradient flex items-center justify-center text-xs font-bold">
+                <div className="absolute left-2 top-1 w-7 h-7 rounded-full bg-foreground flex items-center justify-center text-xs font-bold">
                   {phase.phase}
                 </div>
 
                 <GlassCard padding="md" hover="none">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <h3 className="font-semibold text-white-primary">{phase.name}</h3>
-                    <span className="text-xs text-gold bg-[var(--glass-gold-bg)] px-2 py-1 rounded-full shrink-0">
+                    <span className="text-xs text-[var(--fg)] bg-[var(--glass-emphasis-bg)] px-2 py-1 rounded-full shrink-0">
                       {phase.duration}
                     </span>
                   </div>
@@ -225,14 +225,14 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           ROI Projection
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <GlassCard padding="md" hover="none">
-            <h3 className="text-sm font-semibold text-gold mb-4">90-Day Projection</h3>
+            <h3 className="text-sm font-semibold text-[var(--fg)] mb-4">90-Day Projection</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-white-secondary">Inquiry increase</span>
@@ -248,7 +248,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-white-secondary">Revenue impact</span>
-                <span className="text-sm font-medium text-gold-gradient">
+                <span className="text-sm font-medium text-foreground">
                   {plan.roiProjection.ninetyDay.estimatedRevenueImpact}
                 </span>
               </div>
@@ -256,7 +256,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           </GlassCard>
 
           <GlassCard variant="gold" padding="md" hover="none">
-            <h3 className="text-sm font-semibold text-gold mb-4">12-Month Projection</h3>
+            <h3 className="text-sm font-semibold text-[var(--fg)] mb-4">12-Month Projection</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-white-secondary">Inquiry increase</span>
@@ -272,7 +272,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-white-secondary">Revenue impact</span>
-                <span className="text-sm font-medium text-gold-gradient">
+                <span className="text-sm font-medium text-foreground">
                   {plan.roiProjection.twelveMonth.estimatedRevenueImpact}
                 </span>
               </div>
@@ -287,7 +287,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           Investment Summary
@@ -308,7 +308,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
                 <div className="border-t border-border-glass pt-2 mt-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold text-white-primary">Total one-time</span>
-                    <span className="text-sm font-bold text-gold-gradient">
+                    <span className="text-sm font-bold text-foreground">
                       {formatCurrency(plan.investmentSummary.totalOneTime)}
                     </span>
                   </div>
@@ -332,7 +332,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
                 <div className="border-t border-border-glass pt-2 mt-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold text-white-primary">Total monthly</span>
-                    <span className="text-sm font-bold text-gold-gradient">
+                    <span className="text-sm font-bold text-foreground">
                       {formatCurrency(plan.investmentSummary.totalMonthly)}/mo
                     </span>
                   </div>
@@ -354,7 +354,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <h2
           className="text-xl font-bold text-white-primary"
           style={{
-            fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+            fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
           }}
         >
           Next Steps
@@ -363,7 +363,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           <ol className="space-y-3">
             {plan.nextSteps.map((step, i) => (
               <li key={i} className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-gold-gradient text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-6 h-6 rounded-full bg-foreground text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                   {i + 1}
                 </span>
                 <span className="text-sm text-white-secondary">{step}</span>
@@ -395,7 +395,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
       <div className="text-center pt-4">
         <Link
           href="/contact"
-          className="inline-flex items-center gap-1.5 text-sm text-white-muted hover:text-white-primary link-gold-underline transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-white-muted hover:text-white-primary link-underline transition-colors"
         >
           Book a free strategy call
           <ArrowRight className="w-3.5 h-3.5" />

@@ -130,7 +130,7 @@ export default function IdentityReviewPage() {
                       aria-current={selected?.actionId === item.actionId}
                       className={cn(
                         "flex w-full flex-col gap-1 px-4 py-3 text-left transition-colors",
-                        selected?.actionId === item.actionId && "bg-white/5",
+                        selected?.actionId === item.actionId && "bg-[var(--admin-surface-subtle)]",
                       )}
                     >
                       <span className="truncate text-sm font-semibold">
@@ -210,7 +210,7 @@ export default function IdentityReviewPage() {
                               "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2",
                               candidateId === candidate.id
                                 ? "border-[var(--admin-success)]/50"
-                                : "border-border-glass",
+                                : "border-[var(--admin-border)]",
                             )}
                           >
                             <input
@@ -246,7 +246,7 @@ export default function IdentityReviewPage() {
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Full name for a new contact"
                     aria-label="Full name for a new contact"
-                    className="w-full rounded-xl border border-border-glass bg-transparent px-3 py-2 text-sm"
+                    className="w-full rounded-xl border border-[var(--admin-border)] bg-transparent px-3 py-2 text-sm"
                   />
                 </div>
 
@@ -268,7 +268,7 @@ export default function IdentityReviewPage() {
                     type="button"
                     disabled={resolving || !fullName.trim()}
                     onClick={() => resolve("create")}
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border-glass px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-[var(--admin-border)] px-4 py-2 text-sm font-semibold disabled:opacity-50"
                   >
                     <UserPlus className="size-4" aria-hidden /> Create contact
                   </button>
@@ -276,7 +276,7 @@ export default function IdentityReviewPage() {
                     type="button"
                     disabled={resolving}
                     onClick={() => resolve("no_match")}
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border-glass px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-[var(--admin-border)] px-4 py-2 text-sm font-semibold disabled:opacity-50"
                   >
                     <UserX className="size-4" aria-hidden /> No match
                   </button>

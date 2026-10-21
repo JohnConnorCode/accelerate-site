@@ -19,6 +19,10 @@ on:
         description: Capture admin appearance evidence without the full CI suite
         type: boolean
         default: false
+      admin_design_preview_run:
+        description: Optional previous design run; only capture script and workflow may differ
+        type: string
+        default: ""
   pull_request:
   merge_group:
   push:
@@ -37,26 +41,42 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       docs_only: ${{ steps.detect.outputs.docs_only }}
+      fixtures_only: ${{ steps.detect.outputs.fixtures_only }}
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Detect docs-only pull request
+      - name: Detect narrow pull request scope
         id: detect
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          if [ "$GITHUB_EVENT_NAME" != pull_request ] || ! git diff --no-renames --name-only "$BASE_SHA" HEAD > "$RUNNER_TEMP/changed-files" || [ ! -s "$RUNNER_TEMP/changed-files" ]; then
+          if [ "$GITHUB_EVENT_NAME" != pull_request ] || [[ ! "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || ! git diff --no-renames --name-only -z "$BASE_SHA" HEAD -- > "$RUNNER_TEMP/changed-files" || [ ! -s "$RUNNER_TEMP/changed-files" ]; then
             echo 'docs_only=false' >> "$GITHUB_OUTPUT"
+            echo 'fixtures_only=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          while IFS= read -r path; do
+          docs_only=true
+          fixtures_only=true
+          while IFS= read -r -d '' path; do
             case "$path" in
               'src/app/(marketing)/docs/'*|src/components/docs/*|src/content/docs/*|src/lib/docs.ts|scripts/qa-docs.ts|public/images/docs/*|public/docs-llms.txt) ;;
-              *) echo 'docs_only=false' >> "$GITHUB_OUTPUT"; exit 0 ;;
+              *) docs_only=false ;;
+            esac
+            # These existing fixtures run in checks -> test:core. Keep the
+            # allowlist explicit; additions require execution-wiring proof.
+            case "$path" in
+              scripts/test-first-value-business-journey.ts|scripts/test-demo-business-workflows.ts|scripts/test-stripe-workflow.ts|scripts/test-opportunity-create.ts) ;;
+              *) fixtures_only=false ;;
             esac
           done < "$RUNNER_TEMP/changed-files"
-          echo 'docs_only=true' >> "$GITHUB_OUTPUT"
+          # A removed, added, renamed or type-changed fixture needs the full
+          # path, even when every pathname is on the allowlist.
+          if ! git diff --no-renames --diff-filter=ACDRTUXB --name-only -z "$BASE_SHA" HEAD -- > "$RUNNER_TEMP/non-modified-files" || [ -s "$RUNNER_TEMP/non-modified-files" ]; then
+            fixtures_only=false
+          fi
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+          echo "fixtures_only=$fixtures_only" >> "$GITHUB_OUTPUT"
 
   # Fail source typing once before starting the application/fork build fan-out.
   typecheck:
@@ -384,7 +404,7 @@ jobs:
 
   build:
     needs: [scope, typecheck]
-    if: ${{ !inputs.admin_design_only && !inputs.cold_start_only && !inputs.hero_target_url }}
+    if: ${{ !inputs.admin_design_only && !inputs.cold_start_only && !inputs.hero_target_url && needs.scope.outputs.fixtures_only != 'true' }}
     runs-on: ubuntu-latest
     # Full browser coverage includes native SVG interaction across viewports,
     # owner workflows and isolated navigation. Preserve every acceptance check
@@ -452,6 +472,14 @@ jobs:
       - name: Verify internal workshop payment and confirmation
         if: ${{ !cancelled() && steps.production-build.outcome == 'success' && steps.browser-install.outcome == 'success' && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         run: npm run qa:event-ticketing
+      - name: Retain focused workshop evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: workshop-browser-evidence
+          path: /tmp/accelerate-event-ticketing/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify shared focus handoff and baseline comparison
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         env:
@@ -484,6 +512,14 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-workspace-operations-server.log; exit 1; fi
+          # Capture only the two changed module views from this already-built
+          # application. Keep publication assets untouched during verification.
+          for shot in plugins/reports workspace/module-cards-20261020; do
+            DOCS_SCREENSHOT_OUTPUT_ROOT=/tmp/accelerate-design-docs-refresh DOCS_SCREENSHOT_RECEIPT="/tmp/accelerate-design-docs-refresh/${shot//\//-}.json" npm run resources:run -- node scripts/capture-docs-screenshots.mjs --only "$shot"
+          done
+          test -s /tmp/accelerate-design-docs-refresh/public/images/docs/plugins/reports.png
+          test -s /tmp/accelerate-design-docs-refresh/public/images/docs/workspace/module-cards-20261020.png
+          git diff --exit-code -- public/images/docs/
           npm run resources:run -- node scripts/qa-owner-workspace.mjs
           npm run resources:run -- node scripts/qa-today-workspace.mjs
           TODAY_REVIEW_QA_OUTPUT=/tmp/accelerate-today-review npm run resources:run -- node scripts/qa-today-review-layout.mjs
@@ -491,6 +527,14 @@ jobs:
           npm run resources:run -- node scripts/qa-opportunity-create-recovery.mjs
           npm run resources:run -- npm run qa:workspace-operations
           npm run resources:run -- node scripts/qa-architect-review.mjs
+      - name: Retain changed module documentation captures
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: changed-module-documentation-captures
+          path: /tmp/accelerate-design-docs-refresh/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain focused contact import evidence
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         uses: actions/upload-artifact@v7
@@ -571,13 +615,14 @@ jobs:
           mobile_status=0
           loading_status=0
           core_release_status=0
-          node scripts/test-hero-packet-observer.mjs || observer_status=$?
+          positioning_status=0
           node scripts/test-hero-motion-observer.mjs || observer_status=$?
           node scripts/qa-home-hero-timing.mjs || hero_status=$?
           node scripts/qa-mobile-motion.mjs --webkit || mobile_status=$?
           node scripts/qa-public-loading.mjs || loading_status=$?
           node scripts/qa-core-release.mjs || core_release_status=$?
-          test "$core_release_status" -eq 0 && test "$admin_status" -eq 0 && test "$observer_status" -eq 0 && test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
+          QA_BASE="$PLAYWRIGHT_BASE_URL" node scripts/qa-marketing-positioning.mjs || positioning_status=$?
+          test "$positioning_status" -eq 0 && test "$core_release_status" -eq 0 && test "$admin_status" -eq 0 && test "$observer_status" -eq 0 && test "$hero_status" -eq 0 && test "$mobile_status" -eq 0 && test "$loading_status" -eq 0
       - name: Retain focused homepage motion diagnostics
         if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
         uses: actions/upload-artifact@v7
@@ -603,6 +648,7 @@ jobs:
             /tmp/accelerate-mobile-motion/
             /tmp/accelerate-public-loading/
             /tmp/accelerate-core-release-browser/
+            /tmp/accelerate-positioning-qa/
             /tmp/accelerate-mobile-motion-server.log
             /tmp/accelerate-full-admin-demo/
           if-no-files-found: ignore
@@ -726,6 +772,9 @@ jobs:
           (
             set -e
             if [ "$PUBLIC_PAGES_ONLY" = "true" ] || [ "$DOCS_ONLY" = "true" ]; then exit 0; fi
+            workspace_design_status=0
+            DESIGN_ROADMAP_QA_OUTPUT=/tmp/accelerate-design-roadmap npm run qa:design-roadmap || workspace_design_status=1
+            node scripts/qa-workspace-layout.mjs || workspace_design_status=1
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
@@ -746,6 +795,7 @@ jobs:
             node scripts/qa-booking-mode.mjs
             npm run test:work-completion -- --browser-fixtures
             node scripts/qa-work-completion.mjs
+            exit "$workspace_design_status"
           ) &
           workspace_qa_pid=$!
           (
@@ -757,6 +807,7 @@ jobs:
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
             node scripts/qa-invoice-navigation.mjs
+            node scripts/qa-customer-workflow-context.mjs
             node scripts/qa-home-polish.mjs
             node scripts/qa-demo-business-workflows.mjs
           ) &
@@ -794,6 +845,20 @@ jobs:
             if ! node scripts/qa-collection-policy.mjs; then browser_status=1; fi
           fi
           exit "$browser_status"
+      - name: Retain focused roadmap browser evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: design-roadmap-browser-evidence
+          path: |
+            /tmp/accelerate-design-roadmap/results.json
+            /tmp/accelerate-design-roadmap/site-style-guide-*.png
+            /tmp/accelerate-design-roadmap/shared-button-dialog-paper.png
+            /tmp/accelerate-design-roadmap/admin-plugins-*-1440-report-hover.png
+            /tmp/accelerate-design-roadmap/site-industries-*-light-390.png
+            /tmp/work-desktop-browser/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain owner workspace and guide evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -808,6 +873,14 @@ jobs:
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-navigation-runtime/
             /tmp/accelerate-navigation-filmstrip/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Retain customer handoff evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: customer-workflow-context-evidence
+          path: /tmp/accelerate-customer-workflow-context/
           retention-days: 7
           if-no-files-found: ignore
       - name: Retain focused contributor guide evidence
@@ -859,6 +932,7 @@ jobs:
           name: credential-free-browser-evidence
           path: |
             /tmp/accelerate-proposal-decisions/
+            /tmp/accelerate-design-roadmap/
             /tmp/accelerate-social-qa/
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-website-editor/
@@ -866,7 +940,6 @@ jobs:
             /tmp/accelerate-website-ai-recovery/
             /tmp/accelerate-campaign-duplicate/
             /tmp/accelerate-content-calendar/
-            /tmp/accelerate-event-ticketing/
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
             /tmp/accelerate-turnkey-qa/
@@ -942,7 +1015,7 @@ jobs:
 
   full-product-fork:
     needs: [scope, typecheck]
-    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.fixtures_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -988,7 +1061,7 @@ jobs:
 
   neutral-starter:
     needs: [scope, typecheck]
-    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only && needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.fixtures_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -1054,23 +1127,31 @@ jobs:
           CHECKS_RESULT: ${{ needs.checks.result }}
           DOCS_CHECKS_RESULT: ${{ needs.docs-checks.result }}
           DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
+          FIXTURES_ONLY: ${{ needs.scope.outputs.fixtures_only }}
           SCOPE_RESULT: ${{ needs.scope.result }}
           TYPECHECK_RESULT: ${{ needs.typecheck.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
           FULL_FORK_RESULT: ${{ needs.full-product-fork.result }}
         run: |
-          test "$SCOPE_RESULT" = success && test "$TYPECHECK_RESULT" = success && test "$BUILD_RESULT" = success || exit 1
-          if [ "$DOCS_ONLY" = true ]; then
-            test "$DOCS_CHECKS_RESULT" = success && test "$CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = skipped && test "$FULL_FORK_RESULT" = skipped || exit 1
+          test "$SCOPE_RESULT" = success && test "$TYPECHECK_RESULT" = success || exit 1
+          if [ "$FIXTURES_ONLY" = true ]; then
+            test "$DOCS_ONLY" = false && test "$CHECKS_RESULT" = success && test "$DOCS_CHECKS_RESULT" = skipped && test "$BUILD_RESULT" = skipped && test "$NEUTRAL_RESULT" = skipped && test "$FULL_FORK_RESULT" = skipped || exit 1
+          elif [ "$DOCS_ONLY" = true ]; then
+            test "$FIXTURES_ONLY" = false && test "$BUILD_RESULT" = success && test "$DOCS_CHECKS_RESULT" = success && test "$CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = skipped && test "$FULL_FORK_RESULT" = skipped || exit 1
           else
-            test "$DOCS_ONLY" = false && test "$CHECKS_RESULT" = success && test "$DOCS_CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = success && test "$FULL_FORK_RESULT" = success || exit 1
+            test "$DOCS_ONLY" = false && test "$FIXTURES_ONLY" = false && test "$BUILD_RESULT" = success && test "$CHECKS_RESULT" = success && test "$DOCS_CHECKS_RESULT" = skipped && test "$NEUTRAL_RESULT" = success && test "$FULL_FORK_RESULT" = success || exit 1
           fi
 
   admin-design:
     if: ${{ inputs.admin_design_only }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    env:
+      NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -1078,28 +1159,177 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - name: Verify themes and token compatibility
         run: |
+          npm run verify:agent-contract
+          npm run verify:brand
           npm run test:admin-themes
+          npm run test:admin-demo-contract
           npm run verify:admin-tokens
           node --check scripts/qa-admin-core.mjs
+      - name: Verify reusable compiled design source
+        id: design_reuse
+        if: ${{ inputs.admin_design_preview_run }}
+        env:
+          PREVIEW_RUN: ${{ inputs.admin_design_preview_run }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$PREVIEW_RUN" =~ ^[0-9]+$ ]]
+          source_sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PREVIEW_RUN" --jq 'if .event == "workflow_dispatch" and .path == ".github/workflows/ci.yml" then .head_sha else "" end')
+          [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags --depth=1 origin "$source_sha"
+          git diff --no-renames --name-only -z "$source_sha" HEAD -- > "$RUNNER_TEMP/design-reuse-changes"
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              .github/workflows/ci.yml|scripts/capture-product-screenshots.ts|scripts/capture-docs-screenshots.mjs|scripts/qa-customer-workflow-context.mjs|scripts/qa-collections-workspace.mjs|scripts/test-verification-workflow.mjs) ;;
+              *) echo "Compiled design changed: $path"; exit 1 ;;
+            esac
+          done < "$RUNNER_TEMP/design-reuse-changes"
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "deployment_id=${source_sha:0:12}" >> "$GITHUB_OUTPUT"
+      - name: Restore the verified compiled design
+        if: ${{ inputs.admin_design_preview_run }}
+        uses: actions/download-artifact@v7
+        with:
+          name: design-production-preview
+          run-id: ${{ inputs.admin_design_preview_run }}
+          github-token: ${{ github.token }}
+          path: .next
+      - name: Check restored release identity
+        if: ${{ inputs.admin_design_preview_run }}
+        env:
+          EXPECTED_RELEASE: ${{ steps.design_reuse.outputs.deployment_id }}
+        run: node -e 'const c=require("./.next/required-server-files.json").config; if(c.deploymentId!==process.env.EXPECTED_RELEASE || c.experimental?.runtimeServerDeploymentId!==false) process.exit(1)'
+      # Build before dev QA: Next preserves .next/dev and tsconfig includes
+      # both generated type trees. A fresh production build needs only its own.
+      - name: Build the actual application once
+        id: design_build
+        if: ${{ !inputs.admin_design_preview_run }}
+        run: npm run build
+      - name: Capture product screens and verify the compiled design
+        id: design_captures
+        continue-on-error: true
+        env:
+          NEXT_DEPLOYMENT_ID: ${{ steps.design_reuse.outputs.deployment_id }}
+          PLAYWRIGHT_BASE_URL: http://localhost:3045
+          QA_BASE: http://localhost:3045
+          CUSTOMER_WORKFLOW_QA_OUTPUT: /tmp/accelerate-design-capture/customer-workflow
+          TODAY_REVIEW_QA_OUTPUT: /tmp/accelerate-today-review
+          PRODUCT_SCREENSHOT_RECEIPT: /tmp/accelerate-design-capture/product.json
+          HERO_QA_OUTPUT: /tmp/accelerate-design-capture/hero
+          DESIGN_ROADMAP_QA_OUTPUT: /tmp/accelerate-design-roadmap
+        run: |
+          start_preview() {
+            setsid npm run start -- --hostname localhost --port 3045 >> /tmp/accelerate-design-server.log 2>&1 &
+            server_pid=$!
+            ready=false
+            for attempt in $(seq 1 60); do
+              if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then
+                ready=true
+                break
+              fi
+              if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+              sleep 1
+            done
+            if [ "$ready" != true ]; then cat /tmp/accelerate-design-server.log; exit 1; fi
+          }
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          start_preview
+          capture_status=0
+          node scripts/qa-customer-workflow-context.mjs || capture_status=1
+          node --import tsx scripts/capture-product-screenshots.ts || capture_status=1
+          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/chooser.json node scripts/capture-docs-screenshots.mjs --group demo || capture_status=1
+          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/docs.json node scripts/capture-docs-screenshots.mjs --group docs || capture_status=1
+          # Next inventories public paths at startup. Reopen this same compiled
+          # app after capture so its newly named gallery/chooser files are served.
+          kill -TERM -- -"$server_pid" 2>/dev/null || true
+          wait "$server_pid" || true
+          sleep 1
+          start_preview
+          node scripts/qa-home-hero-timing.mjs || capture_status=1
+          node scripts/qa-theme-persistence.mjs || capture_status=1
+          node scripts/qa-today-review-layout.mjs || capture_status=1
+          node scripts/qa-collections-workspace.mjs || capture_status=1
+          node scripts/qa-marketing-positioning.mjs || capture_status=1
+          npm run qa:design-roadmap || capture_status=1
+          node scripts/qa-workspace-layout.mjs || capture_status=1
+          exit "$capture_status"
       - name: Verify representative core routes
+        id: design_routes
+        continue-on-error: true
         env:
           QA_ROUTES: today,features,contacts,settings,integrations
           QA_SKIP_PREVIEW: "1"
           QA_OUTPUT: /tmp/admin-core-qa/routes
         run: npm run qa:admin-core
-      - name: Capture nine theme identities and keyboard interaction
+      - name: Capture workspace modes and keyboard interaction
+        id: design_modes
+        continue-on-error: true
         env:
           QA_ROUTES: today
           QA_OUTPUT: /tmp/admin-core-qa/identities
         run: npm run qa:admin-core
+      - name: Require every design verification group
+        if: ${{ always() }}
+        env:
+          CAPTURE_RESULT: ${{ steps.design_captures.outcome }}
+          ROUTE_RESULT: ${{ steps.design_routes.outcome }}
+          MODE_RESULT: ${{ steps.design_modes.outcome }}
+        run: test "$CAPTURE_RESULT" = success && test "$ROUTE_RESULT" = success && test "$MODE_RESULT" = success
+      - name: Retain compiled preview
+        if: ${{ always() && steps.design_build.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: design-production-preview
+          path: |
+            .next/
+            !.next/dev/
+            !.next/cache/
+            !.next/diagnostics/
+          include-hidden-files: true
+          retention-days: 2
       - name: Retain visual evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
           name: admin-design-evidence
-          path: /tmp/admin-core-qa/
+          path: |
+            /tmp/admin-core-qa/
+            /tmp/accelerate-design-capture/
+            /tmp/accelerate-design-server.log
+            /tmp/accelerate-theme-persistence/
+            /tmp/accelerate-today-review/
+            /tmp/accelerate-collections-workspace/
+            /tmp/accelerate-positioning-qa/
+            /tmp/accelerate-design-roadmap/
+            /tmp/work-desktop-browser/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain refreshed public images
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: design-public-images
+          path: |
+            public/images/docs/
+            public/images/demo/*-20261020-r2.png
+            public/images/open-source/*-20261020-roadmap.png
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain focused design review and source receipts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: design-review-evidence
+          path: |
+            /tmp/accelerate-design-capture/*.json
+            /tmp/accelerate-design-capture/customer-workflow/receipt.json
+            /tmp/accelerate-design-roadmap/results.json
+            /tmp/accelerate-design-roadmap/site-style-guide-*.png
+            /tmp/accelerate-design-roadmap/shared-button-dialog-paper.png
+            /tmp/accelerate-design-roadmap/site-industries-*-light-390.png
+            /tmp/work-desktop-browser/*.png
+            /tmp/admin-core-qa/**/*.json
           if-no-files-found: ignore
           retention-days: 7

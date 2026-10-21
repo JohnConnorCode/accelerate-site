@@ -216,7 +216,7 @@ export function AdminFounderNoteModal() {
                       <span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">
                         {selectedPerson.name}
                       </span>
-                      <span className="block truncate text-[10px] text-[var(--admin-muted)]">
+                      <span className="block truncate text-[11px] text-[var(--admin-muted)]">
                         {selectedPerson.email}
                       </span>
                     </span>
@@ -250,7 +250,7 @@ export function AdminFounderNoteModal() {
                           <span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">
                             {person.name}
                           </span>
-                          <span className="block truncate text-[10px] text-[var(--admin-muted)]">
+                          <span className="block truncate text-[11px] text-[var(--admin-muted)]">
                             {person.email}
                           </span>
                         </span>
@@ -271,7 +271,7 @@ export function AdminFounderNoteModal() {
           </div>
 
           <div className="flex items-center justify-between gap-3 border-t border-[var(--admin-border)] pt-4">
-            <p className="font-mono text-[9px] tabular-nums text-[var(--admin-muted)]">
+            <p className="font-mono text-[10.5px] tabular-nums text-[var(--admin-muted)]">
               {note.length.toLocaleString()} / 5,000 · ⌘⇧M anywhere · ⌘↵ save
             </p>
             <button

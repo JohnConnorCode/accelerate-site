@@ -8,6 +8,8 @@ import { ClientLifecycle } from "@/components/command-center/ClientLifecycle";
 import { WorkflowShowcase } from "@/components/command-center/WorkflowShowcase";
 import { RecipeCards } from "@/components/command-center/WorkflowRecipes";
 import { ProductSlider } from "@/components/media/ProductSlider";
+import { ActivityStream } from "@/components/ui/ActivityStream";
+import { commandCenterActivity } from "@/content/home-activity";
 import { PRODUCT_SCREENSHOTS } from "@/content/product-screenshots";
 import { commandCenterPositioning } from "@/content/command-center-business";
 import { workflowRecipes } from "@/content/workflow-recipes";
@@ -60,13 +62,15 @@ export function CommandCenterPageContent() {
       </PublicHeroEntrance>
       <section className={styles.section} id="how">
         <div className="wrap">
-          <p className="label">One connected client lifecycle</p>
           <h2 className={styles.heading}>From the first inquiry to delivery and billing.</h2>
           <p className={styles.lede}>
             A roofing customer asks for an inspection. The office qualifies the request, prepares
             the offer, hands the won job to the crew and invoices the customer. Command Center keeps
             the records and next steps available across that work.
           </p>
+          <div className="my-8 max-w-3xl">
+            <ActivityStream {...commandCenterActivity} />
+          </div>
           <ClientLifecycle />
           <p className={styles.note}>
             People and configured workflows perform these steps. The demo simulates business
@@ -149,7 +153,6 @@ export function CommandCenterPageContent() {
       </section>
       <section className={styles.section} id="recipes">
         <div className="wrap">
-          <p className="label">Adapt to your industry</p>
           <h2 className={styles.heading}>Start with a workflow close to your own.</h2>
           <RecipeCards
             recipes={workflowRecipes.filter((recipe) =>

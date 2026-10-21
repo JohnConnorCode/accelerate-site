@@ -24,7 +24,7 @@ export function TeamCard({ member, index = 0 }: { member: TeamMember; index?: nu
         aria-label={`${member.name}, ${member.role}. Read bio.`}
       >
         <span
-          className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 font-mono text-[0.62rem] tracking-[0.3em] text-white-muted/70 transition-colors duration-300 group-hover:text-white-muted"
+          className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 font-mono text-[10.5px] tracking-[0.3em] text-white-muted/70 transition-colors duration-300 group-hover:text-white-muted"
           aria-hidden="true"
         >
           {String(index + 1).padStart(2, "0")}
@@ -42,7 +42,7 @@ export function TeamCard({ member, index = 0 }: { member: TeamMember; index?: nu
             {member.name}
           </span>
         </h3>
-        <p className="mt-1.5 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted">
+        <p className="mt-1.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted">
           {member.role}
         </p>
         <p className="mt-3 max-w-xs text-sm leading-relaxed text-white-secondary">
@@ -105,7 +105,7 @@ export function TeamPreviewStrip({ members }: { members: TeamMember[] }) {
               />
             </div>
             <p className="mt-3 font-display text-base font-bold text-heading">{member.name}</p>
-            <p className="mt-0.5 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-white-muted">
+            <p className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-white-muted">
               {member.role}
             </p>
           </Link>

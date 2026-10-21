@@ -132,7 +132,7 @@ export function KanbanChecklist({
         </ul>
       )}
       {hiddenCount > 0 && (
-        <p className="pl-7 text-[10px] font-medium text-[var(--admin-muted)]">
+        <p className="pl-7 text-[11px] font-medium text-[var(--admin-muted)]">
           +{hiddenCount} more
         </p>
       )}

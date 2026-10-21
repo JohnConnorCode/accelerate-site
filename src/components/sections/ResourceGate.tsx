@@ -154,19 +154,19 @@ export function ResourceGate({ resourceId, onClose }: ResourceGateProps) {
           </button>
 
           <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-lg bg-gold-gradient flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-lg bg-foreground flex items-center justify-center mx-auto mb-4">
               <Download className="w-6 h-6 text-black" />
             </div>
             <h2
               id={headingId}
               className="text-xl font-bold text-white-primary mb-1"
-              style={{ fontFamily: "var(--font-jost), var(--font-inter), sans-serif" }}
+              style={{ fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif" }}
             >
               Get Your Free Download
             </h2>
             <p className="text-sm text-white-secondary">
               Enter your details to download{" "}
-              <span className="text-gold-light">{resource.title}</span>
+              <span className="text-[var(--fg)]">{resource.title}</span>
             </p>
           </div>
 

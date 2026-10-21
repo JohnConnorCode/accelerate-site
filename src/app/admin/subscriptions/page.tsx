@@ -254,7 +254,7 @@ export default function SubscriptionsPage() {
                 <div>
                   <p className="font-semibold">
                     {plan.name}{" "}
-                    <span className="ml-2 rounded-full bg-[var(--admin-surface-subtle)] px-2 py-1 text-[10px] uppercase tracking-wider">
+                    <span className="ml-2 rounded-full bg-[var(--admin-surface-subtle)] px-2 py-1 text-[11px] uppercase tracking-wider">
                       {plan.active ? "Active" : "Archived"}
                     </span>
                   </p>

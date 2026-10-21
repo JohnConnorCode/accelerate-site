@@ -138,22 +138,12 @@ export default function EmailSequencesPage() {
         <GlassCard padding="none" hover="none" className="overflow-clip">
           <table className="admin-table w-full text-sm">
             <thead>
-              <tr className="border-b border-border-glass">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Email
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Type
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Emails
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Status
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                  Enrolled
-                </th>
+              <tr>
+                <th>Email</th>
+                <th>Type</th>
+                <th>Emails</th>
+                <th>Status</th>
+                <th>Enrolled</th>
               </tr>
             </thead>
             <tbody>
@@ -165,17 +155,17 @@ export default function EmailSequencesPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.03 }}
-                    className="border-b border-border-glass hover:bg-white/[0.02]"
+                    className="border-b border-[var(--admin-border)] hover:bg-[var(--admin-hover-tint)]"
                   >
-                    <td className="px-4 py-3 text-white-primary">{seq.email}</td>
-                    <td className="px-4 py-3 text-white-secondary capitalize">
+                    <td className="text-[var(--admin-ink)]">{seq.email}</td>
+                    <td className="text-[var(--admin-muted)] capitalize">
                       {seq.sequence_type?.replace(/_/g, " ")}
                     </td>
-                    <td className="px-4 py-3 text-white-secondary">{emailCount} emails</td>
-                    <td className="px-4 py-3">
+                    <td className="text-[var(--admin-muted)]">{emailCount} emails</td>
+                    <td>
                       <StatusBadge status={seq.status} />
                     </td>
-                    <td className="px-4 py-3 text-white-muted text-xs">
+                    <td className="text-[var(--admin-muted)] text-xs">
                       {seq.created_at ? new Date(seq.created_at).toLocaleDateString() : "-"}
                     </td>
                   </motion.tr>

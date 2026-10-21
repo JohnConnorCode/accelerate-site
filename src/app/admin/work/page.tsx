@@ -699,7 +699,7 @@ export default function WorkPage() {
                               <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
                                 {item.title}
                               </h3>
-                              <span className="rounded-full bg-[var(--admin-surface-subtle)] px-2 py-0.5 text-[10px] font-medium capitalize text-[var(--admin-muted)]">
+                              <span className="rounded-full bg-[var(--admin-surface-subtle)] px-2 py-0.5 text-[11px] font-medium capitalize text-[var(--admin-muted)]">
                                 {draftUncertain
                                   ? "reconciliation needed"
                                   : item.status.replaceAll("_", " ")}

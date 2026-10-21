@@ -108,7 +108,7 @@ function RunRow({
           {run.surface.replace(/_/g, " ")} · {run.toolPack || "core"} · Tokens:{" "}
           {tokenCount(run.inputTokens, run.outputTokens)}
         </span>
-        <span className="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-medium text-[var(--admin-muted)]">
+        <span className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-medium text-[var(--admin-muted)]">
           <span
             className={cn(
               "rounded-full px-2 py-0.5 uppercase tracking-[0.07em]",
@@ -177,7 +177,7 @@ function RunDetail({ id, onConversation }: { id: string; onConversation: (id: st
         </div>
         <span
           className={cn(
-            "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em]",
+            "rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]",
             toneFor(run.status),
           )}
         >
@@ -262,7 +262,7 @@ function RunDetail({ id, onConversation }: { id: string; onConversation: (id: st
                 <p className="text-xs font-semibold capitalize text-[var(--admin-ink)]">
                   {event.label}
                 </p>
-                <time className="text-[10px] tabular-nums text-[var(--admin-muted)]">
+                <time className="text-[11px] tabular-nums text-[var(--admin-muted)]">
                   {new Date(event.createdAt).toLocaleTimeString([], {
                     hour: "numeric",
                     minute: "2-digit",
@@ -442,7 +442,7 @@ export function AIRunHistory() {
           </div>
         </div>
         {data && (
-          <div className="mt-2 flex flex-wrap items-center gap-3 px-1 text-[10px] text-[var(--admin-muted)]">
+          <div className="mt-2 flex flex-wrap items-center gap-3 px-1 text-[11px] text-[var(--admin-muted)]">
             <span className="inline-flex items-center gap-1">
               <Clock3 className="size-3" />
               Median {elapsed(data.metrics.medianDurationMs)}

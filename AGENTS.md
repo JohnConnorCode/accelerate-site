@@ -155,6 +155,8 @@ checkout. Automatic selection still requires checkpoint and project-policy readi
     admin navigation, demo fixtures, or demo QA.
 12. `docs/contracts/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
     primitives, scroll behavior, or portfolio animation QA.
+13. `docs/contracts/BRAND-SYSTEM.md` before changing type, color, heading sizes, motion,
+    the activity stream, the homepage hero, admin appearances, or any visual primitive.
 
 After pickup, run `npm run verify:agent-contract` in the worker checkout as part
 of the packet's verification. A stale dated generated report is repaired by
@@ -348,6 +350,12 @@ retry behavior. Never test destructive behavior against uncontrolled production
 records.
 
 ## Outcome acceptance for visual work
+
+- `docs/contracts/BRAND-SYSTEM.md` is the single design authority for the site and
+  the Command Center. Visual work extends its tokens and primitives. A ticket that
+  needs a new color, typeface, heading size, appearance, or signature motif changes
+  that contract in the same change and says why; it never adds a local exception.
+  `npm run verify:brand` enforces the mechanical rules in CI.
 
 - Translate feedback into observable acceptance before editing. Preserve the
   user's actual outcome, not a convenient proxy. “Use icons intelligently” means

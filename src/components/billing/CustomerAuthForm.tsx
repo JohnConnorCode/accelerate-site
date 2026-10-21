@@ -122,7 +122,7 @@ export function CustomerAuthForm({ mode, brand }: { mode: AuthMode; brand: Works
   const text = copy[mode];
   return (
     <div className="w-full rounded-3xl border border-[color-mix(in_srgb,var(--billing-ink)_12%,transparent)] bg-white p-7 shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:p-9">
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--billing-ink)_56%,transparent)]">
+      <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--billing-ink)_56%,transparent)]">
         {text.eyebrow}
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight">{text.title}</h1>

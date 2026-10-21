@@ -81,7 +81,7 @@ export function ContactForm() {
           <h3
             className="text-2xl font-bold text-heading"
             style={{
-              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-display-face), var(--font-body-face), sans-serif",
             }}
           >
             On its way to John

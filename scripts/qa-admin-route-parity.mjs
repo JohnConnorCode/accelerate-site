@@ -46,7 +46,7 @@ const routes = process.env.QA_ROUTE
           ? ["/admin/integrations"]
           : allRoutes;
 const appearanceThemes = process.argv.includes("--appearances")
-  ? ["dark", "signal", "studio"]
+  ? ["dark", "operator", "accelerate"]
   : [null];
 
 for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADMIN_EMAIL"]) {

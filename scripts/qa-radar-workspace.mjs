@@ -105,8 +105,14 @@ try {
       await page.goto(root + "/integrations");
       await page.getByRole("tab", { name: /Pluggable Modules/ }).click();
       await page.getByLabel("Search modules", { exact: true }).fill("Opportunity Radar");
-      await page.getByLabel(/^Outreach mode/).selectOption("approval-required");
-      await page.getByRole("button", { name: "Save settings", exact: true }).click();
+      const radarModule = page.locator("[data-module-card]").filter({
+        has: page.getByRole("heading", { name: "Opportunity Radar", exact: true }),
+      });
+      const settings = radarModule.locator("details");
+      if (!(await settings.evaluate((details) => details.open)))
+        await settings.locator("summary").click();
+      await radarModule.getByLabel(/^Outreach mode/).selectOption("approval-required");
+      await radarModule.getByRole("button", { name: "Save settings", exact: true }).click();
       await page.getByText("Settings saved", { exact: true }).waitFor();
       await page.goto(detailUrl);
       await page

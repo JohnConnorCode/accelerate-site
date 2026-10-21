@@ -44,7 +44,7 @@ export function RevenueAICommand({
             remain staged for approval.
           </p>
         </div>
-        <span className="hidden items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300 sm:flex">
+        <span className="hidden items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300 sm:flex">
           <CheckCircle2 className="size-3" />
           Gated
         </span>

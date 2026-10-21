@@ -98,7 +98,7 @@ function renderLeaf(
             style={{
               fontSize: "clamp(2.5rem, 5.5vw, 5rem)",
               lineHeight: 1.06,
-              letterSpacing: "-0.045em",
+              letterSpacing: "-0.035em",
               maxWidth: "16ch",
               textWrap: "balance",
               margin: 0,

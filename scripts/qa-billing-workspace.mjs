@@ -169,7 +169,7 @@ try {
     for (const [name, heading] of [
       ["Subscriptions", "Subscriptions"],
       ["Revenue", "Revenue"],
-      ["Collections", "Collections Action Desk"],
+      ["Collections", "Collections"],
     ]) {
       await page
         .getByRole("navigation", { name: "Billing areas" })

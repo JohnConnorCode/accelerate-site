@@ -9,8 +9,8 @@ export function GridPattern({ className }: { className?: string }) {
     <svg viewBox="0 0 400 400" fill="none" className={className} aria-hidden="true">
       <defs>
         <radialGradient id="grid-dot">
-          <stop offset="0%" stopColor="var(--gold-base)" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="var(--gold-base)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--fg)" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="var(--fg)" stopOpacity="0" />
         </radialGradient>
       </defs>
 
@@ -50,7 +50,7 @@ export function GridPattern({ className }: { className?: string }) {
       ].map(([cx, cy], i) => (
         <g key={`dot${i}`}>
           <circle cx={cx} cy={cy} r="12" fill="url(#grid-dot)" />
-          <circle cx={cx} cy={cy} r="2" fill="var(--gold-base)" opacity="0.5" />
+          <circle cx={cx} cy={cy} r="2" fill="var(--fg)" opacity="0.5" />
         </g>
       ))}
 

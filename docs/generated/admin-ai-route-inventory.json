@@ -1115,7 +1115,7 @@
         "@/lib/rate-limit",
         "next/server"
       ],
-      "sourceSha256": "8988bc71370cc0f53535bfa808c9a1f6078eb55cec29ed97582a6231018eea42"
+      "sourceSha256": "6ed0b9c25cb6029a60736bacbee5c117bba16bb7cba2c322af7f48cc1eb1b9a8"
     },
     {
       "source": "src/app/api/generate-plan/route.ts",
@@ -1971,10 +1971,11 @@
         "@/config/tenant",
         "@/lib/admin/module-guard",
         "@/lib/email/booking",
+        "@/lib/revenue-os/debate-bookings",
         "@/lib/revenue-os/pipeline",
         "next/server"
       ],
-      "sourceSha256": "57b07eb5f5da312bc972daec1cfa68584d9e4f65f0451940dabd42f04565341e"
+      "sourceSha256": "60993c2cfa8b463f06a745f6f11e807cecf9d2c507adfb9cfc6848d809ea3e52"
     },
     {
       "source": "src/app/api/admin/chat-leads/route.ts",
@@ -2852,7 +2853,7 @@
         "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "ae44503e05ecc4181c565dde831f3b5d29f7347cb49f3d28e2d06667122498a6"
+      "sourceSha256": "62fc8131c1861535ec5e22d0be7fe4456761ee3b672c86edd43f2f5d98fd6635"
     },
     {
       "source": "src/app/api/admin/password-reset/route.ts",
@@ -2914,9 +2915,11 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/module-guard",
-        "next/server"
+        "@/lib/revenue-os/workflow-tasks",
+        "next/server",
+        "zod"
       ],
-      "sourceSha256": "b99c65e9d43524894b64968e3e06d86593324435699e106d2bc4fab81f1013b0"
+      "sourceSha256": "4679a541996a4f4cfa8b215d0b6434b22091611403d180290a938d46563b72b6"
     },
     {
       "source": "src/app/api/admin/plugins/workflow/route.ts",

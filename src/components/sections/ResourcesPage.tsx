@@ -64,31 +64,31 @@ export function ResourcesPage() {
                 return (
                   <HeroEntranceItem
                     step={3}
-                    className="relative overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-7 backdrop-blur-md sm:p-8"
+                    className="relative overflow-hidden rounded-3xl border border-[var(--rule)]/50 bg-[color-mix(in_srgb,var(--fg)_5%,var(--bg-elevated))] p-7 backdrop-blur-md sm:p-8"
                   >
                     <span
                       aria-hidden
-                      className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70"
+                      className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--fg)] to-transparent opacity-70"
                     />
                     <div className="mb-5 flex items-center gap-3">
-                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
+                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-[var(--fg)]">
                         <FeaturedIcon className="h-6 w-6" strokeWidth={1.75} />
                       </span>
-                      <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-gold">
+                      <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-[var(--fg)]">
                         Featured · {categoryLabels[featured.category]}
                       </span>
                     </div>
                     <h2 className="font-display text-2xl font-bold tracking-[-0.02em] text-heading">
                       {featured.title}
                     </h2>
-                    <p className="mt-1 text-sm text-gold-light">{featured.subtitle}</p>
+                    <p className="mt-1 text-sm text-[var(--fg)]">{featured.subtitle}</p>
                     <p className="mt-4 text-sm leading-relaxed text-white-secondary">
                       {featured.description}
                     </p>
                     <Link
                       href="/ai-readiness"
                       data-cursor="link"
-                      className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
+                      className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-[var(--fg)] px-7 py-3.5 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
                     >
                       <ClipboardCheck className="h-4 w-4" />
                       Take the assessment
@@ -115,17 +115,17 @@ export function ResourcesPage() {
                 className="flex h-full flex-col rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-6 backdrop-blur-md"
               >
                 <div className="mb-4 flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] text-gold">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] text-[var(--fg)]">
                     <Icon className="h-5 w-5" strokeWidth={1.75} />
                   </span>
-                  <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-white-muted">
+                  <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-white-muted">
                     {categoryLabels[resource.category]}
                   </span>
                 </div>
                 <h2 className="font-display text-xl font-bold tracking-[-0.02em] text-heading">
                   {resource.title}
                 </h2>
-                <p className="mt-1 text-sm text-gold-light">{resource.subtitle}</p>
+                <p className="mt-1 text-sm text-[var(--fg)]">{resource.subtitle}</p>
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-white-secondary">
                   {resource.description}
                 </p>
@@ -133,9 +133,9 @@ export function ResourcesPage() {
                   type="button"
                   data-cursor="link"
                   onClick={() => setGatedResource(resource.id)}
-                  className="group mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border-glass px-5 py-3 text-sm font-semibold text-heading transition-colors hover:border-border-gold hover:text-gold"
+                  className="group mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border-glass px-5 py-3 text-sm font-semibold text-heading transition-colors hover:border-[var(--rule)] hover:text-[var(--fg)]"
                 >
-                  <Download className="h-4 w-4 text-gold" />
+                  <Download className="h-4 w-4 text-[var(--fg)]" />
                   Download free
                   <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </button>

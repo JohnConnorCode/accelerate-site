@@ -54,14 +54,16 @@ const CHANNEL_ICONS: Record<string, typeof Mail> = {
 };
 
 const STAGE_COLORS: Record<string, string> = {
-  new: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  contacted: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
-  qualified: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
-  meeting: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-  proposal: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  won: "bg-green-600/15 text-green-700 dark:text-green-300 border-green-600/30",
-  lost: "bg-neutral-500/10 text-neutral-600 dark:text-neutral-400 border-neutral-500/20",
-  nurture: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
+  new: "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  contacted:
+    "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  qualified:
+    "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  meeting: "bg-[var(--admin-warning-soft)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  proposal: "bg-[var(--admin-success-soft)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  won: "bg-[var(--admin-success-soft)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  lost: "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  nurture: "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
 };
 
 export default function ConversationsPage() {
@@ -413,7 +415,7 @@ export default function ConversationsPage() {
       >
         {actionError && (
           <AdminSurface tone="attention" className="flex items-center gap-3">
-            <TriangleAlert className="size-5 shrink-0 text-rose-600" />
+            <TriangleAlert className="size-5 shrink-0 text-[var(--admin-ink)]" />
             <p className="text-sm text-[var(--admin-ink)]">{actionError}</p>
           </AdminSurface>
         )}
@@ -452,9 +454,9 @@ export default function ConversationsPage() {
                       <span>{tab.label}</span>
                       <span
                         className={cn(
-                          "rounded-full px-1.5 py-0.2 text-[10px] tabular-nums",
+                          "rounded-full px-1.5 py-0.2 text-[11px] tabular-nums",
                           statusFilter === tab.key
-                            ? "bg-white/20 text-[var(--admin-surface)]"
+                            ? "bg-[var(--admin-surface-subtle)] text-[var(--admin-surface)]"
                             : "bg-black/[0.06] text-[var(--admin-muted)] dark:bg-white/[0.08]",
                         )}
                       >
@@ -643,12 +645,12 @@ export default function ConversationsPage() {
                           {conv.subject || "(No subject)"}
                         </p>
 
-                        <div className="flex flex-wrap items-center justify-between gap-1.5 text-[10px]">
+                        <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px]">
                           <div className="flex items-center gap-1">
                             {conv.opportunity && (
                               <span
                                 className={cn(
-                                  "rounded px-1 py-0.5 border font-medium text-[9px]",
+                                  "rounded px-1 py-0.5 border font-medium text-[10.5px]",
                                   STAGE_COLORS[conv.opportunity.stage] ||
                                     "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] border-[var(--admin-border)]",
                                 )}
@@ -657,7 +659,7 @@ export default function ConversationsPage() {
                               </span>
                             )}
                             {conv.intent && (
-                              <span className="rounded bg-black/[0.04] px-1 py-0.5 text-[9px] text-[var(--admin-muted)] dark:bg-white/[0.05]">
+                              <span className="rounded bg-black/[0.04] px-1 py-0.5 text-[10.5px] text-[var(--admin-muted)] dark:bg-white/[0.05]">
                                 {conv.intent}
                               </span>
                             )}
@@ -714,7 +716,7 @@ export default function ConversationsPage() {
                               <h2 className="truncate text-base font-semibold tracking-[-0.01em] text-[var(--admin-ink)]">
                                 {selected.subject || "(No subject)"}
                               </h2>
-                              <span className="rounded-full bg-black/[0.045] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.06]">
+                              <span className="rounded-full bg-black/[0.045] px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.06]">
                                 {selected.channel}
                               </span>
                             </div>
@@ -779,7 +781,7 @@ export default function ConversationsPage() {
                           >
                             <div
                               className={cn(
-                                "flex flex-wrap items-center justify-between gap-2 text-[10px]",
+                                "flex flex-wrap items-center justify-between gap-2 text-[11px]",
                                 message.direction === "outbound"
                                   ? "text-[var(--admin-surface)]/60"
                                   : "text-[var(--admin-muted)]",
@@ -915,7 +917,7 @@ export default function ConversationsPage() {
                               </span>
                               <span
                                 className={cn(
-                                  "rounded px-1.5 py-0.5 border font-medium text-[10px]",
+                                  "rounded px-1.5 py-0.5 border font-medium text-[11px]",
                                   STAGE_COLORS[selected.opportunity.stage] ||
                                     "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] border-[var(--admin-border)]",
                                 )}
@@ -1059,7 +1061,7 @@ export default function ConversationsPage() {
                                 {String(t.title || "")}
                               </p>
                               {Boolean(t.due_date) && (
-                                <p className="mt-1 text-[10px] text-[var(--admin-muted)] flex items-center gap-1">
+                                <p className="mt-1 text-[11px] text-[var(--admin-muted)] flex items-center gap-1">
                                   <Clock className="size-3" /> Due: {String(t.due_date)}
                                 </p>
                               )}
@@ -1287,7 +1289,7 @@ export default function ConversationsPage() {
                 className="flex w-full items-center justify-between rounded-lg border border-[var(--admin-border)] px-3 py-2 text-left text-xs text-[var(--admin-ink)] hover:bg-black/[0.04] disabled:opacity-50 dark:hover:bg-white/[0.04]"
               >
                 <span className="truncate font-medium">{opportunity.name}</span>
-                <span className="text-[10px] uppercase text-[var(--admin-muted)]">
+                <span className="text-[11px] uppercase text-[var(--admin-muted)]">
                   {opportunity.stage}
                 </span>
               </button>

@@ -54,7 +54,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Where do I find invoices and create a new one?",
     answer:
-      "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Search the loaded invoices by customer, number or email, or choose an overdue or payment status. Load older invoices when needed. To create one, choose a contact, create its missing billing customer inside the form if needed, enter line items and review the draft before approval. Sending remains a separate decision.",
+      "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Search the loaded invoices by customer, number or email, or choose an overdue or payment status. Load older invoices when needed. A won opportunity also offers Create invoice with its linked contact already selected. To create one, check or choose the contact, create its missing billing customer inside the form if needed, enter line items and review the draft before approval. Sending remains a separate decision.",
   },
   {
     question: "Can I manage refunds and payment reporting in Command Center?",
@@ -144,7 +144,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I try Command Center before setting it up?",
     answer:
-      "Yes. Choose one of six fictional businesses in the demo chooser. Each opens the real workspace with sample customers, conversations and tasks. No signup is required, and simulated changes stay in your browser session. The workflow recipes explain how to combine features and plugins in a connected workspace.",
+      "Yes. Choose one of six example businesses in the demo chooser. Each opens the real workspace with sample customers, conversations and tasks. No signup is required, and simulated changes stay in your browser session. The workflow recipes explain how to combine features and plugins in a connected workspace.",
   },
   {
     question: "What should I connect first?",
@@ -154,7 +154,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we create our own workspace theme?",
     answer:
-      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Nine built-in appearances have distinct palettes, typography, corners and depth, including matte Material, silver macOS and the Capy-inspired graphite-and-seafoam theme. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing and touch controls stay easy to reach. Delete, discard and archive confirmations distinguish the action from the safer cancel choice. Nested confirmations dim the editor beneath them and reveal it again when closed. Phone navigation returns after the last dialog finishes closing. Dialogs, notification panels and the phone More menu open and close immediately under reduced motion. More keeps the page paused until its menu closes, then hands focus to Search, Ask AI or the selected destination. The phone dock stays paused until notifications finish closing, and dismissal returns focus to the bell without overriding focus moved to another control. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
+      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. The four built-in modes are Paper, Night, Accelerate and Operator, with distinct navigation, spacing, corners and labels. Saved choices from retired appearances open in the closest current mode. Comfortable and compact density adjust spacing independently of the theme and stay in sync across open tabs. Mobile panels keep consistent spacing and touch controls stay easy to reach. Delete, discard and archive confirmations distinguish the action from the safer cancel choice. Nested confirmations dim the editor beneath them and reveal it again when closed. Phone navigation returns after the last dialog finishes closing. Dialogs, notification panels and the phone More menu open and close immediately under reduced motion. More keeps the page paused until its menu closes, then hands focus to Search, Ask AI or the selected destination. The phone dock stays paused until notifications finish closing, and dismissal returns focus to the bell without overriding focus moved to another control. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
   },
   {
     question: "How does the whole system fit together?",
@@ -261,6 +261,11 @@ export const commandCenterFaqs: FAQ[] = [
 /** The buying questions shown on the product page and in its structured data. */
 export const productFaqs = commandCenterFaqs.filter((faq) =>
   [
+    {
+      question: "Where do I inspect or configure a plugin?",
+      answer:
+        "Plugins and the Pluggable Modules tab in Integrations use the same module cards. Each shows status, ownership, declared autonomy and any supplied execution receipt. Open Documentation for the operating guide, expand Settings on an enabled module to configure it, or open its workflow from Plugins. Configuration-only modules link to Integrations. The autonomy label does not grant new permissions or change an action's approval requirements.",
+    },
     "What is Command Center?",
     "What business work can we do with it?",
     "How does AI help with the work?",

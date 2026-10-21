@@ -104,14 +104,14 @@ export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }
             <b className="font-display text-[13.5px] font-medium tracking-[-0.01em] text-[var(--paper)]">
               {content.heading}
             </b>
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.13em] text-[rgba(251,251,250,0.5)]">
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.13em] text-[rgba(251,251,250,0.5)]">
               {content.detail}
             </span>
           </div>
           <Link
             href={content.ctaHref}
             onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "dock" })}
-            className="btn btn-inv shrink-0 whitespace-nowrap !px-5 !py-3 !text-[10px]"
+            className="btn btn-inv shrink-0 whitespace-nowrap !px-5 !py-3 !text-[11px]"
           >
             {content.ctaLabel}{" "}
             <span className="arw" aria-hidden="true">

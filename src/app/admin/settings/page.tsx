@@ -94,7 +94,7 @@ const settingSections = [
 const notificationSettings = [
   {
     key: "NOTIFY_NEW_LEADS",
-    label: "New lead submitted",
+    label: "New plan request",
     description: "Get notified when someone completes the plan builder",
   },
   {
@@ -104,8 +104,8 @@ const notificationSettings = [
   },
   {
     key: "NOTIFY_HOT_LEADS",
-    label: "Hot leads",
-    description: "Alert when a lead scores 70+ (hot)",
+    label: "High-fit inquiries",
+    description: "Alert when an inquiry scores 70 or higher",
   },
   {
     key: "NOTIFY_PROPOSAL_VIEWED",
@@ -363,7 +363,7 @@ export default function SettingsPage() {
                           <p className="text-sm font-semibold text-[var(--admin-ink)]">
                             {item.label}
                           </p>
-                          <span className="flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                          <span className="flex items-center gap-1 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
                             {configured ? (
                               <>
                                 <CheckCircle className="h-3.5 w-3.5 text-[var(--success)]" />
@@ -454,7 +454,7 @@ export default function SettingsPage() {
                               {key}
                             </p>
                             {setting?.is_secret && (
-                              <span className="rounded-md bg-black/[0.055] px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.07]">
+                              <span className="rounded-md bg-black/[0.055] px-1.5 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.07]">
                                 SECRET
                               </span>
                             )}

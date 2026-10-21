@@ -45,7 +45,7 @@ export function LazyYouTube({ media, priority = false }: { media: WorkVideo; pri
               ▶
             </span>
           </span>
-          <span className="absolute bottom-4 left-4 bg-black/75 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.14em] text-white">
+          <span className="absolute bottom-4 left-4 bg-black/75 px-3 py-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-white">
             Play motion study
           </span>
         </button>

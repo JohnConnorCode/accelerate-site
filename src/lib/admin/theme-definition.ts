@@ -288,7 +288,7 @@ export function compileAdminTheme(raw: unknown): Record<string, string> {
         ? "var(--font-editorial), Georgia, serif"
         : t.displayFont === "mono"
           ? "var(--font-mono-face), ui-monospace, monospace"
-          : "var(--font-inter), system-ui, sans-serif";
+          : "var(--font-body-face), system-ui, sans-serif";
   const containerRadius =
     t.geometry.containerRadius ?? Math.min(32, Math.round(t.geometry.surfaceRadius * 1.5));
   const buttonRadius = t.buttonShape === "pill" ? "999px" : "var(--admin-control-radius)";
@@ -383,7 +383,7 @@ export function compileAdminTheme(raw: unknown): Record<string, string> {
         ? "var(--font-editorial), Georgia, serif"
         : t.font === "mono"
           ? "var(--font-mono-face), ui-monospace, monospace"
-          : "var(--font-inter), system-ui, sans-serif",
+          : "var(--font-body-face), system-ui, sans-serif",
     "color-scheme": t.mode,
   };
 }

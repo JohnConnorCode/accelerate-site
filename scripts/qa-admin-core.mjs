@@ -290,6 +290,13 @@ try {
         await page.screenshot({ path: `${out}/feature-filters-${width}.png` });
         await page.keyboard.press("Escape");
         await dialog.waitFor({ state: "hidden" });
+        // Radix returns focus from its deferred unmount callback, after the
+        // dialog leaves the accessibility tree. Wait for that actual handoff.
+        await page.waitForFunction(
+          (opener) => document.activeElement === opener,
+          await filters.elementHandle(),
+          { timeout: 3000 },
+        );
         assert.equal(await filters.evaluate((node) => node === document.activeElement), true);
       }
       if (route === "site/website") {
@@ -386,7 +393,15 @@ try {
             const size = await page
               .getByRole("button", { name: "New project" })
               .evaluate((el) => el.getBoundingClientRect().height);
-            assert(size >= 40, "Accessible control size");
+            const minimum = viewport < 640 ? 44 : 40;
+            if (size < minimum)
+              await page.screenshot({
+                path: `${out}/control-size-${theme.id}-${density}-${viewport}.png`,
+              });
+            assert(
+              size >= minimum,
+              `${theme.id}/${density}/${viewport}: control height ${size}px is below ${minimum}px`,
+            );
             assert(
               await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),
               "Preview must not overflow",
@@ -397,12 +412,17 @@ try {
                   const title = getComputedStyle(document.querySelector("h1"));
                   const surface = getComputedStyle(document.querySelector(".admin-surface"));
                   const button = getComputedStyle(document.querySelector(".admin-button--primary"));
+                  const shell = getComputedStyle(document.querySelector(".admin-shell"));
                   return {
                     font: title.fontFamily,
                     titleWeight: title.fontWeight,
                     surfaceRadius: surface.borderRadius,
                     surfaceShadow: surface.boxShadow,
                     controlRadius: button.borderRadius,
+                    controlHeight: button.minHeight,
+                    rowPadding: shell.getPropertyValue("--admin-row-padding").trim(),
+                    labelFont: shell.getPropertyValue("--admin-label-font").trim(),
+                    labelTransform: shell.getPropertyValue("--admin-label-transform").trim(),
                     surfaceFill: surface.backgroundColor,
                   };
                 });
@@ -431,12 +451,25 @@ try {
     }
     if (!smoke) {
       writeFileSync(`${out}/theme-identities.json`, JSON.stringify(identities, null, 2));
-      for (const property of ["font", "surfaceRadius", "surfaceShadow", "controlRadius"])
-        assert.notEqual(
-          identities.material[property],
-          identities.mac[property],
-          `Material/macOS ${property}`,
-        );
+      assert.equal(
+        new Set(themes.map((theme) => identities[theme.id].font)).size,
+        1,
+        "Built-in modes must share the brand heading family",
+      );
+      for (const a of themes)
+        for (const b of themes)
+          if (a.id < b.id)
+            assert(
+              [
+                "surfaceRadius",
+                "controlRadius",
+                "controlHeight",
+                "rowPadding",
+                "labelFont",
+                "labelTransform",
+              ].some((property) => identities[a.id][property] !== identities[b.id][property]),
+              `${a.id}/${b.id}: rendered modes differ only in color`,
+            );
       const workspace = await context.newPage();
       await workspace.goto(`${base}/demo/command-center/hearthline-realty/today`, {
         waitUntil: "networkidle",
@@ -501,14 +534,31 @@ try {
       );
       await workspace.close();
     }
-    const second = await context.newPage();
-    await second.goto(`${base}/dev/admin-design`, { waitUntil: "networkidle" });
-    await page.getByRole("radio", { name: "Comfortable", exact: true }).check();
-    await second.waitForFunction(
-      () => document.documentElement.dataset.adminDensity === "comfortable",
-    );
-    await page.getByRole("radio", { name: "Compact", exact: true }).check();
-    await second.waitForFunction(() => document.documentElement.dataset.adminDensity === "compact");
+    try {
+      const second = await context.newPage();
+      await second.goto(`${base}/dev/admin-design`, { waitUntil: "networkidle" });
+      await page.getByRole("radio", { name: "Comfortable", exact: true }).check();
+      await second.waitForFunction(
+        () => document.documentElement.dataset.adminDensity === "comfortable",
+      );
+      await page.getByRole("radio", { name: "Compact", exact: true }).check();
+      await second.waitForFunction(
+        () => document.documentElement.dataset.adminDensity === "compact",
+      );
+    } catch (error) {
+      const densityState = await Promise.all(
+        context.pages().map((tab) =>
+          tab.evaluate(() => ({
+            url: location.href,
+            density: document.documentElement.dataset.adminDensity,
+            saved: localStorage.getItem("accelerate:admin:density:v1"),
+            selected: document.querySelector(".admin-density-control input:checked")?.value,
+          })),
+        ),
+      );
+      writeFileSync(`${out}/density-failure.json`, JSON.stringify(densityState, null, 2));
+      throw error;
+    }
     await context.close();
     const restricted = await browser.newContext({
       viewport: { width: 390, height: 844 },

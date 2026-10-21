@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "@/components/admin/AdminLink";
 import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
 import ContactSubmissionsPage from "@/components/admin/ContactSubmissionsPage";
 import { AdminDialog } from "@/components/admin/AdminDialog";
+import { AdminRecordRow } from "@/components/admin/AdminRecordRow";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -122,9 +122,10 @@ function DirectoryPage() {
         )}
         <div className="mt-4 divide-y divide-[var(--admin-border)]">
           {rows.map((contact) => (
-            <div
+            <AdminRecordRow
               key={contact.id}
-              className="flex flex-wrap items-center justify-between gap-3 py-3"
+              label={`Open ${contact.full_name}`}
+              href={`/admin/contacts/${contact.id}`}
             >
               <div className="min-w-0">
                 <p className="font-semibold text-[var(--admin-ink)]">{contact.full_name}</p>
@@ -137,13 +138,7 @@ function DirectoryPage() {
                   {contact.next_action ? ` · Next: ${contact.next_action}` : ""}
                 </p>
               </div>
-              <Link
-                className="admin-button admin-button--secondary"
-                href={`/admin/contacts/${contact.id}`}
-              >
-                Open history
-              </Link>
-            </div>
+            </AdminRecordRow>
           ))}
         </div>
         <div className="mt-4 flex items-center justify-between gap-3">

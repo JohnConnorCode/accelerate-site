@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { posix } from "node:path";
+import ts from "typescript";
 import { tenant } from "../src/config/tenant";
 import { distributionProfile } from "../src/lib/distribution/profile";
 import { neutralPublicIdentity } from "../src/lib/distribution/public-identity";
@@ -17,6 +19,155 @@ const cases: { id: string; name: string }[] = [];
 function prove(id: string, name: string, fn: () => void) {
   fn();
   cases.push({ id, name });
+}
+
+// Parse only syntax, never create a compiler program or read omitted agency data.
+function contentImportFailures(files: Map<string, string>) {
+  const parsed = new Map<string, ts.SourceFile>();
+  const failures: string[] = [];
+  const script = /\.[cm]?[jt]sx?$/;
+  const content = (path: string) => path === "src/content" || path.startsWith("src/content/");
+  const source = (path: string) => {
+    if (!parsed.has(path))
+      parsed.set(path, ts.createSourceFile(path, files.get(path)!, ts.ScriptTarget.Latest, true));
+    return parsed.get(path)!;
+  };
+  const basePath = (importer: string, specifier: string) =>
+    specifier.startsWith("@/")
+      ? `src/${specifier.slice(2)}`
+      : specifier.startsWith(".")
+        ? posix.normalize(posix.join(posix.dirname(importer), specifier))
+        : null;
+  const resolve = (base: string) => {
+    const stem = base.replace(/\.[cm]?jsx?$/, "");
+    return [
+      base,
+      ...[".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".json", ".mdx"].flatMap(
+        (extension) => [stem + extension, `${stem}/index${extension}`],
+      ),
+    ].find((path) => files.has(path));
+  };
+  const exportsOf = (path: string) => {
+    const names = new Set<string>();
+    const visited = new Set<string>();
+    const pending = [path];
+    while (pending.length) {
+      const file = pending.pop()!;
+      if (visited.has(file)) continue;
+      visited.add(file);
+      const add = (name: string) => {
+        if (name !== "default" || file === path) names.add(name);
+      };
+      if (!script.test(file)) {
+        add("default");
+        if (file.endsWith(".json")) Object.keys(JSON.parse(files.get(file)!)).forEach(add);
+        continue;
+      }
+      const binding = (name: ts.BindingName) => {
+        if (ts.isIdentifier(name)) add(name.text);
+        else
+          name.elements.forEach((item) => {
+            if (ts.isBindingElement(item)) binding(item.name);
+          });
+      };
+      for (const statement of source(file).statements) {
+        if (ts.isExportDeclaration(statement)) {
+          if (statement.exportClause) {
+            if (ts.isNamedExports(statement.exportClause))
+              statement.exportClause.elements.forEach((item) => add(item.name.text));
+            else add(statement.exportClause.name.text);
+          } else if (statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)) {
+            const base = basePath(file, statement.moduleSpecifier.text);
+            const target = base && resolve(base);
+            if (target) pending.push(target);
+          }
+        } else if (ts.isExportAssignment(statement)) {
+          if (!statement.isExportEquals) add("default");
+        } else {
+          const modifiers = ts.canHaveModifiers(statement) ? ts.getModifiers(statement) : [];
+          if (!modifiers?.some((item) => item.kind === ts.SyntaxKind.ExportKeyword)) continue;
+          if (modifiers.some((item) => item.kind === ts.SyntaxKind.DefaultKeyword)) add("default");
+          else if (ts.isVariableStatement(statement))
+            statement.declarationList.declarations.forEach((item) => binding(item.name));
+          else if (
+            ts.isFunctionDeclaration(statement) ||
+            ts.isClassDeclaration(statement) ||
+            ts.isInterfaceDeclaration(statement) ||
+            ts.isTypeAliasDeclaration(statement) ||
+            ts.isEnumDeclaration(statement) ||
+            ts.isModuleDeclaration(statement)
+          ) {
+            if (statement.name) add(statement.name.text);
+          }
+        }
+      }
+    }
+    return names;
+  };
+  for (const [file, text] of files) {
+    if (!script.test(file) || (!content(file) && !text.includes("content"))) continue;
+    const check = (node: ts.Node, specifier: string, names: string[]) => {
+      const base = basePath(file, specifier);
+      if (!base || !content(base)) return;
+      const location = `${file}:${source(file).getLineAndCharacterOfPosition(node.getStart()).line + 1}`;
+      const target = resolve(base);
+      if (!target) failures.push(`${location}: ${specifier} is absent from the neutral plan`);
+      else {
+        const available = exportsOf(target);
+        for (const name of names)
+          if (!available.has(name)) failures.push(`${location}: ${target} does not export ${name}`);
+      }
+    };
+    const visit = (node: ts.Node) => {
+      if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+        const bindings = node.importClause?.namedBindings;
+        check(node, node.moduleSpecifier.text, [
+          ...(node.importClause?.name ? ["default"] : []),
+          ...(bindings && ts.isNamedImports(bindings)
+            ? bindings.elements.map((item) => (item.propertyName ?? item.name).text)
+            : []),
+        ]);
+      } else if (
+        ts.isExportDeclaration(node) &&
+        node.moduleSpecifier &&
+        ts.isStringLiteral(node.moduleSpecifier)
+      ) {
+        check(
+          node,
+          node.moduleSpecifier.text,
+          node.exportClause && ts.isNamedExports(node.exportClause)
+            ? node.exportClause.elements.map((item) => (item.propertyName ?? item.name).text)
+            : [],
+        );
+      } else if (
+        ts.isImportTypeNode(node) &&
+        ts.isLiteralTypeNode(node.argument) &&
+        ts.isStringLiteral(node.argument.literal)
+      ) {
+        let name = node.qualifier;
+        while (name && ts.isQualifiedName(name)) name = name.left;
+        check(node, node.argument.literal.text, name ? [name.text] : []);
+      } else if (
+        ts.isImportEqualsDeclaration(node) &&
+        ts.isExternalModuleReference(node.moduleReference) &&
+        node.moduleReference.expression &&
+        ts.isStringLiteral(node.moduleReference.expression)
+      ) {
+        check(node, node.moduleReference.expression.text, []);
+      } else if (
+        ts.isCallExpression(node) &&
+        (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+          (ts.isIdentifier(node.expression) && node.expression.text === "require")) &&
+        node.arguments[0] &&
+        ts.isStringLiteral(node.arguments[0])
+      ) {
+        check(node, node.arguments[0].text, []);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(source(file));
+  }
+  return failures.sort();
 }
 
 prove("AC1", "unset profile is neutral; agency content requires explicit opt-in", () => {
@@ -134,7 +285,51 @@ prove(
   },
 );
 
-// AC5 is verified by the actual exported starter build and qa-turnkey --neutral in CI.
+prove("AC5-source", "retained content imports match the neutral inclusion/replacement plan", () => {
+  const fixture = new Map([
+    ["src/content/base.ts", "export const kept = 1; export type Shape = {}; export default [];"],
+    ["src/content/index.ts", 'export * from "./base"; export { kept as renamed } from "./base";'],
+    [
+      "src/view.ts",
+      'import value, { kept as alias, type Shape } from "@/content/base"; import { renamed } from "./content";',
+    ],
+  ]);
+  assert.deepEqual(contentImportFailures(fixture), []);
+  fixture.set(
+    "src/broken.ts",
+    'import { missing } from "@/content/base"; import "@/content/omitted"; export { absent } from "./content";',
+  );
+  const failures = contentImportFailures(fixture);
+  assert.equal(failures.length, 3, "Collect every missing export/module before failing");
+  for (const expected of [
+    "does not export missing",
+    "absent from the neutral plan",
+    "does not export absent",
+  ])
+    assert(
+      failures.some((failure) => failure.includes(expected)),
+      expected,
+    );
+
+  const plan = new Map<string, string>(starterFiles().map((path: string) => [path, path]));
+  for (const [target, replacement] of Object.entries(loadInclusionManifest().replacements))
+    plan.set(target, String(replacement));
+  const files = new Map(
+    [...plan]
+      .filter(
+        ([target]) => target.startsWith("src/") && /\.(?:[cm]?[jt]sx?|json|mdx)$/.test(target),
+      )
+      .map(([target, replacement]) => [target, readFileSync(replacement, "utf8")]),
+  );
+  const mismatches = contentImportFailures(files);
+  assert.deepEqual(
+    mismatches,
+    [],
+    `Neutral content import/export drift:\n${mismatches.join("\n")}`,
+  );
+});
+
+// Source syntax checks do not replace the actual exported build and qa-turnkey --neutral in CI.
 
 prove("AC6", "stable extension interfaces and sample apps are documented for upgrades", () => {
   const guide = readFileSync("docs/self-hosting/NEUTRAL-DISTRIBUTION.md", "utf8");

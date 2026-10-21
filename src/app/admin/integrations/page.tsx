@@ -2,7 +2,7 @@
 
 import { adminPageName } from "@/lib/admin/navigation";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
@@ -26,7 +26,6 @@ import {
   Network,
   RefreshCw,
   Search,
-  Shield,
   TriangleAlert,
   WalletCards,
   Workflow,
@@ -45,11 +44,11 @@ import {
   REVENUE_OS_MODULES,
   getModuleSettings,
   type RevenueOSModule,
-  type ModuleCategory,
   type ModuleSettingsConfig,
 } from "@/lib/revenue-os/modules";
 import { cn } from "@/lib/utils";
 import { TenantProviderControls } from "@/components/admin/TenantProviderControls";
+import { ModuleCard } from "@/components/admin/ModuleCard";
 import { ModuleSettingsForm } from "@/components/admin/ModuleSettingsForm";
 
 const providerIcons: Record<string, LucideIcon> = {
@@ -237,19 +236,19 @@ function ProviderCard({
                 </h2>
                 <span
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em]",
+                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]",
                     meta.className,
                   )}
                 >
                   <StatusIcon className="size-3" aria-hidden="true" /> {meta.label}
                 </span>
               </div>
-              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--admin-muted)]">
+              <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--admin-muted)]">
                 {provider.strategicRole}
               </p>
             </div>
           </div>
-          <span className="shrink-0 rounded-lg bg-black/[0.035] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.05]">
+          <span className="shrink-0 rounded-lg bg-black/[0.035] px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.05]">
             {provider.cost.label}
           </span>
         </div>
@@ -287,7 +286,7 @@ function ProviderCard({
                   {capability.statusReason}
                 </p>
                 {capability.lastEvidenceAt && (
-                  <p className="mt-2 font-mono text-[9px] tabular-nums text-[var(--admin-muted)]">
+                  <p className="mt-2 font-mono text-[10.5px] tabular-nums text-[var(--admin-muted)]">
                     Receipt {relativeTime(capability.lastEvidenceAt)}
                   </p>
                 )}
@@ -300,7 +299,7 @@ function ProviderCard({
           {provider.transports.map((transport) => (
             <span
               key={transport}
-              className="rounded-md bg-black/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.07em] text-[var(--admin-muted)] dark:bg-white/[0.055]"
+              className="rounded-md bg-black/[0.04] px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.07em] text-[var(--admin-muted)] dark:bg-white/[0.055]"
             >
               {transport.replaceAll("_", " ")}
             </span>
@@ -371,7 +370,7 @@ function ProviderCard({
                       />
                       <span className="leading-tight">
                         <span className="block">{action.label}</span>
-                        <span className="mt-0.5 block font-normal text-[10px] text-[var(--admin-muted)]">
+                        <span className="mt-0.5 block font-normal text-[11px] text-[var(--admin-muted)]">
                           {action.detail}
                         </span>
                       </span>
@@ -410,140 +409,78 @@ function ProviderCard({
   );
 }
 
-function ModuleCard({
+function ConfiguredModuleCard({
   module,
   enabled,
   pending,
   onToggle,
   settings,
+  revealToggle,
 }: {
   module: RevenueOSModule;
   enabled: boolean;
   pending: boolean;
   onToggle: (moduleId: string, enabled: boolean) => void;
   settings: Record<string, string | number | boolean | undefined>;
+  revealToggle: boolean;
 }) {
-  const categoryLabels: Record<ModuleCategory, string> = {
-    revenue: "Revenue Operations",
-    delivery: "Delivery & Fulfillment",
-    intelligence: "AI & Intelligence",
-    sources: "Ingress & Sources",
-    system: "System & Core",
-  };
-
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!revealToggle || document.documentElement.dataset.navigationKind === "restore") return;
+    // Target the existing control after the filtered card mounts. Centering
+    // keeps it above the phone dock without changing the shared card layout.
+    toggleRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
+  }, [revealToggle]);
   return (
-    <AdminSurface padding="none" className="overflow-hidden">
-      <div className="p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-start gap-3.5">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] shadow-sm dark:bg-white/[0.065]">
-              {module.isCore ? (
-                <Shield className="size-[19px] text-emerald-600 dark:text-emerald-400" />
-              ) : (
-                <Layers className="size-[19px] text-[var(--admin-ink)]" />
-              )}
-            </span>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-balance text-base font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
-                  {module.name}
-                </h2>
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]",
-                    module.isCore
-                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                      : "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-                  )}
-                >
-                  {module.isCore ? "Core Module" : "Pluggable Module"}
-                </span>
-              </div>
-              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--admin-muted)]">
-                {categoryLabels[module.category]}
-              </p>
-            </div>
-          </div>
-          {module.isCore ? (
-            <span className="shrink-0 rounded-lg bg-black/[0.035] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.05]">
-              Always Active
-            </span>
-          ) : (
-            <button
-              type="button"
-              role="switch"
-              aria-checked={enabled}
-              aria-label={`${enabled ? "Disable" : "Enable"} ${module.name}`}
-              disabled={pending}
-              onClick={() => onToggle(module.id, !enabled)}
-              className={cn(
-                "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-                enabled ? "bg-emerald-600" : "bg-black/[0.15] dark:bg-white/[0.18]",
-              )}
-            >
-              <span
-                className={cn(
-                  "inline-block size-4.5 transform rounded-full bg-white shadow transition-transform",
-                  enabled ? "translate-x-6" : "translate-x-1",
-                )}
-              />
-            </button>
-          )}
-        </div>
-
-        <p className="admin-copy mt-4 text-pretty text-sm leading-6">{module.description}</p>
-
-        {module.routes && module.routes.length > 0 && (
-          <div className="mt-4">
-            <p className="admin-eyebrow mb-1.5 text-[10px]">Managed Admin Routes</p>
-            <div className="flex flex-wrap gap-1.5">
-              {module.routes.map((route) => (
-                <Link
-                  key={route}
-                  href={route}
-                  className="inline-flex items-center gap-1 rounded-md bg-black/[0.04] px-2 py-1 font-mono text-[10px] text-[var(--admin-ink)] transition-colors hover:bg-black/[0.08] dark:bg-white/[0.06] dark:hover:bg-white/[0.12]"
-                >
-                  {route} <ArrowRight className="size-2.5 opacity-60" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {module.aiToolNames && module.aiToolNames.length > 0 && (
-          <div className="mt-3.5">
-            <p className="admin-eyebrow mb-1.5 text-[10px]">Controlled AI Tools</p>
-            <div className="flex flex-wrap gap-1.5">
-              {module.aiToolNames.map((tool) => (
-                <span
-                  key={tool}
-                  className="rounded-md bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-medium text-emerald-700 dark:text-emerald-300"
-                >
-                  {tool}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {module.docsUrl && (
-          <a
-            href={module.docsUrl}
-            {...(module.docsUrl.startsWith("/") ? {} : { target: "_blank", rel: "noreferrer" })}
-            className="mt-3.5 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--admin-ink)] hover:underline"
+    <ModuleCard
+      module={module}
+      enabled={enabled}
+      actions={
+        !module.isCore && (
+          <button
+            ref={toggleRef}
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            aria-label={`${enabled ? "Disable" : "Enable"} ${module.name}`}
+            disabled={pending}
+            onClick={() => onToggle(module.id, !enabled)}
+            className="admin-button admin-button--secondary"
           >
-            Documentation
-            {module.docsUrl.startsWith("/") ? null : <ExternalLink className="size-3" />}
-          </a>
-        )}
-
-        {module.settings && module.settings.length > 0 && enabled && (
-          <div className="mt-4">
-            <ModuleSettingsForm moduleId={module.id} fields={module.settings} values={settings} />
-          </div>
-        )}
-      </div>
-    </AdminSurface>
+            {pending ? "Updating…" : enabled ? "Disable" : "Enable"}
+          </button>
+        )
+      }
+    >
+      {module.routes?.length ? (
+        <div className="mt-4 flex flex-wrap gap-3">
+          {module.routes.map((route) => (
+            <Link
+              key={route}
+              href={route}
+              className="inline-flex min-h-11 items-center text-xs font-medium text-[var(--admin-ink)] underline underline-offset-4"
+            >
+              Open {route.split("/").pop()?.replaceAll("-", " ")}{" "}
+              <ArrowRight className="ml-1 size-3" aria-hidden="true" />
+            </Link>
+          ))}
+        </div>
+      ) : null}
+      {module.docsUrl && (
+        <Link
+          href={module.docsUrl}
+          className="mt-3 inline-flex min-h-11 items-center text-xs text-[var(--admin-ink)] underline underline-offset-4"
+        >
+          Documentation
+        </Link>
+      )}
+      {module.settings?.length && enabled ? (
+        <details className="mt-4 border-t border-[var(--admin-border)] pt-4">
+          <summary className="min-h-11 cursor-pointer text-sm font-medium">Settings</summary>
+          <ModuleSettingsForm moduleId={module.id} fields={module.settings} values={settings} />
+        </details>
+      ) : null}
+    </ModuleCard>
   );
 }
 
@@ -853,7 +790,7 @@ export default function IntegrationsPage() {
                   <p className="admin-eyebrow">{metric.label}</p>
                   <p
                     className={cn(
-                      "mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em]",
+                      "mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.035em]",
                       metric.tone,
                     )}
                   >
@@ -888,7 +825,7 @@ export default function IntegrationsPage() {
                     )}
                   >
                     <span>{item.label}</span>
-                    <span className="font-mono text-[9px] tabular-nums opacity-65">
+                    <span className="font-mono text-[10.5px] tabular-nums opacity-65">
                       {item.count ?? 0}
                     </span>
                   </button>
@@ -937,7 +874,7 @@ export default function IntegrationsPage() {
               </AdminSurface>
             )}
 
-            <p className="text-center font-mono text-[9px] uppercase tracking-[0.09em] text-[var(--admin-muted)]">
+            <p className="text-center font-mono text-[10.5px] uppercase tracking-[0.09em] text-[var(--admin-muted)]">
               Registry {data.registryVersion} · evidence generated{" "}
               {new Date(data.generatedAt).toLocaleString()}
             </p>
@@ -950,21 +887,21 @@ export default function IntegrationsPage() {
               <section className="admin-grid admin-grid--metrics">
                 <AdminSurface padding="md">
                   <p className="admin-eyebrow">Total Modules</p>
-                  <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)]">
+                  <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.035em] text-[var(--admin-ink)]">
                     {REVENUE_OS_MODULES.length}
                   </p>
                   <p className="admin-copy mt-1 text-xs">Modular capabilities available</p>
                 </AdminSurface>
                 <AdminSurface padding="md">
                   <p className="admin-eyebrow">Core Modules</p>
-                  <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-emerald-600 dark:text-emerald-300">
+                  <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.035em] text-emerald-600 dark:text-emerald-300">
                     {REVENUE_OS_MODULES.filter((m) => m.isCore).length}
                   </p>
                   <p className="admin-copy mt-1 text-xs">Immutable system backbone</p>
                 </AdminSurface>
                 <AdminSurface padding="md">
                   <p className="admin-eyebrow">Pluggable Business Modules</p>
-                  <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-sky-600 dark:text-sky-300">
+                  <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.035em] text-sky-600 dark:text-sky-300">
                     {REVENUE_OS_MODULES.filter((m) => !m.isCore).length}
                   </p>
                   <p className="admin-copy mt-1 text-xs">Tenant-configurable plugins</p>
@@ -996,7 +933,7 @@ export default function IntegrationsPage() {
                     )}
                   >
                     <span>{item.label}</span>
-                    <span className="font-mono text-[9px] tabular-nums opacity-65">
+                    <span className="font-mono text-[10.5px] tabular-nums opacity-65">
                       {item.count}
                     </span>
                   </button>
@@ -1017,13 +954,18 @@ export default function IntegrationsPage() {
             {modules.length ? (
               <section className="admin-grid admin-grid--panels">
                 {modules.map((mod) => (
-                  <ModuleCard
+                  <ConfiguredModuleCard
                     key={mod.id}
                     module={mod}
                     enabled={mod.isCore || enabledModuleIds.has(mod.id)}
                     pending={pendingModuleId === mod.id}
                     onToggle={toggleModule}
                     settings={getModuleSettings(mod.id, modulesQuery.data?.moduleSettings)}
+                    revealToggle={
+                      focusedModuleSetup &&
+                      query.trim() === searchParams.get("search")?.trim() &&
+                      query.trim().toLowerCase() === mod.name.toLowerCase()
+                    }
                   />
                 ))}
               </section>

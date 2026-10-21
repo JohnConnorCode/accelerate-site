@@ -61,8 +61,12 @@ try {
       break;
     }
     assert.equal(current, "dark", "An open demo tab must not revert the shared preference");
+    const sharedDarkPaint = await publicPage.locator("body").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { background: style.backgroundColor, foreground: style.color };
+    });
     await demo.bringToFront();
-    assert.equal(await demo.locator("html").getAttribute("data-theme"), "studio");
+    assert.equal(await demo.locator("html").getAttribute("data-theme"), "accelerate");
     const choose = async (label) => {
       const trigger = demo
         .getByRole("button", { name: /^Appearance:/ })
@@ -110,17 +114,17 @@ try {
       "dark",
       "Demo choice must not overwrite the live/public preference",
     );
-    await choose("Material 2026");
+    await choose("Accelerate");
     assert.equal(
       await demo.locator("html").getAttribute("data-theme"),
-      "material",
-      "Material 2026 must apply through the shared appearance registry",
+      "accelerate",
+      "Accelerate must apply through the shared appearance registry",
     );
-    await choose("macOS");
+    await choose("Operator");
     assert.equal(
       await demo.locator("html").getAttribute("data-theme"),
-      "mac",
-      "macOS must apply through the shared appearance registry",
+      "operator",
+      "Operator must apply through the shared appearance registry",
     );
     const switchBusiness = async (id) => {
       if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
@@ -143,7 +147,7 @@ try {
     await switchBusiness("northline-roofing");
     assert.equal(
       await demo.locator("html").getAttribute("data-theme"),
-      "mac",
+      "operator",
       "Each demo business must retain its selected appearance",
     );
     if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
@@ -158,8 +162,53 @@ try {
     await conversationsSection.getByRole("link", { name: "Conversations", exact: true }).click();
     await demo.getByRole("heading", { name: "Conversations", exact: true }).waitFor();
     await demo.screenshot({ path: `${output}/conversations-${width}.png`, fullPage: true });
+    await demo.evaluate(() => {
+      sessionStorage.setItem("accelerate:admin-demo:northline-roofing:appearance:v1", "material");
+      localStorage.setItem("accelerate:demo-theme:northline-roofing", "material");
+    });
+    await demo.reload({ waitUntil: "networkidle" });
+    await demo.waitForFunction(() => document.documentElement.dataset.theme === "accelerate");
+    await publicPage.evaluate(() => localStorage.setItem("theme", "signal"));
+    await publicPage.reload({ waitUntil: "networkidle" });
+    await publicPage.waitForFunction(() => document.documentElement.dataset.theme === "operator");
+    assert.deepEqual(
+      await publicPage.locator("body").evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { background: style.backgroundColor, foreground: style.color };
+      }),
+      sharedDarkPaint,
+      "A restored dark mode must apply the public dark palette",
+    );
+    const publicModeButton = publicPage
+      .getByRole("button", {
+        name: /^Switch to (light|dark) mode$/,
+      })
+      .filter({ visible: true })
+      .first();
+    let retiredPublicToggle = "omitted by configured header";
+    if (await publicModeButton.count()) {
+      assert.equal(await publicModeButton.getAttribute("aria-label"), "Switch to light mode");
+      await publicModeButton.focus();
+      await publicPage.keyboard.press("Enter");
+      await publicPage.waitForFunction(() => document.documentElement.dataset.theme === "light");
+      retiredPublicToggle = "keyboard switch to light passed";
+    }
+    assert.equal(
+      await demo.locator("html").getAttribute("data-theme"),
+      "accelerate",
+      "A retired shared preference must not overwrite the demo's restored mode",
+    );
     assert.deepEqual(errors, []);
-    results.push({ width, result: "passed", crossTab: true, navigation: true, reload: true });
+    results.push({
+      width,
+      result: "passed",
+      crossTab: true,
+      navigation: true,
+      reload: true,
+      retiredSharedPreference: "operator",
+      retiredDemoPreference: "accelerate",
+      retiredPublicToggle,
+    });
     await context.close();
   }
   if (!process.argv.includes("--reproduce")) {

@@ -56,7 +56,7 @@ export function RadarOpportunityDetail({
             <h2 className="text-sm font-semibold">Why this opportunity matters</h2>
             <p className="mt-3 text-pretty text-sm leading-7">{opp.summary}</p>
             <div className="mt-5 rounded-xl bg-[var(--admin-surface-subtle)] p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--admin-muted)]">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--admin-muted)]">
                 Next useful action
               </p>
               <p className="mt-2 text-sm font-medium leading-6">{opp.recommended_action}</p>

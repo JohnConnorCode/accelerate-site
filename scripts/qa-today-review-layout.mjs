@@ -11,8 +11,8 @@ const cases = [
   ["alder-ridge-law", "dark", 390],
   ["alder-ridge-law", "light", 1440],
   ["alder-ridge-law", "light", 390],
-  ["northline-roofing", "signal", 1440],
-  ["northline-roofing", "signal", 390],
+  ["northline-roofing", "operator", 1440],
+  ["northline-roofing", "operator", 390],
 ];
 const browser = await chromium.launch();
 const results = [];

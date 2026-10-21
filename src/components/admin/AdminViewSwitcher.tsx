@@ -58,7 +58,7 @@ export function AdminViewSwitcher<T extends string>({
                 {description && (
                   <span
                     id={`${id}-${option}-help`}
-                    className="mt-0.5 hidden truncate text-[10px] font-normal text-[var(--admin-muted)] xl:block"
+                    className="mt-0.5 hidden truncate text-[11px] font-normal text-[var(--admin-muted)] xl:block"
                   >
                     {description}
                   </span>

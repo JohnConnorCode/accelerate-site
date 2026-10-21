@@ -271,7 +271,7 @@ export default function TenantDirectoryPage() {
                     <p className="admin-eyebrow">{metric.label}</p>
                     <p
                       className={cn(
-                        "mt-2 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em]",
+                        "mt-2 font-mono text-3xl font-semibold tabular-nums tracking-[-0.035em]",
                         metric.tone,
                       )}
                     >
@@ -345,7 +345,7 @@ export default function TenantDirectoryPage() {
                         )}
                       >
                         <span>{label}</span>
-                        <span className="font-mono text-[9px] tabular-nums opacity-70">
+                        <span className="font-mono text-[10.5px] tabular-nums opacity-70">
                           {count}
                         </span>
                       </button>
@@ -387,14 +387,14 @@ export default function TenantDirectoryPage() {
                                   </h3>
                                   <span
                                     className={cn(
-                                      "rounded-full px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em]",
+                                      "rounded-full px-2.5 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.08em]",
                                       meta.chip,
                                     )}
                                   >
                                     {meta.label}
                                   </span>
                                 </div>
-                                <p className="mt-1 font-mono text-[10px] text-[var(--admin-muted)]">
+                                <p className="mt-1 font-mono text-[11px] text-[var(--admin-muted)]">
                                   /t/{tenant.slug}/admin
                                 </p>
                                 <p className="admin-copy mt-2 text-pretty text-xs">
@@ -488,7 +488,7 @@ export default function TenantDirectoryPage() {
                                 {invitedMembers} invitation{invitedMembers === 1 ? "" : "s"} pending
                               </span>
                             )}
-                            <span className="ml-auto font-mono text-[9px] tabular-nums">
+                            <span className="ml-auto font-mono text-[10.5px] tabular-nums">
                               Created {formatDate(tenant.created_at)}
                             </span>
                           </div>
@@ -505,7 +505,7 @@ export default function TenantDirectoryPage() {
                                     {membership.invited_email}
                                   </span>
                                   <div className="flex shrink-0 items-center gap-1">
-                                    <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-[var(--admin-muted)]">
+                                    <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-[var(--admin-muted)]">
                                       {membership.status}
                                     </span>
                                     {membership.status === "invited" && (
@@ -691,7 +691,7 @@ export default function TenantDirectoryPage() {
                         placeholder="acme-roofing"
                       />
                       {slug && (
-                        <span className="mt-1.5 block truncate font-mono text-[9px] text-[var(--admin-muted)]">
+                        <span className="mt-1.5 block truncate font-mono text-[10.5px] text-[var(--admin-muted)]">
                           /t/{slug}/admin
                         </span>
                       )}

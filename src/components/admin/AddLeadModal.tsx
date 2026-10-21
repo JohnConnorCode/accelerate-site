@@ -151,7 +151,7 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
               <p className="font-medium">
                 {savedPartial ? "Lead saved; setup needs attention" : "Save needs attention"}
               </p>
-              <p className="mt-1 text-white-secondary">{saveError}</p>
+              <p className="mt-1 text-[var(--admin-muted)]">{saveError}</p>
             </AdminSurface>
           )}
           <div className="space-y-3">

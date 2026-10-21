@@ -76,11 +76,11 @@ interface Preview {
 }
 
 const statusClass: Record<string, string> = {
-  active: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  paused: "bg-amber-500/12 text-amber-800 dark:text-amber-300",
-  review: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  active: "bg-[var(--admin-success-soft)] text-[var(--admin-ink)] ",
+  paused: "bg-[var(--admin-warning-soft)] text-[var(--admin-ink)] ",
+  review: "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)] ",
   draft: "bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]",
-  completed: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  completed: "bg-[var(--admin-success-soft)] text-[var(--admin-ink)] ",
   archived: "bg-black/[0.035] text-[var(--admin-muted)] dark:bg-white/[0.05]",
 };
 
@@ -286,7 +286,7 @@ export default function CampaignsPage() {
       />
       {actionError && (
         <AdminSurface tone="attention" className="flex items-center gap-3">
-          <TriangleAlert className="size-5 shrink-0 text-rose-600" />
+          <TriangleAlert className="size-5 shrink-0 text-[var(--admin-ink)]" />
           <p className="text-sm text-[var(--admin-ink)]">{actionError}</p>
         </AdminSurface>
       )}
@@ -323,7 +323,7 @@ export default function CampaignsPage() {
                             </h2>
                             <span
                               className={cn(
-                                "rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.08em]",
+                                "rounded-full px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.08em]",
                                 statusClass[campaign.status] || statusClass.draft,
                               )}
                             >
@@ -360,7 +360,7 @@ export default function CampaignsPage() {
                             <p className="font-mono text-lg font-semibold tabular-nums text-[var(--admin-ink)]">
                               {metric.value}
                             </p>
-                            <p className="admin-copy mt-0.5 text-[10px]">{metric.label}</p>
+                            <p className="admin-copy mt-0.5 text-[11px]">{metric.label}</p>
                           </div>
                         ))}
                       </div>
@@ -386,7 +386,7 @@ export default function CampaignsPage() {
                             type="button"
                             onClick={() => void campaignAction(campaign.id, "pause")}
                             disabled={saving}
-                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-amber-500/10 px-3 text-xs font-semibold text-amber-800 transition-[opacity,transform] duration-150 active:scale-[0.96]"
+                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[var(--admin-warning-soft)] px-3 text-xs font-semibold text-[var(--admin-ink)] transition-[opacity,transform] duration-150 active:scale-[0.96]"
                           >
                             <CirclePause className="size-3.5" /> Pause now
                           </button>
@@ -443,25 +443,25 @@ export default function CampaignsPage() {
                         <p className="font-mono text-2xl font-semibold tabular-nums text-[var(--admin-ink)]">
                           {preview.totals.eligible}
                         </p>
-                        <p className="admin-copy mt-1 text-[10px]">Eligible</p>
+                        <p className="admin-copy mt-1 text-[11px]">Eligible</p>
                       </div>
                       <div className="bg-[var(--admin-surface)] p-4">
                         <p className="font-mono text-2xl font-semibold tabular-nums text-[var(--admin-ink)]">
                           {preview.totals.excluded}
                         </p>
-                        <p className="admin-copy mt-1 text-[10px]">Excluded</p>
+                        <p className="admin-copy mt-1 text-[11px]">Excluded</p>
                       </div>
                       <div className="bg-[var(--admin-surface)] p-4">
                         <p className="font-mono text-2xl font-semibold tabular-nums text-[var(--admin-ink)]">
                           {String(preview.policy.daily_limit)}
                         </p>
-                        <p className="admin-copy mt-1 text-[10px]">Daily limit</p>
+                        <p className="admin-copy mt-1 text-[11px]">Daily limit</p>
                       </div>
                     </div>
                     <div className="space-y-5 p-5 sm:p-6">
                       <div>
                         <div className="flex items-center gap-2">
-                          <ShieldCheck className="size-4 text-emerald-600" />
+                          <ShieldCheck className="size-4 text-[var(--admin-ink)]" />
                           <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
                             Stop controls
                           </h3>
@@ -472,7 +472,7 @@ export default function CampaignsPage() {
                             .map(([key]) => (
                               <span
                                 key={key}
-                                className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300"
+                                className="rounded-full bg-[var(--admin-success-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--admin-ink)] "
                               >
                                 <Check className="mr-1 inline size-3" />
                                 {key.replace("stop_on_", "Stop on ").replaceAll("_", " ")}
@@ -488,14 +488,14 @@ export default function CampaignsPage() {
                               key={step.step_order}
                               className="flex items-start gap-3 rounded-xl bg-black/[0.025] p-3 dark:bg-white/[0.025]"
                             >
-                              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-[var(--admin-ink)] font-mono text-[10px] text-[var(--admin-surface)]">
+                              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-[var(--admin-ink)] font-mono text-[11px] text-[var(--admin-surface)]">
                                 {step.step_order}
                               </span>
                               <div>
                                 <p className="text-xs font-semibold text-[var(--admin-ink)]">
                                   {step.subject_template}
                                 </p>
-                                <p className="admin-copy mt-0.5 text-[10px]">
+                                <p className="admin-copy mt-0.5 text-[11px]">
                                   {step.delay_days
                                     ? `${step.delay_days} days after prior step`
                                     : "Immediately after activation"}
@@ -512,7 +512,7 @@ export default function CampaignsPage() {
                           </h3>
                           <div className="mt-2 rounded-2xl bg-black/[0.025] p-2 dark:bg-white/[0.025]">
                             <div className="rounded-xl bg-[var(--admin-surface)] p-4 shadow-[var(--admin-shadow-border)]">
-                              <p className="font-mono text-[10px] text-[var(--admin-muted)]">
+                              <p className="font-mono text-[11px] text-[var(--admin-muted)]">
                                 To {preview.samples[0].email}
                               </p>
                               <p className="mt-2 text-sm font-semibold text-[var(--admin-ink)]">

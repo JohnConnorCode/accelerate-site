@@ -100,7 +100,7 @@ export function LayoutScopeCard({
             <p className="admin-copy mt-1 text-xs">Using the default order. No override applied.</p>
           )}
           {lastChange && (
-            <p className="admin-copy mt-2 text-[10px] uppercase tracking-[0.06em] text-[var(--admin-muted)]">
+            <p className="admin-copy mt-2 text-[11px] uppercase tracking-[0.06em] text-[var(--admin-muted)]">
               Last changed by {lastChange.actorEmail || "unknown"} ·{" "}
               {new Date(lastChange.createdAt).toLocaleString()}
             </p>

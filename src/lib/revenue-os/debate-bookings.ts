@@ -139,6 +139,17 @@ export async function loadDebateProduction(db: SupabaseClient, id: string) {
   };
 }
 
+/** Whether this workspace runs debate productions; false when unknown. */
+export async function hasDebateProductions(db: SupabaseClient) {
+  const tenantId = tenantIdForDatabase(db);
+  if (!tenantId) return false;
+  const { count, error } = await db
+    .from("debate_productions")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenantId);
+  return !error && (count ?? 0) > 0;
+}
+
 export async function listDebateProductions(db: SupabaseClient, limit = 30) {
   const tenantId = tenantIdForDatabase(db);
   if (!tenantId) throw new Error("Debate booking requires an explicit workspace");

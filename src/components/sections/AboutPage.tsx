@@ -100,7 +100,7 @@ function FounderCard() {
       <h2 className="font-display text-2xl font-bold tracking-[-0.03em] text-heading">
         John Connor
       </h2>
-      <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted">
+      <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-white-muted">
         Founder
       </p>
       <p className="mt-3 text-sm leading-relaxed text-white-muted">
@@ -126,8 +126,8 @@ export function AboutPageContent() {
                 <RevealHeading
                   as="h1"
                   className={HERO_HEADING}
-                  lead="AI should fit the business,"
-                  accent="not the other way around."
+                  lead="AI that fits the way"
+                  accent="your business already works."
                   entrance="parent"
                 />
               </HeroEntranceItem>
@@ -153,7 +153,7 @@ export function AboutPageContent() {
           {NARRATIVE.map((seg, i) => (
             <AnimateOnScroll key={seg.label} delay={i * 0.06}>
               <div className="border-l border-[color-mix(in_srgb,var(--fg)_18%,transparent)] pl-6">
-                <p className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
+                <p className="mb-3 font-mono text-[10.5px] uppercase tracking-[0.22em] text-white-muted">
                   {seg.label}
                 </p>
                 <div className="flex flex-col gap-4 text-base leading-relaxed text-white-secondary">

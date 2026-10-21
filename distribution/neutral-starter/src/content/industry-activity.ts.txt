@@ -1,0 +1,7 @@
+import type { ActivityEvent } from "./home-activity";
+
+// Add only examples the business has chosen to publish.
+export const industryActivity: Record<
+  string,
+  { label: string; context: string; events: ActivityEvent[] }
+> = {};

@@ -25,3 +25,4 @@ export const engagementShapes: EngagementShape[] = [];
 export const scopingPromise = "Describe your scope.";
 export const featuredServiceWorkSlugs: string[] = [];
 export const commandCenterFraming = "Configure your business workspace.";
+export { homeActivity as serviceEngagementActivity } from "./home-activity";

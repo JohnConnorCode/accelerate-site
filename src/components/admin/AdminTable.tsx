@@ -51,7 +51,7 @@ export function AdminTable<T>({
       <div className="admin-table-scroll">
         <table className="admin-table">
           <thead>
-            <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]">
+            <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
@@ -81,7 +81,7 @@ export function AdminTable<T>({
                         )}
                       />
                       {sortField === col.key && (
-                        <span className="text-[9px] normal-case tracking-normal">
+                        <span className="text-[10.5px] normal-case tracking-normal">
                           {sortOrder === "asc" ? "asc" : "desc"}
                         </span>
                       )}

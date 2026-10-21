@@ -214,6 +214,9 @@ export function PageHeader({
                           <X size={16} aria-hidden="true" />
                         </button>
                       </div>
+                      {help.startHint && !help.steps.includes(help.startHint) && (
+                        <p className="admin-copy mb-3 text-sm leading-relaxed">{help.startHint}</p>
+                      )}
                       <ol className="admin-help-steps">
                         {help.steps.map((step, index) => (
                           <li key={step} className="admin-help-step-row">
@@ -258,12 +261,6 @@ export function PageHeader({
           </div>
         )}
       </div>
-      {help?.startHint && (isRoot || guidance) && (
-        <p className="admin-copy mt-3 max-w-3xl text-sm leading-relaxed" data-page-start-hint>
-          <strong className="text-[var(--admin-ink)]">Start here: </strong>
-          {help.startHint}
-        </p>
-      )}
     </div>
   );
 }
