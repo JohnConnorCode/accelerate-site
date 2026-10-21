@@ -1,13 +1,25 @@
 # Design roadmap: next passes after the brand system
 
-Owner: design lead (Claude session `accelerate-cc-design-audit`). Date: 2026-10-20.
-Branch: `design/brand-system-20261020` (integration candidate; a Codex
-integrator commits from this worktree).
+Owner: Codex implementation at John's request. Date: 2026-10-20.
+Implementation branch: `design/roadmap-20261020`, based on the integrated brand
+candidate `a2675f5a`. The integration owner retains the release candidate in
+[PR #296](https://github.com/JohnConnorCode/accelerate-site/pull/296).
 
-This file lists the design work that is **planned and not started**. Each pass
-is self-contained: an agent can pick any one up, finish it, verify it and hand
-it off without the others. Work them in the listed order unless a ticket says
-otherwise.
+All eight passes now have source implementations. Application commit
+`c021510f` passed a neutral-profile build and source checks; the integrated
+candidate also passed its branded production build. Cloud capture produced
+seven product, six demo-chooser and forty-three documentation images, which
+the integrator reviewed and imported. Rendered acceptance and final CI remain
+pending after corrections for the style-guide layout and motion, Nonprofits'
+bespoke route and stale QA selectors. The integrator owns the final candidate
+and cloud verification while the shared machine reservation is held by
+another release. Final acceptance will be recorded in PR #296 and its
+external verification receipt; this is a pre-release implementation handoff.
+See [the implementation handoff](../verification/2026-10-20-design-roadmap-handoff.md)
+for evidence and the remaining acceptance work. Do not start these passes again
+from this planning document.
+
+The original scope and acceptance criteria follow in priority order.
 
 ## Read first
 
@@ -61,7 +73,7 @@ workspace (`/demo/command-center/<scenario>/<route>`), never real data.
 
 ## Pass 1. Industry pages carry the activity stream
 
-**Why.** Twenty-one `/industries/*` pages share `VerticalPage.tsx` and none of
+**Why.** Twenty `/industries/*` trade pages share `VerticalPage.tsx` and none of
 them show the proof device. The homepage and Services each show one stream;
 each trade should show its own.
 
@@ -78,7 +90,7 @@ each trade should show its own.
   homepage (`src/app/globals.css`).
 - Copy for `context` reads "Illustrative · <trade>". Never imply a real client.
 
-**Acceptance.** All 21 pages render a stream with at least two system and two
+**Acceptance.** All 20 trade pages render a stream with at least two system and two
 people events. No page shows signal orange outside the stream. Copy passes
 the guards. Layout holds at 390px with no horizontal scroll.
 
@@ -194,7 +206,7 @@ Paper, Night and Operator screenshots of the touched pages show no regression.
 ## Pass 7. Module identity cards
 
 **Why.** "Plug in any business logic" is the platform claim, but plugged-in
-modules don't look like a family. Fifteen manifests live in
+modules don't look like a family. Thirteen extension manifests currently live in
 `extensions/*.module.json`.
 
 **Scope.** One `ModuleCard` primitive for `/admin/plugins` and
@@ -203,7 +215,7 @@ last action as a one-line stream entry (filled signal mark if the system
 acted), owner, and autonomy level. Render it from the manifest, so a new
 module looks native with no page code.
 
-**Acceptance.** All 15 manifests render with the same anatomy in all four
+**Acceptance.** All registered extension manifests render with the same anatomy in all four
 modes. Adding a fixture manifest in a test renders a correct card with no
 other change.
 
@@ -229,7 +241,9 @@ other change.
 
 ## Owned elsewhere (do not duplicate)
 
-- **Demo launcher screenshots.** The integrator changed
+- **Demo launcher screenshots.** The integrator owns the
+  `*-20261020-r2.png` references in
   `src/app/(marketing)/demo/command-center/page.tsx` and
-  `src/content/demo-workflows.ts` to `*-20261020-r2.png` files that don't exist
-  yet. Until it generates them, `qa-theme-persistence` reports 404s.
+  `src/content/demo-workflows.ts`. Its cloud producer generated the six
+  missing files and they are imported in the release candidate. Final
+  journey and image acceptance remains with PR #296; do not duplicate capture.
