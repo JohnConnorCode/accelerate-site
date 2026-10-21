@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { chromium } from "playwright";
 import AxeBuilder from "@axe-core/playwright";
+import { observeHostedRelease } from "./qa-hosted-release-review.mjs";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3045";
 const output = process.env.QA_OUTPUT || "/tmp/admin-polish-qa";
 const themes = JSON.parse(
@@ -9,6 +10,7 @@ const themes = JSON.parse(
 );
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
+const deploymentGuards = [];
 const results = [],
   errors = [],
   boardMeasurements = [],
@@ -80,6 +82,9 @@ try {
       viewport: { width: 1440, height: 1000 },
       colorScheme: "light",
     });
+    deploymentGuards.push(
+      observeHostedRelease(context, theme.id, `${output}/${theme.id}-release-assets.json`),
+    );
     await context.addInitScript((theme) => {
       if (window === window.top)
         sessionStorage.setItem("accelerate:admin-demo:superdebate:appearance:v1", theme);
@@ -163,5 +168,9 @@ try {
   );
   console.log(JSON.stringify(results));
 } finally {
-  await browser.close();
+  try {
+    for (const guard of deploymentGuards) await guard.finish();
+  } finally {
+    await browser.close();
+  }
 }
