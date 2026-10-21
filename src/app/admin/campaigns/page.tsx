@@ -76,11 +76,11 @@ interface Preview {
 }
 
 const statusClass: Record<string, string> = {
-  active: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  paused: "bg-amber-500/12 text-amber-800 dark:text-amber-300",
-  review: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  active: "bg-[var(--admin-success-soft)] text-[var(--admin-ink)] ",
+  paused: "bg-[var(--admin-warning-soft)] text-[var(--admin-ink)] ",
+  review: "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)] ",
   draft: "bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]",
-  completed: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  completed: "bg-[var(--admin-success-soft)] text-[var(--admin-ink)] ",
   archived: "bg-black/[0.035] text-[var(--admin-muted)] dark:bg-white/[0.05]",
 };
 
@@ -286,7 +286,7 @@ export default function CampaignsPage() {
       />
       {actionError && (
         <AdminSurface tone="attention" className="flex items-center gap-3">
-          <TriangleAlert className="size-5 shrink-0 text-rose-600" />
+          <TriangleAlert className="size-5 shrink-0 text-[var(--admin-ink)]" />
           <p className="text-sm text-[var(--admin-ink)]">{actionError}</p>
         </AdminSurface>
       )}
@@ -386,7 +386,7 @@ export default function CampaignsPage() {
                             type="button"
                             onClick={() => void campaignAction(campaign.id, "pause")}
                             disabled={saving}
-                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-amber-500/10 px-3 text-xs font-semibold text-amber-800 transition-[opacity,transform] duration-150 active:scale-[0.96]"
+                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[var(--admin-warning-soft)] px-3 text-xs font-semibold text-[var(--admin-ink)] transition-[opacity,transform] duration-150 active:scale-[0.96]"
                           >
                             <CirclePause className="size-3.5" /> Pause now
                           </button>
@@ -461,7 +461,7 @@ export default function CampaignsPage() {
                     <div className="space-y-5 p-5 sm:p-6">
                       <div>
                         <div className="flex items-center gap-2">
-                          <ShieldCheck className="size-4 text-emerald-600" />
+                          <ShieldCheck className="size-4 text-[var(--admin-ink)]" />
                           <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
                             Stop controls
                           </h3>
@@ -472,7 +472,7 @@ export default function CampaignsPage() {
                             .map(([key]) => (
                               <span
                                 key={key}
-                                className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300"
+                                className="rounded-full bg-[var(--admin-success-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--admin-ink)] "
                               >
                                 <Check className="mr-1 inline size-3" />
                                 {key.replace("stop_on_", "Stop on ").replaceAll("_", " ")}

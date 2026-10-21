@@ -90,12 +90,13 @@ const EMPTY_SAMPLE = `Jane Martinez, jane@martinezroofing.com, 512-555-0142, Mar
 const COLUMN_SAMPLE = `fullName,email,companyName\nAlex Morgan,alex@example.test,Example Company\nJamie Chen,jamie@example.test,Example Company`;
 
 function statusTone(status: string) {
+  if (status === "failed") return "bg-[var(--admin-danger-soft)] text-[var(--admin-ink)]";
   if (["completed", "imported"].includes(status))
-    return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
-  if (["failed", "partial", "needs_review"].includes(status))
-    return "bg-amber-500/12 text-amber-800 dark:text-amber-300";
+    return "bg-[var(--admin-success-soft)] text-[var(--admin-ink)] ";
+  if (["partial", "needs_review"].includes(status))
+    return "bg-[var(--admin-warning-soft)] text-[var(--admin-ink)] ";
   if (["approved", "executing"].includes(status))
-    return "bg-blue-500/10 text-blue-700 dark:text-blue-300";
+    return "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)] ";
   return "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]";
 }
 
@@ -676,7 +677,7 @@ export default function ContactImportsPage() {
                   type="button"
                   disabled={busy !== null || saved}
                   onClick={() => void saveReview()}
-                  className="min-h-10 rounded-xl px-3 text-xs font-semibold text-white shadow-[0_0_0_1px_rgba(255,255,255,.18)] transition-[background-color,scale,opacity] duration-150 hover:bg-white/8 active:scale-[0.96] disabled:opacity-40 sm:px-4 sm:text-sm"
+                  className="min-h-10 rounded-xl px-3 text-xs font-semibold text-white shadow-[0_0_0_1px_rgba(255,255,255,.18)] transition-[background-color,scale,opacity] duration-150 hover:bg-[var(--admin-hover-tint)] active:scale-[0.96] disabled:opacity-40 sm:px-4 sm:text-sm"
                 >
                   {busy === "save" ? "Saving…" : "Save"}
                 </button>
@@ -712,7 +713,7 @@ export default function ContactImportsPage() {
       >
         <AdminSurface padding="none" className="admin-dialog-surface overflow-hidden rounded-2xl">
           <div className="p-5 sm:p-6">
-            <span className="grid size-11 place-items-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300">
+            <span className="grid size-11 place-items-center rounded-xl bg-[var(--admin-warning-soft)] text-[var(--admin-ink)] ">
               <ShieldCheck className="size-5" />
             </span>
             <h2 className="admin-dialog-title mt-5">Approve this exact import snapshot?</h2>
@@ -722,10 +723,12 @@ export default function ContactImportsPage() {
             </p>
             <div className="mt-5 rounded-xl bg-[var(--admin-surface-subtle)] p-4 text-sm">
               <p className="flex items-center gap-2 font-semibold text-[var(--admin-ink)]">
-                <Check className="size-4 text-emerald-600" /> Contact and company records only
+                <Check className="size-4 text-[var(--admin-ink)]" /> Contact and company records
+                only
               </p>
               <p className="mt-2 flex items-center gap-2 font-semibold text-[var(--admin-ink)]">
-                <Check className="size-4 text-emerald-600" /> Row-level receipts and audit history
+                <Check className="size-4 text-[var(--admin-ink)]" /> Row-level receipts and audit
+                history
               </p>
               <p className="mt-2 flex items-center gap-2 font-semibold text-[var(--admin-ink)]">
                 <X className="size-4 text-[var(--admin-muted)]" /> No email, campaign, task, or
@@ -954,7 +957,7 @@ function RowEditor({
           {[...row.errors, ...(row.error ? [row.error] : [])].map((message) => (
             <p
               key={message}
-              className="flex items-start gap-2 rounded-xl bg-red-500/8 p-3 text-xs text-red-700 dark:text-red-300"
+              className="flex items-start gap-2 rounded-xl bg-[var(--admin-danger-soft)] p-3 text-xs text-[var(--admin-ink)] "
             >
               <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
               {message}
@@ -963,7 +966,7 @@ function RowEditor({
           {row.warnings.map((message) => (
             <p
               key={message}
-              className="flex items-start gap-2 rounded-xl bg-amber-500/9 p-3 text-xs text-amber-800 dark:text-amber-300"
+              className="flex items-start gap-2 rounded-xl bg-[var(--admin-warning-soft)] p-3 text-xs text-[var(--admin-ink)] "
             >
               <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
               {message}
@@ -1000,8 +1003,8 @@ function ResultPanel({
         className={cn(
           "mx-auto grid size-14 place-items-center rounded-2xl",
           failed
-            ? "bg-amber-500/12 text-amber-700 dark:text-amber-300"
-            : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+            ? "bg-[var(--admin-warning-soft)] text-[var(--admin-ink)] "
+            : "bg-[var(--admin-success-soft)] text-[var(--admin-ink)] ",
         )}
       >
         {failed ? <AlertTriangle className="size-6" /> : <CheckCircle2 className="size-6" />}
@@ -1129,7 +1132,7 @@ function ErrorNotice({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="mb-5 flex items-start gap-3 rounded-2xl bg-red-500/8 p-4 text-sm text-red-800 shadow-[0_0_0_1px_rgba(185,28,28,.13)] dark:text-red-300"
+      className="mb-5 flex items-start gap-3 rounded-2xl bg-[var(--admin-danger-soft)] p-4 text-sm text-[var(--admin-ink)] shadow-[inset_3px_0_0_var(--admin-danger)] "
     >
       <AlertTriangle className="mt-0.5 size-4 shrink-0" />
       <p className="text-pretty">{message}</p>

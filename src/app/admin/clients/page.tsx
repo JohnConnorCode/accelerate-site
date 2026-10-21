@@ -8,6 +8,7 @@ import { Search } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { StatCard } from "@/components/admin/StatCard";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -119,32 +120,28 @@ export default function ClientsPage() {
 
         {/* MRR Summary Cards */}
         <div className="mb-6 admin-grid admin-grid--metrics">
-          <AdminSurface padding="sm">
-            <p className="admin-eyebrow">Monthly recurring</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
-              ${totalMRR.toLocaleString()}
-            </p>
-          </AdminSurface>
-          <AdminSurface padding="sm">
+          <StatCard
+            label="Monthly recurring"
+            value={`$${totalMRR.toLocaleString()}`}
+            density="compact"
+          />
+          <div className="relative min-w-0">
+            <StatCard label="Active clients" value={activeCount} density="compact" />
             <button
               type="button"
               aria-label="Show active clients"
               aria-pressed={statusFilter === "active"}
               onClick={() => setStatusFilter(statusFilter === "active" ? "all" : "active")}
-              className="block min-h-11 w-full text-left leading-none focus-visible:outline focus-visible:outline-2"
-            >
-              <span className="admin-eyebrow block">Active clients</span>
-              <span className="mt-1 block text-xl font-semibold leading-7 tabular-nums text-[var(--admin-ink)]">
-                {activeCount}
-              </span>
-            </button>
-          </AdminSurface>
-          <AdminSurface padding="sm" className="hidden sm:block">
-            <p className="admin-eyebrow">Average MRR / client</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
-              ${activeCount > 0 ? Math.round(totalMRR / activeCount).toLocaleString() : "0"}
-            </p>
-          </AdminSurface>
+              className="absolute inset-0 rounded-[var(--admin-surface-radius)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--admin-action)] focus-visible:outline-offset-4"
+            />
+          </div>
+          <div className="hidden min-w-0 sm:block">
+            <StatCard
+              label="Average MRR / client"
+              value={`$${activeCount > 0 ? Math.round(totalMRR / activeCount).toLocaleString() : "0"}`}
+              density="compact"
+            />
+          </div>
         </div>
 
         {error && (

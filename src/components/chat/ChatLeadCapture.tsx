@@ -52,7 +52,7 @@ export function ChatLeadCapture({ onSubmit, onDismiss }: ChatLeadCaptureProps) {
           required
           autoComplete="name"
           disabled={submitting}
-          className="min-h-10 w-full rounded-lg bg-bg-base border border-border-glass px-3 py-2 text-xs text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors disabled:opacity-60"
+          className="min-h-10 w-full rounded-lg bg-bg-base border border-border-glass px-3 py-2 text-xs text-white-primary placeholder:text-white-muted focus:outline-none focus:border-[var(--fg)] transition-colors disabled:opacity-60"
         />
         <input
           type="email"
@@ -63,7 +63,7 @@ export function ChatLeadCapture({ onSubmit, onDismiss }: ChatLeadCaptureProps) {
           required
           autoComplete="email"
           disabled={submitting}
-          className="min-h-10 w-full rounded-lg bg-bg-base border border-border-glass px-3 py-2 text-xs text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors disabled:opacity-60"
+          className="min-h-10 w-full rounded-lg bg-bg-base border border-border-glass px-3 py-2 text-xs text-white-primary placeholder:text-white-muted focus:outline-none focus:border-[var(--fg)] transition-colors disabled:opacity-60"
         />
         {error && (
           <p className="text-xs leading-relaxed text-red-300" role="alert">

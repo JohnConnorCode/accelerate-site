@@ -54,14 +54,16 @@ const CHANNEL_ICONS: Record<string, typeof Mail> = {
 };
 
 const STAGE_COLORS: Record<string, string> = {
-  new: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  contacted: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
-  qualified: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
-  meeting: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-  proposal: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  won: "bg-green-600/15 text-green-700 dark:text-green-300 border-green-600/30",
-  lost: "bg-neutral-500/10 text-neutral-600 dark:text-neutral-400 border-neutral-500/20",
-  nurture: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
+  new: "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  contacted:
+    "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  qualified:
+    "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  meeting: "bg-[var(--admin-warning-soft)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  proposal: "bg-[var(--admin-success-soft)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  won: "bg-[var(--admin-success-soft)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  lost: "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
+  nurture: "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]  border-[var(--admin-border)]",
 };
 
 export default function ConversationsPage() {
@@ -413,7 +415,7 @@ export default function ConversationsPage() {
       >
         {actionError && (
           <AdminSurface tone="attention" className="flex items-center gap-3">
-            <TriangleAlert className="size-5 shrink-0 text-rose-600" />
+            <TriangleAlert className="size-5 shrink-0 text-[var(--admin-ink)]" />
             <p className="text-sm text-[var(--admin-ink)]">{actionError}</p>
           </AdminSurface>
         )}
@@ -454,7 +456,7 @@ export default function ConversationsPage() {
                         className={cn(
                           "rounded-full px-1.5 py-0.2 text-[11px] tabular-nums",
                           statusFilter === tab.key
-                            ? "bg-white/20 text-[var(--admin-surface)]"
+                            ? "bg-[var(--admin-surface-subtle)] text-[var(--admin-surface)]"
                             : "bg-black/[0.06] text-[var(--admin-muted)] dark:bg-white/[0.08]",
                         )}
                       >

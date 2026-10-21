@@ -13,18 +13,15 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "bg-[var(--fg)] text-[var(--bg)] font-semibold hover:opacity-90 active:scale-[0.96] transition-[opacity,transform] duration-200",
-  secondary:
-    "glass border border-[var(--border-light)] text-white-primary hover:border-[rgba(var(--accent-rgb),0.3)] hover:border-gold-glow hover:shadow-[0_0_24px_rgba(var(--accent-rgb),0.12)] hover:-translate-y-0.5 active:scale-[0.96] active:brightness-95 active:translate-y-0 transition-[transform,scale,filter,box-shadow,border-color] duration-300",
-  ghost:
-    "text-white-secondary hover:text-[var(--text-nav-hover)] active:scale-[0.96] transition-[color,transform,scale] duration-200",
+  primary: "",
+  secondary: "btn-ghost",
+  ghost: "btn-ghost",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: "px-4 py-2 text-sm rounded-lg",
-  md: "px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base rounded-lg",
-  lg: "px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg rounded-xl",
+  sm: "btn-sm",
+  md: "",
+  lg: "btn-lg",
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -45,15 +42,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         type={type}
         data-ui-button={variant}
-        className={cn(
-          "inline-flex items-center justify-center font-medium cursor-pointer",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]",
-          variantClasses[variant],
-          sizeClasses[size],
-          pulse && "pulse-gold",
-          className,
-        )}
+        data-pulse={pulse ? "" : undefined}
+        className={cn("btn", variantClasses[variant], sizeClasses[size], className)}
         {...props}
       >
         {children}

@@ -69,7 +69,7 @@ export function TodaysPriorities({
         <div className="space-y-2">
           {overdueTasks > 0 && (
             <Link href="/admin" className="block">
-              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5 transition-colors group bg-red-500/10 border border-red-500/20">
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-[var(--admin-hover-tint)] transition-colors group bg-red-500/10 border border-red-500/20">
                 <CheckSquare className="h-4 w-4 text-red-400 shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm text-red-300 font-medium">
@@ -84,7 +84,7 @@ export function TodaysPriorities({
 
           {stalledProposals > 0 && (
             <Link href="/admin/proposals" className="block">
-              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5 transition-colors group bg-amber-500/10 border border-amber-500/20">
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-[var(--admin-hover-tint)] transition-colors group bg-amber-500/10 border border-amber-500/20">
                 <FileCheck className="h-4 w-4 text-amber-400 shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm text-amber-200 font-medium">
@@ -105,7 +105,7 @@ export function TodaysPriorities({
               transition={{ delay: i * 0.05 }}
             >
               <Link href={item.link} className="block">
-                <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5 transition-colors group">
+                <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-[var(--admin-hover-tint)] transition-colors group">
                   {item.type === "hot_lead" ? (
                     <Flame className="h-4 w-4 text-orange-400 shrink-0" />
                   ) : (
@@ -136,7 +136,7 @@ export function TodaysPriorities({
 
           {unreadContacts > 0 && (
             <Link href="/admin/contacts" className="block">
-              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5 transition-colors group">
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-[var(--admin-hover-tint)] transition-colors group">
                 <Inbox className="h-4 w-4 text-blue-400 shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm text-[var(--admin-ink)] font-medium">
@@ -151,7 +151,7 @@ export function TodaysPriorities({
 
           {pendingPartners > 0 && (
             <Link href="/admin/partners" className="block">
-              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5 transition-colors group">
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-[var(--admin-hover-tint)] transition-colors group">
                 <Handshake className="h-4 w-4 text-purple-400 shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm text-[var(--admin-ink)] font-medium">

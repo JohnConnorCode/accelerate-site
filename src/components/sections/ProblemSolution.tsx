@@ -7,8 +7,6 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
-import { Button } from "@/components/ui/Button";
-import { MagneticButton } from "@/components/ui/MagneticButton";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
 const comparisons = [
@@ -107,7 +105,7 @@ export function ProblemSolution() {
             label="Before & After"
             heading={
               <>
-                Stop Losing Revenue to <span className="text-gold">Broken Processes</span>
+                Stop Losing Revenue to <span className="text-[var(--fg)]">Broken Processes</span>
               </>
             }
           />
@@ -147,20 +145,20 @@ export function ProblemSolution() {
           className="relative bg-bg-elevated py-12 sm:py-16 px-6 sm:px-10 lg:px-16"
         >
           {/* Gold arrow divider — between panels on desktop */}
-          <div className="hidden md:flex absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bg-base border border-border-gold items-center justify-center z-10">
-            <ArrowRight className="w-4 h-4 text-gold" />
+          <div className="hidden md:flex absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bg-base border border-[var(--rule)] items-center justify-center z-10">
+            <ArrowRight className="w-4 h-4 text-[var(--fg)]" />
           </div>
 
           {/* Mobile arrow divider */}
           <div className="md:hidden flex justify-center -mt-6 mb-6">
-            <div className="w-10 h-10 rounded-full bg-bg-base border border-border-gold flex items-center justify-center">
-              <ArrowDown className="w-4 h-4 text-gold" />
+            <div className="w-10 h-10 rounded-full bg-bg-base border border-[var(--rule)] flex items-center justify-center">
+              <ArrowDown className="w-4 h-4 text-[var(--fg)]" />
             </div>
           </div>
 
           <div className="max-w-lg mr-auto">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold mb-8 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-gold" />
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--fg)] mb-8 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--fg)]" />
               After Accelerate
             </p>
             <div className="space-y-8">
@@ -170,7 +168,7 @@ export function ProblemSolution() {
                     {item.label}
                   </p>
                   <div className="flex items-baseline gap-1.5 mb-2">
-                    <span className="text-xl sm:text-2xl font-bold text-gold-light leading-none">
+                    <span className="text-xl sm:text-2xl font-bold text-[var(--fg)] leading-none">
                       {item.metric}
                     </span>
                     <span className="text-[11px] uppercase tracking-wider text-white-muted">
@@ -189,14 +187,15 @@ export function ProblemSolution() {
 
       <div className="page-shell">
         <AnimateOnScroll delay={0.2} className="text-center mt-12">
-          <MagneticButton>
-            <Link href="/contact">
-              <Button variant="primary" size="lg" className="group/cta">
-                Book a Free Strategy Call
-                <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover/cta:translate-x-0.5" />
-              </Button>
-            </Link>
-          </MagneticButton>
+          <Link
+            href="/contact"
+            className="btn btn-lg group/cta"
+            data-booking-cta="problem-solution"
+          >
+            Book a Free Strategy Call
+            <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover/cta:translate-x-0.5" />
+          </Link>
+
           <p className="text-sm text-white-muted mt-4 italic">
             You built the business. Let us build the engine.
           </p>

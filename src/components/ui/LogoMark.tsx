@@ -15,7 +15,7 @@ export function LogoMark({ className }: { className?: string }) {
       className={cn("logo-mark", className)}
       width="32"
       height="16"
-      fill="var(--gold-base)"
+      fill="var(--fg)"
     >
       <defs>
         {/* one chevron — translated three times below at different opacities */}

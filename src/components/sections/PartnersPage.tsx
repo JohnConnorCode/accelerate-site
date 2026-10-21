@@ -166,7 +166,7 @@ export function PartnersPage() {
               key={title}
               className="flex h-full flex-col gap-4 rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-6 backdrop-blur-md"
             >
-              <span className="grid h-11 w-11 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] text-gold">
+              <span className="grid h-11 w-11 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] text-[var(--fg)]">
                 <Icon className="h-5 w-5" strokeWidth={1.75} />
               </span>
               <h3 className="font-display text-xl font-bold tracking-[-0.01em] text-heading">
@@ -194,12 +194,12 @@ export function PartnersPage() {
                 className={cn(
                   "flex h-full flex-col rounded-2xl border bg-[color-mix(in_srgb,var(--bg-elevated)_88%,transparent)] p-6 backdrop-blur-md sm:p-7",
                   featured
-                    ? "border-border-gold shadow-[0_0_0_1px_var(--border-gold),inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(0,0,0,0.25)]"
+                    ? "border-[var(--rule)] shadow-[0_0_0_1px_var(--rule),inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(0,0,0,0.25)]"
                     : "border-border-glass shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                 )}
               >
                 <div className="mb-4 flex items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-[var(--fg)]">
                     <Icon className="h-5 w-5" strokeWidth={1.75} />
                   </span>
                   <h3 className="font-display text-lg font-bold tracking-[-0.01em] text-heading">
@@ -209,7 +209,7 @@ export function PartnersPage() {
                 <p
                   className={cn(
                     "mb-5 text-sm font-medium",
-                    featured ? "text-gold" : "text-gold-light",
+                    featured ? "text-[var(--fg)]" : "text-[var(--fg)]",
                   )}
                 >
                   {tier.commission}
@@ -221,7 +221,10 @@ export function PartnersPage() {
                   <ul className="flex flex-col gap-2">
                     {tier.benefits.map((b) => (
                       <li key={b} className="flex items-start gap-2 text-sm text-white-secondary">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" strokeWidth={2.5} />
+                        <Check
+                          className="mt-0.5 h-4 w-4 shrink-0 text-[var(--fg)]"
+                          strokeWidth={2.5}
+                        />
                         <span>{b}</span>
                       </li>
                     ))}
@@ -253,7 +256,7 @@ export function PartnersPage() {
         >
           {submitted ? (
             <div className="py-6 text-center">
-              <span className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-gold text-btn-text">
+              <span className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-[var(--fg)] text-btn-text">
                 <Check className="h-8 w-8" strokeWidth={2.5} />
               </span>
               <h2 className="mb-2 font-display text-2xl font-bold text-heading">
@@ -321,12 +324,12 @@ export function PartnersPage() {
                           className={cn(
                             "flex flex-col items-center gap-2 rounded-xl border px-3 py-3 text-sm transition-colors",
                             on
-                              ? "border-border-gold bg-[color-mix(in_srgb,var(--gold-base)_10%,transparent)] text-heading"
+                              ? "border-[var(--rule)] bg-[color-mix(in_srgb,var(--fg)_10%,transparent)] text-heading"
                               : "border-border-glass text-white-secondary hover:border-[var(--border-glass-hover)]",
                           )}
                         >
                           <opt.icon
-                            className={cn("h-5 w-5", on ? "text-gold" : "text-white-muted")}
+                            className={cn("h-5 w-5", on ? "text-[var(--fg)]" : "text-white-muted")}
                           />
                           {opt.label}
                         </button>
@@ -351,7 +354,7 @@ export function PartnersPage() {
                   type="submit"
                   disabled={isSubmitting}
                   data-cursor="link"
-                  className="group mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90 disabled:opacity-60"
+                  className="group mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--fg)] px-7 py-3.5 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90 disabled:opacity-60"
                 >
                   {isSubmitting ? (
                     <>

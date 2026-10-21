@@ -39,6 +39,7 @@ export interface StatCardProps {
   state?: "ready" | "unknown";
   unknownMessage?: string;
   className?: string;
+  density?: "default" | "compact";
   /** @deprecated Use `comparison`. Rendered as plain muted text when no comparison is given. */
   change?: string;
   /** @deprecated Use `comparison.direction`. */
@@ -71,6 +72,7 @@ export function StatCard({
   state = "ready",
   unknownMessage = "Not available",
   className,
+  density = "default",
   change,
   trend,
 }: StatCardProps) {
@@ -90,10 +92,11 @@ export function StatCard({
       initial={reducedMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={reducedMotion ? { duration: 0 } : { delay: index * 0.04, duration: 0.24 }}
-      className="h-full"
+      className="h-full min-w-0"
+      data-stat-density={density}
     >
       <AdminSurface
-        padding="lg"
+        padding={density === "compact" ? "sm" : "lg"}
         tone={tone === "attention" ? "attention" : "default"}
         className={cn(
           "flex h-full flex-col",
@@ -102,18 +105,32 @@ export function StatCard({
         )}
       >
         <div className="flex items-center justify-between gap-3">
-          <span className="admin-eyebrow">{label}</span>
+          <span className={cn("admin-eyebrow", density === "compact" && "truncate")} title={label}>
+            {label}
+          </span>
           {Icon ? <Icon className="size-4 text-[var(--admin-muted)]" aria-hidden /> : null}
         </div>
 
         {unavailable ? (
           <p className="mt-3 text-sm text-[var(--admin-muted)]">{unknownMessage}</p>
         ) : (
-          <p className="admin-stat-value mt-3">{value}</p>
+          <p
+            className={cn("admin-stat-value mt-3", density === "compact" && "truncate")}
+            title={String(value)}
+          >
+            {value}
+          </p>
         )}
 
         {note ? (
-          <p className="admin-copy mt-1.5 max-w-[32ch] text-pretty text-[11px] leading-4">{note}</p>
+          <p
+            className={cn(
+              "admin-copy mt-1.5 max-w-[32ch] text-[11px] leading-4",
+              density === "compact" ? "hidden truncate sm:block" : "text-pretty",
+            )}
+          >
+            {note}
+          </p>
         ) : null}
 
         {hasComparison && !unavailable ? (

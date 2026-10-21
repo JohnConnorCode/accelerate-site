@@ -1,7 +1,7 @@
 ---
 title: "Plugins"
 description: "Register a plugin manifest with tools and triggers that still route through real governance."
-updated: "2026-10-07"
+updated: "2026-10-20"
 ---
 
 When somebody spends the morning gathering customer updates for a report or preparing the same follow-up tasks, a plugin can combine that work into a repeatable workflow. Have a coding agent adapt the [bundled examples](/docs/plugins) or [industry recipes](/docs/recipes), reusing shared records so your team has less information to collect and maintain separately.
@@ -48,6 +48,8 @@ for a business workspace and the
 for its daily review workspace, source-backed relationship context, model budgets and current release limits.
 
 ## Consistent workspace interfaces
+
+Module listings use `ModuleCard` on both Plugins and Integrations. Pass the registered module definition and its verified enabled state. The card derives the glyph and autonomy description from the module category and declared policy. Supply an owner and a last-action receipt only when those facts are available. A report receipt can identify completed system work; missing history stays explicitly unavailable. Adding an extension manifest and regenerating the registry makes the card available without a page-specific entry.
 
 Plugin screens should inherit the workspace appearance through the shared admin
 components and field styles. Use `AdminButton`, `AdminSurface`, `AdminTable`,

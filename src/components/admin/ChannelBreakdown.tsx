@@ -36,7 +36,7 @@ export function ChannelBreakdown({ channels }: ChannelBreakdownProps) {
                   {channel.count} ({pct}%)
                 </span>
               </div>
-              <div className="h-5 rounded bg-white/5 overflow-hidden">
+              <div className="h-5 rounded bg-[var(--admin-surface-subtle)] overflow-hidden">
                 <motion.div
                   className={`h-full rounded ${barColors[i % barColors.length]}`}
                   initial={{ width: 0 }}

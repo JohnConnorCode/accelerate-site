@@ -15,7 +15,7 @@ export type ProductScreenshot = WorkImage & {
 export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   {
     kind: "image",
-    src: "/images/open-source/slide-today-accelerate-20261020-r2.png",
+    src: "/images/open-source/slide-today-accelerate-20261020-roadmap.png",
     alt: "Today, with customer priorities, delivery work and billing reviews in the Accelerate demo appearance.",
     caption: "Today · Accelerate theme",
     width: 1400,
@@ -25,7 +25,7 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-pipeline-night-20261020-r2.png",
+    src: "/images/open-source/slide-pipeline-night-20261020-roadmap.png",
     alt: "Customer opportunities and next actions on the pipeline board in the Night demo appearance.",
     caption: "Pipeline · Night theme",
     width: 1400,
@@ -35,7 +35,7 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-conversations-paper-20261020-r2.png",
+    src: "/images/open-source/slide-conversations-paper-20261020-roadmap.png",
     alt: "Customer conversations and reply context in the Paper demo appearance.",
     caption: "Conversations · Paper theme",
     width: 1400,
@@ -45,7 +45,7 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-collections-night-20261020-r2.png",
+    src: "/images/open-source/slide-collections-night-20261020-roadmap.png",
     alt: "Overdue invoices, customer context and payment follow-up in the Night demo appearance.",
     caption: "Collections · Night theme",
     width: 1400,
@@ -55,7 +55,7 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-delivery-operator-20261020-r2.png",
+    src: "/images/open-source/slide-delivery-operator-20261020-roadmap.png",
     alt: "Client onboarding tasks with owners and due dates in the Operator demo appearance.",
     caption: "Client onboarding · Operator theme",
     width: 1400,
@@ -65,7 +65,7 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-website-accelerate-20261020-r2.png",
+    src: "/images/open-source/slide-website-accelerate-20261020-roadmap.png",
     alt: "Website editing and page previews in the Accelerate demo appearance.",
     caption: "Website & pages · Accelerate theme",
     width: 1400,
@@ -75,7 +75,7 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   },
   {
     kind: "image",
-    src: "/images/open-source/slide-ai-paper-20261020-r2.png",
+    src: "/images/open-source/slide-ai-paper-20261020-roadmap.png",
     alt: "The AI workspace with business context and source evidence in the Paper demo appearance.",
     caption: "AI Workspace · Paper theme",
     width: 1400,

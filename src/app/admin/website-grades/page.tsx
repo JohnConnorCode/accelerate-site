@@ -126,7 +126,7 @@ export default function WebsiteGradesPage() {
             value={scoreFilter}
             onChange={(e) => setScoreFilter(e.target.value)}
             aria-label="Filter by score"
-            className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+            className="admin-field admin-field--inline rounded-lg bg-[var(--admin-surface-subtle)] border border-[var(--admin-border)] px-3 py-1.5 text-sm text-[var(--admin-ink)] focus-visible:outline-none focus-visible:border-[var(--admin-action)] focus-visible:ring-1 focus-visible:ring-[var(--admin-action)]/30 transition-[border-color,box-shadow,background-color]"
           >
             <option value="all">All Scores</option>
             <option value="high">High (80+)</option>
@@ -158,7 +158,7 @@ export default function WebsiteGradesPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.03 }}
-                    className="border-b border-[var(--admin-border)] hover:bg-white/[0.02] cursor-pointer transition-colors"
+                    className="border-b border-[var(--admin-border)] hover:bg-[var(--admin-hover-tint)] cursor-pointer transition-colors"
                     onClick={() => setExpandedId(expandedId === grade.id ? null : grade.id)}
                   >
                     <td className="text-[var(--admin-ink)] font-medium truncate max-w-[200px]">
@@ -253,7 +253,7 @@ export default function WebsiteGradesPage() {
                                       key={i}
                                       className="flex items-start gap-2 text-sm text-[var(--admin-muted)]"
                                     >
-                                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[var(--gold-light)] shrink-0" />
+                                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[var(--admin-action)] shrink-0" />
                                       {rec}
                                     </li>
                                   ))}

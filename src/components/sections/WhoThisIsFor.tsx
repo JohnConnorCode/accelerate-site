@@ -59,8 +59,7 @@ export function WhoThisIsFor() {
             label="Who This Is For"
             heading={
               <>
-                You&apos;re Doing <span className="text-gold-gradient">$200K to $10M</span>. Now
-                What?
+                You&apos;re Doing <span className="text-foreground">$200K to $10M</span>. Now What?
               </>
             }
             description="You have real revenue and real customers. You just don't have the time, team, or tech to run everything the way you know it should run."
@@ -76,10 +75,10 @@ export function WhoThisIsFor() {
               <div
                 key={audience.name}
                 data-audience-card
-                className="group flex items-center gap-4 glass rounded-xl px-5 py-4 border-l-2 border-l-[rgba(var(--accent-rgb),0.2)] hover:border-l-[var(--gold-base)] hover:border-gold-glow transition-colors duration-300"
+                className="group flex items-center gap-4 glass rounded-xl px-5 py-4 border-l-2 border-l-[rgba(var(--accent-rgb),0.2)] hover:border-l-[var(--fg)] hover:border-foreground transition-colors duration-300"
               >
-                <div className="w-10 h-10 rounded-lg bg-transparent border border-border-glass flex items-center justify-center shrink-0 group-hover:border-border-gold group-hover:bg-[var(--glow-soft)] transition-colors">
-                  <Icon className="w-5 h-5 text-gold" aria-hidden="true" />
+                <div className="w-10 h-10 rounded-lg bg-transparent border border-border-glass flex items-center justify-center shrink-0 group-hover:border-[var(--rule)] group-hover:bg-[transparent] transition-colors">
+                  <Icon className="w-5 h-5 text-[var(--fg)]" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-[15px] font-semibold text-heading leading-tight">

@@ -486,7 +486,7 @@ export default function AnalyticsPage() {
                           </h2>
                         </div>
                         {data.attribution.missing ? (
-                          <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold tabular-nums text-amber-700 dark:text-amber-300">
+                          <span className="rounded-full bg-[var(--admin-warning-soft)] px-2.5 py-1 text-xs font-semibold tabular-nums text-[var(--admin-ink)] ">
                             {data.attribution.missing} unassigned
                           </span>
                         ) : null}
@@ -522,7 +522,7 @@ export default function AnalyticsPage() {
                           </h2>
                         </div>
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums ${issues ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`}
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums ${issues ? "bg-[var(--admin-warning-soft)] text-[var(--admin-ink)] " : "bg-[var(--admin-success-soft)] text-[var(--admin-ink)] "}`}
                         >
                           {issues ? `${issues} issues` : "No known issues"}
                         </span>

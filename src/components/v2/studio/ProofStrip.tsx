@@ -36,7 +36,7 @@ export function ProofStrip() {
             <div key={s.label}>
               <p className="font-display text-4xl font-extrabold tracking-[-0.02em] text-heading sm:text-5xl">
                 {s.value}
-                <span className="text-gold">{s.suffix}</span>
+                <span className="text-[var(--fg)]">{s.suffix}</span>
               </p>
               <p className="mt-2 text-sm font-semibold text-white-secondary">{s.label}</p>
               <p className="mt-0.5 text-xs leading-snug text-white-muted">{s.detail}</p>

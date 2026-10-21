@@ -137,7 +137,7 @@ export default function ChatLeadsPage() {
             type="button"
             onClick={() => setRefreshKey((key) => key + 1)}
             disabled={refreshing}
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 text-xs font-medium text-[var(--admin-muted)] transition-[border-color,color,background-color,transform,opacity] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:cursor-wait disabled:opacity-60"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 text-xs font-medium text-[var(--admin-muted)] transition-[border-color,color,background-color,transform,opacity] hover:border-[var(--admin-border)] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:cursor-wait disabled:opacity-60"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
@@ -187,7 +187,7 @@ export default function ChatLeadsPage() {
               <button
                 type="button"
                 onClick={() => setRefreshKey((key) => key + 1)}
-                className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--admin-border)] px-3 text-xs text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.96]"
+                className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--admin-border)] px-3 text-xs text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-[var(--admin-border)] hover:text-[var(--admin-ink)] active:scale-[0.96]"
               >
                 <RefreshCw className="h-3.5 w-3.5" /> Try again
               </button>
@@ -213,7 +213,7 @@ export default function ChatLeadsPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: Math.min(index, 8) * 0.03 }}
-                          className="border-b border-[var(--admin-border)] transition-colors hover:bg-white/[0.025]"
+                          className="border-b border-[var(--admin-border)] transition-colors hover:bg-[var(--admin-hover-tint)]"
                         >
                           <td>
                             <button
@@ -280,13 +280,13 @@ export default function ChatLeadsPage() {
                                     <button
                                       type="button"
                                       onClick={() => void copyTranscript(lead)}
-                                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-[var(--admin-border)] px-3 text-xs text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.96]"
+                                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-[var(--admin-border)] px-3 text-xs text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-[var(--admin-border)] hover:text-[var(--admin-ink)] active:scale-[0.96]"
                                     >
                                       <Copy className="h-3.5 w-3.5" /> Copy
                                     </button>
                                     <a
                                       href={`mailto:${lead.email}`}
-                                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-[var(--admin-border)] px-3 text-xs text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-white/20 hover:text-[var(--admin-ink)] active:scale-[0.96]"
+                                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-[var(--admin-border)] px-3 text-xs text-[var(--admin-muted)] transition-[border-color,color,transform] hover:border-[var(--admin-border)] hover:text-[var(--admin-ink)] active:scale-[0.96]"
                                     >
                                       <Mail className="h-3.5 w-3.5" /> Reply
                                     </a>
@@ -306,7 +306,7 @@ export default function ChatLeadsPage() {
                                         className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                                       >
                                         <div
-                                          className={`max-w-[84%] rounded-xl px-3 py-2.5 text-sm leading-relaxed ${message.role === "user" ? "bg-white/10 text-[var(--admin-ink)]" : "border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]"}`}
+                                          className={`max-w-[84%] rounded-xl px-3 py-2.5 text-sm leading-relaxed ${message.role === "user" ? "bg-[var(--admin-surface-subtle)] text-[var(--admin-ink)]" : "border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]"}`}
                                         >
                                           <p className="mb-1 text-[11px] uppercase tracking-[0.1em] text-[var(--admin-muted)]">
                                             {message.role === "user"

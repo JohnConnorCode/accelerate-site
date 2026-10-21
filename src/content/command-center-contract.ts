@@ -7,7 +7,6 @@ export interface CategoryMeta {
   label: string;
   blurb: string;
   glyph: string;
-  rgb: string;
 }
 export interface Capability {
   id: string;
@@ -25,7 +24,6 @@ export interface SurfaceGroup {
   id: SurfaceGroupId;
   label: string;
   blurb: string;
-  rgb: string;
 }
 export interface CurrentSurface {
   n: string;

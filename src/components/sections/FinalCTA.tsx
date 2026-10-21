@@ -8,8 +8,6 @@ import { ArrowRight } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
-import { MagneticButton } from "@/components/ui/MagneticButton";
 import { SignalMark } from "@/components/ui/SignalMark";
 import { trackConversion } from "@/lib/analytics";
 
@@ -25,7 +23,7 @@ export function FinalCTA({ heading, description, primaryCTA, secondaryCTA }: Fin
 
   const resolvedHeading = heading ?? (
     <>
-      Let&apos;s Talk About <span className="text-gold">Your Business</span>
+      Let&apos;s Talk About <span className="text-[var(--fg)]">Your Business</span>
     </>
   );
   const resolvedDescription =
@@ -200,26 +198,26 @@ export function FinalCTA({ heading, description, primaryCTA, secondaryCTA }: Fin
           </div>
         </div>
         <div data-cta-buttons className="flex flex-col sm:flex-row gap-3 sm:gap-5 justify-center">
-          <MagneticButton>
-            <Link
-              href={resolvedPrimary.href}
-              onClick={() =>
-                trackConversion("CTA Click", {
-                  section: "Final CTA",
-                  cta_text: resolvedPrimary.label,
-                  href: resolvedPrimary.href,
-                })
-              }
-            >
-              <Button variant="primary" size="lg" pulse className="w-full sm:w-auto">
-                {resolvedPrimary.label}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-          </MagneticButton>
+          <Link
+            href={resolvedPrimary.href}
+            className="btn btn-lg w-full sm:w-auto"
+            data-booking-cta="final-primary"
+            onClick={() =>
+              trackConversion("CTA Click", {
+                section: "Final CTA",
+                cta_text: resolvedPrimary.label,
+                href: resolvedPrimary.href,
+              })
+            }
+          >
+            {resolvedPrimary.label}
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Link>
+
           {resolvedSecondary && (
             <Link
               href={resolvedSecondary.href}
+              className="btn btn-ghost btn-lg w-full sm:w-auto"
               onClick={() =>
                 trackConversion("CTA Click", {
                   section: "Final CTA",
@@ -228,13 +226,7 @@ export function FinalCTA({ heading, description, primaryCTA, secondaryCTA }: Fin
                 })
               }
             >
-              <Button
-                variant="secondary"
-                size="lg"
-                className="w-full sm:w-auto border-gradient-animated"
-              >
-                {resolvedSecondary.label}
-              </Button>
+              {resolvedSecondary.label}
             </Link>
           )}
         </div>

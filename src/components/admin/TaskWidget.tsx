@@ -121,7 +121,7 @@ export function TaskWidget() {
             <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
               Today&apos;s Tasks
             </h3>
-            <span className="text-[11px] text-[var(--admin-muted)] bg-white/10 rounded-full px-2 py-0.5">
+            <span className="text-[11px] text-[var(--admin-muted)] bg-[var(--admin-surface-subtle)] rounded-full px-2 py-0.5">
               {tasks.length}
             </span>
           </div>
@@ -138,7 +138,7 @@ export function TaskWidget() {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-white/5 transition-colors group"
+                className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-[var(--admin-hover-tint)] transition-colors group"
               >
                 <button
                   type="button"

@@ -1,9 +1,5 @@
 /* Content for the Command Center solution page (/command-center).
 
-   Self-contained types, following the same convention as industry-feeds.ts.
-   Category colors reuse the CHANNEL rgb language from industry-feeds.ts so the
-   catalog reads as the same system as the ops console.
-
    Voice: plain, complete sentences aimed at a business owner, not a release
    note. Every capability carries a `promise` (one always-visible line of what
    it does for the business) and a `detail` (the fuller explanation an operator
@@ -32,42 +28,36 @@ export const CATEGORY_META: CategoryMeta[] = [
     label: "Capture",
     blurb: "It captures what happens.",
     glyph: "◆",
-    rgb: "96,165,250",
   },
   {
     id: "organize",
     label: "Organize",
     blurb: "It keeps records connected.",
     glyph: "▤",
-    rgb: "167,139,250",
   },
   {
     id: "act",
     label: "Act",
     blurb: "It prepares work and, once you approve, does it.",
     glyph: "✦",
-    rgb: "163,230,53",
   },
   {
     id: "learn",
     label: "Learn",
     blurb: "It turns your decisions into rules.",
     glyph: "↻",
-    rgb: "34,211,238",
   },
   {
     id: "connect",
     label: "Connect",
     blurb: "You reach it from any device or assistant.",
     glyph: "⌘",
-    rgb: "251,191,36",
   },
   {
     id: "govern",
     label: "Govern",
     blurb: "You keep control, and every action is logged.",
     glyph: "✓",
-    rgb: "52,211,153",
   },
 ];
 
@@ -555,7 +545,7 @@ const capabilityDefinitions: Capability[] = [
     title: "Choose optional capabilities",
     promise: "Enable the optional parts of the workspace your business needs.",
     detail:
-      "Core capabilities remain available. Disabling an optional module removes its navigation and gates its routes and tools, while preserving existing records.",
+      "Core capabilities remain available. Plugins and Integrations show each module's status, owner, declared autonomy and available execution receipt. Disabling an optional module removes its navigation and gates its routes and tools, while preserving existing records.",
   },
   {
     id: "agent-workflow",
@@ -700,19 +690,16 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
     id: "day",
     label: "Run the day",
     blurb: "The surface your team opens every morning.",
-    rgb: "96,165,250",
   },
   {
     id: "revenue",
     label: "Run the revenue",
     blurb: "The parts of the business it can take over.",
-    rgb: "163,230,53",
   },
   {
     id: "control",
     label: "Keep control",
     blurb: "You decide what runs, who sees it, and what is on the record.",
-    rgb: "52,211,153",
   },
 ];
 

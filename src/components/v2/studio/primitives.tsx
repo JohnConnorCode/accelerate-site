@@ -2,7 +2,6 @@
 
 import type { ReactNode, HTMLAttributes } from "react";
 import Link from "next/link";
-import { MagneticButton } from "@/components/ui/MagneticButton";
 import { WordMask, childrenToTokens } from "./RevealHeading";
 import { trackConversion } from "@/lib/analytics";
 import { useRv } from "@/components/home/reveal";
@@ -150,20 +149,19 @@ export function BookCallButton({
 }) {
   const inverse = variant === "inverse";
   return (
-    <MagneticButton className={className}>
-      <Link
-        href="/contact"
-        data-cursor="link"
-        data-cursor-label="Go"
-        onClick={() => trackConversion("Strategy Call CTA Clicked", { location })}
-        className={`btn ${inverse ? "btn-inv" : ""}`}
-      >
-        {label}
-        <span className="arw" aria-hidden="true">
-          →
-        </span>
-      </Link>
-    </MagneticButton>
+    <Link
+      href="/contact"
+      data-cursor="link"
+      data-cursor-label="Go"
+      onClick={() => trackConversion("Strategy Call CTA Clicked", { location })}
+      className={`btn ${inverse ? "btn-inv" : ""} ${className ?? ""}`}
+      data-booking-cta={location}
+    >
+      {label}
+      <span className="arw" aria-hidden="true">
+        →
+      </span>
+    </Link>
   );
 }
 

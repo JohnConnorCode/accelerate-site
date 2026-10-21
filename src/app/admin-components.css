@@ -2,26 +2,6 @@
    ADMIN OPERATIONS SYSTEM
    Shared geometry and interaction recipes; themes own visual expression.
    ======================================== */
-:is(
-  .admin-shell,
-  .admin-overlay-token-scope,
-  body.admin-dialog-open,
-  body.admin-notifications-open
-) {
-  --white-primary: var(--admin-ink);
-  --white-secondary: var(--admin-muted);
-  --white-muted: var(--admin-muted);
-  --bg-base: var(--admin-canvas);
-  --bg-elevated: var(--admin-surface);
-  --bg-subtle: var(--admin-surface-subtle);
-  --border-glass: var(--admin-border);
-  --border-glass-hover: var(--admin-accent);
-  --gold-base: var(--admin-accent);
-  --gold-light: var(--admin-accent);
-  --gold-champagne: var(--admin-accent);
-  --heading-color: var(--admin-ink);
-  --display: var(--admin-font);
-}
 .admin-shell {
   min-height: 100dvh;
   color: var(--admin-ink);
@@ -320,8 +300,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   scrollbar-gutter: stable;
 }
 .admin-nav-brand {
-  --gold-base: var(--admin-nav-brand-color) !important;
-  --heading-color: var(--admin-nav-ink) !important;
 }
 .admin-nav-control,
 .admin-nav-utility,
@@ -606,14 +584,14 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 /* Retained GlassCard consumers use the same theme surface material. */
 .admin-shell .glass,
 .admin-shell .glass-prominent,
-.admin-shell .glass-gold {
+.admin-shell .glass-emphasis {
   background: var(--admin-surface-fill);
   border-color: transparent;
   box-shadow: var(--admin-shadow);
   -webkit-backdrop-filter: var(--admin-surface-filter);
   backdrop-filter: var(--admin-surface-filter);
 }
-.admin-shell .glass-gold {
+.admin-shell .glass-emphasis {
   background: color-mix(in srgb, var(--admin-surface) 94%, var(--admin-accent) 6%);
 }
 
@@ -1987,4 +1965,32 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   .admin-icon-button {
     min-width: max(44px, var(--admin-control-height));
   }
+}
+
+:is(.admin-shell, .admin-overlay-token-scope) :is(.ui-field-group, .ui-toast) {
+  --control-ink: var(--admin-ink);
+  --control-muted: var(--admin-muted);
+  --control-surface: var(--admin-surface-subtle);
+  --control-border: var(--admin-border);
+  --control-action: var(--admin-action);
+  --control-danger: var(--admin-danger);
+  --control-success: var(--admin-success);
+}
+:is(.admin-shell, .admin-overlay-token-scope) [data-ui-button]::before {
+  display: none;
+}
+:is(.admin-shell, .admin-overlay-token-scope) .ui-toast {
+  color: var(--admin-ink);
+  background: var(--admin-surface);
+}
+
+[data-stat-density="compact"] .admin-stat-value {
+  margin-top: var(--admin-space-2);
+  font-size: clamp(1.35rem, 6vw, 1.85rem);
+}
+.admin-nav-brand .logo-mark {
+  fill: var(--admin-nav-brand-color);
+}
+.admin-nav-brand .logo-letter {
+  color: var(--admin-nav-ink);
 }

@@ -48,23 +48,23 @@ export function Toast({
             role="status"
             aria-live="polite"
             className={cn(
-              "glass-prominent rounded-lg px-4 py-3 flex items-center gap-3 shadow-xl",
+              "ui-toast glass-prominent rounded-lg px-4 py-3 flex items-center gap-3 shadow-xl",
               "min-w-[280px] max-w-[400px]",
             )}
           >
             <Icon
               className={cn(
                 "w-5 h-5 shrink-0",
-                type === "success" && "text-[var(--success)]",
-                type === "error" && "text-[var(--error)]",
-                type === "info" && "text-gold-light",
+                type === "success" && "text-[var(--control-success)]",
+                type === "error" && "text-[var(--control-danger)]",
+                type === "info" && "text-[var(--control-ink)]",
               )}
             />
-            <p className="text-sm text-white-primary flex-1">{message}</p>
+            <p className="text-sm text-[var(--control-ink)] flex-1">{message}</p>
             <button
               type="button"
               onClick={onClose}
-              className="shrink-0 text-white-muted hover:text-white-primary transition-colors cursor-pointer"
+              className="shrink-0 text-[var(--control-muted)] hover:text-[var(--control-ink)] transition-colors cursor-pointer"
               aria-label="Close notification"
             >
               <X className="w-4 h-4" />

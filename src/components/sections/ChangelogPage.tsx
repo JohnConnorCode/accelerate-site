@@ -15,7 +15,7 @@ const categoryConfig: Record<
   ChangelogEntry["category"],
   { label: string; icon: LucideIcon; accent: string }
 > = {
-  feature: { label: "Shipped", icon: Sparkles, accent: "text-gold" },
+  feature: { label: "Shipped", icon: Sparkles, accent: "text-[var(--fg)]" },
   improvement: { label: "Sharpened", icon: Wrench, accent: "text-white-muted" },
   fix: { label: "Fixed", icon: Bug, accent: "text-white-muted" },
   announcement: { label: "News", icon: Megaphone, accent: "text-white-muted" },
@@ -74,9 +74,9 @@ export function ChangelogPage() {
           <Link
             href="/changelog/rss.xml"
             data-cursor="link"
-            className="mt-8 inline-flex items-center gap-2 rounded-full border border-border-glass px-4 py-2 text-sm font-medium text-heading transition-colors hover:border-border-gold hover:text-gold"
+            className="mt-8 inline-flex items-center gap-2 rounded-full border border-border-glass px-4 py-2 text-sm font-medium text-heading transition-colors hover:border-[var(--rule)] hover:text-[var(--fg)]"
           >
-            <Rss className="h-4 w-4 text-gold" />
+            <Rss className="h-4 w-4 text-[var(--fg)]" />
             RSS feed
           </Link>
 
@@ -92,7 +92,7 @@ export function ChangelogPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search updates…"
-                className="admin-field w-full rounded-full border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] py-2.5 pl-10 pr-9 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none"
+                className="admin-field w-full rounded-full border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] py-2.5 pl-10 pr-9 text-sm text-heading placeholder:text-white-muted focus:border-[var(--rule)] focus:outline-none"
               />
               {query && (
                 <button
@@ -113,7 +113,7 @@ export function ChangelogPage() {
                 className={cn(
                   "rounded-full border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors",
                   activeCategory === "all"
-                    ? "border-border-gold text-gold"
+                    ? "border-[var(--rule)] text-[var(--fg)]"
                     : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
                 )}
               >
@@ -131,7 +131,7 @@ export function ChangelogPage() {
                     className={cn(
                       "rounded-full border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors",
                       activeCategory === category
-                        ? "border-border-gold text-gold"
+                        ? "border-[var(--rule)] text-[var(--fg)]"
                         : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
                     )}
                   >
@@ -161,9 +161,9 @@ export function ChangelogPage() {
                 {/* month node on the rail */}
                 <span
                   aria-hidden
-                  className="absolute -left-[2.45rem] top-1 h-2.5 w-2.5 rounded-full bg-gold ring-4 ring-[var(--bg-base)] sm:-left-[2.95rem]"
+                  className="absolute -left-[2.45rem] top-1 h-2.5 w-2.5 rounded-full bg-[var(--fg)] ring-4 ring-[var(--bg-base)] sm:-left-[2.95rem]"
                 />
-                <p className="mb-5 font-mono text-[0.66rem] uppercase tracking-[0.22em] text-gold">
+                <p className="mb-5 font-mono text-[0.66rem] uppercase tracking-[0.22em] text-[var(--fg)]">
                   {monthLabel}
                 </p>
                 <div className="flex flex-col gap-4">

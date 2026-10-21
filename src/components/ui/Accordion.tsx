@@ -20,7 +20,7 @@ export function AccordionItem({
     <AccordionPrimitive.Item
       className={cn(
         "glass rounded-xl mb-3 overflow-clip",
-        "data-[state=open]:border-border-gold",
+        "data-[state=open]:border-[var(--rule)]",
         "transition-colors duration-300",
         className,
       )}

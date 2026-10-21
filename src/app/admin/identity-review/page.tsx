@@ -130,7 +130,7 @@ export default function IdentityReviewPage() {
                       aria-current={selected?.actionId === item.actionId}
                       className={cn(
                         "flex w-full flex-col gap-1 px-4 py-3 text-left transition-colors",
-                        selected?.actionId === item.actionId && "bg-white/5",
+                        selected?.actionId === item.actionId && "bg-[var(--admin-surface-subtle)]",
                       )}
                     >
                       <span className="truncate text-sm font-semibold">

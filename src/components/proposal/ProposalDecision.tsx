@@ -77,7 +77,7 @@ export function ProposalDecision({
     );
   return (
     <section className="mt-12 rounded-2xl border border-border-glass bg-[var(--surface-bg)] p-6 sm:p-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-light">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--fg)]">
         Your decision
       </p>
       <h2 className="mt-2 text-2xl font-semibold text-white-primary">Ready to move forward?</h2>
@@ -93,7 +93,7 @@ export function ProposalDecision({
           maxLength={1000}
           aria-label="Reason for declining (optional)"
           placeholder="What made this proposal not the right fit? (Optional)"
-          className="mt-5 w-full rounded-xl border border-border-glass bg-bg-base px-4 py-3 text-sm text-white-primary placeholder:text-white-secondary outline-none transition-[border-color,box-shadow] focus:border-gold-light focus:ring-2 focus:ring-gold-light/10"
+          className="mt-5 w-full rounded-xl border border-border-glass bg-bg-base px-4 py-3 text-sm text-white-primary placeholder:text-white-secondary outline-none transition-[border-color,box-shadow] focus:border-[var(--fg)] focus:ring-2 focus:ring-[var(--fg)]/10"
         />
       )}
       {error && (

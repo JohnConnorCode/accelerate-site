@@ -74,7 +74,7 @@ export function TextReveal({
               }}
               className={cn(
                 "inline-block",
-                isGold && "text-gold-gradient",
+                isGold && "text-foreground",
                 splitBy === "word" && "mr-[0.25em]",
               )}
               aria-hidden="true"

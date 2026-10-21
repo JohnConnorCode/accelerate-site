@@ -166,7 +166,7 @@ export function OpenSourcePageContent() {
                   <Link
                     href="/demo/command-center"
                     data-cursor="link"
-                    className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+                    className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
                   >
                     Try the fictional demo
                   </Link>
@@ -213,7 +213,7 @@ export function OpenSourcePageContent() {
             <Link
               href="/docs/self-hosting"
               data-cursor="link"
-              className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
             >
               Read the self-hosting docs
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -221,7 +221,7 @@ export function OpenSourcePageContent() {
             <Link
               href="/docs/extend/ai-authoring"
               data-cursor="link"
-              className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+              className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
             >
               Describe the workflow you want built
               <ArrowUpRight className="h-3.5 w-3.5" />

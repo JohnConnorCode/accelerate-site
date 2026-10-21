@@ -10,11 +10,11 @@ export function ComparisonTable({ headers, rows }: ComparisonTableProps) {
     <div className="my-8 overflow-x-auto rounded-lg glass">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-border-gold">
+          <tr className="border-b border-[var(--rule)]">
             {headers.map((header) => (
               <th
                 key={header}
-                className="px-4 py-3 text-left font-display font-semibold text-gold-gradient"
+                className="px-4 py-3 text-left font-display font-semibold text-foreground"
               >
                 {header}
               </th>

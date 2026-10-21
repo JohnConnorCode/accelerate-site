@@ -35,7 +35,7 @@ export function LeadPipeline({ pipeline, pipelineValues }: LeadPipelineProps) {
                 <span className="text-xs text-[var(--admin-muted)] w-20 shrink-0">
                   {stage.label}
                 </span>
-                <div className="flex-1 h-7 rounded-md bg-white/5 overflow-hidden relative">
+                <div className="flex-1 h-7 rounded-md bg-[var(--admin-surface-subtle)] overflow-hidden relative">
                   <motion.div
                     className={`h-full ${stage.color} rounded-md`}
                     initial={{ width: 0 }}

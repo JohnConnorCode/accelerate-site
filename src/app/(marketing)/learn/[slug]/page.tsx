@@ -315,7 +315,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   <TableOfContents />
 
                   {/* Sidebar CTA */}
-                  <div className="glass-gold rounded-xl p-5 text-center">
+                  <div className="glass-emphasis rounded-xl p-5 text-center">
                     <p className="text-sm font-medium text-white-primary mb-2">
                       Need help implementing this?
                     </p>
@@ -334,7 +334,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                     {contextualLink && (
                       <Link
                         href={contextualLink.href}
-                        className="mt-3 inline-flex items-center justify-center gap-1 text-xs font-medium text-gold-light hover:text-gold transition-colors"
+                        className="mt-3 inline-flex items-center justify-center gap-1 text-xs font-medium text-[var(--fg)] hover:text-[var(--fg)] transition-colors"
                       >
                         {contextualLink.label}
                         <ChevronRight className="h-3 w-3" />

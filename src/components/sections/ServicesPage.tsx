@@ -429,7 +429,7 @@ export function ServicesPageContent() {
                   <Link
                     href="#build"
                     data-cursor="link"
-                    className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+                    className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
                   >
                     See what we build
                   </Link>
@@ -463,7 +463,7 @@ export function ServicesPageContent() {
         </Heading>
         <div className="relative mx-auto max-w-2xl">
           <div
-            className="absolute bottom-12 left-[18px] top-3 w-px bg-[color-mix(in_srgb,var(--gold-base)_40%,transparent)]"
+            className="absolute bottom-12 left-[18px] top-3 w-px bg-[color-mix(in_srgb,var(--fg)_40%,transparent)]"
             aria-hidden
           />
           {STEPS.map((s, i) => (
@@ -473,7 +473,7 @@ export function ServicesPageContent() {
               as="div"
               className="relative mb-8 flex items-start gap-6 last:mb-0"
             >
-              <span className="relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border-gold bg-bg-base font-mono text-xs font-semibold text-gold">
+              <span className="relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--rule)] bg-bg-base font-mono text-xs font-semibold text-[var(--fg)]">
                 {s.n}
               </span>
               <div className="pt-1">

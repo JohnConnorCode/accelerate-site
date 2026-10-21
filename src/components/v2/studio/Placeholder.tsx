@@ -22,7 +22,7 @@ export function Placeholder({
       aria-label={prompt}
       data-image-prompt={prompt}
       className={cn(
-        "relative flex items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border-gold bg-[var(--bg-elevated)]",
+        "relative flex items-center justify-center overflow-hidden rounded-2xl border border-dashed border-[var(--rule)] bg-[var(--bg-elevated)]",
         className,
       )}
     >
@@ -35,7 +35,7 @@ export function Placeholder({
         }}
       />
       <div className="relative max-w-[82%] text-center">
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.28em] text-gold">
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.28em] text-[var(--fg)]">
           ◳ {label}
         </span>
         <p className="mt-2 text-xs leading-relaxed text-white-muted">{prompt}</p>
