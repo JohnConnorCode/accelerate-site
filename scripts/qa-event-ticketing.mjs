@@ -647,7 +647,7 @@ try {
     });
     await page.keyboard.press("Tab");
     assert.equal(await buy.evaluate((button) => document.activeElement === button), true);
-    await ticketCheckout.screenshot({
+    await page.screenshot({
       path: `${output}/checkout-error-${theme}-${width}.png`,
     });
     const errorAccessibility = await new AxeBuilder({ page })
