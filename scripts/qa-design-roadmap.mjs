@@ -142,6 +142,56 @@ async function inspect(route, theme, width, isAdmin) {
       assert.deepEqual(straySignal, [], `${id}: signal outside the stream`);
     }
     if (route === "/style-guide") {
+      const guide = await page.evaluate(() => {
+        const title = document.querySelector("main h1").getBoundingClientRect();
+        const header = document.querySelector(".site-header").getBoundingClientRect();
+        const stage = document.querySelector("[data-style-guide-artwork]");
+        const wrapper = stage.getBoundingClientRect();
+        const artwork = stage.querySelector(".home-hero-artwork").getBoundingClientRect();
+        const proof = document
+          .getElementById("guide-proof")
+          .closest("section")
+          .getBoundingClientRect();
+        return {
+          titleTop: title.top,
+          headerBottom: header.bottom,
+          display: getComputedStyle(stage).display,
+          wrapper: {
+            top: wrapper.top,
+            bottom: wrapper.bottom,
+            left: wrapper.left,
+            right: wrapper.right,
+            height: wrapper.height,
+          },
+          artwork: {
+            top: artwork.top,
+            bottom: artwork.bottom,
+            left: artwork.left,
+            right: artwork.right,
+          },
+          proof: { top: proof.top, bottom: proof.bottom },
+        };
+      });
+      assert(guide.titleTop >= guide.headerBottom, `${id}: title is behind the header`);
+      if (width < 641) {
+        assert.equal(guide.display, "none");
+        assert.equal(guide.wrapper.height, 0);
+      } else {
+        assert(
+          guide.artwork.top >= guide.wrapper.top - 1 &&
+            guide.artwork.bottom <= guide.wrapper.bottom + 1,
+          `${id}: artwork escapes its stage vertically`,
+        );
+        assert(
+          guide.artwork.left >= guide.wrapper.left - 1 &&
+            guide.artwork.right <= guide.wrapper.right + 1,
+          `${id}: artwork escapes its stage horizontally`,
+        );
+        assert(
+          guide.artwork.top >= guide.proof.top && guide.artwork.bottom <= guide.proof.bottom,
+          `${id}: artwork overlays another section`,
+        );
+      }
       await page.waitForFunction(() =>
         [...document.querySelectorAll("[data-token]")].every(
           (element) => element.textContent.trim() && !element.textContent.includes("Reading"),
