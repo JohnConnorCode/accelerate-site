@@ -8,7 +8,7 @@ import { EXTENSION_MODULES } from "../src/lib/revenue-os/extension-modules.gener
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3015";
 assert(["localhost", "127.0.0.1"].includes(new URL(base).hostname));
-const output = resolve("output/playwright/design-roadmap");
+const output = resolve(process.env.DESIGN_ROADMAP_QA_OUTPUT || "output/playwright/design-roadmap");
 mkdirSync(output, { recursive: true });
 const marketing = [
   ...new Set([
@@ -60,6 +60,7 @@ async function inspect(route, theme, width, isAdmin) {
   });
   await context.addInitScript(
     ({ theme, isAdmin }) => {
+      if (window.top !== window) return;
       localStorage.setItem("theme", isAdmin ? "light" : theme);
       if (isAdmin) {
         sessionStorage.setItem("accelerate:admin-demo:northline-roofing:appearance:v1", theme);
@@ -174,12 +175,22 @@ async function inspect(route, theme, width, isAdmin) {
         route === "pipeline" ? 4 : 3,
       );
     const filename = `${output}/${id}.png`;
+    await page.waitForFunction(
+      () =>
+        [...document.querySelectorAll("main tbody tr")].every(
+          (row) => !row.style.opacity || Number(row.style.opacity) >= 0.99,
+        ) &&
+        document
+          .querySelector("main")
+          .getAnimations({ subtree: true })
+          .every(
+            (animation) =>
+              animation.playState !== "running" ||
+              animation.effect?.getTiming().iterations === Infinity,
+          ),
+    );
     await page.screenshot({ path: filename, fullPage: !isAdmin });
     result.screenshots.push(filename);
-    if (route === "plugins" && theme === "accelerate" && width === 1440) {
-      mkdirSync("public/images/docs/workspace", { recursive: true });
-      await page.screenshot({ path: "public/images/docs/workspace/module-cards-20261020.png" });
-    }
     if (route === "contacts") {
       assert.equal(await page.getByRole("link", { name: "Open history", exact: true }).count(), 0);
       const first = page.locator("[data-record-row] a").first();
