@@ -13,6 +13,7 @@ assert.deepEqual(
 );
 for (const vertical of verticals) {
   const activity = industryActivity[vertical.slug];
+  assert(activity, vertical.slug);
   assert.equal(activity.events.length, 6, vertical.slug);
   assert(activity.context.startsWith("Illustrative · "), vertical.slug);
   assert(activity.events.filter((event) => event.system).length >= 2, vertical.slug);
@@ -20,7 +21,7 @@ for (const vertical of verticals) {
   assert.doesNotMatch(activity.events.map((event) => event.text).join(" "), /\bleads\b|—/i);
 }
 assert.equal(
-  new Set(Object.values(industryActivity).map((activity) => activity.events[0].text)).size,
+  new Set(Object.values(industryActivity).map((activity) => activity.events[0]?.text)).size,
   verticals.length,
 );
 
@@ -33,7 +34,9 @@ for (const definition of EXTENSION_MODULES) {
   assert.doesNotMatch(html, /System: /);
 }
 // A new manifest needs no page-specific presentation entry.
-const fixture = { ...EXTENSION_MODULES[0], id: "fixture-module", name: "Fixture module" };
+const firstModule = EXTENSION_MODULES[0];
+assert(firstModule);
+const fixture = { ...firstModule, id: "fixture-module", name: "Fixture module" };
 const fixtureHtml = renderToStaticMarkup(
   <ModuleCard
     module={fixture}

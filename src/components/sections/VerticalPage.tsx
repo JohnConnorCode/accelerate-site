@@ -11,6 +11,8 @@ import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScro
 import styles from "@/components/command-center/product.module.css";
 
 export function VerticalPage({ vertical }: { vertical: Vertical }) {
+  const activity = industryActivity[vertical.slug];
+  if (!activity) throw new Error(`Missing industry activity: ${vertical.slug}`);
   return (
     <div className={styles.page}>
       <PublicHeroEntrance className={styles.hero}>
@@ -48,7 +50,7 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
               </div>
             </div>
             <div data-hero-step={6}>
-              <ActivityStream {...industryActivity[vertical.slug]} />
+              <ActivityStream {...activity} />
             </div>
           </div>
         </div>
