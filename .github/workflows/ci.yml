@@ -15,6 +15,10 @@ on:
         description: Optional exact Accelerate staging or canonical URL for real hosted homepage QA
         type: string
         default: ""
+      hosted_release_sha:
+        description: Full released main SHA for the guarded canonical hosted review
+        type: string
+        default: ""
       admin_design_only:
         description: Capture admin appearance evidence without the full CI suite
         type: boolean
@@ -979,39 +983,62 @@ jobs:
   hosted-homepage:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.public_pages_only && inputs.hero_target_url }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
+    env:
+      HERO_QA_TARGET_URL: ${{ inputs.hero_target_url }}
+      QA_EXPECTED_RELEASE_SHA: ${{ inputs.hosted_release_sha }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
+      - name: Require released main and a pure QA source diff
+        run: |
+          set -euo pipefail
+          [[ "$QA_EXPECTED_RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          node --input-type=module - <<'JS'
+          import assert from "node:assert/strict";
+          const target = new URL(process.env.HERO_QA_TARGET_URL);
+          assert.ok(target.origin === "https://www.acceleratewith.us" && target.pathname === "/" && !target.search && !target.hash && !target.username && !target.password && !target.port);
+          JS
+          git fetch --no-tags --depth=1 origin refs/heads/main:refs/remotes/origin/main "$QA_EXPECTED_RELEASE_SHA"
+          test "$(git rev-parse refs/remotes/origin/main)" = "$QA_EXPECTED_RELEASE_SHA"
+          read -r -a parents <<< "$(git log -1 --format=%P HEAD)"
+          test "${#parents[@]}" -eq 1
+          test "${parents[0]}" = "$QA_EXPECTED_RELEASE_SHA"
+          git diff --no-renames --name-only -z "$QA_EXPECTED_RELEASE_SHA" HEAD -- > "$RUNNER_TEMP/hosted-qa-source-diff"
+          test -s "$RUNNER_TEMP/hosted-qa-source-diff"
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              .github/workflows/ci.yml|scripts/qa-hosted-logo-diagnostic.mjs) ;;
+              *) echo "Hosted QA branch changed a non-QA path: $path"; exit 1 ;;
+            esac
+          done < "$RUNNER_TEMP/hosted-qa-source-diff"
+          node --check scripts/qa-hosted-logo-diagnostic.mjs
       - run: npm ci
-      - run: npx playwright install --with-deps chromium webkit
-      - name: Verify actual hosted homepage
-        env:
-          HERO_QA_TARGET_URL: ${{ inputs.hero_target_url }}
-        run: node scripts/qa-home-hero-timing.mjs
-      - name: Retain actual hosted homepage evidence
+      - run: npx playwright install --with-deps chromium
+      - name: Diagnose actual hosted desktop wordmark without overrides
+        id: hosted_logo_diagnostic
+        continue-on-error: true
+        run: node scripts/qa-hosted-logo-diagnostic.mjs
+      - name: Retain read-only logo diagnostic evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
-          name: hosted-homepage-browser-evidence
-          path: /tmp/accelerate-home-hero-timing/
+          name: hosted-logo-diagnostic
+          path: |
+            /tmp/accelerate-hosted-logo-diagnostic/*.json
+            /tmp/accelerate-hosted-logo-diagnostic/*.png
           if-no-files-found: warn
           retention-days: 7
-      - name: Verify actual hosted mobile gestures and frame budgets
-        env:
-          PLAYWRIGHT_BASE_URL: ${{ inputs.hero_target_url }}
-        run: node scripts/qa-mobile-motion.mjs --webkit
-      - name: Retain actual hosted mobile evidence
+      - name: Preserve raw diagnostic outcome
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: hosted-mobile-browser-evidence
-          path: /tmp/accelerate-mobile-motion/
-          if-no-files-found: warn
-          retention-days: 7
+        env:
+          DIAGNOSTIC_RESULT: ${{ steps.hosted_logo_diagnostic.outcome }}
+        run: test "$DIAGNOSTIC_RESULT" = success
 
   full-product-fork:
     needs: [scope, typecheck]
