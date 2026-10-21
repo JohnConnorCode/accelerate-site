@@ -162,8 +162,17 @@ try {
               `${label} entrance ${index}: missing entrance`,
             );
             const sorted = receipt.targets.toSorted((a, b) => a.step - b.step);
+            // Semantic phases can have peers: the statement's navigation and
+            // activity stream both enter at step 3 on the same clock.
             assert.ok(
-              sorted.slice(1).every((target, i) => target.delay - sorted[i].delay >= 0.1),
+              (sorted.length < 2 || new Set(sorted.map((target) => target.step)).size > 1) &&
+                sorted
+                  .slice(1)
+                  .every((target, i) =>
+                    target.step === sorted[i].step
+                      ? target.delay === sorted[i].delay
+                      : target.delay - sorted[i].delay >= 0.1,
+                  ),
               `${label} entrance ${index}: no semantic stagger`,
             );
             if (wasPending)
@@ -172,7 +181,11 @@ try {
                   receipt.events.every((event) => Number.isFinite(event.time)) &&
                   receipt.events
                     .slice(1)
-                    .every((event, i) => event.time - receipt.events[i].time >= 30) &&
+                    .every((event, i) =>
+                      event.step === receipt.events[i].step
+                        ? Math.abs(event.time - receipt.events[i].time) < 30
+                        : event.time - receipt.events[i].time >= 30,
+                    ) &&
                   receipt.events.some((event) => event.renderedSpread >= 0.08),
                 `${label} entrance ${index}: phases lack distinct clocks or rendered states`,
               );
