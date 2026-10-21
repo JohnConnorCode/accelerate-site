@@ -114,7 +114,13 @@ const WORKSHELTER_WORK = [
   },
 ];
 
-export function NonprofitLanding({ pilotSection }: { pilotSection?: ReactNode }) {
+export function NonprofitLanding({
+  pilotSection,
+  activitySection,
+}: {
+  pilotSection?: ReactNode;
+  activitySection?: ReactNode;
+}) {
   return (
     <>
       {/* ── Hero: full-bleed documentary photograph. The page is about people,
@@ -174,6 +180,8 @@ export function NonprofitLanding({ pilotSection }: { pilotSection?: ReactNode })
           </Container>
         </div>
       </PublicHeroEntrance>
+
+      {activitySection}
 
       {/* ── Recognition ─────────────────────────────────────────────────── */}
       <section className="section-divide relative border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] py-[clamp(4.5rem,8vw,7rem)]">

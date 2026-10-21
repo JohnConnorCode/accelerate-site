@@ -2,6 +2,8 @@ import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-s
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
+import { industryActivity } from "@/content/industry-activity";
+import { ActivityStream } from "@/components/ui/ActivityStream";
 import { IndustryPilot } from "@/components/sections/IndustryPilot";
 import { NonprofitLanding } from "@/components/sections/NonprofitLanding";
 import { generateVerticalJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
@@ -25,6 +27,8 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
 export default async function NonprofitsPage() {
   const published = await publishedWebsiteOverride("/industries/nonprofits");
   if (published) return published;
+  const activity = industryActivity[vertical.slug];
+  if (!activity) throw new Error(`Missing industry activity for ${vertical.slug}`);
   return (
     <>
       <script
@@ -37,7 +41,18 @@ export default async function NonprofitsPage() {
           __html: JSON.stringify(generateVerticalJsonLd(vertical)),
         }}
       />
-      <NonprofitLanding pilotSection={<IndustryPilot pilot={vertical.pilot} />} />
+      <NonprofitLanding
+        activitySection={
+          <section className="py-12 lg:py-16" aria-label="Illustrative nonprofit workflow">
+            <div className="wrap">
+              <div className="mx-auto max-w-3xl">
+                <ActivityStream {...activity} />
+              </div>
+            </div>
+          </section>
+        }
+        pilotSection={<IndustryPilot pilot={vertical.pilot} />}
+      />
       <PageEngagementTracker />
     </>
   );
