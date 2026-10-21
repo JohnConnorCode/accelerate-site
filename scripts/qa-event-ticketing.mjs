@@ -674,6 +674,28 @@ try {
     await page.screenshot({
       path: `${output}/checkout-error-${theme}-${width}.png`,
     });
+    const recoveryHitTargets = await buy.evaluate((button) => {
+      const box = button.getBoundingClientRect();
+      return [
+        [box.left + box.width / 2, box.top + box.height / 2],
+        [box.left + 8, box.top + 8],
+        [box.right - 8, box.top + 8],
+        [box.left + 8, box.bottom - 8],
+        [box.right - 8, box.bottom - 8],
+      ].map(([x, y]) => ({
+        x,
+        y,
+        clear: button.contains(document.elementFromPoint(x, y)),
+      }));
+    });
+    await writeFile(
+      `${output}/checkout-error-hit-targets-${theme}-${width}.json`,
+      JSON.stringify(recoveryHitTargets, null, 2),
+    );
+    assert.ok(
+      recoveryHitTargets.every((point) => point.clear),
+      "The checkout recovery button must remain clear of floating overlays",
+    );
     const errorAccessibility = await new AxeBuilder({ page })
       .include('aside[aria-label="Workshop tickets"] [role="alert"]')
       .withRules(["color-contrast"])
