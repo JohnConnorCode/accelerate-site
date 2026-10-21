@@ -6446,11 +6446,12 @@ body.modal-open [data-dock] {
   margin-bottom: clamp(28px, 3.8vw, 46px);
 }
 .home-hero-heading {
-  max-width: 20ch;
+  max-width: 23ch;
   margin: 0;
   color: var(--fg);
-  font: 600 clamp(40px, 5vw, 68px)/1.04 var(--display);
-  letter-spacing: -0.028em;
+  /* brand-system: allow (founder-restored homepage display composition) */
+  font: 500 clamp(48px, 6.2vw, 88px)/1.08 var(--display);
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 .home-hero-lead,
@@ -6475,237 +6476,23 @@ body.modal-open [data-dock] {
 .home-hero-artwork {
   position: absolute;
   z-index: 2;
-  top: 46%;
-  translate: 0 -50%;
-  right: var(--gut);
-  width: min(42vw, 600px);
+  top: 13%;
+  right: max(30px, calc((100vw - 1320px) / 2));
+  width: min(44vw, 630px);
+  height: min(75svh, 700px);
+  pointer-events: none;
 }
-/* The labeled flow: work comes in, the system decides, actions land. */
-.home-flow {
-  container-type: inline-size;
-  color: var(--fg);
-}
-.home-flow-heads {
+/* One grounded brand sculpture. Its only motion is the shared hero entrance. */
+.home-sculpture {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin-bottom: 24px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--rule);
-  color: var(--soft);
-  font: 11px/1.4 var(--util);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  place-items: center;
+  pointer-events: none;
 }
-.home-flow-heads > :nth-child(2) {
-  text-align: center;
-}
-.home-flow-heads > :nth-child(3) {
-  padding-left: 0;
-}
-.home-flow-stage {
-  position: relative;
-  aspect-ratio: 600 / 340;
-}
-.home-flow-wires {
-  position: absolute;
-  inset: 0;
+.home-sculpture-diagram {
+  display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
-}
-.home-flow-wire path {
-  stroke: var(--rule-dark, var(--rule));
-  stroke-width: 1.25;
-  transition: stroke var(--dur-fast, 200ms) var(--ease);
-}
-.home-flow-wire[data-active="true"] path:first-child {
-  stroke: var(--fg);
-}
-.home-flow-wire .home-flow-pulse {
-  stroke: transparent;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-dasharray: 0.24 1.24;
-  stroke-dashoffset: 0.24;
-}
-.home-flow[data-phase="intake"]
-  .home-flow-wire:not(.home-flow-wire-out)[data-active="true"]
-  .home-flow-pulse,
-.home-flow[data-phase="acting"] .home-flow-wire-out[data-active="true"] .home-flow-pulse {
-  stroke: var(--signal);
-  animation: home-flow-travel 700ms var(--hero-ease, var(--ease)) both;
-}
-.home-flow[data-phase="intake"]
-  .home-flow-wire:not(.home-flow-wire-out)[data-active="true"]
-  .home-flow-pulse {
-  stroke: var(--fg);
-}
-@keyframes home-flow-travel {
-  from {
-    stroke-dashoffset: 0.24;
-  }
-  to {
-    stroke-dashoffset: -1;
-  }
-}
-.home-flow-chip {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 33.333%;
-  height: 17.65%;
-  padding: 0 clamp(10px, 2.2cqw, 14px);
-  translate: 0 -50%;
-  border: 1px solid var(--rule);
-  background: var(--bg);
-  color: var(--mid);
-  font: 500 clamp(12px, 2.3cqw, 14px)/1.2 var(--body);
-  letter-spacing: -0.005em;
-  white-space: nowrap;
-  text-align: left;
-  transition:
-    border-color var(--dur-fast, 200ms) var(--ease),
-    color var(--dur-fast, 200ms) var(--ease),
-    background-color var(--dur-fast, 200ms) var(--ease);
-}
-.home-flow-chip svg {
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-}
-.home-flow-input {
-  left: 0;
-  cursor: pointer;
-}
-.home-flow-output {
-  right: 0;
-}
-.home-flow-input:hover,
-.home-flow-input[aria-pressed="true"] {
-  border-color: var(--fg);
-  color: var(--fg);
-}
-.home-flow-input:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: 3px;
-}
-.home-flow-output[data-connected="true"] {
-  color: var(--fg);
-}
-.home-flow-output[data-complete="true"] {
-  border-color: var(--signal);
-  background: var(--signal-soft);
-}
-/* Hollow mark: the outside world. Filled signal mark: the system acted. */
-.home-flow-mark {
-  flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
-  border: 1.5px solid currentColor;
-  border-radius: 50%;
-  order: 3;
-  margin-left: auto;
-}
-.home-flow-output .home-flow-mark {
-  border-color: var(--rule-dark, var(--rule));
-}
-.home-flow-output[data-complete="true"] .home-flow-mark {
-  border-color: var(--signal);
-  background: var(--signal);
-}
-.home-flow-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: grid;
-  place-items: center;
-  width: 20%;
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  transform: perspective(600px) rotateX(var(--flow-tilt-x, 0deg)) rotateY(var(--flow-tilt-y, 0deg));
-  transition: transform 300ms var(--ease);
-}
-.home-flow-core svg {
-  width: 140%;
-  overflow: visible;
-}
-.home-flow-sculpture-layer {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.home-flow[data-phase="thinking"] .home-flow-sculpture-layer {
-  animation: home-flow-think 1100ms var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 100ms);
-}
-@keyframes home-flow-think {
-  0%,
-  100% {
-    transform: none;
-  }
-  45% {
-    transform: translateY(-12px) rotate(-4deg);
-  }
-}
-.home-flow:not([data-motion="live"]) .home-flow-core {
-  transform: none;
-}
-.home-flow-caption {
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
-  margin: 24px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
-  color: var(--fg);
-  font: 12px/1.5 var(--util);
-  letter-spacing: 0.04em;
-}
-.home-flow-caption-key {
-  flex: 0 0 auto;
-  min-width: 7ch;
-  color: var(--soft);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 11px;
-}
-.home-flow[data-phase="done"] .home-flow-caption-key {
-  color: var(--signal-ink);
-}
-.home-flow[data-motion="live"] .home-flow-caption > :last-child {
-  animation: home-flow-caption-in 320ms var(--ease) both;
-}
-@keyframes home-flow-caption-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@container (max-width: 500px) {
-  .home-flow-chip {
-    gap: 7px;
-    padding: 0 9px;
-    font-size: 12px;
-  }
-  .home-flow-chip svg {
-    width: 14px;
-    height: 14px;
-  }
-  .home-flow-mark {
-    width: 7px;
-    height: 7px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .home-flow *,
-  .home-flow *::before {
-    animation: none !important;
-    transition: none !important;
-  }
 }
 .home-hero-bottom {
   display: grid;
@@ -6734,9 +6521,7 @@ body.modal-open [data-dock] {
   min-height: 56px;
 }
 .home-hero-note {
-  display: grid;
-  gap: 2px;
-  white-space: nowrap;
+  max-width: 110px;
   color: var(--mid);
   font: 11px/1.5 var(--util);
   letter-spacing: 0.08em;
@@ -6781,10 +6566,10 @@ body.modal-open [data-dock] {
     animation: home-hero-action-enter 900ms var(--hero-ease) var(--hero-action-delay, 1270ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-word {
-    animation: home-hero-word-enter 900ms var(--hero-ease) var(--hero-word-delay, 0ms) both;
+    animation: home-hero-word-enter 1500ms var(--hero-ease) var(--hero-word-delay, 0ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-artwork {
-    animation: home-hero-detail-enter 900ms var(--hero-ease) 700ms backwards;
+    animation: home-hero-detail-enter 1200ms var(--hero-ease) 300ms backwards;
   }
   .motion-ready .home-hero.in .home-hero-support {
     --hero-entry-delay: var(--hero-support-delay, 1120ms);
@@ -6845,11 +6630,12 @@ body.modal-open [data-dock] {
 @media (min-width: 1001px) {
   .home-hero-heading {
     max-width: min(16ch, 57%);
-    font-size: clamp(52px, 4.4vw, 68px);
+    /* brand-system: allow (founder-restored desktop homepage display) */
+    font-size: clamp(58px, 4.8vw, 74px);
   }
   .home-hero-bottom {
     grid-template-columns: 1fr;
-    width: 46%;
+    width: 51%;
     gap: 26px;
   }
   .home-hero-support {
@@ -6859,23 +6645,12 @@ body.modal-open [data-dock] {
     align-items: center;
   }
 }
-@media (min-width: 1001px) and (max-width: 1180px) {
+@media (min-width: 641px) and (max-width: 1000px) {
   .home-hero-artwork {
-    width: 46vw;
-  }
-  .home-hero-heading {
-    max-width: 46%;
-  }
-}
-@media (max-width: 1000px) {
-  /* Below desktop the flow joins the column under the call to action. */
-  .home-hero-artwork {
-    position: relative;
     top: auto;
-    right: auto;
-    translate: none;
-    width: min(100%, 560px);
-    margin-top: 8px;
+    bottom: 30px;
+    width: 40vw;
+    height: 35svh;
   }
 }
 
@@ -6957,9 +6732,12 @@ body.modal-open [data-dock] {
     line-height: 1.12;
     letter-spacing: -0.03em;
   }
-  /* The activity stream directly below tells the same story at phone width. */
   .home-hero-artwork {
-    display: none;
+    top: auto;
+    bottom: 70px;
+    right: -20px;
+    width: 70vw;
+    height: 28svh;
   }
   .home-hero-eyebrow {
     margin-bottom: 28px;
@@ -6986,9 +6764,6 @@ body.modal-open [data-dock] {
     max-width: none;
     margin-top: 10px;
     text-align: center;
-  }
-  .home-hero-note > span + span::before {
-    content: "· ";
   }
 }
 /* Touch scrolling keeps crisp entrances without repeatedly rasterizing blur

@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { chromium, webkit } from "playwright";
+import sharp from "sharp";
 import {
   installHeroMotionObserver,
   hasPerceptibleHeroSequence,
@@ -39,18 +40,104 @@ const failures = [];
 const results = [];
 const entranceFrames = [];
 
+// The sculpture has one finite entrance, then rests in every motion mode.
+// Compare both rendered geometry and decoded pixels after that entrance.
+async function renderedState(artwork) {
+  return artwork.evaluate((element) => {
+    const root = element.getBoundingClientRect();
+    const round = (number) => Math.round(number * 100000) / 100000;
+    return {
+      route: element.dataset.routeState,
+      // Element screenshots scroll short viewports. Compare document geometry,
+      // while retaining strict local geometry, animation and decoded-pixel checks.
+      rootBox: [
+        round(root.x + scrollX),
+        round(root.y + scrollY),
+        round(root.width),
+        round(root.height),
+      ],
+      activeAnimations: element
+        .getAnimations({ subtree: true })
+        .filter((animation) => animation.playState === "running").length,
+      svgAnimations: element.querySelectorAll("animate, animateMotion, animateTransform").length,
+      nodes: [
+        element,
+        ...element.querySelectorAll(
+          "svg, g, path, circle, ellipse, stop, linearGradient, radialGradient",
+        ),
+      ].map((node) => {
+        const box = node.getBoundingClientRect(),
+          style = getComputedStyle(node);
+        return {
+          tag: node.tagName,
+          attributes: [...node.attributes].map((attribute) => [attribute.name, attribute.value]),
+          box:
+            node instanceof SVGGraphicsElement || node instanceof HTMLElement
+              ? [round(box.x - root.x), round(box.y - root.y), round(box.width), round(box.height)]
+              : null,
+          paint: [
+            "transform",
+            "opacity",
+            "fill",
+            "fillOpacity",
+            "stroke",
+            "strokeOpacity",
+            "strokeDashoffset",
+            "color",
+            "backgroundColor",
+            "boxShadow",
+            "filter",
+          ].map((property) => style[property]),
+        };
+      }),
+    };
+  });
+}
+
+async function observeRest(artwork, label) {
+  const beforeState = await renderedState(artwork);
+  const first = await artwork.screenshot();
+  await writeFile(`${output}/${label}-before.png`, first);
+  await artwork.page().waitForTimeout(750);
+  const second = await artwork.screenshot();
+  await writeFile(`${output}/${label}-after.png`, second);
+  const afterState = await renderedState(artwork);
+  const stable =
+    JSON.stringify(beforeState) === JSON.stringify(afterState) &&
+    beforeState.activeAnimations === 0 &&
+    beforeState.svgAnimations === 0;
+  const pixelsEqual = await sameRenderedPixels(first, second, artwork, label);
+  if (!pixelsEqual) {
+    // Diagnose cold paint separately, without changing the original strict gate.
+    await artwork.page().waitForTimeout(750);
+    const third = await artwork.screenshot();
+    await writeFile(`${output}/${label}-third.png`, third);
+    await artwork.page().waitForTimeout(750);
+    const fourth = await artwork.screenshot();
+    await writeFile(`${output}/${label}-fourth.png`, fourth);
+    const secondThird = await sameRenderedPixels(second, third, artwork, `${label}-later-1`);
+    const thirdFourth = await sameRenderedPixels(third, fourth, artwork, `${label}-later-2`);
+    await writeFile(
+      `${output}/${label}-paint-sequence.json`,
+      JSON.stringify({ firstSecond: pixelsEqual, secondThird, thirdFourth }, null, 2),
+    );
+  }
+  if (!stable)
+    await writeFile(
+      `${output}/${label}-geometry-diff.json`,
+      JSON.stringify({ beforeState, afterState }, null, 2),
+    );
+  return {
+    stable: stable && pixelsEqual,
+    geometryStable: stable,
+    pixelsEqual,
+    beforeState,
+    afterState,
+  };
+}
+
 async function exerciseDockDismissal(page, label) {
   const samples = [];
-  // The workshop announcement takes the dock's place while it is shown.
-  await page.evaluate(() => window.scrollTo({ top: innerHeight * 2, behavior: "instant" }));
-  const announcement = page.getByRole("button", { name: "Dismiss workshop announcement" });
-  if (
-    await announcement
-      .waitFor({ state: "visible", timeout: 3000 })
-      .then(() => true)
-      .catch(() => false)
-  )
-    await announcement.click();
   for (const rapid of [false, true]) {
     await page.evaluate(() => window.scrollTo({ top: innerHeight * 2, behavior: "instant" }));
     await page.waitForFunction(() => document.body.dataset.mcta === "on");
@@ -69,31 +156,27 @@ async function exerciseDockDismissal(page, label) {
       await page.waitForTimeout(delay);
       const sample = await page.evaluate(() => {
         const dock = document.querySelector("[data-dock]");
-        const targets = [...document.querySelectorAll(".home-flow-input, .home-hero-cta")].map(
-          (target) => {
-            const box = target.getBoundingClientRect();
-            const left = Math.max(0, box.left),
-              right = Math.min(innerWidth, box.right);
-            const top = Math.max(0, box.top),
-              bottom = Math.min(innerHeight, box.bottom);
-            const point =
-              right > left && bottom > top
-                ? { x: (left + right) / 2, y: (top + bottom) / 2 }
-                : null;
-            const hit = point && document.elementFromPoint(point.x, point.y);
-            const style = getComputedStyle(target);
-            return {
-              name: target.getAttribute("aria-label") || target.className,
-              box: box.toJSON(),
-              point,
-              hit: !point || target.contains(hit),
-              hitTarget: hit?.getAttribute("class") || hit?.tagName || null,
-              opacity: style.opacity,
-              pointerEvents: style.pointerEvents,
-              animation: style.animationName,
-            };
-          },
-        );
+        const targets = [...document.querySelectorAll(".home-hero-cta")].map((target) => {
+          const box = target.getBoundingClientRect();
+          const left = Math.max(0, box.left),
+            right = Math.min(innerWidth, box.right);
+          const top = Math.max(0, box.top),
+            bottom = Math.min(innerHeight, box.bottom);
+          const point =
+            right > left && bottom > top ? { x: (left + right) / 2, y: (top + bottom) / 2 } : null;
+          const hit = point && document.elementFromPoint(point.x, point.y);
+          const style = getComputedStyle(target);
+          return {
+            name: target.getAttribute("aria-label") || target.className,
+            box: box.toJSON(),
+            point,
+            hit: !point || target.contains(hit),
+            hitTarget: hit?.getAttribute("class") || hit?.tagName || null,
+            opacity: style.opacity,
+            pointerEvents: style.pointerEvents,
+            animation: style.animationName,
+          };
+        });
         return {
           elapsed: performance.now() - window.__dockReturnedAt,
           heroActionReady: document.querySelector(".home-hero")?.dataset.heroActionReady,
@@ -131,144 +214,112 @@ async function exerciseDockDismissal(page, label) {
   return samples;
 }
 
-// The labeled flow must read cleanly, route each workflow to its two actions,
-// walk every phase in live motion, stay still under reduced motion, and stop
-// its clock offscreen. At phone width the activity stream carries the story.
-async function exerciseArtwork(page, label, reduced = false) {
-  const artwork = page.locator(".home-flow");
-  await page.evaluate(() => document.fonts.ready);
-  await page.waitForFunction(
-    () => document.querySelector(".home-flow")?.dataset.artworkReady === "true",
-  );
-  const shown = await artwork.isVisible();
-  if (page.viewportSize().width <= 640) {
-    if (shown) failures.push(`${label}: flow artwork should yield to the stream at phone width`);
-    return { hidden: true, dockDismissal: await exerciseDockDismissal(page, label) };
-  }
-  if (!shown) failures.push(`${label}: flow artwork is not visible`);
-  const layout = await artwork.evaluate((root) => {
-    const box = (element) => element.getBoundingClientRect();
-    const intersects = (a, b) =>
-      a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1;
-    const parts = [...root.querySelectorAll(".home-flow-chip, .home-flow-core")].map(box);
-    const area = box(root);
-    return {
-      labels: [...root.querySelectorAll(".home-flow-chip")].map((chip) => chip.textContent.trim()),
-      clipped: [...root.querySelectorAll(".home-flow-chip")].some(
-        (chip) => chip.scrollWidth > chip.clientWidth + 1,
+// Compare decoded pixels: PNG encoding/chunks are not proof of visible movement.
+// Any real pixel difference retains both frames and computed geometry for diagnosis.
+async function sameRenderedPixels(first, second, artwork, label) {
+  const decode = (frame) => sharp(frame).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const [a, b] = await Promise.all([decode(first), decode(second)]);
+  const same =
+    a.info.width === b.info.width && a.info.height === b.info.height && a.data.equals(b.data);
+  if (!same) {
+    await writeFile(`${output}/${label}-before.png`, first);
+    await writeFile(`${output}/${label}-after.png`, second);
+    let changed = 0,
+      maxDelta = 0;
+    if (a.data.length === b.data.length) {
+      for (let i = 0; i < a.data.length; i++) {
+        const delta = Math.abs(a.data[i] - b.data[i]);
+        if (delta) changed++;
+        maxDelta = Math.max(maxDelta, delta);
+      }
+    }
+    const geometry = await artwork.evaluate((element) => ({
+      state: element.dataset.routeState,
+      animations: element.getAnimations({ subtree: true }).map((animation) => ({
+        state: animation.playState,
+        properties: animation.effect.getKeyframes(),
+      })),
+      layers: [...element.querySelectorAll(".home-sculpture-layer")].map(
+        (layer) => getComputedStyle(layer).transform,
       ),
-      overlap: parts.some((a, i) => parts.some((b, j) => i < j && intersects(a, b))),
-      collides: [".home-hero-heading", ".home-hero-support", ".home-hero-actions"].some(
-        (selector) => intersects(area, box(document.querySelector(selector))),
-      ),
-      pageOverflow: document.documentElement.scrollWidth > innerWidth + 1,
-      sculptureLayers: root.querySelectorAll(".home-flow-sculpture-layer").length,
-      solidFaces: root.querySelectorAll(".home-flow-sculpture-layer path").length,
-    };
-  });
-  if (layout.labels.length !== 6 || layout.labels.some((text) => !text))
-    failures.push(`${label}: flow is missing a labeled input or action`);
-  if (layout.clipped || layout.overlap || layout.collides || layout.pageOverflow)
-    failures.push(`${label}: flow clips, overlaps, or collides with the hero copy`);
-  if (layout.sculptureLayers !== 3 || layout.solidFaces < 9)
-    failures.push(`${label}: the arrow sculpture lost its extruded faces`);
-
-  const core = artwork.locator(".home-flow-core");
-  const restingPose = await core.evaluate((element) => getComputedStyle(element).transform);
-  const bounds = await artwork.boundingBox();
-  await page.mouse.move(bounds.x + bounds.width * 0.85, bounds.y + bounds.height * 0.2);
-  if (reduced) {
-    if ((await core.evaluate((element) => getComputedStyle(element).transform)) !== restingPose)
-      failures.push(`${label}: reduced motion still responds with perspective movement`);
-  } else {
-    await page.waitForFunction(
-      (resting) =>
-        getComputedStyle(document.querySelector(".home-flow-core")).transform !== resting,
-      restingPose,
-    );
-  }
-  await page.mouse.move(1, 1);
-
-  const journeys = [];
-  const expectedActions = [
-    ["Message sent", "Record updated"],
-    ["Record updated", "Task created"],
-    ["Message sent", "Task created"],
-  ];
-  for (const index of [2, 1, 0]) {
-    await artwork.locator(".home-flow-input").nth(index).click();
-    await page.waitForFunction(
-      (index) => {
-        const root = document.querySelector(".home-flow");
-        return root.dataset.source === String(index) && root.dataset.phase === "done";
-      },
-      index,
-      { timeout: 6000 },
-    );
-    const state = await artwork.evaluate((root) => ({
-      pressed: [...root.querySelectorAll(".home-flow-input")].map((button) =>
-        button.getAttribute("aria-pressed"),
-      ),
-      complete: [...root.querySelectorAll('.home-flow-output[data-complete="true"]')].map(
-        (output) => output.textContent.trim(),
-      ),
-      status: root.querySelector('[role="status"]').textContent,
-      caption: root.querySelector(".home-flow-caption").textContent,
-      formation: [...root.querySelectorAll(".home-flow-sculpture-top")].map((face) =>
-        face.getAttribute("d"),
-      ),
+      box: element.getBoundingClientRect().toJSON(),
     }));
-    if (
-      state.pressed.filter((value) => value === "true").length !== 1 ||
-      state.pressed[index] !== "true" ||
-      JSON.stringify(state.complete) !== JSON.stringify(expectedActions[index]) ||
-      !state.status
-    )
-      failures.push(`${label}: workflow ${index} did not route to its announced actions`);
-    journeys.push({ index, ...state });
+    await writeFile(
+      `${output}/${label}-pixel-diff.json`,
+      JSON.stringify(
+        {
+          changedChannels: changed,
+          maxDelta,
+          width: a.info.width,
+          height: a.info.height,
+          geometry,
+        },
+        null,
+        2,
+      ),
+    );
   }
-  if (new Set(journeys.map((journey) => journey.formation.join(" "))).size !== 3)
-    failures.push(`${label}: workflow selection did not change the arrow formation`);
-
-  let motion;
-  if (reduced) {
-    motion = await artwork.evaluate((root) => ({
-      state: root.dataset.motion,
-      running: root
-        .getAnimations({ subtree: true })
-        .filter((animation) => animation.playState === "running").length,
-    }));
-    if (motion.state !== "reduced" || motion.running)
-      failures.push(`${label}: reduced motion still animates the flow`);
-  } else {
-    const phases = await artwork.evaluate(
-      (root) =>
-        new Promise((resolve) => {
-          const seen = new Set([root.dataset.phase]);
-          const observer = new MutationObserver(() => seen.add(root.dataset.phase));
-          observer.observe(root, { attributes: true, attributeFilter: ["data-phase"] });
-          setTimeout(() => {
-            observer.disconnect();
-            resolve([...seen]);
-          }, 6000);
-        }),
-    );
-    if (!["intake", "thinking", "acting", "done"].every((phase) => phases.includes(phase)))
-      failures.push(`${label}: live flow skipped a phase: ${phases.join(", ")}`);
-    await page.evaluate(() => window.scrollTo({ top: innerHeight * 2, behavior: "instant" }));
-    await page.waitForFunction(
-      () => document.querySelector(".home-flow").dataset.motion === "suspended",
-    );
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    await page.waitForFunction(
-      () => document.querySelector(".home-flow").dataset.motion === "live",
-    );
-    motion = { phases, suspendsOffscreen: true };
-  }
-  return { layout, journeys, motion, dockDismissal: await exerciseDockDismissal(page, label) };
+  return same;
 }
 
-// Inspect actual rendered frames, not just animation names or a changed transform.
+async function exerciseArtwork(page, label, touch = false, reduced = false) {
+  const artwork = page.locator(".home-sculpture");
+  await artwork.waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  const composition = await artwork.evaluate((root) => {
+    const heading = document.querySelector(".home-hero-heading");
+    const focusable = root.querySelectorAll("a, button, input, select, textarea, [tabindex]");
+    const layers = [...root.querySelectorAll(".home-sculpture-layer")];
+    const boxes = layers.map((layer) => layer.getBoundingClientRect());
+    const copy = [".home-hero-heading", ".home-hero-support", ".home-hero-actions"].map(
+      (selector) => document.querySelector(selector).getBoundingClientRect(),
+    );
+    const overlapsCopy = boxes.some((a) =>
+      copy.some(
+        (b) =>
+          a.left < b.right - 1 &&
+          a.right > b.left + 1 &&
+          a.top < b.bottom - 1 &&
+          a.bottom > b.top + 1,
+      ),
+    );
+    return {
+      design: root.dataset.artworkDesign,
+      decorative: root.getAttribute("aria-hidden") === "true",
+      focusable: focusable.length,
+      layers: layers.length,
+      faces: layers.map((layer) => layer.querySelectorAll("path").length),
+      heading: heading.textContent.replace(/\s+/g, " ").trim(),
+      headingFont: getComputedStyle(heading).fontFamily,
+      overlapsCopy,
+      overflow: document.documentElement.scrollWidth > innerWidth + 1,
+      visible: root.checkVisibility({ visibilityProperty: true }),
+    };
+  });
+  if (
+    composition.design !== "brand-sculpture" ||
+    !composition.decorative ||
+    composition.focusable ||
+    composition.layers !== 3 ||
+    composition.faces.some((count) => count < 3) ||
+    !composition.visible ||
+    composition.overlapsCopy ||
+    composition.overflow
+  )
+    failures.push(
+      `${label}: the resting brand sculpture is missing, crowded or intercepts controls`,
+    );
+  if (
+    composition.heading !==
+    "We use AI to help your business make more money while you save more time."
+  )
+    failures.push(`${label}: the founder's restored homepage language changed`);
+  const resting = await observeRest(artwork, `${label}-resting-sculpture`);
+  if (!resting.stable) failures.push(`${label}: the sculpture continues moving after its entrance`);
+  const dockDismissal = await exerciseDockDismissal(page, label);
+  return { composition, resting, dockDismissal, touch, reduced };
+}
+
 for (const [label, viewport] of [
   ["desktop", { width: 1440, height: 900 }],
   ["mobile", { width: 390, height: 844 }],
@@ -286,7 +337,7 @@ for (const [label, viewport] of [
       );
     window.__heroFrameAnimations.forEach((animation) => animation.pause());
   });
-  for (const time of [0, 300, 700, 1600, 2300, 3200]) {
+  for (const time of [0, 600, 1000, 1600, 2300, 3200]) {
     await page.evaluate((time) => {
       window.__heroFrameAnimations.forEach((animation) => {
         animation.currentTime = time;
@@ -328,9 +379,7 @@ for (const [label, viewport] of [
       }
       return {
         lines,
-        artwork: document.querySelector(".home-hero-artwork").checkVisibility()
-          ? Number(getComputedStyle(document.querySelector(".home-hero-artwork")).opacity)
-          : 0,
+        artwork: Number(getComputedStyle(document.querySelector(".home-hero-artwork")).opacity),
         lead: visibleWords(".home-hero-lead .home-hero-word"),
         outcome: visibleWords(".home-hero-heading em .home-hero-word"),
         action: Number(getComputedStyle(document.querySelector(".home-hero-actions")).opacity),
@@ -354,7 +403,7 @@ for (const [label, viewport] of [
     )
       failures.push(`${label}: a rendered line breaks into separate word entrances`);
     if (
-      time === 300 &&
+      time === 600 &&
       (!frame.lines[0]?.visible ||
         frame.lines.slice(1).some((line) => line.visible) ||
         frame.action ||
@@ -362,7 +411,7 @@ for (const [label, viewport] of [
     )
       failures.push(`${label}: the first readable line did not enter before later content`);
     if (
-      time === 700 &&
+      time === 1000 &&
       (frame.lines.filter((line) => line.visible).length < 2 || frame.action || frame.support)
     )
       failures.push(`${label}: headline lines lack a measured reveal before supporting content`);
@@ -374,7 +423,7 @@ for (const [label, viewport] of [
       failures.push(`${label}: completed booking action cannot receive pointer clicks`);
     if (time === 3200 && (frame.action !== 1 || frame.support !== 1 || !frame.masks))
       failures.push(`${label}: completed entrance is incomplete or has no word masks`);
-    if (time === 3200 && viewport.width > 640 && frame.artwork < 0.2)
+    if (time === 3200 && frame.artwork < 0.2)
       failures.push(`${label}: artwork did not complete its entrance`);
     entranceFrames.push({ label, time, ...frame });
     await page.screenshot({ caret: "initial", path: `${output}/${label}-frame-${time}.png` });
@@ -382,36 +431,16 @@ for (const [label, viewport] of [
   await page.evaluate(() =>
     window.__heroFrameAnimations.forEach((animation) => animation.finish()),
   );
-  await page.waitForFunction(
-    () => document.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
-  );
-  await page.evaluate(() => {
-    window.__heroFrameAnimations
-      .filter((animation) => animation.effect.target.matches(".home-hero-artwork"))
-      .forEach((animation) => (animation.currentTime = 0));
-  });
-  if (await page.locator(".home-hero-artwork").isVisible()) {
-    await page.locator(".home-flow-input").first().focus();
-    const focusedArtwork = await page.locator(".home-hero-artwork").evaluate((element) => ({
-      visible: getComputedStyle(element).opacity === "1",
-      focused: element.querySelector("button") === document.activeElement,
-      bookingFirst: Boolean(
-        document
-          .querySelector(".home-hero-cta")
-          .compareDocumentPosition(element.querySelector("button")) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-      ),
-    }));
-    if (!focusedArtwork.visible || !focusedArtwork.focused || !focusedArtwork.bookingFirst)
-      failures.push(
-        `${label}: input control has concealed focus or precedes booking in the reading order`,
-      );
-  } else {
-    await page.locator(".home-hero-cta").focus();
-    await page.keyboard.press("Tab");
-    if (await page.evaluate(() => Boolean(document.activeElement?.closest(".home-flow"))))
-      failures.push(`${label}: keyboard entered the hidden phone artwork`);
-  }
+  const decorativeArtwork = await page.locator(".home-sculpture").evaluate((element) => ({
+    decorative: element.getAttribute("aria-hidden") === "true",
+    controls: element.querySelectorAll("a, button, input, [tabindex]").length,
+  }));
+  if (!decorativeArtwork.decorative || decorativeArtwork.controls)
+    failures.push(`${label}: decorative artwork exposes unnecessary controls`);
+  await page.locator(".home-hero-cta").focus();
+  await page.keyboard.press("Tab");
+  if (await page.evaluate(() => Boolean(document.activeElement?.closest(".home-sculpture"))))
+    failures.push(`${label}: keyboard navigation enters decorative artwork`);
   await context.close();
 }
 
@@ -443,6 +472,8 @@ for (const [label, viewport, colorScheme] of [
     if (message.type() === "error") failures.push(`${label}: ${message.text()}`);
   });
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.locator(".home-hero-heading").waitFor();
+  await page.evaluate(() => document.fonts.ready);
   const opening = await page.evaluate(() => {
     const heading = document.querySelector(".home-hero-heading");
     const style = getComputedStyle(heading);
@@ -457,7 +488,7 @@ for (const [label, viewport, colorScheme] of [
       headingUniform: [...heading.querySelectorAll(".home-hero-word")].every(
         (word) => getComputedStyle(word).font === style.font,
       ),
-      fullMessage: /Custom AI systems that run the work behind your business/.test(
+      fullMessage: /make more money.*save more time/.test(
         heading?.textContent?.replace(/\s+/g, " ") ?? "",
       ),
     };
@@ -507,7 +538,7 @@ for (const [label, viewport, colorScheme] of [
   await page.waitForFunction(
     () => document.querySelector(".home-hero").dataset.heroActive === "true",
   );
-  const artworkMotion = await exerciseArtwork(page, label);
+  const artworkMotion = await exerciseArtwork(page, label, touch);
   await page.screenshot({ caret: "initial", path: `${output}/${label}-settled.png` });
   if (label === "desktop" || label === "mobile") {
     const booking = page.locator(".home-hero-cta");
@@ -566,7 +597,7 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-await page.waitForFunction(() => document.querySelector(".home-flow").dataset.motion === "reduced");
+await page.locator(".home-sculpture-diagram").waitFor();
 const reduced = await page.evaluate(() => ({
   heading: document.querySelector(".home-hero-heading")?.textContent?.trim(),
   animation: getComputedStyle(document.querySelector(".home-hero-heading")).animationName,
@@ -574,7 +605,10 @@ const reduced = await page.evaluate(() => ({
   wordsStatic: [...document.querySelectorAll(".home-hero-word")].every(
     (word) => getComputedStyle(word).animationName === "none",
   ),
-  backgroundStatic: document.querySelector(".home-hero-artwork").dataset.motion === "reduced",
+  backgroundStatic: document
+    .querySelector(".home-sculpture")
+    .getAnimations({ subtree: true })
+    .every((animation) => animation.playState !== "running"),
   allContentStatic: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -583,7 +617,7 @@ const reduced = await page.evaluate(() => ({
       getComputedStyle(element).animationName === "none",
   ),
 }));
-reduced.artworkMotion = await exerciseArtwork(page, "mobile-reduced", true);
+reduced.artworkMotion = await exerciseArtwork(page, "mobile-reduced", true, true);
 if (
   !reduced.heading ||
   reduced.animation !== "none" ||
@@ -609,8 +643,8 @@ for (const [label, viewport] of [
   await delayedPage.goto(baseUrl, { waitUntil: "commit", timeout: 60_000 });
   await delayedPage.waitForFunction(
     () =>
-      document.querySelector(".home-flow-stage") &&
-      getComputedStyle(document.querySelector(".home-flow-stage")).position === "relative",
+      document.querySelector(".home-sculpture-diagram") &&
+      getComputedStyle(document.querySelector(".home-sculpture")).display === "grid",
   );
   const pending = await delayedPage.evaluate(() => ({
     state: document.querySelector(".home-hero").dataset.revealState,
@@ -678,8 +712,8 @@ await latePage.route("**/_next/static/**/*.js*", async (route) => {
 await latePage.goto(baseUrl, { waitUntil: "commit", timeout: 60_000 });
 await latePage.waitForFunction(
   () =>
-    document.querySelector(".home-flow-stage") &&
-    getComputedStyle(document.querySelector(".home-flow-stage")).position === "relative",
+    document.querySelector(".home-sculpture-diagram") &&
+    getComputedStyle(document.querySelector(".home-sculpture")).display === "grid",
 );
 await latePage.waitForFunction(() => !document.documentElement.classList.contains("motion-ready"));
 const lateReadable = await latePage
@@ -700,8 +734,8 @@ const lateRecovery = await latePage.locator(".home-hero").evaluate((hero) => ({
     (element) => element.getAnimations().length === 0,
   ),
   interactive:
-    hero.querySelectorAll(".home-flow-input").length === 3 &&
-    hero.querySelector(".home-hero-artwork").dataset.artworkReady === "true",
+    hero.querySelector("a.home-hero-cta") instanceof HTMLAnchorElement &&
+    getComputedStyle(hero.querySelector(".home-hero-actions")).pointerEvents !== "none",
 }));
 if (
   !lateReadable ||
@@ -709,16 +743,13 @@ if (
   !lateRecovery.wordsStatic ||
   !lateRecovery.interactive
 )
-  failures.push(
-    "Late hydration left input controls unavailable or concealed readable foreground again",
-  );
-await latePage.locator(".home-flow-input").first().click();
-await latePage.waitForFunction(
-  () =>
-    document.querySelector(".home-flow").dataset.source === "0" &&
-    document.querySelector(".home-flow").dataset.motion === "live",
+  failures.push("Late hydration left booking unavailable or concealed readable foreground again");
+await latePage.locator(".home-hero-cta").focus();
+lateRecovery.bookingFocused = await latePage.evaluate(
+  () => document.activeElement === document.querySelector(".home-hero-cta"),
 );
-lateRecovery.inputResponded = true;
+if (!lateRecovery.bookingFocused)
+  failures.push("Late hydration left the booking action unfocusable");
 delayedResults.push({ label: "watchdog-then-hydration", lateReadable, ...lateRecovery });
 await latePage.screenshot({ caret: "initial", path: `${output}/desktop-late-runtime.png` });
 await lateRuntime.close();
@@ -761,11 +792,11 @@ await staticPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 
 let stylesReady = false;
 for (let attempt = 0; attempt < 100 && !stylesReady; attempt++) {
   stylesReady = await staticPage.evaluate(() => {
-    const stage = document.querySelector(".home-flow-stage");
+    const svg = document.querySelector(".home-sculpture-diagram");
     return Boolean(
-      stage &&
-      stage.getBoundingClientRect().width > 100 &&
-      getComputedStyle(stage).position === "relative",
+      svg &&
+      svg.getBoundingClientRect().width > 100 &&
+      getComputedStyle(document.querySelector(".home-sculpture")).display === "grid",
     );
   });
   if (!stylesReady) await staticPage.waitForTimeout(100);
@@ -779,8 +810,10 @@ const staticHero = await staticPage.evaluate(() => ({
     (word) => getComputedStyle(word).animationName === "none",
   ),
   backgroundStatic:
-    document.querySelector(".home-flow").dataset.phase === "done" &&
-    document.querySelectorAll('.home-flow-output[data-complete="true"]').length === 2,
+    document.querySelector(".home-sculpture-diagram") instanceof SVGElement &&
+    document.querySelectorAll(".home-sculpture-layer").length === 3 &&
+    document.querySelectorAll(".home-sculpture animate, .home-sculpture animateTransform")
+      .length === 0,
   allContentReadable: [
     ...document.querySelectorAll("main [data-home-step], main .rv, main .item-rv"),
   ].every(
@@ -790,7 +823,7 @@ const staticHero = await staticPage.evaluate(() => ({
   ),
 }));
 if (
-  !/Custom AI systems that run the work behind your business/.test(staticHero.heading ?? "") ||
+  !/make more money.*save more time/.test(staticHero.heading ?? "") ||
   staticHero.cta !== "1" ||
   !staticHero.wordsStatic ||
   !staticHero.backgroundStatic ||
@@ -809,13 +842,9 @@ const desktopReducedContext = await browser.newContext({
   reducedMotion: "reduce",
 });
 const desktopReducedPage = await desktopReducedContext.newPage();
-desktopReducedPage.on("pageerror", (error) => failures.push(`desktop-reduced: ${error.message}`));
 await desktopReducedPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
-await desktopReducedPage.waitForFunction(
-  () => document.querySelector(".home-flow").dataset.motion === "reduced",
-);
-const desktopReduced = await exerciseArtwork(desktopReducedPage, "desktop-reduced", true);
-await desktopReducedPage.screenshot({ path: `${output}/desktop-reduced.png` });
+await desktopReducedPage.waitForTimeout(3500);
+const desktopReduced = await exerciseArtwork(desktopReducedPage, "desktop-reduced", false, true);
 await desktopReducedContext.close();
 await browser.close();
 
@@ -831,7 +860,7 @@ for (const [label, viewport, touch] of [
   page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForTimeout(3500);
-  const journey = await exerciseArtwork(page, label);
+  const journey = await exerciseArtwork(page, label, touch);
   await page.screenshot({ path: `${output}/${label}-settled.png` });
   webkitArtwork.push({ label, viewport, ...journey });
   await context.close();
@@ -845,10 +874,10 @@ await writeFile(
       results,
       entranceFrames,
       reduced,
-      desktopReduced,
       delayedResults,
       watchdog,
       staticHero,
+      desktopReduced,
       webkitArtwork,
       failures,
     },

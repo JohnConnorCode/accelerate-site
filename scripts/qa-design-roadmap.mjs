@@ -227,11 +227,18 @@ async function inspect(route, theme, width, isAdmin) {
       if (width >= 641) {
         await page.emulateMedia({ reducedMotion: "no-preference" });
         await page.locator("[data-style-guide-artwork]").scrollIntoViewIfNeeded();
-        await page.waitForFunction(() =>
-          [...document.querySelectorAll("[data-style-guide-artwork] .home-flow-pulse")].some(
-            (pulse) => getComputedStyle(pulse).animationName === "home-flow-travel",
-          ),
-        );
+        const restingSculpture = await page
+          .locator("[data-style-guide-artwork] .home-sculpture")
+          .evaluate((root) => ({
+            layers: root.querySelectorAll(".home-sculpture-layer").length,
+            running: root
+              .getAnimations({ subtree: true })
+              .filter((animation) => animation.playState === "running").length,
+            controls: root.querySelectorAll("a, button, input, [tabindex]").length,
+          }));
+        assert.equal(restingSculpture.layers, 3, `${id}: brand sculpture is missing`);
+        assert.equal(restingSculpture.running, 0, `${id}: brand sculpture has ambient motion`);
+        assert.equal(restingSculpture.controls, 0, `${id}: decorative artwork exposes controls`);
         const motionFrame = `${output}/${id}-ordinary-motion.png`;
         await page.screenshot({ path: motionFrame });
         result.screenshots.push(motionFrame);

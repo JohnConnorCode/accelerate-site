@@ -4,6 +4,7 @@ Source: [Google Fonts](https://github.com/google/fonts/tree/e44c4b011a820c2cbe2f
 
 Converted from the original variable TTF files using fontTools 4.60.2 and Brotli 1.2.0, without subsetting or table transforms. Glyph order and font data tables were verified unchanged; the container checksum changes and obsolete digital signature is removed during conversion. Builds use these local assets and do not contact Google Fonts.
 
+- `jost.woff2`: source `Jost[wght].ttf`, SHA-256 `3e175932123abe3f467b9dea853fe4cf65bb03ece76e4cdb16bcb3d197188e3d` (55,152 bytes).
 - `funneldisplay.woff2`: source `FunnelDisplay[wght].ttf`, SHA-256 `b4151c9c4b7b07eb74320096b4ff4156cca8821f5adfab34af9fd9a2d6c1179d` (53,436 bytes).
 - `funnelsans.woff2`: source `FunnelSans[wght].ttf`, SHA-256 `652c9834434bc01835c4e75a73d3c7e42ff2e4beb261cc851cb911e889af6a77` (53,268 bytes).
 - `newsreader.woff2`: source `Newsreader-Italic[opsz,wght].ttf`, SHA-256 `e5e771798f1c4e552d9279c320a0c61187374c6359868532823245828b2559c4` (243,508 bytes).

@@ -12,9 +12,8 @@ import { distributionProfile } from "@/lib/distribution/profile";
 import { neutralPublicIdentity } from "@/lib/distribution/public-identity";
 import "./globals.css";
 
-// One type family: Funnel Display (headings), Funnel Sans (body and UI),
-// JetBrains Mono (data, timestamps, labels). Newsreader stays available only
-// as a workspace-theme choice for tenants; Accelerate surfaces never use it.
+// Jost restores the established heading identity. Funnel Sans remains the
+// body/UI face; JetBrains Mono sets utility text. Newsreader is tenant-only.
 const sans = localFont({
   src: "../../public/fonts/funnelsans.woff2",
   variable: "--font-body-face",
@@ -23,9 +22,9 @@ const sans = localFont({
 });
 
 const display = localFont({
-  src: "../../public/fonts/funneldisplay.woff2",
+  src: "../../public/fonts/jost.woff2",
   variable: "--font-display-face",
-  weight: "300 800",
+  weight: "100 900",
   display: "swap",
 });
 

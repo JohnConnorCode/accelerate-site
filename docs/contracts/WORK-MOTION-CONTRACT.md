@@ -38,17 +38,11 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
   The pre-paint gate conceals complete words behind baseline-preserving masks,
   rather than moving already visible text. The eyebrow wipes in, responsive
   headline lines reveal as readable groups, then the explanation, booking
-  action and service index enter. The artwork is an SVG automation system built from the existing three-chevron
-  identity. Customer inquiries, meetings and invoices connect through the core
-  to distinct example actions. One imperative controller owns SVG geometry,
-  signals, pointer steering, drag and keyboard controls. The grip stays fixed
-  while the sculpture moves so pointer steering keeps a stable hit area. Static server geometry
-  remains readable without JavaScript. Drawing pauses offscreen, in hidden tabs,
-  behind mobile navigation, for reduced motion and through the shared motion
-  control. Coarse pointers receive bounded responses rather than continuous idle
-  animation. Selecting a workflow updates its pressed state and announces its
-  example result. Reduced motion applies interactions immediately without
-  ongoing frame work. Cleanup releases animation frames and observers.
+  action enter. The artwork is a native SVG sculpture built from the three-chevron identity.
+  It enters once with the hero, then rests. There are no processing loops,
+  workflow signals, rotating layers or decorative input controls. Static server
+  geometry stays readable without JavaScript; the artwork never captures focus.
+  Reduced motion removes the entrance and shows the complete composition.
   The finite headline sequence retains one pre-paint entrance owner.
   Pending content must not flash.
   Reduced motion, unavailable JavaScript and the hydration watchdog show the

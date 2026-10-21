@@ -40,7 +40,7 @@ export default function StyleGuide() {
         </section>
         <section className="mt-20 border-t border-[var(--rule)] pt-10" aria-labelledby="guide-type">
           <h2 className="h2 mb-8" id="guide-type">
-            Three steps, one type family
+            Three steps, clear hierarchy
           </h2>
           <StyleGuideTokens tokens={["--type-display", "--type-section", "--type-title"]} />
           <div className="mt-10 space-y-8">
@@ -48,8 +48,7 @@ export default function StyleGuide() {
             <p className="h2">Section, for the next idea</p>
             <p className="h3">Title, for cards and groups</p>
             <p className="text-lg">
-              Funnel Sans carries body copy and interface text. Funnel Display carries headings and
-              numerals.
+              Jost carries headings and numerals. Funnel Sans carries body copy and interface text.
             </p>
             <p className="font-mono text-sm tabular-nums">
               JetBrains Mono · 09:12 · Data, timestamps and labels
@@ -84,14 +83,14 @@ export default function StyleGuide() {
             <ActivityStream {...homeActivity} />
             <div
               data-style-guide-artwork
-              className="relative hidden w-full min-w-0 max-w-[600px] min-[641px]:block [&>.home-hero-artwork]:!relative [&>.home-hero-artwork]:!inset-auto [&>.home-hero-artwork]:!m-0 [&>.home-hero-artwork]:!w-full [&>.home-hero-artwork]:!translate-none"
+              className="relative hidden w-full min-w-0 max-w-[600px] min-[641px]:block [&>.home-hero-artwork]:!relative [&>.home-hero-artwork]:!inset-auto [&>.home-hero-artwork]:!m-0 [&>.home-hero-artwork]:!w-full [&>.home-hero-artwork]:!h-auto [&>.home-hero-artwork]:aspect-square [&>.home-hero-artwork]:!translate-none"
             >
               <HeroArtwork />
             </div>
           </div>
           <p className="mt-6 text-[var(--mid)]">
-            Hollow marks identify people. Filled signal marks identify system actions. The labeled
-            flow follows the same language.
+            Hollow marks identify people. Filled signal marks identify system actions. The sculpted
+            logo supplies the brand artwork and remains still after its entrance.
           </p>
         </section>
         <section
