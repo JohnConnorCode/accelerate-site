@@ -33,10 +33,10 @@ let the team focus on the decisions, relationships, and work that matter most.
 The homepage states the offer in one sentence and one paragraph. Other pages
 may vary the wording but not the claim:
 
-> Custom AI systems that run the work behind your business.
+> We use AI to help your business make more money while you save more time.
 >
-> We find where time and revenue slip away, build the system that fixes it
-> around the tools you already use, then run and improve it with your team.
+> We find where AI can make a difference, build it around the tools you already
+> use, and help your team put it to work.
 
 Services lead and the Command Center is the proof. Outside its own pages, the
 Command Center appears as evidence that the work is real: the instrument our

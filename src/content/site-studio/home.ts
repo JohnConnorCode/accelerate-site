@@ -39,10 +39,10 @@ export const homeFaqContent = {
 
 export const homeHeroContent = {
   eyebrow: "AI strategy · custom systems · ongoing execution",
-  heading: "Custom AI systems that run",
-  emphasis: "the work behind your business.",
+  heading: "We use AI to help your business",
+  emphasis: "make more money while you save more time.",
   support:
-    "We find where time and revenue slip away, build the system that fixes it around the tools you already use, then run and improve it with your team.",
+    "We find where AI can make a difference, build it around the tools you already use, and help your team put it to work.",
   ctaLabel: "Book a free strategy session",
   ctaHref: "/contact",
 };

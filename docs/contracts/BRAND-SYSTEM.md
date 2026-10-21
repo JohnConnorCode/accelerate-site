@@ -11,18 +11,20 @@ homepage Command Center section, or Today. Copy rules live in
 
 ## Type
 
-- One family. Funnel Display sets headings and numerals, Funnel Sans sets body
-  and interface text, JetBrains Mono sets data, timestamps and labels.
+- Jost sets headings and numerals, restoring the established identity at the
+  founder's direction. Funnel Sans sets body and interface text; JetBrains Mono
+  sets data, timestamps and labels.
 - Files are bundled in `public/fonts` and loaded in `src/app/layout.tsx` as
   `--font-display-face`, `--font-body-face` and `--font-mono-face`.
 - No serif and no italic accents in Accelerate surfaces. `.it`,
   `.display-italic` and `.font-editorial` render as the surrounding type. A
   title `<em>` is plain emphasis. Newsreader remains loadable only because a
   tenant may choose it for a custom workspace theme.
-- Funnel is drawn tight. Display tracking stays between `-0.02em` and
+- Display tracking stays between `-0.02em` and
   `-0.04em`; tighter values make glyphs collide at large sizes.
-- Heroes stay refined: the homepage h1 caps at 68px and a
-  product page title at 4.5rem.
+- Shared page titles retain the 68px scale. The restored homepage composition
+  uses its previous Jost headline: 88px maximum, 74px on the desktop split layout.
+  These two existing homepage declarations carry explicit verifier exceptions.
 
 ## Heading scale
 
@@ -67,20 +69,19 @@ outcome. Today's Automation module, the Activity page and the site's product
 proof all use this language. On the site, prove the claim with the real
 instrument (product screenshots or the demo), never an illustration of one.
 
-### Homepage hero: the labeled flow
+### Homepage hero: the interactive sculpture
 
-The hero artwork (`src/components/home/HeroArtwork.tsx`) is the same motif
-drawn as one diagram. Three named inputs come in on the left, the Accelerate
-mark decides in the middle, and three named actions land on the right. Every
-element carries a word; nothing is abstract. One workflow plays at a time:
-intake, thinking (the caption says what the system decided), acting, done.
-Actions that finish turn signal orange with a filled mark. Inputs are buttons
-that replay their workflow. The core reuses the native SVG sculpture: shaded
-extruded arrows change formation with the selected workflow and lift separately
-while it processes. Pointer movement adds bounded perspective; there is no
-continuous JavaScript rendering loop. Reduced motion shows the finished state. Below
-641px the flow is hidden because the activity stream directly under the hero
-tells the same story at phone width. `npm run qa:home-hero-timing` covers it.
+The founder restored the previously published homepage composition on October 21,
+2026: Jost headings, the time-and-revenue headline, and the steerable SVG sculpture.
+`src/components/home/HeroArtwork.tsx` owns the three-dimensional chevrons, visible
+face culling, depth order, connections and workflow signals. Inquiry, meeting and
+invoice buttons change the sculpture's formation and show their example actions.
+The central grip supports drag, arrow keys, Home and workflow selection. The
+sculpture remains present at phone width. Its imperative controller pauses offscreen,
+in hidden tabs, behind navigation, and under reduced motion; static geometry and
+immediate keyboard interaction remain available. `npm run qa:home-hero-timing`
+checks desktop, touch, keyboard, normal motion and reduced motion. The activity
+stream remains product proof below the hero, without replacing its sculpture.
 
 ## Command Center modes
 

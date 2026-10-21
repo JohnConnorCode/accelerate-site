@@ -188,9 +188,9 @@ for (const [engine, launcher] of Object.entries(engines)) {
       stage = `warm-visit-${visit}`;
       await page.getByRole("button", { name: "Open navigation menu" }).tap();
       await page.waitForFunction(() => document.body.dataset.mobileNavigation === "open");
-      const menuSafe = await page.locator(".home-flow-input").evaluateAll(
+      const menuSafe = await page.locator(".home-system-input, .home-system-handle").evaluateAll(
         (inputs) =>
-          inputs.length === 3 &&
+          inputs.length === 4 &&
           inputs.every((input) => {
             const bounds = input.getBoundingClientRect();
             const hit = document.elementFromPoint(
@@ -210,11 +210,11 @@ for (const [engine, launcher] of Object.entries(engines)) {
           `${engine}: open menu leaves workflow inputs visible, clickable, or focusable`,
         );
       await page.waitForFunction(
-        () => document.querySelector(".home-flow")?.dataset.motion === "suspended",
+        () => document.querySelector(".home-system-artwork")?.dataset.motion === "suspended",
       );
-      const stoppedPhase = await page.locator(".home-flow").getAttribute("data-phase");
+      const stoppedPhase = await page.locator(".home-system-artwork").getAttribute("data-phase");
       await page.waitForTimeout(250);
-      if (stoppedPhase !== (await page.locator(".home-flow").getAttribute("data-phase")))
+      if (stoppedPhase !== (await page.locator(".home-system-artwork").getAttribute("data-phase")))
         failures.push(`${engine}: the hidden mechanism continues running behind the menu`);
       await page.locator('#mobile-site-navigation a[href="/services"]').first().tap();
       await page.waitForURL(`${base}/services`);
@@ -252,20 +252,17 @@ for (const [engine, launcher] of Object.entries(engines)) {
         failures.push(
           `${engine}: warm entrance stalled (${frames.p95}ms p95, ${frames.longest}ms longest frame)`,
         );
-      // Phone layouts intentionally hide the desktop flow. Warm navigation
-      // must keep its controls out of the tab order and its clock suspended.
-      if (await page.locator(".home-flow").isVisible())
-        failures.push(`${engine}: phone layout exposes the desktop workflow diagram`);
+      // The restored component must accept a real touch after the menu closes.
+      await page.locator(".home-system-input").first().tap();
+      const interactionFrames = await page.evaluate(sampleFrames, 750);
       await page.waitForFunction(
-        () => document.querySelector(".home-flow")?.dataset.motion === "suspended",
+        () =>
+          document.querySelector(".home-system-artwork").dataset.source === "0" &&
+          document.querySelector(".home-system-artwork").dataset.motion === "live",
       );
-      await page.locator(".home-hero-cta").focus();
-      await page.keyboard.press("Tab");
-      if (await page.evaluate(() => Boolean(document.activeElement?.closest(".home-flow"))))
-        failures.push(`${engine}: warm keyboard navigation enters the hidden diagram`);
-      // The real touch navigation's frame budget was checked above. The hidden
-      // desktop diagram has no phone interaction workload to measure.
-      results.push({ engine, visit, menuSafe, hiddenKeyboardExcluded: true });
+      if ((enforceP95 && interactionFrames.p95 > 50) || interactionFrames.longest > 200)
+        failures.push(`${engine}: touch workflow stalled (${interactionFrames.p95}ms p95)`);
+      results.push({ engine, visit, menuSafe, interactionFrames });
       await page.goBack();
       await page.waitForURL(`${base}/services`);
       await page.locator(".public-hero-entrance:not(.home-hero)").waitFor();

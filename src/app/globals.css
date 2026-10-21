@@ -6446,11 +6446,12 @@ body.modal-open [data-dock] {
   margin-bottom: clamp(28px, 3.8vw, 46px);
 }
 .home-hero-heading {
-  max-width: 20ch;
+  max-width: 23ch;
   margin: 0;
   color: var(--fg);
-  font: 600 clamp(40px, 5vw, 68px)/1.04 var(--display);
-  letter-spacing: -0.028em;
+  /* brand-system: allow (founder-restored homepage display composition) */
+  font: 500 clamp(48px, 6.2vw, 88px)/1.08 var(--display);
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 .home-hero-lead,
@@ -6475,236 +6476,220 @@ body.modal-open [data-dock] {
 .home-hero-artwork {
   position: absolute;
   z-index: 2;
-  top: 46%;
-  translate: 0 -50%;
-  right: var(--gut);
-  width: min(42vw, 600px);
+  top: 13%;
+  right: max(30px, calc((100vw - 1320px) / 2));
+  width: min(44vw, 630px);
+  height: min(75svh, 700px);
+  pointer-events: none;
 }
-/* The labeled flow: work comes in, the system decides, actions land. */
-.home-flow {
-  container-type: inline-size;
-  color: var(--fg);
-}
-.home-flow-heads {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin-bottom: 24px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--rule);
-  color: var(--soft);
-  font: 11px/1.4 var(--util);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.home-flow-heads > :nth-child(2) {
-  text-align: center;
-}
-.home-flow-heads > :nth-child(3) {
-  padding-left: 0;
-}
-.home-flow-stage {
-  position: relative;
-  aspect-ratio: 600 / 340;
-}
-.home-flow-wires {
+.home-hero-poster,
+.home-hero-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  overflow: visible;
+  transition: opacity 240ms var(--ease);
 }
-.home-flow-wire path {
-  stroke: var(--rule-dark, var(--rule));
-  stroke-width: 1.25;
-  transition: stroke var(--dur-fast, 200ms) var(--ease);
+.home-hero-canvas {
+  opacity: 0;
 }
-.home-flow-wire[data-active="true"] path:first-child {
-  stroke: var(--fg);
+.home-hero-poster {
+  object-fit: contain;
 }
-.home-flow-wire .home-flow-pulse {
-  stroke: transparent;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-dasharray: 0.24 1.24;
-  stroke-dashoffset: 0.24;
+[data-theme="dark"] .home-hero-poster {
+  filter: invert(1);
 }
-.home-flow[data-phase="intake"]
-  .home-flow-wire:not(.home-flow-wire-out)[data-active="true"]
-  .home-flow-pulse,
-.home-flow[data-phase="acting"] .home-flow-wire-out[data-active="true"] .home-flow-pulse {
-  stroke: var(--signal);
-  animation: home-flow-travel 700ms var(--hero-ease, var(--ease)) both;
+.home-hero-artwork[data-artwork-ready="true"] .home-hero-canvas {
+  opacity: 1;
 }
-.home-flow[data-phase="intake"]
-  .home-flow-wire:not(.home-flow-wire-out)[data-active="true"]
-  .home-flow-pulse {
-  stroke: var(--fg);
+.home-hero-artwork[data-artwork-ready="true"] .home-hero-poster {
+  opacity: 0;
 }
-@keyframes home-flow-travel {
-  from {
-    stroke-dashoffset: 0.24;
-  }
-  to {
-    stroke-dashoffset: -1;
-  }
-}
-.home-flow-chip {
+.home-hero-artwork-caption {
   position: absolute;
+  right: 9%;
+  left: 9%;
+  bottom: -1%;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  width: 33.333%;
-  height: 17.65%;
-  padding: 0 clamp(10px, 2.2cqw, 14px);
-  translate: 0 -50%;
-  border: 1px solid var(--rule);
-  background: var(--bg);
+  color: var(--soft);
+  font: 11px/1.4 var(--util);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.home-hero-artwork-pause {
+  display: none;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 8px;
   color: var(--mid);
-  font: 500 clamp(12px, 2.3cqw, 14px)/1.2 var(--body);
-  letter-spacing: -0.005em;
-  white-space: nowrap;
-  text-align: left;
-  transition:
-    border-color var(--dur-fast, 200ms) var(--ease),
-    color var(--dur-fast, 200ms) var(--ease),
-    background-color var(--dur-fast, 200ms) var(--ease);
-}
-.home-flow-chip svg {
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-}
-.home-flow-input {
-  left: 0;
   cursor: pointer;
+  pointer-events: auto;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
 }
-.home-flow-output {
-  right: 0;
+.home-hero-artwork-pause span {
+  font-size: 16px;
 }
-.home-flow-input:hover,
-.home-flow-input[aria-pressed="true"] {
-  border-color: var(--fg);
-  color: var(--fg);
+.home-hero-artwork[data-artwork-ready="true"] .home-hero-artwork-pause {
+  display: inline-flex;
 }
-.home-flow-input:focus-visible {
+.home-hero-artwork:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+}
+.home-hero-artwork-pause:focus-visible {
   outline: 2px solid var(--fg);
   outline-offset: 3px;
 }
-.home-flow-output[data-connected="true"] {
-  color: var(--fg);
-}
-.home-flow-output[data-complete="true"] {
-  border-color: var(--signal);
-  background: var(--signal-soft);
-}
-/* Hollow mark: the outside world. Filled signal mark: the system acted. */
-.home-flow-mark {
-  flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
-  border: 1.5px solid currentColor;
-  border-radius: 50%;
-  order: 3;
-  margin-left: auto;
-}
-.home-flow-output .home-flow-mark {
-  border-color: var(--rule-dark, var(--rule));
-}
-.home-flow-output[data-complete="true"] .home-flow-mark {
-  border-color: var(--signal);
-  background: var(--signal);
-}
-.home-flow-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+/* A live intelligence mechanism: inputs, processing layers and branched actions
+   share a steerable geometry. Direct touch manipulation belongs to the core. */
+.home-system-artwork {
+  pointer-events: none;
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   place-items: center;
-  width: 20%;
+}
+.home-system-scene {
+  position: relative;
+  width: 100%;
   aspect-ratio: 1;
-  translate: -50% -50%;
-  transform: perspective(600px) rotateX(var(--flow-tilt-x, 0deg)) rotateY(var(--flow-tilt-y, 0deg));
-  transition: transform 300ms var(--ease);
+  /* Keep transparent parts of the stage from covering nearby copy or CTAs. */
+  pointer-events: none;
 }
-.home-flow-core svg {
-  width: 140%;
+.home-system-diagram {
+  display: block;
+  width: 100%;
+  height: 100%;
   overflow: visible;
+  pointer-events: none;
 }
-.home-flow-sculpture-layer {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.home-flow[data-phase="thinking"] .home-flow-sculpture-layer {
-  animation: home-flow-think 1100ms var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 100ms);
-}
-@keyframes home-flow-think {
-  0%,
-  100% {
-    transform: none;
-  }
-  45% {
-    transform: translateY(-12px) rotate(-4deg);
-  }
-}
-.home-flow:not([data-motion="live"]) .home-flow-core {
-  transform: none;
-}
-.home-flow-caption {
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
-  margin: 24px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
+.home-system-port {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  pointer-events: auto;
+  place-items: center;
+  --port-size: clamp(48px, 5vw, 64px);
+  width: var(--port-size);
+  height: var(--port-size);
+  left: calc(var(--port-x) - var(--port-size) / 2);
+  top: calc(var(--port-y) - var(--port-size) / 2);
+  border-radius: 14px;
   color: var(--fg);
-  font: 12px/1.5 var(--util);
-  letter-spacing: 0.04em;
+  background: var(--bg);
+  box-shadow:
+    var(--card-shadow),
+    0 6px 0 -1px color-mix(in srgb, var(--fg) 9%, var(--bg));
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    scale 180ms ease;
 }
-.home-flow-caption-key {
-  flex: 0 0 auto;
-  min-width: 7ch;
-  color: var(--soft);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 11px;
+.home-system-port svg {
+  width: 24px;
+  height: 24px;
 }
-.home-flow[data-phase="done"] .home-flow-caption-key {
-  color: var(--signal-ink);
+.home-system-input {
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: manipulation;
 }
-.home-flow[data-motion="live"] .home-flow-caption > :last-child {
-  animation: home-flow-caption-in 320ms var(--ease) both;
+.home-system-output svg {
+  stroke: var(--fg);
 }
-@keyframes home-flow-caption-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+.home-system-output[data-complete="true"] svg {
+  stroke: var(--bg);
 }
-@container (max-width: 500px) {
-  .home-flow-chip {
-    gap: 7px;
-    padding: 0 9px;
-    font-size: 12px;
-  }
-  .home-flow-chip svg {
-    width: 14px;
-    height: 14px;
-  }
-  .home-flow-mark {
-    width: 7px;
-    height: 7px;
-  }
+.home-system-input:hover,
+.home-system-input:focus-visible {
+  box-shadow:
+    0 0 0 1px var(--fg),
+    var(--card-shadow-hover),
+    0 6px 0 -1px color-mix(in srgb, var(--fg) 18%, var(--bg));
+}
+.home-system-input:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 5px;
+}
+.home-system-input:active {
+  scale: 0.96;
+}
+.home-system-input[aria-pressed="true"],
+.home-system-output[data-complete="true"] {
+  background: var(--fg);
+  color: var(--bg);
+}
+.home-system-output[data-connected="true"]:not([data-complete="true"]) {
+  box-shadow:
+    0 0 0 1px var(--fg),
+    var(--card-shadow);
+}
+.home-system-port-dot {
+  position: absolute;
+  bottom: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+}
+.home-system-output[data-complete="true"] .home-system-port-dot {
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 1;
+}
+.home-system-handle {
+  position: absolute;
+  z-index: 1;
+  width: 42%;
+  height: 42%;
+  /* A fixed grip keeps the moving sculpture from leaving the pointer's hit area. */
+  left: 29%;
+  top: 29%;
+  border: 0;
+  padding: 0;
+  border-radius: 32%;
+  background: transparent;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-system-artwork[data-dragging="true"] .home-system-handle {
+  cursor: grabbing;
+}
+.home-system-artwork[data-motion="suspended"] .home-system-port {
+  transition: none;
+}
+.home-system-handle:focus-visible {
+  outline: 1px dashed var(--fg);
+  outline-offset: 4px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-flow *,
-  .home-flow *::before {
-    animation: none !important;
-    transition: none !important;
+  .home-system-port {
+    transition: none;
+  }
+  .home-system-packets {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .home-hero-artwork.home-system-artwork {
+    right: 8px;
+    width: max(70vw, 260px);
+  }
+  .home-system-port {
+    border-radius: 12px;
+  }
+  .home-system-port svg {
+    width: 24px;
+    height: 24px;
   }
 }
 .home-hero-bottom {
@@ -6734,13 +6719,33 @@ body.modal-open [data-dock] {
   min-height: 56px;
 }
 .home-hero-note {
-  display: grid;
-  gap: 2px;
-  white-space: nowrap;
+  max-width: 110px;
   color: var(--mid);
   font: 11px/1.5 var(--util);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+.home-hero-index {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+  color: var(--mid);
+  font: 11px/1.4 var(--util);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.home-hero-index span::before {
+  content: "0" counter(hero-step) " / ";
+  color: var(--soft);
+}
+.home-hero-index span {
+  counter-increment: hero-step;
+}
+.home-hero-index {
+  counter-reset: hero-step;
 }
 .home-hero + .hero-statement {
   border-top-color: var(--rule);
@@ -6757,7 +6762,11 @@ body.modal-open [data-dock] {
     .home-hero-support,
   .motion-ready:not([data-navigation-kind="restore"])
     .home-hero[data-reveal-state="pending"]
-    .home-hero-actions {
+    .home-hero-actions,
+  .motion-ready:not([data-navigation-kind="restore"])
+    .home-hero[data-reveal-state="pending"]
+    .home-hero-index
+    > span {
     opacity: 0;
   }
   .motion-ready:not([data-navigation-kind="restore"])
@@ -6774,20 +6783,30 @@ body.modal-open [data-dock] {
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-eyebrow {
     animation: home-hero-label-enter 900ms var(--hero-ease) both;
   }
-  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-support {
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-support,
+  .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-index > span {
     animation: home-hero-detail-enter 900ms var(--hero-ease) var(--hero-entry-delay, 0ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-actions {
     animation: home-hero-action-enter 900ms var(--hero-ease) var(--hero-action-delay, 1270ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-word {
-    animation: home-hero-word-enter 900ms var(--hero-ease) var(--hero-word-delay, 0ms) both;
+    animation: home-hero-word-enter 1500ms var(--hero-ease) var(--hero-word-delay, 0ms) both;
   }
   .motion-ready .home-hero.in:not(.reveal-immediate) .home-hero-artwork {
-    animation: home-hero-detail-enter 900ms var(--hero-ease) 700ms backwards;
+    animation: home-hero-detail-enter 1200ms var(--hero-ease) 300ms backwards;
   }
   .motion-ready .home-hero.in .home-hero-support {
     --hero-entry-delay: var(--hero-support-delay, 1120ms);
+  }
+  .motion-ready .home-hero.in .home-hero-index > span {
+    --hero-entry-delay: var(--hero-index-delay, 1480ms);
+  }
+  .motion-ready .home-hero.in .home-hero-index > span:nth-child(2) {
+    --hero-entry-delay: calc(var(--hero-index-delay, 1480ms) + 100ms);
+  }
+  .motion-ready .home-hero.in .home-hero-index > span:nth-child(3) {
+    --hero-entry-delay: calc(var(--hero-index-delay, 1480ms) + 200ms);
   }
   /* Keep a reached action visible after focus leaves, until a fresh entrance.
      A transient focus-only override restarts its delayed animation on blur. */
@@ -6797,6 +6816,15 @@ body.modal-open [data-dock] {
     opacity: 1;
     transform: none;
     pointer-events: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-artwork-pause {
+    display: none !important;
+  }
+  .home-hero-poster,
+  .home-hero-canvas {
+    transition: none;
   }
 }
 @keyframes home-hero-word-enter {
@@ -6845,11 +6873,12 @@ body.modal-open [data-dock] {
 @media (min-width: 1001px) {
   .home-hero-heading {
     max-width: min(16ch, 57%);
-    font-size: clamp(52px, 4.4vw, 68px);
+    /* brand-system: allow (founder-restored desktop homepage display) */
+    font-size: clamp(58px, 4.8vw, 74px);
   }
   .home-hero-bottom {
     grid-template-columns: 1fr;
-    width: 46%;
+    width: 51%;
     gap: 26px;
   }
   .home-hero-support {
@@ -6859,23 +6888,52 @@ body.modal-open [data-dock] {
     align-items: center;
   }
 }
-@media (min-width: 1001px) and (max-width: 1180px) {
+@media (min-width: 641px) and (max-width: 1000px) {
   .home-hero-artwork {
-    width: 46vw;
+    top: auto;
+    bottom: 30px;
+    width: 40vw;
+    height: 35svh;
   }
-  .home-hero-heading {
-    max-width: 46%;
+  .home-hero-artwork-caption {
+    left: auto;
+    right: 0;
+    bottom: 0;
+  }
+  .home-hero-artwork-caption > span {
+    display: none;
   }
 }
-@media (max-width: 1000px) {
-  /* Below desktop the flow joins the column under the call to action. */
-  .home-hero-artwork {
-    position: relative;
-    top: auto;
-    right: auto;
-    translate: none;
-    width: min(100%, 560px);
-    margin-top: 8px;
+
+/* Integer layout avoids independently composited fractional card rasters.
+   The fallback above retains the same geometry in older CSS engines. */
+@supports (width: round(nearest, 10px, 2px)) {
+  .home-hero-artwork.home-system-artwork {
+    width: round(nearest, min(44vw, 630px), 2px);
+    height: round(nearest, min(75svh, 700px), 2px);
+  }
+  .home-system-port {
+    --port-size: round(nearest, clamp(48px, 5vw, 64px), 2px);
+    left: round(nearest, calc(var(--port-x) - var(--port-size) / 2), 1px);
+    top: round(nearest, calc(var(--port-y) - var(--port-size) / 2), 1px);
+  }
+  @media (min-width: 641px) and (max-width: 1000px) {
+    .home-hero-artwork.home-system-artwork {
+      top: auto;
+      width: round(nearest, 40vw, 2px);
+      height: round(nearest, 35svh, 2px);
+    }
+  }
+  @media (max-width: 640px) {
+    .home-hero-artwork.home-system-artwork {
+      top: auto;
+      width: round(nearest, max(70vw, 260px), 2px);
+      height: round(nearest, 28svh, 2px);
+    }
+    .home-system-port svg {
+      width: 24px;
+      height: 24px;
+    }
   }
 }
 
@@ -6957,8 +7015,24 @@ body.modal-open [data-dock] {
     line-height: 1.12;
     letter-spacing: -0.03em;
   }
-  /* The activity stream directly below tells the same story at phone width. */
   .home-hero-artwork {
+    top: auto;
+    bottom: 70px;
+    right: -20px;
+    width: 70vw;
+    height: 28svh;
+  }
+  .home-hero-canvas,
+  .home-hero-poster {
+    transform: translateY(-12px);
+  }
+  .home-hero-artwork-caption {
+    /* Align the control to the page gutter, beside the smaller sculpture. */
+    left: calc(2px - 30vw);
+    right: auto;
+    bottom: 0;
+  }
+  .home-hero-artwork-caption > span {
     display: none;
   }
   .home-hero-eyebrow {
@@ -6987,8 +7061,11 @@ body.modal-open [data-dock] {
     margin-top: 10px;
     text-align: center;
   }
-  .home-hero-note > span + span::before {
-    content: "· ";
+  .home-hero-index {
+    margin-top: auto;
+    gap: 10px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
   }
 }
 /* Touch scrolling keeps crisp entrances without repeatedly rasterizing blur
