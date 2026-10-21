@@ -44,6 +44,20 @@ try {
       const cases = page.locator("button[aria-pressed]");
       assert.equal(await cases.count(), 6);
       const accountPicker = page.getByRole("combobox", { name: "Collection account", exact: true });
+      const selectSecondAccount = async () => {
+        if (width === 390) {
+          const option = accountPicker.locator("option").nth(1);
+          await accountPicker.selectOption(await option.getAttribute("value"));
+          await page
+            .getByRole("heading", {
+              name: (await option.textContent()).split(" · ")[0],
+              exact: true,
+            })
+            .waitFor();
+        } else {
+          await cases.nth(1).click();
+        }
+      };
       if (width === 390) {
         await accountPicker.waitFor();
         assert.equal(await accountPicker.locator("option").count(), 6);
@@ -82,15 +96,7 @@ try {
         .waitFor();
       await page.getByRole("button", { name: "Approve and send", exact: true }).press("Enter");
       await page.getByRole("alert").filter({ hasText: "Reminder skipped" }).waitFor();
-      if (width === 390) {
-        const option = accountPicker.locator("option").nth(1);
-        await accountPicker.selectOption(await option.getAttribute("value"));
-        await page
-          .getByRole("heading", { name: (await option.textContent()).split(" · ")[0], exact: true })
-          .waitFor();
-      } else {
-        await cases.nth(1).click();
-      }
+      await selectSecondAccount();
       await page.getByRole("button", { name: "Preview reminder", exact: true }).click();
       await page
         .getByRole("button", { name: "Queue reviewed reminder", exact: true })
@@ -156,8 +162,7 @@ try {
         await page.getByRole("button", { name: "Enable Collections", exact: true }).click();
         await verifyCollectionCapabilities(true);
         await page.goto(root + "/collections");
-        await cases.nth(1).waitFor();
-        await cases.nth(1).click();
+        await selectSecondAccount();
         await page.getByText(/Receipt: sent/).waitFor();
       }
       await page.getByRole("link", { name: "Customer record", exact: true }).click();

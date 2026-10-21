@@ -472,6 +472,14 @@ jobs:
       - name: Verify internal workshop payment and confirmation
         if: ${{ !cancelled() && steps.production-build.outcome == 'success' && steps.browser-install.outcome == 'success' && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
         run: npm run qa:event-ticketing
+      - name: Retain focused workshop evidence
+        if: ${{ always() && needs.scope.outputs.docs_only != 'true' && !inputs.public_pages_only }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: workshop-browser-evidence
+          path: /tmp/accelerate-event-ticketing/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify shared focus handoff and baseline comparison
         if: ${{ needs.scope.outputs.docs_only != 'true' }}
         env:
@@ -897,7 +905,6 @@ jobs:
             /tmp/accelerate-website-ai-recovery/
             /tmp/accelerate-campaign-duplicate/
             /tmp/accelerate-content-calendar/
-            /tmp/accelerate-event-ticketing/
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/
             /tmp/accelerate-turnkey-qa/
@@ -1140,7 +1147,7 @@ jobs:
           git diff --no-renames --name-only -z "$source_sha" HEAD -- > "$RUNNER_TEMP/design-reuse-changes"
           while IFS= read -r -d '' path; do
             case "$path" in
-              .github/workflows/ci.yml|scripts/capture-product-screenshots.ts|scripts/capture-docs-screenshots.mjs|scripts/qa-customer-workflow-context.mjs|scripts/test-verification-workflow.mjs) ;;
+              .github/workflows/ci.yml|scripts/capture-product-screenshots.ts|scripts/capture-docs-screenshots.mjs|scripts/qa-customer-workflow-context.mjs|scripts/qa-collections-workspace.mjs|scripts/test-verification-workflow.mjs) ;;
               *) echo "Compiled design changed: $path"; exit 1 ;;
             esac
           done < "$RUNNER_TEMP/design-reuse-changes"
@@ -1177,24 +1184,33 @@ jobs:
           PRODUCT_SCREENSHOT_RECEIPT: /tmp/accelerate-design-capture/product.json
           HERO_QA_OUTPUT: /tmp/accelerate-design-capture/hero
         run: |
-          setsid npm run start -- --hostname localhost --port 3045 > /tmp/accelerate-design-server.log 2>&1 &
-          server_pid=$!
+          start_preview() {
+            setsid npm run start -- --hostname localhost --port 3045 >> /tmp/accelerate-design-server.log 2>&1 &
+            server_pid=$!
+            ready=false
+            for attempt in $(seq 1 60); do
+              if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then
+                ready=true
+                break
+              fi
+              if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+              sleep 1
+            done
+            if [ "$ready" != true ]; then cat /tmp/accelerate-design-server.log; exit 1; fi
+          }
           trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
-          ready=false
-          for attempt in $(seq 1 60); do
-            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then
-              ready=true
-              break
-            fi
-            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
-            sleep 1
-          done
-          if [ "$ready" != true ]; then cat /tmp/accelerate-design-server.log; exit 1; fi
+          start_preview
           capture_status=0
           node scripts/qa-customer-workflow-context.mjs || capture_status=1
           node --import tsx scripts/capture-product-screenshots.ts || capture_status=1
           DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/chooser.json node scripts/capture-docs-screenshots.mjs --group demo || capture_status=1
           DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/docs.json node scripts/capture-docs-screenshots.mjs --group docs || capture_status=1
+          # Next inventories public paths at startup. Reopen this same compiled
+          # app after capture so its newly named gallery/chooser files are served.
+          kill -TERM -- -"$server_pid" 2>/dev/null || true
+          wait "$server_pid" || true
+          sleep 1
+          start_preview
           node scripts/qa-home-hero-timing.mjs || capture_status=1
           node scripts/qa-theme-persistence.mjs || capture_status=1
           node scripts/qa-today-review-layout.mjs || capture_status=1

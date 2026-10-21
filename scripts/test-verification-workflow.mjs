@@ -524,6 +524,7 @@ try {
       "scripts/capture-product-screenshots.ts",
       "scripts/capture-docs-screenshots.mjs",
       "scripts/qa-customer-workflow-context.mjs",
+      "scripts/qa-collections-workspace.mjs",
       "scripts/test-verification-workflow.mjs",
     ];
     assert.equal(permits([]), true);

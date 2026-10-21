@@ -111,6 +111,19 @@ async function main() {
           )
         );
       });
+      if (shot.demoHref === "/demo/command-center/hearthline-realty/site") {
+        await page.getByLabel("Service name", { exact: true }).fill("Property inquiry follow-up");
+        await page.getByLabel("Audience", { exact: true }).fill("Home buyers and sellers");
+        await page
+          .getByLabel("Outcome", { exact: true })
+          .fill("Respond to property inquiries and arrange the next viewing");
+        await page
+          .getByLabel("Page address (optional)", { exact: true })
+          .fill("property-inquiries");
+        await page.evaluate(() => {
+          if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        });
+      }
       assert.doesNotMatch(
         await page.locator("main").first().innerText(),
         /fictional\s+workspaces?/i,

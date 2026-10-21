@@ -55,6 +55,7 @@ const SHOTS = [
     scenario: "northline-roofing",
     route: "site",
     wait: { role: "heading", name: "Website & pages" },
+    state: "site-draft",
   },
   {
     id: "command-center/today",
@@ -302,7 +303,17 @@ const shots = SHOTS.filter(
 assert.ok(shots.length, "No screenshots match the selected id/group");
 
 async function prepareState(page, shot) {
-  if (["meeting-commitments", "client-onboarding"].includes(shot.state)) {
+  if (shot.state === "site-draft") {
+    await page.getByLabel("Service name", { exact: true }).fill("Residential roof inspections");
+    await page.getByLabel("Audience", { exact: true }).fill("Homeowners planning roof repairs");
+    await page
+      .getByLabel("Outcome", { exact: true })
+      .fill("Request an inspection and get a clear next step");
+    await page.getByLabel("Page address (optional)", { exact: true }).fill("roof-inspections");
+    await page.evaluate(() => {
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    });
+  } else if (["meeting-commitments", "client-onboarding"].includes(shot.state)) {
     const source = page.getByRole("combobox", {
       name: shot.state === "client-onboarding" ? "Won opportunity" : "Stored meeting",
     });
