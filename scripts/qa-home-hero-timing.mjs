@@ -149,7 +149,7 @@ async function exerciseDockDismissal(page, label) {
       await page.waitForTimeout(delay);
       const sample = await page.evaluate(() => {
         const dock = document.querySelector("[data-dock]");
-        const targets = [...document.querySelectorAll(", .home-hero-cta")].map((target) => {
+        const targets = [...document.querySelectorAll(".home-hero-cta")].map((target) => {
           const box = target.getBoundingClientRect();
           const left = Math.max(0, box.left),
             right = Math.min(innerWidth, box.right);
@@ -465,6 +465,8 @@ for (const [label, viewport, colorScheme] of [
     if (message.type() === "error") failures.push(`${label}: ${message.text()}`);
   });
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.locator(".home-hero-heading").waitFor();
+  await page.evaluate(() => document.fonts.ready);
   const opening = await page.evaluate(() => {
     const heading = document.querySelector(".home-hero-heading");
     const style = getComputedStyle(heading);
@@ -510,16 +512,9 @@ for (const [label, viewport, colorScheme] of [
     wordsComplete: [...document.querySelectorAll(".home-hero-word")].every((word) =>
       word.getAnimations().every((animation) => animation.playState === "finished"),
     ),
-    phases: [
-      "eyebrow",
-      "lead",
-      "outcome",
-      "support",
-      "action",
-      "index-0",
-      "index-1",
-      "index-2",
-    ].map((phase) => window.__heroEntrances.find((entry) => entry.phase === phase)),
+    phases: ["eyebrow", "lead", "outcome", "support", "action"].map((phase) =>
+      window.__heroEntrances.find((entry) => entry.phase === phase),
+    ),
     entriesComplete: [
       ...document.querySelectorAll(".home-hero-eyebrow, .home-hero-support, .home-hero-actions"),
     ].every((element) =>
