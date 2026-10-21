@@ -54,6 +54,7 @@ async function main() {
       });
       await context.addInitScript(
         ({ scenario, theme }) => {
+          if (window.top !== window) return;
           sessionStorage.setItem(`accelerate:admin-demo:${scenario}:appearance:v1`, theme);
           localStorage.setItem(`accelerate:demo-theme:${scenario}`, theme);
         },

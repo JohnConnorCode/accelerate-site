@@ -64,6 +64,9 @@ async function settled(page) {
 async function capture(page, name) {
   await settled(page);
   await page.locator("main h1").click();
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
   await page.locator(".admin-main").evaluate((main) => main.scrollTo({ top: 0 }));
   const file = `${output}/${name}.png`;
   await page.screenshot({ path: file });
@@ -104,6 +107,7 @@ try {
       activePage = page;
       await page.addInitScript(
         ({ scenario, paper }) => {
+          if (window.top !== window) return;
           window.__customerWorkflowDocument = Math.random();
           if (paper) {
             sessionStorage.setItem(`accelerate:admin-demo:${scenario}:appearance:v1`, "light");

@@ -1140,7 +1140,7 @@ jobs:
           git diff --no-renames --name-only -z "$source_sha" HEAD -- > "$RUNNER_TEMP/design-reuse-changes"
           while IFS= read -r -d '' path; do
             case "$path" in
-              .github/workflows/ci.yml|scripts/capture-product-screenshots.ts|scripts/test-verification-workflow.mjs) ;;
+              .github/workflows/ci.yml|scripts/capture-product-screenshots.ts|scripts/capture-docs-screenshots.mjs|scripts/qa-customer-workflow-context.mjs|scripts/test-verification-workflow.mjs) ;;
               *) echo "Compiled design changed: $path"; exit 1 ;;
             esac
           done < "$RUNNER_TEMP/design-reuse-changes"
@@ -1190,15 +1190,17 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-design-server.log; exit 1; fi
-          node scripts/qa-customer-workflow-context.mjs
-          node --import tsx scripts/capture-product-screenshots.ts
-          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/chooser.json node scripts/capture-docs-screenshots.mjs --group demo
-          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/docs.json node scripts/capture-docs-screenshots.mjs --group docs
-          node scripts/qa-home-hero-timing.mjs
-          node scripts/qa-theme-persistence.mjs
-          node scripts/qa-today-review-layout.mjs
-          node scripts/qa-collections-workspace.mjs
-          node scripts/qa-marketing-positioning.mjs
+          capture_status=0
+          node scripts/qa-customer-workflow-context.mjs || capture_status=1
+          node --import tsx scripts/capture-product-screenshots.ts || capture_status=1
+          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/chooser.json node scripts/capture-docs-screenshots.mjs --group demo || capture_status=1
+          DOCS_SCREENSHOT_RECEIPT=/tmp/accelerate-design-capture/docs.json node scripts/capture-docs-screenshots.mjs --group docs || capture_status=1
+          node scripts/qa-home-hero-timing.mjs || capture_status=1
+          node scripts/qa-theme-persistence.mjs || capture_status=1
+          node scripts/qa-today-review-layout.mjs || capture_status=1
+          node scripts/qa-collections-workspace.mjs || capture_status=1
+          node scripts/qa-marketing-positioning.mjs || capture_status=1
+          exit "$capture_status"
       - name: Verify representative core routes
         id: design_routes
         continue-on-error: true

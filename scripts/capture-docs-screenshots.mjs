@@ -235,7 +235,12 @@ const SHOTS = [
     route: "learning",
     wait: { role: "heading", name: "Learning Inbox" },
   },
-  { id: "plugins/forms", route: "forms", wait: { role: "heading", name: "Forms" } },
+  {
+    id: "plugins/forms",
+    route: "forms",
+    module: "form-builder",
+    wait: { role: "heading", name: "Forms" },
+  },
   {
     id: "plugins/meeting-commitments",
     route: "meeting-commitments",
@@ -246,6 +251,7 @@ const SHOTS = [
   {
     id: "plugins/reports",
     route: "plugins",
+    module: "business-pulse",
     wait: { role: "heading", name: "Plugins" },
     state: "business-pulse",
   },
@@ -314,8 +320,6 @@ async function prepareState(page, shot) {
     // Stop at review. Never approve a refund to manufacture a screenshot.
   } else if (shot.state === "business-pulse") {
     const report = page.locator('[data-plugin="business-pulse"]');
-    const enable = report.getByRole("button", { name: "Enable Business Pulse", exact: true });
-    if (await enable.isVisible()) await enable.click();
     await report.getByRole("button", { name: "Run report", exact: true }).click();
     await report.getByText(/records inspected/).waitFor();
     await report.scrollIntoViewIfNeeded();
@@ -427,6 +431,7 @@ async function main() {
       context.setDefaultTimeout(20_000);
       await context.addInitScript(
         ({ scenario, theme }) => {
+          if (window.top !== window) return;
           sessionStorage.setItem(`accelerate:admin-demo:${scenario}:appearance:v1`, theme);
           localStorage.setItem(`accelerate:demo-theme:${scenario}`, theme);
         },
@@ -462,6 +467,10 @@ async function main() {
             waitUntil: "domcontentloaded",
             timeout: 30_000,
           });
+          await page.waitForFunction(
+            (scenario) => window.__accelerateAdminDemoRuntime === scenario,
+            scenario,
+          );
           const enabled = await page.evaluate(async (moduleId) => {
             const response = await fetch("/api/admin/tenant/modules", {
               method: "PATCH",

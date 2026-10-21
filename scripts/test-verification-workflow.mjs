@@ -522,6 +522,8 @@ try {
     const plumbing = [
       ".github/workflows/ci.yml",
       "scripts/capture-product-screenshots.ts",
+      "scripts/capture-docs-screenshots.mjs",
+      "scripts/qa-customer-workflow-context.mjs",
       "scripts/test-verification-workflow.mjs",
     ];
     assert.equal(permits([]), true);
