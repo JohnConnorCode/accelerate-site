@@ -1190,7 +1190,7 @@ jobs:
           echo "deployment_id=${source_sha:0:12}" >> "$GITHUB_OUTPUT"
       - name: Restore the verified compiled design
         if: ${{ inputs.admin_design_preview_run }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: design-production-preview
           run-id: ${{ inputs.admin_design_preview_run }}
