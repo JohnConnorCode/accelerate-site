@@ -102,7 +102,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: validated-core-release
           path: ${{ runner.temp }}/release
