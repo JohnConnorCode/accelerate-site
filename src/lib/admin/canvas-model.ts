@@ -425,8 +425,9 @@ export function canvasCameraFor<T>(
   };
   let box = gather(Boolean(scope));
   if (!box.width || !viewport.width || !viewport.height) return { x: 0, y: 0, zoom: 1 };
-  // On a narrow canvas the sibling row would shrink the scope below a readable size.
-  if (scope && fit(box) < CANVAS_LEVELS.near.enter) {
+  // Keep siblings while they stay readable: legible on desktop, near detail on a phone.
+  const readable = viewport.width < 640 ? CANVAS_LEVELS.near.enter : CANVAS_LEVELS.mid.enter;
+  if (scope && fit(box) < readable) {
     const own = gather(false);
     if (fit(own) > fit(box)) box = own;
   }
