@@ -1346,6 +1346,325 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 .kanban-grip:disabled {
   cursor: default;
 }
+
+/* Canvas view: a dot-grid desk of circle anchors and hubs with record cards.
+   Geometry comes from canvas-model; color, type and radius come from tokens. */
+.admin-canvas {
+  position: relative;
+  min-width: 0;
+  height: clamp(440px, calc(100dvh - 228px), 980px);
+  overflow: hidden;
+  border-radius: var(--admin-surface-radius);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-border);
+  --xy-background-color: var(--admin-surface);
+  --xy-background-pattern-color: color-mix(in srgb, var(--admin-ink) 16%, transparent);
+  --xy-edge-stroke: color-mix(in srgb, var(--admin-ink) 55%, transparent);
+  --xy-edge-stroke-width: 1.5;
+  --xy-node-border: none;
+  --xy-node-color: var(--admin-ink);
+  --xy-handle-background-color: transparent;
+}
+.admin-canvas:not([data-canvas-ready]) .admin-canvas-flow {
+  visibility: hidden;
+}
+.admin-canvas-flow {
+  position: absolute;
+  inset: 0;
+}
+.admin-canvas .react-flow__node {
+  cursor: default;
+}
+.admin-canvas .admin-canvas-cross-link path {
+  stroke-dasharray: 5 5;
+}
+.admin-canvas-handle {
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.admin-canvas-node {
+  /* Per-level type sizes are written inline from CANVAS_TYPE. */
+  --canvas-label: 16px;
+  --canvas-detail: 12px;
+  width: 100%;
+  height: 100%;
+  color: var(--admin-ink);
+  font-family: var(--admin-font);
+}
+.admin-canvas-opener,
+.admin-canvas-mark {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--admin-surface);
+  color: inherit;
+  text-align: left;
+}
+.admin-canvas-opener {
+  cursor: pointer;
+}
+.admin-canvas-opener:focus-visible {
+  outline: 2px solid var(--admin-action);
+  outline-offset: 4px;
+}
+.admin-canvas-node:is([data-shape="anchor"], [data-shape="hub"])
+  :is(.admin-canvas-opener, .admin-canvas-mark) {
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  text-align: center;
+}
+.admin-canvas-node[data-shape="anchor"] .admin-canvas-opener {
+  box-shadow:
+    0 0 0 2px var(--admin-ink),
+    var(--admin-card-raised-shadow);
+}
+.admin-canvas-node[data-shape="hub"] .admin-canvas-opener {
+  box-shadow:
+    0 0 0 1px var(--admin-hairline),
+    var(--admin-card-raised-shadow);
+}
+.admin-canvas-node[data-shape="card"] :is(.admin-canvas-opener, .admin-canvas-mark) {
+  align-items: stretch;
+  border-radius: var(--admin-radius-container);
+  box-shadow:
+    0 0 0 1px var(--admin-hairline),
+    var(--admin-card-flat-shadow);
+}
+.admin-canvas-node[data-shape="card"] .admin-canvas-mark {
+  background: var(--admin-surface-subtle);
+  box-shadow: 0 0 0 1px var(--admin-hairline);
+}
+.admin-canvas-node[data-selected] .admin-canvas-opener {
+  box-shadow:
+    0 0 0 2.5px var(--admin-ink),
+    var(--admin-card-raised-shadow);
+}
+.admin-canvas-circle {
+  display: flex;
+  max-width: 82%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25em;
+}
+.admin-canvas-icon {
+  width: calc(var(--canvas-label) * 1.1);
+  height: calc(var(--canvas-label) * 1.1);
+}
+.admin-canvas-label {
+  font-family: var(--admin-title-font);
+  font-size: var(--canvas-label);
+  font-weight: var(--admin-title-weight, 700);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.admin-canvas-detail {
+  color: var(--admin-muted);
+  font-size: var(--canvas-detail);
+  line-height: 1.2;
+}
+.admin-canvas-card {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.admin-canvas-card-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--admin-hairline);
+}
+.admin-canvas-card-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+.admin-canvas-card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--canvas-label);
+  font-weight: 650;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.admin-canvas-node[data-level="near"] .admin-canvas-card-title {
+  -webkit-line-clamp: 1;
+}
+.admin-canvas-card-detail {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--admin-muted);
+  font-size: var(--canvas-detail);
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.admin-canvas-card-meta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  color: var(--admin-muted);
+  font-size: var(--canvas-detail);
+}
+.admin-canvas-badge {
+  overflow: hidden;
+  padding: 1px 8px;
+  border-radius: var(--admin-radius-pill);
+  background: var(--admin-surface-subtle);
+  color: var(--admin-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-canvas-crumbs,
+.admin-canvas-zoom {
+  position: absolute;
+  z-index: 5;
+  top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-canvas-crumbs {
+  left: 14px;
+  max-width: calc(100% - 220px);
+  flex-wrap: wrap;
+}
+.admin-canvas-crumb {
+  display: inline-flex;
+  min-height: 40px;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  overflow: hidden;
+  border-radius: var(--admin-radius-pill);
+  background: var(--admin-surface);
+  box-shadow: 0 0 0 1.5px var(--admin-ink);
+  color: var(--admin-ink);
+  font-size: 13px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-canvas-crumb--home {
+  background: var(--admin-ink);
+  color: var(--admin-surface);
+}
+.admin-canvas-crumb--current {
+  background: var(--admin-surface-subtle);
+  box-shadow: 0 0 0 1px var(--admin-hairline);
+  font-weight: 600;
+}
+.admin-canvas-crumb:focus-visible,
+.admin-canvas-zoom-button:focus-visible {
+  outline: 2px solid var(--admin-action);
+  outline-offset: 2px;
+}
+.admin-canvas-zoom {
+  right: 14px;
+  padding: 0 4px;
+  border-radius: var(--admin-radius-pill);
+  background: var(--admin-surface);
+  box-shadow: 0 0 0 1.5px var(--admin-ink);
+  gap: 0;
+}
+.admin-canvas-zoom-button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--admin-ink);
+}
+.admin-canvas-zoom-button:hover {
+  background: var(--admin-surface-subtle);
+}
+.admin-canvas-zoom-value {
+  min-width: 46px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  text-align: center;
+}
+.admin-canvas-notice,
+.admin-canvas-keys {
+  position: absolute;
+  z-index: 5;
+  bottom: 12px;
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 11px;
+}
+.admin-canvas-notice {
+  left: 14px;
+  max-width: calc(100% - 28px);
+  padding: 8px 12px;
+  border-radius: var(--admin-radius-control);
+  background: var(--admin-warning-soft);
+  color: var(--admin-ink);
+  font-size: 12px;
+}
+.admin-canvas-keys {
+  right: 14px;
+}
+.admin-canvas-keys a {
+  text-decoration: underline;
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .admin-canvas {
+    height: max(
+      360px,
+      calc(100dvh - 300px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
+    );
+  }
+  .admin-canvas-crumbs {
+    max-width: calc(100% - 28px);
+  }
+  .admin-canvas-crumb--home[data-has-back] {
+    display: none;
+  }
+  .admin-canvas-zoom {
+    top: auto;
+    bottom: 14px;
+  }
+  .admin-canvas-crumb,
+  .admin-canvas-zoom-button {
+    min-height: 44px;
+  }
+  .admin-canvas-zoom-button {
+    width: 44px;
+    height: 44px;
+  }
+  .admin-canvas-keys {
+    right: auto;
+    left: 14px;
+    bottom: 26px;
+  }
+  .admin-canvas-keys-hint {
+    display: none;
+  }
+  .admin-canvas-notice {
+    bottom: 72px;
+  }
+}
 .kanban-slot {
   position: relative;
 }

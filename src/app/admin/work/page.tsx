@@ -4,7 +4,7 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
+import { CheckCircle2, LayoutList, Loader2, Network, RefreshCw, X } from "lucide-react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -32,6 +32,12 @@ import type { TodaySnapshot } from "@/lib/admin/today-data";
 import { toast } from "@/lib/admin/useToast";
 import { AgentWorkPanel } from "@/components/admin/AgentWorkPanel";
 import { workViewConfigSchema, type WorkViewConfig } from "@/lib/admin/work-view-contract";
+import { AdminViewSwitcher } from "@/components/admin/AdminViewSwitcher";
+import { EmptyState } from "@/components/admin/EmptyState";
+import { LazyCanvasView } from "@/components/canvas/LazyCanvasView";
+import { ApprovalCanvasContent } from "@/components/canvas/CanvasNodeContent";
+import { approvalsCanvasGraph, type ApprovalCanvasDatum } from "@/lib/admin/canvas-projections";
+import type { CanvasNode } from "@/lib/admin/canvas-model";
 
 interface TaskRow {
   id: string;
@@ -98,6 +104,12 @@ export default function WorkPage() {
   const router = useAdminNavigation();
   const tab =
     params.get("tab") === "approvals" ? "approvals" : params.get("tab") === "ai" ? "ai" : "tasks";
+  const approvalsView = tab === "approvals" && params.get("view") === "canvas" ? "canvas" : "list";
+  const workHref = (change: (next: URLSearchParams) => void) => {
+    const next = new URLSearchParams(params.toString());
+    change(next);
+    return `/admin/work${next.size ? `?${next}` : ""}`;
+  };
   const [owner, setOwner] = useState("me");
   const [status, setStatus] = useState("pending");
   const [search, setSearch] = useState("");
@@ -183,6 +195,7 @@ export default function WorkPage() {
       ),
     [actionsQuery.data],
   );
+  const approvalNodes = useMemo(() => approvalsCanvasGraph(actions), [actions]);
   const followups = (todayQuery.data?.handling.data ?? []).filter(
     (item) => item.kind === "draft_followup" && item.status !== "completed",
   );
@@ -341,7 +354,14 @@ export default function WorkPage() {
   };
   const closeReview = () => {
     setReview(null);
-    if (actionId) router.replace("/admin/work?tab=approvals", "preserve");
+    if (actionId)
+      router.replace(
+        workHref((next) => {
+          next.set("tab", "approvals");
+          next.delete("action");
+        }),
+        "preserve",
+      );
   };
   const decide = async (decision: "approve" | "reject") => {
     if (!review || busy) return;
@@ -455,7 +475,11 @@ export default function WorkPage() {
       }
       if (inDialog || task || review || busy) return;
       const rows =
-        tab === "tasks" && layout === "list" ? visible : tab === "approvals" ? actions : [];
+        tab === "tasks" && layout === "list"
+          ? visible
+          : tab === "approvals" && approvalsView === "list"
+            ? actions
+            : [];
       if (!rows.length) return;
       if (event.key === "j" || event.key === "k") {
         event.preventDefault();
@@ -1135,40 +1159,106 @@ export default function WorkPage() {
       ) : tab === "ai" ? (
         <AgentWorkPanel />
       ) : (
-        <AdminSurface padding="none" elevation="flat">
-          <ul>
-            {actions.map((row, index) => (
-              <li
-                key={row.id}
-                id={`work-row-${row.id}`}
-                data-source-type="approval"
-                data-source-id={row.id}
-              >
-                <AdminRecordRow
-                  selected={selectedIndex === index}
-                  label={`Review ${row.title}`}
-                  onOpen={() => {
-                    setReview(row);
-                    setError("");
-                    router.push(`/admin/work?tab=approvals&action=${row.id}`, "preserve");
-                  }}
-                >
-                  <span className="block text-sm font-semibold text-[var(--admin-ink)]">
-                    {row.title}
-                  </span>
-                  <span className="mt-1 block text-xs text-[var(--admin-muted)]">
-                    {row.reasoning || row.description || "Review the exact proposed change."}
-                  </span>
-                </AdminRecordRow>
-              </li>
-            ))}
-          </ul>
-          {!actions.length && (
-            <p className="p-5 text-sm text-[var(--admin-muted)]">
-              {actionsQuery.isPending ? "Loading approvals…" : "No decisions waiting."}
-            </p>
+        <>
+          <AdminViewSwitcher
+            label="Approvals layout"
+            value={approvalsView}
+            onChange={(next) =>
+              router.push(
+                workHref((query) => {
+                  query.set("tab", "approvals");
+                  if (next === "canvas") query.set("view", "canvas");
+                  else {
+                    query.delete("view");
+                    query.delete("scope");
+                  }
+                }),
+                "preserve",
+              )
+            }
+            options={[
+              { id: "list", label: "List", icon: LayoutList },
+              { id: "canvas", label: "Canvas", icon: Network },
+            ]}
+          />
+          {approvalsView === "canvas" ? (
+            <LazyCanvasView<ApprovalCanvasDatum>
+              label="Approvals canvas"
+              nodes={approvalNodes}
+              renderNode={ApprovalCanvasContent}
+              selectedId={review ? `approval:${review.id}` : null}
+              scopeId={params.get("scope")}
+              hrefFor={({ scopeId }) =>
+                workHref((query) => (scopeId ? query.set("scope", scopeId) : query.delete("scope")))
+              }
+              onOpen={(node: CanvasNode<ApprovalCanvasDatum>) => {
+                if (node.data.kind !== "item") return;
+                const row = actions.find((action) => action.id === node.data.action.id);
+                if (!row) return;
+                setReview(row);
+                setError("");
+                router.push(
+                  workHref((query) => query.set("action", row.id)),
+                  "preserve",
+                );
+              }}
+              read={{
+                loading: actionsQuery.isPending,
+                hasData: Boolean(actionsQuery.data),
+                error: actionsQuery.data ? undefined : actionsQuery.error?.message,
+                refreshing: actionsQuery.isFetching,
+                onRetry: () => void actionsQuery.refetch(),
+              }}
+              empty={
+                <EmptyState
+                  title="No decisions waiting"
+                  message="Proposed changes appear here for review before anything happens."
+                />
+              }
+            />
+          ) : (
+            <AdminSurface padding="none" elevation="flat">
+              <ul>
+                {actions.map((row, index) => (
+                  <li
+                    key={row.id}
+                    id={`work-row-${row.id}`}
+                    data-source-type="approval"
+                    data-source-id={row.id}
+                  >
+                    <AdminRecordRow
+                      selected={selectedIndex === index}
+                      label={`Review ${row.title}`}
+                      onOpen={() => {
+                        setReview(row);
+                        setError("");
+                        router.push(
+                          workHref((query) => {
+                            query.set("tab", "approvals");
+                            query.set("action", row.id);
+                          }),
+                          "preserve",
+                        );
+                      }}
+                    >
+                      <span className="block text-sm font-semibold text-[var(--admin-ink)]">
+                        {row.title}
+                      </span>
+                      <span className="mt-1 block text-xs text-[var(--admin-muted)]">
+                        {row.reasoning || row.description || "Review the exact proposed change."}
+                      </span>
+                    </AdminRecordRow>
+                  </li>
+                ))}
+              </ul>
+              {!actions.length && (
+                <p className="p-5 text-sm text-[var(--admin-muted)]">
+                  {actionsQuery.isPending ? "Loading approvals…" : "No decisions waiting."}
+                </p>
+              )}
+            </AdminSurface>
           )}
-        </AdminSurface>
+        </>
       )}
       <ActionReviewDialog
         open={Boolean(review)}

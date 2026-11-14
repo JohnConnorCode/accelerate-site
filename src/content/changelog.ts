@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "today-and-approvals-canvas",
+    slug: "today-and-approvals-canvas",
+    title: "See Today and your approvals as a canvas",
+    description:
+      "Choose Canvas on Today or on the Work approvals tab to see attention items and pending proposals as a map you can pan and zoom. Groups show their counts, cards reveal more detail as you zoom in, and selecting a card opens the same review panel as the list. Keyboard navigation, touch gestures and reduced motion are supported, and the canvas never changes a record on its own.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
     id: "shared-module-cards-and-contact-navigation",
     slug: "shared-module-cards-and-contact-navigation",
     title: "Inspect modules and open customer records consistently",
