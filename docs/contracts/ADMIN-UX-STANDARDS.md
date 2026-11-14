@@ -27,7 +27,10 @@ Core pages, extensions and fictional demos must inherit them.
 
 ## Canvas views
 
-- Canvas views use the shared `CanvasView` and `canvas-model`. They project
+- Canvas views use the shared `CanvasView` and `canvas-model`. React Flow (MIT)
+  renders behind them with its structural stylesheet only; every visible control,
+  node, connector, camera move and key binding is ours. Only `src/components/canvas`
+  imports `@xyflow/react`, and `test:admin-canvas` enforces it. They project
   source records by `sourceType:sourceId`, store no copied status and open records
   through the page's existing detail pane or review dialog.
 - Plain wheel scrolling stays page scrolling. Drag pans; pinch, Control-wheel and

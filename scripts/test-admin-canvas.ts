@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import {
   CANVAS_KINDS,
   CANVAS_LEVEL_MIN_ZOOM,
@@ -350,5 +352,22 @@ assert(phoneView.zoom >= CANVAS_LEVELS.near.enter, "Phone framing stays readable
 const opened = compact.placements.get("a:2")!;
 const openedCentre = (opened.x + opened.width / 2) * phoneView.zoom + phoneView.x;
 assert(Math.abs(openedCentre - (32 + (358 - 64) / 2)) < 1, "The opened node is centred on a phone");
+
+// The graph library stays behind CanvasView: Apps build on our canvas, never on the library.
+const importers: string[] = [];
+const walk = (dir: string) => {
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) walk(path);
+    else if (/\.(tsx?|css)$/.test(name) && readFileSync(path, "utf8").includes("@xyflow/react"))
+      importers.push(path);
+  }
+};
+walk("src");
+assert.deepEqual(
+  importers.filter((path) => !path.startsWith("src/components/canvas/")),
+  [],
+  "Only the canvas layer imports @xyflow/react",
+);
 
 console.log(JSON.stringify({ result: "passed", nodes: big.length, bounds: layout.bounds }));

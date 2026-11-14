@@ -19,6 +19,7 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { relativeTime, taskSourceLink } from "@/lib/admin/work-presentation";
 import { cn } from "@/lib/utils";
+import { adminSearchHref } from "@/lib/admin/search-href";
 import { WorkflowCalendar } from "@/components/admin/WorkflowCalendar";
 import { WorkflowLayoutSwitcher } from "@/components/admin/WorkflowLayoutSwitcher";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
@@ -105,11 +106,8 @@ export default function WorkPage() {
   const tab =
     params.get("tab") === "approvals" ? "approvals" : params.get("tab") === "ai" ? "ai" : "tasks";
   const approvalsView = tab === "approvals" && params.get("view") === "canvas" ? "canvas" : "list";
-  const workHref = (change: (next: URLSearchParams) => void) => {
-    const next = new URLSearchParams(params.toString());
-    change(next);
-    return `/admin/work${next.size ? `?${next}` : ""}`;
-  };
+  const workHref = (change: (next: URLSearchParams) => void) =>
+    adminSearchHref("/admin/work", params, change);
   const [owner, setOwner] = useState("me");
   const [status, setStatus] = useState("pending");
   const [search, setSearch] = useState("");

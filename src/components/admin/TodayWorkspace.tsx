@@ -38,6 +38,7 @@ import Link, { useAdminNavigation } from "./AdminLink";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
+import { adminSearchHref } from "@/lib/admin/search-href";
 import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import {
   defaultTodayViews,
@@ -273,11 +274,8 @@ export function TodayWorkspace() {
   const items = snapshot?.attention.data ?? [];
   const focus = search.get("focus");
   const view = search.get("view") === "canvas" ? "canvas" : "overview";
-  const todayHref = (change: (params: URLSearchParams) => void) => {
-    const next = new URLSearchParams(search.toString());
-    change(next);
-    return `/admin/today${next.size ? `?${next}` : ""}`;
-  };
+  const todayHref = (change: (params: URLSearchParams) => void) =>
+    adminSearchHref("/admin/today", search, change);
   const canvasNodes = useMemo(
     () =>
       todayCanvasGraph(

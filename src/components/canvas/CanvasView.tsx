@@ -3,6 +3,7 @@
 import "@xyflow/react/dist/base.css";
 import {
   createContext,
+  memo,
   useCallback,
   useContext,
   useEffect,
@@ -145,7 +146,7 @@ const positions = {
 };
 
 /** Rounded elbow connector with a dot where it leaves its parent, as on the prototype desk. */
-function CanvasEdge({
+const CanvasEdge = memo(function CanvasEdge({
   sourceX,
   sourceY,
   targetX,
@@ -170,9 +171,9 @@ function CanvasEdge({
       <circle className="admin-canvas-edge-dot" cx={sourceX} cy={sourceY} r={3.5} />
     </>
   );
-}
+});
 
-function CanvasNodeView({ data }: NodeProps<Node<CanvasNodeData>>) {
+const CanvasNodeView = memo(function CanvasNodeView({ data }: NodeProps<Node<CanvasNodeData>>) {
   const context = useContext(CanvasContext);
   if (!context) return null;
   const { node } = data;
@@ -240,10 +241,17 @@ function CanvasNodeView({ data }: NodeProps<Node<CanvasNodeData>>) {
       )}
     </div>
   );
-}
+});
 
+// Stable module-level references, as React Flow recommends: no node or edge
+// component, type map or option object is recreated per render.
 const nodeTypes = { canvas: CanvasNodeView };
 const edgeTypes = { canvas: CanvasEdge };
+const proOptions = { hideAttribution: true };
+/** Culling helps large graphs and costs small ones a recalculation on every pan. */
+const CULL_ABOVE = 150;
+/** Width the docked detail panel covers on a wide canvas, so an open station stays beside it. */
+const PANEL_COVER = 412;
 
 function ZoomReadout() {
   const zoom = useStore(zoomSelector);
@@ -455,14 +463,29 @@ function CanvasSurface<T>({
     ],
     [layout, edges, tree],
   );
-  const margin = 480;
-  const extent: [[number, number], [number, number]] = [
-    [layout.bounds.x - margin, layout.bounds.y - margin],
-    [
-      layout.bounds.x + layout.bounds.width + margin,
-      layout.bounds.y + layout.bounds.height + margin,
-    ],
-  ];
+  const extent = useMemo<[[number, number], [number, number]]>(() => {
+    const margin = 480;
+    const { x, y, width: w, height: h } = layout.bounds;
+    return [
+      [x - margin, y - margin],
+      [x + w + margin, y + h + margin],
+    ];
+  }, [layout]);
+  const cull = visible.length > CULL_ABOVE;
+  const onMoveStart = useCallback(() => onInteractingChange?.(true), [onInteractingChange]);
+  const onMoveEnd = useCallback(() => onInteractingChange?.(false), [onInteractingChange]);
+  // An opened record stays beside the docked panel: the smallest pan that uncovers it.
+  const detailOpen = Boolean(detail);
+  useEffect(() => {
+    if (!detailOpen || !selectedId || !width || !height || width < 640) return;
+    const placement = layout.placements.get(selectedId);
+    if (!placement) return;
+    const next = canvasReveal(placement, flow.getViewport(), {
+      width: width - PANEL_COVER,
+      height,
+    });
+    if (next) void flow.setViewport(next, { duration: quick, ease });
+  }, [detailOpen, selectedId, layout, width, height, flow, quick]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -513,6 +536,7 @@ function CanvasSurface<T>({
         data-canvas-level={level}
         data-canvas-ready={ready || undefined}
         data-detail-open={detail ? "true" : undefined}
+        data-unspool={!cull && !reduced ? "true" : undefined}
         onKeyDown={onKeyDown}
       >
         <nav className="admin-canvas-crumbs" aria-label={`${label} location`}>
@@ -598,12 +622,12 @@ function CanvasSurface<T>({
             preventScrolling={false}
             autoPanOnNodeFocus={false}
             disableKeyboardA11y
-            onlyRenderVisibleElements
+            onlyRenderVisibleElements={cull}
             nodeClickDistance={8}
             paneClickDistance={8}
-            proOptions={{ hideAttribution: true }}
-            onMoveStart={() => onInteractingChange?.(true)}
-            onMoveEnd={() => onInteractingChange?.(false)}
+            proOptions={proOptions}
+            onMoveStart={onMoveStart}
+            onMoveEnd={onMoveEnd}
           >
             <Background variant={BackgroundVariant.Dots} gap={22} size={1.6} />
             <LevelTracker onZoom={onZoom} />
@@ -631,13 +655,8 @@ function CanvasSurface<T>({
             {notice}
           </p>
         )}
-        <p className="admin-canvas-keys">
-          <span id={keysId} className="admin-canvas-keys-hint">
-            Arrow keys move · Enter opens · + and − zoom · 0 fits ·{" "}
-          </span>
-          <a href="https://reactflow.dev" target="_blank" rel="noreferrer">
-            React Flow
-          </a>
+        <p id={keysId} className="admin-canvas-keys">
+          Arrow keys move · Enter opens · + and − zoom · 0 fits
         </p>
       </div>
     </CanvasContext.Provider>

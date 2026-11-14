@@ -1913,11 +1913,29 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   border-radius: var(--admin-radius-pill);
   background: color-mix(in srgb, var(--admin-surface) 88%, transparent);
 }
-.admin-canvas-keys a {
-  text-decoration: underline;
-}
-.admin-canvas:has(.admin-canvas-overlay) .admin-canvas-keys-hint {
+.admin-canvas:has(.admin-canvas-overlay) .admin-canvas-keys {
   display: none;
+}
+/* A newly opened branch settles in. Nodes present at first paint finish this
+   while the canvas is still hidden, so only unspooled nodes are seen moving. */
+@keyframes admin-canvas-unspool {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+@keyframes admin-canvas-connect {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .admin-canvas[data-unspool] .admin-canvas-node {
+    animation: admin-canvas-unspool 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .admin-canvas[data-unspool] .react-flow__edge {
+    animation: admin-canvas-connect 280ms ease both;
+  }
 }
 @media (pointer: coarse), (max-width: 639px) {
   .admin-canvas {
@@ -1955,10 +1973,6 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
     border-radius: 0;
   }
   .admin-canvas-keys {
-    top: 72px;
-    bottom: auto;
-  }
-  .admin-canvas-keys-hint {
     display: none;
   }
   .admin-canvas-notice {
