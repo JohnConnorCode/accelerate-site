@@ -71,6 +71,8 @@ export interface CanvasViewProps<T> {
   visibility?: "all" | "path";
   /** Highest zoom used when framing a scope. */
   maxFrameZoom?: number;
+  /** "auto" keeps four or fewer leaf records in a row; "column" always stacks them. */
+  leafLayout?: "auto" | "column";
   /** Node content only. The view owns the opener, so content must not contain controls. */
   renderNode(
     node: CanvasNode<T>,
@@ -84,7 +86,13 @@ export interface CanvasViewProps<T> {
   /** The single primary opener for leaf records. Nodes with children open as scopes. */
   onOpen(node: CanvasNode<T>): void;
   onInteractingChange?(active: boolean): void;
-  read: { loading: boolean; hasData: boolean; error?: string; refreshing?: boolean; onRetry(): void };
+  read: {
+    loading: boolean;
+    hasData: boolean;
+    error?: string;
+    refreshing?: boolean;
+    onRetry(): void;
+  };
   /** Degraded or partial source message, shown over the canvas. */
   notice?: string;
   empty: ReactNode;
@@ -185,6 +193,7 @@ function CanvasNodeView({ data }: NodeProps<Node<CanvasNodeData>>) {
       data-kind={node.kind}
       data-shape={kind.shape}
       data-level={context.level}
+      data-detail={type.detail ? "shown" : undefined}
       data-selected={selected || undefined}
       data-on-path={onPath || undefined}
       style={style}
@@ -259,6 +268,7 @@ function CanvasSurface<T>({
   kinds = CANVAS_KINDS,
   visibility = "all",
   maxFrameZoom = 1,
+  leafLayout = "auto",
   renderNode,
   selectedId,
   scopeId,
@@ -290,10 +300,14 @@ function CanvasSurface<T>({
   const tree = useMemo(() => canvasTree(visible), [visible]);
   const signature = canvasSignature(visible);
   // Layout depends only on visible structure, so polled label or status changes never move nodes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const layout = useMemo(
-    () => layoutCanvasTree(visible, kinds, { compact: visibility === "path" }),
-    [signature, kinds, visibility],
+    () =>
+      layoutCanvasTree(visible, kinds, {
+        compact: visibility === "path",
+        leafColumns: leafLayout === "column" ? "always" : "auto",
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signature, kinds, visibility, leafLayout],
   );
   const path = useMemo(() => canvasAncestors(fullTree, scope), [fullTree, scope]);
   const onPath = useMemo(() => new Set(path.map((node) => node.id)), [path]);
@@ -308,11 +322,17 @@ function CanvasSurface<T>({
     (target: string | null, duration: number) => {
       if (!width || !height) return Promise.resolve(false);
       return flow.setViewport(
-        canvasCameraFor(tree, layout, target, { width, height }, {
-          maxZoom: maxFrameZoom,
-          // Keep the location bar and any overlay clear of framed nodes.
-          insets: { top: 76, right: 32, bottom: overlay ? 108 : 40, left: 32 },
-        }),
+        canvasCameraFor(
+          tree,
+          layout,
+          target,
+          { width, height },
+          {
+            maxZoom: maxFrameZoom,
+            // Keep the location bar and any overlay clear of framed nodes.
+            insets: { top: 76, right: 32, bottom: overlay ? 108 : 40, left: 32 },
+          },
+        ),
         { duration, ease },
       );
     },
@@ -458,10 +478,7 @@ function CanvasSurface<T>({
       const step = 96;
       const dx = event.key === "ArrowLeft" ? step : event.key === "ArrowRight" ? -step : 0;
       const dy = event.key === "ArrowUp" ? step : event.key === "ArrowDown" ? -step : 0;
-      void flow.setViewport(
-        { ...view, x: view.x + dx, y: view.y + dy },
-        { duration: quick, ease },
-      );
+      void flow.setViewport({ ...view, x: view.x + dx, y: view.y + dy }, { duration: quick, ease });
       return;
     }
     if (event.key === "+" || event.key === "=") {

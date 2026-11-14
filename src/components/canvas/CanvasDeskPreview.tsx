@@ -63,7 +63,10 @@ export function CanvasDeskPreview() {
             })
           }
           onOpen={(node: CanvasNode<DeskDatum>) =>
-            router.push(href((params) => params.set("station", node.id)), "preserve")
+            router.push(
+              href((params) => params.set("station", node.id)),
+              "preserve",
+            )
           }
           read={{ loading: false, hasData: true, onRetry: () => undefined }}
           empty={null}
@@ -72,7 +75,10 @@ export function CanvasDeskPreview() {
               ? {
                   title: selected.label,
                   onClose: () =>
-                    router.push(href((params) => params.delete("station")), "preserve"),
+                    router.push(
+                      href((params) => params.delete("station")),
+                      "preserve",
+                    ),
                   content: (
                     <div className="admin-content-stack">
                       <p className="admin-copy">{selected.data.subtitle}</p>

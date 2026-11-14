@@ -233,7 +233,7 @@ export function canvasVisibleNodes<T>(
 export function layoutCanvasTree<T>(
   nodes: readonly CanvasNode<T>[],
   kinds: CanvasKinds = CANVAS_KINDS,
-  options: { compact?: boolean } = {},
+  options: { compact?: boolean; leafColumns?: "auto" | "always" } = {},
 ): CanvasLayout {
   const tree = canvasTree(nodes);
   const sizeOf = (node: CanvasNode<T>) => {
@@ -246,7 +246,8 @@ export function layoutCanvasTree<T>(
     (tree.satellites.get(id) ?? []).filter((node) => node.slot === slot);
   const isColumn = (id: string) => {
     const list = kids(id);
-    return list.length > 4 && list.every((child) => kids(child.id).length === 0);
+    const threshold = options.leafColumns === "always" ? 0 : 4;
+    return list.length > threshold && list.every((child) => kids(child.id).length === 0);
   };
   const extras = (node: CanvasNode<T>) => {
     const above = sats(node.id, "above");
@@ -291,7 +292,13 @@ export function layoutCanvasTree<T>(
   const link = (from: string, to: string, source: CanvasHandle, target: CanvasHandle) =>
     links.push({ id: `${from}->${to}`, from, to, source, target });
   /** Place a node centred in a slot `width` wide starting at `left`, or at `left` in a column. */
-  const place = (node: CanvasNode<T>, left: number, top: number, width: number, column: boolean) => {
+  const place = (
+    node: CanvasNode<T>,
+    left: number,
+    top: number,
+    width: number,
+    column: boolean,
+  ) => {
     const size = sizeOf(node);
     const extra = extras(node);
     const list = kids(node.id);
@@ -327,7 +334,8 @@ export function layoutCanvasTree<T>(
       }
       return;
     }
-    const rowWidth = list.reduce((sum, child) => sum + span(child), 0) + (list.length - 1) * GAP.row;
+    const rowWidth =
+      list.reduce((sum, child) => sum + span(child), 0) + (list.length - 1) * GAP.row;
     let rowLeft = x + size.width / 2 - rowWidth / 2;
     for (const child of list) {
       link(node.id, child.id, "bottom", "top");
@@ -383,34 +391,54 @@ export function canvasCameraFor<T>(
   const insets = options.insets ?? { top: 48, right: 48, bottom: 48, left: 48 };
   const maxZoom = options.maxZoom ?? 1;
   const scope = scopeId ? tree.byId.get(scopeId) : undefined;
-  const framed: CanvasPlacement[] = [];
-  const add = (node: CanvasNode<T>) => {
-    const placement = layout.placements.get(node.id);
-    if (placement) framed.push(placement);
-    for (const satellite of tree.satellites.get(node.id) ?? []) {
-      const s = layout.placements.get(satellite.id);
-      if (s) framed.push(s);
-    }
-  };
-  const collect = (node: CanvasNode<T>, depth: number) => {
-    add(node);
-    if (depth >= 2) return;
-    for (const child of (tree.children.get(node.id) ?? []).slice(0, 6)) collect(child, depth + 1);
-  };
-  if (scope) {
-    // Keep the scope's siblings in view so the row it came from stays readable.
-    for (const sibling of tree.children.get(scope.parentId) ?? []) add(sibling);
-    collect(scope, 0);
-  } else for (const root of tree.roots) collect(root, 0);
-  const box = boundsOf(framed);
-  if (!box.width || !viewport.width || !viewport.height) return { x: 0, y: 0, zoom: 1 };
   const width = Math.max(1, viewport.width - insets.left - insets.right);
   const height = Math.max(1, viewport.height - insets.top - insets.bottom);
-  const fitWidth = width / box.width;
-  const fitBoth = Math.min(fitWidth, height / box.height);
-  const legible = fitBoth >= CANVAS_LEVELS.mid.enter;
-  const zoom = clampCanvasZoom(Math.min(maxZoom, legible ? fitBoth : fitWidth));
-  const x = insets.left + width / 2 - (box.x + box.width / 2) * zoom;
+  const gather = (withSiblings: boolean) => {
+    const framed: CanvasPlacement[] = [];
+    const add = (node: CanvasNode<T>) => {
+      const placement = layout.placements.get(node.id);
+      if (placement) framed.push(placement);
+      for (const satellite of tree.satellites.get(node.id) ?? []) {
+        const s = layout.placements.get(satellite.id);
+        if (s) framed.push(s);
+      }
+    };
+    const collect = (node: CanvasNode<T>, depth: number) => {
+      add(node);
+      if (depth >= 2) return;
+      const list = tree.children.get(node.id) ?? [];
+      const leaves = list.every((child) => !(tree.children.get(child.id) ?? []).length);
+      for (const child of list.slice(0, leaves ? 3 : 6)) collect(child, depth + 1);
+    };
+    if (scope) {
+      // Keep the scope's siblings in view so the row it came from stays readable.
+      if (withSiblings) for (const sibling of tree.children.get(scope.parentId) ?? []) add(sibling);
+      collect(scope, 0);
+    } else for (const root of tree.roots) collect(root, 0);
+    return boundsOf(framed);
+  };
+  const fit = (box: CanvasPlacement) => {
+    const fitWidth = width / box.width;
+    const fitBoth = Math.min(fitWidth, height / box.height);
+    const legible = fitBoth >= CANVAS_LEVELS.mid.enter;
+    return clampCanvasZoom(Math.min(maxZoom, legible ? fitBoth : fitWidth));
+  };
+  let box = gather(Boolean(scope));
+  if (!box.width || !viewport.width || !viewport.height) return { x: 0, y: 0, zoom: 1 };
+  // On a narrow canvas the sibling row would shrink the scope below a readable size.
+  if (scope && fit(box) < CANVAS_LEVELS.near.enter) {
+    const own = gather(false);
+    if (fit(own) > fit(box)) box = own;
+  }
+  let zoom = fit(box);
+  let centre = box.x + box.width / 2;
+  // A phone keeps the opened node readable and lets the row pan sideways.
+  if (viewport.width < 640 && zoom < CANVAS_LEVELS.near.enter) {
+    zoom = clampCanvasZoom(Math.min(maxZoom, CANVAS_LEVELS.near.enter));
+    const focus = layout.placements.get(scope?.id ?? tree.roots[0]?.id ?? "");
+    if (focus) centre = focus.x + focus.width / 2;
+  }
+  const x = insets.left + width / 2 - centre * zoom;
   const y =
     box.height * zoom <= height
       ? insets.top + height / 2 - (box.y + box.height / 2) * zoom

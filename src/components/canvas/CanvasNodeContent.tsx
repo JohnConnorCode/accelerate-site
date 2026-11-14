@@ -135,7 +135,12 @@ export function TodayCanvasContent(node: CanvasNode<TodayCanvasDatum>, level: Ca
   const datum = node.data;
   if (datum.kind === "root")
     return (
-      <CanvasCircle icon={Sun} label={node.label} detail={count(datum.count, "item")} level={level} />
+      <CanvasCircle
+        icon={Sun}
+        label={node.label}
+        detail={count(datum.count, "item")}
+        level={level}
+      />
     );
   if (datum.kind === "group")
     return (

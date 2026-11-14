@@ -1523,6 +1523,29 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   font-weight: 800;
   text-transform: uppercase;
 }
+/* Detail text only renders at levels whose kind gives it a legible size; elsewhere it stays
+   available to assistive technology without drawing below the legibility floor. */
+.admin-canvas-node:not([data-detail])
+  :is(
+    .admin-canvas-detail,
+    .admin-canvas-card-detail,
+    .admin-canvas-card-meta,
+    .admin-canvas-station-subtitle,
+    .admin-canvas-station-rows
+  ) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.admin-canvas-node[data-level="mid"] .admin-canvas-card {
+  align-items: center;
+}
+.admin-canvas-node[data-level="mid"] .admin-canvas-card-title {
+  -webkit-line-clamp: 3;
+}
 .admin-canvas-detail {
   color: var(--admin-muted);
   font-size: var(--canvas-detail);
@@ -1841,10 +1864,26 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   flex: none;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--admin-surface) 55%, transparent) 0 8%, transparent 9%),
-    radial-gradient(circle at 62% 64%, color-mix(in srgb, var(--admin-surface) 35%, transparent) 0 5%, transparent 6%),
-    radial-gradient(circle at 40% 70%, color-mix(in srgb, var(--admin-surface) 30%, transparent) 0 4%, transparent 5%),
-    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--admin-ink) 70%, var(--admin-surface)), var(--admin-ink));
+    radial-gradient(
+      circle at 34% 30%,
+      color-mix(in srgb, var(--admin-surface) 55%, transparent) 0 8%,
+      transparent 9%
+    ),
+    radial-gradient(
+      circle at 62% 64%,
+      color-mix(in srgb, var(--admin-surface) 35%, transparent) 0 5%,
+      transparent 6%
+    ),
+    radial-gradient(
+      circle at 40% 70%,
+      color-mix(in srgb, var(--admin-surface) 30%, transparent) 0 4%,
+      transparent 5%
+    ),
+    radial-gradient(
+      circle at 50% 45%,
+      color-mix(in srgb, var(--admin-ink) 70%, var(--admin-surface)),
+      var(--admin-ink)
+    );
   box-shadow: 0 0 0 1px var(--canvas-ring);
 }
 .admin-canvas-notice,
@@ -1867,6 +1906,9 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 }
 .admin-canvas-keys {
   right: 16px;
+  padding: 3px 8px;
+  border-radius: var(--admin-radius-pill);
+  background: color-mix(in srgb, var(--admin-surface) 88%, transparent);
 }
 .admin-canvas-keys a {
   text-decoration: underline;
@@ -1910,9 +1952,8 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
     border-radius: 0;
   }
   .admin-canvas-keys {
-    right: auto;
-    left: 16px;
-    bottom: 26px;
+    top: 72px;
+    bottom: auto;
   }
   .admin-canvas-keys-hint {
     display: none;

@@ -1142,6 +1142,7 @@ export function TodayWorkspace() {
         <LazyCanvasView<TodayCanvasDatum>
           label="Today canvas"
           nodes={canvasNodes}
+          leafLayout="column"
           renderNode={TodayCanvasContent}
           selectedId={
             reviewOpen && reviewing

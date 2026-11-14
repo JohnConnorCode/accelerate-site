@@ -233,8 +233,20 @@ const desk: CanvasNode<null>[] = [
   { id: "a:place", parentId: "a", kind: "satellite", slot: "above", label: "Place", data: null },
   { id: "a:talk", parentId: "a", kind: "satellite", slot: "right", label: "Talk", data: null },
   { id: "b", parentId: null, kind: "anchor", label: "B", data: null },
-  ...["1", "2", "3", "4"].map((p) => ({ id: `a:${p}`, parentId: "a", kind: "hub", label: p, data: null })),
-  ...["x", "y", "z"].map((s) => ({ id: `a:2:${s}`, parentId: "a:2", kind: "segment", label: s, data: null })),
+  ...["1", "2", "3", "4"].map((p) => ({
+    id: `a:${p}`,
+    parentId: "a",
+    kind: "hub",
+    label: p,
+    data: null,
+  })),
+  ...["x", "y", "z"].map((s) => ({
+    id: `a:2:${s}`,
+    parentId: "a:2",
+    kind: "segment",
+    label: s,
+    data: null,
+  })),
   { id: "a:2:y:s", parentId: "a:2:y", kind: "station", label: "Station", data: null },
   { id: "b:1", parentId: "b", kind: "hub", label: "B1", data: null },
 ];
@@ -280,12 +292,63 @@ assert(
   "Short leaf lists stay in a row like the prototype",
 );
 assert.equal(canvasNeighbour(deskTree, "a", "ArrowRight", "near"), "a:1");
-assert.equal(canvasNeighbour(deskTree, "a:4", "ArrowDown", "near"), "a:place", "Satellites follow children");
-const close = canvasCameraFor(deskTree, deskLayout, "a:2", { width: 2600, height: 1600 }, { maxZoom: 1.5 });
+assert.equal(
+  canvasNeighbour(deskTree, "a:4", "ArrowDown", "near"),
+  "a:place",
+  "Satellites follow children",
+);
+const close = canvasCameraFor(
+  deskTree,
+  deskLayout,
+  "a:2",
+  { width: 2600, height: 1600 },
+  { maxZoom: 1.5 },
+);
 assert(close.zoom > 1, "A small scope can be framed closer when the App allows it");
 assert(
   canvasCameraFor(deskTree, deskLayout, "a:2", { width: 2600, height: 1600 }).zoom <= 1,
   "Framing defaults to at most 100%",
 );
+
+// Compact path layout keeps the opened row evenly spaced and hangs the branch under its parent.
+const compact = layoutCanvasTree(canvasVisibleNodes(desk, "a:2", "path"), CANVAS_KINDS, {
+  compact: true,
+});
+const hubs = ["a:1", "a:2", "a:3", "a:4"].map((id) => compact.placements.get(id)!);
+const gaps = hubs.slice(1).map((hub, index) => hub.x - hubs[index]!.x);
+assert(
+  gaps.every((gap) => gap === gaps[0]),
+  "Opening a hub never pushes its siblings apart",
+);
+const row = ["x", "y", "z"].map((s) => compact.placements.get(`a:2:${s}`)!);
+const rowCentre = (row[0]!.x + row.at(-1)!.x + row.at(-1)!.width) / 2;
+assert.equal(rowCentre, hubs[1]!.x + hubs[1]!.width / 2, "The branch is centred under its parent");
+assert(
+  compact.placements.get("b")!.x > Math.max(...row.map((box) => box.x + box.width)),
+  "The next anchor clears the open branch",
+);
+
+// Record groups can always stack as columns for a consistent queue shape.
+const queue = layoutCanvasTree(todayCanvasGraph(attention.slice(0, 8), empty), CANVAS_KINDS, {
+  leafColumns: "always",
+});
+assert(
+  queue.links.filter((l) => l.from.startsWith("group:")).every((l) => l.target === "left"),
+  "Always-column groups hang every record from the left",
+);
+
+// A phone keeps the opened node readable and centred instead of shrinking the row to marks.
+const compactTree = canvasTree(canvasVisibleNodes(desk, "a:2", "path"));
+const phoneView = canvasCameraFor(
+  compactTree,
+  compact,
+  "a:2",
+  { width: 358, height: 560 },
+  { maxZoom: 1.5 },
+);
+assert(phoneView.zoom >= CANVAS_LEVELS.near.enter, "Phone framing stays readable");
+const opened = compact.placements.get("a:2")!;
+const openedCentre = (opened.x + opened.width / 2) * phoneView.zoom + phoneView.x;
+assert(Math.abs(openedCentre - (32 + (358 - 64) / 2)) < 1, "The opened node is centred on a phone");
 
 console.log(JSON.stringify({ result: "passed", nodes: big.length, bounds: layout.bounds }));

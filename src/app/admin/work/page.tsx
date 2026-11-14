@@ -1185,6 +1185,7 @@ export default function WorkPage() {
             <LazyCanvasView<ApprovalCanvasDatum>
               label="Approvals canvas"
               nodes={approvalNodes}
+              leafLayout="column"
               renderNode={ApprovalCanvasContent}
               selectedId={review ? `approval:${review.id}` : null}
               scopeId={params.get("scope")}

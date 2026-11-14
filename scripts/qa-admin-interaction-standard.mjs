@@ -31,6 +31,26 @@ assert.match(
 );
 await page.screenshot({ path: `${output}/today-row-detail.png`, fullPage: true });
 
+await page.goto(`${base}/demo/command-center/northline-roofing/today?view=canvas`, {
+  waitUntil: "networkidle",
+});
+await page.locator("[data-canvas-view][data-canvas-ready]").waitFor();
+const canvasRecord = page
+  .locator('[data-canvas-node]:not([data-canvas-node="today"]):not([data-canvas-node^="group:"])')
+  .first();
+const canvasRecordId = await canvasRecord.getAttribute("data-canvas-node");
+await canvasRecord.click();
+await page.locator('[data-admin-overlay="dialog"]').waitFor();
+assert.match(await page.locator('[data-admin-overlay="dialog"]').innerText(), /Work context/);
+await page.keyboard.press("Escape");
+await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "hidden" });
+assert.equal(
+  await page.evaluate(() => document.activeElement?.getAttribute("data-canvas-node")),
+  canvasRecordId,
+  "The canvas opener regains focus after its detail closes",
+);
+await page.screenshot({ path: `${output}/today-canvas-detail.png` });
+
 await page.goto(`${base}/demo/command-center/northline-roofing/work`, { waitUntil: "networkidle" });
 await page.getByRole("heading", { name: "Work" }).waitFor();
 const recordRow = page.locator("[data-record-row]").first();
