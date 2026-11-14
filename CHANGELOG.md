@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Add the workspace graph adapter registry. Modules claim adapters with `graphAdapterNames`, `authorizeGraphSource` admits only active admin memberships, and `GET /api/admin/revenue-os/graph` and `get_workspace_graph` share one read with per-source receipts, caps and keyset cursors. Task, opportunity, contact and approval list reads move into their domain services with unchanged route responses.
+
 - Make manual opportunity creation atomic and safe to retry with a retained intent, tenant-scoped private receipt and explicit authenticated actor. Keep native SQL and desktop/mobile recovery checks in the release pipeline.
 
 - Gate application/fork builds and connected installation/recovery jobs on a bounded source typecheck, so typing failures stop before build fan-out or service provisioning.

@@ -68,6 +68,7 @@ import {
 import { requireReopenEligibility } from "@/lib/revenue-os/pipeline-transition-policy";
 import { demoRadarProfile, seedRadar } from "./radar-fixtures";
 import { seedDemoCollections } from "./collections-runtime";
+import { demoWorkspaceGraph, type DemoGraphRows } from "./graph-runtime";
 import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
@@ -623,6 +624,74 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
         ? row.created_at
         : new Date(Date.now() - (index + 1) * 86_400_000).toISOString(),
   }));
+}
+
+/** Fictional rows for the workspace graph, shaped like each live service read. */
+function demoGraphRows(
+  pack: DemoScenarioPack,
+  state: DemoState,
+  business: DemoBusinessState,
+  collectionsEnabled: boolean,
+): DemoGraphRows {
+  const companyId = (name: string) =>
+    `company-${name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")}`;
+  const companyNames = [
+    ...new Set([...pack.people.map((p) => p.company), ...pack.opportunities.map((o) => o.company)]),
+  ].filter(Boolean);
+  return {
+    contacts: [
+      ...pack.people.map((p) => ({
+        id: p.id,
+        full_name: p.name,
+        primary_email: p.email,
+        lifecycle_stage: "contact",
+        company_id: p.company ? companyId(p.company) : null,
+      })),
+      ...(state.manualContacts ?? []).map((p) => ({
+        id: p.id,
+        full_name: p.name,
+        primary_email: p.email,
+        lifecycle_stage: "contact",
+        company_id: null,
+      })),
+    ],
+    companies: companyNames.map((name) => ({
+      id: companyId(name),
+      name,
+      domain: null,
+      industry: pack.category,
+    })),
+    opportunities: pack.opportunities.map((o) => ({
+      id: o.id,
+      name: o.name,
+      stage: state.stageOverrides[o.id] || o.stage,
+      contact_id: o.personId,
+      company_id: o.company ? companyId(o.company) : null,
+    })),
+    tasks: demoTaskRows(pack, state),
+    approvals: pack.actions
+      .filter((a) => !state.completedActions.includes(a.id))
+      .map((a) => ({
+        id: a.id,
+        title: a.title,
+        action_type: a.type,
+        status: "pending",
+        entity_type: "contact",
+        entity_id: a.personId,
+      })),
+    conversations: conversations(
+      pack,
+      state,
+      new URL("https://demo.example/api/admin/revenue-os/conversations"),
+    ).conversations,
+    collection_cases: collectionsEnabled ? seedDemoCollections(pack, business) : [],
+    invoice_drafts: business.actions
+      .filter((a) => a.action_type === "create_stripe_invoice_draft" && a.status === "executed")
+      .map((a) => ({ id: a.id, title: a.title, status: a.status, payload: a.payload })),
+  };
 }
 
 export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
@@ -1777,6 +1846,14 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
       false,
       ["core", "pipeline", "outreach"],
       "revenue-os.action-queue-read",
+    ],
+    [
+      "get_workspace_graph",
+      "Read workspace records as a graph of nodes and edges. Each source reports its own state, truncation and cursor. Read only.",
+      "read",
+      false,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.graph-adapters",
     ],
     [
       "propose_task",
@@ -5266,6 +5343,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             })),
         ],
       });
+    if (method === "GET" && path === "/api/admin/revenue-os/graph") {
+      const graphConfig = { modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } };
+      const graph = demoWorkspaceGraph(
+        demoGraphRows(
+          pack,
+          state,
+          business,
+          isModuleEnabled("receivables-collections", graphConfig),
+        ),
+        url.searchParams,
+        graphConfig,
+      );
+      return jsonResponse(graph.body, graph.status);
+    }
     if (path === "/api/admin/revenue-os/pipeline")
       return jsonResponse({
         schemaReady: true,

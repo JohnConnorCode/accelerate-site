@@ -101,19 +101,20 @@ behavior need their own implementation and tests. Before running the builder:
 
 ### Field reference
 
-| Field            | Required | Notes                                                                                                                 |
-| ---------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `id`             | yes      | Kebab-case, 3 to 49 characters. Must not collide with a core module id; the build rejects it if it does.              |
-| `name`           | yes      | Shown in navigation groupings and the modules console.                                                                |
-| `description`    | yes      | Shown in the modules console. Say what the module does, not what it is called.                                        |
-| `category`       | yes      | One of `revenue`, `delivery`, `intelligence`, `sources`, `system`.                                                    |
-| `defaultEnabled` | yes      | Whether a workspace gets it without opting in.                                                                        |
-| `navLinks`       | yes      | Up to eight entries. `icon` is a name from the allowlist in `scripts/build-extension-modules.mjs`, never a component. |
-| `routes`         | no       | Admin route prefixes the module owns. Each must have a real `page.tsx`; CI checks this.                               |
-| `aiToolNames`    | no       | Tool names registered in `ai-tools.ts`. Each must exist and belong to exactly one module.                             |
-| `setupChecks`    | no       | Setup Center check ids the module depends on.                                                                         |
-| `docsUrl`        | yes      | Public operator guide; also keep `plugins/<id>/README.md`.                                                            |
-| `settings`       | no       | Up to 12 configurable values, rendered by the shared settings form. See below.                                        |
+| Field               | Required | Notes                                                                                                                 |
+| ------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `id`                | yes      | Kebab-case, 3 to 49 characters. Must not collide with a core module id; the build rejects it if it does.              |
+| `name`              | yes      | Shown in navigation groupings and the modules console.                                                                |
+| `description`       | yes      | Shown in the modules console. Say what the module does, not what it is called.                                        |
+| `category`          | yes      | One of `revenue`, `delivery`, `intelligence`, `sources`, `system`.                                                    |
+| `defaultEnabled`    | yes      | Whether a workspace gets it without opting in.                                                                        |
+| `navLinks`          | yes      | Up to eight entries. `icon` is a name from the allowlist in `scripts/build-extension-modules.mjs`, never a component. |
+| `routes`            | no       | Admin route prefixes the module owns. Each must have a real `page.tsx`; CI checks this.                               |
+| `aiToolNames`       | no       | Tool names registered in `ai-tools.ts`. Each must exist and belong to exactly one module.                             |
+| `graphAdapterNames` | no       | Workspace graph adapters registered in `graph-adapters.ts`. Each must exist and belong to exactly one module.         |
+| `setupChecks`       | no       | Setup Center check ids the module depends on.                                                                         |
+| `docsUrl`           | yes      | Public operator guide; also keep `plugins/<id>/README.md`.                                                            |
+| `settings`          | no       | Up to 12 configurable values, rendered by the shared settings form. See below.                                        |
 
 ### Settings, without shipping UI
 

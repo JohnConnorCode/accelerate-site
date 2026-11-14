@@ -267,6 +267,8 @@ import {
   type MemoryCategory,
 } from "./memory";
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
+import { readWorkspaceGraph } from "./graph-adapters";
+import { workspaceGraphInputSchema } from "./graph-adapter-contract";
 
 export { AI_TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
 import {
@@ -3132,6 +3134,50 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "get_workspace_graph",
+    description:
+      "Read workspace records as a graph of nodes and edges: contacts, companies, opportunities, tasks, pending approvals, conversations, collection cases and invoice drafts. Narrow with relatedTo (a node id such as contact:<id>) for one record's neighbourhood, ids for exact nodes, adapters for record types, and limit (default 50, max 200 per type). Each source reports ready, denied, module_disabled or unavailable with its own truncated flag and nextCursor; pass cursors.<adapter> to continue. Read only: it cannot change a record or its status.",
+    inputSchema: z.toJSONSchema(workspaceGraphInputSchema) as Record<string, unknown>,
+    parseInput: (raw) => workspaceGraphInputSchema.parse(raw),
+    outputSchema: {
+      type: "object",
+      required: ["contract", "nodes", "edges", "sources", "truncated"],
+      properties: {
+        contract: { type: "string" },
+        nodes: { type: "array" },
+        edges: { type: "array" },
+        sources: { type: "array" },
+        truncated: { type: "object" },
+      },
+    },
+    serviceTarget: "revenue-os.graph-adapters",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "workspace.graph.read",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/revenue-os/graph", method: "GET" }],
+      verification: ["scripts/test-graph-adapters.ts"],
+    },
+    execute: async ({ supabase, actorEmail }, input) => {
+      // The principal comes from server-owned request context, never from input.
+      const actor = getTenantRequestContext();
+      return readWorkspaceGraph(
+        supabase,
+        actor?.kind === "actor" && actor.database === supabase
+          ? {
+              kind: "workspace_member",
+              email: actor.user.email ?? actorEmail,
+              userId: actor.user.id,
+            }
+          : { kind: "integration", email: actorEmail },
+        input,
+      );
+    },
+  },
+  {
     name: "get_claimable_work",
     description:
       "List work items that are ready to be claimed and executed. Returns pending or waiting items past their next_check_at, ordered by priority and age.",
@@ -4243,6 +4289,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "search_pipeline",
     "search_contacts",
     "get_pending_actions",
+    "get_workspace_graph",
     "get_claimable_work",
     "get_workspace_capabilities",
     "get_claims_for_entity",
@@ -4292,6 +4339,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "search_pipeline",
     "search_contacts",
     "get_pending_actions",
+    "get_workspace_graph",
     "get_claimable_work",
     "get_workspace_capabilities",
     "get_claims_for_entity",
@@ -4326,6 +4374,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "search_contacts",
     "search_conversations",
     "get_pending_actions",
+    "get_workspace_graph",
     "get_claimable_work",
     "get_workspace_capabilities",
     "get_claims_for_entity",

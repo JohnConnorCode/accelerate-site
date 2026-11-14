@@ -36,6 +36,7 @@
     "preview_invoice_page",
     "propose_invoice_page"
   ],
+  "graphAdapterNames": ["invoice_drafts"],
   "workflow": {
     "version": 1,
     "inputSchema": {

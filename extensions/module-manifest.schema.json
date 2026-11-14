@@ -97,6 +97,16 @@
         "pattern": "^[a-z][a-z0-9_]{2,60}$"
       }
     },
+    "graphAdapterNames": {
+      "type": "array",
+      "description": "Workspace graph adapters registered in src/lib/revenue-os/graph-adapters.ts that this module owns. Each must exist and belong to exactly one module.",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]{2,60}$"
+      }
+    },
     "setupChecks": {
       "type": "array",
       "items": {
