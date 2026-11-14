@@ -3,8 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { reconcileCollectionReminder } from "@/lib/revenue-os/collection-reminders";
 import { approveAndExecuteAction } from "@/lib/revenue-os/action-executor";
-import { rejectAction, sweepExpiredActions, retryPluginAction } from "@/lib/revenue-os/actions";
-import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
+import {
+  listActions,
+  rejectAction,
+  sweepExpiredActions,
+  retryPluginAction,
+} from "@/lib/revenue-os/actions";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -15,19 +19,15 @@ export async function GET(request: NextRequest) {
   // key, permanently blocking the same action from ever being staged again.
   await sweepExpiredActions(supabase);
   const requestedId = request.nextUrl.searchParams.get("id");
-  let query = supabase.from("action_queue").select("*").order("created_at", { ascending: false });
-  if (requestedId) {
-    if (!/^[0-9a-f-]{36}$/i.test(requestedId))
-      return NextResponse.json({ error: "Invalid action id" }, { status: 400 });
-    query = query.eq("id", requestedId);
-  } else query = query.limit(100);
-  const { data, error } = await query;
-  if (error) {
-    if (isMissingRevenueSchema(error))
-      return NextResponse.json({ schemaReady: false, actions: [] });
+  if (requestedId && !/^[0-9a-f-]{36}$/i.test(requestedId))
+    return NextResponse.json({ error: "Invalid action id" }, { status: 400 });
+  try {
+    const listed = await listActions(supabase, requestedId ? { id: requestedId } : { limit: 100 });
+    if (!listed.schemaReady) return NextResponse.json({ schemaReady: false, actions: [] });
+    return NextResponse.json({ schemaReady: true, actions: listed.actions });
+  } catch {
     return NextResponse.json({ error: "Could not load actions" }, { status: 500 });
   }
-  return NextResponse.json({ schemaReady: true, actions: data ?? [] });
 }
 
 export async function PATCH(request: NextRequest) {

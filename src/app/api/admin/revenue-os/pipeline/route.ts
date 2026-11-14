@@ -3,7 +3,7 @@ import { readBoundedJson } from "@/lib/http/bounded-json";
 import { opportunityCreateRequestSchema } from "@/lib/revenue-os/opportunity-create-contract";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
+import { listOpportunities } from "@/lib/revenue-os/records";
 import {
   createOpportunity,
   transitionOpportunity,
@@ -21,28 +21,20 @@ export async function GET(request: NextRequest) {
   const stage = params.get("stage");
   const search = params.get("search")?.trim();
 
-  let query = supabase
-    .from("opportunities")
-    .select("*")
-    .order("next_action_at", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .limit(500);
-  if (stage) query = query.eq("stage", stage);
-  if (search)
-    query = query.or(
-      `name.ilike.%${search.replace(/[,%]/g, "")}%,email.ilike.%${search.replace(/[,%]/g, "")}%`,
-    );
-  const result = await query;
-  if (result.error) {
-    if (isMissingRevenueSchema(result.error))
-      return NextResponse.json({
-        schemaReady: false,
-        opportunities: [],
-        contacts: [],
-        companies: [],
-      });
+  let listed: Awaited<ReturnType<typeof listOpportunities>>;
+  try {
+    listed = await listOpportunities(supabase, { stage, search });
+  } catch {
     return NextResponse.json({ error: "Could not load the pipeline" }, { status: 500 });
   }
+  if (!listed.schemaReady)
+    return NextResponse.json({
+      schemaReady: false,
+      opportunities: [],
+      contacts: [],
+      companies: [],
+    });
+  const result = { data: listed.opportunities };
 
   const contactIds = [
     ...new Set((result.data ?? []).map((item) => item.contact_id).filter(Boolean)),

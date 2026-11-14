@@ -106,6 +106,12 @@ export interface RevenueOSModule {
   aiToolNames?: string[];
   /** Runtime packs that include this module's tools in their initial tool set. */
   aiToolPacks?: AiToolPackId[];
+  /**
+   * Graph adapter names (src/lib/revenue-os/graph-adapters.ts) this module
+   * owns. Claimed exactly like aiToolNames: disabling the module removes its
+   * adapters from the workspace graph, and an unclaimed adapter is refused.
+   */
+  graphAdapterNames?: string[];
   /** Admin route prefixes owned by this module. */
   routes?: string[];
   /** Exact read-only retained-record page; API authorization remains mandatory. */
@@ -175,11 +181,13 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "propose_today_view_change",
       "get_record_timeline",
       "get_pending_actions",
+      "get_workspace_graph",
       "propose_task",
       "propose_task_update",
       "propose_layout_change",
       "propose_founder_note",
     ],
+    graphAdapterNames: ["tasks", "approvals"],
   },
   {
     id: "core-pipeline",
@@ -192,6 +200,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     navLinkIds: ["pipeline"],
     routes: ["/admin/pipeline"],
     aiToolNames: ["search_pipeline", "propose_stage_change", "propose_next_action"],
+    graphAdapterNames: ["opportunities"],
   },
   {
     id: "core-conversations",
@@ -213,6 +222,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "get_radar_outreach_history",
       "reconcile_radar_outreach",
     ],
+    graphAdapterNames: ["conversations"],
   },
   {
     id: "core-contacts",
@@ -231,6 +241,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "propose_bulk_suppress_contacts",
       "propose_bulk_enroll_contacts",
     ],
+    graphAdapterNames: ["contacts", "companies"],
   },
   {
     id: "core-intelligence",
@@ -555,6 +566,14 @@ for (const mod of REVENUE_OS_MODULES) {
   }
 }
 
+/** Mapping of graph adapter name to its owning module, built like the AI tool map. */
+export const GRAPH_ADAPTER_TO_MODULE_MAP = new Map<string, RevenueOSModule>();
+for (const mod of REVENUE_OS_MODULES) {
+  for (const adapterName of mod.graphAdapterNames ?? []) {
+    GRAPH_ADAPTER_TO_MODULE_MAP.set(adapterName, mod);
+  }
+}
+
 /**
  * Checks whether a module is enabled for a given tenant configuration.
  *
@@ -725,5 +744,31 @@ export function isAiToolModuleEnabled(
       reason: `The '${moduleDef.name}' module (${moduleDef.id}) is disabled in this workspace configuration.`,
     };
   }
+  return { enabled: true, module: moduleDef };
+}
+
+/**
+ * Determines whether a graph adapter may contribute nodes, using the same
+ * claim-then-enablement rule as AI tools. An unclaimed adapter name is
+ * refused: scripts/verify-module-contract.mjs requires every registered
+ * adapter to be claimed by exactly one module, so an unresolved name means
+ * the registry and the claims have drifted.
+ */
+export function isGraphAdapterModuleEnabled(
+  adapterName: string,
+  tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null,
+): { enabled: boolean; module?: RevenueOSModule; reason?: string } {
+  const moduleDef = GRAPH_ADAPTER_TO_MODULE_MAP.get(adapterName);
+  if (!moduleDef)
+    return {
+      enabled: false,
+      reason: `Graph adapter "${adapterName}" is not claimed by any registered module, which is refused rather than treated as available.`,
+    };
+  if (!isModuleEnabled(moduleDef.id, tenantConfig))
+    return {
+      enabled: false,
+      module: moduleDef,
+      reason: `The '${moduleDef.name}' module (${moduleDef.id}) is disabled in this workspace configuration.`,
+    };
   return { enabled: true, module: moduleDef };
 }
