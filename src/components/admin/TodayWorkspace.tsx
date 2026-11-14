@@ -11,7 +11,9 @@ import {
   CircleAlert,
   Focus,
   Layers,
+  LayoutList,
   MessageCircleQuestion,
+  Network,
   Pin,
   RefreshCw,
   Sparkles,
@@ -24,6 +26,12 @@ import { AdminAsyncRegion } from "./AdminAsyncRegion";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ActionReviewDialog, type ActionRow } from "./ActionReviewDialog";
 import { TodayViewEditor } from "./TodayViewEditor";
+import { AdminViewSwitcher } from "./AdminViewSwitcher";
+import { EmptyState } from "./EmptyState";
+import { LazyCanvasView } from "@/components/canvas/LazyCanvasView";
+import { TodayCanvasContent } from "@/components/canvas/CanvasNodeContent";
+import { todayCanvasGraph, type TodayCanvasDatum } from "@/lib/admin/canvas-projections";
+import type { CanvasNode } from "@/lib/admin/canvas-model";
 import { useAdminAI } from "./AdminAIProvider";
 import LegacyToday from "./LegacyToday";
 import Link, { useAdminNavigation } from "./AdminLink";
@@ -264,6 +272,20 @@ export function TodayWorkspace() {
   const preferences = views.personal.document;
   const items = snapshot?.attention.data ?? [];
   const focus = search.get("focus");
+  const view = search.get("view") === "canvas" ? "canvas" : "overview";
+  const todayHref = (change: (params: URLSearchParams) => void) => {
+    const next = new URLSearchParams(search.toString());
+    change(next);
+    return `/admin/today${next.size ? `?${next}` : ""}`;
+  };
+  const canvasNodes = useMemo(
+    () =>
+      todayCanvasGraph(
+        snapshot?.attention.data ?? [],
+        (viewsQuery.data ?? defaultTodayViews()).personal.document,
+      ),
+    [snapshot, viewsQuery.data],
+  );
   const focusKinds =
     focus === "approvals" || focus === "approval"
       ? ["decision"]
@@ -290,7 +312,13 @@ export function TodayWorkspace() {
   const closeReview = () => {
     dismissedAction.current = reviewing?.id ?? search.get("action");
     setReviewOpen(false);
-    router.replace("/admin/today?focus=approval", "preserve");
+    router.replace(
+      todayHref((params) => {
+        params.delete("action");
+        params.set("focus", "approval");
+      }),
+      "preserve",
+    );
   };
   async function refresh() {
     const [next] = await Promise.all([query.refetch(), actionsQuery.refetch()]);
@@ -362,7 +390,13 @@ export function TodayWorkspace() {
     setInspectorOpen(false);
     setReviewing(action);
     setReviewOpen(true);
-    router.push("/admin/today?focus=approval&action=" + encodeURIComponent(action.id), "preserve");
+    router.push(
+      todayHref((params) => {
+        params.set("focus", "approval");
+        params.set("action", action.id);
+      }),
+      "preserve",
+    );
   }
   function inspect(item: OperatorAttentionItem) {
     setSelected(item);
@@ -936,76 +970,107 @@ export function TodayWorkspace() {
         }
         actions={
           <>
-            <select
-              className={`admin-field admin-field--inline ${styles.viewSelect}`}
-              aria-label="Today view"
-              value={current.key}
-              onChange={(e) => {
-                setChosenView(e.target.value);
-                setAllAttention(false);
-              }}
-            >
-              {choices.length ? (
-                choices.map((entry) => (
-                  <option key={entry.key} value={entry.key}>
-                    {entry.view.name}
-                    {entry.scope === "personal" ? " · Personal" : ""}
+            <AdminViewSwitcher
+              label="Today layout"
+              value={view}
+              onChange={(next) =>
+                router.push(
+                  todayHref((params) => {
+                    if (next === "canvas") params.set("view", "canvas");
+                    else {
+                      params.delete("view");
+                      params.delete("scope");
+                    }
+                  }),
+                  "preserve",
+                )
+              }
+              options={[
+                { id: "overview", label: "Overview", icon: LayoutList },
+                { id: "canvas", label: "Canvas", icon: Network },
+              ]}
+            />
+            {view === "overview" && (
+              <>
+                <select
+                  className={`admin-field admin-field--inline ${styles.viewSelect}`}
+                  aria-label="Today view"
+                  value={current.key}
+                  onChange={(e) => {
+                    setChosenView(e.target.value);
+                    setAllAttention(false);
+                  }}
+                >
+                  {choices.length ? (
+                    choices.map((entry) => (
+                      <option key={entry.key} value={entry.key}>
+                        {entry.view.name}
+                        {entry.scope === "personal" ? " · Personal" : ""}
+                      </option>
+                    ))
+                  ) : (
+                    <option value={current.key}>Business overview</option>
+                  )}
+                </select>
+                <select
+                  className={`admin-field admin-field--inline ${styles.viewActions}`}
+                  aria-label="View actions"
+                  value=""
+                  disabled={!viewsQuery.data}
+                  onChange={(event) => {
+                    if (event.target.value === "customize") customize();
+                    if (event.target.value === "new")
+                      customize(
+                        { ...defaultTodayView(), id: crypto.randomUUID(), name: "My day" },
+                        "personal",
+                      );
+                    if (event.target.value === "duplicate")
+                      customize(
+                        {
+                          ...current.view,
+                          modules: visibleModules,
+                          id: crypto.randomUUID(),
+                          name: (current.view.name + " copy").slice(0, 60),
+                        },
+                        "personal",
+                      );
+                    if (event.target.value === "delete") setConfirmDelete(true);
+                    if (event.target.value === "all") {
+                      setAllAttention(true);
+                      if (focus)
+                        router.replace(
+                          todayHref((params) => params.delete("focus")),
+                          "preserve",
+                        );
+                    }
+                    if (event.target.value === "classic" && views.canManageWorkspace)
+                      void mutate(
+                        () =>
+                          saveDocument("workspace", {
+                            ...views.workspace.document,
+                            enabled: false,
+                          }),
+                        "Classic Today enabled.",
+                      );
+                  }}
+                >
+                  <option value="" disabled>
+                    More
                   </option>
-                ))
-              ) : (
-                <option value={current.key}>Business overview</option>
-              )}
-            </select>
-            <select
-              className={`admin-field admin-field--inline ${styles.viewActions}`}
-              aria-label="View actions"
-              value=""
-              disabled={!viewsQuery.data}
-              onChange={(event) => {
-                if (event.target.value === "customize") customize();
-                if (event.target.value === "new")
-                  customize(
-                    { ...defaultTodayView(), id: crypto.randomUUID(), name: "My day" },
-                    "personal",
-                  );
-                if (event.target.value === "duplicate")
-                  customize(
-                    {
-                      ...current.view,
-                      modules: visibleModules,
-                      id: crypto.randomUUID(),
-                      name: (current.view.name + " copy").slice(0, 60),
-                    },
-                    "personal",
-                  );
-                if (event.target.value === "delete") setConfirmDelete(true);
-                if (event.target.value === "all") {
-                  setAllAttention(true);
-                  if (focus) router.replace("/admin/today", "preserve");
-                }
-                if (event.target.value === "classic" && views.canManageWorkspace)
-                  void mutate(
-                    () =>
-                      saveDocument("workspace", { ...views.workspace.document, enabled: false }),
-                    "Classic Today enabled.",
-                  );
-              }}
-            >
-              <option value="" disabled>
-                More
-              </option>
-              <option value="customize">Customize view</option>
-              <option value="new">New view</option>
-              <option value="duplicate">Duplicate view</option>
-              <option
-                value="delete"
-                disabled={current.scope === "workspace" && !views.canManageWorkspace}
-              >
-                Delete view
-              </option>
-              <option value="all">Show all attention</option>
-              {views.canManageWorkspace && <option value="classic">Use classic Today</option>}
-            </select>
+                  <option value="customize">Customize view</option>
+                  <option value="new">New view</option>
+                  <option value="duplicate">Duplicate view</option>
+                  <option
+                    value="delete"
+                    disabled={current.scope === "workspace" && !views.canManageWorkspace}
+                  >
+                    Delete view
+                  </option>
+                  <option value="all">Show all attention</option>
+                  {views.canManageWorkspace && <option value="classic">Use classic Today</option>}
+                </select>
+              </>
+            )}
           </>
         }
       />
@@ -1051,7 +1116,7 @@ export function TodayWorkspace() {
           </button>
         </div>
       )}
-      {(allAttention || focus) && (
+      {view === "overview" && (allAttention || focus) && (
         <div className={styles.notice}>
           <span>
             {allAttention
@@ -1063,62 +1128,108 @@ export function TodayWorkspace() {
             className={styles.textLink}
             onClick={() => {
               setAllAttention(false);
-              router.replace("/admin/today", "preserve");
+              router.replace(
+                todayHref((params) => params.delete("focus")),
+                "preserve",
+              );
             }}
           >
             Clear
           </button>
         </div>
       )}
-      <AdminAsyncRegion
-        loading={query.isPending}
-        hasData={Boolean(snapshot)}
-        label="Loading Today"
-        loadingFallback={<LoadingSkeleton variant="today" />}
-      >
-        {snapshot && (
-          <div
-            className={styles.moduleFlow}
-            data-today-content-stack
-            onPointerEnter={() => setInteracting(true)}
-            onPointerLeave={() => setInteracting(false)}
-            onFocusCapture={() => setInteracting(true)}
-            onBlurCapture={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget as Node)) setInteracting(false);
-            }}
+      {view === "canvas" ? (
+        <LazyCanvasView<TodayCanvasDatum>
+          label="Today canvas"
+          nodes={canvasNodes}
+          renderNode={TodayCanvasContent}
+          selectedId={
+            reviewOpen && reviewing
+              ? `approval:${reviewing.id}`
+              : inspectorOpen && selected
+                ? attentionKey(selected)
+                : null
+          }
+          scopeId={search.get("scope")}
+          hrefFor={({ scopeId }) =>
+            todayHref((params) => (scopeId ? params.set("scope", scopeId) : params.delete("scope")))
+          }
+          onOpen={(node: CanvasNode<TodayCanvasDatum>) => {
+            if (node.data.kind === "item") inspect(node.data.item);
+          }}
+          onInteractingChange={setInteracting}
+          read={{
+            loading: query.isPending,
+            hasData: Boolean(snapshot),
+            error: snapshot ? undefined : query.error?.message,
+            refreshing: query.isFetching,
+            onRetry: () => void refresh(),
+          }}
+          notice={
+            snapshot?.attention.state === "unavailable" || snapshot?.attention.state === "partial"
+              ? snapshot.attention.message || "Some context is unavailable. Refresh to try again."
+              : undefined
+          }
+          empty={
+            <EmptyState
+              title="Nothing needs your attention"
+              message="Decisions, work and signals appear on the canvas as they arrive."
+            />
+          }
+        />
+      ) : (
+        <>
+          <AdminAsyncRegion
+            loading={query.isPending}
+            hasData={Boolean(snapshot)}
+            label="Loading Today"
+            loadingFallback={<LoadingSkeleton variant="today" />}
           >
-            {allAttention && standardAttention && (
-              <div data-width="full" id="today-attention">
-                {renderRows({ ...standardAttention, limit: items.length || 1 }, "attention")}
+            {snapshot && (
+              <div
+                className={styles.moduleFlow}
+                data-today-content-stack
+                onPointerEnter={() => setInteracting(true)}
+                onPointerLeave={() => setInteracting(false)}
+                onFocusCapture={() => setInteracting(true)}
+                onBlurCapture={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) setInteracting(false);
+                }}
+              >
+                {allAttention && standardAttention && (
+                  <div data-width="full" id="today-attention">
+                    {renderRows({ ...standardAttention, limit: items.length || 1 }, "attention")}
+                  </div>
+                )}
+                {moduleGroups.map((group) =>
+                  !useColumns || group[0].width === "full" ? (
+                    <div key={group[0].id}>{moduleContent(group[0])}</div>
+                  ) : (
+                    <div key={group[0].id} className={styles.columns}>
+                      {Array.from(new Set(group.map((instance) => instance.width))).map((width) => {
+                        const modules = group.filter((module) => module.width === width);
+                        return modules.length ? (
+                          <div
+                            key={width}
+                            data-width={width}
+                            className={styles.moduleFlow}
+                            data-today-content-stack
+                          >
+                            {modules.map((module) => (
+                              <div key={module.id}>{moduleContent(module)}</div>
+                            ))}
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  ),
+                )}
               </div>
             )}
-            {moduleGroups.map((group) =>
-              !useColumns || group[0].width === "full" ? (
-                <div key={group[0].id}>{moduleContent(group[0])}</div>
-              ) : (
-                <div key={group[0].id} className={styles.columns}>
-                  {Array.from(new Set(group.map((instance) => instance.width))).map((width) => {
-                    const modules = group.filter((module) => module.width === width);
-                    return modules.length ? (
-                      <div
-                        key={width}
-                        data-width={width}
-                        className={styles.moduleFlow}
-                        data-today-content-stack
-                      >
-                        {modules.map((module) => (
-                          <div key={module.id}>{moduleContent(module)}</div>
-                        ))}
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              ),
-            )}
-          </div>
-        )}
-      </AdminAsyncRegion>
-      <BusinessWorkflowStarts compact />
+          </AdminAsyncRegion>
+          <BusinessWorkflowStarts compact />
+        </>
+      )}
       {viewsQuery.data && preferences.muted.length > 0 && (
         <footer className={styles.cardFooter}>
           <div className={styles.toolbarGroup}>

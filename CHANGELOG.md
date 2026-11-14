@@ -14,6 +14,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Add a shared canvas view (`src/components/canvas/CanvasView.tsx`, `src/lib/admin/canvas-model.ts`) built on `@xyflow/react` 12.12.0, loaded only when a canvas is opened. Today and the Work approvals tab gain URL-backed Canvas views that reuse their existing detail panels. `test:admin-canvas` covers layout, zoom levels and keyboard neighbours; `qa:canvas-view` covers geometry, keyboard, touch, reduced motion, history, accessibility and a 400-node frame budget.
+
 - Make manual opportunity creation atomic and safe to retry with a retained intent, tenant-scoped private receipt and explicit authenticated actor. Keep native SQL and desktop/mobile recovery checks in the release pipeline.
 
 - Gate application/fork builds and connected installation/recovery jobs on a bounded source typecheck, so typing failures stop before build fan-out or service provisioning.
