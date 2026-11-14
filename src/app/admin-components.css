@@ -1414,6 +1414,9 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   text-align: left;
 }
 .admin-canvas-opener {
+  /* React Flow disables pointer events on nodes that are neither selectable nor
+     draggable; the opener takes them back. Drags still bubble to the pane to pan. */
+  pointer-events: auto;
   cursor: pointer;
   transition:
     box-shadow var(--admin-motion-fast, 140ms) ease,
