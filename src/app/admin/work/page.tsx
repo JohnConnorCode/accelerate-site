@@ -1193,8 +1193,9 @@ export default function WorkPage() {
                 workHref((query) => (scopeId ? query.set("scope", scopeId) : query.delete("scope")))
               }
               onOpen={(node: CanvasNode<ApprovalCanvasDatum>) => {
-                if (node.data.kind !== "item") return;
-                const row = actions.find((action) => action.id === node.data.action.id);
+                const datum = node.data;
+                if (datum.kind !== "item") return;
+                const row = actions.find((action) => action.id === datum.action.id);
                 if (!row) return;
                 setReview(row);
                 setError("");
