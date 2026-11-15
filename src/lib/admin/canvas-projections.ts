@@ -4,6 +4,7 @@
  */
 import type { CanvasNode } from "./canvas-model";
 import { attentionFingerprint, attentionKey, type TodayDocument } from "./today-workspace";
+import type { ActionRow } from "./approval-presentation";
 import {
   ATTENTION_SECTIONS,
   type AttentionKind,
@@ -74,17 +75,8 @@ export function todayCanvasGraph(
 }
 
 /** The fields of an action_queue row the approvals canvas reads. */
-export interface CanvasActionRow {
-  id: string;
-  action_type: string;
-  title: string;
-  description: string | null;
-  reasoning: string | null;
-  urgency: string;
-  status: string;
-  created_at: string;
-  expires_at: string | null;
-}
+/** Approval cards on the canvas present the same row as every other approval surface. */
+export type CanvasActionRow = ActionRow;
 
 export type ApprovalUrgency = "critical" | "high" | "normal" | "low";
 export type ApprovalCanvasDatum =

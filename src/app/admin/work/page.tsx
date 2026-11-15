@@ -36,7 +36,7 @@ import { workViewConfigSchema, type WorkViewConfig } from "@/lib/admin/work-view
 import { AdminViewSwitcher } from "@/components/admin/AdminViewSwitcher";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { LazyCanvasView } from "@/components/canvas/LazyCanvasView";
-import { ApprovalCanvasContent } from "@/components/canvas/CanvasNodeContent";
+import { ApprovalCanvasContent, ApprovalCard } from "@/components/admin/ApprovalCard";
 import { approvalsCanvasGraph, type ApprovalCanvasDatum } from "@/lib/admin/canvas-projections";
 import type { CanvasNode } from "@/lib/admin/canvas-model";
 
@@ -135,7 +135,6 @@ export default function WorkPage() {
   const [due, setDue] = useState("");
   const [priority, setPriority] = useState("medium");
   const [snoozeDate, setSnoozeDate] = useState("");
-  const [review, setReview] = useState<ActionRow | null>(null);
   const taskParams = new URLSearchParams({ status, owner, page: String(page), pageSize: "100" });
   if (source) taskParams.set("source", source);
   if (deferredSearch) taskParams.set("q", deferredSearch);
@@ -337,12 +336,27 @@ export default function WorkPage() {
     if (!taskOperation.current) closeTask();
   };
   const actionId = params.get("action");
-  useEffect(() => {
-    if (actionId) {
-      const row = actions.find((a) => a.id === actionId);
-      if (row) setReview(row);
-    }
-  }, [actionId, actions]);
+  // The review reads the one proposal fresh, so a card decided elsewhere opens
+  // in its decided state instead of offering a stale decision.
+  const reviewQuery = useAdminQuery<{ actions: ActionRow[] }>(
+    ["work", "action-review", actionId],
+    `/api/admin/revenue-os/actions?id=${encodeURIComponent(actionId ?? "")}`,
+    { enabled: Boolean(actionId), placeholderData: undefined, gcTime: 0, retry: false },
+  );
+  const review = actionId
+    ? (reviewQuery.data?.actions.find((row) => row.id === actionId) ?? null)
+    : null;
+  const reviewMissing = Boolean(actionId && reviewQuery.isSuccess && !review);
+  const openReview = (id: string) => {
+    setError("");
+    router.push(
+      workHref((query) => {
+        query.set("tab", "approvals");
+        query.set("action", id);
+      }),
+      "preserve",
+    );
+  };
   const refresh = async () => {
     await Promise.all([tasksQuery.refetch(), actionsQuery.refetch(), todayQuery.refetch()]);
   };
@@ -351,7 +365,6 @@ export default function WorkPage() {
     window.dispatchEvent(new Event("admin:priority-refresh"));
   };
   const closeReview = () => {
-    setReview(null);
     if (actionId)
       router.replace(
         workHref((next) => {
@@ -509,13 +522,13 @@ export default function WorkPage() {
           }
         } else {
           const row = actions[Math.min(selectedIndex, actions.length - 1)];
-          if (row) setReview(row);
+          if (row) openReview(row.id);
         }
       } else if (tab === "approvals" && (event.key === "a" || event.key === "r")) {
         if (selectedIndex < 0) return;
         event.preventDefault();
         const row = actions[Math.min(selectedIndex, actions.length - 1)];
-        if (row) setReview(row);
+        if (row) openReview(row.id);
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -580,12 +593,17 @@ export default function WorkPage() {
       <p className="hidden text-xs text-[var(--admin-muted)] sm:block">
         Keyboard: j/k move · Enter open · e edit · s snooze · a/r review approval
       </p>
-      {(error || tasksQuery.error || actionsQuery.error) && (
+      {(error || tasksQuery.error || actionsQuery.error || reviewQuery.error || reviewMissing) && (
         <p
           role="alert"
           className="rounded-lg border border-[var(--admin-danger)]/30 p-3 text-sm text-[var(--admin-danger)]"
         >
-          {error || tasksQuery.error?.message || actionsQuery.error?.message}
+          {error ||
+            tasksQuery.error?.message ||
+            actionsQuery.error?.message ||
+            (actionId && (reviewQuery.error || reviewMissing)
+              ? "That proposal could not be opened. Refresh the approvals list."
+              : "")}
         </p>
       )}
       {tab === "tasks" ? (
@@ -1193,14 +1211,7 @@ export default function WorkPage() {
               onOpen={(node: CanvasNode<ApprovalCanvasDatum>) => {
                 const datum = node.data;
                 if (datum.kind !== "item") return;
-                const row = actions.find((action) => action.id === datum.action.id);
-                if (!row) return;
-                setReview(row);
-                setError("");
-                router.push(
-                  workHref((query) => query.set("action", row.id)),
-                  "preserve",
-                );
+                openReview(datum.action.id);
               }}
               read={{
                 loading: actionsQuery.isPending,
@@ -1218,7 +1229,8 @@ export default function WorkPage() {
             />
           ) : (
             <AdminSurface padding="none" elevation="flat">
-              <ul>
+              {/* On a phone the list becomes the approvals feed: one card per proposal. */}
+              <ul className="max-sm:grid max-sm:gap-2 max-sm:p-2">
                 {actions.map((row, index) => (
                   <li
                     key={row.id}
@@ -1229,24 +1241,10 @@ export default function WorkPage() {
                     <AdminRecordRow
                       selected={selectedIndex === index}
                       label={`Review ${row.title}`}
-                      onOpen={() => {
-                        setReview(row);
-                        setError("");
-                        router.push(
-                          workHref((query) => {
-                            query.set("tab", "approvals");
-                            query.set("action", row.id);
-                          }),
-                          "preserve",
-                        );
-                      }}
+                      onOpen={() => openReview(row.id)}
+                      className="max-sm:rounded-[var(--admin-radius-surface)] max-sm:border max-sm:bg-[var(--admin-surface)]"
                     >
-                      <span className="block text-sm font-semibold text-[var(--admin-ink)]">
-                        {row.title}
-                      </span>
-                      <span className="mt-1 block text-xs text-[var(--admin-muted)]">
-                        {row.reasoning || row.description || "Review the exact proposed change."}
-                      </span>
+                      <ApprovalCard action={row} />
                     </AdminRecordRow>
                   </li>
                 ))}

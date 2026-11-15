@@ -9,17 +9,14 @@ import {
   CalendarDays,
   CircleAlert,
   Clock,
-  Inbox,
   ListChecks,
   Pin,
   Scale,
-  ShieldCheck,
   Sun,
 } from "lucide-react";
 import type { CanvasLevel, CanvasNode } from "@/lib/admin/canvas-model";
-import type { ApprovalCanvasDatum, TodayCanvasDatum } from "@/lib/admin/canvas-projections";
+import type { TodayCanvasDatum } from "@/lib/admin/canvas-projections";
 import { todaySourceName } from "@/lib/admin/today-data";
-import { relativeTime } from "@/lib/admin/work-presentation";
 
 /** Circle content for anchor, hub and satellite nodes: icon, label and a short detail. */
 export function CanvasCircle({
@@ -123,7 +120,9 @@ export function CanvasStation({
   );
 }
 
-const count = (value: number, noun: string) => `${value} ${noun}${value === 1 ? "" : "s"}`;
+/** "1 item", "3 items": the count line under a canvas circle. */
+export const canvasCount = (value: number, noun: string) =>
+  `${value} ${noun}${value === 1 ? "" : "s"}`;
 const todayIcons = { decision: Scale, work: ListChecks, watch: Activity, upcoming: CalendarDays };
 
 function dueLabel(value: string | null) {
@@ -138,7 +137,7 @@ export function TodayCanvasContent(node: CanvasNode<TodayCanvasDatum>, level: Ca
       <CanvasCircle
         icon={Sun}
         label={node.label}
-        detail={count(datum.count, "item")}
+        detail={canvasCount(datum.count, "item")}
         level={level}
       />
     );
@@ -147,7 +146,7 @@ export function TodayCanvasContent(node: CanvasNode<TodayCanvasDatum>, level: Ca
       <CanvasCircle
         icon={todayIcons[datum.attentionKind]}
         label={node.label}
-        detail={count(datum.count, "item")}
+        detail={canvasCount(datum.count, "item")}
         level={level}
       />
     );
@@ -170,36 +169,5 @@ export function TodayCanvasContent(node: CanvasNode<TodayCanvasDatum>, level: Ca
   );
 }
 
-const urgencyIcons = { critical: CircleAlert, high: ArrowUp, normal: Clock, low: ArrowDown };
-
-export function ApprovalCanvasContent(node: CanvasNode<ApprovalCanvasDatum>, level: CanvasLevel) {
-  const datum = node.data;
-  if (datum.kind === "root")
-    return (
-      <CanvasCircle
-        icon={Inbox}
-        label={node.label}
-        detail={count(datum.count, "decision")}
-        level={level}
-      />
-    );
-  if (datum.kind === "group")
-    return (
-      <CanvasCircle
-        icon={urgencyIcons[datum.urgency]}
-        label={node.label}
-        detail={count(datum.count, "decision")}
-        level={level}
-      />
-    );
-  const { action } = datum;
-  return (
-    <CanvasCard
-      icon={ShieldCheck}
-      title={action.title}
-      detail={action.reasoning || action.description || "Review the exact proposed change."}
-      level={level}
-      meta={<span>Proposed {relativeTime(action.created_at)}</span>}
-    />
-  );
-}
+/** Icons for approval urgency groups. */
+export const urgencyIcons = { critical: CircleAlert, high: ArrowUp, normal: Clock, low: ArrowDown };

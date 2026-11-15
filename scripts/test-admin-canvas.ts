@@ -202,6 +202,7 @@ const action = (
   status: "pending",
   created_at: "2026-11-14T10:00:00Z",
   expires_at: null,
+  payload: null,
   ...patch,
 });
 const approvals = approvalsCanvasGraph(

@@ -223,6 +223,8 @@ export type DemoState = {
   commandBoards?: DemoBoardState;
   learning?: DemoLearningState;
   completedActions: string[];
+  /** How each completed scenario proposal was decided, so a fresh read shows it. */
+  actionDecisions?: Record<string, "approved" | "rejected">;
   completedTasks: string[];
   resolvedIdentityReviews: string[];
   subscriptionOverrides?: DemoSubscriptionsState;
@@ -566,6 +568,35 @@ function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
   });
 }
 
+/** Every scenario proposal with its current status, decided ones included. */
+function scenarioActionRows(pack: DemoScenarioPack, state: DemoState) {
+  return pack.actions.map((item, index) => ({
+    id: item.id,
+    action_type: item.type,
+    title: item.title,
+    description: item.description,
+    urgency: index < 2 ? "high" : "normal",
+    reasoning: item.description,
+    status: state.completedActions.includes(item.id)
+      ? (state.actionDecisions?.[item.id] ?? "approved")
+      : "pending",
+    created_at: ago(index + 1),
+    expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
+    payload:
+      item.type === "send_gmail_reply"
+        ? {
+            to: person(pack, item.personId).email,
+            subject: pack.conversations[index]!.subject,
+            body: item.body,
+          }
+        : {
+            opportunityId: pack.opportunities[index]!.id,
+            stage: "proposal",
+            reason: item.description,
+          },
+  }));
+}
+
 /** Pending proposals shown in Approvals; the workspace graph reads the same list. */
 function pendingActionRows(pack: DemoScenarioPack, state: DemoState, business: DemoBusinessState) {
   return [
@@ -573,31 +604,7 @@ function pendingActionRows(pack: DemoScenarioPack, state: DemoState, business: D
     ...business.actions.filter(
       (item) => item.status === "pending" || item.action_type === "billing_change",
     ),
-    ...pack.actions
-      .filter((item) => !state.completedActions.includes(item.id))
-      .map((item, index) => ({
-        id: item.id,
-        action_type: item.type,
-        title: item.title,
-        description: item.description,
-        urgency: index < 2 ? "high" : "normal",
-        reasoning: item.description,
-        status: "pending",
-        created_at: ago(index + 1),
-        expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
-        payload:
-          item.type === "send_gmail_reply"
-            ? {
-                to: person(pack, item.personId).email,
-                subject: pack.conversations[index]!.subject,
-                body: item.body,
-              }
-            : {
-                opportunityId: pack.opportunities[index]!.id,
-                stage: "proposal",
-                reason: item.description,
-              },
-      })),
+    ...scenarioActionRows(pack, state).filter((item) => item.status === "pending"),
   ];
 }
 
@@ -2850,7 +2857,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const id = url.searchParams.get("id");
       const action =
         state.agentProposals?.find((item) => item.id === id) ??
-        business.actions.find((item) => item.id === id);
+        business.actions.find((item) => item.id === id) ??
+        scenarioActionRows(pack, state).find((item) => item.id === id);
       if (action) return jsonResponse({ schemaReady: true, actions: [action] });
     }
     if (path === "/api/admin/revenue-os/actions" && method === "PATCH") {
@@ -5029,6 +5037,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       if (state.completedActions.includes(action.id))
         return jsonResponse({ error: "Action already handled" }, 409);
       state.completedActions.push(action.id);
+      state.actionDecisions = {
+        ...state.actionDecisions,
+        [action.id]: body.decision === "approve" ? "approved" : "rejected",
+      };
       business.receipts.unshift({
         id: crypto.randomUUID(),
         operation: `${body.decision === "approve" ? "Approved" : "Rejected"} ${action.title}`,

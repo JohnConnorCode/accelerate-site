@@ -24,6 +24,8 @@ import {
 } from "@/lib/revenue-os/command-board-modes";
 import { adminSearchHref } from "@/lib/admin/search-href";
 import { usePendingParam } from "@/hooks/usePendingParam";
+import type { ActionRow } from "@/lib/admin/approval-presentation";
+import { ApprovalCard } from "./ApprovalCard";
 
 const MODES = COMMAND_BOARD_MODE_KEYS.map((id) => ({ id, ...COMMAND_BOARD_MODES[id] }));
 
@@ -162,6 +164,13 @@ export function CommandBoardWorkspace() {
     return null;
   })();
   const summary = stationId ? snapshot?.summaries[stationId] : undefined;
+  // Approval records render as approval cards; the shared queue read fills them.
+  const actionsQuery = useAdminQuery<{ actions: ActionRow[] }>(
+    ["today", "actions"],
+    "/api/admin/revenue-os/actions",
+    { enabled: Boolean(summary?.records.some((record) => record.sourceType === "approvals")) },
+  );
+  const approvals = new Map((actionsQuery.data?.actions ?? []).map((row) => [row.id, row]));
   const href = (change: (params: URLSearchParams) => void) =>
     adminSearchHref("/admin/board", search, change);
   const refresh = async () => {
@@ -281,26 +290,38 @@ export function CommandBoardWorkspace() {
                         <section aria-label="Matching records">
                           <h3 className="admin-field-label mb-2">Matching records</h3>
                           <ul className="space-y-1">
-                            {summary.records.map((record) => (
-                              <li key={`${record.sourceType}:${record.sourceId}`}>
-                                <Link
-                                  href={record.href}
-                                  className="flex min-h-11 items-center justify-between gap-3 rounded-[var(--admin-radius-control)] px-3 text-sm text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)]"
-                                >
-                                  <span className="min-w-0">
-                                    <span className="block truncate font-medium">
-                                      {record.title}
-                                    </span>
-                                    {record.detail && (
-                                      <span className="block truncate text-xs text-[var(--admin-muted)]">
-                                        {record.detail}
+                            {summary.records.map((record) => {
+                              const approval =
+                                record.sourceType === "approvals"
+                                  ? approvals.get(record.sourceId)
+                                  : undefined;
+                              return (
+                                <li key={`${record.sourceType}:${record.sourceId}`}>
+                                  <Link
+                                    href={record.href}
+                                    aria-label={approval ? `Review ${approval.title}` : undefined}
+                                    className="flex min-h-11 items-center justify-between gap-3 rounded-[var(--admin-radius-control)] px-3 text-sm text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)] data-[approval]:py-2.5"
+                                    data-approval={approval ? "" : undefined}
+                                  >
+                                    {approval ? (
+                                      <ApprovalCard action={approval} />
+                                    ) : (
+                                      <span className="min-w-0">
+                                        <span className="block truncate font-medium">
+                                          {record.title}
+                                        </span>
+                                        {record.detail && (
+                                          <span className="block truncate text-xs text-[var(--admin-muted)]">
+                                            {record.detail}
+                                          </span>
+                                        )}
                                       </span>
                                     )}
-                                  </span>
-                                  <ArrowRight size={14} aria-hidden="true" />
-                                </Link>
-                              </li>
-                            ))}
+                                    <ArrowRight size={14} aria-hidden="true" className="shrink-0" />
+                                  </Link>
+                                </li>
+                              );
+                            })}
                           </ul>
                         </section>
                       )}

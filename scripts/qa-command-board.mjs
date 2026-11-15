@@ -114,6 +114,91 @@ try {
     await context.close();
   }
 
+  // Approval cards: a station lists proposals as cards that open the exact review,
+  // and a card opened after someone decided it shows that decision instead.
+  {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const page = await context.newPage();
+    watch(page, "approvals");
+    await page.goto(
+      `${desk}?scope=board:mlivm-llc:execute:budget-draws&station=board:mlivm-llc:execute:budget-draws:draws`,
+      { waitUntil: "networkidle" },
+    );
+    await ready(page);
+    const panel = page.locator(".admin-canvas-panel");
+    const card = panel.locator("[data-approval-card]").first();
+    await card.waitFor();
+    assert.match(
+      await card.innerText(),
+      /Internal Mutation[\s\S]*Approve lender draw[\s\S]*Moves this opportunity/,
+      "The station shows the approval card with its kind and consequence",
+    );
+    const opener = panel.getByRole("link", { name: /^Review Approve lender draw/ });
+    const href = (await opener.getAttribute("href")) ?? "";
+    assert.match(href, /\/work\?tab=approvals&action=/, "The card opens the exact review");
+    await page.screenshot({ path: `${output}/board-approval-card.png` });
+    await Promise.all([page.waitForURL((url) => url.searchParams.has("action")), opener.click()]);
+    const dialog = page.getByRole("dialog");
+    const approve = dialog.getByRole("button", { name: "Approve", exact: true });
+    await approve.waitFor();
+    assert.match(await dialog.innerText(), /Material consequence:[\s\S]*Moves this opportunity/);
+    await page.screenshot({ path: `${output}/board-approval-review.png` });
+    await approve.click();
+    await page.waitForURL((url) => !url.searchParams.has("action"));
+    await page.goto(new URL(href, base).toString(), { waitUntil: "networkidle" });
+    const decided = page.locator('[data-review-state="decided"]');
+    await decided.waitFor();
+    assert.match(await decided.innerText(), /Approved/, "A decided proposal shows its decision");
+    assert.equal(
+      await page.locator("[data-review-decision]").count(),
+      0,
+      "A decided proposal offers no Approve or Reject",
+    );
+    await page.screenshot({ path: `${output}/board-approval-decided.png` });
+    results.push({ check: "approval-cards" });
+    await context.close();
+  }
+
+  // Phone: the Work approvals list is the approvals feed, one card per proposal.
+  {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    const page = await context.newPage();
+    watch(page, "feed");
+    await page.goto(`${base}/demo/command-center/mlivm/work?tab=approvals`, {
+      waitUntil: "networkidle",
+    });
+    const rows = page.locator("[data-record-row]:has([data-approval-card])");
+    await rows.first().waitFor();
+    const boxes = await rows.evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().toJSON()),
+    );
+    assert(boxes.length >= 3, "The feed lists the pending proposals");
+    assert(
+      boxes.every(
+        (box, index) =>
+          box.left >= 0 && box.right <= 390 && (!index || box.top >= boxes[index - 1].bottom),
+      ),
+      "Cards stack in one column inside the phone viewport",
+    );
+    assert(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+      "The feed does not widen the page",
+    );
+    await page.screenshot({ path: `${output}/approvals-feed-phone.png` });
+    await rows.first().locator("button").first().tap();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: /^Approve/ })
+      .waitFor();
+    await page.screenshot({ path: `${output}/approvals-feed-review.png` });
+    results.push({ check: "phone-feed" });
+    await context.close();
+  }
+
   // Another workspace starts empty and installs Service Mode through the setup form.
   {
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });

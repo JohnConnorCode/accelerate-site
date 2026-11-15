@@ -14,73 +14,22 @@ import { relativeTime } from "@/lib/admin/work-presentation";
 import { cn } from "@/lib/utils";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { TODAY_MODULES, type TodayDocument } from "@/lib/admin/today-workspace";
+import {
+  approvalConsequence,
+  approvalKind,
+  approvalState,
+  approvalTypeLabel,
+  type ActionRow,
+} from "@/lib/admin/approval-presentation";
+import { ApprovalKindBadge } from "./ApprovalCard";
 
-export interface ActionRow {
-  id: string;
-  action_type: string;
-  title: string;
-  description: string | null;
-  urgency: string;
-  reasoning: string | null;
-  status: string;
-  created_at: string;
-  expires_at: string | null;
-  payload: Record<string, unknown> | null;
-  evidence?: Record<string, unknown> | null;
-  /** Triage receipt recorded when this proposal passed the operator-queue gate. */
-  triage?: Record<string, unknown> | null;
-}
+export type { ActionRow };
 
 /** Plain-language triage reason, or null when the row predates the gate. */
 function triageReason(triage: Record<string, unknown> | null | undefined): string | null {
   const reason = triage?.reason;
   return typeof reason === "string" && reason.trim() ? reason : null;
 }
-
-/**
- * What each action will actually do if approved, in plain language. Approving is
- * irreversible for external actions, so the operator is told the consequence
- * before the button, not after.
- */
-const ACTION_CONSEQUENCE: Record<string, string> = {
-  event_ticketing_change:
-    "Applies the exact event operation below. Publishing opens ticket sales. Existing orders keep their agreed price and terms. Payment history remains unchanged.",
-  content_calendar_change:
-    "Applies only the exact calendar command below after checking current records and statuses. Delete permanently removes the calendar item. Website pages and approval history remain; no website content is published.",
-  update_content_calendar_item:
-    "Saves these editorial values after checking the item revision. A calendar status or date does not publish a website page.",
-  update_collection_policy:
-    "Updates this collection case and its follow-up work after rechecking current invoice and recipient facts. No reminder is sent and no invoice is changed.",
-  command_board_change:
-    "Saves the exact Command Board shown below at its current revision. Business records are unchanged and nothing is sent.",
-  today_view_change:
-    "Saves the exact Today arrangement and preferences shown below. Business records are unchanged. Only the proposing member can approve it.",
-  send_email: "Sends this email immediately. It cannot be recalled.",
-  send_gmail_reply: "Sends this reply from your Gmail account immediately. It cannot be recalled.",
-  create_debate_invitation:
-    "Sends one Google Calendar invitation to both named participants immediately. They will be notified. The event is read back and recorded before success is claimed.",
-  create_gmail_draft:
-    "Saves this exact reply as an editable Gmail draft. It is not sent. You can review, edit, or send it in Gmail Drafts.",
-  activate_campaign:
-    "Starts this campaign. Enrolled contacts begin receiving email on the next run.",
-  duplicate_campaign:
-    "Creates a new draft copy of this campaign with no members enrolled. Nothing sends until the copy is enrolled and activated.",
-  bulk_tag_contacts: "Adds or removes tags on the selected contacts. No email sends.",
-  bulk_suppress_contacts:
-    "Stops all pending campaign email to the selected contacts and marks them suppressed. Suppression cannot be undone automatically.",
-  bulk_enroll_contacts:
-    "Stages the selected contacts as queued members of a draft campaign. Nothing sends until the campaign is activated.",
-  transition_opportunity:
-    "Moves this opportunity to a new stage and records an immutable stage event.",
-  create_task: "Creates a task on your queue.",
-  update_next_action: "Changes the next step recorded on this opportunity.",
-  internal_permission_change:
-    "Replaces the previous workspace permission for this operation with permission for the requesting member on only the records, fields, expiry and daily limit shown below. Only that member can approve it. Messages, publishing, billing and permission changes keep human approval.",
-  admin_layout_change:
-    "Reorders or hides an admin layout region immediately. Revert it any time from Settings → Layout.",
-  create_founder_note:
-    "Saves this note to the timeline immediately, visible wherever this record is reviewed. Notes are permanent: there is no edit or delete once saved.",
-};
 
 /** Renders an admin_layout_change payload as a readable order/hidden summary
     instead of raw JSON — the generic payload table can't resolve ids to
@@ -224,34 +173,9 @@ export function ActionReviewDialog({
     action.action_type === "blueprint_draft_change"
       ? (action.payload?.review as Record<string, string> | undefined)
       : undefined;
-  const consequence =
-    (typeof blueprintReview?.Consequence === "string" ? blueprintReview.Consequence : null) ??
-    (billing?.success ? billing.data.review.Consequence : null) ??
-    (ticket?.success
-      ? ticket.data.operation === "save_event"
-        ? ticket.data.event.status === "published"
-          ? "Saves these event settings and opens ticket sales. Existing orders retain their agreed price and refund terms."
-          : "Saves these event settings. New checkouts follow the saved sales status; existing orders retain their agreed price and terms."
-        : ticket.data.operation === "reconcile"
-          ? "Checks expired reservations against Stripe. Places are released only when the provider confirms expiry or the complete receipt lookup proves checkout was never created."
-          : "Checks the existing email receipt and retries an eligible failed confirmation using its original provider key. Paid admission remains recorded."
-      : null) ??
-    (isConfiguration && typeof action.payload?.consequences === "string"
-      ? action.payload.consequences
-      : null) ??
-    (calendar?.success
-      ? calendar.data.command.operation === "delete"
-        ? "Permanently deletes the named calendar item after checking its current state. Approval history and audit receipts remain. Website pages stay live."
-        : "Saves only the calendar changes shown below after checking current items and columns. Website publication is a separate step."
-      : null) ??
-    ACTION_CONSEQUENCE[action.action_type] ??
-    "Executes this action through the same service the admin uses.";
-  const external =
-    action.action_type === "billing_change" ||
-    action.action_type === "send_email" ||
-    action.action_type === "send_gmail_reply" ||
-    action.action_type === "create_debate_invitation" ||
-    action.action_type === "activate_campaign";
+  const consequence = approvalConsequence(action);
+  const external = approvalKind(action).external;
+  const state = approvalState(action);
   const invitation = action.action_type === "create_debate_invitation" ? action.payload : null;
   const milestone = action.action_type === "record_debate_milestone" ? action.payload : null;
   const acceptances = Array.isArray(invitation?.acceptances)
@@ -316,23 +240,7 @@ export function ActionReviewDialog({
           <div>
             <div className="flex items-center gap-2">
               <p className={cn("admin-eyebrow", inline && "sr-only")}>Approval queue</p>
-              <span
-                className={cn(
-                  "rounded-full px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider",
-                  inline && "whitespace-nowrap",
-                  external
-                    ? "bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]"
-                    : "bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
-                )}
-              >
-                {action.action_type === "create_gmail_draft"
-                  ? "Gmail Draft"
-                  : external
-                    ? "External Action"
-                    : isConfiguration
-                      ? "Configuration"
-                      : "Internal Mutation"}
-              </span>
+              <ApprovalKindBadge action={action} className={cn(inline && "whitespace-nowrap")} />
             </div>
             <h2
               id="action-review-title"
@@ -344,7 +252,7 @@ export function ActionReviewDialog({
               {action.title}
             </h2>
             <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-              {isCalendar ? "Editorial calendar" : action.action_type.replace(/_/g, " ")}
+              {approvalTypeLabel(action)}
             </p>
           </div>
           <button
@@ -361,6 +269,18 @@ export function ActionReviewDialog({
         </div>
 
         {!inline && consequenceBanner}
+        {!state.open && (
+          <p
+            role="status"
+            data-review-state="decided"
+            className={cn(
+              "rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] text-xs font-semibold text-[var(--admin-ink)]",
+              inline ? "mx-3 mt-3 px-3 py-2" : "mx-5 mt-3 px-3.5 py-3 sm:mx-6",
+            )}
+          >
+            {state.label}
+          </p>
+        )}
 
         {error && (
           <p
@@ -722,18 +642,20 @@ export function ActionReviewDialog({
           {inline && (
             <div className="col-span-3 [&>div]:mx-0 [&>div]:mt-0">{consequenceBanner}</div>
           )}
-          <button
-            type="button"
-            data-review-decision="reject"
-            disabled={busy}
-            onClick={onReject}
-            className={cn(
-              "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl text-xs font-semibold text-[var(--admin-danger)] transition-[background-color,transform] duration-150 hover:bg-[var(--admin-danger-soft)] active:scale-[0.96] disabled:opacity-50",
-              inline ? "px-2" : "px-3",
-            )}
-          >
-            <X className="size-3.5" /> Reject
-          </button>
+          {state.open && (
+            <button
+              type="button"
+              data-review-decision="reject"
+              disabled={busy}
+              onClick={onReject}
+              className={cn(
+                "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl text-xs font-semibold text-[var(--admin-danger)] transition-[background-color,transform] duration-150 hover:bg-[var(--admin-danger-soft)] active:scale-[0.96] disabled:opacity-50",
+                inline ? "px-2" : "px-3",
+              )}
+            >
+              <X className="size-3.5" /> Reject
+            </button>
+          )}
           <div className={inline ? "contents" : "flex gap-2"}>
             <button
               type="button"
@@ -743,36 +665,37 @@ export function ActionReviewDialog({
                 inline ? "px-2" : "px-4",
               )}
             >
-              Cancel
+              {state.open ? "Cancel" : "Close"}
             </button>
-            <button
-              type="button"
-              data-review-decision="approve"
-              disabled={
-                busy ||
-                action.status !== "pending" ||
-                Boolean(isToday && !todayPreview.data) ||
-                Boolean(isCalendar && !calendar?.success) ||
-                Boolean(isTicket && !ticket?.success) ||
-                Boolean(billing && !billing.success)
-              }
-              onClick={onApprove}
-              className={cn(
-                "admin-button admin-button--primary",
-                inline && "!whitespace-normal !px-2 !text-xs",
-              )}
-            >
-              {busy ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Check className={cn("size-3.5", inline && "hidden")} />
-              )}
-              {action.action_type === "create_gmail_draft"
-                ? "Save draft to Gmail"
-                : external && !billing
-                  ? "Approve and send"
-                  : "Approve"}
-            </button>
+            {state.open && (
+              <button
+                type="button"
+                data-review-decision="approve"
+                disabled={
+                  busy ||
+                  Boolean(isToday && !todayPreview.data) ||
+                  Boolean(isCalendar && !calendar?.success) ||
+                  Boolean(isTicket && !ticket?.success) ||
+                  Boolean(billing && !billing.success)
+                }
+                onClick={onApprove}
+                className={cn(
+                  "admin-button admin-button--primary",
+                  inline && "!whitespace-normal !px-2 !text-xs",
+                )}
+              >
+                {busy ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Check className={cn("size-3.5", inline && "hidden")} />
+                )}
+                {action.action_type === "create_gmail_draft"
+                  ? "Save draft to Gmail"
+                  : external && !billing
+                    ? "Approve and send"
+                    : "Approve"}
+              </button>
+            )}
           </div>
         </div>
       </div>

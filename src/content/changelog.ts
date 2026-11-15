@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "approval-cards",
+    slug: "approval-cards",
+    title: "See every proposal as the same approval card",
+    description:
+      "Pending proposals now look the same on the Work approvals list, the approvals canvas, Command Board stations and your phone: what kind of action it is, what approving does and when it was proposed. A card always opens the full review, which checks the proposal again first, so one decided elsewhere shows its outcome instead of asking you to decide twice.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
     id: "command-board-app",
     slug: "command-board-app",
     title: "Run each business from a Command Board desk",
