@@ -120,7 +120,7 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     id: "page-command-center-demo",
     title: "Command Center Demo",
     description:
-      "Explore six complete fictional operating workspaces using the real Command Center interface.",
+      "Explore seven complete fictional operating workspaces using the real Command Center interface.",
     href: "/demo/command-center",
     keywords: ["demo", "sandbox", "interactive", "admin demo", "product demo"],
   },

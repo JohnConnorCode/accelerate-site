@@ -42,6 +42,9 @@ extra work:
 
 - Its navigation entries disappear when a workspace disables it.
 - Its AI tools report as unavailable to the agent and to MCP when it is off.
+- Its workspace graph adapters, claimed in `graphAdapterNames` exactly like
+  `aiToolNames`, stop contributing nodes when it is off. Each name must be
+  registered in `src/lib/revenue-os/graph-adapters.ts` and claimed by one module.
 - Its pages show a disabled notice rather than dangling, and its own API
   routes refuse the request if the module declares them in
   `MODULE_API_DIRECTORIES` (`scripts/verify-module-route-guards.mjs`) — a

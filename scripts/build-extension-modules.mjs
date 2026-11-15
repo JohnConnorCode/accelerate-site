@@ -195,6 +195,18 @@ function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
     if (!String(route).startsWith("/admin/"))
       fail(file, `route "${route}" must start with /admin/`);
   }
+  if (manifest.graphAdapterNames !== undefined) {
+    const names = manifest.graphAdapterNames;
+    if (!Array.isArray(names) || names.length > 8)
+      fail(file, "graphAdapterNames must be an array of at most 8 adapter names");
+    else {
+      for (const name of names)
+        if (typeof name !== "string" || !/^[a-z][a-z0-9_]{2,60}$/.test(name))
+          fail(file, `graphAdapterNames entry ${JSON.stringify(name)} must be a snake_case name`);
+      if (new Set(names).size !== names.length)
+        fail(file, "graphAdapterNames must not repeat an adapter");
+    }
+  }
 
   const seenSettingKeys = new Set();
   for (const setting of manifest.settings ?? []) {
@@ -442,6 +454,7 @@ const modules = manifests.map((manifest) => ({
   defaultEnabled: manifest.defaultEnabled,
   navLinkIds: (manifest.navLinks ?? []).map((link) => link.id),
   aiToolNames: manifest.aiToolNames ?? [],
+  ...(manifest.graphAdapterNames?.length ? { graphAdapterNames: manifest.graphAdapterNames } : {}),
   routes: manifest.routes ?? [],
   ...(manifest.historyRoute ? { historyRoute: manifest.historyRoute } : {}),
   setupChecks: manifest.setupChecks ?? [],

@@ -12,6 +12,7 @@ import { executeRadarStoreChange } from "./radar-store";
 import { executeModuleConfiguration } from "./module-actions";
 import { executeWorkspaceBrandUpdate } from "./branding-actions";
 import { executeTodayViewChange } from "./today-views";
+import { executeCommandBoardChange } from "./command-board";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { executeCollectionReminder } from "./collection-reminders";
 import { executeFormDefinitionSave, executeFormPublish, executeFormIntake } from "./form-builder";
@@ -272,6 +273,11 @@ async function executeApprovedAction(
       case "today_view_change": {
         if (mode !== "approved") throw new Error("Today view changes require human approval");
         result = await executeTodayViewChange(supabase, payload);
+        break;
+      }
+      case "command_board_change": {
+        if (mode !== "approved") throw new Error("Command Board changes require human approval");
+        result = await executeCommandBoardChange(supabase, payload);
         break;
       }
       case "publish_invoice_page": {

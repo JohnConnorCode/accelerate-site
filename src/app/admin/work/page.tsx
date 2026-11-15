@@ -4,7 +4,7 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
+import { CheckCircle2, LayoutList, Loader2, Network, RefreshCw, X } from "lucide-react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -19,6 +19,7 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { relativeTime, taskSourceLink } from "@/lib/admin/work-presentation";
 import { cn } from "@/lib/utils";
+import { adminSearchHref } from "@/lib/admin/search-href";
 import { WorkflowCalendar } from "@/components/admin/WorkflowCalendar";
 import { WorkflowLayoutSwitcher } from "@/components/admin/WorkflowLayoutSwitcher";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
@@ -32,6 +33,12 @@ import type { TodaySnapshot } from "@/lib/admin/today-data";
 import { toast } from "@/lib/admin/useToast";
 import { AgentWorkPanel } from "@/components/admin/AgentWorkPanel";
 import { workViewConfigSchema, type WorkViewConfig } from "@/lib/admin/work-view-contract";
+import { AdminViewSwitcher } from "@/components/admin/AdminViewSwitcher";
+import { EmptyState } from "@/components/admin/EmptyState";
+import { LazyCanvasView } from "@/components/canvas/LazyCanvasView";
+import { ApprovalCanvasContent, ApprovalCard } from "@/components/admin/ApprovalCard";
+import { approvalsCanvasGraph, type ApprovalCanvasDatum } from "@/lib/admin/canvas-projections";
+import type { CanvasNode } from "@/lib/admin/canvas-model";
 
 interface TaskRow {
   id: string;
@@ -98,6 +105,9 @@ export default function WorkPage() {
   const router = useAdminNavigation();
   const tab =
     params.get("tab") === "approvals" ? "approvals" : params.get("tab") === "ai" ? "ai" : "tasks";
+  const approvalsView = tab === "approvals" && params.get("view") === "canvas" ? "canvas" : "list";
+  const workHref = (change: (next: URLSearchParams) => void) =>
+    adminSearchHref("/admin/work", params, change);
   const [owner, setOwner] = useState("me");
   const [status, setStatus] = useState("pending");
   const [search, setSearch] = useState("");
@@ -125,7 +135,6 @@ export default function WorkPage() {
   const [due, setDue] = useState("");
   const [priority, setPriority] = useState("medium");
   const [snoozeDate, setSnoozeDate] = useState("");
-  const [review, setReview] = useState<ActionRow | null>(null);
   const taskParams = new URLSearchParams({ status, owner, page: String(page), pageSize: "100" });
   if (source) taskParams.set("source", source);
   if (deferredSearch) taskParams.set("q", deferredSearch);
@@ -183,6 +192,7 @@ export default function WorkPage() {
       ),
     [actionsQuery.data],
   );
+  const approvalNodes = useMemo(() => approvalsCanvasGraph(actions), [actions]);
   const followups = (todayQuery.data?.handling.data ?? []).filter(
     (item) => item.kind === "draft_followup" && item.status !== "completed",
   );
@@ -326,12 +336,27 @@ export default function WorkPage() {
     if (!taskOperation.current) closeTask();
   };
   const actionId = params.get("action");
-  useEffect(() => {
-    if (actionId) {
-      const row = actions.find((a) => a.id === actionId);
-      if (row) setReview(row);
-    }
-  }, [actionId, actions]);
+  // The review reads the one proposal fresh, so a card decided elsewhere opens
+  // in its decided state instead of offering a stale decision.
+  const reviewQuery = useAdminQuery<{ actions: ActionRow[] }>(
+    ["work", "action-review", actionId],
+    `/api/admin/revenue-os/actions?id=${encodeURIComponent(actionId ?? "")}`,
+    { enabled: Boolean(actionId), placeholderData: undefined, gcTime: 0, retry: false },
+  );
+  const review = actionId
+    ? (reviewQuery.data?.actions.find((row) => row.id === actionId) ?? null)
+    : null;
+  const reviewMissing = Boolean(actionId && reviewQuery.isSuccess && !review);
+  const openReview = (id: string) => {
+    setError("");
+    router.push(
+      workHref((query) => {
+        query.set("tab", "approvals");
+        query.set("action", id);
+      }),
+      "preserve",
+    );
+  };
   const refresh = async () => {
     await Promise.all([tasksQuery.refetch(), actionsQuery.refetch(), todayQuery.refetch()]);
   };
@@ -340,8 +365,14 @@ export default function WorkPage() {
     window.dispatchEvent(new Event("admin:priority-refresh"));
   };
   const closeReview = () => {
-    setReview(null);
-    if (actionId) router.replace("/admin/work?tab=approvals", "preserve");
+    if (actionId)
+      router.replace(
+        workHref((next) => {
+          next.set("tab", "approvals");
+          next.delete("action");
+        }),
+        "preserve",
+      );
   };
   const decide = async (decision: "approve" | "reject") => {
     if (!review || busy) return;
@@ -455,7 +486,11 @@ export default function WorkPage() {
       }
       if (inDialog || task || review || busy) return;
       const rows =
-        tab === "tasks" && layout === "list" ? visible : tab === "approvals" ? actions : [];
+        tab === "tasks" && layout === "list"
+          ? visible
+          : tab === "approvals" && approvalsView === "list"
+            ? actions
+            : [];
       if (!rows.length) return;
       if (event.key === "j" || event.key === "k") {
         event.preventDefault();
@@ -487,13 +522,13 @@ export default function WorkPage() {
           }
         } else {
           const row = actions[Math.min(selectedIndex, actions.length - 1)];
-          if (row) setReview(row);
+          if (row) openReview(row.id);
         }
       } else if (tab === "approvals" && (event.key === "a" || event.key === "r")) {
         if (selectedIndex < 0) return;
         event.preventDefault();
         const row = actions[Math.min(selectedIndex, actions.length - 1)];
-        if (row) setReview(row);
+        if (row) openReview(row.id);
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -558,12 +593,17 @@ export default function WorkPage() {
       <p className="hidden text-xs text-[var(--admin-muted)] sm:block">
         Keyboard: j/k move · Enter open · e edit · s snooze · a/r review approval
       </p>
-      {(error || tasksQuery.error || actionsQuery.error) && (
+      {(error || tasksQuery.error || actionsQuery.error || reviewQuery.error || reviewMissing) && (
         <p
           role="alert"
           className="rounded-lg border border-[var(--admin-danger)]/30 p-3 text-sm text-[var(--admin-danger)]"
         >
-          {error || tasksQuery.error?.message || actionsQuery.error?.message}
+          {error ||
+            tasksQuery.error?.message ||
+            actionsQuery.error?.message ||
+            (actionId && (reviewQuery.error || reviewMissing)
+              ? "That proposal could not be opened. Refresh the approvals list."
+              : "")}
         </p>
       )}
       {tab === "tasks" ? (
@@ -1135,40 +1175,88 @@ export default function WorkPage() {
       ) : tab === "ai" ? (
         <AgentWorkPanel />
       ) : (
-        <AdminSurface padding="none" elevation="flat">
-          <ul>
-            {actions.map((row, index) => (
-              <li
-                key={row.id}
-                id={`work-row-${row.id}`}
-                data-source-type="approval"
-                data-source-id={row.id}
-              >
-                <AdminRecordRow
-                  selected={selectedIndex === index}
-                  label={`Review ${row.title}`}
-                  onOpen={() => {
-                    setReview(row);
-                    setError("");
-                    router.push(`/admin/work?tab=approvals&action=${row.id}`, "preserve");
-                  }}
-                >
-                  <span className="block text-sm font-semibold text-[var(--admin-ink)]">
-                    {row.title}
-                  </span>
-                  <span className="mt-1 block text-xs text-[var(--admin-muted)]">
-                    {row.reasoning || row.description || "Review the exact proposed change."}
-                  </span>
-                </AdminRecordRow>
-              </li>
-            ))}
-          </ul>
-          {!actions.length && (
-            <p className="p-5 text-sm text-[var(--admin-muted)]">
-              {actionsQuery.isPending ? "Loading approvals…" : "No decisions waiting."}
-            </p>
+        <>
+          <AdminViewSwitcher
+            label="Approvals layout"
+            value={approvalsView}
+            onChange={(next) =>
+              router.push(
+                workHref((query) => {
+                  query.set("tab", "approvals");
+                  if (next === "canvas") query.set("view", "canvas");
+                  else {
+                    query.delete("view");
+                    query.delete("scope");
+                  }
+                }),
+                "preserve",
+              )
+            }
+            options={[
+              { id: "list", label: "List", icon: LayoutList },
+              { id: "canvas", label: "Canvas", icon: Network },
+            ]}
+          />
+          {approvalsView === "canvas" ? (
+            <LazyCanvasView<ApprovalCanvasDatum>
+              label="Approvals canvas"
+              nodes={approvalNodes}
+              leafLayout="column"
+              renderNode={ApprovalCanvasContent}
+              selectedId={review ? `approval:${review.id}` : null}
+              scopeId={params.get("scope")}
+              hrefFor={({ scopeId }) =>
+                workHref((query) => (scopeId ? query.set("scope", scopeId) : query.delete("scope")))
+              }
+              onOpen={(node: CanvasNode<ApprovalCanvasDatum>) => {
+                const datum = node.data;
+                if (datum.kind !== "item") return;
+                openReview(datum.action.id);
+              }}
+              read={{
+                loading: actionsQuery.isPending,
+                hasData: Boolean(actionsQuery.data),
+                error: actionsQuery.data ? undefined : actionsQuery.error?.message,
+                refreshing: actionsQuery.isFetching,
+                onRetry: () => void actionsQuery.refetch(),
+              }}
+              empty={
+                <EmptyState
+                  title="No decisions waiting"
+                  message="Proposed changes appear here for review before anything happens."
+                />
+              }
+            />
+          ) : (
+            <AdminSurface padding="none" elevation="flat">
+              {/* On a phone the list becomes the approvals feed: one card per proposal. */}
+              <ul className="max-sm:grid max-sm:gap-2 max-sm:p-2">
+                {actions.map((row, index) => (
+                  <li
+                    key={row.id}
+                    id={`work-row-${row.id}`}
+                    data-source-type="approval"
+                    data-source-id={row.id}
+                  >
+                    <AdminRecordRow
+                      selected={selectedIndex === index}
+                      label={`Review ${row.title}`}
+                      onOpen={() => openReview(row.id)}
+                      className="max-sm:rounded-[var(--admin-radius-surface)] max-sm:border max-sm:bg-[var(--admin-surface)]"
+                    >
+                      <ApprovalCard action={row} />
+                    </AdminRecordRow>
+                  </li>
+                ))}
+              </ul>
+              {!actions.length && (
+                <p className="p-5 text-sm text-[var(--admin-muted)]">
+                  {actionsQuery.isPending ? "Loading approvals…" : "No decisions waiting."}
+                </p>
+              )}
+            </AdminSurface>
           )}
-        </AdminSurface>
+        </>
       )}
       <ActionReviewDialog
         open={Boolean(review)}

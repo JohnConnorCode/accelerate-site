@@ -1346,6 +1346,670 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 .kanban-grip:disabled {
   cursor: default;
 }
+
+/* Canvas view: a dot-grid desk of circle anchors and hubs with segment, station
+   and record cards. Geometry comes from canvas-model; color, type and radius
+   come from tokens, so every workspace appearance carries the same desk. */
+.admin-canvas {
+  position: relative;
+  min-width: 0;
+  height: clamp(460px, calc(100dvh - 220px), 1000px);
+  overflow: hidden;
+  border-radius: var(--admin-surface-radius);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-border);
+  --canvas-ring: color-mix(in srgb, var(--admin-ink) 16%, transparent);
+  --canvas-lift: 0 10px 28px -12px color-mix(in srgb, var(--admin-ink) 22%, transparent);
+  --xy-background-color: var(--admin-surface);
+  --xy-background-pattern-color: color-mix(in srgb, var(--admin-ink) 15%, transparent);
+  --xy-edge-stroke: color-mix(in srgb, var(--admin-ink) 72%, transparent);
+  --xy-edge-stroke-width: 1.6;
+  --xy-node-border: none;
+  --xy-node-color: var(--admin-ink);
+  --xy-handle-background-color: transparent;
+}
+.admin-canvas:not([data-canvas-ready]) .admin-canvas-flow {
+  visibility: hidden;
+}
+.admin-canvas-flow {
+  position: absolute;
+  inset: 0;
+}
+.admin-canvas .react-flow__node {
+  cursor: default;
+}
+.admin-canvas .admin-canvas-cross-link path {
+  stroke-dasharray: 5 5;
+}
+.admin-canvas-edge-dot {
+  fill: var(--admin-ink);
+}
+.admin-canvas-handle {
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.admin-canvas-node {
+  /* Per-level type sizes are written inline from the node kind. */
+  --canvas-label: 16px;
+  --canvas-detail: 12px;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  color: var(--admin-ink);
+  font-family: var(--admin-font);
+}
+.admin-canvas-opener,
+.admin-canvas-mark {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--admin-surface);
+  color: inherit;
+  text-align: left;
+}
+.admin-canvas-opener {
+  /* React Flow disables pointer events on nodes that are neither selectable nor
+     draggable; the opener takes them back. Drags still bubble to the pane to pan. */
+  pointer-events: auto;
+  cursor: pointer;
+  transition:
+    box-shadow var(--admin-motion-fast, 140ms) ease,
+    transform var(--admin-motion-fast, 140ms) ease;
+}
+.admin-canvas-opener:focus-visible {
+  outline: 2px solid var(--admin-action);
+  outline-offset: 5px;
+}
+.admin-canvas-node[data-shape="circle"] :is(.admin-canvas-opener, .admin-canvas-mark) {
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  text-align: center;
+  box-shadow:
+    0 0 0 1.5px var(--canvas-ring),
+    var(--canvas-lift);
+}
+.admin-canvas-node[data-shape="circle"]:is([data-kind="anchor"], [data-on-path])
+  .admin-canvas-opener {
+  box-shadow:
+    0 0 0 2.5px var(--admin-ink),
+    var(--canvas-lift);
+}
+.admin-canvas-node[data-shape="card"] :is(.admin-canvas-opener, .admin-canvas-mark) {
+  align-items: stretch;
+  border-radius: var(--admin-radius-container);
+  box-shadow:
+    0 0 0 1px var(--canvas-ring),
+    var(--canvas-lift);
+}
+.admin-canvas-node[data-shape="card"][data-on-path] .admin-canvas-opener {
+  background: var(--admin-surface-subtle);
+  box-shadow:
+    0 0 0 2px var(--admin-ink),
+    var(--canvas-lift);
+}
+.admin-canvas-node[data-shape="card"] .admin-canvas-mark {
+  background: var(--admin-surface-subtle);
+  box-shadow: 0 0 0 1px var(--canvas-ring);
+}
+.admin-canvas-node[data-selected] .admin-canvas-opener {
+  box-shadow:
+    0 0 0 2.5px var(--admin-ink),
+    0 0 0 6px var(--admin-accent-soft),
+    var(--canvas-lift);
+}
+@media (hover: hover) {
+  .admin-canvas-opener:hover {
+    transform: translateY(-1px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-canvas-opener {
+    transition: none;
+  }
+  .admin-canvas-opener:hover {
+    transform: none;
+  }
+}
+.admin-canvas-status {
+  position: absolute;
+  top: 8%;
+  right: 8%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--admin-muted);
+  box-shadow: 0 0 0 3px var(--admin-surface);
+  pointer-events: none;
+}
+.admin-canvas-node[data-shape="card"] .admin-canvas-status {
+  top: 12px;
+  right: 12px;
+}
+.admin-canvas-status[data-status="ok"] {
+  background: var(--admin-success);
+}
+.admin-canvas-status[data-status="attention"] {
+  background: var(--admin-warning);
+}
+.admin-canvas-status[data-status="blocked"] {
+  background: var(--admin-danger);
+}
+.admin-canvas-status-pill {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 10px;
+  border-radius: var(--admin-radius-pill);
+  background: var(--admin-surface-subtle);
+  color: var(--admin-ink);
+  font-size: 13px;
+  font-weight: 650;
+}
+.admin-canvas-status-pill::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--admin-muted);
+  content: "";
+}
+.admin-canvas-status-pill[data-status="ok"]::before {
+  background: var(--admin-success);
+}
+.admin-canvas-status-pill[data-status="attention"]::before {
+  background: var(--admin-warning);
+}
+.admin-canvas-status-pill[data-status="blocked"]::before {
+  background: var(--admin-danger);
+}
+.admin-canvas-circle {
+  display: flex;
+  max-width: 80%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+}
+.admin-canvas-icon {
+  width: calc(var(--canvas-label) * 1.25);
+  height: calc(var(--canvas-label) * 1.25);
+  stroke-width: 2;
+}
+.admin-canvas-label {
+  font-family: var(--admin-title-font);
+  font-size: var(--canvas-label);
+  font-weight: var(--admin-title-weight, 700);
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+.admin-canvas-node[data-kind="anchor"] .admin-canvas-label {
+  font-weight: 800;
+  text-transform: uppercase;
+}
+/* Detail text only renders at levels whose kind gives it a legible size; elsewhere it stays
+   available to assistive technology without drawing below the legibility floor. */
+.admin-canvas-node:not([data-detail])
+  :is(
+    .admin-canvas-detail,
+    .admin-canvas-card-detail,
+    .admin-canvas-card-meta,
+    .admin-canvas-station-subtitle,
+    .admin-canvas-station-rows
+  ) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.admin-canvas-node[data-level="mid"] .admin-canvas-card {
+  align-items: center;
+}
+.admin-canvas-node[data-level="mid"] .admin-canvas-card-title {
+  -webkit-line-clamp: 3;
+}
+.admin-canvas-detail {
+  color: var(--admin-muted);
+  font-size: var(--canvas-detail);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.admin-canvas-card {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+}
+.admin-canvas-card-far {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 0 20px;
+  font-family: var(--admin-title-font);
+  font-size: var(--canvas-label);
+  font-weight: var(--admin-title-weight, 700);
+  line-height: 1.05;
+}
+.admin-canvas-card-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  place-items: center;
+}
+.admin-canvas-card-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.admin-canvas-node[data-kind="record"] .admin-canvas-card {
+  align-items: flex-start;
+}
+.admin-canvas-node[data-kind="record"] .admin-canvas-card-icon {
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--canvas-ring);
+}
+.admin-canvas-node[data-kind="record"] .admin-canvas-card-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.admin-canvas-card-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+.admin-canvas-card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-family: var(--admin-title-font);
+  font-size: var(--canvas-label);
+  font-weight: var(--admin-title-weight, 700);
+  line-height: 1.15;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.admin-canvas-node[data-level="near"][data-kind="record"] .admin-canvas-card-title {
+  -webkit-line-clamp: 1;
+}
+.admin-canvas-card-detail {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--admin-muted);
+  font-size: var(--canvas-detail);
+  font-weight: 500;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.admin-canvas-card-meta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  color: var(--admin-muted);
+  font-size: var(--canvas-detail);
+}
+.admin-canvas-badge {
+  overflow: hidden;
+  padding: 1px 8px;
+  border-radius: var(--admin-radius-pill);
+  background: var(--admin-surface-subtle);
+  color: var(--admin-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-canvas-station {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  padding: 16px 18px;
+}
+.admin-canvas-station--far {
+  justify-content: center;
+}
+.admin-canvas-station-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 10px;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--canvas-ring);
+}
+.admin-canvas-station-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.admin-canvas-station-subtitle {
+  color: var(--admin-muted);
+  font-size: var(--canvas-detail);
+  font-weight: 650;
+}
+.admin-canvas-station-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.admin-canvas-station-row {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.admin-canvas-station-row-label {
+  color: var(--admin-muted);
+  font-size: var(--canvas-detail);
+  font-weight: 650;
+}
+.admin-canvas-station-row-value {
+  overflow: hidden;
+  font-size: calc(var(--canvas-detail) + 1px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-canvas-crumbs,
+.admin-canvas-zoom {
+  position: absolute;
+  z-index: 5;
+  top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-canvas-crumbs {
+  left: 16px;
+  max-width: calc(100% - 240px);
+  flex-wrap: wrap;
+}
+.admin-canvas-crumb {
+  display: inline-flex;
+  min-height: 40px;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  overflow: hidden;
+  border-radius: var(--admin-radius-pill);
+  background: var(--admin-surface);
+  box-shadow: 0 0 0 1.5px var(--admin-ink);
+  color: var(--admin-ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-canvas-crumb--home {
+  background: var(--admin-ink);
+  color: var(--admin-surface);
+  box-shadow: var(--canvas-lift);
+}
+.admin-canvas-crumb--current {
+  min-height: 34px;
+  padding: 0 12px;
+  background: var(--admin-surface-subtle);
+  box-shadow: 0 0 0 1px var(--canvas-ring);
+  font-size: 12px;
+  font-weight: 650;
+}
+.admin-canvas-crumb:focus-visible,
+.admin-canvas-zoom-button:focus-visible,
+.admin-canvas-panel-back:focus-visible {
+  outline: 2px solid var(--admin-action);
+  outline-offset: 2px;
+}
+.admin-canvas-zoom {
+  right: 16px;
+  padding: 0 4px;
+  border-radius: var(--admin-radius-pill);
+  background: var(--admin-surface);
+  box-shadow:
+    0 0 0 1.5px var(--admin-ink),
+    var(--canvas-lift);
+  gap: 0;
+}
+.admin-canvas-zoom-button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--admin-ink);
+}
+.admin-canvas-zoom-button:hover {
+  background: var(--admin-surface-subtle);
+}
+.admin-canvas-zoom-value {
+  min-width: 48px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: center;
+}
+.admin-canvas-panel {
+  position: absolute;
+  z-index: 6;
+  top: 72px;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  width: min(380px, calc(100% - 32px));
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--admin-surface-radius);
+  background: var(--admin-surface);
+  box-shadow:
+    0 0 0 1px var(--canvas-ring),
+    0 24px 48px -24px color-mix(in srgb, var(--admin-ink) 35%, transparent);
+}
+.admin-canvas-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--canvas-ring);
+}
+.admin-canvas-panel-header h2 {
+  font-family: var(--admin-title-font);
+  font-size: 17px;
+  font-weight: var(--admin-title-weight, 700);
+}
+.admin-canvas-panel-back {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--admin-ink);
+}
+.admin-canvas-panel-back:hover {
+  background: var(--admin-surface-subtle);
+}
+.admin-canvas-panel-body {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+.admin-canvas-overlay {
+  position: absolute;
+  z-index: 5;
+  right: 16px;
+  bottom: 18px;
+  left: 16px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.admin-canvas-overlay > * {
+  pointer-events: auto;
+}
+.admin-canvas-composer {
+  width: min(680px, 100%);
+  align-items: center;
+  padding: 6px 6px 6px 8px;
+  border: 0;
+  border-radius: var(--admin-radius-pill);
+  box-shadow:
+    0 0 0 1.5px var(--admin-ink),
+    var(--canvas-lift);
+}
+.admin-canvas-composer:focus-within {
+  box-shadow:
+    0 0 0 2px var(--admin-ink),
+    var(--canvas-lift);
+}
+.admin-canvas-composer-field {
+  min-height: 40px;
+  padding: 8px 6px;
+  font-size: 15px;
+}
+.admin-canvas-composer-send {
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+}
+/* A still orb: the AI entry point rests until it is used. */
+.admin-canvas-orb {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 34% 30%,
+      color-mix(in srgb, var(--admin-surface) 55%, transparent) 0 8%,
+      transparent 9%
+    ),
+    radial-gradient(
+      circle at 62% 64%,
+      color-mix(in srgb, var(--admin-surface) 35%, transparent) 0 5%,
+      transparent 6%
+    ),
+    radial-gradient(
+      circle at 40% 70%,
+      color-mix(in srgb, var(--admin-surface) 30%, transparent) 0 4%,
+      transparent 5%
+    ),
+    radial-gradient(
+      circle at 50% 45%,
+      color-mix(in srgb, var(--admin-ink) 70%, var(--admin-surface)),
+      var(--admin-ink)
+    );
+  box-shadow: 0 0 0 1px var(--canvas-ring);
+}
+.admin-canvas-notice,
+.admin-canvas-keys {
+  position: absolute;
+  z-index: 5;
+  bottom: 12px;
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 11px;
+}
+.admin-canvas-notice {
+  left: 16px;
+  max-width: calc(100% - 32px);
+  padding: 8px 12px;
+  border-radius: var(--admin-radius-control);
+  background: var(--admin-warning-soft);
+  color: var(--admin-ink);
+  font-size: 12px;
+}
+.admin-canvas-keys {
+  right: 16px;
+  padding: 3px 8px;
+  border-radius: var(--admin-radius-pill);
+  background: color-mix(in srgb, var(--admin-surface) 88%, transparent);
+}
+/* An attribute, not :has(): culled nodes mount while panning, and each mount
+   would re-evaluate :has() on the canvas root and restyle every node. */
+.admin-canvas[data-overlay] .admin-canvas-keys {
+  display: none;
+}
+/* A newly opened branch settles in. Nodes and links present at first paint are
+   never animated; the route entrance owns first paint. */
+@keyframes admin-canvas-unspool {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+@keyframes admin-canvas-connect {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .admin-canvas[data-unspool] .admin-canvas-node[data-fresh] {
+    animation: admin-canvas-unspool 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .admin-canvas[data-unspool] .admin-canvas-edge-fresh {
+    animation: admin-canvas-connect 280ms ease both;
+  }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .admin-canvas {
+    /* CanvasView measures --canvas-fit: the space from the canvas top to the dock. */
+    height: var(
+      --canvas-fit,
+      max(380px, calc(100dvh - 290px - env(safe-area-inset-top) - env(safe-area-inset-bottom)))
+    );
+  }
+  .admin-canvas-crumbs {
+    max-width: calc(100% - 32px);
+  }
+  .admin-canvas-crumb--home[data-has-back] {
+    display: none;
+  }
+  .admin-canvas-zoom {
+    top: auto;
+    bottom: 16px;
+  }
+  .admin-canvas[data-overlay] .admin-canvas-zoom {
+    bottom: 84px;
+  }
+  .admin-canvas-crumb,
+  .admin-canvas-zoom-button,
+  .admin-canvas-panel-back {
+    min-height: 44px;
+  }
+  .admin-canvas-zoom-button,
+  .admin-canvas-panel-back {
+    width: 44px;
+    height: 44px;
+  }
+  .admin-canvas-panel {
+    inset: 0;
+    width: 100%;
+    border-radius: 0;
+  }
+  .admin-canvas-keys {
+    display: none;
+  }
+  .admin-canvas-notice {
+    bottom: 72px;
+  }
+}
 .kanban-slot {
   position: relative;
 }

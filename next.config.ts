@@ -53,6 +53,11 @@ const nextConfig: NextConfig = {
     runtimeServerDeploymentId: false,
   },
 
+  // Next's required TypeScript pass checks the application only, which keeps it
+  // inside the gate's 2 GiB heap. `npm run typecheck`, which CI runs before every
+  // build, still checks scripts and every other file in tsconfig.json.
+  typescript: { tsconfigPath: "tsconfig.build.json" },
+
   // Production cache retention exceeds the bounded release builder’s memory budget.
   webpack(config, { dev }) {
     if (!dev) config.cache = false;

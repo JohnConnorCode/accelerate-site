@@ -135,6 +135,14 @@ confirm its children have stopped, then remove that specific abandoned lock.
 There is no automatic takeover or capacity bypass. A blocked check is not a
 passing check; run larger jobs on an adequately provisioned runner.
 
+Next's required TypeScript pass during `build` and `build:qa` checks the
+application through `tsconfig.build.json` (`src`, plugins, root config and
+generated route types). `npm run typecheck` checks everything in
+`tsconfig.json`, scripts included, and CI runs it before every build. Both
+programs sit close to the 2 GiB heap, mostly from Supabase query-string and Zod
+schema types. Run `typecheck` before a build in the same checkout: once a build
+has written `.next-qa/types`, the full program can exceed the heap.
+
 Do not wrap `verify:review` itself: its build already acquires the lock. Its core suite and build acquire the lock separately and run sequentially.
 Keep one reusable dependency installation per compatible lockfile and dispose
 of owned build output and QA browsers after verification. Never delete another

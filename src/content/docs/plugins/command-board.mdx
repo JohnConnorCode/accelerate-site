@@ -1,0 +1,29 @@
+---
+title: "Command Board"
+description: "See each business as a desk of phases and stations that summarize live work."
+updated: "2026-11-14"
+---
+
+Command Board lays a business out as a desk. The business sits in a circle at the top, its phases hang below it, and each phase unspools into segments and stations when you open it. A station shows how many matching records are open, which one is next, and a colored light when something needs a person.
+
+## Try the fictional desk
+
+Open the MLIVM workspace in the [Command Center demo](/demo/command-center) and choose **Command Board**. Two businesses share the desk. MLIVM LLC runs Real Estate Mode with Acquire, Execute, PM and AM. Open **Execute**, then **2A Projects**, and the **Milestones** station shows open renovation tasks with the next date. HI LAWN LLC runs Service Mode: its **Invoice Chaser** station shows overdue balances from Collections. Select any station to list its records, then open one to work on it in its own screen. Stations that watch approvals, such as **Lender Draws** under **2C Budget & Draws**, list them as approval cards that open the exact review. Demo changes stay in your browser.
+
+## Set it up in your workspace
+
+Enable **Command Board** in **Plugins**, open it, and choose a mode for a business: **Service Mode** for work you quote, schedule and bill, or **Real Estate Mode** for buying, renovating and managing property. Give the business its name. Installing the same mode again for the same business changes nothing. Each business is its own board, so a workspace can hold several side by side.
+
+## Where the numbers come from
+
+Stations never store a status. Each time the board opens it reads your tasks, opportunities, conversations, approvals, collections and people, and counts the open records whose name or detail contains a station's keywords. If a source cannot be read, the station says so instead of showing zero. Selecting a record opens it where its usual permissions and approvals apply.
+
+## Changes, AI and approvals
+
+A workspace administrator saves board changes. Ask AI can read the board and prepare a change, which waits in **Approvals** with the exact before and after until a person approves it. Command Board sends no messages and makes no model call to draw the desk; questions typed into its composer go to the workspace AI.
+
+## Disabling and recovery
+
+Disable Command Board in **Plugins** to hide it and refuse its API and AI tools, including changes still waiting for approval. Board definitions are kept and return when you enable it again. If a stored board no longer validates, the desk names the business that needs recovery and leaves its definition untouched.
+
+The [plugin guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/command-board/README.md) documents the board contract, the mode templates and the verification commands.
