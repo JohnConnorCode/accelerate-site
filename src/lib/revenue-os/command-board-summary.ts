@@ -77,7 +77,10 @@ export function boardReadsFromGraph(
           sourceType: source,
           sourceId: node.sourceId,
           title: node.label,
-          detail: node.detail ?? undefined,
+          detail:
+            (source === "tasks" && node.dueAt
+              ? `Due ${shortDate(node.dueAt) ?? node.dueAt}`
+              : node.detail) ?? undefined,
           dueAt: node.dueAt,
           attention:
             node.attention || (overdue && (source === "tasks" || source === "opportunities")),

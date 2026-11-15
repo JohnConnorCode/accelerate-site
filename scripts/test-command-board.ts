@@ -238,10 +238,15 @@ const graphReads = boardReadsFromGraph(
 );
 assert.deepEqual(
   graphReads.tasks !== "unavailable" &&
-    graphReads.tasks?.records.map((record) => [record.sourceId, record.attention, record.href]),
+    graphReads.tasks?.records.map((record) => [
+      record.sourceId,
+      record.attention,
+      record.href,
+      record.detail,
+    ]),
   [
-    ["t1", true, "/admin/work?task=t1"],
-    ["t2", false, "/admin/work?task=t2"],
+    ["t1", true, "/admin/work?task=t1", "Due Nov 1"],
+    ["t2", false, "/admin/work?task=t2", "Due Dec 1"],
   ],
   "Pages merge, and a task past its date needs a person",
 );
