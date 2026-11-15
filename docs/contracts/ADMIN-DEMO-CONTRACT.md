@@ -32,8 +32,10 @@ The shared demo engine owns reads and simulated writes.
 A scenario pack must not implement its own UI, fetch handlers, pipeline rules,
 analytics formulas, AI runtime, or email sender.
 
-The current sales suite contains six complete packs: home services, law firms,
-professional services, real estate, nonprofits, and a fictional SuperDebate learning platform. Each pack declares an
+The current sales suite contains seven complete packs: home services, law firms,
+professional services, real estate, nonprofits, a fictional SuperDebate learning platform,
+and property operations (the MLIVM desk, which opens on the Command Board; its records
+are fictional). Each pack declares an
 intentional default appearance, while the shared Appearance control still
 offers Paper, Night, Accelerate and Operator. A browser-session appearance
 choice belongs to that scenario, survives switching away and back, and returns
@@ -135,7 +137,7 @@ or provider requests.
 ## Launcher and product language
 
 The public launcher leads with the business outcome and a bounded interactive
-illustration, followed by the six real demo entry links. Illustrations identify
+illustration, followed by the seven real demo entry links. Illustrations identify
 themselves and never act as a second workspace or claim real provider results.
 User-controlled story changes support keyboard and reduced motion.
 

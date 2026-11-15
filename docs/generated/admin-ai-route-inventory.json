@@ -7,13 +7,13 @@
     "Server-action and client-write candidates are static discovery only; indirect client writes and third-party plugin entrypoints still require semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 142,
-  "mutationHandlerCount": 124,
+  "routeCount": 144,
+  "mutationHandlerCount": 126,
   "semantic": {
     "complete": false,
     "unreviewedSourceBindings": [],
     "meaning": "Reviewed command-to-transport bindings with executable verification references. No coverage percentage or universal runtime acceptance is asserted.",
-    "registeredTools": 147,
+    "registeredTools": 150,
     "unreviewedToolBindings": [
       "activate_tool_bundle",
       "bootstrap_business_pulse_coworker",
@@ -385,6 +385,66 @@
         "serviceTarget": "revenue-os.architect-review",
         "tools": [
           "simulate_architect_blueprint"
+        ]
+      },
+      {
+        "definition": {
+          "id": "command-board.change",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/board",
+              "method": "POST"
+            },
+            {
+              "path": "/api/admin/board/install",
+              "method": "POST",
+              "variant": "Installs a mode template as a new board; the assistant proposes that document"
+            }
+          ],
+          "verification": [
+            "scripts/test-command-board.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.command-board",
+        "tools": [
+          "propose_command_board_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "command-board.change.preview",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [],
+          "verification": [
+            "scripts/test-command-board.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.command-board",
+        "tools": [
+          "preview_command_board_change"
+        ]
+      },
+      {
+        "definition": {
+          "id": "command-board.read",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/board",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-command-board.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.command-board",
+        "tools": [
+          "get_command_board"
         ]
       },
       {
@@ -1957,6 +2017,39 @@
         "next/server"
       ],
       "sourceSha256": "5873dbb8d99ffa56d4d8c62770850009a58d6db676afb48c4e2a7d9ac9c9b8dc"
+    },
+    {
+      "source": "src/app/api/admin/board/install/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/command-board",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "2514d61d8a4671428e3b4ee5e4eeeee2a637c1361a9ade641018f19a6aa15f9a"
+    },
+    {
+      "source": "src/app/api/admin/board/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/command-board",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "e4cf12b96949b4f4ec65fd3cb10a5f245e69023c376037ac6442084f2855efab"
     },
     {
       "source": "src/app/api/admin/bookings/route.ts",

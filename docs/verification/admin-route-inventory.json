@@ -13,6 +13,7 @@
     "src/app/admin/analytics/page.tsx": "433f7c2beb9a3c8254470621b6977e945a6934d94adc6769ff921f134fa1d285",
     "src/app/admin/blueprints/[id]/page.tsx": "7f0cacbe1722bd215b37406d74a7b230182873c9d4e4e53b76afc07b944aaab2",
     "src/app/admin/blueprints/page.tsx": "63d92c68c2224de0b2cf604a85f6507ee30c25e1fe5a6930c0d7ef6413150192",
+    "src/app/admin/board/page.tsx": "9edd0bfd012e5033f9df5b967b7fdebf6f9424f835f508f77566baa143f1fd1f",
     "src/app/admin/bookings/page.tsx": "eb8f45ba78285abb11987e6466f14e6084e88fa0ac03fa51381786476a1b1837",
     "src/app/admin/branding/page.tsx": "ac3e975f287358e7ea76ed8a77d3b4f6c0cf45d96be588aeeb4d7fabb05f03b8",
     "src/app/admin/campaigns/page.tsx": "02537a75b07c35772731d380e992d61f4666106b11c087a34480d03a1ee1bc0f",
@@ -80,6 +81,8 @@
     "src/app/api/admin/blueprints/[id]/route.ts": "55e534d37af37a4b8ebe48748681fe883722e2c9c7ed5d4068b4eb25dd414dff",
     "src/app/api/admin/blueprints/[id]/simulate/route.ts": "b59b889d8c6a0fd7ebfe577b0a18be87c134c06d9200472d332c3d07237653b1",
     "src/app/api/admin/blueprints/route.ts": "5873dbb8d99ffa56d4d8c62770850009a58d6db676afb48c4e2a7d9ac9c9b8dc",
+    "src/app/api/admin/board/install/route.ts": "2514d61d8a4671428e3b4ee5e4eeeee2a637c1361a9ade641018f19a6aa15f9a",
+    "src/app/api/admin/board/route.ts": "e4cf12b96949b4f4ec65fd3cb10a5f245e69023c376037ac6442084f2855efab",
     "src/app/api/admin/bookings/route.ts": "60993c2cfa8b463f06a745f6f11e807cecf9d2c507adfb9cfc6848d809ea3e52",
     "src/app/api/admin/chat-leads/route.ts": "1252546fd8002454ebf50caceca306f1c31a31c08dfef3fbdb64ce6bdf2526a1",
     "src/app/api/admin/clients/route.ts": "fec7982f6a38a8b1ac40d9de0de6ff1d94138899ab4b4ad1f0097c7f9c6d7d4b",
@@ -182,7 +185,7 @@
     "src/components/admin/AICapabilities.tsx": "ee7e70cd62c536b74b8b561692e8c4fda30d1d6bd1cf568f8a805d9f82c03904",
     "src/components/admin/AIReadinessPanel.tsx": "3d1e321d47ded7bf3f95d2828e71cc1aaa97d1545b5784f2e068c9d453d64e94",
     "src/components/admin/AIRunHistory.tsx": "928bea7b5ce6ff1509fbc08d72870dc9b862ceacdc4e608c0b94fe34d49278b8",
-    "src/components/admin/ActionReviewDialog.tsx": "ea4c5d909f4b131411aa424b0e6ada1d8fd1ca82ab6ba7979a2c0df900f36594",
+    "src/components/admin/ActionReviewDialog.tsx": "2731f525ea5fa1062cb08d33b66851023ff5307727cdac3ef559abe529681498",
     "src/components/admin/AddLeadModal.tsx": "44840957580eaf178dabee6653bb96879e2daa335e87b2723e3be802729c9913",
     "src/components/admin/AdminAIChat.tsx": "7f329681fa0b49b94d578eb8ffc662fdf6e71c35bf5f474dfbef5232413c9b3a",
     "src/components/admin/AdminAIPanel.tsx": "ea2a8a85786ffc2e8290757b98b4969c427a165afadebb8d4a4d07c3963eb7e2",
@@ -233,6 +236,7 @@
     "src/components/admin/ChannelBreakdown.tsx": "607dec92b0d4e03b781a0ac1e19b15d0015f37be28efbb24372e92f54e125709",
     "src/components/admin/ClientDetail.tsx": "2c7a8b63da7b2ba4f89e3f5f46a02d8c2f8c232698e90a987b834d5a9f93f1a4",
     "src/components/admin/CollectionsWorkspace.tsx": "e922b4ee374dc6bbe19e49d45e66595a359f1d483d32e981c3ee3bb115b898bf",
+    "src/components/admin/CommandBoardWorkspace.tsx": "79b21329f0b62b858d9b2395818ac67fd2a23ae371345987918e22a2bcdf59f3",
     "src/components/admin/CommandCenterPwa.tsx": "f7ee08c96dd323ab1529ec86eb9033348fc107d2983e23a912f9c6f4c2c97f52",
     "src/components/admin/ContactIntakeNav.tsx": "0b442890abee019e85fecb756f7c92cdf16951b0e6eeac3abf00f254f45bcec1",
     "src/components/admin/ContactSubmissionsPage.tsx": "6339359afb2d865af50656564e2c437e3f3dc2be17b6d34a63b5546b7046f93c",
@@ -245,7 +249,7 @@
     "src/components/admin/DateRangeFilter.tsx": "bba7c55d9fc2654dfd1a51d225010f33d21305625effbea9320c3d06ab39d24b",
     "src/components/admin/DemoBusinessNotice.tsx": "4256be9e9fd551afd1a05af61d5122f4350e4dbd11f93e3da77bbfa14b726d92",
     "src/components/admin/DemoClientGuide.tsx": "92c46df1bc27ad35e66b422ef2a77ea6a0f5d8b69ea7d121f6716ff915b07ff9",
-    "src/components/admin/DemoScenarioMark.tsx": "a15549b733fcfdefa670fe2114feca52f06692e20a76f2d4120130804bad377b",
+    "src/components/admin/DemoScenarioMark.tsx": "32d8e1fec6e7632df6c6bce3c666f2f129c9e333df8ccc53c79e8c8c4f14c78d",
     "src/components/admin/DemoWorkspacePreview.tsx": "836b3df1421225399492d51d7dd1f020cca1004dc11ebd9fa4429e6a959a1953",
     "src/components/admin/DraftLearning.tsx": "25bfadb4c6b8a57f7cfea068fd5174482fc06f0c784daf1cd27b9c8adcfa9591",
     "src/components/admin/EmailBlockComposer.tsx": "0bd20107abdd254469d69b043ea0a36095033f1e0841865ff0b274b0a0f381b2",
@@ -334,7 +338,7 @@
     "src/lib/email/resend.ts": "05bc7954bc812e42965bc5c8977b3d219da31010b72146a0c7bfbcd5992a69a9",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
     "src/lib/revenue-os/README.md": "bf7d62be05a3fd60985a51a4da783c120d5daa0e21953d340f9abb1167d836d5",
-    "src/lib/revenue-os/action-executor.ts": "17e3a0c0c32c4491d9c2dae9021f2ef16f8cdd6b9e1dd067dc43c75234895f29",
+    "src/lib/revenue-os/action-executor.ts": "ed86348facec4457ae364adc15b5d3e8a25f6507252f8abde5851f25a09f711f",
     "src/lib/revenue-os/actions.ts": "1cdafcf3345b4ee616850b6781b7411b117d0e6c85a883ab673114989f24841b",
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
@@ -344,7 +348,7 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "e5b7a00424187c92fdb969fd98236a274b992b751380bb00b3cf4b911b7ae65f",
     "src/lib/revenue-os/ai-operations.ts": "32eb6cdefa75a8cdd05c871420ff4bd3cf2184fdc9b1e2743c80faf103f820a6",
     "src/lib/revenue-os/ai-stream-contract.ts": "45e5459095d2c4b27c2a0927a83408ef352bf4584653638d7d03b5447dbf1c0b",
-    "src/lib/revenue-os/ai-tools.ts": "aff4c4a6621decc6110b209233e826efc8463463dbdaad2ba4b17d2b29797500",
+    "src/lib/revenue-os/ai-tools.ts": "8681dab8eed0921a812de43493d86be884c8a0069c937116c2b632947a3fc379",
     "src/lib/revenue-os/analytics.ts": "61ac0118d5177b5222f0e7f07243196d5907106b45e84e2c00650d35d4688c9d",
     "src/lib/revenue-os/architect-review-contract.ts": "c380b28b286d1902e2b8137f296f66a467fc099528f936d313b91789f439e3e9",
     "src/lib/revenue-os/architect-review.ts": "b271223e4bbfdccbbb8e22186e74966d8bf11a5cac84f712c8063e1448928073",
@@ -357,6 +361,7 @@
     "src/lib/revenue-os/collection-reminders.ts": "325c0b9d094d4ebd2ed6c7605f7cdc9b7c9a9f0c7de45a26fd01889b48da2876",
     "src/lib/revenue-os/collection-workspace.ts": "1bcb5f357131fc730441646f1da78e672b1f0f2dbc1bb1e6381c0ebcfdbb743b",
     "src/lib/revenue-os/collections.ts": "a05af80ab775b9459d8799350b6cfb5e51799374bdab8e8264dadfe517a25c73",
+    "src/lib/revenue-os/command-board.ts": "36f84416904860a6395192e528dc71df0f103aa9b9b8980058a17833e4aa70c9",
     "src/lib/revenue-os/communications.ts": "2aaf1f1ad9dc8c073d47bfd3ad596a327df72e930e333e391f6c532a2dae1914",
     "src/lib/revenue-os/contact-imports.ts": "870dd795ac4e04b63d3b8a1400b6d72e0b4d05469f3fb6159c6ba972665132c1",
     "src/lib/revenue-os/content-calendar.ts": "9ac20c1bd02752a985119edbf81ee26075941e3d3a57807dc2165b8749f299a6",
@@ -403,7 +408,7 @@
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/reporting-contract.ts": "d4a083bdf9810f8b3180b90f4515d42a89874f8156307871f540f46c00fb9e42",
     "src/lib/revenue-os/retained-source-dispositions.ts": "3dadabae5e8fc129bd51d1c3027093634c30a1836bd8d37f206cfc788243ac23",
-    "src/lib/revenue-os/schema-contract.ts": "b2a4e7cae1d5daa744c8346b56d85ca0bf5d81dd3fb2747c223c95139d9a36fe",
+    "src/lib/revenue-os/schema-contract.ts": "bcf75c74268887344408a07a57f42951ffe2bdf3c7f62efb11967bbc38cc8f89",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/shared-context.ts": "2886f194671f3b671cfafb7bd289c8b2d54414608df083165bc509b5d3f76e8d",
     "src/lib/revenue-os/social-marketing.ts": "a5421a504fd070c4826a0fb62037abe6f83786781c0dd7c21f4d27c94b901ea8",
@@ -649,6 +654,53 @@
         }
       ],
       "boundary": "Review is read-only against the latest version. Validation uses live capabilities and entity keys. The document is never executed.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/board",
+      "page": "src/app/admin/board/page.tsx",
+      "primaryAction": "Read each business desk, open a station and install a mode",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/board/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/command-board"
+          ],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/board/install/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/command-board"
+          ],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/db",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": [
+            "action_queue"
+          ]
+        },
+        {
+          "path": "src/app/api/admin/tenant/modules/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/module-actions-contract",
+            "@/lib/revenue-os/module-configuration",
+            "@/lib/revenue-os/modules",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": []
+        }
+      ],
+      "boundary": "The Command Board service owns board definitions; save_command_board is the only writer, with revision checks, request receipts and audit. Station summaries are computed from task, opportunity, conversation, approval, collection and contact reads at request time and never stored. AI changes are staged as command_board_change and applied only after administrator approval, which rechecks module, workspace and revision.",
       "followUp": null,
       "specialBoundary": null
     },

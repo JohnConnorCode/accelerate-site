@@ -47,7 +47,7 @@ connection or permission. Check the runtime owner for availability and behavior.
 Do not copy capability counts, tool counts, defaults or policy thresholds into this
 contract. They change; link to the current reference and verify them in source.
 
-The six fictional demos use the same admin components and browser-session records.
+The seven fictional demos use the same admin components and browser-session records.
 The hosted demo has a bounded real-inference option. External business provider
 writes remain unavailable there. Verify current inference limits in the demo
 runtime before describing them.

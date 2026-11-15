@@ -247,7 +247,7 @@ export default async function ChicagoPage() {
               Explore Command Center
             </Link>
             <Link className={styles.secondary} href="/demo/command-center">
-              Try six fictional business demos
+              Try seven fictional business demos
             </Link>
           </div>
         </div>

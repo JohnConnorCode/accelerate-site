@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-board-app",
+    slug: "command-board-app",
+    title: "Run each business from a Command Board desk",
+    description:
+      "Command Board shows every business in a workspace as a desk: open a phase to unspool its segments and stations, and each station counts the matching tasks, opportunities, conversations, approvals and balances, names the next one, and lights up when something needs you. Service Mode and Real Estate Mode install as your own board data. Try it in the new MLIVM demo workspace, which runs a property business and a lawn service side by side.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
     id: "today-and-approvals-canvas",
     slug: "today-and-approvals-canvas",
     title: "See Today and your approvals as a canvas",

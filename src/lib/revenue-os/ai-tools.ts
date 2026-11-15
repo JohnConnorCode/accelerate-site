@@ -1675,6 +1675,13 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     serviceTarget: "revenue-os.command-board",
     outputSchema: { type: "object" },
+    operation: {
+      id: "command-board.change.preview",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [],
+      verification: ["scripts/test-command-board.ts"],
+    },
     execute: async ({ supabase }, input) => previewCommandBoardChange(supabase, input),
   },
   {
