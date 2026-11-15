@@ -260,6 +260,10 @@ const proOptions = { hideAttribution: true };
 const CULL_ABOVE = 150;
 /** Width the docked detail panel covers on a wide canvas, so an open station stays beside it. */
 const PANEL_COVER = 412;
+/** Matches the phone canvas rules in admin-components.css. */
+const PHONE_QUERY = "(pointer: coarse), (max-width: 639px)";
+const PHONE_MIN_HEIGHT = 380;
+const PHONE_DOCK_GAP = 12;
 
 function ZoomReadout() {
   const zoom = useStore(zoomSelector);
@@ -337,6 +341,28 @@ function CanvasSurface<T>({
   const onPath = useMemo(() => new Set(path.map((node) => node.id)), [path]);
   const quick = reduced ? 0 : 180;
   const glide = reduced ? 0 : 320;
+
+  // On phones the canvas fills the space from its own top to the mobile dock,
+  // so its controls never start under the dock whatever sits above the canvas.
+  useLayoutEffect(() => {
+    const element = surface.current;
+    const phone = window.matchMedia(PHONE_QUERY);
+    if (!element) return;
+    const fit = () => {
+      if (!phone.matches) return element.style.removeProperty("--canvas-fit");
+      const dock = document.querySelector(".admin-mobile-dock")?.getBoundingClientRect().top;
+      const top = element.getBoundingClientRect().top + window.scrollY;
+      const space = (dock ?? window.innerHeight) - top - PHONE_DOCK_GAP;
+      element.style.setProperty("--canvas-fit", `${Math.max(PHONE_MIN_HEIGHT, space)}px`);
+    };
+    fit();
+    phone.addEventListener("change", fit);
+    window.addEventListener("resize", fit);
+    return () => {
+      phone.removeEventListener("change", fit);
+      window.removeEventListener("resize", fit);
+    };
+  }, []);
 
   const onZoom = useCallback(
     (zoom: number) => setLevel((current) => nextCanvasLevel(current, zoom)),

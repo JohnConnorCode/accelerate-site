@@ -1941,9 +1941,10 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 }
 @media (pointer: coarse), (max-width: 639px) {
   .admin-canvas {
-    height: max(
-      380px,
-      calc(100dvh - 290px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
+    /* CanvasView measures --canvas-fit: the space from the canvas top to the dock. */
+    height: var(
+      --canvas-fit,
+      max(380px, calc(100dvh - 290px - env(safe-area-inset-top) - env(safe-area-inset-bottom)))
     );
   }
   .admin-canvas-crumbs {
