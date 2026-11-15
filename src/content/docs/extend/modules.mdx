@@ -92,11 +92,16 @@ is available to workspace administrators at `GET /api/admin/revenue-os/graph`
 and to the assistant and MCP clients as `get_workspace_graph`. Narrow it with
 `relatedTo=contact:<id>` for one record's neighbourhood, `ids` for exact nodes,
 `adapters` for record types and `limit` (50 by default, at most 200 per type).
+Add `open=true` for work still in progress: pending or snoozed tasks,
+opportunities not won or lost, open or waiting conversations and open
+collection cases. `links=false` skips stored links when only nodes are needed.
 A response holds at most 500 nodes and 1,000 edges. Every source reports
 `ready`, `denied`, `module_disabled` or `unavailable` with its own truncation
 flag and a `nextCursor` for the next page, so one failed or disabled source
 never hides the rest. The graph is read only: a node shows the status its
-source returned and cannot change it.
+source returned and cannot change it. A node also carries its record's own due
+date, whether the record asks for a person (unread messages, a pending approval
+or an open balance) and a link that opens the exact record.
 
 Adding a new adapter requires a reviewed read in that file, a pure projection
 the fictional demo can reuse, a module claim and tests. A manifest cannot add

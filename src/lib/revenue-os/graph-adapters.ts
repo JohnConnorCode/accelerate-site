@@ -18,6 +18,7 @@ import {
   GRAPH_ADAPTER_SOURCE_TYPES,
   GRAPH_DEFAULT_LIMIT,
   GRAPH_MAX_NODES,
+  GRAPH_OPEN_STATES,
   GRAPH_PROJECTIONS,
   assembleWorkspaceGraph,
   graphNodeId,
@@ -60,6 +61,8 @@ export interface GraphAdapterReadInput {
   limit: number;
   /** Keyset continuation: the last source id of the previous page. */
   cursor?: string;
+  /** Only records still in progress, as GRAPH_OPEN_STATES defines. */
+  open?: boolean;
 }
 
 export interface GraphAdapterReadResult<Row> {
@@ -142,6 +145,7 @@ export const GRAPH_ADAPTERS: readonly GraphAdapter[] = [
       const result = await listOpportunities(db, {
         contactId: related?.type === "contact" ? related.id : undefined,
         companyId: related?.type === "company" ? related.id : undefined,
+        excludeStages: input.open ? GRAPH_OPEN_STATES.opportunities.closed : undefined,
         window: windowFor(scoped),
       });
       if (!result.schemaReady) throw new Error("Opportunity schema is not installed");
@@ -160,6 +164,7 @@ export const GRAPH_ADAPTERS: readonly GraphAdapter[] = [
         ids: window.ids,
         afterId: window.afterId,
         linkedTo: related && related.type !== "task" ? related : undefined,
+        statuses: input.open ? GRAPH_OPEN_STATES.tasks.open : undefined,
         pageSize: window.limit,
       });
       return page(result.tasks as unknown as GraphTaskRow[], scoped);
@@ -186,6 +191,7 @@ export const GRAPH_ADAPTERS: readonly GraphAdapter[] = [
     subject: string | null;
     channel: string;
     status: string;
+    unread_count: number;
     contact_id: string | null;
     company_id: string | null;
     opportunity_id: string | null;
@@ -202,6 +208,7 @@ export const GRAPH_ADAPTERS: readonly GraphAdapter[] = [
           contactId: related?.type === "contact" ? related.id : undefined,
           companyId: related?.type === "company" ? related.id : undefined,
           opportunityId: related?.type === "opportunity" ? related.id : undefined,
+          statuses: input.open ? GRAPH_OPEN_STATES.conversations.open : undefined,
         },
       });
       if (!result.schemaReady) throw new Error("Conversation schema is not installed");
@@ -224,6 +231,7 @@ export const GRAPH_ADAPTERS: readonly GraphAdapter[] = [
           order: "id",
           maxCases: ids ? Math.min(ids.length, 100) : limit,
           ...(ids ? { caseIds: ids } : input.cursor ? { afterId: input.cursor } : {}),
+          ...(input.open ? { status: GRAPH_OPEN_STATES.collection_cases.open[0] } : {}),
           includeInvoiceOptions: false,
           includeActionPreviews: false,
         },
@@ -342,6 +350,7 @@ export async function readWorkspaceGraph(
         relatedTo: ids ? undefined : relatedTo,
         limit,
         cursor: ids ? undefined : input.cursors?.[name],
+        open: input.open,
       });
       const projection = adapter.project(result.rows);
       projections.set(name, [projection]);
@@ -416,7 +425,7 @@ export async function readWorkspaceGraph(
   ].slice(0, GRAPH_MAX_NODES);
   let links: WorkspaceGraph["links"] = { state: "skipped", truncated: false };
   let linkEdges: WorkspaceGraphEdge[] = [];
-  if (tenantId && refs.length) {
+  if (input.links !== false && tenantId && refs.length) {
     const read = await readEntityLinksForNodes(db, tenantId, refs);
     links = { state: read.available ? "ready" : "unavailable", truncated: read.truncated };
     linkEdges = read.links.map((link) => {

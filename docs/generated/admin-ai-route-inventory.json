@@ -2049,10 +2049,11 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/command-board",
+        "@/lib/tenancy/context",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "2514d61d8a4671428e3b4ee5e4eeeee2a637c1361a9ade641018f19a6aa15f9a"
+      "sourceSha256": "8522bfdb8b592bfbd0a10d949a14ea55a72c93dd07f51f5ea3d93ac6dd1a740b"
     },
     {
       "source": "src/app/api/admin/board/route.ts",
@@ -2066,10 +2067,11 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/command-board",
+        "@/lib/tenancy/context",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "e4cf12b96949b4f4ec65fd3cb10a5f245e69023c376037ac6442084f2855efab"
+      "sourceSha256": "2013828741793917ba585e28dd3b1d2257c529d4ceb836b1812a393a9fe1c435"
     },
     {
       "source": "src/app/api/admin/bookings/route.ts",

@@ -12,13 +12,25 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import { runInNewContext } from "node:vm";
 import { build } from "esbuild";
+import ts from "typescript";
 import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ZodError } from "zod";
 import { MemorySupabase, type Row } from "./lib/memory-supabase";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
-import { runWithTenantRequestContext, type TenantActorContext } from "../src/lib/tenancy/context";
+import {
+  getTenantRequestContext,
+  runWithTenantRequestContext,
+  type TenantActorContext,
+} from "../src/lib/tenancy/context";
+import { COMMAND_BOARD_MODES } from "../src/lib/revenue-os/command-board-modes";
+import {
+  boardNodeId,
+  type CommandBoardSnapshot,
+} from "../src/lib/revenue-os/command-board-contract";
 import {
   GRAPH_ADAPTERS,
   GraphInputError,
@@ -31,6 +43,7 @@ import {
   GRAPH_PROJECTIONS,
   assembleWorkspaceGraph,
   keysetPage,
+  isOpenGraphRow,
   workspaceGraphInputFromQuery,
   type WorkspaceGraph,
   type WorkspaceGraphNode,
@@ -259,7 +272,10 @@ function tenantRows(tenant: string, label: string): Record<string, Row[]> {
   };
 }
 
-function fixture(configA: Record<string, unknown> = { modules: plugins }) {
+function fixture(
+  configA: Record<string, unknown> = { modules: plugins },
+  extra: Record<string, Row[]> = {},
+) {
   const a = tenantRows(TENANT_A, "Alpha");
   const b = tenantRows(TENANT_B, "Beta");
   const merged: Record<string, Row[]> = {};
@@ -267,6 +283,7 @@ function fixture(configA: Record<string, unknown> = { modules: plugins }) {
     merged[table] = [...(a[table] ?? []), ...(b[table] ?? [])];
   return new MemorySupabase({
     ...merged,
+    ...extra,
     tenants: [
       { id: TENANT_A, status: "active", config: configA },
       { id: TENANT_B, status: "active", config: { modules: plugins } },
@@ -625,6 +642,69 @@ async function main() {
   }
   check("ids-and-relatedTo-windows");
 
+  // open: true keeps work in progress through each owning service; nodes carry
+  // the record's own date and attention signal and open the exact record.
+  {
+    const mem = fixture();
+    mem.rows("opportunities").push({
+      id: id("8003", 9),
+      tenant_id: TENANT_A,
+      name: "Alpha Lost Deal",
+      stage: "lost",
+      contact_id: C1,
+      company_id: CO1,
+    });
+    mem.rows("conversations").push({
+      id: id("8006", 9),
+      tenant_id: TENANT_A,
+      subject: "Alpha resolved thread",
+      channel: "email",
+      status: "resolved",
+      unread_count: 0,
+      contact_id: null,
+      company_id: null,
+      opportunity_id: null,
+    });
+    const db = bound(mem, TENANT_A);
+    const adapters = ["tasks", "opportunities", "conversations", "approvals"] as const;
+    const everything = await readWorkspaceGraph(db, member(USER.admin), {
+      adapters: [...adapters],
+    });
+    const open = await readWorkspaceGraph(db, member(USER.admin), {
+      adapters: [...adapters],
+      open: true,
+      links: false,
+    });
+    for (const closed of [
+      `task:${T2}`,
+      `opportunity:${id("8003", 9)}`,
+      `conversation:${id("8006", 9)}`,
+    ]) {
+      assert.ok(ids(everything).has(closed), `${closed} is read without open`);
+      assert.ok(!ids(open).has(closed), `${closed} is not open`);
+    }
+    assert.ok(
+      open.nodes.every((node) =>
+        isOpenGraphRow(node.adapter, { status: node.status, stage: node.status }),
+      ),
+    );
+    assert.equal(open.links.state, "skipped", "links: false skips stored links");
+    const task = open.nodes.find((node) => node.id === `task:${T1}`)!;
+    assert.deepEqual(
+      [task.dueAt, task.attention, task.href],
+      ["2026-11-20", false, `/admin/work?task=${T1}`],
+    );
+    const approval = open.nodes.find((node) => node.id === `action_queue:${A_PENDING}`)!;
+    assert.equal(approval.attention, true, "a pending approval asks for a person");
+    const thread = open.nodes.find((node) => node.id === `conversation:${V1}`)!;
+    assert.deepEqual([thread.attention, thread.href], [true, `/admin/conversations?thread=${V1}`]);
+    assert.deepEqual(workspaceGraphInputFromQuery(new URLSearchParams("open=true&links=false")), {
+      open: true,
+      links: false,
+    });
+  }
+  check("open-filter-and-node-signals");
+
   {
     const mem = fixture();
     const many = Array.from({ length: 260 }, (_, index) => ({
@@ -689,6 +769,8 @@ async function main() {
       label: "x",
       detail: null,
       status: null,
+      dueAt: null,
+      attention: false,
       href: null,
     }));
     const edges = nodes.flatMap((from) =>
@@ -879,6 +961,88 @@ async function main() {
   }
   check("route-handler-parity-after-guard");
 
+  // Command Board: the real handler binds the guard's actor, then stations read
+  // open records through the graph. No ambient actor exists before or after.
+  {
+    const config = { modules: { ...plugins, "command-board": true } };
+    const mem = fixture(config, {
+      command_board_definitions: [
+        {
+          tenant_id: TENANT_A,
+          board_key: "alpha-lawn",
+          position: 0,
+          revision: 1,
+          document: COMMAND_BOARD_MODES.service.template("Alpha Lawn"),
+        },
+      ],
+    });
+    const db = bound(mem, TENANT_A);
+    const actorFor = (userId: string): TenantActorContext => ({
+      kind: "actor",
+      tenant: { id: TENANT_A, slug: "alpha", name: "Alpha", status: "active", config },
+      user: { id: userId, email: "admin@a.example" },
+      role: "admin",
+      isPlatformAdmin: false,
+      database: db,
+    });
+    let authorization: unknown = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const http: { GET?: () => Promise<NextResponse> } = {};
+    const load = createRequire(resolve("package.json"));
+    runInNewContext(
+      ts.transpileModule(readFileSync("src/app/api/admin/board/route.ts", "utf8"), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+      }).outputText,
+      {
+        exports: http,
+        console,
+        Error,
+        require: (name: string) =>
+          name === "@/lib/admin/module-guard"
+            ? { requireAdminForModule: async () => authorization }
+            : load(name.startsWith("@/") ? resolve("src", name.slice(2)) : name),
+      },
+    );
+    assert.equal((await http.GET!()).status, 401);
+    assert.ok(!mem.queryTables.includes("command_board_definitions"));
+
+    authorization = actorFor(USER.admin);
+    assert.equal(getTenantRequestContext(), undefined);
+    const response = await http.GET!();
+    assert.equal(response.status, 200, JSON.stringify(await response.clone().json()));
+    assert.equal(getTenantRequestContext(), undefined, "board authority stays in its handler");
+    const board = (await response.json()) as CommandBoardSnapshot;
+    const summary = (key: string, station: string) =>
+      board.summaries[boardNodeId("alpha-lawn", key, station)]!;
+    assert.deepEqual(summary("accounts", "customers").rows[0], {
+      label: "Open",
+      value: "2 people",
+    });
+    assert.deepEqual(
+      summary("growth", "growth-report").records.map((record) => record.href),
+      [`/admin/pipeline/${O1}`],
+    );
+    assert.equal(
+      summary("accounts", "invoices").status,
+      "attention",
+      "an open balance needs a person",
+    );
+
+    authorization = actorFor(USER.member);
+    const refused = (await (await http.GET!()).json()) as CommandBoardSnapshot;
+    assert.ok(
+      Object.values(refused.summaries).every((item) => item.records.length === 0),
+      "a non-admin member's stations read nothing",
+    );
+    assert.deepEqual(
+      refused.summaries[boardNodeId("alpha-lawn", "accounts", "customers")]!.rows[0],
+      {
+        label: "Sources",
+        value: "Unavailable right now",
+      },
+    );
+  }
+  check("board-route-reads-through-graph");
+
   // Shared services keep the routes' own read shapes.
   {
     const mem = fixture();
@@ -992,6 +1156,15 @@ async function main() {
           const secondPage = (await read(`?adapters=contacts&limit=5&cursor.contacts=${next}`))
             .body;
           assert.ok(secondPage.nodes.every((node) => node.sourceId > next));
+          const openTasks = (await read("?adapters=tasks,opportunities&open=true")).body;
+          assert.ok(
+            openTasks.nodes.every((node) =>
+              node.adapter === "tasks"
+                ? ["pending", "snoozed"].includes(node.status ?? "")
+                : !["won", "lost"].includes(node.status ?? ""),
+            ),
+            `${pack.id}: open keeps work in progress`,
+          );
           assert.equal((await read("?limit=500")).status, 400);
           const toggle = await window.fetch("/api/admin/tenant/modules", {
             method: "PATCH",

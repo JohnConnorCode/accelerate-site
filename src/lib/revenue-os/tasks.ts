@@ -22,6 +22,8 @@ type OperatorTask = {
 
 export interface TaskListInput {
   status?: "pending" | "snoozed" | "completed" | "all" | null;
+  /** Any of these statuses; used by graph reads of open work. */
+  statuses?: readonly string[];
   owner?: "team" | "me" | "unassigned" | null;
   /** Authenticated viewer for owner "me"; never caller-supplied identity. */
   viewerId?: string;
@@ -71,6 +73,7 @@ export async function listTasks(
   else query = query.order("created_at", { ascending: direction === "asc" });
 
   if (input.status && input.status !== "all") query = query.eq("status", input.status);
+  if (input.statuses) query = query.in("status", [...input.statuses]);
   if (input.id) query = query.eq("id", input.id);
   if (input.ids) query = query.in("id", input.ids);
   if (input.afterId) query = query.gt("id", input.afterId);

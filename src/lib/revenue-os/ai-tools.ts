@@ -3214,7 +3214,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "get_workspace_graph",
     description:
-      "Read workspace records as a graph of nodes and edges: contacts, companies, opportunities, tasks, pending approvals, conversations, collection cases and invoice drafts. Narrow with relatedTo (a node id such as contact:<id>) for one record's neighbourhood, ids for exact nodes, adapters for record types, and limit (default 50, max 200 per type). Each source reports ready, denied, module_disabled or unavailable with its own truncated flag and nextCursor; pass cursors.<adapter> to continue. Read only: it cannot change a record or its status.",
+      "Read workspace records as a graph of nodes and edges: contacts, companies, opportunities, tasks, pending approvals, conversations, collection cases and invoice drafts. Narrow with relatedTo (a node id such as contact:<id>) for one record's neighbourhood, ids for exact nodes, adapters for record types, limit (default 50, max 200 per type), and open: true for work still in progress. Nodes carry the record's due date, an attention flag and a link to the record. Each source reports ready, denied, module_disabled or unavailable with its own truncated flag and nextCursor; pass cursors.<adapter> to continue. Read only: it cannot change a record or its status.",
     inputSchema: z.toJSONSchema(workspaceGraphInputSchema) as Record<string, unknown>,
     parseInput: (raw) => workspaceGraphInputSchema.parse(raw),
     outputSchema: {

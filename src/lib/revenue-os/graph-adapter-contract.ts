@@ -65,6 +65,11 @@ export interface WorkspaceGraphNode {
   detail: string | null;
   /** Display copy of the source record's own status, never a graph-owned state. */
   status: string | null;
+  /** The record's own due or next-action date, when it has one. */
+  dueAt: string | null;
+  /** The record itself asks for a person: unread messages, a pending approval
+   * or an open balance. Date-based judgements are left to the reader's clock. */
+  attention: boolean;
   href: string | null;
 }
 
@@ -134,6 +139,10 @@ export const workspaceGraphInputSchema = z
     relatedTo: graphNodeIdSchema.optional(),
     limit: z.number().int().min(1).max(GRAPH_MAX_LIMIT).optional(),
     cursors: z.object(cursorShape).strict().optional(),
+    /** Only records still in progress (see GRAPH_OPEN_STATES). */
+    open: z.boolean().optional(),
+    /** `false` skips stored entity links when only nodes are needed. */
+    links: z.boolean().optional(),
   })
   .strict();
 export type WorkspaceGraphInput = z.input<typeof workspaceGraphInputSchema>;
@@ -148,10 +157,33 @@ export function parseGraphNodeId(nodeId: string): GraphNodeRef {
   return { type: nodeId.slice(0, index), id: nodeId.slice(index + 1) };
 }
 
+type OpenRule = { field: string; open?: readonly string[]; closed?: readonly string[] };
+
+/**
+ * What `open: true` keeps, per source with a lifecycle. Live adapters push the
+ * same lists into their queries and the demo filters rows with
+ * `isOpenGraphRow`. Approvals are always pending; contacts, companies and
+ * invoice drafts have no open state and are returned as read.
+ */
+export const GRAPH_OPEN_STATES = {
+  tasks: { field: "status", open: ["pending", "snoozed"] },
+  opportunities: { field: "stage", closed: ["won", "lost"] },
+  conversations: { field: "status", open: ["open", "waiting"] },
+  collection_cases: { field: "status", open: ["open"] },
+} as const satisfies Partial<Record<GraphAdapterName, OpenRule>>;
+
+export function isOpenGraphRow(adapter: GraphAdapterName, row: object): boolean {
+  const rule: OpenRule | undefined = GRAPH_OPEN_STATES[adapter as keyof typeof GRAPH_OPEN_STATES];
+  if (!rule) return true;
+  const value = String((row as Record<string, unknown>)[rule.field] ?? "");
+  return rule.open ? rule.open.includes(value) : !rule.closed?.includes(value);
+}
+
 /**
  * Parses the HTTP query form into the same input the tool accepts:
  * `adapters=contacts,tasks&ids=contact:<id>,task:<id>&relatedTo=contact:<id>`
- * `&limit=50&cursor.contacts=<id>`. Validation is the shared schema.
+ * `&limit=50&cursor.contacts=<id>&open=true&links=false`. Validation is the
+ * shared schema.
  */
 export function workspaceGraphInputFromQuery(params: URLSearchParams): ParsedWorkspaceGraphInput {
   const list = (key: string) =>
@@ -172,6 +204,8 @@ export function workspaceGraphInputFromQuery(params: URLSearchParams): ParsedWor
   if (params.get("relatedTo")) raw.relatedTo = params.get("relatedTo");
   if (limit !== null) raw.limit = Number(limit);
   if (Object.keys(cursors).length) raw.cursors = cursors;
+  for (const flag of ["open", "links"] as const)
+    if (params.has(flag)) raw[flag] = params.get(flag) === "true";
   return workspaceGraphInputSchema.parse(raw);
 }
 
@@ -218,6 +252,7 @@ function node(
   detail: Text,
   status: Text,
   href: string | null,
+  signals: { dueAt?: Text; attention?: boolean } = {},
 ): WorkspaceGraphNode {
   const sourceType = GRAPH_ADAPTER_SOURCE_TYPES[adapter];
   return {
@@ -229,6 +264,8 @@ function node(
     label: label.slice(0, 160),
     detail: detail ? detail.slice(0, 160) : null,
     status: status ? status.slice(0, 60) : null,
+    dueAt: text(signals.dueAt),
+    attention: signals.attention ?? false,
     href,
   };
 }
@@ -250,6 +287,8 @@ export interface GraphContactRow {
   id: string;
   full_name?: Text;
   primary_email?: Text;
+  title?: Text;
+  next_action_at?: Text;
   lifecycle_stage?: Text;
   company_id?: Text;
 }
@@ -263,6 +302,7 @@ export interface GraphOpportunityRow {
   id: string;
   name?: Text;
   stage?: Text;
+  next_action_at?: Text;
   contact_id?: Text;
   company_id?: Text;
 }
@@ -290,6 +330,7 @@ export interface GraphConversationRow {
   subject?: Text;
   channel?: Text;
   status?: Text;
+  unread_count?: number | null;
   contact_id?: Text;
   company_id?: Text;
   opportunity_id?: Text;
@@ -328,9 +369,10 @@ export const GRAPH_PROJECTIONS: GraphProjections = {
         "contact",
         row.id,
         text(row.full_name) ?? text(row.primary_email) ?? "Unnamed contact",
-        row.primary_email,
+        text(row.title) ?? row.primary_email,
         row.lifecycle_stage,
         `/admin/contacts/${encodeURIComponent(row.id)}`,
+        { dueAt: row.next_action_at },
       ),
     );
     return {
@@ -364,6 +406,7 @@ export const GRAPH_PROJECTIONS: GraphProjections = {
         null,
         row.stage,
         `/admin/pipeline/${encodeURIComponent(row.id)}`,
+        { dueAt: row.next_action_at },
       ),
     );
     return {
@@ -383,7 +426,8 @@ export const GRAPH_PROJECTIONS: GraphProjections = {
         text(row.title) ?? "Untitled task",
         row.due_date ? `Due ${row.due_date}` : null,
         row.status,
-        "/admin/work",
+        `/admin/work?task=${encodeURIComponent(row.id)}`,
+        { dueAt: row.due_date },
       ),
     );
     return {
@@ -409,6 +453,7 @@ export const GRAPH_PROJECTIONS: GraphProjections = {
         row.action_type,
         row.status,
         `/admin/work?tab=approvals&action=${encodeURIComponent(row.id)}`,
+        { attention: row.status === "pending" },
       ),
     );
     return {
@@ -428,7 +473,8 @@ export const GRAPH_PROJECTIONS: GraphProjections = {
         text(row.subject) ?? "Conversation without a subject",
         row.channel,
         row.status,
-        "/admin/conversations",
+        `/admin/conversations?thread=${encodeURIComponent(row.id)}`,
+        { attention: (row.unread_count ?? 0) > 0 },
       ),
     );
     return {
@@ -450,6 +496,7 @@ export const GRAPH_PROJECTIONS: GraphProjections = {
         row.nextAction,
         row.status,
         `/admin/collections?case=${encodeURIComponent(row.id)}`,
+        { attention: row.status === "open" },
       ),
     );
     return {

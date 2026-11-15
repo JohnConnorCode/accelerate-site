@@ -1,10 +1,11 @@
 /**
  * Fictional Command Board for the shared demo engine. Boards live in session
- * state; summaries, install planning, skill availability and record links use
- * the same functions as the live board, over the rows the rest of the demo shows.
+ * state; station records come through the demo workspace graph, and summaries,
+ * install planning and skill availability use the same functions as the live
+ * board, over the rows the rest of the demo shows.
  */
 import {
-  boardRecordHref,
+  COMMAND_BOARD_SOURCES,
   commandBoardDocumentSchema,
   commandBoardSaveSchema,
   type CommandBoardDocument,
@@ -16,11 +17,14 @@ import {
   planBoardInstall,
 } from "@/lib/revenue-os/command-board-modes";
 import {
+  BOARD_SOURCE_ADAPTERS,
+  boardReadsFromGraph,
   boardSkills,
   summarizeBoards,
   type BoardSourceReads,
-  type BoardSourceRecord,
 } from "@/lib/revenue-os/command-board-summary";
+import { GRAPH_MAX_LIMIT, type WorkspaceGraph } from "@/lib/revenue-os/graph-adapter-contract";
+import { demoWorkspaceGraph, type DemoGraphRows } from "./graph-runtime";
 import type { DemoScenarioPack } from "./scenarios";
 
 export type DemoBoardState = {
@@ -64,6 +68,9 @@ export function seedDemoBoards(pack: DemoScenarioPack): Board[] {
   if (pack.id !== "mlivm") return [];
   const estate = COMMAND_BOARD_MODES["real-estate"].template("MLIVM LLC");
   const service = COMMAND_BOARD_MODES.service.template("HI LAWN LLC");
+  // Collection cases carry the billing contact's name, so balance stations split by name.
+  const residents = ["okafor", "kowalczyk", "solberg"];
+  const lawnAccounts = ["henriksen", "ruiz", "tanaka"];
   return [
     {
       boardKey: "mlivm-llc",
@@ -75,8 +82,8 @@ export function seedDemoBoards(pack: DemoScenarioPack): Board[] {
           contractors: ["contractor", "electrician"],
           inquiries: ["available", "inquiry"],
           rooms: ["pricing", "vacancy"],
-          rent: ["resident"],
-          income: ["resident"],
+          rent: residents,
+          income: residents,
         },
         [
           {
@@ -96,7 +103,7 @@ export function seedDemoBoards(pack: DemoScenarioPack): Board[] {
       position: 1,
       revision: 1,
       document: withMatches(service, {
-        invoices: ["lawn customer", "hoa"],
+        invoices: lawnAccounts,
         customers: ["lawn customer", "hoa"],
         "growth-report": ["lawn", "mowing", "quote", "estimate", "cleanup", "aeration"],
       }),
@@ -104,81 +111,22 @@ export function seedDemoBoards(pack: DemoScenarioPack): Board[] {
   ];
 }
 
-type Row = Record<string, unknown>;
-const text = (value: unknown) => (typeof value === "string" ? value : "");
-const today = () => new Date().toISOString().slice(0, 10);
-
-/** Station records from the demo's existing rows. */
-export function demoBoardReads(input: {
-  pack: DemoScenarioPack;
-  tasks: Row[];
-  opportunities: Row[];
-  conversations: { id: string; subject: string; unread: number; personId: string }[];
-  actions: Row[];
-  collections: {
-    id: string;
-    contactId: string;
-    name: string;
-    status: string;
-    nextAction: string;
-  }[];
-}): BoardSourceReads {
-  const role = (id: string) => input.pack.people.find((person) => person.id === id)?.role ?? "";
-  const tasks: BoardSourceRecord[] = input.tasks
-    .filter((row) => row.status !== "completed")
-    .map((row) => ({
-      sourceType: "tasks",
-      sourceId: text(row.id),
-      title: text(row.title),
-      detail: text(row.related_name) || undefined,
-      dueAt: text(row.due_date) || null,
-      attention: Boolean(row.due_date && text(row.due_date) < today()),
-      href: boardRecordHref("tasks", text(row.id)),
-    }));
-  const opportunities: BoardSourceRecord[] = input.opportunities
-    .filter((row) => !["won", "lost"].includes(text(row.stage)))
-    .map((row) => ({
-      sourceType: "opportunities",
-      sourceId: text(row.id),
-      title: text(row.name),
-      detail: text(row.next_action) || undefined,
-      dueAt: text(row.next_action_at) || null,
-      href: boardRecordHref("opportunities", text(row.id)),
-    }));
-  const conversations: BoardSourceRecord[] = input.conversations.map((row) => ({
-    sourceType: "conversations",
-    sourceId: row.id,
-    title: row.subject,
-    attention: row.unread > 0,
-    href: boardRecordHref("conversations", row.id),
-  }));
-  const approvals: BoardSourceRecord[] = input.actions
-    .filter((row) => row.status === "pending")
-    .map((row) => ({
-      sourceType: "approvals",
-      sourceId: text(row.id),
-      title: text(row.title),
-      detail: text(row.description) || undefined,
-      attention: true,
-      href: boardRecordHref("approvals", text(row.id)),
-    }));
-  const collections: BoardSourceRecord[] = input.collections
-    .filter((row) => row.status !== "settled")
-    .map((row) => ({
-      sourceType: "collections",
-      sourceId: row.id,
-      title: `${row.name} · ${role(row.contactId) || "Customer"}`,
-      detail: row.nextAction,
-      attention: true,
-      href: boardRecordHref("collections", row.id),
-    }));
-  const contacts: BoardSourceRecord[] = input.pack.people.map((person) => ({
-    sourceType: "contacts",
-    sourceId: person.id,
-    title: `${person.name} · ${person.role} · ${person.company}`,
-    href: boardRecordHref("contacts", person.id, person.email),
-  }));
-  return { tasks, opportunities, conversations, approvals, collections, contacts };
+/** Station records through the demo graph read, the path the live board takes. */
+export function demoBoardReads(
+  rows: DemoGraphRows,
+  tenantConfig: { modules?: Partial<Record<string, boolean>> },
+): BoardSourceReads {
+  return boardReadsFromGraph(
+    COMMAND_BOARD_SOURCES.map((source) => {
+      const query = new URLSearchParams({
+        adapters: BOARD_SOURCE_ADAPTERS[source],
+        open: "true",
+        links: "false",
+        limit: String(GRAPH_MAX_LIMIT),
+      });
+      return demoWorkspaceGraph(rows, query, tenantConfig).body as WorkspaceGraph;
+    }),
+  );
 }
 
 export function demoBoardSnapshot(

@@ -69,10 +69,14 @@ async function readBoards(db: SupabaseClient, tenantId: string) {
 
 /** Boards with station summaries computed from source records at read time. */
 export async function readCommandBoard(db: SupabaseClient): Promise<CommandBoardSnapshot> {
-  actor(db);
+  const { user } = actor(db);
   const { tenantId, config } = await requireCommandBoard(db);
   const boards = await readBoards(db, tenantId);
-  const reads = await readBoardSources(db, boardSources(boards));
+  const reads = await readBoardSources(
+    db,
+    { kind: "workspace_member", email: user.email ?? "", userId: user.id },
+    boardSources(boards),
+  );
   return {
     boards,
     summaries: summarizeBoards(boards, reads),

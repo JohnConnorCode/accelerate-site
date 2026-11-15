@@ -50,6 +50,7 @@ export interface ConversationFilter {
     contactId?: string;
     companyId?: string;
     opportunityId?: string;
+    statuses?: readonly string[];
   };
 }
 
@@ -176,6 +177,7 @@ export async function listConversations(
     if (graphWindow.companyId) listQuery = listQuery.eq("company_id", graphWindow.companyId);
     if (graphWindow.opportunityId)
       listQuery = listQuery.eq("opportunity_id", graphWindow.opportunityId);
+    if (graphWindow.statuses) listQuery = listQuery.in("status", [...graphWindow.statuses]);
   } else
     listQuery = listQuery
       .order("last_message_at", { ascending: false, nullsFirst: false })

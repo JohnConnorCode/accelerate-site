@@ -6,6 +6,7 @@ import {
   GRAPH_PROJECTIONS,
   assembleWorkspaceGraph,
   graphNodeId,
+  isOpenGraphRow,
   parseGraphNodeId,
   windowRows,
   workspaceGraphInputFromQuery,
@@ -73,7 +74,9 @@ export function demoWorkspaceGraph(
   const enabled: GraphAdapterName[] = [];
 
   for (const name of requested) {
-    const all: Rows = rows[name];
+    const all: Rows = input.open
+      ? rows[name].filter((row) => isOpenGraphRow(name, row))
+      : rows[name];
     if (!isGraphAdapterModuleEnabled(name, tenantConfig).enabled) {
       receipts.push({
         adapter: name,

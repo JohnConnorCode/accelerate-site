@@ -10,12 +10,21 @@ import {
   COMMAND_BOARD_MODE_KEYS,
 } from "../src/lib/revenue-os/command-board-modes";
 import {
+  boardReadsFromGraph,
   boardSources,
   matchesBinding,
   summarizeBoards,
   summarizeStation,
   type BoardSourceReads,
+  type BoardSourceRecord,
 } from "../src/lib/revenue-os/command-board-summary";
+import {
+  GRAPH_PROJECTIONS,
+  assembleWorkspaceGraph,
+  type GraphProjection,
+  type WorkspaceGraph,
+} from "../src/lib/revenue-os/graph-adapter-contract";
+import type { DemoGraphRows } from "../src/lib/admin/demo/graph-runtime";
 import {
   commandBoardCanvasNodes,
   commandBoardStations,
@@ -104,31 +113,32 @@ assert.throws(
 );
 
 // Summaries are computed from records, never stored, and never show a false zero.
+const taskRecords: BoardSourceRecord[] = [
+  {
+    sourceType: "tasks",
+    sourceId: "t1",
+    title: "Countertop install milestone",
+    dueAt: "2026-11-10",
+    attention: true,
+    href: "/admin/work?task=t1",
+  },
+  {
+    sourceType: "tasks",
+    sourceId: "t2",
+    title: "Final permit inspection",
+    blocked: true,
+    href: "/admin/work?task=t2",
+  },
+  {
+    sourceType: "tasks",
+    sourceId: "t3",
+    title: "Cabinet install milestone",
+    dueAt: "2026-11-30",
+    href: "/admin/work?task=t3",
+  },
+];
 const reads: BoardSourceReads = {
-  tasks: [
-    {
-      sourceType: "tasks",
-      sourceId: "t1",
-      title: "Countertop install milestone",
-      dueAt: "2026-11-10",
-      attention: true,
-      href: "/admin/work?task=t1",
-    },
-    {
-      sourceType: "tasks",
-      sourceId: "t2",
-      title: "Final permit inspection",
-      blocked: true,
-      href: "/admin/work?task=t2",
-    },
-    {
-      sourceType: "tasks",
-      sourceId: "t3",
-      title: "Cabinet install milestone",
-      dueAt: "2026-11-30",
-      href: "/admin/work?task=t3",
-    },
-  ],
+  tasks: { records: taskRecords, truncated: false },
   conversations: "unavailable",
 };
 const milestones = summarizeStation("m", [{ source: "tasks", match: ["milestone"] }], reads);
@@ -152,13 +162,96 @@ assert.deepEqual(
 );
 assert.deepEqual(down.unavailable, ["conversations"]);
 assert(
-  matchesBinding(reads.tasks![0]!, { source: "tasks", match: ["COUNTERTOP"] }),
+  matchesBinding(taskRecords[0]!, { source: "tasks", match: ["COUNTERTOP"] }),
   "Matching ignores case",
 );
 assert(
-  !matchesBinding(reads.tasks![0]!, { source: "opportunities", match: [] }),
+  matchesBinding(
+    { ...taskRecords[2]!, detail: "Kitchen phase" },
+    { source: "tasks", match: ["kitchen"] },
+  ),
+  "Keywords match a record's detail as well as its title",
+);
+assert(
+  !matchesBinding(taskRecords[0]!, { source: "opportunities", match: [] }),
   "Sources never cross",
 );
+assert.deepEqual(
+  summarizeStation("m", [{ source: "tasks", match: ["milestone"] }], {
+    tasks: { records: taskRecords, truncated: true },
+  }).rows[0],
+  { label: "Open", value: "2+ tasks" },
+  "A source with more open records than were read shows a +",
+);
+
+// Graph reads: nodes become station records; a refused source is unavailable, not zero.
+const graph = (projections: GraphProjection[], sources: WorkspaceGraph["sources"]) =>
+  assembleWorkspaceGraph({
+    projections,
+    sources,
+    links: { state: "skipped", truncated: false },
+    perAdapter: 200,
+  });
+const ready = (adapter: WorkspaceGraph["sources"][number]["adapter"], truncated = false) => ({
+  adapter,
+  state: "ready" as const,
+  nodes: 0,
+  truncated,
+  nextCursor: null,
+});
+const graphReads = boardReadsFromGraph(
+  [
+    graph(
+      [
+        GRAPH_PROJECTIONS.tasks([
+          { id: "t1", title: "Roof milestone", status: "pending", due_date: "2026-11-01" },
+        ]),
+      ],
+      [ready("tasks", true)],
+    ),
+    graph(
+      [
+        GRAPH_PROJECTIONS.tasks([
+          { id: "t2", title: "Siding milestone", status: "pending", due_date: "2026-12-01" },
+        ]),
+      ],
+      [ready("tasks")],
+    ),
+    graph(
+      [GRAPH_PROJECTIONS.approvals([{ id: "a1", title: "Approve draw", status: "pending" }])],
+      [ready("approvals")],
+    ),
+    graph(
+      [],
+      [
+        {
+          adapter: "collection_cases",
+          state: "module_disabled",
+          nodes: 0,
+          truncated: false,
+          nextCursor: null,
+        },
+      ],
+    ),
+  ],
+  "2026-11-14",
+);
+assert.deepEqual(
+  graphReads.tasks !== "unavailable" &&
+    graphReads.tasks?.records.map((record) => [record.sourceId, record.attention, record.href]),
+  [
+    ["t1", true, "/admin/work?task=t1"],
+    ["t2", false, "/admin/work?task=t2"],
+  ],
+  "Pages merge, and a task past its date needs a person",
+);
+assert.equal(graphReads.tasks !== "unavailable" && graphReads.tasks?.truncated, false);
+assert.equal(
+  graphReads.approvals !== "unavailable" && graphReads.approvals?.records[0]?.attention,
+  true,
+);
+assert.equal(graphReads.collections, "unavailable", "A disabled source is unavailable");
+assert.equal(graphReads.contacts, undefined, "An unread source is left out");
 
 // Canvas projection: one anchor per board, unique ids, statuses from summaries, kinds held to the floors.
 const boards: CommandBoardSnapshot["boards"] = [
@@ -208,40 +301,61 @@ assert.deepEqual(
   [],
   "Other workspaces start with setup",
 );
-const demoReads = demoBoardReads({
-  pack,
+const demoRows: DemoGraphRows = {
+  contacts: pack.people.map((person) => ({
+    id: person.id,
+    full_name: person.name,
+    primary_email: person.email,
+    title: person.role,
+  })),
+  companies: [],
+  opportunities: pack.opportunities.map((o) => ({ id: o.id, name: o.name, stage: o.stage })),
   tasks: pack.tasks.map((task) => ({
     id: task.id,
     title: task.title,
     status: task.status,
     due_date: "2026-11-20",
   })),
-  opportunities: pack.opportunities.map((o) => ({
-    id: o.id,
-    name: o.name,
-    stage: o.stage,
-    next_action: o.nextAction,
-  })),
-  conversations: pack.conversations,
-  actions: pack.actions.map((a) => ({
+  approvals: pack.actions.map((a) => ({
     id: a.id,
     title: a.title,
-    description: a.description,
+    action_type: a.type,
     status: "pending",
   })),
-  collections: [],
-});
+  conversations: pack.conversations.map((c) => ({
+    id: c.id,
+    subject: c.subject,
+    status: "open",
+    unread_count: c.unread,
+  })),
+  collection_cases: pack.people.slice(0, 5).map((person, index) => ({
+    id: `00000000-0000-4000-8500-00000000000${index + 1}`,
+    contactId: person.id,
+    name: person.name,
+    currency: "usd",
+    status: "open",
+    nextAction: "Review overdue invoices",
+  })),
+  invoice_drafts: [],
+};
+const demoReads = demoBoardReads(demoRows, { modules: { "receivables-collections": true } });
 const demoSummaries = summarizeBoards(seeded, demoReads);
 const idleStations = Object.entries(demoSummaries)
-  .filter(
-    ([id, summary]) =>
-      summary.status === "idle" && !id.includes(":collections") && !id.endsWith(":expenses"),
-  )
+  .filter(([id, summary]) => summary.status === "idle" && !id.endsWith(":expenses"))
   .map(([id]) => id);
+assert.deepEqual(idleStations, [], "Every MLIVM station finds fictional records");
+const balances = (key: string) =>
+  demoSummaries[key]!.records.map((record) => record.title.split(" (")[0]);
 assert.deepEqual(
-  idleStations.filter((id) => !/:(rent|income|invoices)$/.test(id)),
-  [],
-  "Every MLIVM station except balance stations finds fictional records",
+  balances(boardNodeId("hi-lawn-llc", "accounts", "invoices")),
+  ["Gus Henriksen", "Benji Ruiz"],
+  "HI LAWN chases only its own balances",
+);
+assert.ok(
+  balances(boardNodeId("mlivm-llc", "pm", "rent-roll", "rent")).every((name) =>
+    ["Talia Okafor", "Dara Kowalczyk", "Priyanka Solberg"].includes(name!),
+  ),
+  "MLIVM rent shows residents only",
 );
 
 async function demoTransport() {

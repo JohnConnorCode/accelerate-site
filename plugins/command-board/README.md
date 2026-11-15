@@ -24,12 +24,16 @@ where the existing permissions and approvals apply.
   `src/lib/revenue-os/command-board-modes.ts`. Installing a mode copies its
   template into the workspace's own board, which can then change. A new mode is
   a new template, not new board code.
-- **Station status is never stored.** Each request reads the record sources the
+- **Station status is never stored.** Each request reads the open records the
   stations name (tasks, opportunities, conversations, approvals, collections
-  and people) through their owning services and summarizes them with
-  `summarizeStation` in `command-board-summary.ts`. A station matches records
-  whose title contains its keywords; with no keywords it shows every open
-  record from its source.
+  and people) through the workspace graph adapters in
+  `src/lib/revenue-os/graph-adapters.ts`, so each source keeps its owning
+  service, module claim and admin check. `boardReadsFromGraph` and
+  `summarizeStation` in `command-board-summary.ts` turn the graph nodes into
+  station summaries. A station matches records whose title or detail contains
+  its keywords; with no keywords it shows every open record from its source.
+  Each source reads up to 1,000 open records, and a larger source shows its
+  count with a "+".
 - **The canvas is shared.** The board renders through the shared canvas view in
   `src/components/canvas`, so keyboard navigation, touch, reduced motion and
   workspace appearances behave as they do on Today.

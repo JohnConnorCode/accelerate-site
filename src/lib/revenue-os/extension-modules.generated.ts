@@ -1775,7 +1775,7 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     href: "/admin/board",
     icon: "LayoutDashboard",
     description: "See every business as a live desk of stations",
-    keywords: ["board", "desk", "stations", "mode", "canvas"],
+    keywords: "board desk stations mode canvas business",
     moreGroup: "Delivery",
   },
   {

@@ -92,6 +92,8 @@ export async function listOpportunities(
     search?: string | null;
     contactId?: string;
     companyId?: string;
+    /** Leave out these stages; used by graph reads of open work. */
+    excludeStages?: readonly string[];
     window?: RecordWindow;
   } = {},
 ): Promise<{ schemaReady: boolean; opportunities: OpportunityListRow[] }> {
@@ -109,6 +111,8 @@ export async function listOpportunities(
   if (input.stage) query = query.eq("stage", input.stage);
   if (input.contactId) query = query.eq("contact_id", input.contactId);
   if (input.companyId) query = query.eq("company_id", input.companyId);
+  if (input.excludeStages?.length)
+    query = query.not("stage", "in", `(${input.excludeStages.join(",")})`);
   if (input.search)
     query = query.or(
       `name.ilike.%${input.search.replace(/[,%]/g, "")}%,email.ilike.%${input.search.replace(/[,%]/g, "")}%`,

@@ -153,25 +153,6 @@ export interface CommandBoardSnapshot {
   observedAt: string;
 }
 
-/** Where each source's record opens, so the live board and the demo link the same way. */
-export function boardRecordHref(source: CommandBoardSource, id: string, email?: string) {
-  const value = encodeURIComponent(id);
-  switch (source) {
-    case "tasks":
-      return `/admin/work?task=${value}`;
-    case "opportunities":
-      return `/admin/pipeline/${value}`;
-    case "conversations":
-      return `/admin/conversations?thread=${value}`;
-    case "approvals":
-      return `/admin/work?tab=approvals&action=${value}`;
-    case "collections":
-      return `/admin/collections?case=${value}`;
-    case "contacts":
-      return `/admin/contacts/${encodeURIComponent(email ?? id)}`;
-  }
-}
-
 /** Stable display id of a board node from its key path. */
 export const boardNodeId = (boardKey: string, ...path: string[]) =>
   ["board", boardKey, ...path].join(":");

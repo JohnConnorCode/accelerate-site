@@ -566,7 +566,7 @@ function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
   });
 }
 
-/** Pending proposals shown in Approvals; the Command Board reads the same list. */
+/** Pending proposals shown in Approvals; the workspace graph reads the same list. */
 function pendingActionRows(pack: DemoScenarioPack, state: DemoState, business: DemoBusinessState) {
   return [
     ...(state.agentProposals ?? []).filter((item) => item.status === "pending"),
@@ -689,6 +689,7 @@ function demoGraphRows(
         id: p.id,
         full_name: p.name,
         primary_email: p.email,
+        title: p.role,
         lifecycle_stage: "contact",
         company_id: p.company ? companyId(p.company) : null,
       })),
@@ -706,24 +707,32 @@ function demoGraphRows(
       domain: null,
       industry: pack.category,
     })),
-    opportunities: pack.opportunities.map((o) => ({
-      id: o.id,
-      name: o.name,
-      stage: state.stageOverrides[o.id] || o.stage,
-      contact_id: o.personId,
-      company_id: o.company ? companyId(o.company) : null,
-    })),
+    opportunities: opportunityRows(pack, state).map((row, index) => {
+      const source = pack.opportunities[index]!;
+      return {
+        id: row.id,
+        name: row.name,
+        stage: row.stage,
+        next_action_at: row.next_action_at,
+        contact_id: source.personId,
+        company_id: source.company ? companyId(source.company) : null,
+      };
+    }),
     tasks: demoTaskRows(pack, state),
-    approvals: pack.actions
-      .filter((a) => !state.completedActions.includes(a.id))
-      .map((a) => ({
-        id: a.id,
-        title: a.title,
-        action_type: a.type,
-        status: "pending",
-        entity_type: "contact",
-        entity_id: a.personId,
-      })),
+    // Every pending proposal, as the live approvals adapter reads action_queue.
+    approvals: pendingActionRows(pack, state, business)
+      .filter((row) => row.status === "pending")
+      .map((row) => {
+        const personId = pack.actions.find((action) => action.id === row.id)?.personId;
+        return {
+          id: String(row.id),
+          title: String(row.title ?? ""),
+          action_type: String(row.action_type ?? ""),
+          status: "pending",
+          entity_type: personId ? "contact" : null,
+          entity_id: personId ?? null,
+        };
+      }),
     conversations: conversations(
       pack,
       state,
@@ -3440,18 +3449,18 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
       }),
       state: () => (state.commandBoards ??= { boards: seedDemoBoards(pack), receipts: {} }),
-      reads: () =>
-        demoBoardReads({
-          pack,
-          tasks: demoTaskRows(pack, state),
-          opportunities: opportunityRows(pack, state),
-          conversations: pack.conversations,
-          actions: pendingActionRows(pack, state, business),
-          collections:
-            state.moduleOverrides["receivables-collections"] === false
-              ? []
-              : seedDemoCollections(pack, business),
-        }),
+      reads: () => {
+        const graphConfig = { modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } };
+        return demoBoardReads(
+          demoGraphRows(
+            pack,
+            state,
+            business,
+            isModuleEnabled("receivables-collections", graphConfig),
+          ),
+          graphConfig,
+        );
+      },
       save: () => {
         saveState(scenarioId, state);
         window.dispatchEvent(new Event("admin:demo-state"));

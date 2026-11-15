@@ -1,17 +1,30 @@
 /**
- * Read-time station summaries. A station shows the source records whose title
- * matches its keywords: how many are open, which one is next, and a status
- * light derived from the records themselves. Nothing is stored or copied.
+ * Read-time station summaries. A station shows the open source records whose
+ * title or detail matches its keywords: how many are open, which one is next,
+ * and a status light derived from the records themselves. Records arrive
+ * through the workspace graph adapters; nothing is stored or copied.
  */
 import {
+  COMMAND_BOARD_SOURCES,
   boardNodeId,
   type CommandBoardSnapshot,
   type CommandBoardSource,
   type CommandBoardSourceBinding,
   type CommandBoardStationSummary,
 } from "./command-board-contract";
+import type { GraphAdapterName, WorkspaceGraph } from "./graph-adapter-contract";
 
-/** A source record as a station sees it, read through the source's owning service. */
+/** The graph adapter that reads each board source. */
+export const BOARD_SOURCE_ADAPTERS = {
+  tasks: "tasks",
+  opportunities: "opportunities",
+  conversations: "conversations",
+  approvals: "approvals",
+  collections: "collection_cases",
+  contacts: "contacts",
+} as const satisfies Record<CommandBoardSource, GraphAdapterName>;
+
+/** A source record as a station sees it: one graph node of that source. */
 export interface BoardSourceRecord {
   sourceType: CommandBoardSource;
   sourceId: string;
@@ -25,9 +38,57 @@ export interface BoardSourceRecord {
   href: string;
 }
 
-export type BoardSourceReads = Partial<
-  Record<CommandBoardSource, BoardSourceRecord[] | "unavailable">
->;
+export interface BoardSourceRead {
+  records: BoardSourceRecord[];
+  /** More open records exist than were read; counts show a "+". */
+  truncated: boolean;
+}
+
+export type BoardSourceReads = Partial<Record<CommandBoardSource, BoardSourceRead | "unavailable">>;
+
+/**
+ * Station records from workspace graph reads, one or more pages per source. A
+ * source whose receipt is not ready (refused, module off, failed) is
+ * unavailable, never zero. A task or opportunity past its date needs a person
+ * by the reader's clock.
+ */
+export function boardReadsFromGraph(
+  graphs: readonly WorkspaceGraph[],
+  today = new Date().toISOString().slice(0, 10),
+): BoardSourceReads {
+  const reads: BoardSourceReads = {};
+  for (const source of COMMAND_BOARD_SOURCES) {
+    const adapter = BOARD_SOURCE_ADAPTERS[source];
+    const read: BoardSourceRead = { records: [], truncated: false };
+    let state: "unread" | "ready" | "unavailable" = "unread";
+    for (const graph of graphs) {
+      const receipt = graph.sources.find((item) => item.adapter === adapter);
+      if (!receipt || state === "unavailable") continue;
+      if (receipt.state !== "ready") {
+        state = "unavailable";
+        continue;
+      }
+      state = "ready";
+      read.truncated = receipt.truncated || graph.truncated.nodes;
+      for (const node of graph.nodes) {
+        if (node.adapter !== adapter || !node.href) continue;
+        const overdue = Boolean(node.dueAt && node.dueAt.slice(0, 10) < today);
+        read.records.push({
+          sourceType: source,
+          sourceId: node.sourceId,
+          title: node.label,
+          detail: node.detail ?? undefined,
+          dueAt: node.dueAt,
+          attention:
+            node.attention || (overdue && (source === "tasks" || source === "opportunities")),
+          href: node.href,
+        });
+      }
+    }
+    if (state !== "unread") reads[source] = state === "ready" ? read : "unavailable";
+  }
+  return reads;
+}
 
 const NOUNS: Record<CommandBoardSource, [string, string]> = {
   tasks: ["task", "tasks"],
@@ -50,8 +111,8 @@ function shortDate(value: string | null | undefined) {
 export function matchesBinding(record: BoardSourceRecord, binding: CommandBoardSourceBinding) {
   if (record.sourceType !== binding.source) return false;
   if (!binding.match.length) return true;
-  const title = record.title.toLowerCase();
-  return binding.match.some((word) => title.includes(word.toLowerCase()));
+  const text = `${record.title} ${record.detail ?? ""}`.toLowerCase();
+  return binding.match.some((word) => text.includes(word.toLowerCase()));
 }
 
 export function summarizeStation(
@@ -66,10 +127,12 @@ export function summarizeStation(
     .map((binding) => binding.source);
   const seen = new Set<string>();
   const records: BoardSourceRecord[] = [];
+  const truncated = new Set<CommandBoardSource>();
   for (const binding of bindings) {
-    const list = reads[binding.source];
-    if (!Array.isArray(list)) continue;
-    for (const record of list) {
+    const read = reads[binding.source];
+    if (!read || read === "unavailable") continue;
+    if (read.truncated) truncated.add(binding.source);
+    for (const record of read.records) {
       const key = `${record.sourceType}:${record.sourceId}`;
       if (seen.has(key) || !matchesBinding(record, binding)) continue;
       seen.add(key);
@@ -90,7 +153,11 @@ export function summarizeStation(
     rows.push({
       label: "Open",
       value: [...counts]
-        .map(([source, count]) => `${count} ${NOUNS[source][count === 1 ? 0 : 1]}`)
+        .map(([source, count]) =>
+          truncated.has(source)
+            ? `${count}+ ${NOUNS[source][1]}`
+            : `${count} ${NOUNS[source][count === 1 ? 0 : 1]}`,
+        )
         .join(" · "),
     });
     const first = records[0]!;

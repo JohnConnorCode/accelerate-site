@@ -256,8 +256,13 @@ export class MemorySupabase {
       filters.push((row) => (value === null ? row[column] == null : row[column] === value));
       return self;
     };
-    self.not = (column: string, _operator: string, value: unknown) => {
-      filters.push((row) => (value === null ? row[column] != null : row[column] !== value));
+    self.not = (column: string, operator: string, value: unknown) => {
+      if (operator === "in") {
+        const excluded = String(value)
+          .replace(/^\(|\)$/g, "")
+          .split(",");
+        filters.push((row) => !excluded.includes(String(row[column])));
+      } else filters.push((row) => (value === null ? row[column] != null : row[column] !== value));
       return self;
     };
     self.or = (expression: string) => {
