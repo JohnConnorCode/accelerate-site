@@ -80,15 +80,16 @@ const EXTERNAL_ACTIONS = new Set([
 
 export function approvalKind(action: Pick<ActionRow, "action_type">) {
   const external = EXTERNAL_ACTIONS.has(action.action_type);
-  const label =
+  const [label, short] =
     action.action_type === "create_gmail_draft"
-      ? "Gmail Draft"
+      ? ["Gmail Draft", "Gmail draft"]
       : external
-        ? "External Action"
+        ? ["External Action", "External"]
         : action.action_type === "workspace_configuration_change"
-          ? "Configuration"
-          : "Internal Mutation";
-  return { external, label };
+          ? ["Configuration", "Configuration"]
+          : ["Internal Mutation", "Internal"];
+  /** `short` fits one canvas line beside the proposal's age. */
+  return { external, label, short };
 }
 
 /** The operation name shown under a proposal's title. */

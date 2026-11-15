@@ -620,7 +620,7 @@ export function ActionReviewDialog({
             </div>
           )}
 
-          {action.expires_at && (
+          {action.expires_at && state.open && (
             <p className="admin-copy text-[11px]">
               Expires{" "}
               {relativeTime(action.expires_at)

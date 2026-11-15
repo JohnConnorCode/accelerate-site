@@ -100,7 +100,7 @@ export function ApprovalCanvasContent(node: CanvasNode<ApprovalCanvasDatum>, lev
       level={level}
       meta={
         <span>
-          {kind.label} · Proposed {elapsedTime(action.created_at)}
+          {kind.short} · {elapsedTime(action.created_at)}
         </span>
       }
     />

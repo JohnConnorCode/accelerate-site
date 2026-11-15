@@ -224,7 +224,7 @@ export type DemoState = {
   learning?: DemoLearningState;
   completedActions: string[];
   /** How each completed scenario proposal was decided, so a fresh read shows it. */
-  actionDecisions?: Record<string, "approved" | "rejected">;
+  actionDecisions?: Record<string, "executed" | "rejected">;
   completedTasks: string[];
   resolvedIdentityReviews: string[];
   subscriptionOverrides?: DemoSubscriptionsState;
@@ -578,7 +578,7 @@ function scenarioActionRows(pack: DemoScenarioPack, state: DemoState) {
     urgency: index < 2 ? "high" : "normal",
     reasoning: item.description,
     status: state.completedActions.includes(item.id)
-      ? (state.actionDecisions?.[item.id] ?? "approved")
+      ? (state.actionDecisions?.[item.id] ?? "executed")
       : "pending",
     created_at: ago(index + 1),
     expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
@@ -5039,7 +5039,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       state.completedActions.push(action.id);
       state.actionDecisions = {
         ...state.actionDecisions,
-        [action.id]: body.decision === "approve" ? "approved" : "rejected",
+        // The demo completes an approved proposal at once, as its receipt says.
+        [action.id]: body.decision === "approve" ? "executed" : "rejected",
       };
       business.receipts.unshift({
         id: crypto.randomUUID(),

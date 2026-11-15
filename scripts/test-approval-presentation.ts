@@ -27,6 +27,7 @@ const row = (patch: Partial<ActionRow>): ActionRow => ({
 assert.deepEqual(approvalKind(row({ action_type: "send_gmail_reply" })), {
   external: true,
   label: "External Action",
+  short: "External",
 });
 assert.equal(approvalKind(row({ action_type: "create_gmail_draft" })).label, "Gmail Draft");
 assert.equal(
@@ -36,6 +37,7 @@ assert.equal(
 assert.deepEqual(approvalKind(row({ action_type: "create_task" })), {
   external: false,
   label: "Internal Mutation",
+  short: "Internal",
 });
 assert.equal(
   approvalTypeLabel(row({ action_type: "transition_opportunity" })),

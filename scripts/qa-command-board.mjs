@@ -130,7 +130,7 @@ try {
     await card.waitFor();
     assert.match(
       await card.innerText(),
-      /Internal Mutation[\s\S]*Approve lender draw[\s\S]*Moves this opportunity/,
+      /internal mutation[\s\S]*approve lender draw[\s\S]*moves this opportunity/i,
       "The station shows the approval card with its kind and consequence",
     );
     const opener = panel.getByRole("link", { name: /^Review Approve lender draw/ });
@@ -148,7 +148,11 @@ try {
     await page.goto(new URL(href, base).toString(), { waitUntil: "networkidle" });
     const decided = page.locator('[data-review-state="decided"]');
     await decided.waitFor();
-    assert.match(await decided.innerText(), /Approved/, "A decided proposal shows its decision");
+    assert.match(
+      await decided.innerText(),
+      /Approved and done/,
+      "A decided proposal shows its decision",
+    );
     assert.equal(
       await page.locator("[data-review-decision]").count(),
       0,
