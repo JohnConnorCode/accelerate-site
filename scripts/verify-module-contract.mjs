@@ -13,6 +13,8 @@
  * - every module's aiToolNames must be registered in ai-tools.ts
  * - every registered AI tool must belong to exactly one module, so a new tool
  *   cannot escape module gating by not being claimed
+ * - every module's graphAdapterNames must be registered in graph-adapters.ts,
+ *   and every registered graph adapter must belong to exactly one module
  */
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -46,6 +48,7 @@ function parseModules(source) {
       id,
       navLinkIds: pick("navLinkIds"),
       aiToolNames: pick("aiToolNames"),
+      graphAdapterNames: pick("graphAdapterNames"),
       routes: pick("routes"),
       setupChecks: pick("setupChecks"),
       docsUrl: block.match(/"?docsUrl"?:\s*"([^"]+)"/)?.[1] ?? null,
@@ -144,7 +147,7 @@ const runtimeTools = JSON.parse(
       "--import",
       "tsx",
       "-e",
-      `const {getRevenueAiTools,REVENUE_TOOL_PACKS}=require('./src/lib/revenue-os/ai-tools.ts'); const {SITE_EDITOR_TOOL_NAMES}=require('./src/lib/site-studio/editor-contract.ts'); process.stdout.write(JSON.stringify({registered:getRevenueAiTools().map(t=>t.name),packed:REVENUE_TOOL_PACKS.flatMap(p=>getRevenueAiTools(p).map(t=>t.name)),editor:SITE_EDITOR_TOOL_NAMES}));`,
+      `const {getRevenueAiTools,REVENUE_TOOL_PACKS}=require('./src/lib/revenue-os/ai-tools.ts'); const {SITE_EDITOR_TOOL_NAMES}=require('./src/lib/site-studio/editor-contract.ts'); const {GRAPH_ADAPTERS}=require('./src/lib/revenue-os/graph-adapters.ts'); process.stdout.write(JSON.stringify({registered:getRevenueAiTools().map(t=>t.name),packed:REVENUE_TOOL_PACKS.flatMap(p=>getRevenueAiTools(p).map(t=>t.name)),editor:SITE_EDITOR_TOOL_NAMES,graphAdapters:GRAPH_ADAPTERS.map(a=>a.name)}));`,
     ],
     { cwd: repoRoot, encoding: "utf8" },
   ),
@@ -175,6 +178,40 @@ for (const tool of registeredTools) {
   if (!claimedTools.has(tool)) {
     failures.push(
       `AI tool "${tool}" is registered but claimed by no module, so module gating would never apply to it. Add it to a module's aiToolNames in modules.ts.`,
+    );
+  }
+}
+
+// --- Graph adapters --------------------------------------------------------
+// Same rule as AI tools, in both directions: a claim must name a registered
+// adapter, and a registered adapter must be claimed by exactly one module, or
+// disabling its module would never remove it from the workspace graph.
+const registeredAdapters = new Set(runtimeTools.graphAdapters);
+if (registeredAdapters.size < 1) {
+  failures.push(
+    "Parsed no graph adapters from graph-adapters.ts; the parser and the file have drifted.",
+  );
+}
+const claimedAdapters = new Map();
+for (const mod of modules) {
+  for (const adapter of mod.graphAdapterNames) {
+    if (!registeredAdapters.has(adapter)) {
+      failures.push(
+        `Module "${mod.id}" declares graphAdapterName "${adapter}", which is not registered in graph-adapters.ts.`,
+      );
+    }
+    if (claimedAdapters.has(adapter)) {
+      failures.push(
+        `Graph adapter "${adapter}" is claimed by both "${claimedAdapters.get(adapter)}" and "${mod.id}". An adapter belongs to exactly one module.`,
+      );
+    }
+    claimedAdapters.set(adapter, mod.id);
+  }
+}
+for (const adapter of registeredAdapters) {
+  if (!claimedAdapters.has(adapter)) {
+    failures.push(
+      `Graph adapter "${adapter}" is registered but claimed by no module, so module gating would never apply to it. Add it to a module's graphAdapterNames.`,
     );
   }
 }
@@ -264,6 +301,7 @@ console.log(
       navLinks: navIds.size,
       adminRoutes: existingRoutes.size,
       aiTools: registeredTools.size,
+      graphAdapters: registeredAdapters.size,
       setupChecks: setupCheckIds.size,
     },
     null,

@@ -2,10 +2,10 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { getEntityType } from "./entity-registry";
-import { isModuleEnabled } from "./modules";
+import { isModuleEnabled, GRAPH_ADAPTER_TO_MODULE_MAP } from "./modules";
 import type { CapabilityGrant } from "./capability-data-api";
 
-export const RECORD_PERMISSION_VERSION = "revenue-os-record-permissions.v1";
+export const RECORD_PERMISSION_VERSION = "revenue-os-record-permissions.v2";
 
 /** Operations the shared evaluator governs. Reads and exports never mutate;
  * writes and actions must additionally pass autonomy and approval upstream. */
@@ -17,6 +17,9 @@ export interface RecordPermissionPrincipal {
   kind: RecordPermissionPrincipalKind;
   /** Actor email, or the stable system identity (e.g. "cron", "mcp:bearer"). */
   email: string;
+  /** Authenticated user id. When present the membership is matched by this
+   * canonical id instead of the invited email. */
+  userId?: string;
 }
 
 export type RecordDenyCode =
@@ -63,6 +66,9 @@ export interface AuthorizeRecordAccessInput {
   field?: string;
   /** Grant the caller acts under for registered custom types. */
   grant?: CapabilityGrant;
+  /** Require the admin role even for reads. Cross-source projections (the
+   * workspace graph) use it so a future lesser role fails closed. */
+  adminOnly?: boolean;
   /** Precomputed autonomy verdict from checkAutonomy (no duplicate RPC here). */
   autonomy?: {
     allowed: boolean;
@@ -137,12 +143,15 @@ export async function authorizeRecordAccess(
     );
 
   if (principal.kind === "workspace_member") {
-    const { data: membership, error: membershipError } = await db
+    const membershipQuery = db
       .from("tenant_memberships")
       .select("status,role")
-      .eq("tenant_id", tenantId)
-      .eq("invited_email", principal.email)
-      .maybeSingle();
+      .eq("tenant_id", tenantId);
+    const { data: membership, error: membershipError } = await (
+      principal.userId
+        ? membershipQuery.eq("user_id", principal.userId)
+        : membershipQuery.eq("invited_email", principal.email)
+    ).maybeSingle();
     if (membershipError) throw new Error(membershipError.message);
     if (!membership || membership.status !== "active")
       return deny(
@@ -153,7 +162,10 @@ export async function authorizeRecordAccess(
     // The schema carries a single admin role today; writes, exports, and
     // actions additionally require it so a future lesser role fails closed.
     if (
-      (operation === "write" || operation === "export" || operation === "action") &&
+      (input.adminOnly ||
+        operation === "write" ||
+        operation === "export" ||
+        operation === "action") &&
       membership.role !== "admin"
     )
       return deny(
@@ -210,7 +222,7 @@ export async function authorizeRecordAccess(
         grant: grant.capabilityId,
       });
     policy.grant = grant.capabilityId;
-  } else if (entityType !== "mcp_resource" || operation !== "read" || input.field) {
+  } else if (!HOST_READ_ENTITY_TYPES.has(entityType) || operation !== "read" || input.field) {
     // Host-canonical tables have no field ACLs; the tenant-bound client and
     // membership checks above govern them. Field scoping for writes on
     // unregistered types fails closed rather than guessing.
@@ -233,6 +245,10 @@ export async function authorizeRecordAccess(
 
   return { allowed: true, policy };
 }
+
+/** Host-governed read projections that are not entity keys: MCP resources and
+ * workspace graph sources. Their owning module and membership still decide. */
+const HOST_READ_ENTITY_TYPES = new Set(["mcp_resource", "graph_source"]);
 
 /**
  * Owning module per MCP resource URI. Core modules are always enabled, so
@@ -274,5 +290,43 @@ export async function authorizeMcpResource(
     // denial context, not as an entity key.
     entityType: "mcp_resource",
     moduleId,
+  });
+}
+
+export function moduleForGraphAdapter(adapter: string): string | null {
+  return GRAPH_ADAPTER_TO_MODULE_MAP.get(adapter)?.id ?? null;
+}
+
+/**
+ * Fail-closed check for one workspace graph source. Modelled on the MCP
+ * resource path: the adapter's claiming module must be enabled, the tenant
+ * active and bound, and a workspace member must hold an active membership
+ * with the admin role (the only role today), even for this read. An
+ * unclaimed adapter is refused. Integration identities carry no membership
+ * and remain tenant- and module-bound, as for every other host read.
+ */
+export async function authorizeGraphSource(
+  db: SupabaseClient,
+  input: { principal: RecordPermissionPrincipal; adapter: string },
+): Promise<RecordPermissionDecision> {
+  const moduleId = moduleForGraphAdapter(input.adapter);
+  if (!moduleId)
+    return deny(
+      "entity_unknown",
+      `Graph adapter ${input.adapter} is not claimed by any registered module`,
+      {
+        tenantId: tenantIdForDatabase(db) ?? "unbound",
+        moduleId: null,
+        entityType: "graph_source",
+        grant: null,
+        autonomyLevel: null,
+      },
+    );
+  return authorizeRecordAccess(db, {
+    principal: input.principal,
+    operation: "read",
+    entityType: "graph_source",
+    moduleId,
+    adminOnly: true,
   });
 }

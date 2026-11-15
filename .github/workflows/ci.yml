@@ -324,6 +324,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:ai-readiness
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
+          PATH="$(pg_config --bindir):$PATH" npm run test:graph-adapters:postgres
           npm run test:form-builder
           npm run test:site-editor
           npm run test:workspace-mcp-oauth

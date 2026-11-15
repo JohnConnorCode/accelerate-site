@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "6c9a558a9f083627a5d9b1e439d8d5d7bb164e34103c00b96384b38791fecf84",
+      contractHash: "155915f429aed77969e08fe6857847be3f661532073447792820799d760e63e0",
       tools: [
         {
           operation: "prepare-workflow",
@@ -482,7 +482,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "32efac7607235d6595ad9aaa917d2ff5822f131887df5017540d4e7d4f402f81",
+      contractHash: "3329053d884eea2d2c49c4cae1c4098051815474375ce1a42449efe07246346a",
       tools: [
         {
           operation: "prepare-workflow",
@@ -953,6 +953,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "preview_collection_policy",
       "propose_collection_policy",
     ],
+    graphAdapterNames: ["collection_cases"],
     routes: ["/admin/collections"],
     setupChecks: [],
     docsUrl: "/docs/plugins/receivables-collections",
@@ -1094,6 +1095,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "preview_invoice_page",
       "propose_invoice_page",
     ],
+    graphAdapterNames: ["invoice_drafts"],
     routes: ["/admin/invoicing", "/admin/subscriptions"],
     setupChecks: [],
     docsUrl: "/docs/plugins/stripe-invoicing",
@@ -1183,7 +1185,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "ca0c7b6c5ff1494d9fc9dbe050f61f899176f6fda3e9ef380978cb7bced9a7ce",
+      contractHash: "e6eac83df1e1f431e000455777d96fe4fb1c61a75b3c5dd6f393a5b3d0a0faac",
       tools: [
         {
           operation: "prepare-workflow",

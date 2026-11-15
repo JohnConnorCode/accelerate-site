@@ -14,8 +14,13 @@ export async function readCollectionWorkspace(
     maxCases?: number;
     includeInvoiceOptions?: boolean;
     includeActionPreviews?: boolean;
+    /** Exact case ids (workspace graph). */
+    caseIds?: string[];
+    /** "id" orders cases by id for keyset continuation after `afterId`. */
+    order?: "recent" | "id";
+    afterId?: string;
   } = {},
-): Promise<CollectionWorkspaceData> {
+): Promise<CollectionWorkspaceData & { casesTruncated?: boolean }> {
   if (contactId) z.uuid().parse(contactId);
   const optionsInput = z
     .object({
@@ -24,6 +29,9 @@ export async function readCollectionWorkspace(
       maxCases: z.number().int().min(1).max(100).default(100),
       includeInvoiceOptions: z.boolean().default(true),
       includeActionPreviews: z.boolean().default(true),
+      caseIds: z.array(z.uuid()).min(1).max(200).optional(),
+      order: z.enum(["recent", "id"]).default("recent"),
+      afterId: z.uuid().optional(),
     })
     .strict()
     .parse(window);
@@ -32,10 +40,14 @@ export async function readCollectionWorkspace(
     .from("collection_cases")
     .select("*")
     .eq("tenant_id", tenant)
-    .order("updated_at", { ascending: false })
+    .order(optionsInput.order === "id" ? "id" : "updated_at", {
+      ascending: optionsInput.order === "id",
+    })
     .limit(optionsInput.maxCases + 1);
   if (contactId) query = query.eq("contact_id", contactId);
   if (optionsInput.caseId) query = query.eq("id", optionsInput.caseId);
+  if (optionsInput.caseIds) query = query.in("id", optionsInput.caseIds);
+  if (optionsInput.afterId) query = query.gt("id", optionsInput.afterId);
   if (optionsInput.status) query = query.eq("status", optionsInput.status);
   const result = await query;
   if (result.error) throw new Error("Collection cases unavailable");
@@ -53,7 +65,12 @@ export async function readCollectionWorkspace(
         .limit(50)
     : { data: [], error: null };
   if (options.error) throw new Error("Invoice operations unavailable");
-  if (!ids.length) return { cases: [], invoiceOptions: options.data ?? [], truncated: false };
+  const keyset =
+    optionsInput.order === "id"
+      ? { casesTruncated: (result.data?.length ?? 0) > optionsInput.maxCases }
+      : {};
+  if (!ids.length)
+    return { cases: [], invoiceOptions: options.data ?? [], truncated: false, ...keyset };
   const actionQuery = optionsInput.includeActionPreviews
     ? db
         .from("action_queue")
@@ -134,6 +151,7 @@ export async function readCollectionWorkspace(
   if (observations.length !== observationIds.length) throw new Error("Incomplete invoice evidence");
   const byId = new Map(observations.map((o) => [o.id, o]));
   return {
+    ...keyset,
     truncated:
       (result.data?.length ?? 0) > optionsInput.maxCases ||
       (work.data?.length ?? 0) === 500 ||

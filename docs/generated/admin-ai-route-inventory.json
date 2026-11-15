@@ -7,13 +7,13 @@
     "Server-action and client-write candidates are static discovery only; indirect client writes and third-party plugin entrypoints still require semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 144,
+  "routeCount": 145,
   "mutationHandlerCount": 126,
   "semantic": {
     "complete": false,
     "unreviewedSourceBindings": [],
     "meaning": "Reviewed command-to-transport bindings with executable verification references. No coverage percentage or universal runtime acceptance is asserted.",
-    "registeredTools": 150,
+    "registeredTools": 151,
     "unreviewedToolBindings": [
       "activate_tool_bundle",
       "bootstrap_business_pulse_coworker",
@@ -683,6 +683,26 @@
         "serviceTarget": "revenue-os.workspace-configuration",
         "tools": [
           "get_workspace_configuration"
+        ]
+      },
+      {
+        "definition": {
+          "id": "workspace.graph.read",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/revenue-os/graph",
+              "method": "GET"
+            }
+          ],
+          "verification": [
+            "scripts/test-graph-adapters.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.graph-adapters",
+        "tools": [
+          "get_workspace_graph"
         ]
       }
     ],
@@ -2165,10 +2185,11 @@
       "imports": [
         "@/lib/admin/auth",
         "@/lib/revenue-os/identity",
+        "@/lib/revenue-os/records",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "1ca4fedf5bead3f4a43767e7c31f4a1481c412d2f87cda6d74bc26d427e27d37"
+      "sourceSha256": "9729f9478b9f98300eed75dc6a6a0f4e79d0b2671b8ec72b4bda62ed8d7aaf28"
     },
     {
       "source": "src/app/api/admin/contacts/export/route.ts",
@@ -3126,11 +3147,10 @@
         "@/lib/revenue-os/action-executor",
         "@/lib/revenue-os/actions",
         "@/lib/revenue-os/collection-reminders",
-        "@/lib/revenue-os/db",
         "@/lib/tenancy/context",
         "next/server"
       ],
-      "sourceSha256": "f5a664e8643da880d683199ddfaaa2882214b5f3cd2e11a75074903d57c5973d"
+      "sourceSha256": "1d1488beda583b4436b04a3778d8d81a0b9facbad2aa44719248d402d9e36d1e"
     },
     {
       "source": "src/app/api/admin/revenue-os/activity/route.ts",
@@ -3463,6 +3483,21 @@
       "sourceSha256": "30081318a76b08629806a770eedacd4bc884851404293b795d3cbc3ace9136ac"
     },
     {
+      "source": "src/app/api/admin/revenue-os/graph/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/graph-adapter-contract",
+        "@/lib/revenue-os/graph-adapters",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "75270588465346d8f51430fe48ffb311cd923702454dde8be15c8eda6a50c897"
+    },
+    {
       "source": "src/app/api/admin/revenue-os/identity-review/route.ts",
       "handlers": [
         "GET",
@@ -3543,15 +3578,15 @@
       "imports": [
         "@/lib/admin/auth",
         "@/lib/http/bounded-json",
-        "@/lib/revenue-os/db",
         "@/lib/revenue-os/opportunity-create-contract",
         "@/lib/revenue-os/pipeline",
         "@/lib/revenue-os/pipeline-stage-resolver",
+        "@/lib/revenue-os/records",
         "@/lib/revenue-os/stage-history",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "f7b20ec21c7b03f8a68d93b8ba1246efb7c7f3b7fd1e1a87b9ef967b6f2d1828"
+      "sourceSha256": "65944e8015f6b45c6589450e21c9e993e77bd10fbc3b25da1ac385fa54b6dbe5"
     },
     {
       "source": "src/app/api/admin/revenue-os/priority/route.ts",
@@ -4053,10 +4088,11 @@
       "imports": [
         "@/lib/admin/auth",
         "@/lib/revenue-os/action-executor",
+        "@/lib/revenue-os/tasks",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "a8dcf117107438acfd5642593039fa9b95d320ef557faa81359f9e549357b5ce"
+      "sourceSha256": "2b001d5e2ecce24d668a186798ea5d836a0fe77af4440735bc8b2c2a0c922a1e"
     },
     {
       "source": "src/app/api/admin/tenant/branding/route.ts",
