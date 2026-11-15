@@ -23,6 +23,7 @@ import {
   type CommandBoardModeKey,
 } from "@/lib/revenue-os/command-board-modes";
 import { adminSearchHref } from "@/lib/admin/search-href";
+import { usePendingParam } from "@/hooks/usePendingParam";
 
 const MODES = COMMAND_BOARD_MODE_KEYS.map((id) => ({ id, ...COMMAND_BOARD_MODES[id] }));
 
@@ -151,7 +152,8 @@ export function CommandBoardWorkspace() {
   const firstAnchor = nodes.find((node) => node.parentId === null)?.id ?? null;
   const scopeParam = search.get("scope");
   const scope = scopeParam === null ? firstAnchor : scopeParam || null;
-  const stationId = search.get("station");
+  // A station opens at once; the URL records it a moment later.
+  const [stationId, requestStation] = usePendingParam(search.get("station"));
   const station = (() => {
     if (!snapshot || !stationId) return null;
     for (const board of snapshot.boards)
@@ -221,12 +223,13 @@ export function CommandBoardWorkspace() {
               params.set("scope", scopeId ?? "");
             })
           }
-          onOpen={(node: CanvasNode<DeskDatum>) =>
+          onOpen={(node: CanvasNode<DeskDatum>) => {
+            requestStation(node.id);
             router.push(
               href((params) => params.set("station", node.id)),
               "preserve",
-            )
-          }
+            );
+          }}
           onInteractingChange={setInteracting}
           read={{
             loading: query.isPending,
@@ -242,11 +245,13 @@ export function CommandBoardWorkspace() {
               ? {
                   title: station.station.label,
                   // Closing replaces the entry, so Back returns to the previous scope.
-                  onClose: () =>
+                  onClose: () => {
+                    requestStation(null);
                     router.replace(
                       href((params) => params.delete("station")),
                       "preserve",
-                    ),
+                    );
+                  },
                   content: (
                     <div className="admin-content-stack">
                       <p className="admin-eyebrow">
