@@ -113,6 +113,9 @@ try {
     assert(await page.getByRole("button", { name: "Zoom in" }).isVisible());
     const target = await page.getByRole("button", { name: "Zoom in" }).boundingBox();
     assert(target.height >= (width === 390 ? 44 : 40), `${width}: zoom target meets the floor`);
+    const dock = await page.locator(".admin-mobile-dock").boundingBox();
+    if (dock && (await page.locator(".admin-mobile-dock").isVisible()))
+      assert(target.y + target.height <= dock.y, `${width}: zoom controls clear the mobile dock`);
     assert(await page.locator("[data-canvas-node]").count(), `${width}: openers are rendered`);
     await page.screenshot({ path: `${output}/today-canvas-${width}.png` });
     results.push({ check: "geometry", width, canvas: box });
