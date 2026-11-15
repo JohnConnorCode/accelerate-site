@@ -366,18 +366,18 @@ async function runConversationsSuite() {
   console.log("Running Conversations Omnichannel Inbox test suite...");
 
   const db = new MockSupabase();
-  const supabase = bindTenantDatabaseForTest(
-    db as unknown as SupabaseClient,
-    "11111111-1111-4111-8111-111111111111",
-  );
+  const tenantId = "11111111-1111-4111-8111-111111111111";
+  const supabase = bindTenantDatabaseForTest(db as unknown as SupabaseClient, tenantId);
 
   // 1. Seed test data
   const contactId = "contact-100";
   const companyId = "company-100";
   const oppId = "opp-100";
 
+  // Every operational row carries its tenant; list reads filter on it explicitly.
   db.tables.contacts!.push({
     id: contactId,
+    tenant_id: tenantId,
     full_name: "Sarah Connor",
     primary_email: "sarah@techcorp.io",
     phone: "555-0199",
@@ -386,12 +386,14 @@ async function runConversationsSuite() {
 
   db.tables.companies!.push({
     id: companyId,
+    tenant_id: tenantId,
     name: "TechCorp Systems",
     domain: "techcorp.io",
   });
 
   db.tables.opportunities!.push({
     id: oppId,
+    tenant_id: tenantId,
     contact_id: contactId,
     company_id: companyId,
     name: "TechCorp Enterprise Deal",
@@ -401,6 +403,7 @@ async function runConversationsSuite() {
 
   const conv1 = {
     id: "conv-1",
+    tenant_id: tenantId,
     channel: "gmail",
     subject: "Pricing inquiry for Enterprise",
     status: "open",
@@ -417,6 +420,7 @@ async function runConversationsSuite() {
 
   const conv2 = {
     id: "conv-2",
+    tenant_id: tenantId,
     channel: "form",
     subject: "Inbound website lead",
     status: "waiting",
@@ -432,6 +436,7 @@ async function runConversationsSuite() {
 
   const conv3 = {
     id: "conv-3",
+    tenant_id: tenantId,
     channel: "chat",
     subject: "Support question",
     status: "resolved",

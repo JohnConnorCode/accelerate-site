@@ -186,7 +186,7 @@ Describe the business workflow, have a coding agent implement it, and review the
 - [Build a custom operating screen](https://www.acceleratewith.us/docs/extend/custom-ui) (updated 2026-09-09): Build the exact screen your business needs, while keeping the shared services underneath it.
 - [Build Apps with a coding agent](https://www.acceleratewith.us/docs/extend/ai-authoring) (updated 2026-10-07): Turn a recurring business task into an App, using a clear brief and the existing workspace services.
 - [Adapt a working follow-up report](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-10-10): Run the source, change a useful business rule and verify its findings against fixed fictional opportunities.
-- [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-10-07): Register a workspace feature with its pages, operator guide and shared availability controls.
+- [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-11-14): Register a workspace feature with its pages, operator guide and shared availability controls.
 - [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-19): Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records.
 - [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-10-20): Register a plugin manifest with tools and triggers that still route through real governance.
 - [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-19): Register a schema, an impact tier, and a service boundary; a mutating tool always proposes.

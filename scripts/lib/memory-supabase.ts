@@ -33,9 +33,32 @@ function likeRegex(value: string): RegExp {
   return new RegExp(`^${pattern}$`, "i");
 }
 
-/** Parse the `or()` filter string form, e.g. `expires_at.is.null,expires_at.gt.2026-01-01`. */
+/** Split on top-level commas only, so nested `and(...)` groups stay intact. */
+function topLevelClauses(expression: string): string[] {
+  const clauses: string[] = [];
+  let depth = 0,
+    current = "";
+  for (const character of expression) {
+    if (character === "(") depth++;
+    if (character === ")") depth--;
+    if (character === "," && depth === 0) {
+      clauses.push(current);
+      current = "";
+    } else current += character;
+  }
+  clauses.push(current);
+  return clauses;
+}
+
+/** Parse the `or()` filter string form, e.g. `expires_at.is.null,expires_at.gt.2026-01-01`,
+ * including nested `and(column.op.value,...)` groups. */
 function orPredicate(expression: string): (row: Row) => boolean {
-  const clauses = expression.split(",").map((clause) => {
+  const clauses = topLevelClauses(expression).map((clause) => {
+    const group = /^and\((.*)\)$/.exec(clause);
+    if (group) {
+      const parts = topLevelClauses(group[1]!).map((part) => orPredicate(part));
+      return (row: Row) => parts.every((matches) => matches(row));
+    }
     const [column, op, ...rest] = clause.split(".");
     const value = rest.join(".");
     return (row: Row) => {

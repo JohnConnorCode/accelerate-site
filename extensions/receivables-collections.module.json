@@ -38,5 +38,6 @@
     "preview_collection_policy",
     "propose_collection_policy"
   ],
+  "graphAdapterNames": ["collection_cases"],
   "docsUrl": "/docs/plugins/receivables-collections"
 }
