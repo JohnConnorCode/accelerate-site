@@ -1916,8 +1916,8 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 .admin-canvas:has(.admin-canvas-overlay) .admin-canvas-keys {
   display: none;
 }
-/* A newly opened branch settles in. Nodes present at first paint finish this
-   while the canvas is still hidden, so only unspooled nodes are seen moving. */
+/* A newly opened branch settles in. Nodes and links present at first paint are
+   never animated; the route entrance owns first paint. */
 @keyframes admin-canvas-unspool {
   from {
     opacity: 0;
@@ -1930,10 +1930,10 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .admin-canvas[data-unspool] .admin-canvas-node {
+  .admin-canvas[data-unspool] .admin-canvas-node[data-fresh] {
     animation: admin-canvas-unspool 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
-  .admin-canvas[data-unspool] .react-flow__edge {
+  .admin-canvas[data-unspool] .admin-canvas-edge-fresh {
     animation: admin-canvas-connect 280ms ease both;
   }
 }

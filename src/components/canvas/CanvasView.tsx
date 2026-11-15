@@ -40,6 +40,7 @@ import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 import { adminEase } from "@/lib/admin/motion";
+import { usePendingParam } from "@/hooks/usePendingParam";
 import {
   CANVAS_KINDS,
   CANVAS_ZOOM,
@@ -122,6 +123,8 @@ interface CanvasContextValue {
   ): ReactNode;
   open(node: CanvasNode<unknown>): void;
   activate(id: string): void;
+  /** True once the first framing is on screen; nodes and links that mount later are new. */
+  revealed: boolean;
 }
 
 const CanvasContext = createContext<CanvasContextValue | null>(null);
@@ -156,6 +159,8 @@ const CanvasEdge = memo(function CanvasEdge({
   markerEnd,
   style,
 }: EdgeProps) {
+  const revealed = useContext(CanvasContext)?.revealed;
+  const [fresh] = useState(() => Boolean(revealed));
   const [path] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -166,16 +171,17 @@ const CanvasEdge = memo(function CanvasEdge({
     borderRadius: 16,
   });
   return (
-    <>
+    <g className={fresh ? "admin-canvas-edge-fresh" : undefined}>
       <BaseEdge path={path} markerEnd={markerEnd} style={style} />
       <circle className="admin-canvas-edge-dot" cx={sourceX} cy={sourceY} r={3.5} />
-    </>
+    </g>
   );
 });
 
 const CanvasNodeView = memo(function CanvasNodeView({ data }: NodeProps<Node<CanvasNodeData>>) {
-  const context = useContext(CanvasContext);
-  if (!context) return null;
+  const context = useContext(CanvasContext)!;
+  // Only nodes revealed after first paint settle in; the route entrance owns first paint.
+  const [fresh] = useState(() => context.revealed);
   const { node } = data;
   const kind = context.kinds[node.kind]!;
   const type = kind.type[context.level];
@@ -197,6 +203,7 @@ const CanvasNodeView = memo(function CanvasNodeView({ data }: NodeProps<Node<Can
       data-detail={type.detail ? "shown" : undefined}
       data-selected={selected || undefined}
       data-on-path={onPath || undefined}
+      data-fresh={fresh || undefined}
       style={style}
     >
       {(["top", "left", "bottom"] as const).map((side) => (
@@ -300,7 +307,9 @@ function CanvasSurface<T>({
   const [ready, setReady] = useState(false);
   const framed = useRef<string | null>(null);
   const fullTree = useMemo(() => canvasTree(nodes), [nodes]);
-  const scope = scopeId && fullTree.byId.has(scopeId) ? scopeId : null;
+  // A chosen scope unspools at once; the URL records it a moment later.
+  const [requestedScope, requestScope] = usePendingParam(scopeId);
+  const scope = requestedScope && fullTree.byId.has(requestedScope) ? requestedScope : null;
   const visible = useMemo(
     () => canvasVisibleNodes(nodes, scope, visibility),
     [nodes, scope, visibility],
@@ -390,9 +399,10 @@ function CanvasSurface<T>({
       const soleRoot = node.parentId === null && fullTree.roots.length === 1;
       const target = soleRoot ? null : node.id;
       if (target === scope) return void frame(target, glide);
+      requestScope(target);
       router.push(hrefFor({ scopeId: target }), "preserve");
     },
-    [fullTree, onOpen, scope, frame, glide, router, hrefFor],
+    [fullTree, onOpen, scope, frame, glide, router, hrefFor, requestScope],
   );
 
   const tabStop = canvasTabStop(tree, active ?? selectedId ?? scope, level, kinds);
@@ -406,8 +416,9 @@ function CanvasSurface<T>({
       render: renderNode as CanvasContextValue["render"],
       open,
       activate: setActive,
+      revealed: ready,
     }),
-    [kinds, level, tabStop, selectedId, onPath, renderNode, open],
+    [kinds, level, tabStop, selectedId, onPath, renderNode, open, ready],
   );
 
   const flowNodes = useMemo<Node<CanvasNodeData>[]>(
@@ -542,6 +553,7 @@ function CanvasSurface<T>({
         <nav className="admin-canvas-crumbs" aria-label={`${label} location`}>
           <Link
             href={hrefFor({ scopeId: null })}
+            onClick={() => requestScope(null)}
             scroll={false}
             className="admin-canvas-crumb admin-canvas-crumb--home"
             data-has-back={parent ? "true" : undefined}
@@ -553,6 +565,7 @@ function CanvasSurface<T>({
           {parent && (
             <Link
               href={hrefFor({ scopeId: parent.id })}
+              onClick={() => requestScope(parent.id)}
               scroll={false}
               className="admin-canvas-crumb"
             >
