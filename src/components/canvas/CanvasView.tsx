@@ -647,7 +647,12 @@ function CanvasSurface<T>({
           </ReactFlow>
         </div>
         {detail && (
-          <aside className="admin-canvas-panel" aria-label={detail.title}>
+          // Like a dialog, the docked panel opens at once instead of joining the route entrance.
+          <aside
+            className="admin-canvas-panel"
+            aria-label={detail.title}
+            data-admin-overlay="panel"
+          >
             <header className="admin-canvas-panel-header">
               <button
                 type="button"
