@@ -44,6 +44,8 @@ const ACTION_CONSEQUENCE: Record<string, string> = {
     "Saves the exact Today arrangement and preferences shown below. Business records are unchanged. Only the proposing member can approve it.",
   send_email: "Sends this email immediately. It cannot be recalled.",
   send_gmail_reply: "Sends this reply from your Gmail account immediately. It cannot be recalled.",
+  send_sms:
+    "Sends this text from your Twilio number immediately, unless the number has replied STOP. It cannot be recalled.",
   create_debate_invitation:
     "Sends one Google Calendar invitation to both named participants immediately. They will be notified. The event is read back and recorded before success is claimed.",
   create_gmail_draft:
@@ -74,6 +76,7 @@ const EXTERNAL_ACTIONS = new Set([
   "billing_change",
   "send_email",
   "send_gmail_reply",
+  "send_sms",
   "create_debate_invitation",
   "activate_campaign",
 ]);

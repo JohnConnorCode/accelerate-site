@@ -2,6 +2,7 @@ import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { reconcileCollectionReminder } from "@/lib/revenue-os/collection-reminders";
+import { reconcileSmsAction } from "@/lib/revenue-os/sms";
 import { approveAndExecuteAction } from "@/lib/revenue-os/action-executor";
 import {
   listActions,
@@ -46,11 +47,16 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Action id and decision are required" }, { status: 400 });
   const supabase = auth.database;
   try {
-    if (body.decision === "reconcile")
+    if (body.decision === "reconcile") {
+      const target = (await listActions(supabase, { id: body.id })).actions[0];
       return NextResponse.json({
         success: true,
-        result: await reconcileCollectionReminder(supabase, body.id),
+        result:
+          target?.action_type === "send_sms"
+            ? await reconcileSmsAction(supabase, body.id)
+            : await reconcileCollectionReminder(supabase, body.id),
       });
+    }
     if (body.decision === "retry")
       return NextResponse.json({
         success: true,

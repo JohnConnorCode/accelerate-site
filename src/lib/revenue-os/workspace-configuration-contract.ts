@@ -12,6 +12,7 @@ export const WORKSPACE_PROVIDERS = [
   "stripe",
   "postiz",
   "xero",
+  "twilio",
 ] as const;
 export const WORKSPACE_SETTING_KEYS = [
   "RESEND_FROM_EMAIL",

@@ -1,7 +1,7 @@
 ---
 title: "Connect your tools and data"
 description: "Turn a message, calendar event, or invoice sitting in another app into usable context here."
-updated: "2026-10-05"
+updated: "2026-11-14"
 ---
 
 A calendar event or customer email helps the team when it is available alongside the related business record. **Integrations** manages supported connections and module settings, so you can choose which sources and capabilities your workspace uses.
@@ -23,6 +23,16 @@ Choose a workflow before adding credentials. If you want to work with invoices, 
 For a supported provider, follow its setup controls, verify the connection and inspect its reported state. Credentials are handled through the platform's server-only connection storage. Public module settings are for ordinary configuration; do not paste secrets into them.
 
 After setup, test the intended workflow with a controlled record. Saving credentials establishes configuration, while a successful verified operation establishes that the connection works for that task. If the connection becomes degraded, inspect its failure and correct access or provider settings before retrying.
+
+## Text customers from your own Twilio number
+
+Connect a Twilio number your business already owns, and texts become conversations like email threads. This uses your Twilio account and its pricing; Accelerate does not buy or provision numbers.
+
+1. In **Integrations**, open **Twilio** and enter the Account SID, the auth token and the number in +E.164 form, such as +15555550123. Saving checks that the account is active and owns that number.
+2. Copy the signed webhook endpoint shown on the card. In the Twilio Console, set it as the number's incoming message webhook (HTTP POST).
+3. Text the number from your own phone. The message appears in **Conversations** under **Text Messages**, linked to the contact whose phone number matches exactly.
+
+Every outbound text is approved before it sends, through the same review as any other external action. A customer who replies STOP is opted out on that conversation and no text is sent to them until they reply START. If Twilio does not answer while a text is sending, the approval is recorded as uncertain and is reconciled against Twilio's message log before anyone tries again, so a customer never receives the same text twice.
 
 ## Connecting a service that is not built in
 

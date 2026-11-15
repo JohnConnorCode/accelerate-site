@@ -213,6 +213,12 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale: "Delivery leaves the system; no recall exists.",
   },
   {
+    actionType: "send_sms",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale: "A carrier delivers the text from the workspace's number; no recall exists.",
+  },
+  {
     actionType: "create_debate_invitation",
     impact: "external_action",
     reversibility: "irreversible",

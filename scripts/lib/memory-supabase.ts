@@ -399,6 +399,26 @@ export class MemorySupabase {
               data: null,
               error: { code: "23505", message: "duplicate AI source" },
             });
+          // Honour the tenant-scoped provider receipt and thread indexes.
+          if (
+            (table === "messages" &&
+              next.provider_id &&
+              existing.some(
+                (row) => row.tenant_id === next.tenant_id && row.provider_id === next.provider_id,
+              )) ||
+            (table === "conversations" &&
+              next.external_id &&
+              existing.some(
+                (row) =>
+                  row.tenant_id === next.tenant_id &&
+                  row.channel === next.channel &&
+                  row.external_id === next.external_id,
+              ))
+          )
+            return resolve({
+              data: null,
+              error: { code: "23505", message: "duplicate key value violates unique constraint" },
+            });
           // Honour the partial unique index the real action_queue carries.
           const key = next.dedupe_key;
           if (

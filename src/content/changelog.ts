@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "twilio-text-messages",
+    slug: "twilio-text-messages",
+    title: "Text customers from your own Twilio number",
+    description:
+      "Connect a Twilio number your business already owns in Integrations, and texts arrive in Conversations next to email. Every outbound text is approved before it sends, a customer who replies STOP is not texted again until they reply START, and a text whose send timed out is checked against Twilio before anyone tries again.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
     id: "approval-cards",
     slug: "approval-cards",
     title: "See every proposal as the same approval card",

@@ -14,7 +14,7 @@ import { proposeAction } from "./actions";
 export const CONVERSATIONS_CONTRACT = "revenue-os-conversations.v1";
 
 export type ConversationStatus = "open" | "waiting" | "resolved" | "archived";
-export type ConversationChannel = "gmail" | "resend" | "form" | "chat" | "manual";
+export type ConversationChannel = "gmail" | "resend" | "form" | "chat" | "manual" | "sms";
 
 export interface ConversationFilter {
   status?: ConversationStatus | "all";

@@ -19,6 +19,7 @@ import {
   RefreshCw,
   Search,
   Send,
+  Smartphone,
   Sparkles,
   Trash2,
   TriangleAlert,
@@ -51,6 +52,7 @@ const CHANNEL_ICONS: Record<string, typeof Mail> = {
   form: Layers,
   chat: MessageSquare,
   manual: User,
+  sms: Smartphone,
 };
 
 const STAGE_COLORS: Record<string, string> = {
@@ -358,12 +360,20 @@ export default function ConversationsPage() {
     setSending(true);
     setActionError("");
     try {
-      await fetchJson("/api/admin/revenue-os/conversations/reply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: selectedId, body: reply, confirmed: true }),
-      });
-      toast.success("Reply recorded and dispatched.");
+      const result = await fetchJson<{ approvalRequired?: boolean }>(
+        "/api/admin/revenue-os/conversations/reply",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversationId: selectedId, body: reply, confirmed: true }),
+        },
+      );
+      // Texts are approved before they send, so a text reply waits in Approvals.
+      toast.success(
+        result.approvalRequired
+          ? "Text waiting for approval in Work, Approvals. Nothing has been sent yet."
+          : "Reply recorded and dispatched.",
+      );
       setReply("");
       setOriginalDraft(null);
       setReviewing(false);
@@ -500,6 +510,7 @@ export default function ConversationsPage() {
                     <option value="chat">Website Chat</option>
                     <option value="resend">Resend / Email</option>
                     <option value="manual">Manual Notes</option>
+                    <option value="sms">Text Messages</option>
                   </select>
 
                   {/* Record Link Dropdown */}
@@ -842,7 +853,9 @@ export default function ConversationsPage() {
                             <div className="rounded-xl bg-[var(--admin-surface)] p-4 shadow-[var(--admin-shadow-border)]">
                               <p className="admin-eyebrow">Final review & confirmation</p>
                               <h3 className="mt-1 text-sm font-semibold text-[var(--admin-ink)]">
-                                Confirm dispatch for this message?
+                                {selected?.channel === "sms"
+                                  ? "Send this text for approval?"
+                                  : "Confirm dispatch for this message?"}
                               </h3>
                               <p className="mt-3 max-h-40 overflow-y-auto whitespace-pre-wrap text-pretty rounded-xl bg-black/[0.025] p-3 text-sm leading-6 text-[var(--admin-ink)] dark:bg-white/[0.025]">
                                 {reply}
@@ -866,7 +879,9 @@ export default function ConversationsPage() {
                                   ) : (
                                     <Send className="size-3.5" />
                                   )}
-                                  Confirm send
+                                  {selected?.channel === "sms"
+                                    ? "Send for approval"
+                                    : "Confirm send"}
                                 </button>
                               </div>
                             </div>

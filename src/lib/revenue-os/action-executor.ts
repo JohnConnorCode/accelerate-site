@@ -35,6 +35,8 @@ import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
 import { ACTION_REVERSIBILITY, reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
+import { readSmsTarget, recordOutboundSms } from "./sms";
+import { sendTwilioSms, tenantTwilioClient } from "./twilio-adapter";
 import { transitionOpportunity } from "./pipeline";
 import { activateCampaign, duplicateCampaign } from "./campaigns";
 import { createGmailDraft, sendGmailReply, type GmailReplyTarget } from "./google";
@@ -374,6 +376,25 @@ async function executeApprovedAction(
           source: "ai",
           idempotencyKey: `action:${id}`,
         });
+        break;
+      }
+      case "send_sms": {
+        // The thread is re-read at send time: a STOP, an archive or a changed
+        // number since approval refuses the send instead of texting anyway.
+        const target = await readSmsTarget(supabase, stringValue(payload, "conversationId")!);
+        if (stringValue(payload, "to") !== target.to)
+          throw new Error("The conversation's number changed after approval; prepare a new text");
+        const body = stringValue(payload, "body")!;
+        const client = await tenantTwilioClient(supabase);
+        const sent = await sendTwilioSms(client, { to: target.to, body });
+        await recordOutboundSms(supabase, {
+          conversationId: target.conversationId,
+          ...sent,
+          to: target.to,
+          from: client.fromNumber,
+          body,
+        });
+        result = { provider: "twilio", sid: sent.sid, status: sent.status, to: target.to };
         break;
       }
       case "send_gmail_reply": {

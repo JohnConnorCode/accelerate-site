@@ -178,6 +178,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
 import { readCompleteGmailThread, readGmailReplyTarget } from "./google";
+import { proposeSmsReply } from "./sms";
 import {
   listDebateProductions,
   loadDebateProduction,
@@ -4235,7 +4236,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "propose_conversation_reply",
     description:
-      "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
+      "Stage a reply to an active conversation thread for founder approval. Email threads reply in Gmail; text threads text the customer from the workspace's Twilio number and are refused while the number is opted out (STOP). This never sends directly.",
     inputSchema: {
       type: "object",
       properties: {
@@ -4251,6 +4252,16 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
+    operation: {
+      id: "conversations.messaging",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        { path: "/api/admin/revenue-os/conversations/reply", method: "POST" },
+        { path: "/api/public/[tenantSlug]/webhooks/twilio", method: "POST" },
+      ],
+      verification: ["scripts/test-twilio-sms.ts"],
+    },
     execute: async ({ supabase, actorEmail, workItem }, input) => {
       const conversationId = value(input, "conversationId")!;
       const body = value(input, "body")!;
@@ -4260,6 +4271,16 @@ const registry: AiToolRegistration[] = [
         .select("id,subject,channel")
         .eq("id", conversationId)
         .maybeSingle();
+      if (conv?.channel === "sms") {
+        if (workItem) throw new Error("Coworker drafts reply to email threads only");
+        return proposeSmsReply(supabase, {
+          conversationId,
+          body,
+          reasoning,
+          proposedBy: actorEmail,
+          sourceContext: "admin_ai",
+        });
+      }
 
       if (workItem) {
         await assertWorkDraftTarget(supabase, workItem, "send_gmail_reply", input);

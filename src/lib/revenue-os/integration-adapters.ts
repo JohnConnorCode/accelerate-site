@@ -4,6 +4,7 @@ import { resolveOrCreateIdentity } from "./identity";
 import { recordActivity } from "./activities";
 import { postizAdapter } from "./postiz-adapter";
 import { stripeAdapter } from "./stripe-adapter";
+import { twilioAdapter } from "./twilio-adapter";
 import { recordAudit } from "./audit";
 
 export interface IntegrationConnectionReceipt {
@@ -567,6 +568,7 @@ export const INTEGRATION_ADAPTERS: ReadonlyMap<string, IntegrationAdapter> = new
   ["hubspot", hubSpotAdapter],
   ["stripe", stripeAdapter],
   ["postiz", postizAdapter],
+  ["twilio", twilioAdapter],
 ]);
 
 /**

@@ -92,7 +92,6 @@
       "propose_collection_policy",
       "propose_collection_reminder",
       "propose_content_calendar_update",
-      "propose_conversation_reply",
       "propose_correction",
       "propose_debate_invitation",
       "propose_debate_milestone",
@@ -515,6 +514,30 @@
       },
       {
         "definition": {
+          "id": "conversations.messaging",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/revenue-os/conversations/reply",
+              "method": "POST"
+            },
+            {
+              "path": "/api/public/[tenantSlug]/webhooks/twilio",
+              "method": "POST"
+            }
+          ],
+          "verification": [
+            "scripts/test-twilio-sms.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.action-queue",
+        "tools": [
+          "propose_conversation_reply"
+        ]
+      },
+      {
+        "definition": {
           "id": "events.change",
           "version": 1,
           "scope": "workspace",
@@ -916,7 +939,6 @@
       "POST /api/admin/revenue-os/campaigns/members",
       "POST /api/admin/revenue-os/contact-imports",
       "POST /api/admin/revenue-os/conversations/action",
-      "POST /api/admin/revenue-os/conversations/reply",
       "POST /api/admin/revenue-os/debates",
       "POST /api/admin/revenue-os/identity-review",
       "POST /api/admin/revenue-os/layout",
@@ -1574,6 +1596,25 @@
         "next/server"
       ],
       "sourceSha256": "99241e4a4cfcfcfaa935e642d77bfe7caecb843c0845e3464037246441a51112"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/webhooks/twilio/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/sms",
+        "@/lib/revenue-os/twilio-adapter",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
+        "@/lib/tenancy/providers",
+        "next/server"
+      ],
+      "sourceSha256": "2374cc92b10db8d7d26d45a06dbdf09bbacdf4082d538a4fb2a8f1ed7b30fd20"
     },
     {
       "source": "src/app/api/public/[tenantSlug]/webhooks/whatsapp/route.ts",
@@ -3149,10 +3190,11 @@
         "@/lib/revenue-os/action-executor",
         "@/lib/revenue-os/actions",
         "@/lib/revenue-os/collection-reminders",
+        "@/lib/revenue-os/sms",
         "@/lib/tenancy/context",
         "next/server"
       ],
-      "sourceSha256": "1d1488beda583b4436b04a3778d8d81a0b9facbad2aa44719248d402d9e36d1e"
+      "sourceSha256": "4eeca407fc25fdc65e5a8756bc65d1f6e9aa3b3a1dedfd1e4572a11bc2725bca"
     },
     {
       "source": "src/app/api/admin/revenue-os/activity/route.ts",
@@ -3444,10 +3486,11 @@
         "@/lib/admin/auth",
         "@/lib/revenue-os/actions",
         "@/lib/revenue-os/google",
+        "@/lib/revenue-os/sms",
         "next/server",
         "node:crypto"
       ],
-      "sourceSha256": "6185a515cf0b4e5c5d1eb5f27f8f67a349af0c60b31104a9dd10fc02b5caebe4"
+      "sourceSha256": "1887cbdddbaa6c7b4995d7c2c1e27b0537a9aaaeabba26b0e306e2319fb70602"
     },
     {
       "source": "src/app/api/admin/revenue-os/conversations/route.ts",
@@ -4176,7 +4219,7 @@
         "node:crypto",
         "zod"
       ],
-      "sourceSha256": "06d5919064cbed5c1821d130ca5d30add157361ba478cb13d499e68843827916"
+      "sourceSha256": "ee4825717885cbdf8bea1206cb975d12c5b48c8a18fb304509d4a4c32d5393fc"
     },
     {
       "source": "src/app/api/admin/tenants/route.ts",

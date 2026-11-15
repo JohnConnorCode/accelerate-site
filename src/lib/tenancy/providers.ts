@@ -10,7 +10,7 @@ import { ACCELERATE_TENANT_ID, type TenantSystemContext } from "@/lib/tenancy/co
 
 export async function resolveTenantProviderSecrets(
   tenantSlug: string,
-  provider: "resend" | "calendly" | "whatsapp" | "hubspot" | "mcp" | "stripe",
+  provider: "resend" | "calendly" | "whatsapp" | "hubspot" | "mcp" | "stripe" | "twilio",
 ) {
   const platform = createPlatformServiceRoleClient(`provider-resolver:${provider}`);
   const { data: tenant } = await platform
@@ -32,7 +32,7 @@ export async function resolveTenantProviderSecrets(
   const read = (key: string) => {
     const value = encrypted[key];
     if (typeof value !== "string" || !value) return null;
-    if (provider === "stripe") {
+    if (provider === "stripe" || provider === "twilio") {
       if (!isTenantEncryptedSecret(value))
         throw new Error(`${provider} ${key} is not in the tenant encrypted envelope`);
       return decryptTenantSecret(value, tenant.id, provider, key);

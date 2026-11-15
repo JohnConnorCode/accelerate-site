@@ -26,7 +26,7 @@
     "src/app/admin/contacts/[email]/page.tsx": "4c4847ed12f186fc3d2ee7599448407e711dbaf35161d87ef3223259c869e7f5",
     "src/app/admin/contacts/page.tsx": "56c8a046724603a3219772fa41b039cafcc02a80ea7176d3bcf0d9e34cf4f212",
     "src/app/admin/content/page.tsx": "034cc7700d3353974bfcb4ae5b83fc762f5aacf4f594ce27bbd0a33f17cb1ccb",
-    "src/app/admin/conversations/page.tsx": "aa30a0b609cdab2ceeaa2d7a26db9d11284e082f7a0ea251b8422decb648d0fe",
+    "src/app/admin/conversations/page.tsx": "56cf80c2c0a9b29d3968d7ee0432ba8366afd7562a51522d6297371b41e8bbef",
     "src/app/admin/coworkers/page.tsx": "c889581a33db33a40c3d610c231cd5a54b8b34f8041c105ea068a572668e620a",
     "src/app/admin/debates/page.tsx": "43633143ac79702fdbcde7bd556f3abf00a23815f1de9a01afffb6647671f065",
     "src/app/admin/email-sequences/page.tsx": "6b001af1a8517a37e802d5dff4f44779e8ec2e7e8ac93899738664a1358ee2c4",
@@ -129,7 +129,7 @@
     "src/app/api/admin/radar/commands/route.ts": "0fdf546a31f30bb8c23ef6f9709cc8b17ad557b0b8e3a8b6609a8986971f806b",
     "src/app/api/admin/radar/workspace/route.ts": "2dd44773ded01b396cefe982db2bf2d327fb96b6c4e29b09c1080b30330eff00",
     "src/app/api/admin/resources/route.ts": "9e9b8c2d48eebfa36feedfd096b290438a56cd21b706fedb001583636f8c7831",
-    "src/app/api/admin/revenue-os/actions/route.ts": "1d1488beda583b4436b04a3778d8d81a0b9facbad2aa44719248d402d9e36d1e",
+    "src/app/api/admin/revenue-os/actions/route.ts": "4eeca407fc25fdc65e5a8756bc65d1f6e9aa3b3a1dedfd1e4572a11bc2725bca",
     "src/app/api/admin/revenue-os/ai/capabilities/route.ts": "4c047cfd593dbaf62b455793977346269e17210c35d159fe508618a88fa4c91c",
     "src/app/api/admin/revenue-os/ai/conversations/[id]/context/route.ts": "f30f24f1f3697c37230c6da8ac4c07d7905b7bd1b6e884f91b2f2f36736461f0",
     "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts": "d4f346d8e2454a5306244ab76b2d79e167c0e7146d422161daf27257770198fd",
@@ -146,7 +146,7 @@
     "src/app/api/admin/revenue-os/campaigns/route.ts": "2859455f923dc00dec63ebe331f4847fa021858fc802eb2179b022c5fba27ac0",
     "src/app/api/admin/revenue-os/contact-imports/route.ts": "04ec4033efecaea031c19665cbee12ed800591c83bf0b81fca27c05d7097fa08",
     "src/app/api/admin/revenue-os/conversations/action/route.ts": "337ebd5f168a4c83d8eb6a0d227e8892bad03bce4136d5227f73611388dde351",
-    "src/app/api/admin/revenue-os/conversations/reply/route.ts": "6185a515cf0b4e5c5d1eb5f27f8f67a349af0c60b31104a9dd10fc02b5caebe4",
+    "src/app/api/admin/revenue-os/conversations/reply/route.ts": "1887cbdddbaa6c7b4995d7c2c1e27b0537a9aaaeabba26b0e306e2319fb70602",
     "src/app/api/admin/revenue-os/conversations/route.ts": "1b637573f2ddd5024d10ffcf0ff3626aa2c70139003630e5742f05f3bb7f3abb",
     "src/app/api/admin/revenue-os/debates/route.ts": "30081318a76b08629806a770eedacd4bc884851404293b795d3cbc3ace9136ac",
     "src/app/api/admin/revenue-os/identity-review/route.ts": "2236f24ce31d1a8ccedc1ef29e7101ede67e992af4d860ef5a67f4df3a9b3952",
@@ -175,7 +175,7 @@
     "src/app/api/admin/tasks/route.ts": "2b001d5e2ecce24d668a186798ea5d836a0fe77af4440735bc8b2c2a0c922a1e",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
     "src/app/api/admin/tenant/modules/route.ts": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1",
-    "src/app/api/admin/tenant/providers/route.ts": "06d5919064cbed5c1821d130ca5d30add157361ba478cb13d499e68843827916",
+    "src/app/api/admin/tenant/providers/route.ts": "ee4825717885cbdf8bea1206cb975d12c5b48c8a18fb304509d4a4c32d5393fc",
     "src/app/api/admin/tenants/route.ts": "803a84e5a2aba7ce93591c13bfc27e2e746bbfd0e615b315fea7328e0f4bea6a",
     "src/app/api/admin/website-grades/export/route.ts": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772",
     "src/app/api/admin/website-grades/route.ts": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98",
@@ -297,7 +297,7 @@
     "src/components/admin/TaskQuickAdd.tsx": "4a8c10382b2f51bfb4738d42b244ef1d6524e629a19fb8377094fe62fa6ec4e8",
     "src/components/admin/TaskWidget.tsx": "c3c52ec847c8276ad728b831c78391eee6b919a6dc3c58406686d76a4017beee",
     "src/components/admin/TaskWorkflowWorkspace.tsx": "d928d03d82565cb6fec27fb4e38e14634bd91121168a60ca9b446b279748f71f",
-    "src/components/admin/TenantProviderControls.tsx": "eb01aba0dd99f2979ab152999a7e0b1240f95f4a9fafa10ab06dcb6e3ddf6324",
+    "src/components/admin/TenantProviderControls.tsx": "7042349bc58707f8311723735c57ad99a09b55604b7dc0ad6dac7a5a22f81b74",
     "src/components/admin/Toaster.tsx": "1c1370f7cf7d2d19c06135f60174c8e493189f7e2701f21cb70d3e6eab110fcb",
     "src/components/admin/TodayViewEditor.tsx": "e1d59a1c8a0796a14af5d03d016fa5891222da2dd79f7bbb71c7d75d21ae0913",
     "src/components/admin/TodayWorkspace.tsx": "51b1fbe23e6e665c639369c874fbdbe3a6e4697f983520e3230923b70af1ac6a",
@@ -338,8 +338,8 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "05bc7954bc812e42965bc5c8977b3d219da31010b72146a0c7bfbcd5992a69a9",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "b36bdbb6a9214a61d24a40f3ed090b4d7519508083292e8e4e909efdf0ffe961",
-    "src/lib/revenue-os/action-executor.ts": "ed86348facec4457ae364adc15b5d3e8a25f6507252f8abde5851f25a09f711f",
+    "src/lib/revenue-os/README.md": "39006c5c698bea969959a8fa752dc49c4731942135bcfe84728262823f20f513",
+    "src/lib/revenue-os/action-executor.ts": "99a88765a85371beb3fc13be632ba385863c02c6961acbd68c0324c8d4d0f024",
     "src/lib/revenue-os/actions.ts": "b58c8c80f26ea00fe6693861a6385144d4ca4c8a48aa12140d98f3f2e93abdbe",
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
@@ -349,7 +349,7 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "e5b7a00424187c92fdb969fd98236a274b992b751380bb00b3cf4b911b7ae65f",
     "src/lib/revenue-os/ai-operations.ts": "32eb6cdefa75a8cdd05c871420ff4bd3cf2184fdc9b1e2743c80faf103f820a6",
     "src/lib/revenue-os/ai-stream-contract.ts": "45e5459095d2c4b27c2a0927a83408ef352bf4584653638d7d03b5447dbf1c0b",
-    "src/lib/revenue-os/ai-tools.ts": "8412554ad9790fa1b4b762cca3a633d8d1528072361116b01457466b7c0e4f3b",
+    "src/lib/revenue-os/ai-tools.ts": "b50504d6c15da6e28a598abea295ec73bd67ba2ac5c7c2d0ca9c4c40eb3eb11f",
     "src/lib/revenue-os/analytics.ts": "61ac0118d5177b5222f0e7f07243196d5907106b45e84e2c00650d35d4688c9d",
     "src/lib/revenue-os/architect-review-contract.ts": "c380b28b286d1902e2b8137f296f66a467fc099528f936d313b91789f439e3e9",
     "src/lib/revenue-os/architect-review.ts": "b271223e4bbfdccbbb8e22186e74966d8bf11a5cac84f712c8063e1448928073",
@@ -366,7 +366,7 @@
     "src/lib/revenue-os/communications.ts": "2aaf1f1ad9dc8c073d47bfd3ad596a327df72e930e333e391f6c532a2dae1914",
     "src/lib/revenue-os/contact-imports.ts": "870dd795ac4e04b63d3b8a1400b6d72e0b4d05469f3fb6159c6ba972665132c1",
     "src/lib/revenue-os/content-calendar.ts": "9ac20c1bd02752a985119edbf81ee26075941e3d3a57807dc2165b8749f299a6",
-    "src/lib/revenue-os/conversations.ts": "7b02190bbb9e9ae2b3314247c5c6286e519cd7135adce91000ad67b5a6397f14",
+    "src/lib/revenue-os/conversations.ts": "0548b29718bcbecd32a34468b7ddcc153102bb0b03dbe0b1c64c41765ff0bfa2",
     "src/lib/revenue-os/correction-capture.ts": "4fe7e40961eed06f2e02f6d2aa926efaa41f630ae5b67b07980ac7749dbd9832",
     "src/lib/revenue-os/db.ts": "167cc018fe0d8387547c174be0fc105edb9efbee6608bf93e2d0e9ca05d038cb",
     "src/lib/revenue-os/debate-bookings.ts": "bdc9e6b07a910f732dd79451d1360fbe9a8e1a17ef02fa26e525ced8540cf532",
@@ -385,7 +385,7 @@
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
     "src/lib/revenue-os/identity.ts": "246a9754189b33ad0e1ed8f14adeaf7e244985999273a18ee9edbcb2032be3f0",
     "src/lib/revenue-os/inbound.ts": "e7befa23ba586f0c4a3b2fd5b2e1c6ea95710eb4dce4ec75601ef46e476a5f19",
-    "src/lib/revenue-os/integration-adapters.ts": "7f427bb456d210228a21a62dc8afe84514a5c1c3f864815157d93742cf871baf",
+    "src/lib/revenue-os/integration-adapters.ts": "a1cd6f82e1bc3750d54ce3f4b67a4129e3a4dd5cbfefa49a5d93b01fad69e65f",
     "src/lib/revenue-os/integrations.ts": "8d4d468661f4325468c53e9dfd613fa5ecc7c84b85ece0cb36f8f5b00c7aa304",
     "src/lib/revenue-os/invoice-page-contract.ts": "d17d126c0a6c8150529b679fdd1895eaaf7818a932046c662578b94f512aae07",
     "src/lib/revenue-os/invoice-pages.ts": "270e214dd19657be1b4eabd19469fabb5a4eba405def1c2ed7a1372ed0ff6214",
@@ -412,6 +412,7 @@
     "src/lib/revenue-os/schema-contract.ts": "bcf75c74268887344408a07a57f42951ffe2bdf3c7f62efb11967bbc38cc8f89",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/shared-context.ts": "2886f194671f3b671cfafb7bd289c8b2d54414608df083165bc509b5d3f76e8d",
+    "src/lib/revenue-os/sms.ts": "3c35577fd16411ebb96f6dde6dc6e26652c5656e80c814a35b83b6b36b068400",
     "src/lib/revenue-os/social-marketing.ts": "a5421a504fd070c4826a0fb62037abe6f83786781c0dd7c21f4d27c94b901ea8",
     "src/lib/revenue-os/source-authority.ts": "19d25cf0e00302d07c4a8ea0b07e203d327074a98546e9eccfa567f31cf95bec",
     "src/lib/revenue-os/stage-history.ts": "83ce2f34e57acab509375b99ef6042d3cd77605a859923974aecd871692608a9",
@@ -653,6 +654,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -785,6 +787,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -887,6 +890,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -1026,8 +1030,12 @@
         },
         {
           "path": "src/app/api/admin/revenue-os/conversations/reply/route.ts",
-          "domainImports": ["@/lib/revenue-os/actions", "@/lib/revenue-os/google"],
-          "directTables": []
+          "domainImports": [
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/google",
+            "@/lib/revenue-os/sms"
+          ],
+          "directTables": ["conversations"]
         },
         {
           "path": "src/app/api/admin/revenue-os/conversations/route.ts",
@@ -1293,6 +1301,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -1395,6 +1404,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -1537,6 +1547,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -1703,6 +1714,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -1733,6 +1745,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -1763,6 +1776,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -1793,6 +1807,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -2155,6 +2170,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []
@@ -2248,6 +2264,7 @@
             "@/lib/revenue-os/action-executor",
             "@/lib/revenue-os/actions",
             "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/sms",
             "@/lib/tenancy/context"
           ],
           "directTables": []

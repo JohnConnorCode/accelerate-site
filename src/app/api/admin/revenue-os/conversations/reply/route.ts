@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { requireAdmin } from "@/lib/admin/auth";
 import { readGmailReplyTarget, sendGmailReply } from "@/lib/revenue-os/google";
 import { proposeAction } from "@/lib/revenue-os/actions";
+import { proposeSmsReply } from "@/lib/revenue-os/sms";
 
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
@@ -19,6 +20,28 @@ export async function POST(request: NextRequest) {
     );
   const supabase = auth.database;
   const contentKey = createHash("sha256").update(body.body.trim()).digest("hex");
+  const { data: thread } = await supabase
+    .from("conversations")
+    .select("channel")
+    .eq("id", body.conversationId)
+    .maybeSingle();
+  if (thread?.channel === "sms") {
+    // Every text is approved before it sends: a reply stages send_sms, confirmed or not.
+    try {
+      const action = await proposeSmsReply(supabase, {
+        conversationId: body.conversationId,
+        body: body.body,
+        proposedBy: auth.user.email,
+        sourceContext: "conversation_reply",
+      });
+      return NextResponse.json({ approvalRequired: true, action });
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Could not prepare the text" },
+        { status: 400 },
+      );
+    }
+  }
   if (!body.confirmed) {
     try {
       const replyTarget = await readGmailReplyTarget(supabase, body.conversationId);

@@ -78,7 +78,7 @@ Find the workspace for your business work and use its daily priorities, records 
 The reply-ready inbox for Gmail, forms, chat, and transcripts.
 
 - [Conversations](https://www.acceleratewith.us/docs/conversations/overview) (updated 2026-09-27): Read supported message threads with customer context, prepare a reply and check its result.
-- [Reply to a conversation](https://www.acceleratewith.us/docs/conversations/reply) (updated 2026-09-27): Find the right thread, confirm who you're writing to, and check that it sent.
+- [Reply to a conversation](https://www.acceleratewith.us/docs/conversations/reply) (updated 2026-11-14): Find the right thread, confirm who you're writing to, and check that it sent.
 
 ## Contacts
 Identity resolution, intake, and reviewed list imports.
@@ -142,7 +142,7 @@ The assistant, run traces, knowledge, and source-to-revenue analytics.
 Tenants, setup, settings, integrations, and the Feature Board.
 
 - [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-27): How your business gets provisioned, connected, verified, and kept running.
-- [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-10-05): Turn a message, calendar event, or invoice sitting in another app into usable context here.
+- [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-11-14): Turn a message, calendar event, or invoice sitting in another app into usable context here.
 - [Manage your subscription](https://www.acceleratewith.us/docs/workspace/customer-billing) (updated 2026-09-19): Subscribe, update payment details, and understand renewals from your customer account.
 - [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-10-05): Verify the connections one real workflow needs, before layering on more.
 - [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-10-20): Change a notification or your workspace's look, then confirm the change saved.
