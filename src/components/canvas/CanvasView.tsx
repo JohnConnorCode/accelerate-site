@@ -8,6 +8,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -306,6 +307,12 @@ function CanvasSurface<T>({
   const [active, setActive] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const framed = useRef<string | null>(null);
+  // Consumers pass fresh callbacks on every render. Handlers read them through a
+  // ref, so a parent re-render (such as a gesture flag) never re-renders nodes.
+  const callbacks = useRef({ onOpen, hrefFor, onInteractingChange });
+  useLayoutEffect(() => {
+    callbacks.current = { onOpen, hrefFor, onInteractingChange };
+  });
   const fullTree = useMemo(() => canvasTree(nodes), [nodes]);
   // A chosen scope unspools at once; the URL records it a moment later.
   const [requestedScope, requestScope] = usePendingParam(scopeId);
@@ -395,14 +402,14 @@ function CanvasSurface<T>({
     (node: CanvasNode<unknown>) => {
       setActive(node.id);
       const hasChildren = (fullTree.children.get(node.id) ?? []).length > 0;
-      if (!hasChildren) return onOpen(node as CanvasNode<T>);
+      if (!hasChildren) return callbacks.current.onOpen(node as CanvasNode<T>);
       const soleRoot = node.parentId === null && fullTree.roots.length === 1;
       const target = soleRoot ? null : node.id;
       if (target === scope) return void frame(target, glide);
       requestScope(target);
-      router.push(hrefFor({ scopeId: target }), "preserve");
+      router.push(callbacks.current.hrefFor({ scopeId: target }), "preserve");
     },
-    [fullTree, onOpen, scope, frame, glide, router, hrefFor, requestScope],
+    [fullTree, scope, frame, glide, router, requestScope],
   );
 
   const tabStop = canvasTabStop(tree, active ?? selectedId ?? scope, level, kinds);
@@ -483,8 +490,8 @@ function CanvasSurface<T>({
     ];
   }, [layout]);
   const cull = visible.length > CULL_ABOVE;
-  const onMoveStart = useCallback(() => onInteractingChange?.(true), [onInteractingChange]);
-  const onMoveEnd = useCallback(() => onInteractingChange?.(false), [onInteractingChange]);
+  const onMoveStart = useCallback(() => callbacks.current.onInteractingChange?.(true), []);
+  const onMoveEnd = useCallback(() => callbacks.current.onInteractingChange?.(false), []);
   // An opened record stays beside the docked panel: the smallest pan that uncovers it.
   const detailOpen = Boolean(detail);
   useEffect(() => {
@@ -547,6 +554,7 @@ function CanvasSurface<T>({
         data-canvas-level={level}
         data-canvas-ready={ready || undefined}
         data-detail-open={detail ? "true" : undefined}
+        data-overlay={overlay ? "true" : undefined}
         data-unspool={!cull && !reduced ? "true" : undefined}
         onKeyDown={onKeyDown}
       >

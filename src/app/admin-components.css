@@ -1941,7 +1941,9 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   border-radius: var(--admin-radius-pill);
   background: color-mix(in srgb, var(--admin-surface) 88%, transparent);
 }
-.admin-canvas:has(.admin-canvas-overlay) .admin-canvas-keys {
+/* An attribute, not :has(): culled nodes mount while panning, and each mount
+   would re-evaluate :has() on the canvas root and restyle every node. */
+.admin-canvas[data-overlay] .admin-canvas-keys {
   display: none;
 }
 /* A newly opened branch settles in. Nodes and links present at first paint are
@@ -1982,7 +1984,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
     top: auto;
     bottom: 16px;
   }
-  .admin-canvas:has(.admin-canvas-overlay) .admin-canvas-zoom {
+  .admin-canvas[data-overlay] .admin-canvas-zoom {
     bottom: 84px;
   }
   .admin-canvas-crumb,

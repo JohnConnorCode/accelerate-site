@@ -81,14 +81,13 @@ async function scriptedGestures(page) {
     await page.waitForTimeout(16);
   }
   await page.mouse.up();
+  // Control plus wheel is the pinch gesture; a plain wheel would scroll the page.
+  await page.keyboard.down("Control");
   for (let step = 0; step < 12; step++) {
-    await page.mouse.wheel(0, step < 6 ? -60 : 60, { modifiers: ["Control"] }).catch(async () => {
-      await page.keyboard.down("Control");
-      await page.mouse.wheel(0, step < 6 ? -60 : 60);
-      await page.keyboard.up("Control");
-    });
+    await page.mouse.wheel(0, step < 6 ? -60 : 60);
     await page.waitForTimeout(30);
   }
+  await page.keyboard.up("Control");
 }
 
 const browser = await chromium.launch();
