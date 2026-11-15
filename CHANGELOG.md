@@ -14,6 +14,12 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Add the Command Board App (`extensions/command-board.module.json`, `/admin/board`): tenant-scoped board definitions with a revisioned, audited writer (`migrations/20261114180000_command_board.sql`), Service Mode and Real Estate Mode templates, read-time station summaries over open records from the workspace graph adapters (`open` and `links` graph options; nodes carry due dates, attention and exact record links), three AI tools staged through the approval queue, and an MLIVM demo scenario with two businesses on one desk. `test:command-board`, the board handler check in `test:graph-adapters` and `qa:command-board` cover the contract, summaries, the guarded HTTP read, demo transport, module gating, desktop and phone journeys.
+
+- Add a shared canvas view (`src/components/canvas/CanvasView.tsx`, `src/lib/admin/canvas-model.ts`) built on `@xyflow/react` 12.12.0, loaded only when a canvas is opened. Today and the Work approvals tab gain URL-backed Canvas views that reuse their existing detail panels. `test:admin-canvas` covers layout, zoom levels and keyboard neighbours; `qa:canvas-view` covers geometry, keyboard, touch, reduced motion, history, accessibility and a 400-node frame budget.
+
+- Add the workspace graph adapter registry. Modules claim adapters with `graphAdapterNames`, `authorizeGraphSource` admits only active admin memberships, and `GET /api/admin/revenue-os/graph` and `get_workspace_graph` share one read with per-source receipts, caps and keyset cursors. Task, opportunity, contact and approval list reads move into their domain services with unchanged route responses.
+
 - Make manual opportunity creation atomic and safe to retry with a retained intent, tenant-scoped private receipt and explicit authenticated actor. Keep native SQL and desktop/mobile recovery checks in the release pipeline.
 
 - Gate application/fork builds and connected installation/recovery jobs on a bounded source typecheck, so typing failures stop before build fan-out or service provisioning.

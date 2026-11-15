@@ -542,6 +542,11 @@ export const docsManifest: DocsSection[] = [
         description: "Turn a won opportunity into a reviewed, assigned kickoff checklist.",
       },
       {
+        slug: ["plugins", "command-board"],
+        title: "Command Board",
+        description: "See each business as a desk of phases and stations that summarize live work.",
+      },
+      {
         slug: ["plugins", "commitment-watch"],
         title: "Overdue commitments",
         description: "Find overdue tasks and return to the work behind each commitment.",

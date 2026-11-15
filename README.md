@@ -9,7 +9,7 @@ Command Center is an **open-source AI business platform you can make your own**.
 
 **Build for your team or clients:** give Claude Code or Codex the repository and a concrete business task. Add screens, reports and workflows using the existing customer identity, permissions and business services. [Adapt a working follow-up report](https://www.acceleratewith.us/docs/extend/first-change) before starting a larger custom App.
 
-Try six fictional businesses without an account or provider keys. When you are ready for your own team, connect a Supabase project and provider accounts you control. The application source is MIT licensed; hosting and provider usage have their normal costs.
+Try seven fictional businesses without an account or provider keys. When you are ready for your own team, connect a Supabase project and provider accounts you control. The application source is MIT licensed; hosting and provider usage have their normal costs.
 
 **Have an agent build your workflow:** describe the repeated work, the records it uses and the result your team needs. A coding agent can handle setup, source changes, extension registration and checks while you review the working result. Reusing customer identity, permissions and business services saves rebuilding that foundation for every custom screen. Start with [an agent-ready business brief](https://www.acceleratewith.us/docs/extend/ai-authoring).
 
@@ -80,7 +80,7 @@ Never copy production credentials into a fork.
 
 **AI can work with business records.** It can retrieve bounded customer context, link findings to source records and use registered operations to prepare or execute permitted work. Actions follow the existing permissions, impact tiers and audit trail. Consequential actions require approval.
 
-**Workspace records stay isolated.** Business requests use explicit workspace context and tenant-isolated records. A workspace can connect its own OpenRouter key; provider usage follows the configured credential owner. Six fictional demo workspaces let you explore the product, including a live drag-and-drop feature-board kanban, with no setup at all.
+**Workspace records stay isolated.** Business requests use explicit workspace context and tenant-isolated records. A workspace can connect its own OpenRouter key; provider usage follows the configured credential owner. Seven fictional demo workspaces let you explore the product, including a live drag-and-drop feature-board kanban, with no setup at all.
 
 See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 

@@ -1,7 +1,7 @@
 ---
 title: "Review and approve actions"
 description: "How approval works, how it earns more autonomy over time, and what to check after a decision."
-updated: "2026-09-30"
+updated: "2026-11-14"
 ---
 
 When AI prepares a customer reply or a workflow proposes several tasks, review the exact change before it runs. Approvals keeps that decision connected to its context and recorded result. Eligible actions can earn a proposed increase in autonomy, which a person reviews separately.
@@ -32,6 +32,8 @@ A manual action you take yourself is different and does not route through this q
 | Save draft to Gmail | For a `create_gmail_draft` proposal, saves the exact reviewed reply as an editable Gmail draft. It is not sent; review, edit, and send it in Gmail Drafts. |
 | Revise              | The proposal goes back to whatever produced it, AI or workflow, so you can change it and review the new version before deciding again.                     |
 | Reject              | The action does not run. Give a reason when the screen offers one; it is what the system learns from.                                                      |
+
+To see the whole queue at once, choose **Canvas** on the **Work → Approvals** tab. Pending proposals are grouped under Critical, High, Normal and Low, oldest first, and expired or decided proposals are left out. Selecting a card opens the same review panel shown above; the canvas has no approve or reject control of its own. Closing the review keeps your place on the canvas.
 
 Gmail follow-ups stay in **Work → Follow-ups** after the draft is saved. Open the draft there, then send it manually from Gmail when it is ready. Gmail sync records the sent message and keeps the follow-up open while waiting for a reply. A matching reply closes that loop; the reply itself remains available in Conversations for any new work. If sync is stale or the provider result is uncertain, the item remains open for reconciliation rather than being silently closed or retried.
 

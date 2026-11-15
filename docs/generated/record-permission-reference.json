@@ -1,8 +1,9 @@
 {
-  "contract": "revenue-os-record-permissions.v1",
+  "contract": "revenue-os-record-permissions.v2",
   "generatedFrom": {
     "modules": "src/lib/revenue-os/modules.ts REVENUE_OS_MODULES",
     "toolGrants": "src/lib/revenue-os/modules.ts AI_TOOL_TO_MODULE_MAP",
+    "graphAdapterGrants": "src/lib/revenue-os/modules.ts GRAPH_ADAPTER_TO_MODULE_MAP",
     "hardFloors": "src/lib/revenue-os/autonomy-policy.ts HARD_FLOOR_ACTION_KEYS",
     "autonomyLevels": "src/lib/revenue-os/autonomy-policy.ts AUTONOMY_LEVELS",
     "denyCodes": "src/lib/revenue-os/record-permissions.ts RECORD_DENY_CODES",
@@ -179,6 +180,12 @@
       "defaultEnabled": false
     },
     {
+      "id": "command-board",
+      "name": "Command Board",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
       "id": "commitment-watch",
       "name": "Overdue commitments",
       "core": false,
@@ -304,6 +311,10 @@
     },
     {
       "tool": "get_pending_actions",
+      "module": "core-command"
+    },
+    {
+      "tool": "get_workspace_graph",
       "module": "core-command"
     },
     {
@@ -635,6 +646,18 @@
       "module": "client-onboarding"
     },
     {
+      "tool": "get_command_board",
+      "module": "command-board"
+    },
+    {
+      "tool": "preview_command_board_change",
+      "module": "command-board"
+    },
+    {
+      "tool": "propose_command_board_change",
+      "module": "command-board"
+    },
+    {
       "tool": "run_commitment_watch",
       "module": "commitment-watch"
     },
@@ -835,6 +858,40 @@
       "module": "stripe-invoicing"
     }
   ],
+  "graphAdapterGrants": [
+    {
+      "adapter": "tasks",
+      "module": "core-command"
+    },
+    {
+      "adapter": "approvals",
+      "module": "core-command"
+    },
+    {
+      "adapter": "opportunities",
+      "module": "core-pipeline"
+    },
+    {
+      "adapter": "conversations",
+      "module": "core-conversations"
+    },
+    {
+      "adapter": "contacts",
+      "module": "core-contacts"
+    },
+    {
+      "adapter": "companies",
+      "module": "core-contacts"
+    },
+    {
+      "adapter": "collection_cases",
+      "module": "receivables-collections"
+    },
+    {
+      "adapter": "invoice_drafts",
+      "module": "stripe-invoicing"
+    }
+  ],
   "mcpResources": [
     {
       "uri": "revenue-os://today/snapshot",
@@ -867,7 +924,7 @@
   ],
   "boundaries": [
     "platform_admin: founder email match only; bound to one explicit tenant per check.",
-    "workspace_member: active tenant_memberships row required; writes/exports/actions require the admin role.",
+    "workspace_member: active tenant_memberships row required; writes/exports/actions and workspace graph reads require the admin role.",
     "integration: explicit tenant-bound system identity; no membership row, still tenant/module/grant bound.",
     "default-deny: unbound clients, unknown tenants, suspended workspaces, revoked memberships, disabled modules, ungranted entities, and unreadable fields all deny with a named code."
   ]

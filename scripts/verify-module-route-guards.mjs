@@ -28,6 +28,7 @@ const MODULE_API_DIRECTORIES = {
   "event-ticketing": ["src/app/api/admin/events"],
   "social-marketing": ["src/app/api/admin/social"],
   "receivables-collections": ["src/app/api/admin/collections"],
+  "command-board": ["src/app/api/admin/board"],
   "form-builder": ["src/app/api/admin/forms"],
   "stripe-invoicing": ["src/app/api/admin/invoicing"],
   proposals: ["src/app/api/admin/proposals"],

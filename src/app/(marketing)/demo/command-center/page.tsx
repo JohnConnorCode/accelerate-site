@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 
 const previews: Record<
   DemoScenarioId,
-  { task: string; image: string; screen: string; explore: string[] }
+  { task: string; image: string; screen: string; explore: string[]; start?: string }
 > = {
   "northline-roofing": {
     task: "“Find unanswered homeowner inquiries and prepare the next reply.”",
@@ -76,6 +76,17 @@ const previews: Record<
       "Create tasks from meeting commitments",
       "Check who owns each follow-up",
     ],
+  },
+  mlivm: {
+    task: "“Open the desk and show me which stations need attention.”",
+    image: "mlivm-board-20261114.png",
+    screen: "Command Board",
+    explore: [
+      "Unspool Execute down to the renovation stations",
+      "Check rent, repairs and room turns in PM",
+      "Switch to HI LAWN and review the overdue invoices",
+    ],
+    start: "board",
   },
   superdebate: {
     task: "“Find invoices that need attention and prepare a reminder.”",
@@ -167,7 +178,7 @@ export default function AdminDemoLauncher() {
         <div className="wrap">
           <AnimateOnScroll className={styles.sectionIntro}>
             <div>
-              <p className="label">Six demo workspaces</p>
+              <p className="label">Seven demo workspaces</p>
               <h2 className={styles.heading} id="business-demos-title">
                 Start with a job you recognize.
               </h2>
@@ -210,7 +221,7 @@ export default function AdminDemoLauncher() {
                   </ul>
                   <div className={styles.actions}>
                     <Link
-                      href={`/demo/command-center/${scenario.id}/today?agent=priorities`}
+                      href={`/demo/command-center/${scenario.id}/${preview.start ?? "today?agent=priorities"}`}
                       className={styles.primary}
                       aria-label={`Explore ${scenario.name} demo workspace`}
                     >

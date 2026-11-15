@@ -11,6 +11,8 @@ import { recordStaleClaimRecovery, STALE_CLAIM_WINDOW_MS } from "./runs";
 import { recordLearnedPolicy } from "./memory";
 import { storeAgentMemory } from "./memory";
 import { evaluateTriage, triageReceipt, type TriageDecision } from "./triage";
+import { isMissingRevenueSchema } from "./db";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 
 const proposalWorkContext = new AsyncLocalStorage<string>();
 export function withProposalWorkContext<T>(
@@ -55,6 +57,57 @@ export async function sweepExpiredActions(supabase: SupabaseClient): Promise<num
     return 0;
   }
   return data?.length ?? 0;
+}
+
+/**
+ * Read-only action_queue list shared by the approvals route and the workspace
+ * graph. It never sweeps or writes: callers that retire expired proposals do
+ * so explicitly (the approvals route), and `openOnly` filters expiry in the
+ * query exactly like the operator queue. Missing schema is reported.
+ */
+export async function listActions(
+  supabase: SupabaseClient,
+  input: {
+    id?: string;
+    limit?: number;
+    /** Pending proposals whose expiry has not passed. */
+    openOnly?: boolean;
+    status?: string;
+    actionType?: string;
+    entity?: { type: string; id: string };
+    /** Exact JSON payload field match, e.g. payload->>contactId. */
+    payloadContactId?: string;
+    /** Keyset window ordered by id (graph reads). */
+    window?: { ids?: string[]; afterId?: string; limit: number };
+  } = {},
+): Promise<{ schemaReady: boolean; actions: Array<Record<string, unknown>> }> {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Action reads require a tenant-bound workspace");
+  let query = supabase.from("action_queue").select("*").eq("tenant_id", tenantId);
+  if (input.window) {
+    query = query.order("id", { ascending: true }).limit(input.window.limit);
+    if (input.window.ids) query = query.in("id", input.window.ids);
+    if (input.window.afterId) query = query.gt("id", input.window.afterId);
+  } else {
+    query = query.order("created_at", { ascending: false });
+    if (input.id) query = query.eq("id", input.id);
+    else query = query.limit(input.limit ?? 100);
+  }
+  if (input.openOnly)
+    query = query
+      .eq("status", "pending")
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+  if (input.status) query = query.eq("status", input.status);
+  if (input.actionType) query = query.eq("action_type", input.actionType);
+  if (input.entity)
+    query = query.eq("entity_type", input.entity.type).eq("entity_id", input.entity.id);
+  if (input.payloadContactId) query = query.eq("payload->>contactId", input.payloadContactId);
+  const { data, error } = await query;
+  if (error) {
+    if (isMissingRevenueSchema(error)) return { schemaReady: false, actions: [] };
+    throw new Error(`Could not load actions: ${error.message}`);
+  }
+  return { schemaReady: true, actions: (data ?? []) as Array<Record<string, unknown>> };
 }
 
 export interface ActionProposal {

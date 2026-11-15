@@ -2,7 +2,7 @@
 
 The shared evaluator — `src/lib/revenue-os/record-permissions.ts`
 (`authorizeRecordAccess`) — checks bound tenant, membership, module and entity authority. MCP resource
-reads and discovery call it; existing UI/API and plugin paths retain their
+reads, discovery and workspace graph sources call it; existing UI/API and plugin paths retain their
 authentication and capability boundaries. A helper test is not proof that all
 entrypoints have migrated to this evaluator. The universal parity card remains
 open until its affected surfaces are verified.
@@ -12,7 +12,7 @@ open until its affected surfaces are verified.
 | Principal          | How it authenticates                                                                          | What it may touch                                                                                       |
 | ------------------ | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `platform_admin`   | `ADMIN_EMAIL` exact match (`src/lib/admin/access.ts`)                                         | Any record inside one explicit tenant; still module- and grant-bound. Never ambient cross-tenant reads. |
-| `workspace_member` | Active `tenant_memberships` row for the tenant                                                | Reads and relates with any active membership. Writes, exports, and actions require the `admin` role.    |
+| `workspace_member` | Active `tenant_memberships` row for the tenant                                                | Reads and relates with any active membership. Writes, exports, actions and graph reads require `admin`. |
 | `integration`      | Explicit tenant-bound system identity (`TenantSystemContext`, MCP bearer key, cron allowlist) | Tenant-active, module, and grant checks still apply. No membership row exists, so none is consulted.    |
 
 Tenant workspaces additionally require an active `tenants` row and explicit
@@ -24,8 +24,10 @@ tenant context in middleware and API authorization (`MULTI-TENANCY-CONTRACT.md`)
    fail closed. Suspended, archived, or unknown workspaces deny with
    `tenant_unknown_or_suspended`.
 2. **Membership and role.** Missing, invited-only, or revoked memberships deny
-   with `membership_revoked`. Non-admin roles deny writes, exports, and
-   actions with `role_insufficient`.
+   with `membership_revoked`. Non-admin roles deny writes, exports, actions
+   and `adminOnly` reads with `role_insufficient`. When the entrypoint supplies
+   the authenticated user id, the membership is matched by that id rather than
+   the invited email.
 3. **Module.** Unknown or disabled modules deny with `module_disabled`. The
    check is `isModuleEnabled` against the workspace's stored `tenants.config`
    — the same helper admin navigation, `requireAdminForModule`, and AI tool
@@ -60,13 +62,26 @@ policy reference (`tenantId`, `moduleId`, `entityType`, `grant`,
   hidden from `resources/list` and refused on `resources/read` with the deny
   code and policy reference.
 
+## Workspace graph sources
+
+`authorizeGraphSource` (same file) gates each workspace graph adapter
+(`src/lib/revenue-os/graph-adapters.ts`). The adapter's claiming module comes
+from `graphAdapterNames` in the module registry; an unclaimed adapter denies
+with `entity_unknown`. The check then runs the evaluator as a host read
+(`graph_source`) with `adminOnly`, so a workspace member needs an active
+membership with the `admin` role, the only role today, even to read. Any
+other role, a revoked or invited-only membership, an unbound client or an
+inactive tenant receives zero nodes from every adapter. A disabled module
+removes only its own adapters (`module_disabled`). Each refusal is a
+per-source receipt; it never fails the whole graph.
+
 ## Machine-readable reference
 
 `docs/generated/record-permission-reference.json` is generated from the
 executable registrations by
 `scripts/generate-record-permission-reference.ts`. It lists deny codes,
-autonomy levels, hard floors, modules, tool-to-module grants, and the MCP
-resource-to-module map. The contract test fails on drift: change the
+autonomy levels, hard floors, modules, tool-to-module grants, graph
+adapter-to-module grants, and the MCP resource-to-module map. The contract test fails on drift: change the
 registrations, regenerate, commit both.
 
 ## Non-goals

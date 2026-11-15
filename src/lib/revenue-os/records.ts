@@ -8,6 +8,8 @@ import {
   type ActivityLedgerRecord,
 } from "./activities";
 import { loadPipelineStages } from "./pipeline-stage-resolver";
+import { isMissingRevenueSchema } from "./db";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 
 export const OPPORTUNITY_RECORD_CONTRACT = "revenue-os-opportunity-record.v1";
 
@@ -54,6 +56,126 @@ export interface OpportunityRecord {
 
 function assertQuery(result: { error: { message: string } | null }, label: string) {
   if (result.error) throw new Error(`Could not load ${label}: ${result.error.message}`);
+}
+
+function requireTenantDatabase(supabase: SupabaseClient, label: string): string {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error(`${label} require a tenant-bound workspace`);
+  return tenantId;
+}
+
+/** Keyset window used by graph adapters: exact ids or rows after a record id. */
+export interface RecordWindow {
+  ids?: string[];
+  afterId?: string;
+  limit: number;
+}
+
+/** A full opportunities row (select "*"); the named columns are always present. */
+export type OpportunityListRow = Record<string, unknown> & {
+  id: string;
+  name: string | null;
+  stage: string;
+  contact_id: string | null;
+  company_id: string | null;
+};
+
+/**
+ * Opportunity list shared by the Pipeline route and the workspace graph. The
+ * Pipeline board orders by next action (500 rows); a graph window orders by
+ * id for keyset continuation. Missing schema is reported, not thrown.
+ */
+export async function listOpportunities(
+  supabase: SupabaseClient,
+  input: {
+    stage?: string | null;
+    search?: string | null;
+    contactId?: string;
+    companyId?: string;
+    /** Leave out these stages; used by graph reads of open work. */
+    excludeStages?: readonly string[];
+    window?: RecordWindow;
+  } = {},
+): Promise<{ schemaReady: boolean; opportunities: OpportunityListRow[] }> {
+  const tenantId = requireTenantDatabase(supabase, "Opportunity reads");
+  let query = supabase.from("opportunities").select("*").eq("tenant_id", tenantId);
+  if (input.window) {
+    query = query.order("id", { ascending: true }).limit(input.window.limit);
+    if (input.window.ids) query = query.in("id", input.window.ids);
+    if (input.window.afterId) query = query.gt("id", input.window.afterId);
+  } else
+    query = query
+      .order("next_action_at", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(500);
+  if (input.stage) query = query.eq("stage", input.stage);
+  if (input.contactId) query = query.eq("contact_id", input.contactId);
+  if (input.companyId) query = query.eq("company_id", input.companyId);
+  if (input.excludeStages?.length)
+    query = query.not("stage", "in", `(${input.excludeStages.join(",")})`);
+  if (input.search)
+    query = query.or(
+      `name.ilike.%${input.search.replace(/[,%]/g, "")}%,email.ilike.%${input.search.replace(/[,%]/g, "")}%`,
+    );
+  const result = await query;
+  if (result.error) {
+    if (isMissingRevenueSchema(result.error)) return { schemaReady: false, opportunities: [] };
+    throw new Error(`Could not load the pipeline: ${result.error.message}`);
+  }
+  return { schemaReady: true, opportunities: (result.data ?? []) as OpportunityListRow[] };
+}
+
+export const CONTACT_DIRECTORY_COLUMNS =
+  "id,full_name,primary_email,phone,title,lifecycle_stage,communication_status,next_action,next_action_at,company_id,created_at,updated_at";
+
+/**
+ * Contact directory read shared by the directory route (50 per page, most
+ * recently updated first) and the workspace graph (keyset window by id).
+ */
+export async function listContacts(
+  supabase: SupabaseClient,
+  input: { page?: number; search?: string; companyId?: string; window?: RecordWindow } = {},
+): Promise<{ contacts: Array<Record<string, unknown>>; total: number }> {
+  const tenantId = requireTenantDatabase(supabase, "Contact reads");
+  let query = supabase
+    .from("contacts")
+    .select(CONTACT_DIRECTORY_COLUMNS, { count: "exact" })
+    .eq("tenant_id", tenantId);
+  if (input.window) {
+    query = query.order("id", { ascending: true }).limit(input.window.limit);
+    if (input.window.ids) query = query.in("id", input.window.ids);
+    if (input.window.afterId) query = query.gt("id", input.window.afterId);
+  } else {
+    const offset = (Math.max(1, input.page ?? 1) - 1) * 50;
+    query = query.order("updated_at", { ascending: false }).range(offset, offset + 49);
+  }
+  if (input.companyId) query = query.eq("company_id", input.companyId);
+  if (input.search) {
+    const escaped = input.search.replace(/[%,()]/g, "");
+    query = query.or(`full_name.ilike.%${escaped}%,primary_email.ilike.%${escaped}%`);
+  }
+  const { data, count, error } = await query;
+  if (error) throw new Error(`Contacts could not be loaded: ${error.message}`);
+  return { contacts: (data ?? []) as Array<Record<string, unknown>>, total: count ?? 0 };
+}
+
+/** Bounded company read for the workspace graph, keyset by id. */
+export async function listCompanies(
+  supabase: SupabaseClient,
+  window: RecordWindow,
+): Promise<{ companies: Array<Record<string, unknown>> }> {
+  const tenantId = requireTenantDatabase(supabase, "Company reads");
+  let query = supabase
+    .from("companies")
+    .select("id,name,domain,industry,updated_at")
+    .eq("tenant_id", tenantId)
+    .order("id", { ascending: true })
+    .limit(window.limit);
+  if (window.ids) query = query.in("id", window.ids);
+  if (window.afterId) query = query.gt("id", window.afterId);
+  const { data, error } = await query;
+  if (error) throw new Error(`Companies could not be loaded: ${error.message}`);
+  return { companies: (data ?? []) as Array<Record<string, unknown>> };
 }
 
 /**

@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-board-app",
+    slug: "command-board-app",
+    title: "Run each business from a Command Board desk",
+    description:
+      "Command Board shows every business in a workspace as a desk: open a phase to unspool its segments and stations, and each station counts the matching tasks, opportunities, conversations, approvals and balances, names the next one, and lights up when something needs you. Service Mode and Real Estate Mode install as your own board data. Try it in the new MLIVM demo workspace, which runs a property business and a lawn service side by side.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
+    id: "today-and-approvals-canvas",
+    slug: "today-and-approvals-canvas",
+    title: "See Today and your approvals as a canvas",
+    description:
+      "Choose Canvas on Today or on the Work approvals tab to see attention items and pending proposals as a map you can pan and zoom. Groups show their counts, cards reveal more detail as you zoom in, and selecting a card opens the same review panel as the list. Keyboard navigation, touch gestures and reduced motion are supported, and the canvas never changes a record on its own.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
+    id: "workspace-graph-read",
+    slug: "workspace-graph-read",
+    title: "See how workspace records connect",
+    description:
+      "The assistant and connected MCP clients can read contacts, companies, opportunities, tasks, pending approvals, conversations, collection cases and invoice drafts as one connected graph. Ask about one record and its related work, or page through each record type. Each source reports whether it was read, refused or turned off, so turning off an App removes only its own records. Only workspace administrators can read the graph, and reading it never changes a record.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
     id: "shared-module-cards-and-contact-navigation",
     slug: "shared-module-cards-and-contact-navigation",
     title: "Inspect modules and open customer records consistently",

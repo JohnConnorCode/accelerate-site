@@ -3,16 +3,16 @@ import { chromium } from "playwright";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-full-admin-demo";
-const scenarios = process.argv.includes("--one")
-  ? ["northline-roofing"]
-  : [
-      "northline-roofing",
-      "alder-ridge-law",
-      "ledgerstone-advisory",
-      "hearthline-realty",
-      "common-table-network",
-      "superdebate",
-    ];
+const allScenarios = [
+  "northline-roofing",
+  "alder-ridge-law",
+  "ledgerstone-advisory",
+  "hearthline-realty",
+  "common-table-network",
+  "superdebate",
+  "mlivm",
+];
+const scenarios = process.argv.includes("--one") ? ["northline-roofing"] : allScenarios;
 const defaultAppearances = {
   "northline-roofing": "accelerate",
   "alder-ridge-law": "dark",
@@ -20,9 +20,11 @@ const defaultAppearances = {
   "hearthline-realty": "operator",
   "common-table-network": "light",
   superdebate: "light",
+  mlivm: "light",
 };
 const routes = [
   "today",
+  "board",
   "pipeline",
   "conversations",
   "inbox",
@@ -150,8 +152,11 @@ async function readStablePageState(page) {
       ).length,
     })),
   );
-  if (marks.length !== 6 || new Set(marks.map((mark) => mark.classes)).size !== 6)
-    failures.push("launcher: scenario logos are not six distinct marks");
+  if (
+    marks.length !== allScenarios.length ||
+    new Set(marks.map((mark) => mark.classes)).size !== allScenarios.length
+  )
+    failures.push(`launcher: scenario logos are not ${allScenarios.length} distinct marks`);
   await page.waitForTimeout(1_300);
   const firstCard = page.locator("article").filter({ has: workspaceLinks }).first();
   await firstCard.hover();

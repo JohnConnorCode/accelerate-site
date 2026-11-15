@@ -85,6 +85,12 @@ import { createHash } from "node:crypto";
 import { TODAY_TOOL_NAMES, todaySaveSchema } from "@/lib/admin/today-workspace";
 import { loadTodaySnapshot } from "./today-snapshot";
 import { readTodayViews, previewTodayViewChange, proposeTodayViewChange } from "./today-views";
+import {
+  previewCommandBoardChange,
+  proposeCommandBoardChange,
+  readCommandBoard,
+} from "./command-board";
+import { commandBoardSaveSchema } from "./command-board-contract";
 import { prepareRadarOutreachDraft } from "./radar-outreach-drafting";
 import {
   previewRadarOutreach,
@@ -267,6 +273,8 @@ import {
   type MemoryCategory,
 } from "./memory";
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
+import { readWorkspaceGraph } from "./graph-adapters";
+import { workspaceGraphInputSchema } from "./graph-adapter-contract";
 
 export { AI_TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
 import {
@@ -1639,6 +1647,78 @@ const registry: AiToolRegistration[] = [
     outputSchema: { type: "object" },
     execute: async ({ supabase, actorEmail }, input) =>
       proposeTodayViewChange(supabase, input, actorEmail),
+  },
+  {
+    name: "get_command_board",
+    description:
+      "Read the workspace's Command Board: each business's mode, phases, segments and stations with revision numbers, plus read-time station summaries counted from tasks, opportunities, conversations, approvals, collections and people. Read before preparing a board change.",
+    inputSchema: z.toJSONSchema(z.object({}).strict()),
+    impact: "read",
+    confirmationRequired: false,
+    connectionRequirement: "none",
+    serviceTarget: "revenue-os.command-board",
+    outputSchema: { type: "object" },
+    operation: {
+      id: "command-board.read",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/board", method: "GET" }],
+      verification: ["scripts/test-command-board.ts"],
+    },
+    execute: async ({ supabase }) => readCommandBoard(supabase),
+  },
+  {
+    name: "preview_command_board_change",
+    description:
+      "Preview a complete Command Board document for one business at its current revision with a new UUID requestId and its position on the desk. Preserve unrelated phases and stations. Station sources name tasks, opportunities, conversations, approvals, collections or contacts with optional title keywords. Does not save.",
+    inputSchema: z.toJSONSchema(commandBoardSaveSchema),
+    impact: "read",
+    confirmationRequired: false,
+    connectionRequirement: "none",
+    serviceTarget: "revenue-os.command-board",
+    outputSchema: { type: "object" },
+    operation: {
+      id: "command-board.change.preview",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [],
+      verification: ["scripts/test-command-board.ts"],
+    },
+    execute: async ({ supabase }, input) => previewCommandBoardChange(supabase, input),
+  },
+  {
+    name: "propose_command_board_change",
+    description:
+      "Prepare the exact previewed Command Board change for administrator approval. Supply the unchanged change and digest; nothing is saved before approval. Installing a mode is proposed the same way with that mode's document.",
+    inputSchema: z.toJSONSchema(
+      z
+        .object({
+          change: commandBoardSaveSchema,
+          digest: z.string().length(64),
+        })
+        .strict(),
+    ),
+    impact: "internal_write",
+    confirmationRequired: true,
+    connectionRequirement: "none",
+    serviceTarget: "revenue-os.command-board",
+    outputSchema: { type: "object" },
+    operation: {
+      id: "command-board.change",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        { path: "/api/admin/board", method: "POST" },
+        {
+          path: "/api/admin/board/install",
+          method: "POST",
+          variant: "Installs a mode template as a new board; the assistant proposes that document",
+        },
+      ],
+      verification: ["scripts/test-command-board.ts"],
+    },
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeCommandBoardChange(supabase, input, actorEmail),
   },
   {
     ...WORKSPACE_CONFIGURATION_TOOLS[0],
@@ -3132,6 +3212,50 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "get_workspace_graph",
+    description:
+      "Read workspace records as a graph of nodes and edges: contacts, companies, opportunities, tasks, pending approvals, conversations, collection cases and invoice drafts. Narrow with relatedTo (a node id such as contact:<id>) for one record's neighbourhood, ids for exact nodes, adapters for record types, limit (default 50, max 200 per type), and open: true for work still in progress. Nodes carry the record's due date, an attention flag and a link to the record. Each source reports ready, denied, module_disabled or unavailable with its own truncated flag and nextCursor; pass cursors.<adapter> to continue. Read only: it cannot change a record or its status.",
+    inputSchema: z.toJSONSchema(workspaceGraphInputSchema) as Record<string, unknown>,
+    parseInput: (raw) => workspaceGraphInputSchema.parse(raw),
+    outputSchema: {
+      type: "object",
+      required: ["contract", "nodes", "edges", "sources", "truncated"],
+      properties: {
+        contract: { type: "string" },
+        nodes: { type: "array" },
+        edges: { type: "array" },
+        sources: { type: "array" },
+        truncated: { type: "object" },
+      },
+    },
+    serviceTarget: "revenue-os.graph-adapters",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: {
+      id: "workspace.graph.read",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/revenue-os/graph", method: "GET" }],
+      verification: ["scripts/test-graph-adapters.ts"],
+    },
+    execute: async ({ supabase, actorEmail }, input) => {
+      // The principal comes from server-owned request context, never from input.
+      const actor = getTenantRequestContext();
+      return readWorkspaceGraph(
+        supabase,
+        actor?.kind === "actor" && actor.database === supabase
+          ? {
+              kind: "workspace_member",
+              email: actor.user.email ?? actorEmail,
+              userId: actor.user.id,
+            }
+          : { kind: "integration", email: actorEmail },
+        input,
+      );
+    },
+  },
+  {
     name: "get_claimable_work",
     description:
       "List work items that are ready to be claimed and executed. Returns pending or waiting items past their next_check_at, ordered by priority and age.",
@@ -4180,6 +4304,9 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_command_board",
+    "preview_command_board_change",
+    "propose_command_board_change",
     "get_ai_cost_controls",
     "get_architect_blueprints",
     "preview_architect_patch",
@@ -4243,6 +4370,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "search_pipeline",
     "search_contacts",
     "get_pending_actions",
+    "get_workspace_graph",
     "get_claimable_work",
     "get_workspace_capabilities",
     "get_claims_for_entity",
@@ -4292,6 +4420,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "search_pipeline",
     "search_contacts",
     "get_pending_actions",
+    "get_workspace_graph",
     "get_claimable_work",
     "get_workspace_capabilities",
     "get_claims_for_entity",
@@ -4326,6 +4455,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "search_contacts",
     "search_conversations",
     "get_pending_actions",
+    "get_workspace_graph",
     "get_claimable_work",
     "get_workspace_capabilities",
     "get_claims_for_entity",

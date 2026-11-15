@@ -150,6 +150,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20261019002407_workspace_blueprint_read_access.sql",
   "migrations/20261019052913_contact_import_without_ai.sql",
   "migrations/20261019212500_event_embedded_checkout.sql",
+  "migrations/20261114180000_command_board.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {
