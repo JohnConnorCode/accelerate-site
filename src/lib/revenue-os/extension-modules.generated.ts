@@ -296,6 +296,24 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     },
   },
   {
+    id: "command-board",
+    name: "Command Board",
+    description:
+      "See each business as a desk of phases and stations that summarize live tasks, opportunities, conversations, approvals and balances, with skills that draft the next step for review.",
+    category: "delivery",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["command-board"],
+    aiToolNames: [
+      "get_command_board",
+      "preview_command_board_change",
+      "propose_command_board_change",
+    ],
+    routes: ["/admin/board"],
+    setupChecks: [],
+    docsUrl: "/docs/plugins/command-board",
+  },
+  {
     id: "commitment-watch",
     name: "Overdue commitments",
     description: "Find unfinished tasks whose due date has passed.",
@@ -1746,6 +1764,16 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     icon: "ListChecks",
     description:
       "Turn a won deal into an assigned, dated delivery checklist with durable task receipts.",
+    moreGroup: "Delivery",
+  },
+  {
+    moduleId: "command-board",
+    id: "command-board",
+    label: "Command Board",
+    href: "/admin/board",
+    icon: "LayoutDashboard",
+    description: "See every business as a live desk of stations",
+    keywords: ["board", "desk", "stations", "mode", "canvas"],
     moreGroup: "Delivery",
   },
   {

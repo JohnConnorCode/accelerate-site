@@ -51,6 +51,8 @@ const ACTION_CONSEQUENCE: Record<string, string> = {
     "Saves these editorial values after checking the item revision. A calendar status or date does not publish a website page.",
   update_collection_policy:
     "Updates this collection case and its follow-up work after rechecking current invoice and recipient facts. No reminder is sent and no invoice is changed.",
+  command_board_change:
+    "Saves the exact Command Board shown below at its current revision. Business records are unchanged and nothing is sent.",
   today_view_change:
     "Saves the exact Today arrangement and preferences shown below. Business records are unchanged. Only the proposing member can approve it.",
   send_email: "Sends this email immediately. It cannot be recalled.",

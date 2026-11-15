@@ -1501,6 +1501,34 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 .admin-canvas-status[data-status="blocked"] {
   background: var(--admin-danger);
 }
+.admin-canvas-status-pill {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 10px;
+  border-radius: var(--admin-radius-pill);
+  background: var(--admin-surface-subtle);
+  color: var(--admin-ink);
+  font-size: 13px;
+  font-weight: 650;
+}
+.admin-canvas-status-pill::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--admin-muted);
+  content: "";
+}
+.admin-canvas-status-pill[data-status="ok"]::before {
+  background: var(--admin-success);
+}
+.admin-canvas-status-pill[data-status="attention"]::before {
+  background: var(--admin-warning);
+}
+.admin-canvas-status-pill[data-status="blocked"]::before {
+  background: var(--admin-danger);
+}
 .admin-canvas-circle {
   display: flex;
   max-width: 80%;

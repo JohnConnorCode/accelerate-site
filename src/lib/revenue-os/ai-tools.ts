@@ -85,6 +85,12 @@ import { createHash } from "node:crypto";
 import { TODAY_TOOL_NAMES, todaySaveSchema } from "@/lib/admin/today-workspace";
 import { loadTodaySnapshot } from "./today-snapshot";
 import { readTodayViews, previewTodayViewChange, proposeTodayViewChange } from "./today-views";
+import {
+  previewCommandBoardChange,
+  proposeCommandBoardChange,
+  readCommandBoard,
+} from "./command-board";
+import { commandBoardSaveSchema } from "./command-board-contract";
 import { prepareRadarOutreachDraft } from "./radar-outreach-drafting";
 import {
   previewRadarOutreach,
@@ -1639,6 +1645,71 @@ const registry: AiToolRegistration[] = [
     outputSchema: { type: "object" },
     execute: async ({ supabase, actorEmail }, input) =>
       proposeTodayViewChange(supabase, input, actorEmail),
+  },
+  {
+    name: "get_command_board",
+    description:
+      "Read the workspace's Command Board: each business's mode, phases, segments and stations with revision numbers, plus read-time station summaries counted from tasks, opportunities, conversations, approvals, collections and people. Read before preparing a board change.",
+    inputSchema: z.toJSONSchema(z.object({}).strict()),
+    impact: "read",
+    confirmationRequired: false,
+    connectionRequirement: "none",
+    serviceTarget: "revenue-os.command-board",
+    outputSchema: { type: "object" },
+    operation: {
+      id: "command-board.read",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [{ path: "/api/admin/board", method: "GET" }],
+      verification: ["scripts/test-command-board.ts"],
+    },
+    execute: async ({ supabase }) => readCommandBoard(supabase),
+  },
+  {
+    name: "preview_command_board_change",
+    description:
+      "Preview a complete Command Board document for one business at its current revision with a new UUID requestId and its position on the desk. Preserve unrelated phases and stations. Station sources name tasks, opportunities, conversations, approvals, collections or contacts with optional title keywords. Does not save.",
+    inputSchema: z.toJSONSchema(commandBoardSaveSchema),
+    impact: "read",
+    confirmationRequired: false,
+    connectionRequirement: "none",
+    serviceTarget: "revenue-os.command-board",
+    outputSchema: { type: "object" },
+    execute: async ({ supabase }, input) => previewCommandBoardChange(supabase, input),
+  },
+  {
+    name: "propose_command_board_change",
+    description:
+      "Prepare the exact previewed Command Board change for administrator approval. Supply the unchanged change and digest; nothing is saved before approval. Installing a mode is proposed the same way with that mode's document.",
+    inputSchema: z.toJSONSchema(
+      z
+        .object({
+          change: commandBoardSaveSchema,
+          digest: z.string().length(64),
+        })
+        .strict(),
+    ),
+    impact: "internal_write",
+    confirmationRequired: true,
+    connectionRequirement: "none",
+    serviceTarget: "revenue-os.command-board",
+    outputSchema: { type: "object" },
+    operation: {
+      id: "command-board.change",
+      version: 1,
+      scope: "workspace",
+      entrypoints: [
+        { path: "/api/admin/board", method: "POST" },
+        {
+          path: "/api/admin/board/install",
+          method: "POST",
+          variant: "Installs a mode template as a new board; the assistant proposes that document",
+        },
+      ],
+      verification: ["scripts/test-command-board.ts"],
+    },
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeCommandBoardChange(supabase, input, actorEmail),
   },
   {
     ...WORKSPACE_CONFIGURATION_TOOLS[0],
@@ -4180,6 +4251,9 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_command_board",
+    "preview_command_board_change",
+    "propose_command_board_change",
     "get_ai_cost_controls",
     "get_architect_blueprints",
     "preview_architect_patch",

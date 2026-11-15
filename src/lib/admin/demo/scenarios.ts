@@ -7,6 +7,7 @@ import {
   COMMON_TABLE_PROFILE,
   HEARTHLINE_PROFILE,
   LEDGERSTONE_PROFILE,
+  MLIVM_PROFILE,
   NORTHLINE_PROFILE,
   type DemoScenarioContentProfile,
 } from "./scenario-profiles";
@@ -17,7 +18,8 @@ export type DemoScenarioId =
   | "ledgerstone-advisory"
   | "hearthline-realty"
   | "common-table-network"
-  | "superdebate";
+  | "superdebate"
+  | "mlivm";
 export type DemoAppearance = AdminAppearance;
 
 export interface DemoScenarioSummary {
@@ -136,6 +138,7 @@ const CONTENT_PROFILES: Record<DemoScenarioId, DemoScenarioContentProfile> = {
   "ledgerstone-advisory": LEDGERSTONE_PROFILE,
   "hearthline-realty": HEARTHLINE_PROFILE,
   "common-table-network": COMMON_TABLE_PROFILE,
+  mlivm: MLIVM_PROFILE,
 };
 
 function slug(value: string) {
@@ -173,6 +176,8 @@ function makePack(input: {
   story: string[];
   stages: Record<string, string>;
   corePeople: Array<[string, string, string, string]>;
+  /** How many of the profile's tasks start open; the rest are recorded as completed. */
+  openTasks?: number;
 }): DemoScenarioPack {
   const profile = CONTENT_PROFILES[input.id];
   const core = input.corePeople.map(([name, email, company, role], index) => ({
@@ -234,7 +239,7 @@ function makePack(input: {
     personId: people[index]!.id,
     dueOffset: index - 4,
     priority: index < 3 ? "high" : "normal",
-    status: index > 14 ? "completed" : "pending",
+    status: index >= (input.openTasks ?? 15) ? "completed" : "pending",
   }));
   const actions: DemoAction[] = profile.actionReasons.map((description, index) => ({
     id: `action-${input.id}-${index}`,
@@ -497,6 +502,45 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioPack> = {
       ["Nico Fairchild", "nico.fairchild", "Open Practice Studio", "Training coordinator"],
     ],
   }),
+  mlivm: makePack({
+    id: "mlivm",
+    name: "MLIVM",
+    category: "Property operations",
+    description:
+      "A co-living portfolio and a lawn service run from one desk: deals, renovations, rooms, rent, crews and invoices.",
+    accent: "#262626",
+    appearance: "light",
+    founder: "Morgan Ellery",
+    domain: "mlivm.example",
+    industry: "property and lawn service",
+    story: [
+      "Open the Command Board desk",
+      "Unspool Execute to the renovation stations",
+      "Check rent and repairs in PM",
+      "Switch to HI LAWN and chase an invoice",
+      "Approve the lender draw",
+    ],
+    stages: {
+      new: "New lead",
+      contacted: "Owner contacted",
+      qualified: "Numbers checked",
+      meeting: "Walkthrough booked",
+      proposal: "Offer or quote sent",
+      negotiation: "Under contract",
+      won: "Closed",
+      lost: "Passed",
+      nurture: "Watching",
+    },
+    corePeople: [
+      ["Talia Okafor", "talia.okafor", "Room 1", "Resident"],
+      ["Gus Henriksen", "gus.henriksen", "Henriksen Household", "Lawn customer"],
+      ["Dara Kowalczyk", "dara.kowalczyk", "Room 3", "Resident"],
+      ["Benji Ruiz", "benji.ruiz", "Ruiz Household", "Lawn customer"],
+      ["Priyanka Solberg", "priyanka.solberg", "Room 5", "Resident"],
+      ["Wes Tanaka", "wes.tanaka", "Ridge Park HOA", "HOA manager"],
+    ],
+    openTasks: 30,
+  }),
 };
 
 export const DEMO_SCENARIO_SUMMARIES: DemoScenarioSummary[] = Object.values(DEMO_SCENARIOS).map(
@@ -517,6 +561,7 @@ export const DEMO_SCENARIO_SHELL_NAMES: Record<DemoScenarioId, string> = {
   "ledgerstone-advisory": "Ledgerstone Advisory",
   "hearthline-realty": "Hearthline Realty",
   "common-table-network": "Common Table",
+  mlivm: "MLIVM",
 };
 export function isDemoScenarioId(value: string): value is DemoScenarioId {
   return value in DEMO_SCENARIOS;

@@ -68,6 +68,12 @@ import {
 import { requireReopenEligibility } from "@/lib/revenue-os/pipeline-transition-policy";
 import { demoRadarProfile, seedRadar } from "./radar-fixtures";
 import { seedDemoCollections } from "./collections-runtime";
+import {
+  demoBoardReads,
+  handleDemoBoard,
+  seedDemoBoards,
+  type DemoBoardState,
+} from "./board-runtime";
 import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
@@ -213,6 +219,7 @@ export type DemoState = {
   campaignCopies?: ReturnType<typeof campaignDraftCopy>[];
   campaignDuplicateReceipts?: Record<string, { fingerprint: string; copyId: string }>;
   business: DemoBusinessState | null;
+  commandBoards?: DemoBoardState;
   learning?: DemoLearningState;
   completedActions: string[];
   completedTasks: string[];
@@ -556,6 +563,41 @@ function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
       company: { name: item.company, domain: null, industry: pack.category },
     };
   });
+}
+
+/** Pending proposals shown in Approvals; the Command Board reads the same list. */
+function pendingActionRows(pack: DemoScenarioPack, state: DemoState, business: DemoBusinessState) {
+  return [
+    ...(state.agentProposals ?? []).filter((item) => item.status === "pending"),
+    ...business.actions.filter(
+      (item) => item.status === "pending" || item.action_type === "billing_change",
+    ),
+    ...pack.actions
+      .filter((item) => !state.completedActions.includes(item.id))
+      .map((item, index) => ({
+        id: item.id,
+        action_type: item.type,
+        title: item.title,
+        description: item.description,
+        urgency: index < 2 ? "high" : "normal",
+        reasoning: item.description,
+        status: "pending",
+        created_at: ago(index + 1),
+        expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
+        payload:
+          item.type === "send_gmail_reply"
+            ? {
+                to: person(pack, item.personId).email,
+                subject: pack.conversations[index]!.subject,
+                body: item.body,
+              }
+            : {
+                opportunityId: pack.opportunities[index]!.id,
+                stage: "proposal",
+                reason: item.description,
+              },
+      })),
+  ];
 }
 
 function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
@@ -3313,6 +3355,32 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       };
       return jsonResponse(snapshot);
     }
+    const boardResponse = handleDemoBoard({
+      path,
+      method,
+      body,
+      enabled: isModuleEnabled("command-board", {
+        modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+      }),
+      state: () => (state.commandBoards ??= { boards: seedDemoBoards(pack), receipts: {} }),
+      reads: () =>
+        demoBoardReads({
+          pack,
+          tasks: demoTaskRows(pack, state),
+          opportunities: opportunityRows(pack, state),
+          conversations: pack.conversations,
+          actions: pendingActionRows(pack, state, business),
+          collections:
+            state.moduleOverrides["receivables-collections"] === false
+              ? []
+              : seedDemoCollections(pack, business),
+        }),
+      save: () => {
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+      },
+    });
+    if (boardResponse) return boardResponse;
     const businessResponse = await handleDemoBusinessRequest(
       pack,
       business,
@@ -5233,39 +5301,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       });
     }
     if (path === "/api/admin/revenue-os/actions")
-      return jsonResponse({
-        actions: [
-          ...(state.agentProposals ?? []).filter((item) => item.status === "pending"),
-          ...business.actions.filter(
-            (item) => item.status === "pending" || item.action_type === "billing_change",
-          ),
-          ...pack.actions
-            .filter((item) => !state.completedActions.includes(item.id))
-            .map((item, index) => ({
-              id: item.id,
-              action_type: item.type,
-              title: item.title,
-              description: item.description,
-              urgency: index < 2 ? "high" : "normal",
-              reasoning: item.description,
-              status: "pending",
-              created_at: ago(index + 1),
-              expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
-              payload:
-                item.type === "send_gmail_reply"
-                  ? {
-                      to: person(pack, item.personId).email,
-                      subject: pack.conversations[index]!.subject,
-                      body: item.body,
-                    }
-                  : {
-                      opportunityId: pack.opportunities[index]!.id,
-                      stage: "proposal",
-                      reason: item.description,
-                    },
-            })),
-        ],
-      });
+      return jsonResponse({ actions: pendingActionRows(pack, state, business) });
     if (path === "/api/admin/revenue-os/pipeline")
       return jsonResponse({
         schemaReady: true,

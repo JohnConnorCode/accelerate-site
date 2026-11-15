@@ -12,6 +12,7 @@ const scenarios = process.argv.includes("--one")
       "hearthline-realty",
       "common-table-network",
       "superdebate",
+      "mlivm",
     ];
 const defaultAppearances = {
   "northline-roofing": "accelerate",
@@ -20,9 +21,11 @@ const defaultAppearances = {
   "hearthline-realty": "operator",
   "common-table-network": "light",
   superdebate: "light",
+  mlivm: "light",
 };
 const routes = [
   "today",
+  "board",
   "pipeline",
   "conversations",
   "inbox",

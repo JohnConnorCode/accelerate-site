@@ -60,6 +60,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "Restore a previous view with a newly reviewed change against the current revision. Personal layout receipts retain the exact prior request.",
   },
   {
+    actionType: "command_board_change",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore an earlier board with a newly reviewed change against the current revision. Each saved revision keeps its receipt and audit entry; business records are unchanged.",
+  },
+  {
     actionType: "send_radar_outreach",
     impact: "external_action",
     reversibility: "irreversible",

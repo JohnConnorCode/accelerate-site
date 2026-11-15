@@ -5,9 +5,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-18.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-11-14.1";
 
 export const TENANT_SCOPED_TABLES = [
+  "command_board_definitions",
+  "command_board_receipts",
+  "command_board_proposals",
   "workspace_ai_controls",
   "workspace_ai_reservations",
   "ticket_events",
@@ -246,6 +249,15 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["event_id", "event_type", "status", "received_at", "processed_at"],
   },
   { table: "today_workspace_views", columns: ["owner_key", "revision", "document", "updated_at"] },
+  {
+    table: "command_board_definitions",
+    columns: ["board_key", "position", "revision", "document", "updated_at"],
+  },
+  {
+    table: "command_board_receipts",
+    columns: ["actor_id", "request_id", "board_key", "request_payload", "result", "created_at"],
+  },
+  { table: "command_board_proposals", columns: ["actor_id", "digest", "preview", "created_at"] },
   {
     table: "work_saved_views",
     columns: ["owner_id", "name", "config", "visibility", "updated_at"],
@@ -1138,6 +1150,7 @@ export const REVENUE_SCHEMA_FUNCTIONS = [
   "public.search_document_knowledge(text,integer)",
   "public.collect_learning_signals()",
   "public.save_today_views(text,bigint,jsonb,uuid)",
+  "public.save_command_board(text,bigint,integer,jsonb,uuid)",
   "public.save_workspace_configuration(jsonb,jsonb,text)",
   ...REVENUE_SCHEMA_SERVICE_FUNCTIONS.map(({ name }) => name),
   "private.advance_client_handoff_revision()",

@@ -37,6 +37,7 @@ export const DEMO_BUSINESS_MODULES = {
   "stripe-invoicing": true,
   "client-onboarding": true,
   "meeting-commitments": true,
+  "command-board": true,
 };
 type Task = {
   id: string;
