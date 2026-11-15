@@ -297,7 +297,7 @@
     "src/components/admin/TaskQuickAdd.tsx": "4a8c10382b2f51bfb4738d42b244ef1d6524e629a19fb8377094fe62fa6ec4e8",
     "src/components/admin/TaskWidget.tsx": "c3c52ec847c8276ad728b831c78391eee6b919a6dc3c58406686d76a4017beee",
     "src/components/admin/TaskWorkflowWorkspace.tsx": "d928d03d82565cb6fec27fb4e38e14634bd91121168a60ca9b446b279748f71f",
-    "src/components/admin/TenantProviderControls.tsx": "7042349bc58707f8311723735c57ad99a09b55604b7dc0ad6dac7a5a22f81b74",
+    "src/components/admin/TenantProviderControls.tsx": "5b24dc2be999c4b7c38f5cd4c4d880e4d2621ea84f025d96e2ac0f097f6e510c",
     "src/components/admin/Toaster.tsx": "1c1370f7cf7d2d19c06135f60174c8e493189f7e2701f21cb70d3e6eab110fcb",
     "src/components/admin/TodayViewEditor.tsx": "e1d59a1c8a0796a14af5d03d016fa5891222da2dd79f7bbb71c7d75d21ae0913",
     "src/components/admin/TodayWorkspace.tsx": "51b1fbe23e6e665c639369c874fbdbe3a6e4697f983520e3230923b70af1ac6a",

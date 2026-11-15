@@ -394,7 +394,11 @@ export function TenantProviderControls() {
                     autoComplete="off"
                     value={twilioNumber}
                     onChange={(event) => setTwilioNumber(event.target.value)}
-                    placeholder={connection("twilio")?.account_email || "+15555550123"}
+                    placeholder={
+                      /^\+[1-9]\d{7,14}$/.test(connection("twilio")?.account_email ?? "")
+                        ? connection("twilio")!.account_email!
+                        : "+15555550123"
+                    }
                     className="admin-field mt-1.5 min-h-11 font-mono"
                   />
                 </label>
