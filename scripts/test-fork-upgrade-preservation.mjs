@@ -175,7 +175,7 @@ for (const profile of ["neutral", "branded"])
     const state = {
       config: {
         brand,
-        modules: { "owner-inventory": true, "stripe-invoicing": false, "opportunity-radar": false },
+        modules: { "owner-inventory": true, "invoicing": false, "opportunity-radar": false },
       },
       website: {
         draft,

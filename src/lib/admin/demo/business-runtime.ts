@@ -22,11 +22,11 @@ import {
   type WorkspaceBrand,
 } from "@/lib/revenue-os/branding-contract";
 import {
-  stripeInvoiceInputSchema,
-  type StripeInvoiceReceipt,
-} from "@/lib/revenue-os/stripe-contract";
-import { invoiceDesignSchema, defaultInvoiceDesign } from "@/lib/revenue-os/invoice-page-contract";
-import type { InvoiceDocumentData, InvoiceDesign } from "@/components/business/InvoiceDocument";
+  invoiceCommandSchema,
+  invoiceTotal,
+  type InvoiceRecord,
+} from "@/lib/revenue-os/invoice-contract";
+import type { InvoiceDocumentData } from "@/components/business/InvoiceDocument";
 import { REVENUE_OS_MODULES, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 
 export const DEMO_BUSINESS_MODULES = {
@@ -34,7 +34,7 @@ export const DEMO_BUSINESS_MODULES = {
   "social-marketing": true,
   "opportunity-radar": true,
   "receivables-collections": true,
-  "stripe-invoicing": true,
+  "invoicing": true,
   "client-onboarding": true,
   "meeting-commitments": true,
 };
@@ -66,16 +66,23 @@ type Action = {
   requestId?: string;
   digest?: string;
 };
-type Invoice = { actionId: string; receipt: StripeInvoiceReceipt; document: InvoiceDocumentData };
-type Page = {
-  id: string;
-  creationActionId: string;
-  token: string;
-  revokedAt: string | null;
-  expiresAt: string;
-  brand: WorkspaceBrand;
-  design: InvoiceDesign;
-};
+/** The demo keeps the same invoice records the real workspace stores. */
+export function demoInvoiceDocument(invoice: InvoiceRecord): InvoiceDocumentData {
+  const paid = invoice.status === "paid" || invoice.status === "paid_external";
+  return {
+    number: invoice.number ?? "Draft",
+    customerName: invoice.customerName,
+    customerEmail: invoice.customerEmail,
+    currency: "usd",
+    lines: invoice.lines.map((x) => ({ description: x.description, amount: x.quantity * x.unitCents })),
+    total: invoice.totalCents,
+    amountPaid: paid ? invoice.totalCents : 0,
+    amountRemaining: paid ? 0 : invoice.totalCents,
+    status: paid ? "paid" : invoice.status,
+    dueLabel: invoice.dueDate ?? "Due on receipt",
+    paymentUrl: null,
+  };
+}
 export type DemoBusinessState = {
   billing?: DemoBillingState;
   eventTickets?: DemoEventTicketState;
@@ -83,13 +90,13 @@ export type DemoBusinessState = {
   social?: DemoSocialState;
   radar?: DemoRadarState;
   collections?: CollectionCaseView[];
-  version: 1;
+  version: 2;
   brand: WorkspaceBrand;
   brandRevision: number;
   actions: Action[];
-  invoices: Invoice[];
+  invoices: InvoiceRecord[];
+  invoiceCounter: number;
   tasks: Task[];
-  pages: Page[];
   receipts: {
     id: string;
     operation: string;
@@ -102,7 +109,6 @@ export type DemoBusinessState = {
 const memberId = "00000000-0000-4000-8000-000000000079";
 const now = () => new Date().toISOString();
 const due = (offset: number) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
-const customerId = (id: string) => "cus_demo" + id.replaceAll("-", "");
 const response = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const revision = (state: DemoBusinessState) => state.brandRevision.toString(16).padStart(64, "0");
@@ -131,74 +137,47 @@ export function createDemoBusinessState(pack: DemoScenarioPack): DemoBusinessSta
     font: pack.id === "alder-ridge-law" ? "serif" : "sans",
   });
   const state: DemoBusinessState = {
-    version: 1,
+    version: 2,
     brand,
     brandRevision: 1,
     actions: [],
     invoices: [],
+    invoiceCounter: 0,
     tasks: [],
-    pages: [],
     receipts: [],
   };
-  for (const [index, status] of ["open", "paid", "draft"].entries()) {
+  for (const [index, status] of (["open", "paid", "draft"] as const).entries()) {
     const contact = pack.people[index]!;
-    const id = `00000000-0000-4000-9000-${String(index + 1).padStart(12, "0")}`;
-    const lines = pack.business.invoiceLines.map((x) => ({ ...x }));
-    const total = lines.reduce((n, x) => n + x.quantity * x.unitAmount, 0);
-    const payload = {
-      contactId: contact.id,
-      customerId: customerId(contact.id),
-      currency: "usd",
-      daysUntilDue: 14,
-      memo: pack.business.invoiceMemo,
-      lines,
-      total,
-    };
-    const receipt: StripeInvoiceReceipt = {
-      invoiceId: `in_demo${index + 1}`,
-      status: status!,
-      currency: "usd",
-      amountDue: total,
-      amountPaid: status === "paid" ? total : 0,
-      amountRemaining: status === "paid" ? 0 : total,
-      customerEmail: contact.email,
-      testMode: true,
-      hostedInvoiceUrl: null,
-      providerRequestId: null,
-      delivery: "not_requested",
-      complete: true,
-    };
-    state.actions.push({
-      id,
-      action_type: "create_stripe_invoice_draft",
-      title: `Invoice: ${contact.name}`,
-      description: "Simulated · " + pack.business.invoiceMemo,
-      status: "executed",
-      error: null,
-      payload,
-      result: { ...receipt },
-      pluginId: "stripe-invoicing",
-      created_at: now(),
-    });
+    const lines = pack.business.invoiceLines.map((x) => ({
+      description: x.description,
+      quantity: x.quantity,
+      unitCents: x.unitAmount,
+    }));
+    const issued = status !== "draft";
+    if (issued) state.invoiceCounter++;
     state.invoices.push({
-      actionId: id,
-      receipt,
-      document: {
-        number: `DEMO-${1001 + index}`,
-        customerName: contact.name,
-        customerEmail: contact.email,
-        currency: "usd",
-        lines: lines.map((x) => ({
-          description: x.description,
-          amount: x.quantity * x.unitAmount,
-        })),
-        total,
-        amountPaid: receipt.amountPaid,
-        amountRemaining: receipt.amountRemaining,
-        status: status!,
-        dueLabel: due(index === 0 ? -5 : 14),
-        paymentUrl: null,
-      },
+      id: `00000000-0000-4000-9000-${String(index + 1).padStart(12, "0")}`,
+      number: issued ? `INV-${String(state.invoiceCounter).padStart(4, "0")}` : null,
+      contactId: contact.id,
+      customerName: contact.name,
+      customerEmail: contact.email,
+      currency: "usd",
+      lines,
+      totalCents: invoiceTotal(lines),
+      amountPaidCents: status === "paid" ? invoiceTotal(lines) : 0,
+      refundedCents: 0,
+      memo: pack.business.invoiceMemo,
+      dueDate: due(index === 0 ? -5 : 14),
+      paymentMethods: ["us_bank_account", "card"],
+      status,
+      testMode: issued ? true : null,
+      issuedAt: issued ? now() : null,
+      paidAt: status === "paid" ? now() : null,
+      voidedAt: null,
+      externalPaymentNote: "",
+      revision: 1,
+      createdAt: now(),
+      shareUrl: null,
     });
   }
   const won = pack.opportunities.find((x) => x.stage === "won")!;
@@ -304,25 +283,9 @@ export async function handleDemoBusinessRequest(
     save();
   };
   const invoice = (id: unknown) => {
-    const item = state.invoices.find((x) => x.actionId === id);
+    const item = state.invoices.find((x) => x.id === id);
     if (!item) throw new Error("Invoice is unavailable in this demo workspace");
     return item;
-  };
-  const view = async (id: unknown, design: unknown) => {
-    const item = invoice(id);
-    const parsed = invoiceDesignSchema.parse(design);
-    return {
-      brand: state.brand,
-      design: parsed,
-      document: item.document,
-      testMode: true,
-      digest: await digest({
-        brandRevision: state.brandRevision,
-        document: item.document,
-        design: parsed,
-      }),
-      simulated: true,
-    };
   };
   const queue = (
     pluginId: string,
@@ -376,7 +339,7 @@ export async function handleDemoBusinessRequest(
         return response({
           brand: state.brand,
           revision: revision(state),
-          previewInvoice: state.invoices[0]?.document,
+          previewInvoice: state.invoices[0] ? demoInvoiceDocument(state.invoices[0]) : undefined,
           simulated: true,
         });
       if (method !== "PUT") return response({ error: "Unsupported branding operation" }, 405);
@@ -395,39 +358,94 @@ export async function handleDemoBusinessRequest(
       return response({
         brand,
         revision: revision(state),
-        previewInvoice: state.invoices[0]?.document,
+        previewInvoice: state.invoices[0] ? demoInvoiceDocument(state.invoices[0]) : undefined,
         simulated: true,
       });
     }
     if (path === "/api/admin/invoicing" && method === "GET") {
-      if (url.searchParams.has("actionId")) {
-        requireEnabled("stripe-invoicing");
-        return response(invoice(url.searchParams.get("actionId")).receipt);
-      }
-      const search = (url.searchParams.get("search") ?? "").toLowerCase();
-      const selectedContactId = url.searchParams.get("contactId");
-      const selectedContact = pack.people.find((contact) => contact.id === selectedContactId);
-      if (selectedContactId && !selectedContact)
-        throw new Error("Customer billing identity is unavailable");
-      const contacts = pack.people.filter(
-        (x) => x.id === selectedContactId || x.name.toLowerCase().includes(search),
-      );
+      requireEnabled("invoicing");
       return response({
         simulated: true,
-        testMode: true,
-        truncated: false,
-        contacts: contacts.map((x) => ({ id: x.id, full_name: x.name, primary_email: x.email })),
-        customers: pack.people
-          .filter(
-            (contact, index) => index < 3 || state.billing?.createdCustomers.includes(contact.id),
-          )
-          .filter(
-            (x) => !url.searchParams.get("contactId") || x.id === url.searchParams.get("contactId"),
-          )
-          .map((x) => ({ id: customerId(x.id), name: x.name, email: x.email })),
-        actions: state.actions.filter((x) => x.pluginId === "stripe-invoicing"),
-        suggestedInput: { memo: pack.business.invoiceMemo, lines: pack.business.invoiceLines },
+        invoices: state.invoices,
+        contacts: pack.people.map((x) => ({ id: x.id, full_name: x.name, primary_email: x.email })),
+        stripe: { connected: true, testMode: true, canTakePayments: true },
       });
+    }
+    if (path === "/api/admin/invoicing" && method === "POST") {
+      requireEnabled("invoicing");
+      const command = invoiceCommandSchema.parse(body);
+      let item: InvoiceRecord;
+      if (command.operation === "save_draft") {
+        const fields = {
+          contactId: command.draft.contactId,
+          customerName: command.draft.customerName,
+          customerEmail: command.draft.customerEmail.toLowerCase(),
+          lines: command.draft.lines,
+          totalCents: invoiceTotal(command.draft.lines),
+          memo: command.draft.memo,
+          dueDate: command.draft.dueDate,
+          paymentMethods: command.draft.paymentMethods,
+        };
+        if (command.id) {
+          item = invoice(command.id);
+          if (item.status !== "draft") throw new Error("Only a draft can be edited");
+          if (item.revision !== command.revision) throw new Error("This draft changed. Reload it.");
+          Object.assign(item, fields, { revision: item.revision + 1 });
+        } else {
+          item = {
+            ...fields,
+            id: crypto.randomUUID(),
+            number: null,
+            currency: "usd",
+            amountPaidCents: 0,
+            refundedCents: 0,
+            status: "draft",
+            testMode: null,
+            issuedAt: null,
+            paidAt: null,
+            voidedAt: null,
+            externalPaymentNote: "",
+            revision: 1,
+            createdAt: now(),
+            shareUrl: null,
+          };
+          state.invoices.unshift(item);
+        }
+        record("Saved invoice draft", "invoice", item.id);
+      } else {
+        item = invoice(command.id);
+        if (command.operation === "issue") {
+          if (item.status === "draft") {
+            state.invoiceCounter++;
+            Object.assign(item, {
+              status: "open",
+              number: `INV-${String(state.invoiceCounter).padStart(4, "0")}`,
+              issuedAt: now(),
+              testMode: true,
+              revision: item.revision + 1,
+            });
+            record("Simulated invoice issue", "invoice", item.id);
+          }
+        } else if (command.operation === "void" || command.operation === "record_external_payment") {
+          if (!["draft", "open"].includes(item.status)) throw new Error("This invoice is already closed");
+          if (command.operation === "record_external_payment" && item.status === "draft")
+            throw new Error("Issue the invoice before recording a payment");
+          Object.assign(
+            item,
+            command.operation === "void"
+              ? { status: "void", voidedAt: now() }
+              : {
+                  status: "paid_external",
+                  paidAt: now(),
+                  amountPaidCents: item.totalCents,
+                  externalPaymentNote: command.note,
+                },
+            { revision: item.revision + 1 },
+          );
+          record(command.operation === "void" ? "Voided invoice" : "Recorded outside payment", "invoice", item.id);
+        }
+      }
+      return response({ invoice: item, simulated: true });
     }
     if (path === "/api/admin/plugins/tasks" && method === "GET") {
       const id = url.searchParams.get("pluginId");
@@ -460,18 +478,7 @@ export async function handleDemoBusinessRequest(
       const id = String(body.pluginId);
       requireEnabled(id);
       let payload: Record<string, unknown>, title: string, type: string;
-      if (id === "stripe-invoicing") {
-        const input = stripeInvoiceInputSchema.parse(body.input);
-        const contact = pack.people.find((x) => x.id === input.contactId);
-        if (!contact || customerId(contact.id) !== input.customerId)
-          throw new Error("Select matching fictional CRM and billing customers");
-        payload = {
-          ...input,
-          total: input.lines.reduce((n, x) => n + x.quantity * x.unitAmount, 0),
-        };
-        title = `Invoice: ${contact.name}`;
-        type = "create_stripe_invoice_draft";
-      } else {
+      {
         if (!["client-onboarding", "meeting-commitments"].includes(id))
           throw new Error("Unknown workflow");
         const field = id === "client-onboarding" ? "opportunityId" : "meetingId";
@@ -507,118 +514,6 @@ export async function handleDemoBusinessRequest(
         simulated: true,
       });
     }
-    if (path === "/api/admin/invoicing" && method === "POST") {
-      requireEnabled("stripe-invoicing");
-      const item = invoice(body.creationActionId);
-      if (!["draft", "open"].includes(item.receipt.status))
-        throw new Error("Invoice is not ready to send");
-      return response({
-        action: queue(
-          "stripe-invoicing",
-          "send_stripe_invoice",
-          "Send invoice: " + item.document.customerName,
-          { creationActionId: item.actionId },
-          "send:" + item.actionId,
-          await digest(item.document),
-        ),
-        simulated: true,
-      });
-    }
-    if (path === "/api/admin/invoicing/pages") {
-      if (method === "GET") {
-        if (url.searchParams.has("token")) {
-          requireEnabled("stripe-invoicing");
-          const p = state.pages.find(
-            (x) =>
-              x.token === url.searchParams.get("token") &&
-              !x.revokedAt &&
-              Date.parse(x.expiresAt) > Date.now(),
-          );
-          if (!p) throw new Error("This demo invoice link is unavailable or revoked");
-          return response({
-            brand: p.brand,
-            design: p.design,
-            document: invoice(p.creationActionId).document,
-            simulated: true,
-          });
-        }
-        const pages = state.pages
-          .filter((x) => x.creationActionId === url.searchParams.get("creationActionId"))
-          .slice()
-          .reverse();
-        return response({
-          tenantSlug: pack.id,
-          pages,
-          ...(url.searchParams.get("view") === "designer"
-            ? {
-                preview: await view(
-                  url.searchParams.get("creationActionId"),
-                  pages.find((x) => !x.revokedAt && Date.parse(x.expiresAt) > Date.now())?.design ||
-                    defaultInvoiceDesign,
-                ),
-              }
-            : {}),
-          simulated: true,
-        });
-      }
-      requireEnabled("stripe-invoicing");
-      if (body.mode === "revoke") {
-        const p = state.pages.find((x) => x.id === body.pageId);
-        if (!p) throw new Error("Page unavailable");
-        if (!p.revokedAt) {
-          p.revokedAt = now();
-          record("Revoked demo invoice link");
-        }
-        return response({ simulated: true });
-      }
-      if (body.mode === "generate") {
-        invoice(body.creationActionId);
-        const brief = z.string().trim().min(1).max(1000).parse(body.brief);
-        const current = invoiceDesignSchema.parse(body.currentDesign || defaultInvoiceDesign);
-        record("Simulated AI invoice design");
-        return response({
-          design: {
-            ...current,
-            layout: /classic/i.test(brief)
-              ? "classic"
-              : /editorial/i.test(brief)
-                ? "editorial"
-                : current.layout,
-            introduction: body.currentDesign ? current.introduction : pack.business.introduction,
-            closing: body.currentDesign
-              ? current.closing
-              : `Questions? Contact ${state.brand.supportEmail}.`,
-            ...(/serif/i.test(brief) ? { font: /sans/i.test(brief) ? "sans" : "serif" } : {}),
-            ...(/compact/i.test(brief)
-              ? { spacing: "compact" }
-              : /comfortable/i.test(brief)
-                ? { spacing: "comfortable" }
-                : {}),
-            ...(brief.match(/#[0-9a-fA-F]{6}\b/)
-              ? { accentColor: brief.match(/#[0-9a-fA-F]{6}\b/)![0] }
-              : {}),
-          },
-          simulated: true,
-        });
-      }
-      const preview = await view(body.creationActionId, body.design);
-      if (body.mode === "preview") return response(preview);
-      if (body.mode !== "propose" || body.digest !== preview.digest)
-        throw new Error("Preview the current design and branding first");
-      if (!["open", "paid"].includes(invoice(body.creationActionId).receipt.status))
-        throw new Error("Finalize the invoice before publication");
-      return response({
-        action: queue(
-          "stripe-invoicing",
-          "publish_invoice_page",
-          "Publish customer invoice",
-          { creationActionId: body.creationActionId, design: preview.design },
-          z.uuid().parse(body.requestId),
-          preview.digest,
-        ),
-        simulated: true,
-      });
-    }
     if (path === "/api/admin/revenue-os/actions" && method === "PATCH") {
       const action = state.actions.find((x) => x.id === body.id);
       if (!action) return null;
@@ -639,69 +534,7 @@ export async function handleDemoBusinessRequest(
         throw new Error("Action already handled or invalid decision");
       try {
         requireEnabled(action.pluginId);
-        if (action.action_type === "create_stripe_invoice_draft") {
-          const p = action.payload as unknown as z.infer<typeof stripeInvoiceInputSchema>;
-          const contact = pack.people.find((x) => x.id === p.contactId)!;
-          const total = p.lines.reduce((n, x) => n + x.quantity * x.unitAmount, 0);
-          const receipt: StripeInvoiceReceipt = {
-            invoiceId: "in_demo" + action.id.replaceAll("-", ""),
-            status: "draft",
-            currency: p.currency,
-            amountDue: total,
-            amountPaid: 0,
-            amountRemaining: total,
-            customerEmail: contact.email,
-            testMode: true,
-            hostedInvoiceUrl: null,
-            providerRequestId: null,
-            delivery: "not_requested",
-            complete: true,
-          };
-          state.invoices.unshift({
-            actionId: action.id,
-            receipt,
-            document: {
-              number: `DEMO-${1001 + state.invoices.length}`,
-              customerName: contact.name,
-              customerEmail: contact.email,
-              currency: p.currency,
-              lines: p.lines.map((x) => ({
-                description: x.description,
-                amount: x.quantity * x.unitAmount,
-              })),
-              total,
-              amountPaid: 0,
-              amountRemaining: total,
-              status: "draft",
-              dueLabel: due(p.daysUntilDue),
-              paymentUrl: null,
-            },
-          });
-          action.result = { ...receipt };
-        } else if (action.action_type === "send_stripe_invoice") {
-          const item = invoice(action.payload.creationActionId);
-          if ((await digest(item.document)) !== action.digest)
-            throw new Error("Invoice changed; prepare a fresh send");
-          item.receipt.status = "open";
-          item.receipt.delivery = "not_sent_test_mode";
-          item.document.status = "open";
-          action.result = { ...item.receipt };
-        } else if (action.action_type === "publish_invoice_page") {
-          const current = await view(action.payload.creationActionId, action.payload.design);
-          if (current.digest !== action.digest)
-            throw new Error("Invoice or branding changed; preview again");
-          const p: Page = {
-            id: crypto.randomUUID(),
-            creationActionId: String(action.payload.creationActionId),
-            token: crypto.randomUUID(),
-            expiresAt: new Date(Date.now() + 90 * 86400000).toISOString(),
-            revokedAt: null,
-            brand: structuredClone(state.brand),
-            design: current.design,
-          };
-          state.pages.unshift(p);
-          action.result = { pageId: p.id };
-        } else {
+        {
           const input = action.payload;
           const source = pack.opportunities.find(
             (x) => x.id === (input.opportunityId ?? input.meetingId),

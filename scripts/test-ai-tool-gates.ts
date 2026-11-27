@@ -270,7 +270,7 @@ async function main() {
     }
   }
   assert.equal(pluginTools, 13);
-  const invoiceModule = REVENUE_OS_MODULES.find((module) => module.id === "stripe-invoicing")!;
+  const invoiceModule = REVENUE_OS_MODULES.find((module) => module.id === "invoicing")!;
   assert.throws(
     () => pluginToolDeclarations({ ...invoiceModule, workflow: { inputContract: "constructor" } }),
     /Unknown host workflow contract/,

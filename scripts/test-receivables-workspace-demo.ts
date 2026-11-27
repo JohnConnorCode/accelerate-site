@@ -104,8 +104,7 @@ async function main() {
     );
     assert.equal(state.actions.find((a) => a.id === queued.id)!.result!.status, "skipped");
     assert.equal(
-      state.invoices.find((i) => i.actionId === first.invoices[0]!.creationActionId)!.receipt
-        .status,
+      state.invoices.find((i) => i.id === first.invoices[0]!.invoiceId)!.status,
       "paid",
     );
     preview = (await call("/api/admin/collections/reminders", "POST", { caseId: partial.id })).data

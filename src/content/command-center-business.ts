@@ -214,7 +214,7 @@ export const businessAreas: readonly BusinessArea[] = [
         title: "Create and send an invoice",
         detail:
           "Choose the customer and line items, preview the invoice and design its customer page before publication.",
-        href: "/docs/plugins/stripe-invoicing",
+        href: "/docs/plugins/invoicing",
       },
       {
         title: "Offer recurring plans",

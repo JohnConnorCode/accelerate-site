@@ -4,30 +4,29 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { callCollectionHostRpc, tenantIdForDatabase } from "@/lib/supabase/server";
 import { isModuleEnabled } from "./modules";
-import { readStripeInvoiceForAction } from "./stripe-invoicing";
+import { decryptTenantSecret } from "./encryption";
+import { invoicePath } from "./invoice-contract";
 
 import { collectionCasePatchSchema } from "./collection-contract";
 export { collectionCasePatchSchema } from "./collection-contract";
 const observationSchema = z
   .object({
-    creationActionId: z.uuid(),
+    invoiceId: z.uuid(),
+    number: z.string().min(1).max(40),
     contactId: z.uuid(),
-    credentialVersion: z.number().int().positive(),
-    providerAccount: z.string().regex(/^acct_[A-Za-z0-9]+$/),
-    invoiceId: z.string().regex(/^in_[A-Za-z0-9]+$/),
     testMode: z.boolean(),
-    currency: z.enum(["usd", "eur", "gbp", "cad", "aud"]),
-    status: z.enum(["draft", "open", "paid", "void", "uncollectible"]),
+    currency: z.literal("usd"),
+    status: z.enum(["open", "processing", "paid", "paid_external", "void"]),
     remaining: z.number().int().min(0).max(100_000_000),
     dueDate: z.iso.date().nullable(),
     observedAt: z.iso.datetime(),
-    providerRequestId: z.string().max(200).nullable(),
+    paymentUrl: z.url().nullable(),
     complete: z.literal(true),
   })
   .strict()
   .refine(
-    (o) => o.status !== "paid" || o.remaining === 0,
-    "Paid invoice has an inconsistent balance",
+    (o) => !["paid", "paid_external", "void"].includes(o.status) || o.remaining === 0,
+    "Closed invoice has an inconsistent balance",
   );
 export type CollectionObservation = z.infer<typeof observationSchema>;
 export async function requireCollections(db: SupabaseClient) {
@@ -46,43 +45,45 @@ export async function requireCollections(db: SupabaseClient) {
     throw new Error("Collections is disabled or workspace unavailable");
   return tenantId;
 }
-/** Projection of an invoice already fetched and ownership-checked by the
- * canonical Stripe service. This is not a client billing-input contract. */
-export function projectCollectionObservation(
-  verified: Awaited<ReturnType<typeof readStripeInvoiceForAction>>,
+/** Current facts for one of this workspace's issued invoices, read from our own
+ * invoices table. The payment link is our own customer invoice page. */
+export async function observeInvoice(
+  db: SupabaseClient,
+  invoiceId: string,
   observedAt: string,
-): CollectionObservation {
-  const { client, creation, invoice, receipt } = verified;
-  if (creation.status !== "executed" || !receipt.complete)
-    throw new Error("Invoice creation has no complete execution receipt");
-  const contactId = z.uuid().parse(creation.payload?.contactId);
-  const metadata = invoice.metadata as Record<string, unknown> | undefined;
-  if (
-    metadata?.accelerate_contact_id !== contactId ||
-    metadata?.accelerate_tenant_id !== client.tenantId ||
-    metadata?.accelerate_action_id !== creation.id ||
-    receipt.testMode !== (client.mode === "test") ||
-    receipt.currency !== creation.payload?.currency ||
-    invoice.customer !== creation.payload?.customerId
-  )
-    throw new Error("Invoice billing identity changed; reconcile before collection");
-  const due = invoice.due_date;
-  if (due !== null && (!Number.isSafeInteger(due) || Number(due) < 0))
-    throw new Error("Invoice due date is unavailable");
-  const dueDate = due === null ? null : new Date(Number(due) * 1000).toISOString().slice(0, 10);
+): Promise<CollectionObservation> {
+  const tenantId = tenantIdForDatabase(db);
+  if (!tenantId) throw new Error("Collections requires a tenant-bound host");
+  const { data: row, error } = await db
+    .from("invoices")
+    .select(
+      "id,tenant_id,number,contact_id,livemode,currency,status,total_cents,amount_paid_cents,due_date,encrypted_link_token",
+    )
+    .eq("tenant_id", tenantId)
+    .eq("id", z.uuid().parse(invoiceId))
+    .maybeSingle();
+  if (error || !row) throw new Error("Invoice is unavailable");
+  if (!row.contact_id || !row.number || row.status === "draft")
+    throw new Error("Collections tracks issued invoices linked to a contact");
+  const { data: tenant } = await db.from("tenants").select("slug").eq("id", tenantId).maybeSingle();
+  const site = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "";
+  const token =
+    row.status !== "void" && row.encrypted_link_token
+      ? decryptTenantSecret(row.encrypted_link_token, tenantId, "invoices", "link_token")
+      : null;
+  const closed = ["paid", "paid_external", "void"].includes(row.status);
   return observationSchema.parse({
-    creationActionId: creation.id,
-    contactId,
-    providerAccount: client.accountId,
-    credentialVersion: client.credentialVersion,
-    invoiceId: receipt.invoiceId,
-    testMode: receipt.testMode,
-    currency: receipt.currency,
-    status: receipt.status,
-    remaining: receipt.amountRemaining,
-    dueDate,
+    invoiceId: row.id,
+    number: row.number,
+    contactId: row.contact_id,
+    testMode: row.livemode === false,
+    currency: row.currency,
+    status: row.status,
+    remaining: closed ? 0 : Number(row.total_cents) - Number(row.amount_paid_cents),
+    dueDate: row.due_date,
     observedAt,
-    providerRequestId: receipt.providerRequestId,
+    paymentUrl:
+      token && tenant?.slug && site ? new URL(invoicePath(tenant.slug, token), site).toString() : null,
     complete: true,
   });
 }
@@ -95,7 +96,7 @@ export async function syncCollectionCases(
   actorEmail: string,
 ) {
   const ids = z.array(z.uuid()).min(1).max(25).parse(rawIds).sort();
-  if (new Set(ids).size !== ids.length) throw new Error("Duplicate invoice operation");
+  if (new Set(ids).size !== ids.length) throw new Error("Duplicate invoice");
   z.uuid().parse(requestId);
   z.email().parse(actorEmail);
   const tenantId = await requireCollections(db);
@@ -114,15 +115,12 @@ export async function syncCollectionCases(
     return prior.result;
   }
   const observedAt = new Date().toISOString();
-  const observations = await Promise.all(
-    ids.map(async (id) =>
-      projectCollectionObservation(await readStripeInvoiceForAction(db, id), observedAt),
-    ),
-  );
+  // Validates each invoice is issued and linked; the RPC re-reads balances itself.
+  await Promise.all(ids.map((id) => observeInvoice(db, id, observedAt)));
   await requireCollections(db);
   const { data, error } = await callCollectionHostRpc(db, "sync_collection_observations", {
     p_request: requestId,
-    p_observations: observations,
+    p_observations: ids.map((invoiceId) => ({ invoiceId })),
     p_actor: actorEmail,
   });
   if (error)

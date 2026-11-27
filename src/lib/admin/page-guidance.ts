@@ -383,19 +383,18 @@ const taskContext: Record<
 };
 
 const extensionGuidance: Record<string, AdminPageGuidance> = {
-  "stripe-invoicing": {
+  "invoicing": {
     description:
-      "Bill an existing customer, design the customer page and follow the invoice’s recorded status.",
-    startHint:
-      "Open an invoice to inspect its status, or choose Create invoice to prepare a customer draft.",
+      "Create invoices, share a payment link, and see which invoices are paid. Customers pay by bank transfer or card on your own invoice page.",
+    startHint: "Choose New invoice, or open an invoice to copy its link or check its payment.",
     steps: [
-      "Choose the customer, line items and terms, then inspect the invoice preview.",
-      "Request draft approval, review the exact version and create it. Request sending approval when it is ready.",
-      "Inspect the confirmed result and payment status before following up.",
+      "Pick the customer, add the lines and due date, and save the draft.",
+      "Choose Issue invoice. This assigns the invoice number and creates the customer link.",
+      "Copy the link and send it from your own email. The invoice shows Paid once Stripe confirms the payment.",
     ],
     savedOutcome:
-      "Draft creation, sending and payment have separate results. An accepted send leaves payment outstanding until Stripe records it.",
-    guideHref: "/docs/plugins/stripe-invoicing",
+      "Drafts stay private until issued. Bank transfers show Payment processing for a few days before they show Paid.",
+    guideHref: "/docs/plugins/invoicing",
     workflowId: "invoice",
   },
   "receivables-collections": {

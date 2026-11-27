@@ -598,7 +598,7 @@ export const docsManifest: DocsSection[] = [
           "Prepare LinkedIn posts, approve their content and time, and follow publication receipts from your workspace.",
       },
       {
-        slug: ["plugins", "stripe-invoicing"],
+        slug: ["plugins", "invoicing"],
         title: "Stripe invoicing",
         description:
           "Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.",

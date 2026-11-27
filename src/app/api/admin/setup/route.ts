@@ -205,7 +205,7 @@ export async function GET() {
   const stripeWebhookReady = isTenantEncryptedSecret(
     String(stripeCredentials.webhook_secret ?? ""),
   );
-  const stripeModuleEnabled = isModuleEnabled("stripe-invoicing", {
+  const stripeModuleEnabled = isModuleEnabled("invoicing", {
     modules: auth.tenant.config?.modules as Partial<Record<string, boolean>> | undefined,
   });
   const stripeReady = stripeModuleEnabled && stripeApiReady && stripeWebhookReady;

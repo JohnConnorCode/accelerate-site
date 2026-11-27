@@ -116,7 +116,7 @@ export function CollectionsWorkspace() {
     refreshRequests.current.set(key, requestId);
     await request("/api/admin/collections", "POST", {
       requestId,
-      creationActionIds: ids,
+      invoiceIds: ids,
     });
     setPreview(null);
     refreshRequests.current.delete(key);
@@ -316,9 +316,9 @@ export function CollectionsWorkspace() {
                 <p className="my-4 text-sm">{current.nextAction}</p>
                 <ul className="divide-y divide-[var(--admin-border)]">
                   {current.invoices.map((i) => (
-                    <li key={i.creationActionId} className="py-3 text-sm">
+                    <li key={i.invoiceId} className="py-3 text-sm">
                       <div className="flex flex-wrap justify-between gap-2">
-                        <span className="break-all">{i.invoiceId}</span>
+                        <span className="break-all">{i.number}</span>
                         <strong className="tabular-nums">
                           {formatMoney(i.remaining / 100, {
                             currency: current.currency,
@@ -338,7 +338,7 @@ export function CollectionsWorkspace() {
                   className={`${button} mt-3`}
                   disabled={busy || current.invoices.length > 25}
                   onClick={() =>
-                    void perform(() => refresh(current.invoices.map((i) => i.creationActionId)))
+                    void perform(() => refresh(current.invoices.map((i) => i.invoiceId)))
                   }
                 >
                   Refresh invoice facts

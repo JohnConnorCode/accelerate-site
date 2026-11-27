@@ -317,6 +317,7 @@ jobs:
           npm run test:content-calendar-actions
           PATH="$(pg_config --bindir):$PATH" npm run test:content-calendar-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:event-ticketing:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:invoicing:postgres
           npm run test:workspace-operations
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-operations-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning

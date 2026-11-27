@@ -18,7 +18,7 @@ async function main() {
       {
         id: tenant,
         status: "active",
-        config: { modules: { "receivables-collections": true, "stripe-invoicing": true } },
+        config: { modules: { "receivables-collections": true, "invoicing": true } },
       },
     ],
     integration_connections: [
@@ -145,7 +145,7 @@ async function main() {
       "owner@example.test",
     );
     mem.rows("tenants")[0]!.config = {
-      modules: { "receivables-collections": false, "stripe-invoicing": true },
+      modules: { "receivables-collections": false, "invoicing": true },
     };
     await assert.rejects(
       () => syncCollectionCases(db, ids, randomUUID(), "owner@example.test"),

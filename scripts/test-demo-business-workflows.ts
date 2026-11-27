@@ -45,111 +45,58 @@ async function main() {
     assert.equal(state.invoices.length, 3);
     assert.ok(state.tasks.length >= 4);
     assert.ok(
-      state.invoices.every(
-        (x) => x.document.customerEmail.endsWith(".example") && !x.document.paymentUrl,
-      ),
+      state.invoices.every((x) => x.customerEmail.endsWith(".example") && !x.shareUrl),
     );
     const billing = await request("/api/admin/invoicing");
     const contact = billing.contacts[0];
-    const input = {
+    const draft = {
       contactId: contact.id,
-      customerId: billing.customers[0].id,
-      currency: "usd",
-      daysUntilDue: 14,
+      customerName: contact.full_name,
+      customerEmail: contact.primary_email,
+      lines: pack.business.invoiceLines.map((x) => ({
+        description: x.description,
+        quantity: x.quantity,
+        unitCents: x.unitAmount,
+      })),
       memo: pack.business.invoiceMemo,
-      lines: pack.business.invoiceLines,
+      dueDate: null,
+      paymentMethods: ["us_bank_account", "card"],
     };
     await request(
-      "/api/admin/plugins/workflow",
-      { pluginId: "stripe-invoicing", mode: "preview", input: { ...input, lines: [] } },
+      "/api/admin/invoicing",
+      { operation: "save_draft", id: null, revision: null, draft: { ...draft, lines: [] } },
       "POST",
       422,
     );
-    const preview = await request("/api/admin/plugins/workflow", {
-      pluginId: "stripe-invoicing",
-      mode: "preview",
-      input,
+    const saved = await request("/api/admin/invoicing", {
+      operation: "save_draft",
+      id: null,
+      revision: null,
+      draft,
     });
-    const proposed = {
-      pluginId: "stripe-invoicing",
-      mode: "propose",
-      input,
-      digest: preview.digest,
-      requestId: crypto.randomUUID(),
-    };
-    const { action } = await request("/api/admin/plugins/workflow", proposed);
-    assert.equal((await request("/api/admin/plugins/workflow", proposed)).action.id, action.id);
-    modules["stripe-invoicing"] = false;
-    await request(
-      "/api/admin/revenue-os/actions",
-      { id: action.id, decision: "approve" },
-      "PATCH",
-      422,
-    );
-    assert.equal(state.invoices.length, 3);
-    modules["stripe-invoicing"] = true;
-    await request("/api/admin/revenue-os/actions", { id: action.id, decision: "retry" }, "PATCH");
-    await request("/api/admin/revenue-os/actions", { id: action.id, decision: "approve" }, "PATCH");
-    await request(
-      "/api/admin/revenue-os/actions",
-      { id: action.id, decision: "approve" },
-      "PATCH",
-      422,
-    );
+    assert.equal(saved.invoice.status, "draft");
     assert.equal(state.invoices.length, 4);
-    const send = await request("/api/admin/invoicing", { creationActionId: action.id });
+    modules["invoicing"] = false;
     await request(
-      "/api/admin/revenue-os/actions",
-      { id: send.action.id, decision: "approve" },
-      "PATCH",
+      "/api/admin/invoicing",
+      { operation: "issue", id: saved.invoice.id, revision: 1 },
+      "POST",
+      422,
     );
-    const generated = await request("/api/admin/invoicing/pages", {
-      mode: "generate",
-      creationActionId: action.id,
-      brief: "Editorial layout",
+    modules["invoicing"] = true;
+    const issued = await request("/api/admin/invoicing", {
+      operation: "issue",
+      id: saved.invoice.id,
+      revision: 1,
     });
-    assert.equal(generated.simulated, true);
-    assert.equal(generated.design.introduction, pack.business.introduction);
-    const revised = await request("/api/admin/invoicing/pages", {
-      mode: "generate",
-      creationActionId: action.id,
-      brief: "Editorial layout, serif typography, compact spacing, and #164e63",
-      currentDesign: { ...generated.design, heading: "Keep this heading" },
+    assert.equal(issued.invoice.status, "open");
+    assert.match(issued.invoice.number, /^INV-\d{4}$/);
+    const voided = await request("/api/admin/invoicing", {
+      operation: "void",
+      id: saved.invoice.id,
+      revision: issued.invoice.revision,
     });
-    assert.equal(revised.design.heading, "Keep this heading");
-    assert.equal(revised.design.font, "serif");
-    assert.equal(revised.design.spacing, "compact");
-    assert.equal(revised.design.accentColor, "#164e63");
-    const page = await request("/api/admin/invoicing/pages", {
-      mode: "preview",
-      creationActionId: action.id,
-      design: revised.design,
-    });
-    const publication = await request("/api/admin/invoicing/pages", {
-      mode: "propose",
-      creationActionId: action.id,
-      design: page.design,
-      digest: page.digest,
-      requestId: crypto.randomUUID(),
-    });
-    await request(
-      "/api/admin/revenue-os/actions",
-      { id: publication.action.id, decision: "approve" },
-      "PATCH",
-    );
-    const pages = await request("/api/admin/invoicing/pages?creationActionId=" + action.id);
-    const designer = await request(
-      "/api/admin/invoicing/pages?view=designer&creationActionId=" + action.id,
-    );
-    assert.deepEqual(designer.preview.design, revised.design);
-    assert.equal(designer.preview.document.total, preview.payload.total);
-    const token = pages.pages[0].token;
-    assert.equal(
-      (await request("/api/admin/invoicing/pages?token=" + token)).document.total,
-      preview.payload.total,
-    );
-    await request("/api/admin/invoicing/pages", { mode: "revoke", pageId: pages.pages[0].id });
-    await request("/api/admin/invoicing/pages?token=" + token, undefined, "GET", 422);
+    assert.equal(voided.invoice.status, "void");
     for (const pluginId of ["client-onboarding", "meeting-commitments"]) {
       const workspace = await request("/api/admin/plugins/tasks?pluginId=" + pluginId);
       const tasks = [

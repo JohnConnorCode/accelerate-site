@@ -29,12 +29,12 @@ export async function handleDemoBilling(
     !["/api/admin/invoicing/commands", "/api/admin/invoicing/payments"].includes(url.pathname)
   )
     return null;
-  if (!modules["stripe-invoicing"])
-    throw new Error("Stripe invoicing is disabled in this demo workspace.");
+  if (!modules["invoicing"])
+    throw new Error("Invoicing is disabled in this demo workspace.");
   const respond = (value: unknown) => Response.json({ ...(value as object), simulated: true });
   if (!state.billing) {
-    const paid = state.invoices.find((item) => item.receipt.status === "paid")!;
-    const amount = paid.receipt.amountPaid;
+    const paid = state.invoices.find((item) => item.status === "paid")!;
+    const amount = paid.amountPaidCents;
     const base = {
       amount,
       captured: amount,
@@ -42,8 +42,8 @@ export async function handleDemoBilling(
       currency: "usd",
       status: "succeeded" as const,
       createdAt: new Date().toISOString(),
-      name: paid.document.customerName,
-      email: paid.document.customerEmail,
+      name: paid.customerName,
+      email: paid.customerEmail,
       description: "Fictional invoice payment",
       receiptUrl: null,
       refundable: true,
@@ -108,27 +108,6 @@ export async function handleDemoBilling(
         Mode: "test",
         Consequence: "Simulates a billing profile. No invoice or payment is created.",
       };
-    } else if (command.operation === "void_invoice") {
-      const invoice = state.invoices.find((item) => item.receipt.invoiceId === command.invoiceId);
-      if (
-        !invoice ||
-        !["open", "uncollectible"].includes(invoice.receipt.status) ||
-        invoice.receipt.amountPaid !== 0
-      )
-        throw new Error("Choose a finalized unpaid fictional invoice.");
-      snapshot = {
-        invoiceId: invoice.receipt.invoiceId,
-        status: invoice.receipt.status,
-        remaining: invoice.receipt.amountRemaining,
-      };
-      review = {
-        Operation: "Void unpaid invoice",
-        Invoice: invoice.document.number,
-        Customer: invoice.document.customerName,
-        Amount: formatInvoiceAmount(invoice.receipt.amountRemaining, invoice.receipt.currency),
-        Mode: "test",
-        Consequence: "Simulates invoice cancellation. No Stripe invoice is changed.",
-      };
     } else {
       const payment = billing.payments.find((item) => item.id === command.chargeId);
       if (!payment?.refundable || command.amount > payment.captured - payment.refunded)
@@ -170,13 +149,6 @@ export async function handleDemoBilling(
       payment.refunded += command.amount;
       payment.refundable = payment.refunded < payment.captured;
       providerId = "re_demo" + action.id.replaceAll("-", "");
-    } else if (command.operation === "void_invoice") {
-      const invoice = state.invoices.find((item) => item.receipt.invoiceId === command.invoiceId)!;
-      invoice.receipt.status = "void";
-      invoice.receipt.amountRemaining = 0;
-      invoice.document.status = "void";
-      invoice.document.amountRemaining = 0;
-      providerId = invoice.receipt.invoiceId;
     } else {
       billing.createdCustomers.push(command.contactId);
       providerId = "cus_demo" + command.contactId.replaceAll("-", "");
@@ -185,12 +157,7 @@ export async function handleDemoBilling(
     action.result = {
       operation: command.operation,
       providerId,
-      status:
-        command.operation === "void_invoice"
-          ? "void"
-          : command.operation === "create_customer"
-            ? "ready"
-            : "succeeded",
+      status: command.operation === "create_customer" ? "ready" : "succeeded",
       testMode: true,
       providerRequestId: null,
       message:

@@ -7,7 +7,6 @@ import { requireEnabledPlugin, loadPluginSources } from "./plugin-host";
 import { evaluateInIsolate, type PluginJsonValue } from "./plugin-isolate";
 import { proposeAction } from "./actions";
 import { reviewWorkflowTasks } from "./workflow-tasks";
-import { reviewStripeInvoice } from "./stripe-invoicing";
 import {
   parsePluginWorkflowInput,
   pluginWorkflowContract,
@@ -83,9 +82,7 @@ export async function prepareWorkflowPlugin(
       throw new Error("Plugin changed the selected business identity");
   }
   let payload: Record<string, unknown> = plan.action.payload;
-  if (plan.action.type === "create_stripe_invoice_draft")
-    payload = await reviewStripeInvoice(db, payload);
-  else if (plan.action.type === "create_task_batch")
+  if (plan.action.type === "create_task_batch")
     payload = await reviewWorkflowTasks(db, payload);
   else throw new Error("Workflow action has no host reviewer");
   payload = {
@@ -163,11 +160,6 @@ export async function assertPluginActionAllowed(
   if (!origin || typeof origin.id !== "string")
     throw new Error("Workflow action has no plugin origin");
   const { moduleDef } = await requireEnabledPlugin(db, origin.id);
-  if (
-    ["send_stripe_invoice", "publish_invoice_page"].includes(actionType) &&
-    origin.id === "stripe-invoicing"
-  )
-    return;
   const compiled = Object.hasOwn(EXTENSION_WORKFLOWS, origin.id)
     ? EXTENSION_WORKFLOWS[origin.id]
     : null;

@@ -29,7 +29,7 @@ async function main() {
     supabase: f.db,
     actorEmail: "operator@example.test",
     workItemId: f.workItemId,
-    tenantConfig: { modules: { "receivables-collections": true, "stripe-invoicing": true } },
+    tenantConfig: { modules: { "receivables-collections": true, "invoicing": true } },
   };
   const mcpContext = { ...context, tenantConfig: { ...defaultTenant, ...context.tenantConfig } };
   const call = async <T>(name: string, input: Record<string, unknown>) =>
@@ -119,12 +119,11 @@ async function main() {
     assert.equal(stored.cases[0]!.caseId, f.caseId);
     assert.equal(stored.cases[0]!.contactId, f.contact);
     assert.equal(stored.cases[0]!.invoices[0]!.observationId, f.observation);
-    assert.equal(stored.cases[0]!.invoices[0]!.creationActionId, f.invoiceAction);
+    assert.equal(stored.cases[0]!.invoices[0]!.invoiceId, f.invoiceId);
     assert.equal(stored.cases[0]!.observedOpenBalanceMinorUnits, 7500);
     assert.equal(stored.cases[0]!.work[0]!.id, f.workItemId);
     assert.equal(stored.cases[0]!.invoices[0]!.observedAt, "2025-01-02T00:00:00.000Z");
     assert.match(stored.source, /not a live/);
-    assert.equal(f.state.reads, 0);
     await assert.rejects(
       () => call("get_collection_cases", { caseId: foreignCase }),
       /unavailable/,
@@ -167,13 +166,13 @@ async function main() {
       refs.push({
         tenant_id: f.tenant,
         case_id: f.caseId,
-        creation_action_id: creationId,
+        invoice_id: creationId,
         observation_id: observationId,
       });
       observations.push({
         ...savedObservations[0]!,
         id: observationId,
-        invoice_id: `in_more${i}`,
+        invoice_id: creationId,
         remaining: 100,
       });
     }
@@ -186,14 +185,14 @@ async function main() {
     f.mem.tables.collection_case_invoices = savedRefs;
     f.mem.tables.collection_observations = savedObservations;
     const originalInvoiceId = savedObservations[0]!.invoice_id;
-    savedObservations[0]!.invoice_id = "in_" + "a".repeat(49_000);
+    savedObservations[0]!.due_date = "2025-01-01" + " ".repeat(49_000);
     await assert.rejects(() => call("get_collection_cases", { caseId: f.caseId }), /48 KB/);
-    savedObservations[0]!.invoice_id = originalInvoiceId;
+    savedObservations[0]!.due_date = "2025-01-01";
+    void originalInvoiceId;
     const readViaMcp = await mcp("get_collection_cases", { caseId: f.caseId });
     assert.ok(readViaMcp);
     assert.equal(readViaMcp.isError, false);
     assert.equal(JSON.parse(readViaMcp.content[0]!.text).cases[0].caseId, f.caseId);
-    assert.equal(f.state.reads, 0);
 
     const preview = await call<PreviewResult>("preview_collection_reminder", { caseId: f.caseId });
     const authoritative = await previewCollectionReminder(f.db, f.caseId);

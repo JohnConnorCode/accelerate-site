@@ -1,0 +1,21 @@
+---
+title: Invoicing
+description: Workspace-owned invoices paid over Stripe's payment rails, with no Stripe Invoicing fees.
+---
+
+Invoices live in this workspace's database with their own numbers and a branded
+customer page. Stripe only moves the money: each issued invoice has one
+PaymentIntent that the customer pays on that page by bank transfer (ACH) or
+card. No Stripe Invoice or Billing object is ever created, so Stripe's
+per-invoice Invoicing fee does not apply.
+
+The full operator guide is in `plugins/invoicing/README.md`.
+
+## States
+
+- **Draft**: editable, private, no Stripe object.
+- **Awaiting payment**: issued, numbered, payable at the customer link.
+- **Payment processing**: a bank transfer was submitted and is clearing.
+- **Paid**: Stripe confirmed the full amount.
+- **Paid outside Stripe**: recorded manually (check, wire).
+- **Void**: cancelled; its Stripe payment is cancelled too.

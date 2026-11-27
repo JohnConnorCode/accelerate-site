@@ -7,13 +7,6 @@ export const billingCommandSchema = z.discriminatedUnion("operation", [
     .strict(),
   z
     .object({
-      operation: z.literal("void_invoice"),
-      invoiceId: z.string().regex(/^in_[A-Za-z0-9]{1,80}$/),
-      requestId: z.uuid(),
-    })
-    .strict(),
-  z
-    .object({
       operation: z.literal("refund_payment"),
       chargeId: stripeChargeIdSchema,
       amount: z.number().int().positive().max(100000000),
@@ -127,7 +120,7 @@ export function paymentsCsv(payments: BillingPayment[]) {
 
 export const billingReadInputSchema = z
   .object({
-    kind: z.enum(["invoices", "payments"]),
+    kind: z.enum(["payments"]),
     cursor: z.string().max(124).optional(),
     connection: z.string().max(160).optional(),
   })
@@ -144,10 +137,7 @@ export const BILLING_OPERATION_BINDINGS = {
     id: "billing.records.read",
     version: 1,
     scope: "workspace",
-    entrypoints: [
-      { path: "/api/admin/invoicing/list", method: "GET" },
-      { path: "/api/admin/invoicing/payments", method: "GET" },
-    ],
+    entrypoints: [{ path: "/api/admin/invoicing/payments", method: "GET" }],
     verification: ["scripts/test-billing-workspace.ts"],
   },
   preview_billing_change: {

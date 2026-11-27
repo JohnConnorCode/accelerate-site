@@ -3,7 +3,7 @@ import { MemorySupabase } from "./lib/memory-supabase";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { encryptTenantSecret } from "../src/lib/revenue-os/encryption";
 import { workflowTaskSources } from "../src/lib/revenue-os/workflow-tasks";
-import { stripeBillingChoices } from "../src/lib/revenue-os/stripe-invoicing";
+import { listInvoices } from "../src/lib/revenue-os/invoices";
 
 const tenant = "11111111-1111-4111-8111-111111111111";
 const otherTenant = "22222222-2222-4222-8222-222222222222";
@@ -101,7 +101,10 @@ async function main() {
     primary_email: "selected@example.example",
   };
   const billingMemory = new MemorySupabase({
-    tenants: [{ id: tenant, status: "active", config: { modules: { "stripe-invoicing": true } } }],
+    tenants: [
+      { id: tenant, slug: "fixture", status: "active", config: { modules: { invoicing: true } } },
+    ],
+    invoices: [],
     contacts: [
       ...Array.from({ length: 105 }, (_, index) => ({
         id: id(400 + index),
@@ -128,52 +131,23 @@ async function main() {
   });
   const billingDb = bindTenantDatabase(billingMemory.client, tenant, true);
   const originalFetch = globalThis.fetch;
-  const requests: URL[] = [];
-  globalThis.fetch = async (input, init) => {
-    const url = new URL(String(input));
-    assert.equal(url.origin, "https://api.stripe.com");
-    assert.equal(url.pathname, "/v1/customers");
-    assert.equal(init?.method, "GET", "Choices must not write to the provider");
-    requests.push(url);
-    return new Response(
-      JSON.stringify({
-        data: [
-          {
-            id: "cus_fixture",
-            email: contact.primary_email,
-            name: contact.full_name,
-            livemode: false,
-          },
-        ],
-        has_more: false,
-      }),
-      { headers: { "Content-Type": "application/json" } },
-    );
+  globalThis.fetch = async () => {
+    throw new Error("Listing invoices and contacts never calls Stripe");
   };
   try {
-    assert.equal(
-      (await stripeBillingChoices(billingDb)).contacts.some((row) => row.id === contactId),
-      false,
-    );
-    const selected = await stripeBillingChoices(billingDb, "", contactId);
-    assert.equal(selected.contacts[0]?.id, contactId);
-    assert.equal(selected.contacts.length, 100);
+    const unlinked = await listInvoices(billingDb);
+    assert.equal(unlinked.contacts.some((row) => row.id === contactId), true);
+    const selected = await listInvoices(billingDb, { contactId });
     assert.equal(selected.contacts.filter((row) => row.id === contactId).length, 1);
-    const filtered = await stripeBillingChoices(billingDb, "no matching name", contactId);
-    assert.equal(filtered.contacts.length, 1, "Search must not hide an explicitly linked customer");
-    assert.equal(filtered.contacts[0]?.id, contactId);
-    assert.equal(requests.at(-1)?.searchParams.get("email"), contact.primary_email);
-    const beforeMissing = requests.length;
     await assert.rejects(
-      () => stripeBillingChoices(billingDb, "", id(301)),
+      () => listInvoices(billingDb, { contactId: id(301) }),
       /identity is unavailable/,
     );
     await assert.rejects(
-      () => stripeBillingChoices(billingDb, "", id(999)),
+      () => listInvoices(billingDb, { contactId: id(999) }),
       /identity is unavailable/,
     );
-    await assert.rejects(() => stripeBillingChoices(billingDb, "", "invalid"));
-    assert.equal(requests.length, beforeMissing);
+    await assert.rejects(() => listInvoices(billingDb, { contactId: "invalid" }));
   } finally {
     globalThis.fetch = originalFetch;
   }

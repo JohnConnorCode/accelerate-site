@@ -90,7 +90,7 @@ const capabilityDefinitions: Capability[] = [
     detail:
       "Open an invoice from a won opportunity with its linked contact selected. Search loaded invoices, review open and overdue balances by currency, create a missing billing customer, and approve invoice creation, sending or unpaid-invoice cancellation. Payments & refunds adds reviewed refunds, source receipts and selected-record CSV exports. Provider payment facts remain authoritative; reports state their loaded scope.",
     gated: true,
-    guideHref: "/docs/plugins/stripe-invoicing",
+    guideHref: "/docs/plugins/invoicing",
   },
   {
     id: "event-ticketing",

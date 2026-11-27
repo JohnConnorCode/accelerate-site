@@ -15,7 +15,7 @@ const tenant = {
   name: "Example Studio",
   status: "active",
   config: {
-    modules: { "stripe-invoicing": true, "client-onboarding": true, "meeting-commitments": true },
+    modules: { "invoicing": true, "client-onboarding": true, "meeting-commitments": true },
   },
 };
 createServer((request, response) => {

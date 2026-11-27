@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     return response({ error: "Invalid refresh request" }, 400);
   }
   const parsed = z
-    .object({ requestId: z.uuid(), creationActionIds: z.array(z.uuid()).min(1).max(25) })
+    .object({ requestId: z.uuid(), invoiceIds: z.array(z.uuid()).min(1).max(25) })
     .strict()
     .safeParse(raw);
   if (!parsed.success)
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return response(
       await syncCollectionCases(
         auth.database,
-        parsed.data.creationActionIds,
+        parsed.data.invoiceIds,
         parsed.data.requestId,
         auth.user.email!,
       ),

@@ -70,7 +70,7 @@ tests, native PostgreSQL checks and reference business journeys:
 
 - `scripts/test-first-value-business-journey.ts`
 - `scripts/test-demo-business-workflows.ts`
-- `scripts/test-stripe-workflow.ts`
+- `scripts/test-invoicing.ts`
 - `scripts/test-opportunity-create.ts`
 
 This narrow fixture scope skips application and fork builds and their browser

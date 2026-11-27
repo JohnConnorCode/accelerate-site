@@ -22,7 +22,7 @@ function fail(input) {
 const contactA = sql(`SELECT id FROM contacts WHERE tenant_id='${a}' LIMIT 1;`),
   contactB = sql(`SELECT id FROM contacts WHERE tenant_id='${b}' LIMIT 1;`);
 sql(
-  `UPDATE tenants SET config=jsonb_set(config,'{modules}','{"receivables-collections":true,"stripe-invoicing":true}') WHERE id IN ('${a}','${b}'); INSERT INTO integration_connections(tenant_id,provider,status,account_email,credential_version) VALUES('${a}','stripe','connected','acct_A',1),('${b}','stripe','connected','acct_B',1);`,
+  `UPDATE tenants SET config=jsonb_set(config,'{modules}','{"receivables-collections":true,"invoicing":true}') WHERE id IN ('${a}','${b}'); INSERT INTO integration_connections(tenant_id,provider,status,account_email,credential_version) VALUES('${a}','stripe','connected','acct_A',1),('${b}','stripe','connected','acct_B',1);`,
 );
 const ids = [randomUUID(), randomUUID(), randomUUID()];
 for (let i = 0; i < ids.length; i++) {

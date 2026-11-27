@@ -33,7 +33,7 @@ const checks = [
   ["test:gmail-draft-provider", ["AC1", "AC2", "AC3", "AC5"]],
   ["test:gmail-followup-workflow", ["AC1", "AC3"]],
   ["test:business-workflows", ["AC1", "AC2", "AC3", "AC5"]],
-  ["test:stripe-workflow", ["AC1", "AC2", "AC3", "AC5"]],
+  ["test:invoicing", ["AC1", "AC2", "AC3", "AC5"]],
   ["test:collections-reminders", ["AC3"]],
   ["test:collections-workspace", ["AC2", "AC3", "AC4"]],
   ["test:collections-agent-tools", ["AC2", "AC3"]],

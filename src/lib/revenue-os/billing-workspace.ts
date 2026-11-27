@@ -13,7 +13,6 @@ import {
   type BillingPreview,
 } from "./billing-command-contract";
 import { formatInvoiceAmount, stripeChargeIdSchema } from "./stripe-contract";
-import { invoiceIndexPageSchema } from "./invoice-index-contract";
 
 const object = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value)
@@ -88,10 +87,8 @@ export async function readBillingPayments(
       receiptUrl: safeReceipt(charge.receipt_url),
       disputed: charge.disputed,
       workspaceOwned: charge.metadata.accelerate_tenant_id === client.tenantId,
-      ownershipNeedsCheck: !charge.metadata.accelerate_tenant_id && Boolean(charge.payment_intent),
       refundable:
-        (charge.metadata.accelerate_tenant_id === client.tenantId ||
-          (!charge.metadata.accelerate_tenant_id && Boolean(charge.payment_intent))) &&
+        charge.metadata.accelerate_tenant_id === client.tenantId &&
         charge.status === "succeeded" &&
         charge.paid &&
         charge.captured &&
@@ -103,49 +100,13 @@ export async function readBillingPayments(
   };
 }
 
-async function owningInvoices(
+/** A payment belongs to this workspace when the PaymentIntent that created it
+ * carries this workspace's id (invoice and ticket payments both do). */
+function ownedPayment(
   client: Awaited<ReturnType<typeof tenantStripeClient>>,
   charge: z.infer<typeof chargeSchema>,
-): Promise<string[] | null> {
-  if (charge.metadata.accelerate_tenant_id)
-    return charge.metadata.accelerate_tenant_id === client.tenantId ? [] : null;
-  if (!charge.payment_intent) return null;
-  const { object: response } = await client.paymentInvoices(charge.payment_intent);
-  const page = z
-    .object({
-      data: z
-        .array(
-          z.object({
-            status: z.literal("paid"),
-            livemode: z.boolean(),
-            payment: z.object({
-              type: z.literal("payment_intent"),
-              payment_intent: z.literal(charge.payment_intent),
-            }),
-            invoice: z.object({
-              id: z.string().regex(/^in_[A-Za-z0-9]{1,80}$/),
-              livemode: z.boolean(),
-              metadata: z.record(z.string(), z.string()),
-            }),
-          }),
-        )
-        .max(50),
-      has_more: z.boolean(),
-    })
-    .parse(response);
-  if (page.has_more)
-    throw new Error("Invoice ownership evidence is incomplete. Refresh before preparing a refund.");
-  if (
-    !page.data.length ||
-    page.data.some(
-      (item) =>
-        item.livemode !== (client.mode === "live") ||
-        item.invoice.livemode !== (client.mode === "live") ||
-        item.invoice.metadata.accelerate_tenant_id !== client.tenantId,
-    )
-  )
-    return null;
-  return [...new Set(page.data.map((item) => item.invoice.id))].sort();
+) {
+  return charge.metadata.accelerate_tenant_id === client.tenantId;
 }
 
 async function inspect(
@@ -194,48 +155,9 @@ async function inspect(
       },
     };
   }
-  if (command.operation === "void_invoice") {
-    const { object: invoice } = await client.invoice(command.invoiceId);
-    if (
-      object(invoice.metadata).accelerate_tenant_id !== client.tenantId ||
-      invoice.livemode !== (client.mode === "live")
-    )
-      throw new Error("Only invoices created by this workspace can be voided here.");
-    if (
-      !["open", "uncollectible", "void"].includes(String(invoice.status)) ||
-      invoice.amount_paid !== 0
-    )
-      throw new Error(
-        "Only a finalized unpaid invoice can be voided. Paid invoices need a refund or credit note.",
-      );
-    return {
-      client,
-      snapshot: {
-        ...connection,
-        invoiceId: invoice.id,
-        status: invoice.status,
-        customer: invoice.customer,
-        email: invoice.customer_email,
-        currency: invoice.currency,
-        amountDue: amount.parse(invoice.amount_due),
-        remaining: amount.parse(invoice.amount_remaining),
-        paid: invoice.amount_paid,
-      },
-      review: {
-        Operation: "Void unpaid invoice",
-        Invoice: String(invoice.number ?? invoice.id),
-        Customer: String(invoice.customer_email ?? invoice.customer),
-        Amount: formatInvoiceAmount(invoice.amount_remaining, invoice.currency),
-        Mode: client.mode,
-        Consequence:
-          "Permanently cancels this unpaid invoice. Its document and audit history remain. No refund is issued.",
-      },
-    };
-  }
   const { object: raw } = await client.charge(command.chargeId);
   const charge = chargeSchema.parse(raw);
-  const invoiceIds = await owningInvoices(client, charge);
-  if (invoiceIds === null || charge.livemode !== (client.mode === "live"))
+  if (!ownedPayment(client, charge) || charge.livemode !== (client.mode === "live"))
     throw new Error("Only payments belonging to this workspace can be refunded here.");
   if (charge.status !== "succeeded" || !charge.paid || !charge.captured || charge.disputed)
     throw new Error(
@@ -251,7 +173,7 @@ async function inspect(
       refunded: charge.amount_refunded,
       paymentIntent: charge.payment_intent,
       orderId: charge.metadata.accelerate_order_id ?? null,
-      invoiceIds,
+      invoiceId: charge.metadata.accelerate_invoice_id ?? null,
     },
     review: {
       Operation: "Refund payment",
@@ -280,8 +202,6 @@ function digest(
 export async function previewBillingCommand(db: SupabaseClient, raw: unknown) {
   const command = billingCommandSchema.parse(raw);
   const { snapshot, review } = await inspect(db, command);
-  if (command.operation === "void_invoice" && snapshot.status === "void")
-    throw new Error("This invoice is already void.");
   if (
     command.operation === "refund_payment" &&
     command.amount > Number(snapshot.captured) - Number(snapshot.refunded)
@@ -404,16 +324,6 @@ export async function executeBillingCommand(
         "Refund history is incomplete. Reconcile the original action before retrying.",
       );
   }
-  if (command.operation === "void_invoice" && current.snapshot.status === "void")
-    return finish({
-      operation: command.operation,
-      providerId: command.invoiceId,
-      status: "void",
-      message: "Stripe confirms this invoice is void. No additional cancellation was sent.",
-      testMode: client.mode === "test",
-      providerRequestId: null,
-      reconciled: true,
-    });
   if (digest(command, current.snapshot, current.review) !== approved.digest)
     throw new Error("Billing facts changed after review. Refresh and prepare a new action.");
   if (command.operation === "create_customer") {
@@ -464,26 +374,6 @@ export async function executeBillingCommand(
       testMode: client.mode === "test",
       providerRequestId: result.requestId,
       reconciled: Boolean(existing),
-    });
-  }
-  if (command.operation === "void_invoice") {
-    const result = await client.invoiceOperation(
-      command.invoiceId,
-      "void",
-      new URLSearchParams(),
-      key,
-    );
-    if (result.object.id !== command.invoiceId || result.object.status !== "void")
-      throw new Error(
-        "Stripe has not confirmed cancellation. Reconcile this operation before retrying.",
-      );
-    return finish({
-      operation: command.operation,
-      providerId: command.invoiceId,
-      status: "void",
-      message: "Stripe confirms that the unpaid invoice is void.",
-      testMode: client.mode === "test",
-      providerRequestId: result.requestId,
     });
   }
   const result = await client.createRefund(
@@ -538,71 +428,6 @@ function refundReceipt(
   };
 }
 
-const invoiceSchema = z.object({
-  id: z.string().regex(/^in_[A-Za-z0-9]{1,80}$/),
-  number: z.string().nullable().optional(),
-  status: z.enum(["draft", "open", "paid", "uncollectible", "void"]).nullable().optional(),
-  currency: z
-    .string()
-    .regex(/^[a-z]{3}$/)
-    .nullable()
-    .optional(),
-  amount_due: z.number().nullable().optional(),
-  amount_paid: z.number().nullable().optional(),
-  amount_remaining: z.number().nullable().optional(),
-  customer_name: z.string().nullable().optional(),
-  customer_email: z.string().nullable().optional(),
-  created: z.number(),
-  due_date: z.number().nullable().optional(),
-  hosted_invoice_url: z.string().url().nullable().optional(),
-  metadata: z.record(z.string(), z.string()).optional(),
-});
-
-export async function readBillingInvoices(
-  db: SupabaseClient,
-  input: { cursor?: string; connection?: string; limit?: number } = {},
-) {
-  const limit = z
-    .number()
-    .int()
-    .min(1)
-    .max(50)
-    .parse(input.limit ?? 50);
-  const client = await tenantStripeClient(db);
-  const connection = `${client.accountId}:${client.credentialVersion}:${client.mode}`;
-  const expectedConnection = input.connection;
-  if (expectedConnection && expectedConnection !== connection)
-    throw new Error("The Stripe connection changed. Refresh invoices before loading more.");
-  const { object } = await client.invoices(input.cursor);
-  const response = z
-    .object({ data: z.array(z.unknown()), has_more: z.boolean() })
-    .safeParse(object);
-  if (!response.success) throw new Error("Stripe returned an unexpected invoice list");
-  const all = response.data.data.map((value) => invoiceSchema.parse(value));
-  const invoices = all.slice(0, limit);
-  return invoiceIndexPageSchema.parse({
-    connection,
-    testMode: client.mode === "test",
-    invoices: invoices.map((invoice) => ({
-      id: invoice.id,
-      number: invoice.number ?? null,
-      status: invoice.status ?? null,
-      currency: invoice.currency ?? null,
-      amountDue: invoice.amount_due ?? null,
-      amountPaid: invoice.amount_paid ?? null,
-      remaining: invoice.amount_remaining ?? null,
-      contactName: invoice.customer_name ?? null,
-      contactEmail: invoice.customer_email ?? null,
-      dueDate: invoice.due_date ? new Date(invoice.due_date * 1000).toISOString() : null,
-      hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
-      createdAt: new Date(invoice.created * 1000).toISOString(),
-      managed: invoice.metadata?.accelerate_tenant_id === client.tenantId,
-    })),
-    hasMore: response.data.has_more || all.length > limit,
-    nextCursor: invoices.length ? invoices[invoices.length - 1]!.id : null,
-  });
-}
-
 /** A fresh provider observation never rewrites the original execution receipt. */
 export async function readBillingActionReceipt(
   db: SupabaseClient,
@@ -651,24 +476,6 @@ export async function readBillingActionReceipt(
       status: "not_found",
       message:
         "Stripe's complete refund history contains no refund for this original request. No money was moved by this check.",
-      testMode: client.mode === "test",
-      providerRequestId: requestId,
-      reconciled: true,
-    };
-  }
-  if (command.operation === "void_invoice") {
-    const { object: invoice, requestId } = await client.invoice(command.invoiceId);
-    if (
-      object(invoice.metadata).accelerate_tenant_id !== client.tenantId ||
-      invoice.livemode !== (client.mode === "live")
-    )
-      throw new Error("The invoice no longer has verified workspace ownership.");
-    const status = z.enum(["draft", "open", "paid", "uncollectible", "void"]).parse(invoice.status);
-    return {
-      operation: command.operation,
-      providerId: command.invoiceId,
-      status,
-      message: `Stripe currently reports this invoice as ${status}. This check makes no change.`,
       testMode: client.mode === "test",
       providerRequestId: requestId,
       reconciled: true,

@@ -167,7 +167,7 @@ try {
       assert.ok(page.url().startsWith(root + "/invoicing?view=create"));
 
       await page.goto(root + "/plugins");
-      const plugin = page.locator('[data-module-card="stripe-invoicing"]');
+      const plugin = page.locator('[data-module-card="invoicing"]');
       await plugin.getByRole("button", { name: /^Disable / }).click();
       await plugin.getByRole("button", { name: /^Enable / }).click({ trial: true });
       const disabledSearch = await search(page, "invoice");
@@ -266,7 +266,7 @@ try {
         reducedMotion,
         passed: true,
       });
-      await page.goto(base + "/docs/plugins/stripe-invoicing");
+      await page.goto(base + "/docs/plugins/invoicing");
       await page
         .getByRole("heading", { level: 1, name: "Stripe invoicing", exact: true })
         .waitFor();

@@ -183,7 +183,7 @@ customer again. These changes do not retire the retained source tables.
 ## Business workflow exemplar services
 
 - `plugin-host.ts` owns current activation and declared source reads; `workflow-plugins.ts` validates isolated plans and stages reviewed action identities.
-- `stripe-adapter.ts` owns tenant-bound fixed-endpoint provider access; `stripe-invoicing.ts` owns billing identity, exact amounts, approved execution and partial receipts.
+- `stripe-adapter.ts` owns tenant-bound fixed-endpoint provider access; `invoicing.ts` owns billing identity, exact amounts, approved execution and partial receipts.
 - `workflow-tasks.ts` validates source state and active assignees, then reuses `tasks.ts` for canonical task effects and resumable checkpoints.
 - `branding-contract.ts` defines the shared public identity; `branding.ts` owns revision/CAS saves that preserve other tenant settings.
 - `invoice-pages.ts` owns AI design traces, reviewed publication, immutable branding snapshots, encrypted/hash-indexed share tokens and revocation. `InvoiceDocument` is the shared renderer for the brand preview, editor and customer page.

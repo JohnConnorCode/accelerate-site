@@ -273,12 +273,12 @@ async function journeyForPack(pack: DemoScenarioPack, invoiceContactId?: string)
     );
   });
 
-  // AC03: review an invoice for the same customer, approve draft creation,
-  // then separately approve a test-mode send. No provider delivery occurs.
+  // AC03: draft an invoice for the same customer, then issue it in test mode.
+  // Nothing is emailed and no provider is called in the demo.
   let draftActionId = "";
-  await stage(`AC03 invoice draft and test-mode send (${pack.id})`, async () => {
-    let billing = await request("/api/admin/invoicing");
-    assert.equal(billing.testMode, true);
+  await stage(`AC03 invoice draft and test-mode issue (${pack.id})`, async () => {
+    const billing = await request("/api/admin/invoicing");
+    assert.equal(billing.stripe.testMode, true);
     assert.notEqual(
       billing.contacts[0].id,
       person.id,
@@ -290,135 +290,56 @@ async function journeyForPack(pack: DemoScenarioPack, invoiceContactId?: string)
     assert.ok(contact, "invoice review resolves the onboarding customer by canonical ID");
     assert.equal(contact.id, person.id, "invoice review must keep the onboarding customer");
     assert.equal(contact.primary_email, person.email);
-    let customer = billing.customers.find((item: { email: string }) => item.email === person.email);
-    if (!customer) {
-      const command = {
-        operation: "create_customer",
-        contactId: person.id,
-        requestId: crypto.randomUUID(),
-      };
-      const preview = await request("/api/admin/invoicing/commands", {
-        mode: "preview",
-        command,
-      });
-      assert.equal(preview.snapshot.contactId, person.id);
-      const proposal = await request("/api/admin/invoicing/commands", {
-        mode: "propose",
-        command,
-        digest: preview.digest,
-      });
-      assert.equal(proposal.status, "pending");
-      assert.equal(proposal.payload.command.contactId, person.id);
-      const beforeApproval = await request("/api/admin/invoicing");
-      assert.ok(
-        !beforeApproval.customers.some((item: { email: string }) => item.email === person.email),
-        "preparing a billing customer does not execute its approval",
-      );
-      const approved = await request(
-        "/api/admin/revenue-os/actions",
-        { id: proposal.id, decision: "approve" },
-        "PATCH",
-      );
-      assert.equal(approved.result.status, "ready");
-      assert.equal(approved.result.testMode, true);
-      billing = await request("/api/admin/invoicing");
-      customer = billing.customers.find(
-        (item: { id: string }) => item.id === approved.result.providerId,
-      );
-    }
-    assert.ok(customer, "approved billing customer resolves for the onboarding customer");
-    assert.equal(customer.email, person.email);
-    const input = {
+    const draft = {
       contactId: contact.id,
-      customerId: customer.id,
-      currency: "usd",
-      daysUntilDue: 14,
+      customerName: contact.full_name,
+      customerEmail: contact.primary_email,
+      lines: [{ description: "Onboarding implementation", quantity: 1, unitCents: 120000 }],
       memo: "First value journey",
-      lines: [{ description: "Onboarding implementation", quantity: 1, unitAmount: 120000 }],
+      dueDate: null,
+      paymentMethods: ["us_bank_account", "card"],
     };
-    assert.equal(input.contactId, won.personId, "invoice input keeps the onboarding customer");
+    assert.equal(draft.contactId, won.personId, "invoice input keeps the onboarding customer");
     await request(
-      "/api/admin/plugins/workflow",
-      { pluginId: "stripe-invoicing", mode: "preview", input: { ...input, lines: [] } },
+      "/api/admin/invoicing",
+      { operation: "save_draft", id: null, revision: null, draft: { ...draft, lines: [] } },
       "POST",
       422,
     );
-    await request(
-      "/api/admin/plugins/workflow",
-      {
-        pluginId: "stripe-invoicing",
-        mode: "preview",
-        input: { ...input, customerId: "cus_mismatch" },
-      },
-      "POST",
-      422,
-    );
-    const preview = await request("/api/admin/plugins/workflow", {
-      pluginId: "stripe-invoicing",
-      mode: "preview",
-      input,
+    const saved = await request("/api/admin/invoicing", {
+      operation: "save_draft",
+      id: null,
+      revision: null,
+      draft,
     });
-    assert.ok(preview.payload.total > 0);
-    const proposal = await request("/api/admin/plugins/workflow", {
-      pluginId: "stripe-invoicing",
-      mode: "propose",
-      input,
-      digest: preview.digest,
-      requestId: crypto.randomUUID(),
+    assert.equal(saved.invoice.status, "draft");
+    assert.equal(saved.invoice.customerEmail, person.email, "draft keeps the customer");
+    assert.equal(saved.invoice.contactId, person.id);
+    const issued = await request("/api/admin/invoicing", {
+      operation: "issue",
+      id: saved.invoice.id,
+      revision: saved.invoice.revision,
     });
-    draftActionId = proposal.action.id as string;
-    assert.equal(proposal.action.payload.contactId, person.id);
-    assert.equal(proposal.action.payload.customerId, customer.id);
-    const approved = await request(
-      "/api/admin/revenue-os/actions",
-      { id: draftActionId, decision: "approve" },
-      "PATCH",
-    );
-    assert.equal(approved.result.testMode, true);
-    assert.equal(approved.result.status, "draft");
-    assert.equal(approved.result.hostedInvoiceUrl, null);
-    assert.equal(approved.result.customerEmail, person.email, "draft receipt keeps the customer");
-    const createdInvoice = state.invoices.find((item) => item.actionId === draftActionId);
-    assert.ok(createdInvoice, "invoice document belongs to the approved creation action");
-    assert.equal(
-      createdInvoice.document.customerEmail,
-      person.email,
-      "invoice document keeps the customer",
-    );
-    assert.equal(createdInvoice.document.customerName, person.name);
-    await request(
-      "/api/admin/revenue-os/actions",
-      { id: draftActionId, decision: "approve" },
-      "PATCH",
-      422,
-    );
-    const send = await request("/api/admin/invoicing", { creationActionId: draftActionId });
-    assert.ok(send.action.id !== draftActionId, "sending is a separate approval");
-    const sendActionId = send.action.id as string;
-    assert.equal(send.action.payload.creationActionId, draftActionId);
-    const sendReplay = await request("/api/admin/invoicing", { creationActionId: draftActionId });
-    assert.equal(sendReplay.action.id, sendActionId, "repeated send request reuses the approval");
-    const sent = await request(
-      "/api/admin/revenue-os/actions",
-      { id: sendActionId, decision: "approve" },
-      "PATCH",
-    );
-    assert.equal(sent.result.status, "open");
-    assert.equal(sent.result.delivery, "not_sent_test_mode");
-    assert.equal(sent.result.testMode, true);
-    assert.equal(sent.result.invoiceId, approved.result.invoiceId);
-    assert.equal(sent.result.customerEmail, person.email, "send receipt keeps the customer");
-    const receipt = await request(`/api/admin/invoicing?actionId=${draftActionId}`);
-    assert.equal(receipt.status, "open");
-    assert.equal(receipt.invoiceId, approved.result.invoiceId);
-    assert.equal(receipt.customerEmail, person.email, "reread receipt keeps the customer");
+    assert.equal(issued.invoice.status, "open");
+    assert.equal(issued.invoice.testMode, true);
+    const replay = await request("/api/admin/invoicing", {
+      operation: "issue",
+      id: saved.invoice.id,
+      revision: saved.invoice.revision,
+    });
+    assert.equal(replay.invoice.number, issued.invoice.number, "re-issuing keeps one number");
+    const listing = await request("/api/admin/invoicing");
+    const reread = listing.invoices.find((item: { id: string }) => item.id === saved.invoice.id);
+    assert.equal(reread.status, "open");
+    assert.equal(reread.customerEmail, person.email, "reread invoice keeps the customer");
+    draftActionId = saved.invoice.id as string;
     customerJourneys.push({
       scenario: pack.id,
       opportunityId: won.id,
       contactId: person.id,
       onboardingTaskIds: createdTaskIds,
       invoiceActionId: draftActionId,
-      invoiceId: receipt.invoiceId,
+      invoiceId: issued.invoice.number,
     });
   });
 
@@ -621,8 +542,8 @@ async function journeyForPack(pack: DemoScenarioPack, invoiceContactId?: string)
   const serialized = JSON.stringify(state);
   assert.ok(!serialized.includes("pay.stripe.com") && !serialized.includes("invoice.stripe.com"));
   assert.ok(state.receipts.length > 0 && state.receipts.every((receipt) => receipt.simulated));
-  assert.ok(state.invoices.every((invoice) => invoice.document.customerEmail.endsWith(".example")));
-  assert.ok(state.invoices.every((invoice) => invoice.document.paymentUrl === null));
+  assert.ok(state.invoices.every((invoice) => invoice.customerEmail.endsWith(".example")));
+  assert.ok(state.invoices.every((invoice) => invoice.shareUrl === null));
 }
 
 async function main() {

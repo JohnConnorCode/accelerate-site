@@ -1,0 +1,30 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "invoicing",
+  "name": "Invoicing",
+  "description": "Create invoices owned by this workspace, share a branded payment page, and collect payment by bank transfer or card over Stripe's payment rails.",
+  "category": "revenue",
+  "defaultEnabled": false,
+  "navLinks": [
+    {
+      "id": "invoicing",
+      "label": "Invoices",
+      "href": "/admin/invoicing",
+      "icon": "FileText",
+      "description": "Create invoices, share payment links, and track what has been paid",
+      "keywords": "invoicing billing bills payments new invoice create invoice",
+      "moreGroup": "Revenue"
+    },
+    {
+      "id": "stripe-subscriptions",
+      "label": "Subscriptions",
+      "href": "/admin/subscriptions",
+      "icon": "Wallet",
+      "description": "Recurring plans and customer subscriptions",
+      "moreGroup": "Revenue"
+    }
+  ],
+  "routes": ["/admin/invoicing", "/admin/subscriptions"],
+  "aiToolNames": [],
+  "docsUrl": "/docs/plugins/invoicing"
+}

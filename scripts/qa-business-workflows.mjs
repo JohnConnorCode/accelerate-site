@@ -119,7 +119,7 @@ try {
       status: "open",
       dueLabel: "September 18, 2026",
     };
-    const enabled = new Set(["stripe-invoicing", "client-onboarding", "meeting-commitments"]);
+    const enabled = new Set(["invoicing", "client-onboarding", "meeting-commitments"]);
     await page.route("**/api/admin/**", async (route) => {
       const req = route.request(),
         url = new URL(req.url()),
@@ -176,16 +176,16 @@ try {
             title: "Reviewed customer workflow",
             summary: "Review the exact business work before approval.",
             actionType:
-              body.pluginId === "stripe-invoicing"
+              body.pluginId === "invoicing"
                 ? "create_stripe_invoice_draft"
                 : "create_task_batch",
             payload:
-              body.pluginId === "stripe-invoicing" ? { ...body.input, total: 50000 } : body.input,
+              body.pluginId === "invoicing" ? { ...body.input, total: 50000 } : body.input,
             digest: "f".repeat(64),
           });
         }
         assert.deepEqual(body.input, previewInput);
-        if (body.pluginId === "stripe-invoicing")
+        if (body.pluginId === "invoicing")
           actions.push({
             id: "draft",
             action_type: "create_stripe_invoice_draft",

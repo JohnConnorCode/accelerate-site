@@ -164,7 +164,7 @@ export default function AdminShell({
     !isModuleHistoryPath(owningModule, effectivePathname) &&
     !SELF_LOCKOUT_EXEMPT_MODULES.has(owningModule.id) &&
     !isModuleEnabled(owningModule.id, effectiveModuleConfig);
-  const invoicingEnabled = isModuleEnabled("stripe-invoicing", effectiveModuleConfig ?? tenant);
+  const invoicingEnabled = isModuleEnabled("invoicing", effectiveModuleConfig ?? tenant);
   const visibleNavSections = useMemo(() => {
     const roleFiltered = adminNavSections
       .map((section) => ({

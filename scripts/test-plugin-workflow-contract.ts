@@ -26,7 +26,6 @@ import {
   assertWorkflowEvidenceSource,
   workflowRequestKey,
   workflowTaskEffectKey,
-  stripeWorkflowEffectKey,
 } from "../src/lib/revenue-os/plugin-workflow-policy";
 import { createHash } from "node:crypto";
 const taskPolicy = pluginWorkflowDeclaration("task-batch-opportunity-v1").policy;
@@ -89,7 +88,6 @@ assert.equal(
     .update(JSON.stringify({ pluginId: "client-onboarding", source: id, ...task }))
     .digest("hex")}`,
 );
-assert.equal(stripeWorkflowEffectKey(id, id), `accelerate:${id}:${id}`);
 assert.deepEqual(
   parsePluginWorkflowInput("task-batch-opportunity-v1", input),
   workflowTaskBatchSchema.parse(input),

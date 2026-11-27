@@ -5,19 +5,19 @@ import { reversibilityOf } from "./action-reversibility-contract";
 
 const registrationSchema = z
   .object({
-    action: z.enum(["create_task_batch", "create_stripe_invoice_draft"]),
+    action: z.enum(["create_task_batch"]),
     trustCeiling: z.enum(["always-propose", "autonomous"]),
     evidence: z
       .object({
         kind: z.literal("canonical-record"),
-        inputKey: z.enum(["opportunityId", "meetingId", "contactId"]),
-        sourceType: z.enum(["workflow_opportunities", "workflow_meetings", "workflow_contacts"]),
+        inputKey: z.enum(["opportunityId", "meetingId"]),
+        sourceType: z.enum(["workflow_opportunities", "workflow_meetings"]),
       })
       .strict(),
     idempotency: z
       .object({
         request: z.literal("workflow-request-v1"),
-        effect: z.enum(["task-content-sha256-v1", "stripe-action-v1"]),
+        effect: z.enum(["task-content-sha256-v1"]),
       })
       .strict(),
   })
@@ -26,9 +26,7 @@ export type WorkflowPolicyRegistration = z.infer<typeof registrationSchema>;
 export function compileWorkflowPolicy(raw: unknown) {
   const registration = registrationSchema.parse(raw);
   const expected =
-    registration.action === "create_stripe_invoice_draft"
-      ? { inputKey: "contactId", sourceType: "workflow_contacts", effect: "stripe-action-v1" }
-      : registration.evidence.inputKey === "opportunityId"
+    registration.evidence.inputKey === "opportunityId"
         ? {
             inputKey: "opportunityId",
             sourceType: "workflow_opportunities",
@@ -95,7 +93,4 @@ export function workflowTaskEffectKey(
   return `plugin:${createHash("sha256")
     .update(JSON.stringify({ pluginId, source, ...item }))
     .digest("hex")}`;
-}
-export function stripeWorkflowEffectKey(tenantId: string, actionId: string) {
-  return `accelerate:${tenantId}:${actionId}`;
 }

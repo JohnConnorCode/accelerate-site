@@ -196,15 +196,12 @@ import { retrieveKnowledge } from "./knowledge";
 import {
   previewBillingCommand,
   proposeBillingCommand,
-  readBillingInvoices,
   readBillingPayments,
   readBillingActionReceipt,
 } from "./billing-workspace";
 import { BILLING_OPERATION_BINDINGS } from "./billing-command-contract";
-import { proposeStripeInvoiceSend } from "./stripe-invoicing";
 import { readTicketWorkspace, proposeTicketAdminCommand } from "./event-ticketing";
 import { eventPath, ticketAdminCommandSchema } from "./event-ticketing-contract";
-import { previewInvoicePage, proposeInvoicePage } from "./invoice-pages";
 import {
   COLLECTION_AGENT_TOOLS,
   COLLECTION_AGENT_TOOL_NAMES,
@@ -659,38 +656,6 @@ const PLUGIN_TOOL_EXECUTORS = {
       input.input,
       value(input, "digest")!,
       value(input, "requestId")!,
-      actorEmail,
-    ),
-  "get-billing-action": ({ supabase }, raw) =>
-    readBillingActionReceipt(supabase, value(raw, "actionId")!),
-  "get-billing-records": ({ supabase }, raw) =>
-    raw.kind === "payments"
-      ? readBillingPayments(supabase, {
-          cursor: value(raw, "cursor"),
-          connection: value(raw, "connection"),
-          limit: 5,
-        })
-      : readBillingInvoices(supabase, {
-          cursor: value(raw, "cursor"),
-          connection: value(raw, "connection"),
-          limit: 5,
-        }),
-  "preview-billing-change": ({ supabase }, raw) => previewBillingCommand(supabase, raw.command),
-  "propose-billing-change": ({ supabase, actorEmail }, raw) =>
-    proposeBillingCommand(supabase, raw.command, value(raw, "digest")!, actorEmail),
-  "propose-invoice-send": ({ supabase, actorEmail }, input) =>
-    proposeStripeInvoiceSend(supabase, value(input, "creationActionId")!, actorEmail),
-  "preview-invoice-page": ({ supabase }, input) =>
-    previewInvoicePage(supabase, value(input, "creationActionId")!, input.design),
-  "propose-invoice-page": ({ supabase, actorEmail }, input) =>
-    proposeInvoicePage(
-      supabase,
-      {
-        creationActionId: value(input, "creationActionId")!,
-        design: input.design,
-        digest: value(input, "digest")!,
-        requestId: value(input, "requestId")!,
-      },
       actorEmail,
     ),
 } satisfies Record<
