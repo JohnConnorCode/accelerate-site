@@ -25,7 +25,11 @@ export async function POST(request: Request) {
   let raw: unknown;
   try {
     raw = await readBoundedJson(request, 64000);
-  } catch {
+  } catch (error) {
+    console.warn(
+      "[invoicing] Unreadable invoice request",
+      error instanceof Error ? error.name : "unknown",
+    );
     return NextResponse.json({ error: "Invalid invoice request" }, { status: 400 });
   }
   try {

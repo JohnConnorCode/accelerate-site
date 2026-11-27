@@ -25,6 +25,15 @@
     }
   ],
   "routes": ["/admin/invoicing", "/admin/subscriptions"],
-  "aiToolNames": [],
+  "aiToolNames": [
+    "get_invoices",
+    "save_invoice_draft",
+    "issue_invoice",
+    "check_invoice_payment",
+    "get_billing_records",
+    "get_billing_action",
+    "preview_billing_change",
+    "propose_billing_change"
+  ],
   "docsUrl": "/docs/plugins/invoicing"
 }

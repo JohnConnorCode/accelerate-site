@@ -154,4 +154,32 @@ export const BILLING_OPERATION_BINDINGS = {
     entrypoints: [{ path: "/api/admin/invoicing/commands", method: "POST", variant: "propose" }],
     verification: ["scripts/test-billing-workspace.ts"],
   },
+  get_invoices: {
+    id: "invoices.read",
+    version: 1,
+    scope: "workspace",
+    entrypoints: [{ path: "/api/admin/invoicing", method: "GET" }],
+    verification: ["scripts/test-invoicing.ts", "scripts/test-invoicing-postgres.mjs"],
+  },
+  save_invoice_draft: {
+    id: "invoices.draft.save",
+    version: 1,
+    scope: "workspace",
+    entrypoints: [{ path: "/api/admin/invoicing", method: "POST", variant: "save_draft" }],
+    verification: ["scripts/test-invoicing.ts", "scripts/test-invoicing-postgres.mjs"],
+  },
+  issue_invoice: {
+    id: "invoices.issue",
+    version: 1,
+    scope: "workspace",
+    entrypoints: [{ path: "/api/admin/invoicing", method: "POST", variant: "issue" }],
+    verification: ["scripts/test-invoicing.ts", "scripts/test-invoicing-postgres.mjs"],
+  },
+  check_invoice_payment: {
+    id: "invoices.payment.refresh",
+    version: 1,
+    scope: "workspace",
+    entrypoints: [{ path: "/api/admin/invoicing", method: "POST", variant: "refresh_payment" }],
+    verification: ["scripts/test-invoicing.ts"],
+  },
 } as const;

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /** Invoice draft shape, ported from SuperDebate's invoicing (client invoices
- * only). Accelerate adds the payment methods the customer may use. */
+ * only). The workspace adds the payment methods the customer may use. */
 export const INVOICE_PAYMENT_METHODS = ["us_bank_account", "card"] as const;
 export type InvoicePaymentMethod = (typeof INVOICE_PAYMENT_METHODS)[number];
 export const invoicePaymentMethodLabels: Record<InvoicePaymentMethod, string> = {

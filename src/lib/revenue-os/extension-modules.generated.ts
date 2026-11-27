@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "518a26779496c6237c2f53310b2f52b24ad60106b9748e65cd7f3d1a6f3fe734",
+      contractHash: "2104369b25e970c5a09ddde292ce922426306885192cfd2797c449e6a782df45",
       tools: [
         {
           operation: "prepare-workflow",
@@ -388,7 +388,16 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     isCore: false,
     defaultEnabled: false,
     navLinkIds: ["invoicing", "stripe-subscriptions"],
-    aiToolNames: [],
+    aiToolNames: [
+      "get_invoices",
+      "save_invoice_draft",
+      "issue_invoice",
+      "check_invoice_payment",
+      "get_billing_records",
+      "get_billing_action",
+      "preview_billing_change",
+      "propose_billing_change",
+    ],
     routes: ["/admin/invoicing", "/admin/subscriptions"],
     setupChecks: [],
     docsUrl: "/docs/plugins/invoicing",
@@ -478,7 +487,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "6661ae0121196f85e0fcce00cb09b47456a17773e902a45fb152dc768640fd1e",
+      contractHash: "3d4947f92c360ded50b5612f2e02065bc7cea43146f850a1fba96338d64f9be0",
       tools: [
         {
           operation: "prepare-workflow",

@@ -199,7 +199,14 @@ import {
   readBillingPayments,
   readBillingActionReceipt,
 } from "./billing-workspace";
-import { BILLING_OPERATION_BINDINGS } from "./billing-command-contract";
+import {
+  BILLING_OPERATION_BINDINGS,
+  billingReadInputSchema,
+  billingPreviewInputSchema,
+  billingProposalInputSchema,
+} from "./billing-command-contract";
+import { listInvoices, runInvoiceCommand, proposeInvoiceCommand } from "./invoices";
+import { invoiceDraftSchema } from "@/lib/invoices/schema";
 import { readTicketWorkspace, proposeTicketAdminCommand } from "./event-ticketing";
 import { eventPath, ticketAdminCommandSchema } from "./event-ticketing-contract";
 import {
@@ -666,6 +673,27 @@ const PLUGIN_TOOL_EXECUTORS = {
   ) => Promise<unknown>
 >;
 
+const invoiceReadSchema = z
+  .object({
+    status: z.enum(["draft", "open", "processing", "paid", "paid_external", "void"]).optional(),
+    query: z.string().trim().max(120).optional(),
+    contactId: z.uuid().optional(),
+    offset: z.number().int().min(0).max(190).default(0),
+  })
+  .strict();
+const invoiceDraftToolSchema = z
+  .object({
+    id: z.uuid().nullable(),
+    revision: z.number().int().positive().nullable(),
+    draft: invoiceDraftSchema,
+  })
+  .strict();
+const invoiceIssueSchema = z
+  .object({ id: z.uuid(), revision: z.number().int().positive() })
+  .strict();
+const invoiceRefreshSchema = z.object({ id: z.uuid() }).strict();
+const billingActionReadSchema = z.object({ actionId: z.uuid() }).strict();
+
 const adminCoverageInputSchema = z
   .object({
     query: z.string().trim().max(160).optional(),
@@ -803,6 +831,158 @@ const registry: AiToolRegistration[] = [
       ],
     },
     execute: async ({ supabase }, raw) => simulateArchitectBlueprint(supabase, raw),
+  },
+  {
+    name: "get_invoices",
+    description:
+      "Read this workspace's invoices: number, status (draft, open, processing, paid, paid_external, void), customer, amounts in USD cents, due date, revision and the customer payment link for issued invoices. Also returns contacts that can be billed and whether Stripe can take payments. Payment is collected on the workspace's own pay page over Stripe's payment rails; Stripe's invoice product is never used.",
+    inputSchema: z.toJSONSchema(invoiceReadSchema, { io: "input" }),
+    parseInput: (input) => invoiceReadSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.invoices",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: BILLING_OPERATION_BINDINGS.get_invoices,
+    execute: async ({ supabase }, raw) => {
+      const input = invoiceReadSchema.parse(raw);
+      const workspace = await listInvoices(supabase, { contactId: input.contactId });
+      const query = input.query?.toLowerCase();
+      const matches = workspace.invoices.filter(
+        (invoice) =>
+          (!input.status || invoice.status === input.status) &&
+          (!query ||
+            [invoice.invoice_number, invoice.company_name, invoice.contact_name, invoice.contact_email]
+              .filter(Boolean)
+              .some((field) => String(field).toLowerCase().includes(query))),
+      );
+      return {
+        invoices: matches.slice(input.offset, input.offset + 10),
+        nextOffset: input.offset + 10 < matches.length ? input.offset + 10 : null,
+        contacts: workspace.contacts.slice(0, 50),
+        stripe: workspace.stripe,
+        adminPath: "/admin/invoicing",
+      };
+    },
+  },
+  {
+    name: "save_invoice_draft",
+    description:
+      "Propose creating or updating an invoice draft for administrator approval. Pass id and revision from get_invoices to update an existing draft, or null for both to create one. Line amounts use USD cents. Saving a draft contacts no one and moves no money; issue_invoice creates the payment link.",
+    inputSchema: z.toJSONSchema(invoiceDraftToolSchema, { io: "input" }),
+    parseInput: (input) => invoiceDraftToolSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.invoices",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    operation: BILLING_OPERATION_BINDINGS.save_invoice_draft,
+    execute: ({ supabase, actorEmail }, raw) =>
+      proposeInvoiceCommand(
+        supabase,
+        { operation: "save_draft", ...invoiceDraftToolSchema.parse(raw) },
+        actorEmail,
+      ),
+  },
+  {
+    name: "issue_invoice",
+    description:
+      "Propose issuing a saved draft for administrator approval. Once approved it assigns the invoice number and opens its private payment link on the workspace's pay page (bank transfer and/or card over Stripe's payment rails, no Stripe invoice fee). Sends no email; return the link so the administrator can share it. Pass the draft's id and current revision. Confirm the amount and customer with the administrator first.",
+    inputSchema: z.toJSONSchema(invoiceIssueSchema, { io: "input" }),
+    parseInput: (input) => invoiceIssueSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.invoices",
+    connectionRequirement: "none",
+    impact: "external_action",
+    confirmationRequired: true,
+    operation: BILLING_OPERATION_BINDINGS.issue_invoice,
+    execute: ({ supabase, actorEmail }, raw) =>
+      proposeInvoiceCommand(
+        supabase,
+        { operation: "issue", ...invoiceIssueSchema.parse(raw) },
+        actorEmail,
+      ),
+  },
+  {
+    name: "check_invoice_payment",
+    description:
+      "Re-read an issued invoice's payment from Stripe and update its status (processing for a bank transfer in flight, paid once it settles). Never charges or changes the payment.",
+    inputSchema: z.toJSONSchema(invoiceRefreshSchema, { io: "input" }),
+    parseInput: (input) => invoiceRefreshSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.invoices",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: BILLING_OPERATION_BINDINGS.check_invoice_payment,
+    execute: ({ supabase, actorEmail }, raw) =>
+      runInvoiceCommand(
+        supabase,
+        { operation: "refresh_payment", ...invoiceRefreshSchema.parse(raw) },
+        actorEmail,
+      ),
+  },
+  {
+    name: "get_billing_records",
+    description:
+      "Read five current Stripe payments with source amounts, account mode and a next-page cursor. Includes account records outside this workspace. Never sum currencies or describe one page as an account total.",
+    inputSchema: z.toJSONSchema(billingReadInputSchema),
+    parseInput: (input) => billingReadInputSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.billing-workspace",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: BILLING_OPERATION_BINDINGS.get_billing_records,
+    execute: ({ supabase }, raw) =>
+      readBillingPayments(supabase, {
+        cursor: value(raw, "cursor"),
+        connection: value(raw, "connection"),
+        limit: 5,
+      }),
+  },
+  {
+    name: "get_billing_action",
+    description:
+      "Check the current provider result of one existing workspace billing action (refund or billing-customer setup) without changing or retrying it.",
+    inputSchema: z.toJSONSchema(billingActionReadSchema),
+    parseInput: (input) => billingActionReadSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.billing-workspace",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: BILLING_OPERATION_BINDINGS.get_billing_action,
+    execute: ({ supabase }, raw) => readBillingActionReceipt(supabase, value(raw, "actionId")!),
+  },
+  {
+    name: "preview_billing_change",
+    description:
+      "Preview creating a Stripe billing customer for a contact or refunding an exact payment, without provider effects. Refund amounts use minor units. Returns consequences and the review digest.",
+    inputSchema: z.toJSONSchema(billingPreviewInputSchema),
+    parseInput: (input) => billingPreviewInputSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.billing-workspace",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    operation: BILLING_OPERATION_BINDINGS.preview_billing_change,
+    execute: ({ supabase }, raw) => previewBillingCommand(supabase, raw.command),
+  },
+  {
+    name: "propose_billing_change",
+    description:
+      "Stage the exact previewed billing command and digest for human approval. Cannot approve or refund by itself. Reuse requestId for one logical request.",
+    inputSchema: z.toJSONSchema(billingProposalInputSchema),
+    parseInput: (input) => billingProposalInputSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.billing-workspace",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    operation: BILLING_OPERATION_BINDINGS.propose_billing_change,
+    execute: ({ supabase, actorEmail }, raw) =>
+      proposeBillingCommand(supabase, raw.command, value(raw, "digest")!, actorEmail),
   },
   {
     name: "get_ticket_events",
@@ -4145,6 +4325,14 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_invoices",
+    "save_invoice_draft",
+    "issue_invoice",
+    "check_invoice_payment",
+    "get_billing_records",
+    "get_billing_action",
+    "preview_billing_change",
+    "propose_billing_change",
     "get_ai_cost_controls",
     "get_architect_blueprints",
     "preview_architect_patch",

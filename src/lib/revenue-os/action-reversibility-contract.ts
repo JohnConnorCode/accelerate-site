@@ -25,6 +25,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "Refunds and invoice cancellation cannot be undone. Billing profiles and provider receipts are retained. Exact human approval is always required.",
   },
   {
+    actionType: "invoice_change",
+    impact: "external_action",
+    reversibility: "compensable",
+    rationale:
+      "An issued invoice can be voided and a draft edited or deleted through a fresh approved change. Issuing opens a customer payment link; invoice numbers, payments and audit history remain. Exact human approval is always required.",
+  },
+  {
     actionType: "event_ticketing_change",
     impact: "external_action",
     reversibility: "compensable",

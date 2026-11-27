@@ -196,6 +196,12 @@ async function executeApprovedAction(
         result = await executeBillingCommand(supabase, id, actorEmail);
         break;
       }
+      case "invoice_change": {
+        if (mode !== "approved") throw new Error("Invoice changes require exact human approval");
+        const { executeApprovedInvoiceCommand } = await import("./invoices");
+        result = await executeApprovedInvoiceCommand(supabase, payload, actorEmail);
+        break;
+      }
       case "event_ticketing_change": {
         if (mode !== "approved")
           throw new Error("Event publication and confirmation changes require human approval");

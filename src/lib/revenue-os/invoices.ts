@@ -7,6 +7,8 @@ import { encryptTenantSecret, decryptTenantSecret } from "./encryption";
 import { isModuleEnabled } from "./modules";
 import { readWorkspaceBrand } from "./branding";
 import { recordAudit } from "./audit";
+import { proposeAction } from "./actions";
+import { assertCurrentTenantAdmin } from "./tenant-admin-authority";
 import { tenantStripeClient } from "./stripe-adapter";
 import {
   INVOICE_PAYMENT_METHODS,
@@ -193,7 +195,13 @@ export async function listInvoices(db: SupabaseClient, options: { contactId?: st
  * 0.8% capped at $5; card follows the account's card rate. Nothing else. */
 async function createIntent(db: SupabaseClient, row: Row) {
   const client = await tenantStripeClient(db);
-  const brand = await readWorkspaceBrand(db).catch(() => null);
+  const brand = await readWorkspaceBrand(db).catch((error: unknown) => {
+    console.warn(
+      "[invoicing] Brand unavailable for payment description",
+      error instanceof Error ? error.message : "unknown",
+    );
+    return null;
+  });
   const body = new URLSearchParams({
     amount: String(row.amount_cents),
     currency: "usd",
@@ -473,7 +481,11 @@ export async function invoicePdf(db: SupabaseClient, token: string) {
     try {
       const response = await fetch(brand.mark, { signal: AbortSignal.timeout(4000) });
       if (response.ok) logo = new Uint8Array(await response.arrayBuffer());
-    } catch {
+    } catch (error) {
+      console.warn(
+        "[invoicing] Invoice logo unavailable; rendering without it",
+        error instanceof Error ? error.name : "unknown",
+      );
       logo = null;
     }
   }
@@ -482,4 +494,62 @@ export async function invoicePdf(db: SupabaseClient, token: string) {
     bytes,
     filename: `invoice-${(invoice.invoice_number || "draft").replace(/[^A-Za-z0-9_-]/g, "")}.pdf`,
   };
+}
+
+/** Assistant-initiated invoice changes are staged for exact human approval.
+ * Payment refresh is a read and runs directly; every other command waits. */
+const approvableInvoiceCommand = invoiceCommandSchema.refine(
+  (command) => command.operation !== "refresh_payment",
+  "Payment refresh does not need approval",
+);
+
+function invoiceProposalTitle(command: z.output<typeof invoiceCommandSchema>) {
+  switch (command.operation) {
+    case "save_draft":
+      return command.id
+        ? `Update invoice draft for ${command.draft.company_name || "customer"}`
+        : `Create invoice draft for ${command.draft.company_name || "customer"}`;
+    case "issue":
+      return "Issue invoice and open its payment link";
+    case "void":
+      return "Void invoice";
+    case "delete_draft":
+      return "Delete invoice draft";
+    case "record_external_payment":
+      return "Mark invoice as paid outside Stripe";
+    default:
+      return "Invoice change";
+  }
+}
+
+export async function proposeInvoiceCommand(db: SupabaseClient, raw: unknown, actorEmail: string) {
+  const command = approvableInvoiceCommand.parse(raw);
+  await assertCurrentTenantAdmin(db, actorEmail);
+  await requireInvoicing(db);
+  const digest = createHash("sha256").update(JSON.stringify(command)).digest("hex").slice(0, 32);
+  const action = await proposeAction(db, {
+    actionType: "invoice_change",
+    title: invoiceProposalTitle(command),
+    description:
+      command.operation === "issue"
+        ? "Assign the invoice number and open its private payment link. No email is sent and no money moves until the customer pays."
+        : "Apply this exact invoice change after checking the invoice's current revision.",
+    payload: command,
+    sourceContext: "The assistant prepared this invoice change for administrator approval.",
+    proposedBy: actorEmail,
+    explicit: true,
+    expiresAt: new Date(Date.now() + 24 * 3600000).toISOString(),
+    dedupeKey: `invoice:${digest}`,
+  });
+  if (!action) throw new Error("The invoice change could not be staged for approval");
+  return action;
+}
+
+export async function executeApprovedInvoiceCommand(
+  db: SupabaseClient,
+  payload: unknown,
+  actorEmail: string,
+) {
+  const command = approvableInvoiceCommand.parse(payload);
+  return runInvoiceCommand(db, command, actorEmail);
 }
