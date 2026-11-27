@@ -63,6 +63,7 @@ export const TENANT_SCOPED_TABLES = [
 
   "invoices",
   "invoice_payment_receipts",
+  "invoice_number_counters",
   "debate_productions",
   "debate_milestones",
   "work_items",

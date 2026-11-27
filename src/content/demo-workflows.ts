@@ -105,8 +105,7 @@ export const demoWorkflows: DemoWorkflow[] = [
       },
       {
         title: "Save the draft",
-        instruction:
-          "Choose Save draft and check the recipient preview beside the form.",
+        instruction: "Choose Save draft and check the recipient preview beside the form.",
         route: "invoicing",
       },
       {

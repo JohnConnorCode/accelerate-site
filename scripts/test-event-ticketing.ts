@@ -113,7 +113,7 @@ async function serviceProof() {
       {
         id: ACCELERATE_TENANT_ID,
         status: "active",
-        config: { modules: { "event-ticketing": true, "invoicing": true } },
+        config: { modules: { "event-ticketing": true, invoicing: true } },
       },
     ],
     ticket_event_availability: [event],
@@ -556,7 +556,7 @@ async function adminProof() {
   const f = createAdminConfigurationFixture();
   const hostFetch = globalThis.fetch;
   f.mem.rows("tenants")[0]!.config = {
-    modules: { "event-ticketing": true, "invoicing": true },
+    modules: { "event-ticketing": true, invoicing: true },
   };
   let writes = 0,
     revision = 0;

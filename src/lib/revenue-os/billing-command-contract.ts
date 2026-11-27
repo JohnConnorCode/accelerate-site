@@ -158,7 +158,21 @@ export const BILLING_OPERATION_BINDINGS = {
     id: "invoices.read",
     version: 1,
     scope: "workspace",
-    entrypoints: [{ path: "/api/admin/invoicing", method: "GET" }],
+    entrypoints: [
+      { path: "/api/admin/invoicing", method: "GET" },
+      {
+        path: "/api/public/[tenantSlug]/invoices/[token]",
+        method: "GET",
+        variant: "Customer opens their private invoice payment page with its link token",
+        audience: "secure-human-handoff",
+      },
+      {
+        path: "/api/public/[tenantSlug]/invoices/[token]/pdf",
+        method: "GET",
+        variant: "Customer downloads their invoice PDF with its link token",
+        audience: "secure-human-handoff",
+      },
+    ],
     verification: ["scripts/test-invoicing.ts", "scripts/test-invoicing-postgres.mjs"],
   },
   save_invoice_draft: {

@@ -6,13 +6,26 @@ import { encryptSecret, encryptTenantSecret } from "../../src/lib/revenue-os/enc
 
 /** Controlled invoice records and email transport shared by Collections tests.
  * Collections read the workspace's own invoices table; Stripe is never called. */
-export function createCollectionsFixture({ allowSends = false }: { allowSends?: boolean } = {}) {
+export function createCollectionsFixture({
+  allowSends = false,
+  reference,
+}: {
+  allowSends?: boolean;
+  /** Correlates the fixture with an invoice issued by another journey step. */
+  reference?: {
+    tenantId: string;
+    contactId: string;
+    invoiceId: string;
+    number: string;
+    amountCents: number;
+  };
+} = {}) {
   const oldKey = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY;
   process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = "controlled-collections-reminder-fixture";
-  const tenant = randomUUID(),
-    contact = randomUUID(),
+  const tenant = reference?.tenantId ?? randomUUID(),
+    contact = reference?.contactId ?? randomUUID(),
     caseId = randomUUID(),
-    invoiceId = randomUUID(),
+    invoiceId = reference?.invoiceId ?? randomUUID(),
     observation = randomUUID(),
     workItemId = randomUUID();
   const config = { modules: { "receivables-collections": true, invoicing: true } };
@@ -111,8 +124,9 @@ export function createCollectionsFixture({ allowSends = false }: { allowSends?: 
   }
   const db = bindTenantDatabase(mem.client, tenant, true);
   const original = globalThis.fetch;
+  const amount = reference?.amountCents ?? 10000;
   const state = {
-    balance: 7500,
+    balance: reference?.amountCents ?? 7500,
     timeout: false,
     sends: 0,
     reads: 0,
@@ -122,18 +136,18 @@ export function createCollectionsFixture({ allowSends = false }: { allowSends?: 
   const invoiceRow: Record<string, unknown> = {
     id: invoiceId,
     tenant_id: tenant,
-    number: "INV-0007",
+    number: reference?.number ?? "INV-0007",
     contact_id: contact,
     livemode: false,
     currency: "usd",
-    amount_cents: 10000,
+    amount_cents: amount,
     due_at: "2025-01-01T00:00:00.000Z",
     encrypted_link_token: encryptedLink,
   };
   // Balance and status follow the controlled payment state.
   Object.defineProperty(invoiceRow, "amount_paid_cents", {
     enumerable: true,
-    get: () => 10000 - state.balance,
+    get: () => amount - state.balance,
   });
   Object.defineProperty(invoiceRow, "status", {
     enumerable: true,
@@ -148,7 +162,7 @@ export function createCollectionsFixture({ allowSends = false }: { allowSends?: 
     },
   });
   process.env.NEXT_PUBLIC_SITE_URL ||= "https://accelerate.example.test";
-  globalThis.fetch = async (input, init) => {
+  globalThis.fetch = async (input) => {
     const url = new URL(String(input));
     assert.notEqual(url.hostname, "api.stripe.com", "Collections never call Stripe");
     assert.equal(url.hostname, "api.resend.com", "Unexpected provider request");

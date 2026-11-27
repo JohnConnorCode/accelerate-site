@@ -36,7 +36,7 @@ async function main() {
     actorEmail: email,
     tenantConfig: {
       ...defaultTenant,
-      modules: { "receivables-collections": true, "invoicing": true },
+      modules: { "receivables-collections": true, invoicing: true },
     },
   };
   const oldUrl = process.env.NEXT_PUBLIC_SUPABASE_URL,

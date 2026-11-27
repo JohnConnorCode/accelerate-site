@@ -16,7 +16,7 @@ export function createAdminConfigurationFixture() {
         id: tenantId,
         name: "Original Studio",
         status: "active",
-        config: { modules: { "invoicing": true }, unrelated: "retain" },
+        config: { modules: { invoicing: true }, unrelated: "retain" },
       },
       { id: other, name: "Other Studio", status: "active", config: {} },
     ],

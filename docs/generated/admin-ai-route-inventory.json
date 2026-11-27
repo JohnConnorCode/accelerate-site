@@ -7,13 +7,13 @@
     "Server-action and client-write candidates are static discovery only; indirect client writes and third-party plugin entrypoints still require semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 142,
-  "mutationHandlerCount": 124,
+  "routeCount": 140,
+  "mutationHandlerCount": 123,
   "semantic": {
     "complete": false,
     "unreviewedSourceBindings": [],
     "meaning": "Reviewed command-to-transport bindings with executable verification references. No coverage percentage or universal runtime acceptance is asserted.",
-    "registeredTools": 147,
+    "registeredTools": 146,
     "unreviewedToolBindings": [
       "activate_tool_bundle",
       "bootstrap_business_pulse_coworker",
@@ -67,13 +67,11 @@
       "prepare_radar_outreach",
       "prepare_site_change",
       "prepare_social_week",
-      "prepare_stripe_invoicing",
       "preview_agent_work",
       "preview_collection_policy",
       "preview_collection_reminder",
       "preview_content_calendar_update",
       "preview_internal_permission",
-      "preview_invoice_page",
       "preview_module_configuration",
       "preview_radar_assessment",
       "preview_radar_outreach",
@@ -101,7 +99,6 @@
       "propose_founder_note",
       "propose_gmail_draft",
       "propose_internal_permission",
-      "propose_invoice_page",
       "propose_knowledge_change",
       "propose_layout_change",
       "propose_learning",
@@ -115,8 +112,6 @@
       "propose_send_email",
       "propose_social_change",
       "propose_stage_change",
-      "propose_stripe_invoice_send",
-      "propose_stripe_invoicing",
       "propose_task",
       "propose_task_update",
       "propose_today_view_change",
@@ -281,10 +276,6 @@
           "version": 1,
           "scope": "workspace",
           "entrypoints": [
-            {
-              "path": "/api/admin/invoicing/list",
-              "method": "GET"
-            },
             {
               "path": "/api/admin/invoicing/payments",
               "method": "GET"
@@ -520,6 +511,104 @@
       },
       {
         "definition": {
+          "id": "invoices.draft.save",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing",
+              "method": "POST",
+              "variant": "save_draft"
+            }
+          ],
+          "verification": [
+            "scripts/test-invoicing.ts",
+            "scripts/test-invoicing-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.invoices",
+        "tools": [
+          "save_invoice_draft"
+        ]
+      },
+      {
+        "definition": {
+          "id": "invoices.issue",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing",
+              "method": "POST",
+              "variant": "issue"
+            }
+          ],
+          "verification": [
+            "scripts/test-invoicing.ts",
+            "scripts/test-invoicing-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.invoices",
+        "tools": [
+          "issue_invoice"
+        ]
+      },
+      {
+        "definition": {
+          "id": "invoices.payment.refresh",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing",
+              "method": "POST",
+              "variant": "refresh_payment"
+            }
+          ],
+          "verification": [
+            "scripts/test-invoicing.ts"
+          ]
+        },
+        "serviceTarget": "revenue-os.invoices",
+        "tools": [
+          "check_invoice_payment"
+        ]
+      },
+      {
+        "definition": {
+          "id": "invoices.read",
+          "version": 1,
+          "scope": "workspace",
+          "entrypoints": [
+            {
+              "path": "/api/admin/invoicing",
+              "method": "GET"
+            },
+            {
+              "path": "/api/public/[tenantSlug]/invoices/[token]",
+              "method": "GET",
+              "variant": "Customer opens their private invoice payment page with its link token",
+              "audience": "secure-human-handoff"
+            },
+            {
+              "path": "/api/public/[tenantSlug]/invoices/[token]/pdf",
+              "method": "GET",
+              "variant": "Customer downloads their invoice PDF with its link token",
+              "audience": "secure-human-handoff"
+            }
+          ],
+          "verification": [
+            "scripts/test-invoicing.ts",
+            "scripts/test-invoicing-postgres.mjs"
+          ]
+        },
+        "serviceTarget": "revenue-os.invoices",
+        "tools": [
+          "get_invoices"
+        ]
+      },
+      {
+        "definition": {
           "id": "knowledge.read-source-authority",
           "version": 1,
           "scope": "workspace",
@@ -668,8 +757,6 @@
       "GET /api/admin/google/status",
       "GET /api/admin/inbox",
       "GET /api/admin/integrations",
-      "GET /api/admin/invoicing",
-      "GET /api/admin/invoicing/pages",
       "GET /api/admin/kanban/columns",
       "GET /api/admin/knowledge/documents",
       "GET /api/admin/leads",
@@ -811,8 +898,6 @@
       "POST /api/admin/forms",
       "POST /api/admin/google/status",
       "POST /api/admin/google/sync",
-      "POST /api/admin/invoicing",
-      "POST /api/admin/invoicing/pages",
       "POST /api/admin/kanban/columns",
       "POST /api/admin/knowledge/documents",
       "POST /api/admin/leads",
@@ -1345,6 +1430,36 @@
       "sourceSha256": "f14e3f3516c8406c20c92a9712750d60aa28a6e22e01fe511a56eacd3209ca85"
     },
     {
+      "source": "src/app/api/public/[tenantSlug]/invoices/[token]/pdf/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/invoices",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "dcb5be69e6b166ae582f70f6363bb9d0b8449eff607d6d47a5a4913631afed45"
+    },
+    {
+      "source": "src/app/api/public/[tenantSlug]/invoices/[token]/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/invoices",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/system",
+        "next/server"
+      ],
+      "sourceSha256": "7c80d837eb33aae17ecd21ea55703e882833b1bc9b4a0c19cb1f8aa7c0cc8680"
+    },
+    {
       "source": "src/app/api/public/[tenantSlug]/mcp/oauth/route.ts",
       "handlers": [
         "GET",
@@ -1488,12 +1603,13 @@
       ],
       "imports": [
         "@/lib/revenue-os/event-ticketing",
+        "@/lib/revenue-os/invoices",
         "@/lib/revenue-os/subscriptions",
         "@/lib/supabase/server",
         "@/lib/tenancy/providers",
         "next/server"
       ],
-      "sourceSha256": "99241e4a4cfcfcfaa935e642d77bfe7caecb843c0845e3464037246441a51112"
+      "sourceSha256": "6a4ba1e87a87f305e839681da19e19e99341da738d2e99d128c944d204aa6acf"
     },
     {
       "source": "src/app/api/public/[tenantSlug]/webhooks/whatsapp/route.ts",
@@ -2045,7 +2161,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "11969cd591fe4f421e4a59b2359fc643309db8fb0ee043a54dc418f2ac1d7d66"
+      "sourceSha256": "985719e67d15392caf51fa88d1f1944751b3a8886fbcd70443510d54d67eb4b3"
     },
     {
       "source": "src/app/api/admin/collections/workspace/route.ts",
@@ -2483,40 +2599,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "e6b4c0d5a456d1da146de73f3a0a972a3b86e0b7327af6f579a0ca8d3cb4be76"
-    },
-    {
-      "source": "src/app/api/admin/invoicing/list/route.ts",
-      "handlers": [
-        "GET"
-      ],
-      "mutationHandlers": [],
-      "imports": [
-        "@/lib/admin/module-guard",
-        "@/lib/revenue-os/billing-workspace",
-        "next/server"
-      ],
-      "sourceSha256": "475d7d68b9612cb15f625ec62e247f6485b7d20e5e92571ab53618884899786f"
-    },
-    {
-      "source": "src/app/api/admin/invoicing/pages/route.ts",
-      "handlers": [
-        "GET",
-        "POST"
-      ],
-      "mutationHandlers": [
-        "POST"
-      ],
-      "imports": [
-        "@/lib/admin/module-guard",
-        "@/lib/http/bounded-json",
-        "@/lib/rate-limit",
-        "@/lib/revenue-os/invoice-page-contract",
-        "@/lib/revenue-os/invoice-pages",
-        "next/server",
-        "zod"
-      ],
-      "sourceSha256": "976266b5f66a3e8b0b7b58e5946e321a0c76ad030b910d58e7f928a5ec5f0e82"
+      "sourceSha256": "e567d9c9a6ec940da4e72a787eed37d515b5178095eb32dbf7c3a2d8a76d1bb0"
     },
     {
       "source": "src/app/api/admin/invoicing/payments/route.ts",
@@ -2530,7 +2613,7 @@
         "@/lib/revenue-os/stripe-contract",
         "next/server"
       ],
-      "sourceSha256": "78c2c80dd9ec0b223d7b27113a824024a1df5bcd0caaa6a5ac70464a172e6025"
+      "sourceSha256": "67025047ca72a8bfb3ef5a2582e7f91eb37463b672b6dc0652e13425a60bc717"
     },
     {
       "source": "src/app/api/admin/invoicing/route.ts",
@@ -2544,11 +2627,11 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/http/bounded-json",
-        "@/lib/revenue-os/stripe-invoicing",
+        "@/lib/revenue-os/invoices",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "5f4c2479a6239162bd1591fad503818c7276e09e2dc3ffa167910391a8ebe54c"
+      "sourceSha256": "cd51ae9ff156abfd7a8f70d4f4a1ebdc50d4e8ea25db1329534eae0d52cd8803"
     },
     {
       "source": "src/app/api/admin/kanban/columns/[columnKey]/route.ts",
@@ -3697,7 +3780,7 @@
         "@/lib/supabase/server",
         "next/server"
       ],
-      "sourceSha256": "d33670f94d4ee5b1f489c003b484da45ddff70326946d74dcdd36cd609e7cc96"
+      "sourceSha256": "1a7b92ef826557f25ef1d1643b103c16ceaf9512df9c9c4958ad5cb3d2496abb"
     },
     {
       "source": "src/app/api/admin/site/delegations/route.ts",
@@ -3942,7 +4025,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "cf44d41cf91e0bb6be4ba8394f775882049f9d5b1b559ea8d140e5fa9bfb9e7b"
+      "sourceSha256": "c9387295da5b6161de3735a2dd26fd76b532f584a4618aeab8d5749c4828304e"
     },
     {
       "source": "src/app/api/admin/tasks/route.ts",

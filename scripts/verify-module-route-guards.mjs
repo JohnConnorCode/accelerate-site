@@ -29,7 +29,7 @@ const MODULE_API_DIRECTORIES = {
   "social-marketing": ["src/app/api/admin/social"],
   "receivables-collections": ["src/app/api/admin/collections"],
   "form-builder": ["src/app/api/admin/forms"],
-  "invoicing": ["src/app/api/admin/invoicing"],
+  invoicing: ["src/app/api/admin/invoicing"],
   proposals: ["src/app/api/admin/proposals"],
   campaigns: ["src/app/api/admin/revenue-os/campaigns"],
   "email-studio": ["src/app/api/admin/emails"],

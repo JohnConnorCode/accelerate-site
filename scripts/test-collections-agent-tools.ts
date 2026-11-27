@@ -29,7 +29,7 @@ async function main() {
     supabase: f.db,
     actorEmail: "operator@example.test",
     workItemId: f.workItemId,
-    tenantConfig: { modules: { "receivables-collections": true, "invoicing": true } },
+    tenantConfig: { modules: { "receivables-collections": true, invoicing: true } },
   };
   const mcpContext = { ...context, tenantConfig: { ...defaultTenant, ...context.tenantConfig } };
   const call = async <T>(name: string, input: Record<string, unknown>) =>

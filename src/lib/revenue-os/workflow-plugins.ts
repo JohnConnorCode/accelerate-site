@@ -82,8 +82,7 @@ export async function prepareWorkflowPlugin(
       throw new Error("Plugin changed the selected business identity");
   }
   let payload: Record<string, unknown> = plan.action.payload;
-  if (plan.action.type === "create_task_batch")
-    payload = await reviewWorkflowTasks(db, payload);
+  if (plan.action.type === "create_task_batch") payload = await reviewWorkflowTasks(db, payload);
   else throw new Error("Workflow action has no host reviewer");
   payload = {
     ...payload,

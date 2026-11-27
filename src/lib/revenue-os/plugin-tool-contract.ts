@@ -3,10 +3,7 @@
 import { z } from "zod";
 import { pluginWorkflowContract } from "./plugin-workflow-contract";
 
-export const PLUGIN_TOOL_OPERATIONS = [
-  "prepare-workflow",
-  "propose-workflow",
-] as const;
+export const PLUGIN_TOOL_OPERATIONS = ["prepare-workflow", "propose-workflow"] as const;
 export type PluginToolOperation = (typeof PLUGIN_TOOL_OPERATIONS)[number];
 type PluginToolModule = {
   id: string;

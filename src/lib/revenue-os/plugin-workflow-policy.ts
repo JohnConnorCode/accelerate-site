@@ -27,16 +27,16 @@ export function compileWorkflowPolicy(raw: unknown) {
   const registration = registrationSchema.parse(raw);
   const expected =
     registration.evidence.inputKey === "opportunityId"
-        ? {
-            inputKey: "opportunityId",
-            sourceType: "workflow_opportunities",
-            effect: "task-content-sha256-v1",
-          }
-        : {
-            inputKey: "meetingId",
-            sourceType: "workflow_meetings",
-            effect: "task-content-sha256-v1",
-          };
+      ? {
+          inputKey: "opportunityId",
+          sourceType: "workflow_opportunities",
+          effect: "task-content-sha256-v1",
+        }
+      : {
+          inputKey: "meetingId",
+          sourceType: "workflow_meetings",
+          effect: "task-content-sha256-v1",
+        };
   if (
     registration.evidence.inputKey !== expected.inputKey ||
     registration.evidence.sourceType !== expected.sourceType ||

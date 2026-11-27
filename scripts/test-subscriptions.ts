@@ -87,7 +87,7 @@ async function serviceFlow() {
         id: tenantId,
         name: "Subscription fixture",
         status: "active",
-        config: { modules: { "invoicing": true } },
+        config: { modules: { invoicing: true } },
       },
     ],
     integration_connections: [

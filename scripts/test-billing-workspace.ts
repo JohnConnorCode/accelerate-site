@@ -46,7 +46,7 @@ async function main() {
   const foreignContactId = randomUUID();
   f.mem.tables.contacts = [contact, { ...contact, id: foreignContactId, tenant_id: f.other }];
   (f.mem.rows("tenants")[0]!.config as { modules: Record<string, boolean> }).modules = {
-    "invoicing": true,
+    invoicing: true,
   };
   f.mem.tables.integration_connections = [];
   f.mem.rows("integration_connections").push({

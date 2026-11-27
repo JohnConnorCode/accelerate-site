@@ -383,7 +383,7 @@ const taskContext: Record<
 };
 
 const extensionGuidance: Record<string, AdminPageGuidance> = {
-  "invoicing": {
+  invoicing: {
     description:
       "Create invoices, share a payment link, and see which invoices are paid. Customers pay by bank transfer or card on your own invoice page.",
     startHint: "Choose New invoice, or open an invoice to copy its link or check its payment.",

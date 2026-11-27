@@ -18,6 +18,7 @@ import {
   invoicePaymentDetails,
 } from "../src/lib/revenue-os/invoices";
 import { emptyInvoiceDraft, invoiceDraftSchema } from "../src/lib/invoices/schema";
+import { writeJourneyEvidence } from "./lib/reference-journey-evidence";
 
 type Row = Record<string, unknown>;
 async function main() {
@@ -278,6 +279,25 @@ async function main() {
       calls.filter((c) => c.path === "/v1/payment_intents" && c.method === "POST").length,
       1,
     );
+
+    const issuedRow = mem.rows("invoices").find((row) => row.id === saved.invoice.id)!;
+    writeJourneyEvidence("invoice", {
+      tenantId,
+      contactId,
+      invoiceId: saved.invoice.id,
+      number: issued.invoice.invoice_number,
+      amountCents: issued.invoice.amount_cents,
+      draft,
+      issue: {
+        intentId: issuedRow.stripe_payment_intent_id,
+        accountId: issuedRow.stripe_account_id,
+        livemode: issuedRow.livemode,
+        linkHash: issuedRow.link_token_hash,
+        encryptedLink: issuedRow.encrypted_link_token,
+      },
+      stages: ["saved_draft", "issued_payment_link", "idempotent_reissue"],
+      providerCalls: calls.map((c) => `${c.method} ${c.path}`),
+    });
 
     const token = issued.invoice.share_url!.split("/").at(-1)!;
     const details = await invoicePaymentDetails(db, token);

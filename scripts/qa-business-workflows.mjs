@@ -176,11 +176,8 @@ try {
             title: "Reviewed customer workflow",
             summary: "Review the exact business work before approval.",
             actionType:
-              body.pluginId === "invoicing"
-                ? "create_stripe_invoice_draft"
-                : "create_task_batch",
-            payload:
-              body.pluginId === "invoicing" ? { ...body.input, total: 50000 } : body.input,
+              body.pluginId === "invoicing" ? "create_stripe_invoice_draft" : "create_task_batch",
+            payload: body.pluginId === "invoicing" ? { ...body.input, total: 50000 } : body.input,
             digest: "f".repeat(64),
           });
         }

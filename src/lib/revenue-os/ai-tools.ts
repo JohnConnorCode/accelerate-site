@@ -852,7 +852,12 @@ const registry: AiToolRegistration[] = [
         (invoice) =>
           (!input.status || invoice.status === input.status) &&
           (!query ||
-            [invoice.invoice_number, invoice.company_name, invoice.contact_name, invoice.contact_email]
+            [
+              invoice.invoice_number,
+              invoice.company_name,
+              invoice.contact_name,
+              invoice.contact_email,
+            ]
               .filter(Boolean)
               .some((field) => String(field).toLowerCase().includes(query))),
       );

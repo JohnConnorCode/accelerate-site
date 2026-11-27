@@ -12,6 +12,14 @@ export function tenantRegistryGaps(root) {
   );
   const scoped = new Set([...registry.matchAll(/"([a-z_]+)"/g)].map((m) => m[1]));
   const missing = new Set();
+  // A table a later migration drops no longer exists, so it needs no registry entry.
+  const dropped = new Set();
+  for (const file of readdirSync(resolve(root, "migrations"))) {
+    if (!file.endsWith(".sql")) continue;
+    const sql = readFileSync(resolve(root, "migrations", file), "utf8");
+    for (const drop of sql.matchAll(/^DROP TABLE\s+(?:IF EXISTS\s+)?(?:public\.)?(\w+)\s*;/gim))
+      dropped.add(drop[1]);
+  }
   for (const file of readdirSync(resolve(root, "migrations"))) {
     if (!file.endsWith(".sql")) continue;
     const sql = readFileSync(resolve(root, "migrations", file), "utf8");
@@ -24,7 +32,7 @@ export function tenantRegistryGaps(root) {
       // to an affected tenant. These exceptions name the exact semantic table.
       if (["tenant_memberships", "platform_audit_log", "tenant_ingest_keys"].includes(table))
         continue;
-      if (!scoped.has(table)) missing.add(table);
+      if (!scoped.has(table) && !dropped.has(table)) missing.add(table);
     }
   }
   return [...missing].sort();
