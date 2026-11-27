@@ -599,9 +599,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["plugins", "invoicing"],
-        title: "Stripe invoicing",
+        title: "Invoicing",
         description:
-          "Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.",
+          "Create invoices owned by this workspace, share a branded payment page, and collect payment by bank transfer or card over Stripe's payment rails.",
       },
       {
         slug: ["plugins", "stripe-subscriptions"],

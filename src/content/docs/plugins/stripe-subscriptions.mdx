@@ -25,7 +25,7 @@ Connect Stripe in **Integrations** before creating a plan. Store the account key
 ## Launch checklist
 
 1. Run `npm run db:migrate:all` in the deployment environment, then run `npm run db:verify-schema -- --record`. The ordered catalog includes `migrations/20260925-stripe-subscriptions.sql` and `migrations/20260926-stripe-billing-server-only.sql`, which create the tenant billing tables, webhook receipt ledger, and server-only access boundary.
-2. Enable the **Stripe invoicing** module for the workspace.
+2. Enable the **Invoicing** module for the workspace.
 3. In **Integrations**, connect the Stripe account and verify the API key. Add the webhook signing secret from Stripe.
 4. In Stripe, create an endpoint for `/api/public/{tenant}/webhooks/stripe` and subscribe it to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`.
 5. Add the public site origin and `/auth/callback` to the Supabase Auth redirect allowlist. Test signup, email confirmation, password recovery, and sign-in.
@@ -42,7 +42,7 @@ The account separates the state customers need to act on from the state they can
 
 ## Troubleshooting
 
-- **No plans appear:** the workspace has no active plans, or the Stripe invoicing module is disabled. Enable the module and create a plan from **Subscriptions**.
+- **No plans appear:** the workspace has no active plans, or the Invoicing module is disabled. Enable the module and create a plan from **Subscriptions**.
 - **Checkout cannot start:** confirm the Stripe connection is active and the plan still has an active Stripe price. Archived plans stop new checkouts but do not cancel existing subscriptions.
 - **The subscription is missing after checkout:** check the webhook endpoint, signing secret, and the durable webhook receipt for the event. Replay the original Stripe event after correcting the connection.
 - **Invoices are unavailable:** the account and subscription remain visible when Stripe invoice history is temporarily unavailable. Check the Stripe connection before retrying.

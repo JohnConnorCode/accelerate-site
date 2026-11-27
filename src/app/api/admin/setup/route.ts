@@ -641,7 +641,7 @@ export async function GET() {
       description: !schemaReady
         ? "Apply and verify the Revenue OS schema before enabling recurring billing."
         : !stripeModuleEnabled
-          ? "Enable Stripe invoicing for this workspace before connecting an account or creating recurring plans."
+          ? "Enable Invoicing for this workspace before connecting an account or creating recurring plans."
           : stripeReady
             ? `Stripe account ${stripe.account_email} is connected with an encrypted API key and webhook signing secret.`
             : stripeApiReady

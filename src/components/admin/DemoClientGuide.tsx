@@ -27,7 +27,7 @@ const steps = [
     route: "invoicing",
     title: "Customer invoice",
     instruction:
-      "Choose Use sample invoice and confirm Lena Walsh as the customer. Review the service lines, then follow the separate draft-creation and sending decisions.",
+      "Choose Create invoice and pick Lena Walsh as the customer. Add the service lines, save the draft, then generate the payment link.",
   },
   {
     route: "collections",

@@ -138,7 +138,7 @@ export async function handleDemoCollections(
   if (!initialized) save();
   const enabled = () => {
     if (!modules["receivables-collections"] || !modules["invoicing"])
-      throw new Error("Collections or Stripe invoicing is disabled");
+      throw new Error("Collections or Invoicing is disabled");
   };
   const find = (id: unknown) => {
     const item = cases.find((c) => c.id === id);
