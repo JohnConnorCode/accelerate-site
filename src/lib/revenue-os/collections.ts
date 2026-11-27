@@ -5,7 +5,7 @@ import { z } from "zod";
 import { callCollectionHostRpc, tenantIdForDatabase } from "@/lib/supabase/server";
 import { isModuleEnabled } from "./modules";
 import { decryptTenantSecret } from "./encryption";
-import { invoicePath } from "./invoice-contract";
+import { invoicePath } from "@/lib/invoices/schema";
 
 import { collectionCasePatchSchema } from "./collection-contract";
 export { collectionCasePatchSchema } from "./collection-contract";
@@ -57,7 +57,7 @@ export async function observeInvoice(
   const { data: row, error } = await db
     .from("invoices")
     .select(
-      "id,tenant_id,number,contact_id,livemode,currency,status,total_cents,amount_paid_cents,due_date,encrypted_link_token",
+      "id,tenant_id,number,contact_id,livemode,currency,status,amount_cents,amount_paid_cents,due_at,encrypted_link_token",
     )
     .eq("tenant_id", tenantId)
     .eq("id", z.uuid().parse(invoiceId))
@@ -79,11 +79,13 @@ export async function observeInvoice(
     testMode: row.livemode === false,
     currency: row.currency,
     status: row.status,
-    remaining: closed ? 0 : Number(row.total_cents) - Number(row.amount_paid_cents),
-    dueDate: row.due_date,
+    remaining: closed ? 0 : Number(row.amount_cents) - Number(row.amount_paid_cents),
+    dueDate: row.due_at ? String(row.due_at).slice(0, 10) : null,
     observedAt,
     paymentUrl:
-      token && tenant?.slug && site ? new URL(invoicePath(tenant.slug, token), site).toString() : null,
+      token && tenant?.slug && site
+        ? new URL(invoicePath(tenant.slug, token), site).toString()
+        : null,
     complete: true,
   });
 }

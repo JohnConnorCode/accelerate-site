@@ -29,12 +29,11 @@ export async function handleDemoBilling(
     !["/api/admin/invoicing/commands", "/api/admin/invoicing/payments"].includes(url.pathname)
   )
     return null;
-  if (!modules["invoicing"])
-    throw new Error("Invoicing is disabled in this demo workspace.");
+  if (!modules["invoicing"]) throw new Error("Invoicing is disabled in this demo workspace.");
   const respond = (value: unknown) => Response.json({ ...(value as object), simulated: true });
   if (!state.billing) {
     const paid = state.invoices.find((item) => item.status === "paid")!;
-    const amount = paid.amountPaidCents;
+    const amount = paid.amount_cents;
     const base = {
       amount,
       captured: amount,
@@ -42,8 +41,8 @@ export async function handleDemoBilling(
       currency: "usd",
       status: "succeeded" as const,
       createdAt: new Date().toISOString(),
-      name: paid.customerName,
-      email: paid.customerEmail,
+      name: paid.company_name,
+      email: paid.contact_email,
       description: "Fictional invoice payment",
       receiptUrl: null,
       refundable: true,

@@ -22,10 +22,12 @@ import {
   type WorkspaceBrand,
 } from "@/lib/revenue-os/branding-contract";
 import {
-  invoiceCommandSchema,
-  invoiceTotal,
-  type InvoiceRecord,
-} from "@/lib/revenue-os/invoice-contract";
+  emptyInvoiceDraft,
+  invoiceSubtotal,
+  type CommercialInvoice,
+  type InvoiceDraft,
+} from "@/lib/invoices/schema";
+import { invoiceCommandSchema } from "@/lib/invoices/commands";
 import type { InvoiceDocumentData } from "@/components/business/InvoiceDocument";
 import { REVENUE_OS_MODULES, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 
@@ -34,7 +36,7 @@ export const DEMO_BUSINESS_MODULES = {
   "social-marketing": true,
   "opportunity-radar": true,
   "receivables-collections": true,
-  "invoicing": true,
+  invoicing: true,
   "client-onboarding": true,
   "meeting-commitments": true,
 };
@@ -67,20 +69,46 @@ type Action = {
   digest?: string;
 };
 /** The demo keeps the same invoice records the real workspace stores. */
-export function demoInvoiceDocument(invoice: InvoiceRecord): InvoiceDocumentData {
+export function demoInvoiceDocument(invoice: CommercialInvoice): InvoiceDocumentData {
   const paid = invoice.status === "paid" || invoice.status === "paid_external";
   return {
-    number: invoice.number ?? "Draft",
-    customerName: invoice.customerName,
-    customerEmail: invoice.customerEmail,
+    number: invoice.invoice_number ?? "Draft",
+    customerName: invoice.company_name,
+    customerEmail: invoice.contact_email,
     currency: "usd",
-    lines: invoice.lines.map((x) => ({ description: x.description, amount: x.quantity * x.unitCents })),
-    total: invoice.totalCents,
-    amountPaid: paid ? invoice.totalCents : 0,
-    amountRemaining: paid ? 0 : invoice.totalCents,
+    lines: invoice.lines.map((x) => ({
+      description: x.description,
+      amount: x.quantity * x.unit_cents,
+    })),
+    total: invoice.amount_cents,
+    amountPaid: paid ? invoice.amount_cents : 0,
+    amountRemaining: paid ? 0 : invoice.amount_cents,
     status: paid ? "paid" : invoice.status,
-    dueLabel: invoice.dueDate ?? "Due on receipt",
+    dueLabel: invoice.due_date ?? "Due on receipt",
     paymentUrl: null,
+  };
+}
+export function demoInvoice(
+  draft: InvoiceDraft,
+  fields: Partial<CommercialInvoice> & Pick<CommercialInvoice, "id" | "status">,
+): CommercialInvoice {
+  const at = new Date().toISOString();
+  return {
+    ...draft,
+    mode: fields.status === "draft" ? null : "test",
+    amount_cents: invoiceSubtotal(draft.lines) - draft.discount_cents,
+    invoice_number: null,
+    issued_at: null,
+    due_at: draft.due_date ? `${draft.due_date}T00:00:00.000Z` : null,
+    paid_at: null,
+    voided_at: null,
+    refunded_cents: 0,
+    external_payment_note: "",
+    revision: 1,
+    created_at: at,
+    updated_at: at,
+    share_url: null,
+    ...fields,
   };
 }
 export type DemoBusinessState = {
@@ -94,7 +122,7 @@ export type DemoBusinessState = {
   brand: WorkspaceBrand;
   brandRevision: number;
   actions: Action[];
-  invoices: InvoiceRecord[];
+  invoices: CommercialInvoice[];
   invoiceCounter: number;
   tasks: Task[];
   receipts: {
@@ -148,37 +176,31 @@ export function createDemoBusinessState(pack: DemoScenarioPack): DemoBusinessSta
   };
   for (const [index, status] of (["open", "paid", "draft"] as const).entries()) {
     const contact = pack.people[index]!;
-    const lines = pack.business.invoiceLines.map((x) => ({
-      description: x.description,
-      quantity: x.quantity,
-      unitCents: x.unitAmount,
-    }));
+    const draft: InvoiceDraft = {
+      ...emptyInvoiceDraft(),
+      contact_id: contact.id,
+      company_name: contact.name,
+      contact_name: contact.name,
+      contact_email: contact.email,
+      description: pack.business.invoiceMemo,
+      due_date: due(index === 0 ? -5 : 14),
+      lines: pack.business.invoiceLines.map((x) => ({
+        description: x.description,
+        quantity: x.quantity,
+        unit_cents: x.unitAmount,
+      })),
+    };
     const issued = status !== "draft";
     if (issued) state.invoiceCounter++;
-    state.invoices.push({
-      id: `00000000-0000-4000-9000-${String(index + 1).padStart(12, "0")}`,
-      number: issued ? `INV-${String(state.invoiceCounter).padStart(4, "0")}` : null,
-      contactId: contact.id,
-      customerName: contact.name,
-      customerEmail: contact.email,
-      currency: "usd",
-      lines,
-      totalCents: invoiceTotal(lines),
-      amountPaidCents: status === "paid" ? invoiceTotal(lines) : 0,
-      refundedCents: 0,
-      memo: pack.business.invoiceMemo,
-      dueDate: due(index === 0 ? -5 : 14),
-      paymentMethods: ["us_bank_account", "card"],
-      status,
-      testMode: issued ? true : null,
-      issuedAt: issued ? now() : null,
-      paidAt: status === "paid" ? now() : null,
-      voidedAt: null,
-      externalPaymentNote: "",
-      revision: 1,
-      createdAt: now(),
-      shareUrl: null,
-    });
+    state.invoices.push(
+      demoInvoice(draft, {
+        id: `00000000-0000-4000-9000-${String(index + 1).padStart(12, "0")}`,
+        status,
+        invoice_number: issued ? `INV-${String(state.invoiceCounter).padStart(4, "0")}` : null,
+        issued_at: issued ? now() : null,
+        paid_at: status === "paid" ? now() : null,
+      }),
+    );
   }
   const won = pack.opportunities.find((x) => x.stage === "won")!;
   for (const [index, pluginId] of ["client-onboarding", "meeting-commitments"].entries()) {
@@ -369,46 +391,36 @@ export async function handleDemoBusinessRequest(
         invoices: state.invoices,
         contacts: pack.people.map((x) => ({ id: x.id, full_name: x.name, primary_email: x.email })),
         stripe: { connected: true, testMode: true, canTakePayments: true },
+        brand: {
+          name: state.brand.name,
+          legalName: state.brand.legalName || state.brand.name,
+          address: state.brand.businessAddress,
+          website: `https://${pack.tenant.brand.domain}`,
+          domain: pack.tenant.brand.domain.toUpperCase(),
+          mark: "/branding/invoice-mark.svg",
+          supportEmail: state.brand.supportEmail,
+        },
       });
     }
     if (path === "/api/admin/invoicing" && method === "POST") {
       requireEnabled("invoicing");
       const command = invoiceCommandSchema.parse(body);
-      let item: InvoiceRecord;
+      let item: CommercialInvoice;
       if (command.operation === "save_draft") {
-        const fields = {
-          contactId: command.draft.contactId,
-          customerName: command.draft.customerName,
-          customerEmail: command.draft.customerEmail.toLowerCase(),
-          lines: command.draft.lines,
-          totalCents: invoiceTotal(command.draft.lines),
-          memo: command.draft.memo,
-          dueDate: command.draft.dueDate,
-          paymentMethods: command.draft.paymentMethods,
+        const draft = {
+          ...command.draft,
+          contact_email: command.draft.contact_email.toLowerCase(),
         };
         if (command.id) {
           item = invoice(command.id);
           if (item.status !== "draft") throw new Error("Only a draft can be edited");
           if (item.revision !== command.revision) throw new Error("This draft changed. Reload it.");
-          Object.assign(item, fields, { revision: item.revision + 1 });
+          Object.assign(
+            item,
+            demoInvoice(draft, { ...item, ...draft, revision: item.revision + 1 }),
+          );
         } else {
-          item = {
-            ...fields,
-            id: crypto.randomUUID(),
-            number: null,
-            currency: "usd",
-            amountPaidCents: 0,
-            refundedCents: 0,
-            status: "draft",
-            testMode: null,
-            issuedAt: null,
-            paidAt: null,
-            voidedAt: null,
-            externalPaymentNote: "",
-            revision: 1,
-            createdAt: now(),
-            shareUrl: null,
-          };
+          item = demoInvoice(draft, { id: crypto.randomUUID(), status: "draft" });
           state.invoices.unshift(item);
         }
         record("Saved invoice draft", "invoice", item.id);
@@ -419,30 +431,36 @@ export async function handleDemoBusinessRequest(
             state.invoiceCounter++;
             Object.assign(item, {
               status: "open",
-              number: `INV-${String(state.invoiceCounter).padStart(4, "0")}`,
-              issuedAt: now(),
-              testMode: true,
+              mode: "test",
+              invoice_number: `INV-${String(state.invoiceCounter).padStart(4, "0")}`,
+              issued_at: now(),
               revision: item.revision + 1,
             });
             record("Simulated invoice issue", "invoice", item.id);
           }
-        } else if (command.operation === "void" || command.operation === "record_external_payment") {
-          if (!["draft", "open"].includes(item.status)) throw new Error("This invoice is already closed");
+        } else if (command.operation === "refresh_payment") {
+          record("Checked simulated payment", "invoice", item.id);
+        } else {
+          if (!["draft", "open"].includes(item.status))
+            throw new Error("This invoice is already closed");
           if (command.operation === "record_external_payment" && item.status === "draft")
             throw new Error("Issue the invoice before recording a payment");
+          if (command.operation === "delete_draft" && item.status !== "draft")
+            throw new Error("Only a draft can be deleted");
           Object.assign(
             item,
-            command.operation === "void"
-              ? { status: "void", voidedAt: now() }
-              : {
-                  status: "paid_external",
-                  paidAt: now(),
-                  amountPaidCents: item.totalCents,
-                  externalPaymentNote: command.note,
-                },
+            command.operation === "record_external_payment"
+              ? { status: "paid_external", paid_at: now(), external_payment_note: command.note }
+              : { status: "void", voided_at: now() },
             { revision: item.revision + 1 },
           );
-          record(command.operation === "void" ? "Voided invoice" : "Recorded outside payment", "invoice", item.id);
+          record(
+            command.operation === "record_external_payment"
+              ? "Recorded outside payment"
+              : "Voided invoice",
+            "invoice",
+            item.id,
+          );
         }
       }
       return response({ invoice: item, simulated: true });

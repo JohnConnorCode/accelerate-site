@@ -1,3 +1,4 @@
+import { emptyInvoiceDraft } from "../src/lib/invoices/schema";
 import { writeJourneyEvidence } from "./lib/reference-journey-evidence";
 import assert from "node:assert/strict";
 import { DEMO_SCENARIOS, type DemoScenarioPack } from "../src/lib/admin/demo/scenarios";
@@ -291,15 +292,15 @@ async function journeyForPack(pack: DemoScenarioPack, invoiceContactId?: string)
     assert.equal(contact.id, person.id, "invoice review must keep the onboarding customer");
     assert.equal(contact.primary_email, person.email);
     const draft = {
-      contactId: contact.id,
-      customerName: contact.full_name,
-      customerEmail: contact.primary_email,
-      lines: [{ description: "Onboarding implementation", quantity: 1, unitCents: 120000 }],
-      memo: "First value journey",
-      dueDate: null,
-      paymentMethods: ["us_bank_account", "card"],
+      ...emptyInvoiceDraft(),
+      contact_id: contact.id,
+      company_name: contact.full_name,
+      contact_name: contact.full_name,
+      contact_email: contact.primary_email,
+      description: "First value journey",
+      lines: [{ description: "Onboarding implementation", quantity: 1, unit_cents: 120000 }],
     };
-    assert.equal(draft.contactId, won.personId, "invoice input keeps the onboarding customer");
+    assert.equal(draft.contact_id, won.personId, "invoice input keeps the onboarding customer");
     await request(
       "/api/admin/invoicing",
       { operation: "save_draft", id: null, revision: null, draft: { ...draft, lines: [] } },
@@ -313,25 +314,29 @@ async function journeyForPack(pack: DemoScenarioPack, invoiceContactId?: string)
       draft,
     });
     assert.equal(saved.invoice.status, "draft");
-    assert.equal(saved.invoice.customerEmail, person.email, "draft keeps the customer");
-    assert.equal(saved.invoice.contactId, person.id);
+    assert.equal(saved.invoice.contact_email, person.email, "draft keeps the customer");
+    assert.equal(saved.invoice.contact_id, person.id);
     const issued = await request("/api/admin/invoicing", {
       operation: "issue",
       id: saved.invoice.id,
       revision: saved.invoice.revision,
     });
     assert.equal(issued.invoice.status, "open");
-    assert.equal(issued.invoice.testMode, true);
+    assert.equal(issued.invoice.mode, "test");
     const replay = await request("/api/admin/invoicing", {
       operation: "issue",
       id: saved.invoice.id,
       revision: saved.invoice.revision,
     });
-    assert.equal(replay.invoice.number, issued.invoice.number, "re-issuing keeps one number");
+    assert.equal(
+      replay.invoice.invoice_number,
+      issued.invoice.invoice_number,
+      "re-issuing keeps one number",
+    );
     const listing = await request("/api/admin/invoicing");
     const reread = listing.invoices.find((item: { id: string }) => item.id === saved.invoice.id);
     assert.equal(reread.status, "open");
-    assert.equal(reread.customerEmail, person.email, "reread invoice keeps the customer");
+    assert.equal(reread.contact_email, person.email, "reread invoice keeps the customer");
     draftActionId = saved.invoice.id as string;
     customerJourneys.push({
       scenario: pack.id,
@@ -339,7 +344,7 @@ async function journeyForPack(pack: DemoScenarioPack, invoiceContactId?: string)
       contactId: person.id,
       onboardingTaskIds: createdTaskIds,
       invoiceActionId: draftActionId,
-      invoiceId: issued.invoice.number,
+      invoiceId: issued.invoice.invoice_number,
     });
   });
 
@@ -542,8 +547,8 @@ async function journeyForPack(pack: DemoScenarioPack, invoiceContactId?: string)
   const serialized = JSON.stringify(state);
   assert.ok(!serialized.includes("pay.stripe.com") && !serialized.includes("invoice.stripe.com"));
   assert.ok(state.receipts.length > 0 && state.receipts.every((receipt) => receipt.simulated));
-  assert.ok(state.invoices.every((invoice) => invoice.customerEmail.endsWith(".example")));
-  assert.ok(state.invoices.every((invoice) => invoice.shareUrl === null));
+  assert.ok(state.invoices.every((invoice) => invoice.contact_email.endsWith(".example")));
+  assert.ok(state.invoices.every((invoice) => invoice.share_url === null));
 }
 
 async function main() {

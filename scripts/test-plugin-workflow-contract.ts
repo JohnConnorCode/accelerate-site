@@ -19,7 +19,6 @@ import {
   pluginWorkflowDeclaration,
 } from "../src/lib/revenue-os/plugin-workflow-contract";
 import { workflowTaskBatchSchema } from "../src/lib/revenue-os/workflow-task-contract";
-import { stripeInvoiceInputSchema } from "../src/lib/revenue-os/stripe-contract";
 
 import {
   compileWorkflowPolicy,
@@ -29,24 +28,26 @@ import {
 } from "../src/lib/revenue-os/plugin-workflow-policy";
 import { createHash } from "node:crypto";
 const taskPolicy = pluginWorkflowDeclaration("task-batch-opportunity-v1").policy;
-const invoicePolicy = pluginWorkflowDeclaration("stripe-invoice-draft-v1").policy;
 assert.equal(taskPolicy.tier, 2);
-assert.equal(invoicePolicy.tier, 3);
 const registration = {
-  action: invoicePolicy.action,
-  evidence: invoicePolicy.evidence,
-  idempotency: invoicePolicy.idempotency,
+  action: taskPolicy.action,
+  evidence: taskPolicy.evidence,
+  idempotency: taskPolicy.idempotency,
   trustCeiling: "autonomous",
 };
-const rewritten = compileWorkflowPolicy(registration);
-assert.equal(rewritten.policy.trustCeiling, "always-propose");
-assert.equal(rewritten.warnings.length, 1);
+const compiled = compileWorkflowPolicy(registration);
+assert.equal(
+  compiled.policy.trustCeiling,
+  "autonomous",
+  "compensable task batches may run autonomously",
+);
+assert.equal(compiled.warnings.length, 0);
 for (const invalid of [
   { ...registration, evidence: undefined },
   { ...registration, idempotency: undefined },
   { ...registration, tier: 0 },
-  { ...registration, evidence: taskPolicy.evidence },
-  { ...registration, idempotency: taskPolicy.idempotency },
+  { ...registration, action: "create_stripe_invoice_draft" },
+  { ...registration, evidence: { ...taskPolicy.evidence, inputKey: "contactId" } },
 ])
   assert.throws(() => compileWorkflowPolicy(invalid));
 assert.throws(() => assertWorkflowEvidenceSource(taskPolicy, []), /canonical evidence source/);
@@ -114,26 +115,9 @@ assert.deepEqual(
 );
 for (const key of ["__proto__", "constructor", "missing"])
   assert.throws(() => pluginWorkflowDeclaration(key), /Unknown host workflow contract/);
-const invoice = {
-  contactId: id,
-  customerId: "cus_fixture",
-  currency: "usd",
-  daysUntilDue: 30,
-  memo: "  Approved work  ",
-  lines: [{ description: "Service", quantity: 1, unitAmount: 100 }],
-};
-assert.deepEqual(
-  parsePluginWorkflowInput("stripe-invoice-draft-v1", invoice),
-  stripeInvoiceInputSchema.parse(invoice),
-);
-assert.throws(() =>
-  parsePluginWorkflowInput("stripe-invoice-draft-v1", {
-    ...invoice,
-    lines: [{ description: "Service", quantity: 2, unitAmount: 100000000 }],
-  }),
-);
-assert.throws(() =>
-  parsePluginWorkflowInput("stripe-invoice-draft-v1", { ...invoice, customerId: "not_a_customer" }),
+assert.throws(
+  () => pluginWorkflowDeclaration("stripe-invoice-draft-v1"),
+  /Unknown host workflow contract/,
 );
 
 // Exercise the actual build command in an owned disposable fixture, never by

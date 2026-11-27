@@ -1,3 +1,4 @@
+import { emptyInvoiceDraft } from "../src/lib/invoices/schema";
 import assert from "node:assert/strict";
 import { DEMO_SCENARIOS } from "../src/lib/admin/demo/scenarios";
 import {
@@ -44,23 +45,21 @@ async function main() {
     workspaceBrandSchema.parse(state.brand);
     assert.equal(state.invoices.length, 3);
     assert.ok(state.tasks.length >= 4);
-    assert.ok(
-      state.invoices.every((x) => x.customerEmail.endsWith(".example") && !x.shareUrl),
-    );
+    assert.ok(state.invoices.every((x) => x.contact_email.endsWith(".example") && !x.share_url));
     const billing = await request("/api/admin/invoicing");
     const contact = billing.contacts[0];
     const draft = {
-      contactId: contact.id,
-      customerName: contact.full_name,
-      customerEmail: contact.primary_email,
+      ...emptyInvoiceDraft(),
+      contact_id: contact.id,
+      company_name: contact.full_name,
+      contact_name: contact.full_name,
+      contact_email: contact.primary_email,
+      description: pack.business.invoiceMemo,
       lines: pack.business.invoiceLines.map((x) => ({
         description: x.description,
         quantity: x.quantity,
-        unitCents: x.unitAmount,
+        unit_cents: x.unitAmount,
       })),
-      memo: pack.business.invoiceMemo,
-      dueDate: null,
-      paymentMethods: ["us_bank_account", "card"],
     };
     await request(
       "/api/admin/invoicing",
@@ -90,7 +89,7 @@ async function main() {
       revision: 1,
     });
     assert.equal(issued.invoice.status, "open");
-    assert.match(issued.invoice.number, /^INV-\d{4}$/);
+    assert.match(issued.invoice.invoice_number, /^INV-\d{4}$/);
     const voided = await request("/api/admin/invoicing", {
       operation: "void",
       id: saved.invoice.id,
@@ -155,11 +154,11 @@ async function main() {
     assert.equal(other.brand.name, pack.name);
     assert.equal(other.receipts.length, 0);
     assert.equal(JSON.parse(JSON.stringify(state)).brand.name, pack.name + " Studio");
-    assert.ok(saves > 10);
+    assert.ok(saves > 5);
     assert.ok(state.receipts.every((x) => x.simulated));
   }
   console.log(
-    "All business demos: coherent records, invoice review/send/publication/revocation, assigned tasks, disabled/replay/stale-input gates, local receipts and serializable isolated state passed.",
+    "All business demos: coherent records, invoice draft/issue/void, assigned tasks, disabled/replay/stale-input gates, local receipts and serializable isolated state passed.",
   );
 }
 main().catch((e) => {

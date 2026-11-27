@@ -269,19 +269,11 @@ async function main() {
       moduleDef.aiToolNames = originalNames;
     }
   }
-  assert.equal(pluginTools, 13);
-  const invoiceModule = REVENUE_OS_MODULES.find((module) => module.id === "invoicing")!;
+  assert.equal(pluginTools, 4);
+  const invoiceModule = REVENUE_OS_MODULES.find((module) => module.id === "client-onboarding")!;
   assert.throws(
     () => pluginToolDeclarations({ ...invoiceModule, workflow: { inputContract: "constructor" } }),
     /Unknown host workflow contract/,
-  );
-  assert.throws(
-    () =>
-      pluginToolDeclarations({
-        ...invoiceModule,
-        workflow: { inputContract: "task-batch-meeting-v1" },
-      }),
-    /require the invoice workflow/,
   );
   const noDatabase = {
     from() {
@@ -290,21 +282,6 @@ async function main() {
   };
   const uuid = "11111111-1111-4111-8111-111111111111";
   const invalidInputs: Record<string, Record<string, unknown>> = {
-    get_billing_records: { kind: "payouts" },
-    get_billing_action: { actionId: "invalid" },
-    preview_billing_change: {
-      command: {
-        operation: "refund_payment",
-        chargeId: "ch_example",
-        amount: -1,
-        reason: "duplicate",
-        requestId: uuid,
-      },
-    },
-    propose_billing_change: {
-      command: { operation: "create_customer", contactId: uuid, requestId: uuid },
-      digest: "invalid",
-    },
     prepare_client_onboarding: { opportunityId: "x".repeat(36), tasks: [] },
     propose_client_onboarding: {
       input: { opportunityId: uuid, tasks: [] },
@@ -319,26 +296,6 @@ async function main() {
       input: { meetingId: uuid, tasks: [] },
       digest: "0".repeat(64),
       requestId: "invalid",
-    },
-    prepare_stripe_invoicing: {
-      contactId: uuid,
-      customerId: "bad",
-      currency: "usd",
-      daysUntilDue: 30,
-      memo: "",
-      lines: [],
-    },
-    propose_stripe_invoicing: { input: {}, digest: "0".repeat(64), requestId: uuid },
-    propose_stripe_invoice_send: { creationActionId: "invalid" },
-    preview_invoice_page: {
-      creationActionId: uuid,
-      design: { layout: "classic", heading: "Invoice", introduction: "", closing: "", total: 1 },
-    },
-    propose_invoice_page: {
-      creationActionId: uuid,
-      design: { layout: "classic", heading: "Invoice", introduction: "", closing: "" },
-      digest: "x".repeat(64),
-      requestId: uuid,
     },
   };
   for (const [name, input] of Object.entries(invalidInputs)) {

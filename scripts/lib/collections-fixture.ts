@@ -15,9 +15,11 @@ export function createCollectionsFixture({ allowSends = false }: { allowSends?: 
     invoiceId = randomUUID(),
     observation = randomUUID(),
     workItemId = randomUUID();
-  const config = { modules: { "receivables-collections": true, "invoicing": true } };
+  const config = { modules: { "receivables-collections": true, invoicing: true } };
   const mem = new AuthorizedMemorySupabase({
-    tenants: [{ id: tenant, slug: "example-sons", name: "Example & Sons", status: "active", config }],
+    tenants: [
+      { id: tenant, slug: "example-sons", name: "Example & Sons", status: "active", config },
+    ],
     contacts: [
       {
         id: contact,
@@ -124,8 +126,8 @@ export function createCollectionsFixture({ allowSends = false }: { allowSends?: 
     contact_id: contact,
     livemode: false,
     currency: "usd",
-    total_cents: 10000,
-    due_date: "2025-01-01",
+    amount_cents: 10000,
+    due_at: "2025-01-01T00:00:00.000Z",
     encrypted_link_token: encryptedLink,
   };
   // Balance and status follow the controlled payment state.

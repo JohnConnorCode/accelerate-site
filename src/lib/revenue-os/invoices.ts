@@ -10,12 +10,14 @@ import { recordAudit } from "./audit";
 import { tenantStripeClient } from "./stripe-adapter";
 import {
   INVOICE_PAYMENT_METHODS,
-  invoiceCommandSchema,
   invoiceLinkTokenSchema,
   invoicePath,
-  type InvoiceRecord,
+  type CommercialInvoice,
+  type InvoiceDraft,
   type InvoiceStatus,
-} from "./invoice-contract";
+} from "@/lib/invoices/schema";
+import { invoiceCommandSchema } from "@/lib/invoices/commands";
+import { invoiceBrand } from "@/lib/invoices/brand";
 
 /**
  * Invoices are owned by this workspace. Stripe is only the payment rail: an
@@ -23,21 +25,14 @@ import {
  * own invoice page. No Stripe Invoice, invoice item, coupon, Billing object or
  * post-payment invoice is ever created, so Stripe's Invoicing fee never applies.
  */
-type Row = {
+export type InvoiceRow = InvoiceDraft & {
   id: string;
   tenant_id: string;
   number: string | null;
-  contact_id: string | null;
-  customer_name: string;
-  customer_email: string;
   currency: "usd";
-  lines: InvoiceRecord["lines"];
-  total_cents: number;
+  amount_cents: number;
   amount_paid_cents: number;
   refunded_cents: number;
-  memo: string;
-  due_date: string | null;
-  payment_methods: InvoiceRecord["paymentMethods"];
   status: InvoiceStatus;
   stripe_account_id: string | null;
   livemode: boolean | null;
@@ -45,12 +40,15 @@ type Row = {
   stripe_charge_id: string | null;
   encrypted_link_token: string | null;
   issued_at: string | null;
+  due_at: string | null;
   paid_at: string | null;
   voided_at: string | null;
   external_payment_note: string;
   revision: number;
   created_at: string;
+  updated_at: string;
 };
+type Row = InvoiceRow;
 type ProviderObject = Record<string, unknown>;
 const PAYABLE = ["requires_payment_method", "requires_confirmation", "requires_action"];
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
@@ -81,31 +79,54 @@ function linkToken(row: Row) {
     ? decryptTenantSecret(row.encrypted_link_token, row.tenant_id, "invoices", "link_token")
     : null;
 }
-function toRecord(row: Row, tenantSlug: string): InvoiceRecord {
-  const token = row.status === "void" ? null : linkToken(row);
+const DRAFT_FIELDS = [
+  "contact_id",
+  "kind",
+  "due_days",
+  "invoice_date",
+  "due_date",
+  "discount_cents",
+  "discount_label",
+  "company_name",
+  "contact_name",
+  "contact_email",
+  "billing_line1",
+  "billing_line2",
+  "billing_city",
+  "billing_region",
+  "billing_postal",
+  "billing_country",
+  "purchase_order",
+  "description",
+  "support_details",
+  "service_period",
+  "notes",
+  "tax_review",
+  "lines",
+  "payment_methods",
+] as const;
+export function draftOf(row: Row): InvoiceDraft {
+  return Object.fromEntries(DRAFT_FIELDS.map((key) => [key, row[key]])) as InvoiceDraft;
+}
+function toRecord(row: Row, tenantSlug: string): CommercialInvoice {
+  const token = row.status === "void" || row.status === "draft" ? null : linkToken(row);
   return {
+    ...draftOf(row),
     id: row.id,
-    number: row.number,
-    contactId: row.contact_id,
-    customerName: row.customer_name,
-    customerEmail: row.customer_email,
-    currency: "usd",
-    lines: row.lines,
-    totalCents: row.total_cents,
-    amountPaidCents: row.amount_paid_cents,
-    refundedCents: row.refunded_cents,
-    memo: row.memo,
-    dueDate: row.due_date,
-    paymentMethods: row.payment_methods,
+    mode: row.livemode === null ? null : row.livemode ? "live" : "test",
     status: row.status,
-    testMode: row.livemode === null ? null : !row.livemode,
-    issuedAt: row.issued_at,
-    paidAt: row.paid_at,
-    voidedAt: row.voided_at,
-    externalPaymentNote: row.external_payment_note,
+    amount_cents: row.amount_cents,
+    invoice_number: row.number,
+    issued_at: row.issued_at,
+    due_at: row.due_at,
+    paid_at: row.paid_at,
+    voided_at: row.voided_at,
+    refunded_cents: row.refunded_cents,
+    external_payment_note: row.external_payment_note,
     revision: row.revision,
-    createdAt: row.created_at,
-    shareUrl: token ? invoicePath(tenantSlug, token) : null,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    share_url: token ? invoicePath(tenantSlug, token) : null,
   };
 }
 async function readRow(db: SupabaseClient, id: string) {
@@ -137,7 +158,11 @@ export async function listInvoices(db: SupabaseClient, options: { contactId?: st
       .order("full_name")
       .limit(500),
     tenantStripeClient(db).then(
-      (client) => ({ connected: true, testMode: client.mode === "test", canTakePayments: Boolean(client.publishableKey && client.webhookSecret) }),
+      (client) => ({
+        connected: true,
+        testMode: client.mode === "test",
+        canTakePayments: Boolean(client.publishableKey && client.webhookSecret),
+      }),
       () => ({ connected: false, testMode: false, canTakePayments: false }),
     ),
   ]);
@@ -155,10 +180,12 @@ export async function listInvoices(db: SupabaseClient, options: { contactId?: st
       throw new Error("Customer billing identity is unavailable");
     choices = [linked as Contact, ...choices];
   }
+  const { brand } = await readWorkspaceBrand(db);
   return {
     invoices: ((data ?? []) as Row[]).map((row) => toRecord(row, tenantSlug)),
     contacts: choices,
     stripe,
+    brand: invoiceBrand(brand),
   };
 }
 
@@ -168,10 +195,14 @@ async function createIntent(db: SupabaseClient, row: Row) {
   const client = await tenantStripeClient(db);
   const brand = await readWorkspaceBrand(db).catch(() => null);
   const body = new URLSearchParams({
-    amount: String(row.total_cents),
+    amount: String(row.amount_cents),
     currency: "usd",
-    receipt_email: row.customer_email,
-    description: `${brand?.brand.name ? `${brand.brand.name} ` : ""}invoice for ${row.customer_name}`.slice(0, 1000),
+    receipt_email: row.contact_email,
+    description:
+      `${brand?.brand.name ? `${brand.brand.name} ` : ""}invoice ${row.description} for ${row.company_name}`.slice(
+        0,
+        1000,
+      ),
     "metadata[accelerate_purpose]": "invoice",
     "metadata[accelerate_tenant_id]": row.tenant_id,
     "metadata[accelerate_invoice_id]": row.id,
@@ -188,7 +219,7 @@ async function createIntent(db: SupabaseClient, row: Row) {
   if (
     typeof intent.id !== "string" ||
     !/^pi_[A-Za-z0-9_]+$/.test(intent.id) ||
-    intent.amount !== row.total_cents ||
+    intent.amount !== row.amount_cents ||
     intent.currency !== "usd" ||
     (intent.metadata as ProviderObject)?.accelerate_invoice_id !== row.id ||
     intent.livemode !== (client.mode === "live")
@@ -203,11 +234,11 @@ export async function runInvoiceCommand(db: SupabaseClient, raw: unknown, actorE
   const actor = z.email().parse(actorEmail);
   let row: Row;
   if (command.operation === "save_draft") {
-    if (command.draft.contactId) {
+    if (command.draft.contact_id) {
       const { data } = await db
         .from("contacts")
         .select("id")
-        .eq("id", command.draft.contactId)
+        .eq("id", command.draft.contact_id)
         .maybeSingle();
       if (!data) throw new Error("Choose a contact from this workspace");
     }
@@ -245,7 +276,23 @@ export async function runInvoiceCommand(db: SupabaseClient, raw: unknown, actorE
       action: "invoice.issued",
       entityType: "invoice",
       entityId: row.id,
-      after: { number: row.number, totalCents: row.total_cents, paymentIntent: intent.id },
+      after: { number: row.number, amountCents: row.amount_cents, paymentIntent: intent.id },
+    });
+  } else if (command.operation === "delete_draft") {
+    const current = await readRow(db, command.id);
+    if (current.status !== "draft" || current.revision !== command.revision)
+      throw new Error("Only an unchanged draft can be deleted. Reload it first.");
+    row = await rpc(db, "close_invoice", {
+      p_id: current.id,
+      p_revision: command.revision,
+      p_outcome: "void",
+      p_note: "",
+    });
+    await recordAudit(db, {
+      actorEmail: actor,
+      action: "invoice.draft_deleted",
+      entityType: "invoice",
+      entityId: row.id,
     });
   } else if (command.operation === "void" || command.operation === "record_external_payment") {
     const current = await readRow(db, command.id);
@@ -290,7 +337,7 @@ export async function syncInvoicePayment(db: SupabaseClient, row: Row, externalI
   const { object: intent } = await client.paymentIntent(row.stripe_payment_intent_id, true);
   const metadata = (intent.metadata ?? {}) as ProviderObject;
   if (
-    intent.amount !== row.total_cents ||
+    intent.amount !== row.amount_cents ||
     intent.currency !== "usd" ||
     metadata.accelerate_invoice_id !== row.id ||
     metadata.accelerate_tenant_id !== row.tenant_id
@@ -302,7 +349,9 @@ export async function syncInvoicePayment(db: SupabaseClient, row: Row, externalI
       : null;
   if (
     intent.status === "succeeded" &&
-    (intent.amount_received !== row.total_cents || !charge?.paid || charge.amount !== row.total_cents)
+    (intent.amount_received !== row.amount_cents ||
+      !charge?.paid ||
+      charge.amount !== row.amount_cents)
   )
     throw new Error("Stripe has not confirmed the full payment for this invoice");
   return rpc(db, "observe_invoice_payment", {
@@ -328,7 +377,11 @@ export async function syncInvoicePayment(db: SupabaseClient, row: Row, externalI
  * whose metadata names one of this workspace's invoices. */
 export async function processInvoiceStripeWebhook(db: SupabaseClient, event: ProviderObject) {
   const type = event.type;
-  if (typeof type !== "string" || typeof event.id !== "string" || !/^evt_[A-Za-z0-9_]+$/.test(event.id))
+  if (
+    typeof type !== "string" ||
+    typeof event.id !== "string" ||
+    !/^evt_[A-Za-z0-9_]+$/.test(event.id)
+  )
     return { handled: false };
   const handled = [
     "payment_intent.succeeded",
@@ -368,18 +421,19 @@ export async function readPublicInvoice(db: SupabaseClient, token: string) {
       () => row,
     );
   const { brand } = await readWorkspaceBrand(db);
-  return { invoice: row, brand };
+  return { invoice: toRecord(row, ""), row, brand: invoiceBrand(brand) };
 }
 
 /** Client secret for the Stripe Payment Element on our invoice page. */
 export async function invoicePaymentDetails(db: SupabaseClient, token: string) {
-  const { invoice } = await readPublicInvoice(db, token);
+  const { row: invoice } = await readPublicInvoice(db, token);
   if (invoice.status !== "open") return { status: invoice.status };
   const client = await tenantStripeClient(db);
-  if (!client.publishableKey) throw new Error("Online payment is not configured for this workspace");
+  if (!client.publishableKey)
+    throw new Error("Online payment is not configured for this workspace");
   const { object: intent } = await client.paymentIntent(invoice.stripe_payment_intent_id!);
   if (
-    intent.amount !== invoice.total_cents ||
+    intent.amount !== invoice.amount_cents ||
     (intent.metadata as ProviderObject)?.accelerate_invoice_id !== invoice.id ||
     !PAYABLE.includes(String(intent.status)) ||
     typeof intent.client_secret !== "string"
@@ -389,9 +443,8 @@ export async function invoicePaymentDetails(db: SupabaseClient, token: string) {
     status: "open" as const,
     clientSecret: intent.client_secret,
     publishableKey: client.publishableKey,
-    totalCents: invoice.total_cents,
-    email: invoice.customer_email,
-    name: invoice.customer_name,
+    amountCents: invoice.amount_cents,
+    email: invoice.contact_email,
   };
 }
 
@@ -401,12 +454,32 @@ export async function overdueInvoices(db: SupabaseClient) {
   const today = new Date().toISOString().slice(0, 10);
   const { data, error } = await db
     .from("invoices")
-    .select("id,number,contact_id,customer_name,customer_email,total_cents,due_date,status")
+    .select("id,number,contact_id,company_name,contact_email,amount_cents,due_at,status")
     .eq("tenant_id", tenantOf(db))
     .eq("status", "open")
-    .lt("due_date", today)
-    .order("due_date")
+    .lt("due_at", today)
+    .order("due_at")
     .limit(200);
   if (error) throw new Error("Overdue invoices could not be read");
   return data ?? [];
+}
+
+/** The customer's downloadable record, drawn from the same figures as the page. */
+export async function invoicePdf(db: SupabaseClient, token: string) {
+  const { invoice, brand } = await readPublicInvoice(db, token);
+  const { renderInvoicePdf } = await import("@/lib/invoices/pdf.server");
+  let logo: Uint8Array | null = null;
+  if (/^https:\/\//.test(brand.mark) && brand.mark.endsWith(".png")) {
+    try {
+      const response = await fetch(brand.mark, { signal: AbortSignal.timeout(4000) });
+      if (response.ok) logo = new Uint8Array(await response.arrayBuffer());
+    } catch {
+      logo = null;
+    }
+  }
+  const bytes = await renderInvoicePdf(invoice, brand, logo);
+  return {
+    bytes,
+    filename: `invoice-${(invoice.invoice_number || "draft").replace(/[^A-Za-z0-9_-]/g, "")}.pdf`,
+  };
 }

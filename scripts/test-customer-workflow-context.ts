@@ -102,7 +102,13 @@ async function main() {
   };
   const billingMemory = new MemorySupabase({
     tenants: [
-      { id: tenant, slug: "fixture", status: "active", config: { modules: { invoicing: true } } },
+      {
+        id: tenant,
+        slug: "fixture",
+        name: "Fixture business",
+        status: "active",
+        config: { modules: { invoicing: true } },
+      },
     ],
     invoices: [],
     contacts: [
@@ -136,7 +142,10 @@ async function main() {
   };
   try {
     const unlinked = await listInvoices(billingDb);
-    assert.equal(unlinked.contacts.some((row) => row.id === contactId), true);
+    assert.equal(
+      unlinked.contacts.some((row) => row.id === contactId),
+      true,
+    );
     const selected = await listInvoices(billingDb, { contactId });
     assert.equal(selected.contacts.filter((row) => row.id === contactId).length, 1);
     await assert.rejects(

@@ -46,8 +46,7 @@ export async function runDemoAgent(
     for (const invoice of current.invoices) {
       const stored = sandbox.invoices.find((row) => row.id === invoice.invoiceId);
       if (!stored) throw new Error("Invoice is outside the fictional scenario");
-      stored.amountPaidCents = stored.totalCents - invoice.remaining;
-      stored.status = invoice.status as typeof stored.status;
+      stored.status = (invoice.remaining === 0 ? "paid" : invoice.status) as typeof stored.status;
     }
   }
   const runId = randomUUID();

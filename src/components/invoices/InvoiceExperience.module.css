@@ -1,0 +1,343 @@
+:where(.sheet, .experience) {
+  --sd-space-2: 8px;
+  --sd-space-3: 12px;
+  --sd-space-4: 16px;
+  --sd-space-5: 20px;
+  --sd-space-6: 24px;
+  --sd-space-7: 32px;
+  --sd-space-8: 48px;
+  --sd-tracking-label: 0.14em;
+  --sd-shadow-1: 0 1px 2px #0000000f, 0 8px 24px #0000000a;
+  --sd-shadow-2: 0 2px 4px #00000012, 0 16px 40px #00000014;
+  --sd-shadow-3: 0 0 0 1px #1720330a, 0 12px 48px #17203312;
+  --sd-paper-muted: #6b6b6b;
+  --sd-text-warm: #e7e5e0;
+  --radius-control: 8px;
+  --radius-surface: 16px;
+}
+.experience {
+  width: 100%;
+  max-width: 1060px;
+  margin-inline: auto;
+  color: #171717;
+  font-family: var(--font-body, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+.experience [data-invoice-actions] {
+  --destructive-text: 0 72% 41%;
+  --success: 142 72% 29%;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 0 0 var(--sd-space-6);
+}
+.brand img {
+  flex: none;
+  object-fit: contain;
+}
+.brand span {
+  font-family: var(--font-display, sans-serif);
+  font-size: 25px;
+  letter-spacing: 0.055em;
+  line-height: 1;
+}
+.brand small {
+  display: block;
+  margin-top: 6px;
+  color: var(--sd-paper-muted);
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--sd-tracking-label);
+  text-transform: uppercase;
+}
+.brandWebsite {
+  margin-left: auto;
+  color: #555;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  overflow-wrap: anywhere;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.hero {
+  overflow: hidden;
+  border-radius: 24px;
+  background: #141613;
+  color: #fff;
+  box-shadow: var(--sd-shadow-2);
+}
+.heroMedia {
+  position: relative;
+  height: clamp(140px, 19vw, 220px);
+  overflow: hidden;
+  outline: 1px solid rgba(255, 255, 255, 0.1);
+  outline-offset: -1px;
+}
+.heroImage {
+  object-fit: cover;
+  object-position: center 52%;
+}
+.heroContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  align-items: start;
+  gap: 36px;
+  padding: clamp(var(--sd-space-6), 4vw, 40px);
+}
+.heroStory {
+  min-width: 0;
+}
+.partnerLabel {
+  margin: 0 0 var(--sd-space-3);
+  color: #c7bba4;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--sd-tracking-label);
+  text-transform: uppercase;
+}
+.hero h1 {
+  margin: 0 0 var(--sd-space-4);
+  font-family: var(--font-display, sans-serif);
+  font-size: clamp(34px, 4.6vw, 56px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.intro {
+  margin: 0;
+  color: var(--sd-text-warm);
+  font-size: 16px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.eventDate {
+  margin: var(--sd-space-3) 0 0;
+  color: #e9c67e;
+  font-size: 14px;
+  font-weight: 600;
+}
+.agreement {
+  margin-top: var(--sd-space-6);
+  padding-top: var(--sd-space-5);
+  border-top: 1px solid #ffffff24;
+}
+.agreement h2 {
+  margin: 0 0 var(--sd-space-2);
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  color: #e9c67e;
+}
+.agreement p {
+  margin: 0;
+  color: var(--sd-text-warm);
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.amountCard {
+  display: grid;
+  gap: var(--sd-space-3);
+  min-width: 0;
+  padding: var(--sd-space-6);
+  border-radius: var(--radius-surface);
+  background: #23251f;
+  box-shadow: inset 0 0 0 1px #e9c67e40;
+  font-variant-numeric: tabular-nums;
+}
+.amountCard > span {
+  color: #e9c67e;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--sd-tracking-label);
+  text-transform: uppercase;
+}
+.amountCard > strong {
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+.amountCard small {
+  color: #d8d5cc;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.paymentMeta {
+  display: grid;
+  gap: var(--sd-space-3);
+  margin: 6px 0 0;
+  padding-top: var(--sd-space-4);
+  border-top: 1px solid #ffffff24;
+  font-size: 12px;
+}
+.paymentMeta div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sd-space-3);
+}
+.paymentMeta dt {
+  color: #d8d5cc;
+}
+.paymentMeta dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.actions {
+  margin-top: var(--sd-space-6);
+}
+.summary {
+  display: block;
+  margin-top: var(--sd-space-6);
+  padding: clamp(var(--sd-space-5), 4vw, 36px);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--sd-shadow-1);
+}
+.summary h2 {
+  margin: 0;
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.notes {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid #e7e4dc;
+}
+.notes h3 {
+  margin: 0 0 var(--sd-space-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+.notes p {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.experience[data-brand="accelerate"] .brand span {
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: var(--sd-tracking-label);
+  text-transform: uppercase;
+}
+.experience[data-brand="accelerate"] .hero h1 {
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.experience[data-brand="accelerate"] .eventDate,
+.experience[data-brand="accelerate"] .agreement h2 {
+  color: #e7e7e7;
+}
+.experience[data-brand="accelerate"] .amountCard {
+  background: #f4f4f4;
+  color: #111111;
+}
+.experience[data-brand="accelerate"] .amountCard > span,
+.experience[data-brand="accelerate"] .amountCard small,
+.experience[data-brand="accelerate"] .paymentMeta dt {
+  color: #555555;
+}
+.experience[data-brand="accelerate"] .paymentMeta {
+  border-color: #11111126;
+}
+@media (max-width: 640px) {
+  .brand {
+    margin-bottom: var(--sd-space-5);
+    flex-wrap: wrap;
+  }
+  .brandWebsite {
+    flex-basis: 100%;
+    margin-left: 49px;
+  }
+  .heroContent {
+    grid-template-columns: 1fr;
+    gap: var(--sd-space-6);
+  }
+  .hero h1 {
+    font-size: clamp(32px, 9vw, 44px);
+  }
+  .intro {
+    font-size: 15px;
+  }
+  .amountCard {
+    padding: var(--sd-space-5);
+  }
+  .impactCards {
+    grid-template-columns: 1fr;
+  }
+}
+@media print {
+  .actions {
+    display: none;
+  }
+}
+
+.supportSection {
+  margin-top: var(--sd-space-7);
+}
+.supportSection h2 {
+  margin: 0 0 var(--sd-space-4);
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.impactCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sd-space-3);
+}
+.impactCard {
+  min-width: 0;
+  padding: 22px;
+  border-radius: 20px;
+}
+.impactCard {
+  background: #fff;
+  box-shadow: var(--sd-shadow-1);
+}
+.impactCard svg {
+  display: block;
+  margin-bottom: var(--sd-space-4);
+  color: #785a21;
+}
+.impactCard h3 {
+  margin: 0 0 var(--sd-space-2);
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.impactCard p {
+  margin: 0;
+  color: #605c52;
+  font-size: 14px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+@media (max-width: 900px) {
+  .impactCards {
+    grid-template-columns: 1fr;
+  }
+}

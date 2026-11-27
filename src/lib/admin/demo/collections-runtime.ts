@@ -2,7 +2,8 @@ import type { AiCommandStreamEvent } from "@/lib/revenue-os/ai-stream-contract";
 import { getModuleSettings, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 import { z } from "zod";
 import type { DemoScenarioPack } from "./scenarios";
-import type { DemoBusinessState } from "./business-runtime";
+import { demoInvoice, type DemoBusinessState } from "./business-runtime";
+import { emptyInvoiceDraft } from "@/lib/invoices/schema";
 import {
   collectionCasePatchSchema,
   describeCollectionPolicyChange,
@@ -32,30 +33,27 @@ export function seedDemoCollections(pack: DemoScenarioPack, state: DemoBusinessS
       remaining = i === 5 ? 0 : total,
       status = i === 5 ? "paid" : "open";
     const number = `INV-${String(900 + i + 1).padStart(4, "0")}`;
-    state.invoices.push({
-      id: invoiceId,
-      number,
-      contactId: person.id,
-      customerName: person.name,
-      customerEmail: person.email,
-      currency,
-      lines: [{ description: pack.business.invoiceMemo, quantity: 1, unitCents: total }],
-      totalCents: total,
-      amountPaidCents: total - remaining,
-      refundedCents: 0,
-      memo: "",
-      dueDate: day(-20 - i),
-      paymentMethods: ["us_bank_account", "card"],
-      status,
-      testMode: true,
-      issuedAt: now(),
-      paidAt: status === "paid" ? now() : null,
-      voidedAt: null,
-      externalPaymentNote: "",
-      revision: 1,
-      createdAt: now(),
-      shareUrl: null,
-    });
+    state.invoices.push(
+      demoInvoice(
+        {
+          ...emptyInvoiceDraft(),
+          contact_id: person.id,
+          company_name: person.name,
+          contact_name: person.name,
+          contact_email: person.email,
+          description: pack.business.invoiceMemo,
+          due_date: day(-20 - i),
+          lines: [{ description: pack.business.invoiceMemo, quantity: 1, unit_cents: total }],
+        },
+        {
+          id: invoiceId,
+          status,
+          invoice_number: number,
+          issued_at: now(),
+          paid_at: status === "paid" ? now() : null,
+        },
+      ),
+    );
     return {
       id,
       contactId: person.id,
@@ -160,7 +158,9 @@ export async function handleDemoCollections(
   const sync = (c: CollectionCaseView) => {
     for (const i of c.invoices) {
       const source = state.invoices.find((v) => v.id === i.invoiceId)!;
-      i.remaining = (["paid", "paid_external", "void"].includes(source.status) ? 0 : source.totalCents - source.amountPaidCents);
+      i.remaining = ["paid", "paid_external", "void"].includes(source.status)
+        ? 0
+        : source.amount_cents;
       i.status = source.status;
       i.observedAt = now();
     }
@@ -197,7 +197,9 @@ export async function handleDemoCollections(
         const source = state.invoices.find((v) => v.id === i.invoiceId)!;
         return {
           ...i,
-          remaining: (["paid", "paid_external", "void"].includes(source.status) ? 0 : source.totalCents - source.amountPaidCents),
+          remaining: ["paid", "paid_external", "void"].includes(source.status)
+            ? 0
+            : source.amount_cents,
           status: source.status,
           url: "#simulated-payment",
         };
@@ -253,7 +255,13 @@ export async function handleDemoCollections(
     const after = { ...before, ...patch };
     const invoices = c.invoices.map((i) => {
       const source = state.invoices.find((v) => v.id === i.invoiceId)!;
-      return { ...i, remaining: (["paid", "paid_external", "void"].includes(source.status) ? 0 : source.totalCents - source.amountPaidCents), status: source.status };
+      return {
+        ...i,
+        remaining: ["paid", "paid_external", "void"].includes(source.status)
+          ? 0
+          : source.amount_cents,
+        status: source.status,
+      };
     });
     if (!invoices.some((i) => i.status === "open" && i.remaining > 0))
       throw new Error("No open balance remains");
@@ -394,9 +402,9 @@ export async function handleDemoCollections(
               .filter((a) => a.pluginId === "receivables-collections" && a.payload.caseId === c.id)
               .map((a) => ({ ...a, actionType: a.action_type, preview: a.payload.preview })),
           })),
-        invoiceOptions: state.actions
-          .filter((a) => a.action_type === "create_stripe_invoice_draft" && a.status === "executed")
-          .map((a) => ({ id: a.id, title: a.title })),
+        invoiceOptions: state.invoices
+          .filter((i) => i.contact_id && (i.status === "open" || i.status === "processing"))
+          .map((i) => ({ id: i.id, title: `${i.invoice_number} · ${i.company_name}` })),
         truncated: false,
         simulated: true,
       });
@@ -412,9 +420,7 @@ export async function handleDemoCollections(
     if (url.pathname === "/api/admin/collections" && method === "POST") {
       enabled();
       const ids = z.array(z.uuid()).min(1).max(25).parse(body.invoiceIds);
-      const matching = cases.filter((c) =>
-        c.invoices.some((i) => ids.includes(i.invoiceId)),
-      );
+      const matching = cases.filter((c) => c.invoices.some((i) => ids.includes(i.invoiceId)));
       if (ids.some((id) => !state.invoices.some((invoice) => invoice.id === id)))
         throw new Error("Invoice unavailable");
       for (const c of matching) {
@@ -429,8 +435,7 @@ export async function handleDemoCollections(
       for (const i of c.invoices) {
         const source = state.invoices.find((v) => v.id === i.invoiceId)!;
         source.status = "paid";
-        source.amountPaidCents = source.totalCents;
-        source.paidAt = now();
+        source.paid_at = now();
       }
       sync(c);
       record(c, "settled");

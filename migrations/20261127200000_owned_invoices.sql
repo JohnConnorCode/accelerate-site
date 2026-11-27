@@ -9,13 +9,30 @@ CREATE TABLE IF NOT EXISTS public.invoices (
  tenant_id uuid NOT NULL REFERENCES public.tenants(id),
  number text,
  contact_id uuid,
- customer_name text NOT NULL CHECK (length(btrim(customer_name)) BETWEEN 1 AND 160),
- customer_email text NOT NULL CHECK (customer_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$' AND length(customer_email)<=254),
+ kind text NOT NULL DEFAULT 'services' CHECK (kind IN ('services','general')),
+ company_name text NOT NULL CHECK (length(btrim(company_name)) BETWEEN 1 AND 160),
+ contact_name text NOT NULL CHECK (length(btrim(contact_name)) BETWEEN 1 AND 120),
+ contact_email text NOT NULL CHECK (contact_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$' AND length(contact_email)<=254),
+ billing_line1 text NOT NULL DEFAULT '' CHECK (length(billing_line1)<=160),
+ billing_line2 text NOT NULL DEFAULT '' CHECK (length(billing_line2)<=160),
+ billing_city text NOT NULL DEFAULT '' CHECK (length(billing_city)<=100),
+ billing_region text NOT NULL DEFAULT '' CHECK (length(billing_region)<=100),
+ billing_postal text NOT NULL DEFAULT '' CHECK (length(billing_postal)<=20),
+ billing_country text NOT NULL DEFAULT 'US' CHECK (billing_country='' OR billing_country ~ '^[A-Z]{2}$'),
+ purchase_order text NOT NULL DEFAULT '' CHECK (length(purchase_order)<=100),
+ description text NOT NULL CHECK (length(btrim(description)) BETWEEN 1 AND 240),
+ support_details text NOT NULL DEFAULT '' CHECK (length(support_details)<=240),
+ service_period text NOT NULL DEFAULT '' CHECK (length(service_period)<=160),
+ notes text NOT NULL DEFAULT '' CHECK (length(notes)<=500),
+ tax_review text NOT NULL DEFAULT 'no_tax' CHECK (tax_review IN ('pending','no_tax','tax_included')),
  currency text NOT NULL DEFAULT 'usd' CHECK (currency IN ('usd')),
  lines jsonb NOT NULL CHECK (jsonb_typeof(lines)='array' AND jsonb_array_length(lines) BETWEEN 1 AND 20),
- total_cents bigint NOT NULL CHECK (total_cents BETWEEN 50 AND 99999999),
- memo text NOT NULL DEFAULT '' CHECK (length(memo)<=1000),
+ discount_cents bigint NOT NULL DEFAULT 0 CHECK (discount_cents>=0),
+ discount_label text NOT NULL DEFAULT 'Agreed discount' CHECK (length(discount_label)<=40),
+ amount_cents bigint NOT NULL CHECK (amount_cents BETWEEN 50 AND 99999999),
+ invoice_date date,
  due_date date,
+ due_days integer NOT NULL DEFAULT 15 CHECK (due_days BETWEEN 0 AND 365),
  payment_methods text[] NOT NULL DEFAULT ARRAY['us_bank_account','card']
   CHECK (cardinality(payment_methods) BETWEEN 1 AND 2 AND payment_methods <@ ARRAY['us_bank_account','card']),
  status text NOT NULL DEFAULT 'draft'
@@ -24,11 +41,11 @@ CREATE TABLE IF NOT EXISTS public.invoices (
  livemode boolean,
  stripe_payment_intent_id text CHECK (stripe_payment_intent_id ~ '^pi_[A-Za-z0-9_]+$'),
  stripe_charge_id text,
- amount_paid_cents bigint NOT NULL DEFAULT 0 CHECK (amount_paid_cents BETWEEN 0 AND total_cents),
- refunded_cents bigint NOT NULL DEFAULT 0 CHECK (refunded_cents BETWEEN 0 AND total_cents),
+ amount_paid_cents bigint NOT NULL DEFAULT 0 CHECK (amount_paid_cents BETWEEN 0 AND amount_cents),
+ refunded_cents bigint NOT NULL DEFAULT 0 CHECK (refunded_cents BETWEEN 0 AND amount_cents),
  link_token_hash text CHECK (link_token_hash ~ '^[a-f0-9]{64}$'),
  encrypted_link_token text,
- issued_at timestamptz, paid_at timestamptz, voided_at timestamptz,
+ issued_at timestamptz, due_at timestamptz, paid_at timestamptz, voided_at timestamptz,
  external_payment_note text NOT NULL DEFAULT '' CHECK (length(external_payment_note)<=300),
  created_by text NOT NULL CHECK (length(created_by) BETWEEN 1 AND 254),
  revision integer NOT NULL DEFAULT 1,
@@ -36,6 +53,7 @@ CREATE TABLE IF NOT EXISTS public.invoices (
  updated_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE(tenant_id,id), UNIQUE(tenant_id,number), UNIQUE(tenant_id,stripe_payment_intent_id),
  UNIQUE(link_token_hash),
+ CHECK (invoice_date IS NULL OR due_date IS NULL OR due_date>=invoice_date),
  CHECK (status IN ('draft','void') OR (number IS NOT NULL AND issued_at IS NOT NULL)),
  CHECK (status NOT IN ('open','processing','paid') OR (stripe_payment_intent_id IS NOT NULL AND stripe_account_id IS NOT NULL AND livemode IS NOT NULL))
 );
@@ -78,36 +96,45 @@ GRANT SELECT,INSERT,UPDATE ON public.invoice_number_counters TO service_role;
 -- checked in one transaction (no check-then-act across a network boundary).
 CREATE OR REPLACE FUNCTION public.save_invoice_draft(p_id uuid,p_revision integer,p_draft jsonb,p_actor text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
-DECLARE t uuid; i public.invoices; total bigint; line jsonb;
+DECLARE t uuid; i public.invoices; subtotal bigint; line jsonb; d jsonb:=p_draft;
 BEGIN
  t:=private.authorized_request_tenant_id();
  IF NOT EXISTS(SELECT 1 FROM public.tenants WHERE id=t AND config->'modules'->>'invoicing'='true') THEN RAISE EXCEPTION 'Invoicing is disabled'; END IF;
- IF p_draft IS NULL OR jsonb_typeof(p_draft->'lines')<>'array' OR jsonb_array_length(p_draft->'lines') NOT BETWEEN 1 AND 20 THEN RAISE EXCEPTION 'Add between 1 and 20 invoice lines'; END IF;
- total:=0;
- FOR line IN SELECT value FROM jsonb_array_elements(p_draft->'lines') LOOP
+ IF d IS NULL OR jsonb_typeof(d->'lines')<>'array' OR jsonb_array_length(d->'lines') NOT BETWEEN 1 AND 20 THEN RAISE EXCEPTION 'Add between 1 and 20 line items'; END IF;
+ subtotal:=0;
+ FOR line IN SELECT value FROM jsonb_array_elements(d->'lines') LOOP
   IF length(btrim(coalesce(line->>'description','')))<1 OR length(line->>'description')>240
-   OR (line->>'quantity')::integer NOT BETWEEN 1 AND 10000 OR (line->>'unitCents')::bigint NOT BETWEEN 1 AND 99999999
-   THEN RAISE EXCEPTION 'Each line needs a description, a quantity and a price'; END IF;
-  total:=total+(line->>'quantity')::bigint*(line->>'unitCents')::bigint;
+   OR (line->>'quantity')::integer NOT BETWEEN 1 AND 1000 OR (line->>'unit_cents')::bigint NOT BETWEEN 1 AND 100000000
+   THEN RAISE EXCEPTION 'Each line item needs a description, a quantity and a rate'; END IF;
+  subtotal:=subtotal+(line->>'quantity')::bigint*(line->>'unit_cents')::bigint;
  END LOOP;
- IF total<50 OR total>99999999 THEN RAISE EXCEPTION 'Invoice total must be between $0.50 and $999,999.99'; END IF;
- IF p_id IS NULL THEN
-  INSERT INTO public.invoices(tenant_id,contact_id,customer_name,customer_email,lines,total_cents,memo,due_date,payment_methods,created_by)
-  VALUES(t,nullif(p_draft->>'contactId','')::uuid,btrim(p_draft->>'customerName'),lower(btrim(p_draft->>'customerEmail')),p_draft->'lines',total,
-   coalesce(p_draft->>'memo',''),nullif(p_draft->>'dueDate','')::date,
-   ARRAY(SELECT jsonb_array_elements_text(p_draft->'paymentMethods')),p_actor)
-  RETURNING * INTO i;
- ELSE
+ IF coalesce((d->>'discount_cents')::bigint,0)<0 OR coalesce((d->>'discount_cents')::bigint,0)>=subtotal THEN RAISE EXCEPTION 'Discount must be less than the full price'; END IF;
+ IF subtotal-coalesce((d->>'discount_cents')::bigint,0) NOT BETWEEN 50 AND 99999999 THEN RAISE EXCEPTION 'Invoice amount must be between $0.50 and $999,999.99'; END IF;
+ IF p_id IS NOT NULL THEN
   SELECT * INTO i FROM public.invoices WHERE tenant_id=t AND id=p_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Invoice not found'; END IF;
   IF i.status<>'draft' THEN RAISE EXCEPTION 'Only a draft can be edited. Void this invoice and create a new one.'; END IF;
   IF i.revision<>p_revision THEN RAISE EXCEPTION 'This draft changed. Reload it before saving.'; END IF;
-  UPDATE public.invoices SET contact_id=nullif(p_draft->>'contactId','')::uuid,customer_name=btrim(p_draft->>'customerName'),
-   customer_email=lower(btrim(p_draft->>'customerEmail')),lines=p_draft->'lines',total_cents=total,memo=coalesce(p_draft->>'memo',''),
-   due_date=nullif(p_draft->>'dueDate','')::date,payment_methods=ARRAY(SELECT jsonb_array_elements_text(p_draft->'paymentMethods')),
-   revision=revision+1,updated_at=now()
-  WHERE tenant_id=t AND id=p_id RETURNING * INTO i;
  END IF;
+ INSERT INTO public.invoices AS cur(id,tenant_id,contact_id,kind,company_name,contact_name,contact_email,billing_line1,billing_line2,billing_city,
+  billing_region,billing_postal,billing_country,purchase_order,description,support_details,service_period,notes,tax_review,lines,discount_cents,
+  discount_label,amount_cents,invoice_date,due_date,due_days,payment_methods,created_by)
+ VALUES(coalesce(p_id,gen_random_uuid()),t,nullif(d->>'contact_id','')::uuid,coalesce(d->>'kind','services'),btrim(d->>'company_name'),btrim(d->>'contact_name'),
+  lower(btrim(d->>'contact_email')),coalesce(d->>'billing_line1',''),coalesce(d->>'billing_line2',''),coalesce(d->>'billing_city',''),coalesce(d->>'billing_region',''),
+  coalesce(d->>'billing_postal',''),coalesce(d->>'billing_country','US'),coalesce(d->>'purchase_order',''),btrim(d->>'description'),coalesce(d->>'support_details',''),
+  coalesce(d->>'service_period',''),coalesce(d->>'notes',''),coalesce(d->>'tax_review','no_tax'),d->'lines',coalesce((d->>'discount_cents')::bigint,0),
+  coalesce(d->>'discount_label','Agreed discount'),subtotal-coalesce((d->>'discount_cents')::bigint,0),nullif(d->>'invoice_date','')::date,nullif(d->>'due_date','')::date,
+  coalesce((d->>'due_days')::integer,15),ARRAY(SELECT jsonb_array_elements_text(coalesce(d->'payment_methods','["us_bank_account","card"]'::jsonb))),p_actor)
+ ON CONFLICT(id) DO UPDATE SET contact_id=EXCLUDED.contact_id,kind=EXCLUDED.kind,company_name=EXCLUDED.company_name,contact_name=EXCLUDED.contact_name,
+  contact_email=EXCLUDED.contact_email,billing_line1=EXCLUDED.billing_line1,billing_line2=EXCLUDED.billing_line2,billing_city=EXCLUDED.billing_city,
+  billing_region=EXCLUDED.billing_region,billing_postal=EXCLUDED.billing_postal,billing_country=EXCLUDED.billing_country,purchase_order=EXCLUDED.purchase_order,
+  description=EXCLUDED.description,support_details=EXCLUDED.support_details,service_period=EXCLUDED.service_period,notes=EXCLUDED.notes,
+  tax_review=EXCLUDED.tax_review,lines=EXCLUDED.lines,discount_cents=EXCLUDED.discount_cents,discount_label=EXCLUDED.discount_label,
+  amount_cents=EXCLUDED.amount_cents,invoice_date=EXCLUDED.invoice_date,due_date=EXCLUDED.due_date,due_days=EXCLUDED.due_days,
+  payment_methods=EXCLUDED.payment_methods,revision=cur.revision+1,updated_at=now()
+  WHERE cur.tenant_id=t
+ RETURNING * INTO i;
+ IF i.id IS NULL THEN RAISE EXCEPTION 'Invoice not found'; END IF;
  RETURN to_jsonb(i);
 END $$;
 
@@ -130,6 +157,8 @@ BEGIN
   ON CONFLICT(tenant_id) DO UPDATE SET last_value=public.invoice_number_counters.last_value+1
   RETURNING last_value INTO n;
  UPDATE public.invoices SET status='open',number='INV-'||lpad(n::text,4,'0'),issued_at=now(),
+  due_at=CASE WHEN due_date IS NOT NULL THEN due_date::timestamptz
+   ELSE (coalesce(invoice_date,(now() AT TIME ZONE 'UTC')::date)+due_days)::timestamptz END,
   stripe_payment_intent_id=p_intent,stripe_account_id=p_account,livemode=p_livemode,
   link_token_hash=p_link_hash,encrypted_link_token=p_encrypted_link,revision=revision+1,updated_at=now()
  WHERE tenant_id=t AND id=p_id RETURNING * INTO i;
@@ -157,13 +186,13 @@ BEGIN
   WHEN s='succeeded' THEN 'paid'
   WHEN s='processing' THEN 'processing'
   ELSE 'open' END;
- IF s='succeeded' AND (p_observation->>'amount_received')::bigint IS DISTINCT FROM i.total_cents THEN RAISE EXCEPTION 'Payment amount differs from the invoice'; END IF;
+ IF s='succeeded' AND (p_observation->>'amount_received')::bigint IS DISTINCT FROM i.amount_cents THEN RAISE EXCEPTION 'Payment amount differs from the invoice'; END IF;
  INSERT INTO public.invoice_payment_receipts(tenant_id,invoice_id,external_id,observation) VALUES(t,i.id,p_external_id,p_observation);
  UPDATE public.invoices SET status=next_status,
-  amount_paid_cents=CASE WHEN next_status='paid' THEN total_cents ELSE amount_paid_cents END,
+  amount_paid_cents=CASE WHEN next_status='paid' THEN amount_cents ELSE amount_paid_cents END,
   paid_at=CASE WHEN next_status='paid' AND paid_at IS NULL THEN coalesce((p_observation->>'paid_at')::timestamptz,now()) ELSE paid_at END,
   stripe_charge_id=coalesce(p_observation->>'charge_id',stripe_charge_id),
-  refunded_cents=greatest(refunded_cents,least(total_cents,coalesce((p_observation->>'refunded_cents')::bigint,0))),
+  refunded_cents=greatest(refunded_cents,least(amount_cents,coalesce((p_observation->>'refunded_cents')::bigint,0))),
   revision=revision+1,updated_at=now()
  WHERE tenant_id=t AND id=i.id RETURNING * INTO i;
  RETURN to_jsonb(i);
@@ -184,7 +213,7 @@ BEGIN
  UPDATE public.invoices SET status=p_outcome,
   voided_at=CASE WHEN p_outcome='void' THEN now() ELSE voided_at END,
   paid_at=CASE WHEN p_outcome='paid_external' THEN now() ELSE paid_at END,
-  amount_paid_cents=CASE WHEN p_outcome='paid_external' THEN total_cents ELSE amount_paid_cents END,
+  amount_paid_cents=CASE WHEN p_outcome='paid_external' THEN amount_cents ELSE amount_paid_cents END,
   external_payment_note=coalesce(p_note,''),revision=revision+1,updated_at=now()
  WHERE tenant_id=t AND id=p_id RETURNING * INTO i;
  RETURN to_jsonb(i);
@@ -258,13 +287,13 @@ DECLARE t uuid; h text; prior public.collection_commands%ROWTYPE; item jsonb; i 
  FOR item IN SELECT value FROM jsonb_array_elements(p_observations) LOOP
   SELECT * INTO i FROM public.invoices WHERE tenant_id=t AND id=(item->>'invoiceId')::uuid FOR SHARE;
   IF NOT FOUND OR i.contact_id IS NULL THEN RAISE EXCEPTION 'Collections tracks issued invoices linked to a contact'; END IF;
-  remaining:=CASE WHEN i.status IN ('paid','paid_external','void') THEN 0 ELSE i.total_cents-i.amount_paid_cents END;
+  remaining:=CASE WHEN i.status IN ('paid','paid_external','void') THEN 0 ELSE i.amount_cents-i.amount_paid_cents END;
   SELECT * INTO c FROM public.collection_cases WHERE tenant_id=t AND contact_id=i.contact_id AND currency=i.currency AND status='open';
-  IF NOT FOUND AND i.status='open' AND remaining>0 AND i.due_date<(now() AT TIME ZONE 'UTC')::date THEN
+  IF NOT FOUND AND i.status='open' AND remaining>0 AND i.due_at<now() THEN
    INSERT INTO public.collection_cases(tenant_id,contact_id,currency) VALUES(t,i.contact_id,i.currency) RETURNING * INTO c;
   END IF;
   INSERT INTO public.collection_observations(tenant_id,request_id,invoice_id,contact_id,test_mode,currency,status,remaining,due_date,observed_at)
-  VALUES(t,p_request,i.id,i.contact_id,coalesce(NOT i.livemode,false),i.currency,i.status,remaining,i.due_date,now()) RETURNING id INTO oid;
+  VALUES(t,p_request,i.id,i.contact_id,coalesce(NOT i.livemode,false),i.currency,i.status,remaining,i.due_at::date,now()) RETURNING id INTO oid;
   IF c.id IS NOT NULL THEN
    INSERT INTO public.collection_case_invoices VALUES(t,c.id,i.id,oid) ON CONFLICT(tenant_id,case_id,invoice_id) DO UPDATE SET observation_id=EXCLUDED.observation_id;
    IF NOT c.id=ANY(touched) THEN touched:=array_append(touched,c.id); END IF;
