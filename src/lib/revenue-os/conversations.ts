@@ -14,7 +14,7 @@ import { proposeAction } from "./actions";
 export const CONVERSATIONS_CONTRACT = "revenue-os-conversations.v1";
 
 export type ConversationStatus = "open" | "waiting" | "resolved" | "archived";
-export type ConversationChannel = "gmail" | "resend" | "form" | "chat" | "manual";
+export type ConversationChannel = "gmail" | "resend" | "form" | "chat" | "manual" | "sms";
 
 export interface ConversationFilter {
   status?: ConversationStatus | "all";
@@ -39,6 +39,19 @@ export interface ConversationFilter {
   search?: string;
   limit?: number;
   offset?: number;
+  /**
+   * Graph window: an id-ordered keyset read with exact ids or foreign-key
+   * anchors pushed into the query, replacing the 300-row recency window.
+   */
+  window?: {
+    ids?: string[];
+    afterId?: string;
+    limit: number;
+    contactId?: string;
+    companyId?: string;
+    opportunityId?: string;
+    statuses?: readonly string[];
+  };
 }
 
 export interface ConversationItem {
@@ -133,10 +146,10 @@ export async function listConversations(
   /** Distinct intents across the loaded window, for building the filter. */
   intents: string[];
 }> {
-  const { data: allRaw, error } = await supabase
-    .from("conversations")
-    .select(
-      `
+  // Explicit tenant scope whenever the client is tenant-bound; RLS remains the backstop.
+  const tenantId = tenantIdForDatabase(supabase);
+  let listQuery = supabase.from("conversations").select(
+    `
       id,
       channel,
       external_id,
@@ -153,9 +166,23 @@ export async function listConversations(
       created_at,
       updated_at
     `,
-    )
-    .order("last_message_at", { ascending: false, nullsFirst: false })
-    .limit(300);
+  );
+  if (tenantId) listQuery = listQuery.eq("tenant_id", tenantId);
+  const graphWindow = filter.window;
+  if (graphWindow) {
+    listQuery = listQuery.order("id", { ascending: true }).limit(graphWindow.limit);
+    if (graphWindow.ids) listQuery = listQuery.in("id", graphWindow.ids);
+    if (graphWindow.afterId) listQuery = listQuery.gt("id", graphWindow.afterId);
+    if (graphWindow.contactId) listQuery = listQuery.eq("contact_id", graphWindow.contactId);
+    if (graphWindow.companyId) listQuery = listQuery.eq("company_id", graphWindow.companyId);
+    if (graphWindow.opportunityId)
+      listQuery = listQuery.eq("opportunity_id", graphWindow.opportunityId);
+    if (graphWindow.statuses) listQuery = listQuery.in("status", [...graphWindow.statuses]);
+  } else
+    listQuery = listQuery
+      .order("last_message_at", { ascending: false, nullsFirst: false })
+      .limit(300);
+  const { data: allRaw, error } = await listQuery;
 
   if (error) {
     if (isMissingRevenueSchema(error)) {
@@ -196,19 +223,28 @@ export async function listConversations(
   const companyIds = [...new Set(rows.map((r) => r.company_id as string).filter(Boolean))];
   const opportunityIds = [...new Set(rows.map((r) => r.opportunity_id as string).filter(Boolean))];
 
+  const contactsRead = () => {
+    const query = supabase
+      .from("contacts")
+      .select("id, full_name, primary_email, phone")
+      .in("id", contactIds);
+    return tenantId ? query.eq("tenant_id", tenantId) : query;
+  };
+  const companiesRead = () => {
+    const query = supabase.from("companies").select("id, name, domain").in("id", companyIds);
+    return tenantId ? query.eq("tenant_id", tenantId) : query;
+  };
+  const opportunitiesRead = () => {
+    const query = supabase
+      .from("opportunities")
+      .select("id, name, stage, estimated_value")
+      .in("id", opportunityIds);
+    return tenantId ? query.eq("tenant_id", tenantId) : query;
+  };
   const [contactsRes, companiesRes, oppsRes] = await Promise.all([
-    contactIds.length
-      ? supabase.from("contacts").select("id, full_name, primary_email, phone").in("id", contactIds)
-      : Promise.resolve({ data: [] }),
-    companyIds.length
-      ? supabase.from("companies").select("id, name, domain").in("id", companyIds)
-      : Promise.resolve({ data: [] }),
-    opportunityIds.length
-      ? supabase
-          .from("opportunities")
-          .select("id, name, stage, estimated_value")
-          .in("id", opportunityIds)
-      : Promise.resolve({ data: [] }),
+    contactIds.length ? contactsRead() : Promise.resolve({ data: [] }),
+    companyIds.length ? companiesRead() : Promise.resolve({ data: [] }),
+    opportunityIds.length ? opportunitiesRead() : Promise.resolve({ data: [] }),
   ]);
 
   const contactMap = new Map((contactsRes.data || []).map((c) => [c.id, c]));
@@ -327,8 +363,8 @@ export async function listConversations(
     });
   }
 
-  const limit = filter.limit ?? 100;
-  const offset = filter.offset ?? 0;
+  const limit = graphWindow ? graphWindow.limit : (filter.limit ?? 100);
+  const offset = graphWindow ? 0 : (filter.offset ?? 0);
   const paged = filtered.slice(offset, offset + limit);
 
   const intents = [

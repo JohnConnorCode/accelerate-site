@@ -384,6 +384,84 @@ export interface TraversalNode {
   id: string;
 }
 
+/**
+ * Non-throwing depth-1 link read for an explicit node set (workspace graph).
+ * Reuses traverseGraph's two exact-sided reads, so it works for core keys
+ * with no entity_types row. Every row is re-checked against exact
+ * (type, id) pairs because per-column IN filters cross-match. A read failure
+ * returns `available: false` instead of failing the caller's graph.
+ */
+export async function readEntityLinksForNodes(
+  supabase: SupabaseClient,
+  tenantIdInput: string,
+  nodes: TraversalNode[],
+  options: { maxLinks?: number } = {},
+): Promise<{ links: EntityLink[]; available: boolean; truncated: boolean }> {
+  const tenantId = tenantIdInput?.trim();
+  if (!tenantId) return { links: [], available: false, truncated: false };
+  const maxLinks = Math.max(1, Math.min(1000, Math.floor(options.maxLinks ?? 1000)));
+  const pairs = new Set(nodes.map((node) => `${node.type}:${node.id}`));
+  if (!pairs.size) return { links: [], available: true, truncated: false };
+  const columns = "id,tenant_id,source_type,source_id,target_type,target_id,link_type,metadata";
+  const unique = [...new Map(nodes.map((node) => [`${node.type}:${node.id}`, node])).values()];
+  const seen = new Set<string>();
+  const links: EntityLink[] = [];
+  let truncated = false;
+  try {
+    // Chunk ids so each request stays a bounded URL; 100 pairs per side.
+    for (let offset = 0; offset < unique.length; offset += 100) {
+      const chunk = unique.slice(offset, offset + 100);
+      const types = [...new Set(chunk.map((node) => node.type))];
+      const ids = [...new Set(chunk.map((node) => node.id))];
+      const [outgoing, incoming] = await Promise.all([
+        supabase
+          .from("entity_links")
+          .select(columns)
+          .eq("tenant_id", tenantId)
+          .in("source_type", types)
+          .in("source_id", ids)
+          .limit(200),
+        supabase
+          .from("entity_links")
+          .select(columns)
+          .eq("tenant_id", tenantId)
+          .in("target_type", types)
+          .in("target_id", ids)
+          .limit(200),
+      ]);
+      if (outgoing.error || incoming.error) return { links: [], available: false, truncated };
+      if ((outgoing.data ?? []).length >= 200 || (incoming.data ?? []).length >= 200)
+        truncated = true;
+      for (const row of [
+        ...((outgoing.data ?? []) as Row[]),
+        ...((incoming.data ?? []) as Row[]),
+      ]) {
+        if (row.tenant_id !== undefined && row.tenant_id !== tenantId) continue;
+        const link = toLink(row);
+        if (seen.has(link.id)) continue;
+        if (
+          !pairs.has(`${link.sourceType}:${link.sourceId}`) &&
+          !pairs.has(`${link.targetType}:${link.targetId}`)
+        )
+          continue;
+        seen.add(link.id);
+        if (links.length >= maxLinks) {
+          truncated = true;
+          continue;
+        }
+        links.push(link);
+      }
+    }
+  } catch (error) {
+    console.error(
+      "[entity-registry] graph link read failed",
+      error instanceof Error ? error.message : "unknown error",
+    );
+    return { links: [], available: false, truncated };
+  }
+  return { links, available: true, truncated };
+}
+
 export interface TraversalEdge {
   from: TraversalNode;
   to: TraversalNode;

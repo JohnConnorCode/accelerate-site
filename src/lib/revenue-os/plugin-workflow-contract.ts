@@ -1,6 +1,5 @@
 /** Trusted host contracts. Plugin source is never imported to discover schemas. */
 import { z } from "zod";
-import { stripeInvoiceInputSchema } from "./stripe-contract";
 import { workflowTaskBatchSchema } from "./workflow-task-contract";
 
 import { compileWorkflowPolicy } from "./plugin-workflow-policy";
@@ -40,21 +39,6 @@ export const PLUGIN_WORKFLOW_CONTRACTS = {
     schema: z
       .object({ meetingId: taskFields.meetingId.unwrap(), tasks: taskFields.tasks })
       .strict(),
-  },
-  "stripe-invoice-draft-v1": {
-    policy: {
-      action: "create_stripe_invoice_draft",
-      trustCeiling: "always-propose",
-      evidence: {
-        kind: "canonical-record",
-        inputKey: "contactId",
-        sourceType: "workflow_contacts",
-      },
-      idempotency: { request: "workflow-request-v1", effect: "stripe-action-v1" },
-    },
-    action: "create_stripe_invoice_draft",
-    domainSchema: stripeInvoiceInputSchema,
-    schema: stripeInvoiceInputSchema,
   },
 } as const;
 export type PluginWorkflowContractId = keyof typeof PLUGIN_WORKFLOW_CONTRACTS;

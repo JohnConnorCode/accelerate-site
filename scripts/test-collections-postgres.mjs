@@ -22,33 +22,20 @@ function fail(input) {
 const contactA = sql(`SELECT id FROM contacts WHERE tenant_id='${a}' LIMIT 1;`),
   contactB = sql(`SELECT id FROM contacts WHERE tenant_id='${b}' LIMIT 1;`);
 sql(
-  `UPDATE tenants SET config=jsonb_set(config,'{modules}','{"receivables-collections":true,"stripe-invoicing":true}') WHERE id IN ('${a}','${b}'); INSERT INTO integration_connections(tenant_id,provider,status,account_email,credential_version) VALUES('${a}','stripe','connected','acct_A',1),('${b}','stripe','connected','acct_B',1);`,
+  `UPDATE tenants SET config=jsonb_set(config,'{modules}','{"receivables-collections":true,"invoicing":true}') WHERE id IN ('${a}','${b}'); INSERT INTO integration_connections(tenant_id,provider,status,account_email,credential_version) VALUES('${a}','stripe','connected','acct_A',1),('${b}','stripe','connected','acct_B',1);`,
 );
 const ids = [randomUUID(), randomUUID(), randomUUID()];
 for (let i = 0; i < ids.length; i++) {
   const tenant = i === 2 ? b : a,
-    contact = i === 2 ? contactB : contactA,
-    account = i === 2 ? "acct_B" : "acct_A";
+    contact = i === 2 ? contactB : contactA;
   sql(
-    `INSERT INTO action_queue(id,tenant_id,action_type,title,status,payload,result) VALUES('${ids[i]}','${tenant}','create_stripe_invoice_draft','Test invoice','executed',${json({ contactId: contact, accountId: account, testMode: true, currency: "usd" })},${json({ invoiceId: "in_" + i })});`,
+    `INSERT INTO invoices(id,tenant_id,number,contact_id,company_name,contact_name,contact_email,description,lines,amount_cents,amount_paid_cents,status,stripe_account_id,livemode,stripe_payment_intent_id,issued_at,due_at,created_by) VALUES('${ids[i]}','${tenant}','INV-000${i + 1}','${contact}','Client','Contact','billing@example.test','Work',${json([{ description: "Work", quantity: 1, unit_cents: 10000 }])},10000,${i === 1 ? 5000 : 0},'open','acct_fixture',false,'pi_${i}',now(),'2025-01-01','owner@example.test');`,
   );
 }
-const observation = (i, extra = {}) => ({
-  creationActionId: ids[i],
-  contactId: i === 2 ? contactB : contactA,
-  providerAccount: i === 2 ? "acct_B" : "acct_A",
-  credentialVersion: 1,
-  invoiceId: "in_" + i,
-  testMode: true,
-  currency: "usd",
-  status: "open",
-  remaining: i === 1 ? 5000 : 10000,
-  dueDate: "2025-01-01",
-  observedAt: new Date().toISOString(),
-  providerRequestId: "req_fixture",
-  complete: true,
-  ...extra,
-});
+// Callers only name invoices; balances are read from the invoices table.
+const observation = (i) => ({ invoiceId: ids[i] });
+const setInvoice = (i, assignments) =>
+  sql(`UPDATE invoices SET ${assignments} WHERE id='${ids[i]}';`);
 const sync = (t, key, items) =>
   context(t) + `SELECT sync_collection_observations('${key}',${json(items)},'owner@example.test');`;
 const request = randomUUID(),
@@ -63,19 +50,7 @@ assert.equal(
   "1",
 );
 assert.match(fail(sync(a, request, [observation(0)])), /identity conflict/);
-assert.match(
-  fail(sync(b, randomUUID(), [observation(0)])),
-  /connection changed|provenance mismatch/,
-);
-assert.match(fail(sync(a, randomUUID(), [observation(0, { complete: false })])), /Incomplete/);
-assert.match(
-  fail(sync(a, randomUUID(), [observation(0, { credentialVersion: 2 })])),
-  /connection changed/,
-);
-assert.match(
-  fail(sync(a, randomUUID(), [observation(0, { observedAt: "2020-01-01T00:00:00.000Z" })])),
-  /stale/,
-);
+assert.match(fail(sync(b, randomUUID(), [observation(0)])), /issued invoices/);
 assert.equal(sql(`SELECT count(*) FROM collection_observations WHERE tenant_id='${a}';`), "2");
 const revision = () => Number(sql(`SELECT revision FROM collection_cases WHERE id='${caseId}';`));
 const edit = (rev, key, patch) =>
@@ -129,7 +104,7 @@ fail(context(a) + `UPDATE collection_cases SET disputed=false WHERE id='${caseId
 fail(`UPDATE collection_observations SET remaining=0;`);
 fail(`DELETE FROM collection_events;`);
 const raceKey = randomUUID(),
-  raceItems = [observation(0, { remaining: 4000 }), observation(1)];
+  raceItems = [observation(0), observation(1)];
 function concurrent(input) {
   return new Promise((resolve, reject) => {
     const p = spawn("psql", psqlArgs(["-qAt"]), {
@@ -162,9 +137,11 @@ assert.equal(sql(`SELECT count(*) FROM collection_events;`), beforeDisable);
 sql(
   `UPDATE tenants SET config=jsonb_set(config,'{modules,receivables-collections}','true') WHERE id='${a}';`,
 );
-sql(sync(a, randomUUID(), [observation(0, { status: "paid", remaining: 0 })]));
+setInvoice(0, "status='paid',amount_paid_cents=10000");
+sql(sync(a, randomUUID(), [observation(0)]));
 assert.equal(sql(`SELECT status FROM collection_cases WHERE id='${caseId}';`), "open");
-sql(sync(a, randomUUID(), [observation(1, { status: "paid", remaining: 0 })]));
+setInvoice(1, "status='paid_external',amount_paid_cents=10000");
+sql(sync(a, randomUUID(), [observation(1)]));
 assert.equal(sql(`SELECT status FROM collection_cases WHERE id='${caseId}';`), "settled");
 assert.equal(
   sql(
@@ -182,8 +159,9 @@ assert.equal(
 );
 const history = sql(`SELECT count(*) FROM collection_events;`);
 sql(readFileSync("migrations/20260906-collections-cases.sql", "utf8"));
+sql(readFileSync("migrations/20261127200000_owned_invoices.sql", "utf8"));
 assert.equal(sql(`SELECT count(*) FROM collection_events;`), history);
 assert.equal(sql(`SELECT status FROM collection_cases WHERE id='${caseId}';`), "settled");
 console.log(
-  "PASS: collection cases persist, replay, reject invalid/stale/foreign inputs, revision-check edits, schedule promises, hold disputes, serialize ingestion, enforce RLS/immutability, disable/re-enable, settle only verified payments, and preserve history across upgrade.",
+  "PASS: collection cases persist, replay, reject invalid/stale/foreign inputs, revision-check edits, schedule promises, hold disputes, serialize ingestion, enforce RLS/immutability, disable/re-enable, settle only paid invoices from the invoices table, and preserve history across upgrade.",
 );

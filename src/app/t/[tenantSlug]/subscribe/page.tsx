@@ -30,7 +30,7 @@ export default async function SubscribePage({
       .order("amount"),
   ]);
   const billingEnabled = isModuleEnabled(
-    "stripe-invoicing",
+    "invoicing",
     tenant?.config as { modules?: Record<string, boolean> } | null,
   );
   return (

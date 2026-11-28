@@ -1,7 +1,7 @@
 ---
 title: "Reply to a conversation"
 description: "Find the right thread, confirm who you're writing to, and check that it sent."
-updated: "2026-09-27"
+updated: "2026-11-14"
 ---
 
 Use Conversations whenever answering a customer well means seeing what was already said to them, not just the latest message. You need access to the workspace and a working send connection for the channel you're replying on.
@@ -27,6 +27,8 @@ Read the recent messages and check the linked contact and opportunity. Link the 
 Write your reply in the composer, check the recipient and the complete message once more, and follow the composer's own send confirmation. This is a manual send: it goes straight through the conversation sender, and you never need to create an AI proposal first just to send something you wrote yourself.
 
 If the assistant prepared the reply instead, review its staged proposal through [Approvals](/docs/command-center/approvals) before it goes out. Both paths, yours and the assistant's, end up using the exact same send service underneath.
+
+Text message threads work differently: every text is approved before it sends. Confirming a text in the composer places it in **Work → Approvals**, and nothing reaches the customer until someone approves it there. If the customer replied STOP, the text is refused until they reply START.
 
 ## 4. Confirm the result
 

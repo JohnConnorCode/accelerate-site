@@ -200,9 +200,12 @@ export async function tenantStripeClient(db: SupabaseClient) {
     tenantError ||
     !tenant ||
     tenant.status !== "active" ||
-    !isModuleEnabled("stripe-invoicing", tenant.config)
+    !(
+      isModuleEnabled("invoicing", tenant.config) ||
+      isModuleEnabled("event-ticketing", tenant.config)
+    )
   )
-    throw new Error("Stripe invoicing is disabled or the workspace is unavailable");
+    throw new Error("Stripe payments are disabled or the workspace is unavailable");
   const { data: connection, error } = await db
     .from("integration_connections")
     .select("status,encrypted_credentials,credential_version,account_email")
@@ -289,9 +292,26 @@ export async function tenantStripeClient(db: SupabaseClient) {
         `/checkout/sessions?${new URLSearchParams({ limit: "100", "created[gte]": String(created) })}`,
       );
     },
-    paymentIntent: (id: string) => {
+    paymentIntent: (id: string, expandCharge = false) => {
       if (!/^pi_[A-Za-z0-9]{1,120}$/.test(id)) throw new Error("Invalid Stripe payment intent");
-      return stripeRequest(apiKey, `/payment_intents/${id}`);
+      return stripeRequest(
+        apiKey,
+        `/payment_intents/${id}${expandCharge ? "?expand[]=latest_charge" : ""}`,
+      );
+    },
+    /** One-time payment on Stripe's payment rails. Callers must never pass
+     * invoice or billing parameters: no Stripe Invoice is ever created. */
+    createPaymentIntent: async (body: URLSearchParams, key: string) => {
+      for (const name of body.keys())
+        if (!name.startsWith("metadata[") && /invoice|subscription|coupon|discount/i.test(name))
+          throw new Error("Payment intents never carry invoice or billing parameters");
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, "/payment_intents", body, key);
+    },
+    cancelPaymentIntent: async (id: string, key: string) => {
+      if (!/^pi_[A-Za-z0-9]{1,120}$/.test(id)) throw new Error("Invalid Stripe payment intent");
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, `/payment_intents/${id}/cancel`, new URLSearchParams(), key);
     },
     charge: (id: string) => {
       if (!stripeChargeIdSchema.safeParse(id).success) throw new Error("Invalid Stripe charge");
@@ -312,19 +332,6 @@ export async function tenantStripeClient(db: SupabaseClient) {
       return stripeRequest(
         apiKey,
         `/refunds?${new URLSearchParams({ charge: chargeId, limit: "100" })}`,
-      );
-    },
-    paymentInvoices: (paymentIntent: string) => {
-      if (!/^pi_[A-Za-z0-9]{1,120}$/.test(paymentIntent)) throw new Error("Invalid payment intent");
-      return stripeRequest(
-        apiKey,
-        `/invoice_payments?${new URLSearchParams({
-          "payment[type]": "payment_intent",
-          "payment[payment_intent]": paymentIntent,
-          status: "paid",
-          limit: "50",
-          "expand[]": "data.invoice",
-        })}`,
       );
     },
     createRefund: async (body: URLSearchParams, key: string) => {
@@ -348,14 +355,6 @@ export async function tenantStripeClient(db: SupabaseClient) {
       if (!/^cus_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe customer");
       return stripeRequest(apiKey, `/invoices?customer=${encodeURIComponent(id)}&limit=20`);
     },
-    invoices: async (startingAfter?: string) => {
-      if (startingAfter && !/^in_[A-Za-z0-9]{1,80}$/.test(startingAfter))
-        throw new Error("Invalid invoice cursor");
-      await assertCurrentConnection();
-      const params = new URLSearchParams({ limit: "50" });
-      if (startingAfter) params.set("starting_after", startingAfter);
-      return stripeRequest(apiKey, `/invoices?${params}`);
-    },
     billingPortal: async (body: URLSearchParams, key: string) => {
       await assertCurrentConnection();
       return stripeRequest(apiKey, "/billing_portal/sessions", body, key);
@@ -369,28 +368,6 @@ export async function tenantStripeClient(db: SupabaseClient) {
     customer: (id: string) => {
       if (!/^cus_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe customer");
       return stripeRequest(apiKey, `/customers/${id}`);
-    },
-    invoice: (id: string) => {
-      if (!/^in_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe invoice");
-      return stripeRequest(apiKey, `/invoices/${id}`);
-    },
-    createInvoice: async (body: URLSearchParams, key: string) => {
-      await assertCurrentConnection();
-      return stripeRequest(apiKey, "/invoices", body, key);
-    },
-    invoiceOperation: async (
-      id: string,
-      operation: "add_lines" | "finalize" | "send" | "void",
-      body: URLSearchParams,
-      key: string,
-    ) => {
-      if (
-        !/^in_[A-Za-z0-9]{1,80}$/.test(id) ||
-        !["add_lines", "finalize", "send", "void"].includes(operation)
-      )
-        throw new Error("Invalid Stripe invoice operation");
-      await assertCurrentConnection();
-      return stripeRequest(apiKey, `/invoices/${id}/${operation}`, body, key);
     },
   };
 }

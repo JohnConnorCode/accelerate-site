@@ -159,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "6c9a558a9f083627a5d9b1e439d8d5d7bb164e34103c00b96384b38791fecf84",
+      contractHash: "7f2a709a78cc372f956e5a0ec4dd7f2b095de161f3da10bde01570d9e66fc168",
       tools: [
         {
           operation: "prepare-workflow",
@@ -296,6 +296,24 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     },
   },
   {
+    id: "command-board",
+    name: "Command Board",
+    description:
+      "See each business as a desk of phases and stations that summarize live tasks, opportunities, conversations, approvals and balances, with skills that draft the next step for review.",
+    category: "delivery",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["command-board"],
+    aiToolNames: [
+      "get_command_board",
+      "preview_command_board_change",
+      "propose_command_board_change",
+    ],
+    routes: ["/admin/board"],
+    setupChecks: [],
+    docsUrl: "/docs/plugins/command-board",
+  },
+  {
     id: "commitment-watch",
     name: "Overdue commitments",
     description: "Find unfinished tasks whose due date has passed.",
@@ -378,6 +396,30 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     routes: ["/admin/forms"],
     setupChecks: [],
     docsUrl: "/docs/plugins/form-builder",
+  },
+  {
+    id: "invoicing",
+    name: "Invoicing",
+    description:
+      "Create invoices owned by this workspace, share a branded payment page, and collect payment by bank transfer or card over Stripe's payment rails.",
+    category: "revenue",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["invoicing", "stripe-subscriptions"],
+    aiToolNames: [
+      "get_invoices",
+      "save_invoice_draft",
+      "issue_invoice",
+      "check_invoice_payment",
+      "get_billing_records",
+      "get_billing_action",
+      "preview_billing_change",
+      "propose_billing_change",
+    ],
+    graphAdapterNames: ["invoices"],
+    routes: ["/admin/invoicing", "/admin/subscriptions"],
+    setupChecks: [],
+    docsUrl: "/docs/plugins/invoicing",
   },
   {
     id: "meeting-commitments",
@@ -464,7 +506,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "32efac7607235d6595ad9aaa917d2ff5822f131887df5017540d4e7d4f402f81",
+      contractHash: "15ca09ad9d3d21d26f8bbe9d434958563cfd661382c3a09abd315c17e8a9d927",
       tools: [
         {
           operation: "prepare-workflow",
@@ -935,6 +977,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "preview_collection_policy",
       "propose_collection_policy",
     ],
+    graphAdapterNames: ["collection_cases"],
     routes: ["/admin/collections"],
     setupChecks: [],
     docsUrl: "/docs/plugins/receivables-collections",
@@ -1056,685 +1099,6 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       },
     ],
   },
-  {
-    id: "stripe-invoicing",
-    name: "Stripe invoicing",
-    description:
-      "Create reviewed invoices and recurring plans for customers, approve sending, and track Stripe payment status.",
-    category: "revenue",
-    isCore: false,
-    defaultEnabled: false,
-    navLinkIds: ["stripe-invoicing", "stripe-subscriptions"],
-    aiToolNames: [
-      "prepare_stripe_invoicing",
-      "propose_stripe_invoicing",
-      "get_billing_action",
-      "get_billing_records",
-      "preview_billing_change",
-      "propose_billing_change",
-      "propose_stripe_invoice_send",
-      "preview_invoice_page",
-      "propose_invoice_page",
-    ],
-    routes: ["/admin/invoicing", "/admin/subscriptions"],
-    setupChecks: [],
-    docsUrl: "/docs/plugins/stripe-invoicing",
-    workflow: {
-      version: 1,
-      inputSchema: {
-        type: "object",
-        properties: {
-          contactId: {
-            type: "string",
-            maxLength: 36,
-            minLength: 36,
-          },
-          customerId: {
-            type: "string",
-            minLength: 5,
-            maxLength: 84,
-          },
-          currency: {
-            type: "string",
-            enum: ["usd", "eur", "gbp", "cad", "aud"],
-          },
-          daysUntilDue: {
-            type: "integer",
-            minimum: 1,
-            maximum: 90,
-          },
-          memo: {
-            type: "string",
-            maxLength: 500,
-          },
-          lines: {
-            minItems: 1,
-            maxItems: 10,
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                description: {
-                  type: "string",
-                  minLength: 1,
-                  maxLength: 200,
-                },
-                quantity: {
-                  type: "integer",
-                  minimum: 1,
-                  maximum: 10000,
-                },
-                unitAmount: {
-                  type: "integer",
-                  minimum: 1,
-                  maximum: 100000000,
-                },
-              },
-              required: ["description", "quantity", "unitAmount"],
-              additionalProperties: false,
-            },
-          },
-        },
-        required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
-        additionalProperties: false,
-      },
-      actions: ["create_stripe_invoice_draft"],
-      sources: [
-        {
-          name: "contact",
-          type: "workflow_contacts",
-          columns: ["id", "full_name", "primary_email"],
-          inputKey: "contactId",
-        },
-      ],
-      inputContract: "stripe-invoice-draft-v1",
-      policy: {
-        version: 1,
-        action: "create_stripe_invoice_draft",
-        trustCeiling: "always-propose",
-        evidence: {
-          kind: "canonical-record",
-          inputKey: "contactId",
-          sourceType: "workflow_contacts",
-        },
-        idempotency: {
-          request: "workflow-request-v1",
-          effect: "stripe-action-v1",
-        },
-        tier: 3,
-        impact: "external_action",
-        reversibility: "irreversible",
-      },
-      contractHash: "ca0c7b6c5ff1494d9fc9dbe050f61f899176f6fda3e9ef380978cb7bced9a7ce",
-      tools: [
-        {
-          operation: "prepare-workflow",
-          name: "prepare_stripe_invoicing",
-          description:
-            "Prepare Stripe invoicing: Create reviewed invoices and recurring plans for customers, approve sending, and track Stripe payment status.. Returns a reviewable plan, never executes it.",
-          serviceTarget: "revenue-os.workflow-plugins",
-          connectionRequirement: "none",
-          impact: "read",
-          confirmationRequired: false,
-          inputSchema: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {
-              contactId: {
-                type: "string",
-                format: "uuid",
-                pattern:
-                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              },
-              customerId: {
-                type: "string",
-                minLength: 5,
-                maxLength: 84,
-                pattern: "^cus_[A-Za-z0-9]{1,80}$",
-              },
-              currency: {
-                type: "string",
-                enum: ["usd", "eur", "gbp", "cad", "aud"],
-              },
-              daysUntilDue: {
-                type: "integer",
-                minimum: 1,
-                maximum: 90,
-              },
-              memo: {
-                type: "string",
-                maxLength: 500,
-              },
-              lines: {
-                minItems: 1,
-                maxItems: 10,
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    description: {
-                      type: "string",
-                      minLength: 1,
-                      maxLength: 200,
-                    },
-                    quantity: {
-                      type: "integer",
-                      minimum: 1,
-                      maximum: 10000,
-                    },
-                    unitAmount: {
-                      type: "integer",
-                      minimum: 1,
-                      maximum: 100000000,
-                    },
-                  },
-                  required: ["description", "quantity", "unitAmount"],
-                  additionalProperties: false,
-                },
-              },
-            },
-            required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
-            additionalProperties: false,
-          },
-        },
-        {
-          operation: "propose-workflow",
-          name: "propose_stripe_invoicing",
-          description:
-            "Stage the exact previewed Stripe invoicing for human approval. Use its digest and a stable UUID requestId. Never executes the action.",
-          serviceTarget: "revenue-os.workflow-plugins",
-          connectionRequirement: "none",
-          impact: "internal_write",
-          confirmationRequired: true,
-          inputSchema: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {
-              input: {
-                type: "object",
-                properties: {
-                  contactId: {
-                    type: "string",
-                    format: "uuid",
-                    pattern:
-                      "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                  },
-                  customerId: {
-                    type: "string",
-                    minLength: 5,
-                    maxLength: 84,
-                    pattern: "^cus_[A-Za-z0-9]{1,80}$",
-                  },
-                  currency: {
-                    type: "string",
-                    enum: ["usd", "eur", "gbp", "cad", "aud"],
-                  },
-                  daysUntilDue: {
-                    type: "integer",
-                    minimum: 1,
-                    maximum: 90,
-                  },
-                  memo: {
-                    type: "string",
-                    maxLength: 500,
-                  },
-                  lines: {
-                    minItems: 1,
-                    maxItems: 10,
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        description: {
-                          type: "string",
-                          minLength: 1,
-                          maxLength: 200,
-                        },
-                        quantity: {
-                          type: "integer",
-                          minimum: 1,
-                          maximum: 10000,
-                        },
-                        unitAmount: {
-                          type: "integer",
-                          minimum: 1,
-                          maximum: 100000000,
-                        },
-                      },
-                      required: ["description", "quantity", "unitAmount"],
-                      additionalProperties: false,
-                    },
-                  },
-                },
-                required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
-                additionalProperties: false,
-              },
-              digest: {
-                type: "string",
-                pattern: "^[a-f0-9]{64}$",
-              },
-              requestId: {
-                type: "string",
-                format: "uuid",
-                pattern:
-                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              },
-            },
-            required: ["input", "digest", "requestId"],
-            additionalProperties: false,
-          },
-        },
-        {
-          operation: "get-billing-action",
-          name: "get_billing_action",
-          description:
-            "Check the current provider result of one existing workspace billing action without changing or retrying it. Supports refund status, unpaid-invoice cancellation and billing-customer setup, including expired reviews. Preserves the original execution receipt.",
-          serviceTarget: "revenue-os.billing-workspace",
-          connectionRequirement: "none",
-          impact: "read",
-          confirmationRequired: false,
-          inputSchema: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {
-              actionId: {
-                type: "string",
-                format: "uuid",
-                pattern:
-                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              },
-            },
-            required: ["actionId"],
-            additionalProperties: false,
-          },
-        },
-        {
-          operation: "get-billing-records",
-          name: "get_billing_records",
-          description:
-            "Read five current Stripe invoices or payments, source amounts, account mode and a next-page cursor. Includes account records outside this workspace. Never sum currencies or describe one page as an account total.",
-          serviceTarget: "revenue-os.billing-workspace",
-          connectionRequirement: "none",
-          impact: "read",
-          confirmationRequired: false,
-          inputSchema: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {
-              kind: {
-                type: "string",
-                enum: ["invoices", "payments"],
-              },
-              cursor: {
-                type: "string",
-                maxLength: 124,
-              },
-              connection: {
-                type: "string",
-                maxLength: 160,
-              },
-            },
-            required: ["kind"],
-            additionalProperties: false,
-          },
-        },
-        {
-          operation: "preview-billing-change",
-          name: "preview_billing_change",
-          description:
-            "Preview a billing customer, unpaid invoice cancellation or exact payment refund without provider effects. Refund amounts use Stripe minor units. Returns current customer, mode, consequences and review digest.",
-          serviceTarget: "revenue-os.billing-workspace",
-          connectionRequirement: "none",
-          impact: "read",
-          confirmationRequired: false,
-          inputSchema: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {
-              command: {
-                oneOf: [
-                  {
-                    type: "object",
-                    properties: {
-                      operation: {
-                        type: "string",
-                        const: "create_customer",
-                      },
-                      contactId: {
-                        type: "string",
-                        format: "uuid",
-                        pattern:
-                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                      },
-                      requestId: {
-                        type: "string",
-                        format: "uuid",
-                        pattern:
-                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                      },
-                    },
-                    required: ["operation", "contactId", "requestId"],
-                    additionalProperties: false,
-                  },
-                  {
-                    type: "object",
-                    properties: {
-                      operation: {
-                        type: "string",
-                        const: "void_invoice",
-                      },
-                      invoiceId: {
-                        type: "string",
-                        pattern: "^in_[A-Za-z0-9]{1,80}$",
-                      },
-                      requestId: {
-                        type: "string",
-                        format: "uuid",
-                        pattern:
-                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                      },
-                    },
-                    required: ["operation", "invoiceId", "requestId"],
-                    additionalProperties: false,
-                  },
-                  {
-                    type: "object",
-                    properties: {
-                      operation: {
-                        type: "string",
-                        const: "refund_payment",
-                      },
-                      chargeId: {
-                        type: "string",
-                        pattern: "^(?:ch|py)_[A-Za-z0-9]{1,120}$",
-                      },
-                      amount: {
-                        type: "integer",
-                        exclusiveMinimum: 0,
-                        maximum: 100000000,
-                      },
-                      reason: {
-                        type: "string",
-                        enum: ["requested_by_customer", "duplicate"],
-                      },
-                      requestId: {
-                        type: "string",
-                        format: "uuid",
-                        pattern:
-                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                      },
-                    },
-                    required: ["operation", "chargeId", "amount", "reason", "requestId"],
-                    additionalProperties: false,
-                  },
-                ],
-              },
-            },
-            required: ["command"],
-            additionalProperties: false,
-          },
-        },
-        {
-          operation: "propose-billing-change",
-          name: "propose_billing_change",
-          description:
-            "Stage the exact billing command and preview digest for human approval. Cannot approve, refund or cancel by itself. Rechecks administrator authority and current billing facts. Reuse requestId for one logical request.",
-          serviceTarget: "revenue-os.billing-workspace",
-          connectionRequirement: "none",
-          impact: "internal_write",
-          confirmationRequired: true,
-          inputSchema: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {
-              command: {
-                oneOf: [
-                  {
-                    type: "object",
-                    properties: {
-                      operation: {
-                        type: "string",
-                        const: "create_customer",
-                      },
-                      contactId: {
-                        type: "string",
-                        format: "uuid",
-                        pattern:
-                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                      },
-                      requestId: {
-                        type: "string",
-                        format: "uuid",
-                        pattern:
-                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                      },
-                    },
-                    required: ["operation", "contactId", "requestId"],
-                    additionalProperties: false,
-                  },
-                  {
-                    type: "object",
-                    properties: {
-                      operation: {
-                        type: "string",
-                        const: "void_invoice",
-                      },
-                      invoiceId: {
-                        type: "string",
-                        pattern: "^in_[A-Za-z0-9]{1,80}$",
-                      },
-                      requestId: {
-                        type: "string",
-                        format: "uuid",
-                        pattern:
-                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                      },
-                    },
-                    required: ["operation", "invoiceId", "requestId"],
-                    additionalProperties: false,
-                  },
-                  {
-                    type: "object",
-                    properties: {
-                      operation: {
-                        type: "string",
-                        const: "refund_payment",
-                      },
-                      chargeId: {
-                        type: "string",
-                        pattern: "^(?:ch|py)_[A-Za-z0-9]{1,120}$",
-                      },
-                      amount: {
-                        type: "integer",
-                        exclusiveMinimum: 0,
-                        maximum: 100000000,
-                      },
-                      reason: {
-                        type: "string",
-                        enum: ["requested_by_customer", "duplicate"],
-                      },
-                      requestId: {
-                        type: "string",
-                        format: "uuid",
-                        pattern:
-                          "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                      },
-                    },
-                    required: ["operation", "chargeId", "amount", "reason", "requestId"],
-                    additionalProperties: false,
-                  },
-                ],
-              },
-              digest: {
-                type: "string",
-                pattern: "^[a-f0-9]{64}$",
-              },
-            },
-            required: ["command", "digest"],
-            additionalProperties: false,
-          },
-        },
-        {
-          operation: "propose-invoice-send",
-          name: "propose_stripe_invoice_send",
-          description:
-            "Stage sending an existing completed Stripe invoice for explicit human approval. Does not send it.",
-          serviceTarget: "revenue-os.stripe-invoicing",
-          connectionRequirement: "none",
-          impact: "internal_write",
-          confirmationRequired: true,
-          inputSchema: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {
-              creationActionId: {
-                type: "string",
-                format: "uuid",
-                pattern:
-                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              },
-            },
-            required: ["creationActionId"],
-            additionalProperties: false,
-          },
-        },
-        {
-          operation: "preview-invoice-page",
-          name: "preview_invoice_page",
-          description:
-            "Preview a bounded customer invoice design using workspace branding and authoritative Stripe billing facts. Returns the publication digest; does not publish.",
-          serviceTarget: "revenue-os.invoice-pages",
-          connectionRequirement: "none",
-          impact: "read",
-          confirmationRequired: false,
-          inputSchema: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {
-              creationActionId: {
-                type: "string",
-                format: "uuid",
-                pattern:
-                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              },
-              design: {
-                type: "object",
-                properties: {
-                  layout: {
-                    type: "string",
-                    enum: ["classic", "editorial"],
-                  },
-                  heading: {
-                    type: "string",
-                    minLength: 1,
-                    maxLength: 80,
-                  },
-                  introduction: {
-                    type: "string",
-                    maxLength: 500,
-                  },
-                  closing: {
-                    type: "string",
-                    maxLength: 300,
-                  },
-                  accentColor: {
-                    type: "string",
-                    minLength: 7,
-                    maxLength: 7,
-                    pattern: "^#[0-9a-fA-F]{6}$",
-                  },
-                  font: {
-                    type: "string",
-                    enum: ["workspace", "sans", "serif"],
-                  },
-                  spacing: {
-                    type: "string",
-                    enum: ["comfortable", "compact"],
-                  },
-                },
-                required: ["layout", "heading", "introduction", "closing"],
-                additionalProperties: false,
-              },
-            },
-            required: ["creationActionId", "design"],
-            additionalProperties: false,
-          },
-        },
-        {
-          operation: "propose-invoice-page",
-          name: "propose_invoice_page",
-          description:
-            "Stage the exact previewed invoice page for human publication approval. Does not publish or email the customer.",
-          serviceTarget: "revenue-os.invoice-pages",
-          connectionRequirement: "none",
-          impact: "internal_write",
-          confirmationRequired: true,
-          inputSchema: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {
-              creationActionId: {
-                type: "string",
-                format: "uuid",
-                pattern:
-                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              },
-              design: {
-                type: "object",
-                properties: {
-                  layout: {
-                    type: "string",
-                    enum: ["classic", "editorial"],
-                  },
-                  heading: {
-                    type: "string",
-                    minLength: 1,
-                    maxLength: 80,
-                  },
-                  introduction: {
-                    type: "string",
-                    maxLength: 500,
-                  },
-                  closing: {
-                    type: "string",
-                    maxLength: 300,
-                  },
-                  accentColor: {
-                    type: "string",
-                    minLength: 7,
-                    maxLength: 7,
-                    pattern: "^#[0-9a-fA-F]{6}$",
-                  },
-                  font: {
-                    type: "string",
-                    enum: ["workspace", "sans", "serif"],
-                  },
-                  spacing: {
-                    type: "string",
-                    enum: ["comfortable", "compact"],
-                  },
-                },
-                required: ["layout", "heading", "introduction", "closing"],
-                additionalProperties: false,
-              },
-              digest: {
-                type: "string",
-                pattern: "^[a-f0-9]{64}$",
-              },
-              requestId: {
-                type: "string",
-                format: "uuid",
-                pattern:
-                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              },
-            },
-            required: ["creationActionId", "design", "digest", "requestId"],
-            additionalProperties: false,
-          },
-        },
-      ],
-    },
-  },
 ] as const;
 
 export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
@@ -1746,6 +1110,16 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     icon: "ListChecks",
     description:
       "Turn a won deal into an assigned, dated delivery checklist with durable task receipts.",
+    moreGroup: "Delivery",
+  },
+  {
+    moduleId: "command-board",
+    id: "command-board",
+    label: "Command Board",
+    href: "/admin/board",
+    icon: "LayoutDashboard",
+    description: "See every business as a live desk of stations",
+    keywords: "board desk stations mode canvas business",
     moreGroup: "Delivery",
   },
   {
@@ -1765,6 +1139,25 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     icon: "FileText",
     description: "Shareable forms with reviewed responses",
     moreGroup: "Sources",
+  },
+  {
+    moduleId: "invoicing",
+    id: "invoicing",
+    label: "Invoices",
+    href: "/admin/invoicing",
+    icon: "FileText",
+    description: "Your invoices, payment links and what has been paid",
+    keywords: "invoicing billing bills payments new invoice create invoice",
+    moreGroup: "Revenue",
+  },
+  {
+    moduleId: "invoicing",
+    id: "stripe-subscriptions",
+    label: "Subscriptions",
+    href: "/admin/subscriptions",
+    icon: "Wallet",
+    description: "Recurring plans and customer subscriptions",
+    moreGroup: "Revenue",
   },
   {
     moduleId: "meeting-commitments",
@@ -1810,25 +1203,6 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     href: "/admin/social",
     icon: "Globe2",
     description: "Drafts, calendar, publication results and setup.",
-    moreGroup: "Revenue",
-  },
-  {
-    moduleId: "stripe-invoicing",
-    id: "stripe-invoicing",
-    label: "Invoices",
-    href: "/admin/invoicing",
-    icon: "FileText",
-    description: "Find customer invoices, create an invoice, and track payment status",
-    keywords: "invoicing billing bills payments new invoice create invoice",
-    moreGroup: "Revenue",
-  },
-  {
-    moduleId: "stripe-invoicing",
-    id: "stripe-subscriptions",
-    label: "Subscriptions",
-    href: "/admin/subscriptions",
-    icon: "Wallet",
-    description: "Recurring plans and customer subscriptions",
     moreGroup: "Revenue",
   },
 ] as const;

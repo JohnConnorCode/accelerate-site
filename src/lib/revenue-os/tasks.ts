@@ -20,6 +20,97 @@ type OperatorTask = {
   opportunity_id: string | null;
 };
 
+export interface TaskListInput {
+  status?: "pending" | "snoozed" | "completed" | "all" | null;
+  /** Any of these statuses; used by graph reads of open work. */
+  statuses?: readonly string[];
+  owner?: "team" | "me" | "unassigned" | null;
+  /** Authenticated viewer for owner "me"; never caller-supplied identity. */
+  viewerId?: string;
+  source?: string;
+  search?: string;
+  priority?: "all" | "high" | "medium" | "low";
+  due?: "any" | "overdue" | "today" | "upcoming" | "unscheduled";
+  /** "id" orders by record id for keyset reads (graph windows). */
+  sortBy?: "due_date" | "created_at" | "id";
+  sortDirection?: "asc" | "desc";
+  id?: string | null;
+  date?: string | null;
+  relatedType?: string | null;
+  relatedId?: string | null;
+  includeOverdue?: boolean;
+  /** Exact task ids. */
+  ids?: string[];
+  /** Tasks attached to this record by opportunity_id, contact_id or related_id. */
+  linkedTo?: { type: string; id: string };
+  /** Keyset continuation for sortBy "id": rows after this id. */
+  afterId?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * Bounded, tenant-scoped task list shared by the operator task route and the
+ * workspace graph adapter. Filters are validated by the caller; this service
+ * owns the query shape and always carries an explicit tenant filter.
+ */
+export async function listTasks(
+  supabase: SupabaseClient,
+  input: TaskListInput,
+): Promise<{ tasks: Array<Record<string, unknown>>; total: number }> {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Task reads require a tenant-bound workspace");
+  const page = Math.max(1, Math.min(10000, input.page ?? 1));
+  const pageSize = Math.max(1, Math.min(201, input.pageSize ?? 100));
+  const direction = input.sortDirection ?? "asc";
+  let query = supabase.from("tasks").select("*", { count: "exact" }).eq("tenant_id", tenantId);
+
+  if (input.sortBy === "id") query = query.order("id", { ascending: true });
+  else if ((input.sortBy ?? "due_date") === "due_date")
+    query = query
+      .order("due_date", { ascending: direction === "asc", nullsFirst: false })
+      .order("created_at", { ascending: false });
+  else query = query.order("created_at", { ascending: direction === "asc" });
+
+  if (input.status && input.status !== "all") query = query.eq("status", input.status);
+  if (input.statuses) query = query.in("status", [...input.statuses]);
+  if (input.id) query = query.eq("id", input.id);
+  if (input.ids) query = query.in("id", input.ids);
+  if (input.afterId) query = query.gt("id", input.afterId);
+  if (input.linkedTo) {
+    const { type, id } = input.linkedTo;
+    const typed = `and(related_type.eq.${type},related_id.eq.${id})`;
+    query =
+      type === "opportunity"
+        ? query.or(`opportunity_id.eq.${id},${typed}`)
+        : type === "contact"
+          ? query.or(`contact_id.eq.${id},${typed}`)
+          : query.eq("related_type", type).eq("related_id", id);
+  }
+  if (input.owner === "me") query = query.eq("assigned_to", input.viewerId ?? "");
+  if (input.owner === "unassigned") query = query.is("assigned_to", null);
+  if (input.source) query = query.eq("source", input.source);
+  if (input.priority && input.priority !== "all") query = query.eq("priority", input.priority);
+  if (input.relatedType && !input.relatedId) query = query.eq("related_type", input.relatedType);
+  const today = new Date().toISOString().split("T")[0]!;
+  if (input.due === "overdue") query = query.eq("status", "pending").lt("due_date", today);
+  if (input.due === "today") query = query.eq("due_date", today);
+  if (input.due === "upcoming") query = query.gt("due_date", today);
+  if (input.due === "unscheduled") query = query.is("due_date", null);
+  if (input.search) {
+    const escaped = input.search.replace(/[%,()\\]/g, "");
+    if (escaped) query = query.or(`title.ilike.%${escaped}%,related_name.ilike.%${escaped}%`);
+  }
+  if (input.date) query = query.eq("due_date", input.date);
+  if (input.relatedType && input.relatedId)
+    query = query.eq("related_type", input.relatedType).eq("related_id", input.relatedId);
+  if (input.includeOverdue) query = query.eq("status", "pending").lte("due_date", today);
+
+  const { data, count, error } = await query.range((page - 1) * pageSize, page * pageSize - 1);
+  if (error) throw new Error(error.message);
+  return { tasks: (data ?? []) as Array<Record<string, unknown>>, total: count ?? 0 };
+}
+
 export async function createRevenueTask(
   supabase: SupabaseClient,
   input: {

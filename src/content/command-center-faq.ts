@@ -54,7 +54,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Where do I find invoices and create a new one?",
     answer:
-      "With Stripe invoicing enabled, open Billing & payments from the sidebar or mobile More menu, then choose Create invoice. Search also finds Create invoice; if invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. A disconnected account shows the Stripe connection step first. Search the loaded invoices by customer, number or email, or choose an overdue or payment status. Load older invoices when needed. A won opportunity also offers Create invoice with its linked contact already selected. To create one, check or choose the contact, create its missing billing customer inside the form if needed, enter line items and review the draft before approval. Sending remains a separate decision.",
+      "With Invoicing enabled, open Invoices from the sidebar or mobile More menu, then choose Create invoice. If invoicing is off, search for invoice and choose Set up invoicing to reach its enable switch in Apps. Choose the contact, enter the line items, due date and the payment methods the client may use, then choose Save draft. Generate payment link assigns the invoice number and opens the client's private payment page; copy the link and send it yourself. Search saved invoices by client, number or email, or filter by status. The client pays by bank transfer or card on that page, and the status moves to Paid once Stripe confirms the payment.",
   },
   {
     question: "Can I manage refunds and payment reporting in Command Center?",
@@ -74,7 +74,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I change collection follow-up from Ask AI?",
     answer:
-      "Yes. With Collections and Stripe invoicing enabled, ask for a case pause, dispute, payment promise, owner or next action. The assistant checks the selected case and its current invoices, then proposes the exact change for your approval. Review it in Collections or the approval queue. A changed balance, recipient or policy requires another preview. The policy change does not send a reminder; prepare and approve that separately. Invoice tracking and refresh still use the Collections workspace.",
+      "Yes. With Collections and Invoicing enabled, ask for a case pause, dispute, payment promise, owner or next action. The assistant checks the selected case and its current invoices, then proposes the exact change for your approval. Review it in Collections or the approval queue. A changed balance, recipient or policy requires another preview. The policy change does not send a reminder; prepare and approve that separately. Invoice tracking and refresh still use the Collections workspace.",
   },
   {
     question: "When is a debate actually booked?",

@@ -68,6 +68,13 @@ import {
 import { requireReopenEligibility } from "@/lib/revenue-os/pipeline-transition-policy";
 import { demoRadarProfile, seedRadar } from "./radar-fixtures";
 import { seedDemoCollections } from "./collections-runtime";
+import {
+  demoBoardReads,
+  handleDemoBoard,
+  seedDemoBoards,
+  type DemoBoardState,
+} from "./board-runtime";
+import { demoWorkspaceGraph, type DemoGraphRows } from "./graph-runtime";
 import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
@@ -213,8 +220,11 @@ export type DemoState = {
   campaignCopies?: ReturnType<typeof campaignDraftCopy>[];
   campaignDuplicateReceipts?: Record<string, { fingerprint: string; copyId: string }>;
   business: DemoBusinessState | null;
+  commandBoards?: DemoBoardState;
   learning?: DemoLearningState;
   completedActions: string[];
+  /** How each completed scenario proposal was decided, so a fresh read shows it. */
+  actionDecisions?: Record<string, "executed" | "rejected">;
   completedTasks: string[];
   resolvedIdentityReviews: string[];
   subscriptionOverrides?: DemoSubscriptionsState;
@@ -558,6 +568,46 @@ function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
   });
 }
 
+/** Every scenario proposal with its current status, decided ones included. */
+function scenarioActionRows(pack: DemoScenarioPack, state: DemoState) {
+  return pack.actions.map((item, index) => ({
+    id: item.id,
+    action_type: item.type,
+    title: item.title,
+    description: item.description,
+    urgency: index < 2 ? "high" : "normal",
+    reasoning: item.description,
+    status: state.completedActions.includes(item.id)
+      ? (state.actionDecisions?.[item.id] ?? "executed")
+      : "pending",
+    created_at: ago(index + 1),
+    expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
+    payload:
+      item.type === "send_gmail_reply"
+        ? {
+            to: person(pack, item.personId).email,
+            subject: pack.conversations[index]!.subject,
+            body: item.body,
+          }
+        : {
+            opportunityId: pack.opportunities[index]!.id,
+            stage: "proposal",
+            reason: item.description,
+          },
+  }));
+}
+
+/** Pending proposals shown in Approvals; the workspace graph reads the same list. */
+function pendingActionRows(pack: DemoScenarioPack, state: DemoState, business: DemoBusinessState) {
+  return [
+    ...(state.agentProposals ?? []).filter((item) => item.status === "pending"),
+    ...business.actions.filter(
+      (item) => item.status === "pending" || item.action_type === "billing_change",
+    ),
+    ...scenarioActionRows(pack, state).filter((item) => item.status === "pending"),
+  ];
+}
+
 function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
   const base = pack.tasks.map((item, index) => {
     const native = state.business?.tasks.find((task) => task.id === item.id);
@@ -623,6 +673,89 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
         ? row.created_at
         : new Date(Date.now() - (index + 1) * 86_400_000).toISOString(),
   }));
+}
+
+/** Fictional rows for the workspace graph, shaped like each live service read. */
+function demoGraphRows(
+  pack: DemoScenarioPack,
+  state: DemoState,
+  business: DemoBusinessState,
+  collectionsEnabled: boolean,
+): DemoGraphRows {
+  const companyId = (name: string) =>
+    `company-${name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")}`;
+  const companyNames = [
+    ...new Set([...pack.people.map((p) => p.company), ...pack.opportunities.map((o) => o.company)]),
+  ].filter(Boolean);
+  return {
+    contacts: [
+      ...pack.people.map((p) => ({
+        id: p.id,
+        full_name: p.name,
+        primary_email: p.email,
+        title: p.role,
+        lifecycle_stage: "contact",
+        company_id: p.company ? companyId(p.company) : null,
+      })),
+      ...(state.manualContacts ?? []).map((p) => ({
+        id: p.id,
+        full_name: p.name,
+        primary_email: p.email,
+        lifecycle_stage: "contact",
+        company_id: null,
+      })),
+    ],
+    companies: companyNames.map((name) => ({
+      id: companyId(name),
+      name,
+      domain: null,
+      industry: pack.category,
+    })),
+    opportunities: opportunityRows(pack, state).map((row, index) => {
+      const source = pack.opportunities[index]!;
+      return {
+        id: row.id,
+        name: row.name,
+        stage: row.stage,
+        next_action_at: row.next_action_at,
+        contact_id: source.personId,
+        company_id: source.company ? companyId(source.company) : null,
+      };
+    }),
+    tasks: demoTaskRows(pack, state),
+    // Every pending proposal, as the live approvals adapter reads action_queue.
+    approvals: pendingActionRows(pack, state, business)
+      .filter((row) => row.status === "pending")
+      .map((row) => {
+        const personId = pack.actions.find((action) => action.id === row.id)?.personId;
+        return {
+          id: String(row.id),
+          title: String(row.title ?? ""),
+          action_type: String(row.action_type ?? ""),
+          status: "pending",
+          entity_type: personId ? "contact" : null,
+          entity_id: personId ?? null,
+        };
+      }),
+    conversations: conversations(
+      pack,
+      state,
+      new URL("https://demo.example/api/admin/revenue-os/conversations"),
+    ).conversations,
+    collection_cases: collectionsEnabled ? seedDemoCollections(pack, business) : [],
+    invoices: business.invoices.map((invoice) => ({
+      id: invoice.id,
+      number: invoice.invoice_number,
+      company_name: invoice.company_name,
+      status: invoice.status,
+      amount_cents: invoice.amount_cents,
+      contact_id: invoice.contact_id ?? null,
+      due_at: invoice.due_at,
+    })),
+  };
 }
 
 export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
@@ -897,7 +1030,7 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
         sourceTimestamp: item.created_at,
         priorityReason: item.description,
         recommendedNextAction: "Review the proposed change before approving",
-        href: item.pluginId === "stripe-invoicing" ? "/admin/invoicing" : `/admin/${item.pluginId}`,
+        href: item.pluginId === "invoicing" ? "/admin/invoicing" : `/admin/${item.pluginId}`,
       })),
   );
   const replies = pack.conversations.slice(0, 2).map((item, index) => {
@@ -1779,6 +1912,14 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
       "revenue-os.action-queue-read",
     ],
     [
+      "get_workspace_graph",
+      "Read workspace records as a graph of nodes and edges. Each source reports its own state, truncation and cursor. Read only.",
+      "read",
+      false,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.graph-adapters",
+    ],
+    [
       "propose_task",
       "Stage a concrete operator task for approval.",
       "internal_write",
@@ -2573,7 +2714,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     state.contentSeedAt = new Date().toISOString();
     saveState(scenarioId, state);
   }
-  if (!state.business || state.business.version !== 1) {
+  if (!state.business || state.business.version !== 2) {
     state.business = createDemoBusinessState(pack);
     saveState(scenarioId, state);
   }
@@ -2722,7 +2863,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const id = url.searchParams.get("id");
       const action =
         state.agentProposals?.find((item) => item.id === id) ??
-        business.actions.find((item) => item.id === id);
+        business.actions.find((item) => item.id === id) ??
+        scenarioActionRows(pack, state).find((item) => item.id === id);
       if (action) return jsonResponse({ schemaReady: true, actions: [action] });
     }
     if (path === "/api/admin/revenue-os/actions" && method === "PATCH") {
@@ -2878,7 +3020,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         ),
         collections:
           state.moduleOverrides["receivables-collections"] === false ||
-          state.moduleOverrides["stripe-invoicing"] === false
+          state.moduleOverrides["invoicing"] === false
             ? []
             : seedDemoCollections(pack, business).map(
                 ({
@@ -3313,6 +3455,32 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       };
       return jsonResponse(snapshot);
     }
+    const boardResponse = handleDemoBoard({
+      path,
+      method,
+      body,
+      enabled: isModuleEnabled("command-board", {
+        modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+      }),
+      state: () => (state.commandBoards ??= { boards: seedDemoBoards(pack), receipts: {} }),
+      reads: () => {
+        const graphConfig = { modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } };
+        return demoBoardReads(
+          demoGraphRows(
+            pack,
+            state,
+            business,
+            isModuleEnabled("receivables-collections", graphConfig),
+          ),
+          graphConfig,
+        );
+      },
+      save: () => {
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+      },
+    });
+    if (boardResponse) return boardResponse;
     const businessResponse = await handleDemoBusinessRequest(
       pack,
       business,
@@ -4875,6 +5043,11 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       if (state.completedActions.includes(action.id))
         return jsonResponse({ error: "Action already handled" }, 409);
       state.completedActions.push(action.id);
+      state.actionDecisions = {
+        ...state.actionDecisions,
+        // The demo completes an approved proposal at once, as its receipt says.
+        [action.id]: body.decision === "approve" ? "executed" : "rejected",
+      };
       business.receipts.unshift({
         id: crypto.randomUUID(),
         operation: `${body.decision === "approve" ? "Approved" : "Rejected"} ${action.title}`,
@@ -5233,39 +5406,21 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       });
     }
     if (path === "/api/admin/revenue-os/actions")
-      return jsonResponse({
-        actions: [
-          ...(state.agentProposals ?? []).filter((item) => item.status === "pending"),
-          ...business.actions.filter(
-            (item) => item.status === "pending" || item.action_type === "billing_change",
-          ),
-          ...pack.actions
-            .filter((item) => !state.completedActions.includes(item.id))
-            .map((item, index) => ({
-              id: item.id,
-              action_type: item.type,
-              title: item.title,
-              description: item.description,
-              urgency: index < 2 ? "high" : "normal",
-              reasoning: item.description,
-              status: "pending",
-              created_at: ago(index + 1),
-              expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
-              payload:
-                item.type === "send_gmail_reply"
-                  ? {
-                      to: person(pack, item.personId).email,
-                      subject: pack.conversations[index]!.subject,
-                      body: item.body,
-                    }
-                  : {
-                      opportunityId: pack.opportunities[index]!.id,
-                      stage: "proposal",
-                      reason: item.description,
-                    },
-            })),
-        ],
-      });
+      return jsonResponse({ actions: pendingActionRows(pack, state, business) });
+    if (method === "GET" && path === "/api/admin/revenue-os/graph") {
+      const graphConfig = { modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } };
+      const graph = demoWorkspaceGraph(
+        demoGraphRows(
+          pack,
+          state,
+          business,
+          isModuleEnabled("receivables-collections", graphConfig),
+        ),
+        url.searchParams,
+        graphConfig,
+      );
+      return jsonResponse(graph.body, graph.status);
+    }
     if (path === "/api/admin/revenue-os/pipeline")
       return jsonResponse({
         schemaReady: true,
@@ -5303,32 +5458,6 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/work/agent-items")
       return jsonResponse({ items: [], total: 0, page: 1 });
-    if (path === "/api/admin/invoicing/list") {
-      const invoices = business.invoices.map((item) => ({
-        id: item.receipt.invoiceId,
-        number: item.document.number,
-        status: item.receipt.status,
-        currency: item.receipt.currency,
-        amountDue: item.receipt.amountDue,
-        amountPaid: item.receipt.amountPaid,
-        managed: true,
-        remaining: item.receipt.amountRemaining,
-        contactName: item.document.customerName,
-        contactEmail: item.document.customerEmail,
-        dueDate: /^\d{4}-\d{2}-\d{2}$/.test(item.document.dueLabel)
-          ? item.document.dueLabel + "T12:00:00.000Z"
-          : null,
-        hostedInvoiceUrl: item.receipt.hostedInvoiceUrl,
-        createdAt: ago(1),
-      }));
-      return jsonResponse({
-        invoices,
-        hasMore: false,
-        nextCursor: null,
-        connection: `demo:${pack.id}`,
-        testMode: true,
-      });
-    }
     if (path === "/api/admin/contacts" && method === "GET") {
       const payload = legacy(pack, path, state) as { contacts: Array<Record<string, unknown>> };
       return jsonResponse({

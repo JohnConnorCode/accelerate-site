@@ -25,6 +25,25 @@ Core pages, extensions and fictional demos must inherit them.
 - Board, list, empty, error and filtered views must explain available actions and
   preserve lifecycle/permission rules. Visual changes cannot grant work permissions.
 
+## Canvas views
+
+- Canvas views use the shared `CanvasView` and `canvas-model`. React Flow (MIT)
+  renders behind them with its structural stylesheet only; every visible control,
+  node, connector, camera move and key binding is ours. Only `src/components/canvas`
+  imports `@xyflow/react`, and `test:admin-canvas` enforces it. They project
+  source records by `sourceType:sourceId`, store no copied status and open records
+  through the page's existing detail pane or review dialog.
+- Plain wheel scrolling stays page scrolling. Drag pans; pinch, Control-wheel and
+  the zoom controls zoom. Clicking or tapping a node never starts a drag.
+- The camera moves on its own only when the user enters a scope (a group node or
+  a location link) or asks to fit. Keyboard focus may pan the minimum distance
+  needed to reveal the focused node. New data never re-frames or re-centres.
+- Scope and selection are URL state, so Back, Forward and direct links stay
+  truthful. One tab stop with arrow-key tree navigation; Enter opens.
+- Every semantic zoom level keeps text at or above 10.5px and openers at or above
+  44px on screen; marks below that size are not openers. Reduced motion makes
+  viewport moves instant, and nodes have no entrance animation or idle loop.
+
 ## Navigation and language
 
 - `src/lib/admin/navigation.ts` owns destination names. Sidebar, search, mobile,

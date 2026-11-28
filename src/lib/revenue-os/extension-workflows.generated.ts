@@ -9,8 +9,4 @@ export const EXTENSION_WORKFLOWS: Record<string, { code: string; sha256: string 
     code: '(() => {\n  const input = workflowInput();\n  const source = readSource("meeting")[0];\n  if (!source) throw new Error("Select a stored business record");\n\n  return {\n    title: "Meeting commitments: " + source.title,\n    summary:\n      "Create " +\n      input.tasks.length +\n      " assigned follow-up tasks with reviewed dates. Completed tasks from the same plan are reused on replay.",\n    action: { type: "create_task_batch", payload: input },\n  };\n})();\n',
     sha256: "0d6e9f224fa298a3e50ffd40351c9c7ee6a07d243195f03e91eb69564c8218f3",
   },
-  "stripe-invoicing": {
-    code: '(() => {\n  const input = workflowInput();\n  const contact = readSource("contact")[0];\n  if (!contact || !contact.primary_email)\n    throw new Error("Choose a customer with a canonical billing email");\n  const total = input.lines.reduce((sum, line) => sum + line.quantity * line.unitAmount, 0);\n  if (!Number.isSafeInteger(total) || total <= 0 || total > 100000000)\n    throw new Error("Invoice total is outside the supported range");\n  return {\n    title: "Invoice for " + contact.full_name,\n    summary:\n      "Create a " +\n      input.currency.toUpperCase() +\n      " " +\n      (total / 100).toFixed(2) +\n      " draft for " +\n      contact.primary_email +\n      ". Sending requires a separate approval.",\n    action: {\n      type: "create_stripe_invoice_draft",\n      payload: { ...input, expectedEmail: contact.primary_email, total },\n    },\n  };\n})();\n',
-    sha256: "34b54ece6be7116b38b706173e2ca53c5ff3924fd038d53de16c4cf17db0e15d",
-  },
 };

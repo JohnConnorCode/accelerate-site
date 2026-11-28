@@ -452,11 +452,11 @@ for (const id of ["inbox", "identity-review"]) {
     sources.links.push({ ...link, moreGroup: "Sources" });
   }
 }
-for (const id of ["contacts", "stripe-invoicing"]) {
+for (const id of ["contacts", "invoicing"]) {
   const link = revenue.links.find((item) => item.id === id);
   if (link) {
     revenue.links = revenue.links.filter((item) => item.id !== id);
-    command.links.push(id === "stripe-invoicing" ? { ...link, mobilePrimary: true } : link);
+    command.links.push(id === "invoicing" ? { ...link, mobilePrimary: true } : link);
   }
 }
 
@@ -550,9 +550,9 @@ export const adminBusinessGroups = [
     id: "invoices",
     label: "Billing",
     description: "Invoice customers, manage recurring plans and follow unpaid balances.",
-    primaryId: "stripe-invoicing",
+    primaryId: "invoicing",
     icon: ReceiptText,
-    members: ["stripe-invoicing", "receivables-collections", "stripe-subscriptions", "revenue"],
+    members: ["invoicing", "receivables-collections", "stripe-subscriptions", "revenue"],
   },
   {
     id: "conversations",

@@ -949,7 +949,8 @@ a.tag:active {
   .demo-scenario-mark .demo-mark-law,
   .demo-scenario-mark .demo-mark-ledger,
   .demo-scenario-mark .demo-mark-home,
-  .demo-scenario-mark .demo-mark-table {
+  .demo-scenario-mark .demo-mark-table,
+  .demo-scenario-mark .demo-mark-desk {
     stroke-dasharray: 64;
     animation: demo-mark-draw 0.8s var(--ease) both;
   }
@@ -965,19 +966,22 @@ a.tag:active {
   .demo-scenario-mark--alder-ridge-law .demo-mark-law--left,
   .demo-scenario-mark--ledgerstone-advisory .demo-mark-ledger--line-two,
   .demo-scenario-mark--hearthline-realty .demo-mark-home--frame,
-  .demo-scenario-mark--common-table-network .demo-mark-table--bowl {
+  .demo-scenario-mark--common-table-network .demo-mark-table--bowl,
+  .demo-scenario-mark--mlivm .demo-mark-desk--links {
     animation-delay: 120ms;
   }
   .demo-scenario-mark--alder-ridge-law .demo-mark-law--right,
   .demo-scenario-mark--ledgerstone-advisory .demo-mark-ledger--line-three,
   .demo-scenario-mark--hearthline-realty .demo-mark-home--door,
-  .demo-scenario-mark--common-table-network .demo-mark-table--leaf {
+  .demo-scenario-mark--common-table-network .demo-mark-table--leaf,
+  .demo-scenario-mark--mlivm .demo-mark-desk--nodes {
     animation-delay: 240ms;
   }
   .demo-scenario-mark--alder-ridge-law,
   .demo-scenario-mark--ledgerstone-advisory,
   .demo-scenario-mark--hearthline-realty,
-  .demo-scenario-mark--common-table-network {
+  .demo-scenario-mark--common-table-network,
+  .demo-scenario-mark--mlivm {
     animation: demo-mark-breathe 4.4s ease-in-out 1s infinite;
   }
 }

@@ -5,8 +5,7 @@ import { z } from "zod";
 import { callCollectionHostRpc, tenantIdForDatabase } from "@/lib/supabase/server";
 import { getTenantFromEmail, getTenantReplyToEmail } from "@/lib/email/resend";
 import { evaluateCollectionsSnapshot } from "../../../plugins/receivables-collections/evaluate";
-import { projectCollectionObservation } from "./collections";
-import { readStripeInvoiceForAction } from "./stripe-invoicing";
+import { observeInvoice } from "./collections";
 import { renderCollectionReminder } from "./collection-reminder-template";
 import { readWorkspaceBrand } from "./branding";
 import { getModuleSettings, isModuleEnabled } from "./modules";
@@ -39,9 +38,9 @@ export async function previewCollectionReminder(db: SupabaseClient, caseId: stri
     tenantError ||
     tenant?.status !== "active" ||
     !isModuleEnabled("receivables-collections", tenant.config) ||
-    !isModuleEnabled("stripe-invoicing", tenant.config)
+    !isModuleEnabled("invoicing", tenant.config)
   )
-    throw new Error("Collections or Stripe invoicing is unavailable");
+    throw new Error("Collections or Invoicing is unavailable");
   const cooldownHours = z
     .number()
     .int()
@@ -69,7 +68,7 @@ export async function previewCollectionReminder(db: SupabaseClient, caseId: stri
   const to = z.email().max(254).parse(contact.primary_email).toLowerCase();
   const { data: refs, error: refsError } = await db
     .from("collection_case_invoices")
-    .select("creation_action_id")
+    .select("invoice_id")
     .eq("tenant_id", tenantId)
     .eq("case_id", caseId)
     .limit(26);
@@ -94,11 +93,10 @@ export async function previewCollectionReminder(db: SupabaseClient, caseId: stri
   ]);
   if (pending.error || history.error) throw new Error("Reminder history is unavailable");
   if (pending.data?.length) throw new Error("An earlier reminder needs receipt reconciliation");
-  const verified = await Promise.all(
-    refs.map((ref) => readStripeInvoiceForAction(db, ref.creation_action_id)),
-  );
   const now = new Date().toISOString();
-  const observations = verified.map((value) => projectCollectionObservation(value, now));
+  const observations = await Promise.all(
+    refs.map((ref: { invoice_id: string }) => observeInvoice(db, ref.invoice_id, now)),
+  );
   if (observations.some((o) => o.contactId !== item.contact_id || o.currency !== item.currency))
     throw new Error("Case billing identity changed");
   const decision = await evaluateCollectionsSnapshot(tenantId, {
@@ -140,29 +138,22 @@ export async function previewCollectionReminder(db: SupabaseClient, caseId: stri
   const invoices = observations
     .filter((o) => group.invoiceIds.includes(o.invoiceId))
     .map((o) => {
-      const receipt = verified.find((v) => v.receipt.invoiceId === o.invoiceId)!.receipt;
-      const url = new URL(z.url().parse(receipt.hostedInvoiceUrl));
-      if (
-        url.protocol !== "https:" ||
-        url.hostname !== "invoice.stripe.com" ||
-        url.username ||
-        url.password
-      )
-        throw new Error("A verified Stripe payment page is required");
+      if (!o.paymentUrl) throw new Error("Each overdue invoice needs its customer payment link");
+      const url = new URL(o.paymentUrl);
+      if (url.protocol !== "https:" || url.username || url.password)
+        throw new Error("A verified invoice payment page is required");
       return {
-        creationActionId: o.creationActionId,
         invoiceId: o.invoiceId,
+        number: o.number,
         remaining: o.remaining,
         dueDate: o.dueDate,
         url: url.toString(),
-        providerAccount: o.providerAccount,
-        credentialVersion: o.credentialVersion,
       };
     })
-    .sort((a, b) => a.invoiceId.localeCompare(b.invoiceId));
+    .sort((a, b) => a.number.localeCompare(b.number));
   const { brand, revision: brandRevision } = await readWorkspaceBrand(db);
   const [from, replyTo] = await Promise.all([getTenantFromEmail(db), getTenantReplyToEmail(db)]);
-  const testMode = verified[0]!.receipt.testMode;
+  const testMode = observations[0]!.testMode;
   const { subject, text, html } = renderCollectionReminder(
     brand,
     item.currency,

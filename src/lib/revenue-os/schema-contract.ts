@@ -5,9 +5,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-10-18.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-11-14.1";
 
 export const TENANT_SCOPED_TABLES = [
+  "command_board_definitions",
+  "command_board_receipts",
+  "command_board_proposals",
   "workspace_ai_controls",
   "workspace_ai_reservations",
   "ticket_events",
@@ -61,7 +64,9 @@ export const TENANT_SCOPED_TABLES = [
   "form_submissions",
   "form_submission_commands",
 
-  "invoice_pages",
+  "invoices",
+  "invoice_payment_receipts",
+  "invoice_number_counters",
   "debate_productions",
   "debate_milestones",
   "work_items",
@@ -198,6 +203,23 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     ],
   },
   {
+    table: "invoices",
+    columns: [
+      "id",
+      "tenant_id",
+      "number",
+      "contact_id",
+      "customer_email",
+      "lines",
+      "total_cents",
+      "status",
+      "payment_methods",
+      "stripe_payment_intent_id",
+      "link_token_hash",
+      "revision",
+    ],
+  },
+  {
     table: "ticket_orders",
     columns: [
       "id",
@@ -246,6 +268,15 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["event_id", "event_type", "status", "received_at", "processed_at"],
   },
   { table: "today_workspace_views", columns: ["owner_key", "revision", "document", "updated_at"] },
+  {
+    table: "command_board_definitions",
+    columns: ["board_key", "position", "revision", "document", "updated_at"],
+  },
+  {
+    table: "command_board_receipts",
+    columns: ["actor_id", "request_id", "board_key", "request_payload", "result", "created_at"],
+  },
+  { table: "command_board_proposals", columns: ["actor_id", "digest", "preview", "created_at"] },
   {
     table: "work_saved_views",
     columns: ["owner_id", "name", "config", "visibility", "updated_at"],
@@ -784,23 +815,19 @@ export const REVENUE_SCHEMA_TABLES = [
       "id",
       "tenant_id",
       "request_id",
-      "creation_action_id",
-      "contact_id",
-      "provider_account",
-      "credential_version",
       "invoice_id",
+      "contact_id",
       "test_mode",
       "currency",
       "status",
       "remaining",
       "due_date",
       "observed_at",
-      "provider_request_id",
     ],
   },
   {
     table: "collection_case_invoices",
-    columns: ["tenant_id", "case_id", "creation_action_id", "observation_id"],
+    columns: ["tenant_id", "case_id", "invoice_id", "observation_id"],
   },
   {
     table: "collection_events",
@@ -1138,6 +1165,7 @@ export const REVENUE_SCHEMA_FUNCTIONS = [
   "public.search_document_knowledge(text,integer)",
   "public.collect_learning_signals()",
   "public.save_today_views(text,bigint,jsonb,uuid)",
+  "public.save_command_board(text,bigint,integer,jsonb,uuid)",
   "public.save_workspace_configuration(jsonb,jsonb,text)",
   ...REVENUE_SCHEMA_SERVICE_FUNCTIONS.map(({ name }) => name),
   "private.advance_client_handoff_revision()",
@@ -1171,6 +1199,8 @@ export const REVENUE_SCHEMA_FUNCTIONS = [
 export const REVENUE_SCHEMA_POLICIES = [
   { table: "ticket_events", name: "Tenant member ticket reads" },
   { table: "ticket_orders", name: "Tenant member ticket reads" },
+  { table: "invoices", name: "Tenant member invoice reads" },
+  { table: "invoice_payment_receipts", name: "Tenant member invoice reads" },
   { table: "ticket_order_receipts", name: "Tenant member ticket reads" },
   { table: "site_drafts", name: "site_draft_read" },
   { table: "site_draft_revisions", name: "site_revision_read" },

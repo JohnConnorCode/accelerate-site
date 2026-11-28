@@ -235,7 +235,7 @@ try {
     const fixtures = [
       "scripts/test-first-value-business-journey.ts",
       "scripts/test-demo-business-workflows.ts",
-      "scripts/test-stripe-workflow.ts",
+      "scripts/test-invoicing.ts",
       "scripts/test-opportunity-create.ts",
     ];
     assert.deepEqual(
@@ -331,7 +331,7 @@ try {
       "scripts/lib/reference-journey-evidence.ts",
       "scripts/test-verification-workflow.mjs",
       "scripts/test-unknown-fixture.ts",
-      "scripts/test-first-value-business-journey.ts\nscripts/test-stripe-workflow.ts",
+      "scripts/test-first-value-business-journey.ts\nscripts/test-invoicing.ts",
     ])
       assert.deepEqual(classify([fixtures[0], path]), full, path);
     assert.deepEqual(classify([fixtures[0], "src/content/docs/start/overview.mdx"]), full);

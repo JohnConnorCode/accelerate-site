@@ -76,9 +76,11 @@ export function InvoiceDocument({
                 ? "Paid"
                 : invoice.status === "open"
                   ? "Awaiting payment"
-                  : invoice.status === "void"
-                    ? "Voided"
-                    : invoice.status}
+                  : invoice.status === "processing"
+                    ? "Payment processing"
+                    : invoice.status === "void"
+                      ? "Voided"
+                      : invoice.status}
             </p>
             {preview && (
               <p className="mt-2 text-xs font-semibold">Sample · Not a payable invoice</p>

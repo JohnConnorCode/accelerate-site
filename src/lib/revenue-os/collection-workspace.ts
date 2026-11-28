@@ -14,8 +14,13 @@ export async function readCollectionWorkspace(
     maxCases?: number;
     includeInvoiceOptions?: boolean;
     includeActionPreviews?: boolean;
+    /** Exact case ids (workspace graph). */
+    caseIds?: string[];
+    /** "id" orders cases by id for keyset continuation after `afterId`. */
+    order?: "recent" | "id";
+    afterId?: string;
   } = {},
-): Promise<CollectionWorkspaceData> {
+): Promise<CollectionWorkspaceData & { casesTruncated?: boolean }> {
   if (contactId) z.uuid().parse(contactId);
   const optionsInput = z
     .object({
@@ -24,6 +29,9 @@ export async function readCollectionWorkspace(
       maxCases: z.number().int().min(1).max(100).default(100),
       includeInvoiceOptions: z.boolean().default(true),
       includeActionPreviews: z.boolean().default(true),
+      caseIds: z.array(z.uuid()).min(1).max(200).optional(),
+      order: z.enum(["recent", "id"]).default("recent"),
+      afterId: z.uuid().optional(),
     })
     .strict()
     .parse(window);
@@ -32,10 +40,14 @@ export async function readCollectionWorkspace(
     .from("collection_cases")
     .select("*")
     .eq("tenant_id", tenant)
-    .order("updated_at", { ascending: false })
+    .order(optionsInput.order === "id" ? "id" : "updated_at", {
+      ascending: optionsInput.order === "id",
+    })
     .limit(optionsInput.maxCases + 1);
   if (contactId) query = query.eq("contact_id", contactId);
   if (optionsInput.caseId) query = query.eq("id", optionsInput.caseId);
+  if (optionsInput.caseIds) query = query.in("id", optionsInput.caseIds);
+  if (optionsInput.afterId) query = query.gt("id", optionsInput.afterId);
   if (optionsInput.status) query = query.eq("status", optionsInput.status);
   const result = await query;
   if (result.error) throw new Error("Collection cases unavailable");
@@ -44,16 +56,25 @@ export async function readCollectionWorkspace(
     contacts = [...new Set(cases.map((c) => c.contact_id))];
   const options = optionsInput.includeInvoiceOptions
     ? await db
-        .from("action_queue")
-        .select("id,title")
+        .from("invoices")
+        .select("id,number,customer_name")
         .eq("tenant_id", tenant)
-        .eq("action_type", "create_stripe_invoice_draft")
-        .eq("status", "executed")
+        .not("contact_id", "is", null)
+        .in("status", ["open", "processing"])
         .order("created_at", { ascending: false })
         .limit(50)
+        .then(({ data, error }) => ({
+          error,
+          data: (data ?? []).map((i) => ({ id: i.id, title: `${i.number} · ${i.customer_name}` })),
+        }))
     : { data: [], error: null };
   if (options.error) throw new Error("Invoice operations unavailable");
-  if (!ids.length) return { cases: [], invoiceOptions: options.data ?? [], truncated: false };
+  const keyset =
+    optionsInput.order === "id"
+      ? { casesTruncated: (result.data?.length ?? 0) > optionsInput.maxCases }
+      : {};
+  if (!ids.length)
+    return { cases: [], invoiceOptions: options.data ?? [], truncated: false, ...keyset };
   const actionQuery = optionsInput.includeActionPreviews
     ? db
         .from("action_queue")
@@ -98,15 +119,15 @@ export async function readCollectionWorkspace(
   ]);
   if (attempts.error || people.error || work.error || events.error || actions.error)
     throw new Error("Collection history unavailable");
-  const refs: { case_id: string; creation_action_id: string; observation_id: string }[] = [];
+  const refs: { case_id: string; invoice_id: string; observation_id: string }[] = [];
   for (let offset = 0; offset <= 2500; offset += 500) {
     const page = await db
       .from("collection_case_invoices")
-      .select("case_id,creation_action_id,observation_id")
+      .select("case_id,invoice_id,observation_id")
       .eq("tenant_id", tenant)
       .in("case_id", ids)
       .order("case_id")
-      .order("creation_action_id")
+      .order("invoice_id")
       .range(offset, offset + 499);
     if (page.error) throw new Error("Invoice references unavailable");
     refs.push(...(page.data ?? []));
@@ -133,7 +154,19 @@ export async function readCollectionWorkspace(
   }
   if (observations.length !== observationIds.length) throw new Error("Incomplete invoice evidence");
   const byId = new Map(observations.map((o) => [o.id, o]));
+  const invoiceIds = [...new Set(refs.map((r) => r.invoice_id))];
+  const numbers = new Map<string, string>();
+  for (let offset = 0; offset < invoiceIds.length; offset += 100) {
+    const page = await db
+      .from("invoices")
+      .select("id,number")
+      .eq("tenant_id", tenant)
+      .in("id", invoiceIds.slice(offset, offset + 100));
+    if (page.error) throw new Error("Invoice numbers unavailable");
+    for (const row of page.data ?? []) numbers.set(row.id, row.number ?? "Invoice");
+  }
   return {
+    ...keyset,
     truncated:
       (result.data?.length ?? 0) > optionsInput.maxCases ||
       (work.data?.length ?? 0) === 500 ||
@@ -162,8 +195,8 @@ export async function readCollectionWorkspace(
             const o = byId.get(r.observation_id)!;
             return {
               observationId: r.observation_id,
-              creationActionId: r.creation_action_id,
-              invoiceId: o.invoice_id,
+              invoiceId: r.invoice_id,
+              number: numbers.get(r.invoice_id) ?? "Invoice",
               remaining: Number(o.remaining),
               status: o.status,
               dueDate: o.due_date,

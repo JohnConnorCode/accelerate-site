@@ -90,7 +90,7 @@ const capabilityDefinitions: Capability[] = [
     detail:
       "Open an invoice from a won opportunity with its linked contact selected. Search loaded invoices, review open and overdue balances by currency, create a missing billing customer, and approve invoice creation, sending or unpaid-invoice cancellation. Payments & refunds adds reviewed refunds, source receipts and selected-record CSV exports. Provider payment facts remain authoritative; reports state their loaded scope.",
     gated: true,
-    guideHref: "/docs/plugins/stripe-invoicing",
+    guideHref: "/docs/plugins/invoicing",
   },
   {
     id: "event-ticketing",
@@ -298,7 +298,7 @@ const capabilityDefinitions: Capability[] = [
     promise:
       "Group verified invoices by account and currency, record promises and disputes, and approve an exact reminder when you are ready to send.",
     detail:
-      "With Stripe invoicing enabled, open Invoices from the sidebar to create customer invoices, then use Collections to manage overdue balances. Workspace-created invoices also offer an AI-assisted customer-page editor with style starters, phone previews, Undo/Redo, and separate publication approval. Ask AI to propose a pause, promise, dispute, owner or next action, then review the exact change. Fresh invoice and contact checks guard approvals; reminders require a separate review and send receipt.",
+      "With Invoicing enabled, open Invoices from the sidebar to create an invoice and share its payment page, then use Collections to manage overdue balances. Customers pay by bank transfer or card on your own invoice page, with no Stripe invoice fee. Ask AI to propose a pause, promise, dispute, owner or next action, then review the exact change. Fresh invoice and contact checks guard approvals; reminders require a separate review and send receipt.",
     gated: true,
   },
   {

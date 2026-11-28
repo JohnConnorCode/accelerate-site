@@ -189,7 +189,7 @@ try {
     .evaluateAll((links) => [
       ...new Set(links.map((link) => new URL(link.href).pathname.split("/")[3])),
     ]);
-  assert.equal(scenarioIds.length, 6, "launcher must expose all six registered scenarios");
+  assert.equal(scenarioIds.length, 7, "launcher must expose all seven registered scenarios");
   await launcher.close();
   for (const width of [1440, 390]) {
     for (const scenarioId of scenarioIds) {

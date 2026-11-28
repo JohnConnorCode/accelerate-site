@@ -126,6 +126,7 @@ const adminFiles = files.filter((file) => {
   return (
     rel.startsWith("app/admin/") ||
     rel.startsWith("components/admin/") ||
+    rel.startsWith("components/canvas/") ||
     // Docs chrome is new code with no legacy to grandfather: any raw
     // palette utility here fails at a budget of zero.
     rel.startsWith("components/docs/") ||

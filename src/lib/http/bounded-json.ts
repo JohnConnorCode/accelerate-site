@@ -1,13 +1,13 @@
-/** Read at most the allowed bytes even if Content-Length is absent or false. */
-export async function readBoundedJson(
+/** Read at most the allowed bytes of UTF-8 text even if Content-Length is absent or false. */
+export async function readBoundedText(
   request: Pick<Request, "headers" | "body">,
   maxBytes = 32768,
-): Promise<unknown> {
+): Promise<string> {
   const declared = Number(request.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > maxBytes)
     throw new Error("Request body exceeds its size limit");
   const reader = request.body?.getReader();
-  if (!reader) throw new Error("A JSON request body is required");
+  if (!reader) throw new Error("A request body is required");
   const chunks: Uint8Array[] = [];
   let size = 0;
   try {
@@ -30,5 +30,13 @@ export async function readBoundedJson(
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+}
+
+/** Read at most the allowed bytes even if Content-Length is absent or false. */
+export async function readBoundedJson(
+  request: Pick<Request, "headers" | "body">,
+  maxBytes = 32768,
+): Promise<unknown> {
+  return JSON.parse(await readBoundedText(request, maxBytes));
 }

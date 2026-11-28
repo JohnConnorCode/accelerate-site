@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
 import { executeTaskWrite } from "@/lib/revenue-os/action-executor";
+import { listTasks } from "@/lib/revenue-os/tasks";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -67,57 +68,34 @@ export async function GET(request: NextRequest) {
   const page = Math.max(1, Math.min(10000, Number(searchParams.get("page")) || 1));
   const pageSize = Math.max(1, Math.min(100, Number(searchParams.get("pageSize")) || 100));
 
-  let query = supabase.from("tasks").select("*", { count: "exact" });
-
-  if (taskSortBy === "due_date")
-    query = query
-      .order("due_date", { ascending: taskSortDirection === "asc", nullsFirst: false })
-      .order("created_at", { ascending: false });
-  else query = query.order("created_at", { ascending: taskSortDirection === "asc" });
-
-  if (taskStatus && taskStatus !== "all") {
-    query = query.eq("status", taskStatus);
-  }
-
-  if (id) query = query.eq("id", id);
-  if (taskOwner === "me") query = query.eq("assigned_to", auth.user.id);
-  if (taskOwner === "unassigned") query = query.is("assigned_to", null);
-  if (taskSource) query = query.eq("source", taskSource);
-  if (taskPriority !== "all") query = query.eq("priority", taskPriority);
-  if (taskRelatedType && !relatedId) query = query.eq("related_type", taskRelatedType);
-  const today = new Date().toISOString().split("T")[0]!;
-  if (taskDue === "overdue") query = query.eq("status", "pending").lt("due_date", today);
-  if (taskDue === "today") query = query.eq("due_date", today);
-  if (taskDue === "upcoming") query = query.gt("due_date", today);
-  if (taskDue === "unscheduled") query = query.is("due_date", null);
-  if (taskSearch) {
-    const escaped = taskSearch.replace(/[%,()\\]/g, "");
-    if (escaped) query = query.or(`title.ilike.%${escaped}%,related_name.ilike.%${escaped}%`);
-  }
-
-  if (date) {
-    query = query.eq("due_date", date);
-  }
-
-  if (taskRelatedType && relatedId) {
-    query = query.eq("related_type", taskRelatedType).eq("related_id", relatedId);
-  }
-
-  if (includeOverdue === "true") {
-    const today = new Date().toISOString().split("T")[0]!;
-    query = query.eq("status", "pending").lte("due_date", today);
-  }
-
-  const { data, count, error } = await query.range((page - 1) * pageSize, page * pageSize - 1);
-
-  if (error) {
-    console.error("Database error:", error.message);
+  let result: Awaited<ReturnType<typeof listTasks>>;
+  try {
+    result = await listTasks(supabase, {
+      status: taskStatus,
+      owner: taskOwner,
+      viewerId: auth.user.id,
+      source: taskSource,
+      search: taskSearch,
+      priority: taskPriority,
+      due: taskDue,
+      sortBy: taskSortBy,
+      sortDirection: taskSortDirection,
+      id,
+      date,
+      relatedType: taskRelatedType,
+      relatedId,
+      includeOverdue: includeOverdue === "true",
+      page,
+      pageSize,
+    });
+  } catch (error) {
+    console.error("Database error:", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
   return NextResponse.json({
-    tasks: data || [],
-    total: count ?? 0,
+    tasks: result.tasks,
+    total: result.total,
     viewerId: auth.user.id,
     tenantId: auth.tenant.id,
   });

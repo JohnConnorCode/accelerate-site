@@ -121,4 +121,19 @@ export const DEMO_BUSINESS_PROFILES: Record<DemoScenarioId, DemoBusinessProfile>
     introduction:
       "Thank you for taking part in our community event. Your participation services are listed below.",
   },
+  mlivm: {
+    invoiceLines: [
+      { description: "Weekly mowing and edging, four visits", quantity: 1, unitAmount: 18000 },
+      { description: "Fall leaf cleanup and haul-away", quantity: 1, unitAmount: 26500 },
+    ],
+    invoiceMemo: "HI LAWN services for the month. Room memberships are billed separately.",
+    onboarding: [
+      "Confirm the property address and gate access",
+      "Walk the lot and note beds, slopes and obstacles",
+      "Agree the visit day and the first service date",
+      "Share how to reschedule for weather",
+    ],
+    commitments: ["Send the corner lot mowing estimate", "Confirm the first Thursday visit window"],
+    introduction: "Your HI LAWN services for this month, itemized by visit.",
+  },
 };

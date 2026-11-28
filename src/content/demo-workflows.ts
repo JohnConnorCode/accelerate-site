@@ -100,19 +100,18 @@ export const demoWorkflows: DemoWorkflow[] = [
       {
         title: "Prepare the invoice",
         instruction:
-          "Open Invoicing. Choose Use sample invoice, inspect the customer and line items, then Prepare invoice.",
+          "Open Invoicing and choose Create invoice. Pick the customer, add a line item and a due date.",
         route: "invoicing",
       },
       {
-        title: "Approve the exact draft",
-        instruction:
-          "Choose Request draft approval, then Approve & create draft after checking the preview.",
+        title: "Save the draft",
+        instruction: "Choose Save draft and check the recipient preview beside the form.",
         route: "invoicing",
       },
       {
-        title: "Send and inspect the result",
+        title: "Generate the payment link",
         instruction:
-          "Choose Request sending approval, then Approve & send invoice. Inspect the simulated receipt; no real invoice or email is created.",
+          "Choose Generate payment link to number the invoice and open its payment page. This is simulated; no real invoice, payment or email is created.",
         route: "invoicing",
       },
     ],

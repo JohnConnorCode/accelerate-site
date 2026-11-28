@@ -4,13 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { assertCurrentTenantAdmin } from "./tenant-admin-authority";
-import {
-  requireCollections,
-  updateCollectionCase,
-  projectCollectionObservation,
-} from "./collections";
+import { requireCollections, updateCollectionCase, observeInvoice } from "./collections";
 import { readCollectionWorkspace } from "./collection-workspace";
-import { readStripeInvoiceForAction } from "./stripe-invoicing";
 import { proposeAction } from "./actions";
 import { describeCollectionPolicyChange } from "./collection-contract";
 import {
@@ -55,27 +50,24 @@ export async function previewCollectionPolicy(db: SupabaseClient, raw: unknown) 
   if (!c || c.status !== "open") throw new Error("Open collection case is unavailable");
   if (!c.invoices.length || c.invoices.length > 25)
     throw new Error("Review cases with 1–25 tracked invoices; use Collections for larger cases");
+  const observedAt = new Date().toISOString();
   const invoices = await Promise.all(
     [...c.invoices]
-      .sort((a, b) => a.creationActionId.localeCompare(b.creationActionId))
+      .sort((a, b) => a.invoiceId.localeCompare(b.invoiceId))
       .map(async (item) => {
-        const verified = await readStripeInvoiceForAction(db, item.creationActionId);
-        const observation = projectCollectionObservation(verified, new Date().toISOString());
+        const observation = await observeInvoice(db, item.invoiceId, observedAt);
         if (observation.contactId !== c.contactId || observation.currency !== c.currency)
           throw new Error("Collection billing identity changed; refresh the case");
         return {
-          creationActionId: observation.creationActionId,
-          contactId: observation.contactId,
-          credentialVersion: observation.credentialVersion,
-          providerAccount: observation.providerAccount,
           invoiceId: observation.invoiceId,
+          number: observation.number,
+          contactId: observation.contactId,
           testMode: observation.testMode,
           currency: observation.currency,
           status: observation.status,
           remaining: observation.remaining,
           dueDate: observation.dueDate,
-          customerId: String(verified.invoice.customer),
-          paymentUrl: verified.receipt.hostedInvoiceUrl ?? null,
+          paymentUrl: observation.paymentUrl,
         };
       }),
   );

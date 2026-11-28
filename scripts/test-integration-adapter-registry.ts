@@ -34,8 +34,24 @@ assert.deepEqual([...INTEGRATION_ADAPTERS.keys()].sort(), [
   "hubspot",
   "postiz",
   "stripe",
+  "twilio",
   "whatsapp",
 ]);
+
+// Twilio: the auth token is stored where the provider resolver reads a
+// webhook's signing secret, because Twilio signs webhooks with it.
+assert.deepEqual(
+  buildEncryptedCredentials(
+    INTEGRATION_ADAPTERS.get("twilio")!,
+    { accountSid: "AC-fixture", authToken: "token-fixture", fromNumber: "+15555550123" },
+    fakeEncrypt,
+  ),
+  {
+    account_sid: "enc(AC-fixture)",
+    api_key: "enc(token-fixture)",
+    from_number: "enc(+15555550123)",
+  },
+);
 
 // WhatsApp: accessToken -> api_key, phoneNumberId -> phone_number_id.
 // This is the exact mapping the old hand-written block built.

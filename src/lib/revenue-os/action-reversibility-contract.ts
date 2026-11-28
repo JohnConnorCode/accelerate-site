@@ -25,6 +25,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "Refunds and invoice cancellation cannot be undone. Billing profiles and provider receipts are retained. Exact human approval is always required.",
   },
   {
+    actionType: "invoice_change",
+    impact: "external_action",
+    reversibility: "compensable",
+    rationale:
+      "An issued invoice can be voided and a draft edited or deleted through a fresh approved change. Issuing opens a customer payment link; invoice numbers, payments and audit history remain. Exact human approval is always required.",
+  },
+  {
     actionType: "event_ticketing_change",
     impact: "external_action",
     reversibility: "compensable",
@@ -58,6 +65,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     reversibility: "compensable",
     rationale:
       "Restore a previous view with a newly reviewed change against the current revision. Personal layout receipts retain the exact prior request.",
+  },
+  {
+    actionType: "command_board_change",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore an earlier board with a newly reviewed change against the current revision. Each saved revision keeps its receipt and audit entry; business records are unchanged.",
   },
   {
     actionType: "send_radar_outreach",
@@ -129,15 +143,7 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale:
       "Assigned tasks remain individually editable; no automatic deletion of an approved delivery checklist is implied.",
   },
-  ...["create_stripe_invoice_draft", "send_stripe_invoice", "publish_invoice_page"].map(
-    (actionType) => ({
-      actionType,
-      impact: "external_action" as const,
-      reversibility: "irreversible" as const,
-      rationale:
-        "Creates or sends an external billing document; no automatic compensator is registered, so explicit human approval is permanent.",
-    }),
-  ),
+
   ...[
     "bootstrap_coworker",
     "store_agent_memory",
@@ -204,6 +210,12 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     impact: "external_action",
     reversibility: "irreversible",
     rationale: "Delivery leaves the system; no recall exists.",
+  },
+  {
+    actionType: "send_sms",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale: "A carrier delivers the text from the workspace's number; no recall exists.",
   },
   {
     actionType: "create_debate_invitation",

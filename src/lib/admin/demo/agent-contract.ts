@@ -45,8 +45,8 @@ export const demoAgentSnapshotSchema = z
               .array(
                 z
                   .object({
-                    creationActionId: id,
-                    invoiceId: z.string().max(100),
+                    invoiceId: id,
+                    number: z.string().max(40),
                     remaining: z.number().int().nonnegative(),
                     status: z.string().max(40),
                     dueDate: z.string().max(40).nullable(),
@@ -133,6 +133,7 @@ export const demoAgentRequestSchema = z
       "hearthline-realty",
       "common-table-network",
       "superdebate",
+      "mlivm",
     ]),
     clientMessageId: z.uuid(),
     text: z.string().trim().min(1).max(4000),

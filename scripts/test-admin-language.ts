@@ -70,7 +70,7 @@ assert.deepEqual(getAdminBreadcrumbs("/admin/ai?purpose=architect&view=chat"), [
 // Actual link/shell adapters round-trip under the same role/module inputs.
 // Platform-only role visibility is intentional and remains owned by AdminShell.
 const scenarios = Object.values(DEMO_SCENARIOS);
-assert.equal(scenarios.length, 6);
+assert.equal(scenarios.length, 7);
 const surfaces = [
   { name: "live", scenario: null, workspace: null },
   { name: "tenant", scenario: null, workspace: "fixture" },

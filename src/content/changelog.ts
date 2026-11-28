@@ -2,6 +2,51 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "twilio-text-messages",
+    slug: "twilio-text-messages",
+    title: "Text customers from your own Twilio number",
+    description:
+      "Connect a Twilio number your business already owns in Integrations, and texts arrive in Conversations next to email. Every outbound text is approved before it sends, a customer who replies STOP is not texted again until they reply START, and a text whose send timed out is checked against Twilio before anyone tries again.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
+    id: "approval-cards",
+    slug: "approval-cards",
+    title: "See every proposal as the same approval card",
+    description:
+      "Pending proposals now look the same on the Work approvals list, the approvals canvas, Command Board stations and your phone: what kind of action it is, what approving does and when it was proposed. A card always opens the full review, which checks the proposal again first, so one decided elsewhere shows its outcome instead of asking you to decide twice.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
+    id: "command-board-app",
+    slug: "command-board-app",
+    title: "Run each business from a Command Board desk",
+    description:
+      "Command Board shows every business in a workspace as a desk: open a phase to unspool its segments and stations, and each station counts the matching tasks, opportunities, conversations, approvals and balances, names the next one, and lights up when something needs you. Service Mode and Real Estate Mode install as your own board data. Try it in the new MLIVM demo workspace, which runs a property business and a lawn service side by side.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
+    id: "today-and-approvals-canvas",
+    slug: "today-and-approvals-canvas",
+    title: "See Today and your approvals as a canvas",
+    description:
+      "Choose Canvas on Today or on the Work approvals tab to see attention items and pending proposals as a map you can pan and zoom. Groups show their counts, cards reveal more detail as you zoom in, and selecting a card opens the same review panel as the list. Keyboard navigation, touch gestures and reduced motion are supported, and the canvas never changes a record on its own.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
+    id: "workspace-graph-read",
+    slug: "workspace-graph-read",
+    title: "See how workspace records connect",
+    description:
+      "The assistant and connected MCP clients can read contacts, companies, opportunities, tasks, pending approvals, conversations, collection cases and invoice drafts as one connected graph. Ask about one record and its related work, or page through each record type. Each source reports whether it was read, refused or turned off, so turning off an App removes only its own records. Only workspace administrators can read the graph, and reading it never changes a record.",
+    category: "feature",
+    publishedAt: "2026-11-14",
+  },
+  {
     id: "shared-module-cards-and-contact-navigation",
     slug: "shared-module-cards-and-contact-navigation",
     title: "Inspect modules and open customer records consistently",

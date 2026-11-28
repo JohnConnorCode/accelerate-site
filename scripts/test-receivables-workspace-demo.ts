@@ -43,19 +43,16 @@ async function main() {
       .data as CollectionWorkspaceData;
     assert.equal(workspace.cases.length, 6);
     const billing = (await call("/api/admin/invoicing")).data;
-    for (const action of billing.actions) {
-      if (action.result?.invoiceId) {
-        assert.match(action.result.currency, /^[a-z]{3}$/);
-        assert.equal(typeof action.result.amountRemaining, "number");
-        assert.equal(typeof action.result.amountPaid, "number");
-      }
+    for (const invoice of billing.invoices) {
+      assert.equal(invoice.currency ?? "usd", "usd");
+      assert.equal(typeof invoice.amount_cents, "number");
     }
     assert.equal(collectionSummary(workspace.cases).paidInvoices, 1);
     const first = workspace.cases[0]!,
       partial = workspace.cases[1]!,
       disputed = workspace.cases[2]!,
       promised = workspace.cases[3]!;
-    assert.equal(partial.invoices[0]!.remaining, 7500);
+    assert.equal(partial.invoices[0]!.remaining, 12500);
     assert.equal(disputed.disputed, true);
     assert.ok(promised.promiseDate);
     assert.equal(
@@ -103,11 +100,7 @@ async function main() {
       409,
     );
     assert.equal(state.actions.find((a) => a.id === queued.id)!.result!.status, "skipped");
-    assert.equal(
-      state.invoices.find((i) => i.actionId === first.invoices[0]!.creationActionId)!.receipt
-        .status,
-      "paid",
-    );
+    assert.equal(state.invoices.find((i) => i.id === first.invoices[0]!.invoiceId)!.status, "paid");
     preview = (await call("/api/admin/collections/reminders", "POST", { caseId: partial.id })).data
       .preview;
     queued = (

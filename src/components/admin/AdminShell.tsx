@@ -164,7 +164,7 @@ export default function AdminShell({
     !isModuleHistoryPath(owningModule, effectivePathname) &&
     !SELF_LOCKOUT_EXEMPT_MODULES.has(owningModule.id) &&
     !isModuleEnabled(owningModule.id, effectiveModuleConfig);
-  const invoicingEnabled = isModuleEnabled("stripe-invoicing", effectiveModuleConfig ?? tenant);
+  const invoicingEnabled = isModuleEnabled("invoicing", effectiveModuleConfig ?? tenant);
   const visibleNavSections = useMemo(() => {
     const roleFiltered = adminNavSections
       .map((section) => ({
@@ -568,7 +568,7 @@ export default function AdminShell({
     {
       label: invoicingEnabled ? "Create invoice" : "Set up invoicing",
       description: invoicingEnabled
-        ? "Prepare a customer invoice for review"
+        ? "Start a new invoice and share its payment link"
         : "Invoices are turned off. Open instructions to enable invoicing.",
       keywords: "new invoice create invoice add invoice billing bills payments",
       icon: ReceiptText,

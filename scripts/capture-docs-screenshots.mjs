@@ -295,6 +295,15 @@ const SHOTS = [
     wait: { role: "heading", name: heading },
     state: route,
   })),
+  {
+    id: "demo/mlivm-board",
+    file: "public/images/demo/mlivm-board-20261114.png",
+    group: "demo",
+    theme: "accelerate",
+    scenario: "mlivm",
+    route: "board",
+    wait: { role: "heading", name: "Command Board" },
+  },
 ];
 
 const shots = SHOTS.filter(

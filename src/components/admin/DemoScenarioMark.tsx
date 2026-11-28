@@ -137,6 +137,32 @@ export function DemoScenarioMark({
           />
         </>
       )}
+      {scenarioId === "mlivm" && (
+        <>
+          <circle
+            className="demo-mark-desk demo-mark-desk--anchor"
+            cx="20"
+            cy="11"
+            r="6"
+            stroke="currentColor"
+            strokeWidth="2.3"
+          />
+          <path
+            className="demo-mark-desk demo-mark-desk--links"
+            d="M20 17v5M10 22h20M10 22v4M20 22v4M30 22v4"
+            stroke="currentColor"
+            strokeWidth="1.9"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            className="demo-mark-desk demo-mark-desk--nodes"
+            d="M13.5 30a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0ZM23.5 30a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0ZM33.5 30a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+        </>
+      )}
       {scenarioId === "common-table-network" && (
         <>
           <path

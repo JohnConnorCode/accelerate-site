@@ -200,7 +200,7 @@ export const businessAreas: readonly BusinessArea[] = [
     title: "Billing & collections",
     headline: "Know what was agreed, what was invoiced and what still needs collecting.",
     description:
-      "Prepare Stripe invoices, offer recurring plans and manage overdue balances with customer context. Keep a contract value, invoice, payment promise and collected payment distinct.",
+      "Send invoices with your own payment page, offer recurring plans and manage overdue balances with customer context. Keep a contract value, invoice, payment promise and collected payment distinct.",
     outcome:
       "Less reconstructing billing status before invoicing a customer or following up on an unpaid balance.",
     capabilityIds: ["invoices", "collections", "subscriptions", "reports"],
@@ -214,7 +214,7 @@ export const businessAreas: readonly BusinessArea[] = [
         title: "Create and send an invoice",
         detail:
           "Choose the customer and line items, preview the invoice and design its customer page before publication.",
-        href: "/docs/plugins/stripe-invoicing",
+        href: "/docs/plugins/invoicing",
       },
       {
         title: "Offer recurring plans",

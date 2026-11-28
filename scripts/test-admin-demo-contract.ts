@@ -10,6 +10,7 @@ const expectedScenarios = [
   "hearthline-realty",
   "common-table-network",
   "superdebate",
+  "mlivm",
 ];
 assert.deepEqual(
   DEMO_SCENARIO_SUMMARIES.map((scenario) => scenario.id),

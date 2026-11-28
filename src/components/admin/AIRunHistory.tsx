@@ -29,6 +29,7 @@ import type {
 import { AdminSurface } from "./AdminSurface";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
+import { elapsedTime } from "@/lib/admin/work-presentation";
 
 const statusTone: Record<string, string> = {
   completed: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
@@ -42,14 +43,6 @@ const toneFor = (status: string) =>
 function elapsed(ms: number | null) {
   if (ms === null) return "—";
   return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
-}
-function relative(value: string) {
-  const delta = Math.max(0, Date.now() - Date.parse(value));
-  const minutes = Math.floor(delta / 60_000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return hours < 24 ? `${hours}h ago` : `${Math.floor(hours / 24)}d ago`;
 }
 function title(run: AiRunSummary) {
   return run.promptPreview || run.resultPreview || run.error || "AI workspace run";
@@ -117,7 +110,7 @@ function RunRow({
           >
             {run.status}
           </span>
-          <span>{relative(run.startedAt)}</span>
+          <span>{elapsedTime(run.startedAt)}</span>
           <span>{elapsed(run.durationMs)}</span>
         </span>
       </span>

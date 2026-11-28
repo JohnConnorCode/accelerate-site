@@ -59,6 +59,21 @@ const providerSchema = z.discriminatedUnion("action", [
     phoneNumberId: z.string().trim().min(1).max(64),
   }),
   z.object({
+    action: z.literal("configure_twilio"),
+    accountSid: z
+      .string()
+      .trim()
+      .regex(/^AC[0-9a-f]{32}$/),
+    authToken: z
+      .string()
+      .trim()
+      .regex(/^[0-9a-f]{32}$/),
+    fromNumber: z
+      .string()
+      .trim()
+      .regex(/^\+[1-9]\d{7,14}$/),
+  }),
+  z.object({
     action: z.literal("configure_hubspot"),
     accessToken: z.string().trim().min(10).max(2000),
     webhookSecret: z.string().trim().min(10).max(500),
@@ -76,6 +91,7 @@ const providerSchema = z.discriminatedUnion("action", [
       "stripe",
       "postiz",
       "xero",
+      "twilio",
     ]),
   }),
 ]);
@@ -217,7 +233,7 @@ async function configureAdapterProvider(
   const encryptedCredentials = buildEncryptedCredentials(
     adapter,
     credentials,
-    provider === "stripe" || provider === "postiz"
+    provider === "stripe" || provider === "postiz" || provider === "twilio"
       ? (value, field) => encryptTenantSecret(value, authorization.tenant.id, provider, field)
       : encryptSecret,
   );
@@ -313,7 +329,9 @@ export async function POST(request: NextRequest) {
                 ? "whatsapp"
                 : parsed.data.action === "configure_hubspot"
                   ? "hubspot"
-                  : "resend";
+                  : parsed.data.action === "configure_twilio"
+                    ? "twilio"
+                    : "resend";
   const { data: existing } = await authorization.database
     .from("integration_connections")
     .select("credential_version,status,settings,encrypted_credentials,account_email")
@@ -368,7 +386,8 @@ export async function POST(request: NextRequest) {
     parsed.data.action === "configure_whatsapp" ||
     parsed.data.action === "configure_hubspot" ||
     parsed.data.action === "configure_stripe" ||
-    parsed.data.action === "configure_postiz"
+    parsed.data.action === "configure_postiz" ||
+    parsed.data.action === "configure_twilio"
   ) {
     const provider = parsed.data.action.slice("configure_".length);
     const credentials: Record<string, unknown> = { ...parsed.data };

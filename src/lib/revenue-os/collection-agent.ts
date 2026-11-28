@@ -73,7 +73,7 @@ export async function readCollectionAgentContext(db: SupabaseClient, raw: unknow
     contract: "collections.agent-context.v1",
     generatedAt,
     source:
-      "Last recorded provider observations for the returned cases; not a live Stripe refresh or payment attribution.",
+      "Last recorded provider observations for the returned cases; not a live payment refresh or payment attribution.",
     maxCases,
     cases,
     summary: collectionSummary(view.cases, generatedAt),
@@ -100,7 +100,6 @@ export async function previewCollectionAgentReminder(db: SupabaseClient, raw: un
     subject: preview.subject,
     text: preview.text,
     invoices: preview.invoices.map((i) => ({
-      creationActionId: i.creationActionId,
       invoiceId: i.invoiceId,
       remaining: i.remaining,
       dueDate: i.dueDate,

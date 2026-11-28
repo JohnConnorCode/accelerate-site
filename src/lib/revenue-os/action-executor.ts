@@ -12,13 +12,12 @@ import { executeRadarStoreChange } from "./radar-store";
 import { executeModuleConfiguration } from "./module-actions";
 import { executeWorkspaceBrandUpdate } from "./branding-actions";
 import { executeTodayViewChange } from "./today-views";
+import { executeCommandBoardChange } from "./command-board";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { executeCollectionReminder } from "./collection-reminders";
 import { executeFormDefinitionSave, executeFormPublish, executeFormIntake } from "./form-builder";
 import { executeApprovedSiteChange } from "@/lib/site-studio/editor-service";
-import { executeInvoicePagePublication } from "./invoice-pages";
 import { executeWorkflowTaskBatch } from "./workflow-tasks";
-import { executeStripeInvoiceAction } from "./stripe-invoicing";
 import { assertPluginActionAllowed } from "./workflow-plugins";
 import {
   claimApprovedAction,
@@ -34,6 +33,8 @@ import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
 import { ACTION_REVERSIBILITY, reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
+import { readSmsTarget, recordOutboundSms } from "./sms";
+import { sendTwilioSms, tenantTwilioClient } from "./twilio-adapter";
 import { transitionOpportunity } from "./pipeline";
 import { activateCampaign, duplicateCampaign } from "./campaigns";
 import { createGmailDraft, sendGmailReply, type GmailReplyTarget } from "./google";
@@ -198,6 +199,12 @@ async function executeApprovedAction(
         result = await executeBillingCommand(supabase, id, actorEmail);
         break;
       }
+      case "invoice_change": {
+        if (mode !== "approved") throw new Error("Invoice changes require exact human approval");
+        const { executeApprovedInvoiceCommand } = await import("./invoices");
+        result = await executeApprovedInvoiceCommand(supabase, payload, actorEmail);
+        break;
+      }
       case "event_ticketing_change": {
         if (mode !== "approved")
           throw new Error("Event publication and confirmation changes require human approval");
@@ -274,21 +281,14 @@ async function executeApprovedAction(
         result = await executeTodayViewChange(supabase, payload);
         break;
       }
-      case "publish_invoice_page": {
-        if (mode !== "approved")
-          throw new Error("Invoice page publication requires human approval");
-        result = await executeInvoicePagePublication(supabase, id, actorEmail);
+      case "command_board_change": {
+        if (mode !== "approved") throw new Error("Command Board changes require human approval");
+        result = await executeCommandBoardChange(supabase, payload);
         break;
       }
       case "create_task_batch": {
         if (mode !== "approved") throw new Error("Task workflows require human approval");
         result = await executeWorkflowTaskBatch(supabase, id, actorEmail);
-        break;
-      }
-      case "create_stripe_invoice_draft":
-      case "send_stripe_invoice": {
-        if (mode !== "approved") throw new Error("Invoice actions require human approval");
-        result = await executeStripeInvoiceAction(supabase, id, actorEmail);
         break;
       }
       case "bootstrap_coworker":
@@ -368,6 +368,25 @@ async function executeApprovedAction(
           source: "ai",
           idempotencyKey: `action:${id}`,
         });
+        break;
+      }
+      case "send_sms": {
+        // The thread is re-read at send time: a STOP, an archive or a changed
+        // number since approval refuses the send instead of texting anyway.
+        const target = await readSmsTarget(supabase, stringValue(payload, "conversationId")!);
+        if (stringValue(payload, "to") !== target.to)
+          throw new Error("The conversation's number changed after approval; prepare a new text");
+        const body = stringValue(payload, "body")!;
+        const client = await tenantTwilioClient(supabase);
+        const sent = await sendTwilioSms(client, { to: target.to, body });
+        await recordOutboundSms(supabase, {
+          conversationId: target.conversationId,
+          ...sent,
+          to: target.to,
+          from: client.fromNumber,
+          body,
+        });
+        result = { provider: "twilio", sid: sent.sid, status: sent.status, to: target.to };
         break;
       }
       case "send_gmail_reply": {

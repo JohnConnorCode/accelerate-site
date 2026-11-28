@@ -13,6 +13,7 @@ import {
   EyeOff,
   KeyRound,
   Mail,
+  MessageSquareText,
   PlugZap,
   RefreshCw,
   Unplug,
@@ -27,7 +28,7 @@ import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { toast } from "@/lib/admin/useToast";
 import { cn } from "@/lib/utils";
 
-type Provider = "openrouter" | "resend" | "calendly";
+type Provider = "openrouter" | "resend" | "calendly" | "twilio";
 interface ProviderConnection {
   id: string;
   provider: string;
@@ -49,8 +50,13 @@ interface ProviderConnection {
   } | null;
 }
 
-const providerName = (provider: Provider) =>
-  provider === "openrouter" ? "OpenRouter" : provider === "resend" ? "Resend" : "Calendly";
+const PROVIDER_NAMES: Record<Provider, string> = {
+  openrouter: "OpenRouter",
+  resend: "Resend",
+  calendly: "Calendly",
+  twilio: "Twilio",
+};
+const providerName = (provider: Provider) => PROVIDER_NAMES[provider];
 
 function formatConnectedAt(value: string | null | undefined) {
   if (!value) return "No successful connection yet";
@@ -73,6 +79,9 @@ export function TenantProviderControls() {
   const [resendReplyToEmail, setResendReplyToEmail] = useState("");
   const [resendWebhook, setResendWebhook] = useState("");
   const [calendlyWebhook, setCalendlyWebhook] = useState("");
+  const [twilioAccountSid, setTwilioAccountSid] = useState("");
+  const [twilioAuthToken, setTwilioAuthToken] = useState("");
+  const [twilioNumber, setTwilioNumber] = useState("");
   const [disconnecting, setDisconnecting] = useState<Provider | null>(null);
   const [copied, setCopied] = useState<Provider | null>(null);
   const connection = (provider: Provider) =>
@@ -94,7 +103,14 @@ export function TenantProviderControls() {
                 replyToEmail: resendReplyToEmail,
                 webhookSecret: resendWebhook || undefined,
               }
-            : { action: "configure_calendly", webhookSecret: calendlyWebhook };
+            : provider === "twilio"
+              ? {
+                  action: "configure_twilio",
+                  accountSid: twilioAccountSid.trim(),
+                  authToken: twilioAuthToken.trim(),
+                  fromNumber: twilioNumber.trim(),
+                }
+              : { action: "configure_calendly", webhookSecret: calendlyWebhook };
       await fetchJson("/api/admin/tenant/providers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -106,6 +122,10 @@ export function TenantProviderControls() {
         setResendFromEmail("");
         setResendReplyToEmail("");
         setResendWebhook("");
+      } else if (provider === "twilio") {
+        setTwilioAccountSid("");
+        setTwilioAuthToken("");
+        setTwilioNumber("");
       } else setCalendlyWebhook("");
       await query.refetch();
       toast.success(`${providerName(provider)} credentials verified and saved for this workspace`);
@@ -145,7 +165,7 @@ export function TenantProviderControls() {
         () => setCopied((current) => (current === provider ? null : current)),
         1800,
       );
-      toast.success(`${provider === "resend" ? "Resend" : "Calendly"} endpoint copied`);
+      toast.success(`${providerName(provider)} endpoint copied`);
     } catch {
       toast.error("Could not copy the webhook endpoint");
     }
@@ -327,6 +347,72 @@ export function TenantProviderControls() {
                   busy={busy === "calendly"}
                   disabled={Boolean(busy) || calendlyWebhook.length < 10}
                   onDisconnect={() => setDisconnecting("calendly")}
+                />
+              </form>
+            </ProviderCard>
+            <ProviderCard
+              icon={MessageSquareText}
+              name="Twilio"
+              detail="Texts from your own number, each one approved before it sends"
+              connection={connection("twilio")}
+              endpoint={`/api/public/${workspaceSlug}/webhooks/twilio`}
+              copied={copied === "twilio"}
+              onCopy={() => void copyEndpoint("twilio")}
+            >
+              <form onSubmit={(event) => void configure(event, "twilio")} className="space-y-4">
+                <label className="block">
+                  <span className="text-xs font-medium text-[var(--admin-ink)]">Account SID</span>
+                  <span className="admin-copy mt-0.5 block text-pretty text-[11px] leading-4">
+                    From the Twilio Console home page. It starts with AC.
+                  </span>
+                  <input
+                    required
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={twilioAccountSid}
+                    onChange={(event) => setTwilioAccountSid(event.target.value)}
+                    placeholder="AC…"
+                    className="admin-field mt-1.5 min-h-11 font-mono"
+                  />
+                </label>
+                <SecretField
+                  label="Auth token"
+                  description="Verifies the account and signs the texts Twilio sends to the endpoint above."
+                  value={twilioAuthToken}
+                  onChange={setTwilioAuthToken}
+                  placeholder="Paste the auth token"
+                />
+                <label className="block">
+                  <span className="text-xs font-medium text-[var(--admin-ink)]">Twilio number</span>
+                  <span className="admin-copy mt-0.5 block text-pretty text-[11px] leading-4">
+                    A number this account already owns, in +E.164 form. Set its incoming message
+                    webhook to the endpoint above.
+                  </span>
+                  <input
+                    required
+                    type="tel"
+                    autoComplete="off"
+                    value={twilioNumber}
+                    onChange={(event) => setTwilioNumber(event.target.value)}
+                    placeholder={
+                      /^\+[1-9]\d{7,14}$/.test(connection("twilio")?.account_email ?? "")
+                        ? connection("twilio")!.account_email!
+                        : "+15555550123"
+                    }
+                    className="admin-field mt-1.5 min-h-11 font-mono"
+                  />
+                </label>
+                <ProviderActions
+                  provider="twilio"
+                  connected={connection("twilio")?.status === "connected"}
+                  busy={busy === "twilio"}
+                  disabled={
+                    Boolean(busy) ||
+                    !/^AC[0-9a-f]{32}$/.test(twilioAccountSid.trim()) ||
+                    !/^[0-9a-f]{32}$/.test(twilioAuthToken.trim()) ||
+                    !/^\+[1-9]\d{7,14}$/.test(twilioNumber.trim())
+                  }
+                  onDisconnect={() => setDisconnecting("twilio")}
                 />
               </form>
             </ProviderCard>

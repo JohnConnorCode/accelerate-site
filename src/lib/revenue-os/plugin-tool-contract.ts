@@ -1,25 +1,9 @@
 /** Trusted tool registrations shared by manifest generation and AI dispatch.
  * This module never imports or evaluates plugin JavaScript. */
 import { z } from "zod";
-import {
-  billingReadInputSchema,
-  billingPreviewInputSchema,
-  billingProposalInputSchema,
-} from "./billing-command-contract";
 import { pluginWorkflowContract } from "./plugin-workflow-contract";
-import { invoiceDesignSchema } from "./invoice-page-contract";
 
-export const PLUGIN_TOOL_OPERATIONS = [
-  "prepare-workflow",
-  "propose-workflow",
-  "propose-invoice-send",
-  "preview-invoice-page",
-  "propose-invoice-page",
-  "get-billing-records",
-  "get-billing-action",
-  "preview-billing-change",
-  "propose-billing-change",
-] as const;
+export const PLUGIN_TOOL_OPERATIONS = ["prepare-workflow", "propose-workflow"] as const;
 export type PluginToolOperation = (typeof PLUGIN_TOOL_OPERATIONS)[number];
 type PluginToolModule = {
   id: string;
@@ -66,98 +50,6 @@ export function pluginToolRegistrations(module: PluginToolModule): ToolRegistrat
       confirmationRequired: true,
     },
   ];
-  // Native adapters remain reviewed host code. Naming a module cannot select
-  // another service; only this explicit bundled registration adds them.
-  if (module.id === "stripe-invoicing") {
-    if (module.workflow.inputContract !== "stripe-invoice-draft-v1")
-      throw new Error("Stripe adapter tools require the invoice workflow contract");
-    registrations.push(
-      {
-        operation: "get-billing-action",
-        name: "get_billing_action",
-        description:
-          "Check the current provider result of one existing workspace billing action without changing or retrying it. Supports refund status, unpaid-invoice cancellation and billing-customer setup, including expired reviews. Preserves the original execution receipt.",
-        schema: z.object({ actionId: z.uuid() }).strict(),
-        serviceTarget: "revenue-os.billing-workspace",
-        connectionRequirement: "none",
-        impact: "read",
-        confirmationRequired: false,
-      },
-      {
-        operation: "get-billing-records",
-        name: "get_billing_records",
-        description:
-          "Read five current Stripe invoices or payments, source amounts, account mode and a next-page cursor. Includes account records outside this workspace. Never sum currencies or describe one page as an account total.",
-        schema: billingReadInputSchema,
-        serviceTarget: "revenue-os.billing-workspace",
-        connectionRequirement: "none",
-        impact: "read",
-        confirmationRequired: false,
-      },
-      {
-        operation: "preview-billing-change",
-        name: "preview_billing_change",
-        description:
-          "Preview a billing customer, unpaid invoice cancellation or exact payment refund without provider effects. Refund amounts use Stripe minor units. Returns current customer, mode, consequences and review digest.",
-        schema: billingPreviewInputSchema,
-        serviceTarget: "revenue-os.billing-workspace",
-        connectionRequirement: "none",
-        impact: "read",
-        confirmationRequired: false,
-      },
-      {
-        operation: "propose-billing-change",
-        name: "propose_billing_change",
-        description:
-          "Stage the exact billing command and preview digest for human approval. Cannot approve, refund or cancel by itself. Rechecks administrator authority and current billing facts. Reuse requestId for one logical request.",
-        schema: billingProposalInputSchema,
-        serviceTarget: "revenue-os.billing-workspace",
-        connectionRequirement: "none",
-        impact: "internal_write",
-        confirmationRequired: true,
-      },
-      {
-        operation: "propose-invoice-send",
-        name: "propose_stripe_invoice_send",
-        description:
-          "Stage sending an existing completed Stripe invoice for explicit human approval. Does not send it.",
-        schema: z.object({ creationActionId: z.uuid() }).strict(),
-        serviceTarget: "revenue-os.stripe-invoicing",
-        connectionRequirement: "none",
-        impact: "internal_write",
-        confirmationRequired: true,
-      },
-      {
-        operation: "preview-invoice-page",
-        name: "preview_invoice_page",
-        description:
-          "Preview a bounded customer invoice design using workspace branding and authoritative Stripe billing facts. Returns the publication digest; does not publish.",
-        schema: z.object({ creationActionId: z.uuid(), design: invoiceDesignSchema }).strict(),
-        serviceTarget: "revenue-os.invoice-pages",
-        connectionRequirement: "none",
-        impact: "read",
-        confirmationRequired: false,
-      },
-      {
-        operation: "propose-invoice-page",
-        name: "propose_invoice_page",
-        description:
-          "Stage the exact previewed invoice page for human publication approval. Does not publish or email the customer.",
-        schema: z
-          .object({
-            creationActionId: z.uuid(),
-            design: invoiceDesignSchema,
-            digest: digestSchema,
-            requestId: z.uuid(),
-          })
-          .strict(),
-        serviceTarget: "revenue-os.invoice-pages",
-        connectionRequirement: "none",
-        impact: "internal_write",
-        confirmationRequired: true,
-      },
-    );
-  }
   return registrations;
 }
 export type PluginToolDeclaration = Omit<ToolRegistration, "schema"> & {

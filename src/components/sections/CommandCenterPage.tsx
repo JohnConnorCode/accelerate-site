@@ -55,7 +55,7 @@ export function CommandCenterPageContent() {
               The actual interface with fictional business data. Enlarge a screen to inspect it.
             </p>
             <Link href="/demo/command-center" className={styles.textLink}>
-              Explore all six demo businesses <ArrowRight size={16} aria-hidden="true" />
+              Explore all seven demo businesses <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </div>
         </div>

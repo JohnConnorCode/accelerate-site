@@ -448,9 +448,9 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
     dataClasses: ["Customer identity", "Invoices", "Payments"],
     connectionProvider: "stripe",
     setupHref: "/admin/invoicing",
-    docsHref: "https://docs.stripe.com/api/invoices",
+    docsHref: "https://docs.stripe.com/api/payment_intents",
     limits: [
-      "Stripe invoicing plugin must be enabled",
+      "Invoicing plugin must be enabled",
       "Webhook reconciliation updates the tenant ledger; Stripe remains payment truth",
     ],
     guardrail: "Stripe owns payment facts; Command Center owns revenue context and attribution.",
