@@ -144,8 +144,8 @@ try {
       await page.getByRole("region", { name: "Payment link" }).waitFor();
       assert.match(
         await page.getByLabel("Recipient link", { exact: true }).inputValue(),
-        /\/invoice\//,
-        "Issuing shows the customer payment link",
+        /invoiceId=[0-9a-f-]{36}/,
+        "Issuing shows the recipient link (the fictional demo opens the invoice preview)",
       );
 
       // The palette must find creation and retain the current demo workspace.

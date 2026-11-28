@@ -1146,7 +1146,7 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     label: "Invoices",
     href: "/admin/invoicing",
     icon: "FileText",
-    description: "Create invoices, share payment links, and track what has been paid",
+    description: "Your invoices, payment links and what has been paid",
     keywords: "invoicing billing bills payments new invoice create invoice",
     moreGroup: "Revenue",
   },

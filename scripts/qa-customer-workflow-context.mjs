@@ -80,21 +80,6 @@ async function keyboardLink(page, link) {
   await link.focus();
   await page.keyboard.press("Enter");
 }
-async function billingCustomer(page, contactId) {
-  const choices = await read(page, `/api/admin/invoicing?contactId=${contactId}`);
-  const field = page.getByLabel("Stripe billing customer", { exact: true });
-  if (!choices.customers.length) {
-    await page.getByRole("button", { name: "Create billing customer", exact: true }).click();
-    const dialog = page.getByRole("dialog");
-    await dialog.getByRole("region", { name: "Exact billing operation" }).waitFor();
-    await dialog.getByRole("button", { name: "Approve", exact: true }).click();
-    await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "detached" });
-  }
-  await field.locator("option").nth(1).waitFor({ state: "attached" });
-  const id = await field.locator("option").nth(1).getAttribute("value");
-  await field.selectOption(id);
-  return id;
-}
 try {
   for (const scenario of ["ledgerstone-advisory", "alder-ridge-law"]) {
     for (const mobile of [false, true]) {
@@ -259,82 +244,36 @@ try {
       await page.screenshot({ path: `${output}/${activeCase}-related-work.png` });
       const beforeInvoices = await read(page, "/api/admin/invoicing");
       await keyboardLink(page, actions.getByRole("link", { name: "Create invoice", exact: true }));
-      const contact = page.getByLabel("CRM customer", { exact: true });
+      await page.getByRole("heading", { name: "Invoice draft", exact: true }).waitFor();
+      const contact = page.getByLabel("Saved contact (optional)", { exact: true });
       await page.waitForFunction(
-        (id) => document.querySelector('select[aria-label="CRM customer"]')?.value === id,
+        (id) => document.querySelector("#invoice-field-contact_id")?.value === id,
         contactId,
       );
       assert.equal(
-        (await read(page, `/api/admin/invoicing?contactId=${contactId}`)).actions.length,
-        beforeInvoices.actions.length,
-        "Opening the invoice composer must not create a billing action",
+        (await read(page, "/api/admin/invoicing")).invoices.length,
+        beforeInvoices.invoices.length,
+        "Opening the invoice editor must not create an invoice",
       );
-      const stripeId = await billingCustomer(page, contactId);
-      await page.getByRole("button", { name: "Use sample invoice", exact: true }).click();
-      assert.equal(
-        await contact.inputValue(),
-        contactId,
-        "Sample lines must preserve the linked customer",
-      );
-      assert.equal(
-        await page.getByLabel("Stripe billing customer", { exact: true }).inputValue(),
-        stripeId,
-        "Sample lines must preserve the reviewed billing choice",
-      );
-      await page.getByRole("button", { name: "Prepare invoice", exact: true }).click();
-      await page.getByRole("button", { name: "Request draft approval", exact: true }).waitFor();
-      const choices = await read(page, `/api/admin/invoicing?contactId=${contactId}`);
-      const otherContact = choices.contacts.find((item) => item.id !== contactId);
-      assert.ok(otherContact);
-      await page.evaluate(
-        (href) => window.history.pushState(null, "", href),
-        `${root}/invoicing?view=create&contactId=${otherContact.id}`,
-      );
-      await page.waitForFunction(
-        (id) => document.querySelector('select[aria-label="CRM customer"]')?.value === id,
-        otherContact.id,
-      );
-      assert.equal(
-        await page.getByRole("button", { name: "Request draft approval", exact: true }).count(),
-        0,
-      );
-      await page.goBack();
-      await page.waitForFunction(
-        (id) => document.querySelector('select[aria-label="CRM customer"]')?.value === id,
-        contactId,
-      );
-      assert.equal(
-        await page.getByRole("button", { name: "Request draft approval", exact: true }).count(),
-        0,
-        "Back must not restore an unreviewed invoice preview",
-      );
-      await page.getByRole("button", { name: "Use sample invoice", exact: true }).click();
-      await billingCustomer(page, contactId);
+      await page.getByLabel("Invoice description", { exact: true }).fill("Agreed services");
+      await page.getByPlaceholder("Service or deliverable").first().fill("Agreed services");
+      await page.getByPlaceholder("0.00").first().fill("1500");
+      assert.equal(await contact.inputValue(), contactId, "Editing keeps the linked customer");
       await capture(page, `${activeCase}-invoice`);
-      await page.getByRole("button", { name: "Prepare invoice", exact: true }).click();
-      await page.getByRole("button", { name: "Request draft approval", exact: true }).click();
-      const draft = page
-        .locator("article")
-        .filter({ has: page.getByRole("button", { name: "Approve & create draft", exact: true }) });
-      const creationId = await draft.getAttribute("data-action-id");
-      await draft.getByRole("button", { name: "Approve & create draft", exact: true }).click();
-      const receipt = page.locator(`[data-action-id="${creationId}"]`);
-      await receipt
-        .getByRole("button", { name: "Request sending approval", exact: true })
-        .waitFor();
-      const invoices = await read(page, `/api/admin/invoicing?contactId=${contactId}`);
-      const created = invoices.actions.find((action) => action.id === creationId);
-      assert.equal(created.result.complete, true);
-      assert.equal(created.payload.contactId, contactId);
+      await page.getByRole("button", { name: "Save draft", exact: true }).click();
+      await page.getByRole("button", { name: "Save changes", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Generate payment link", exact: true }).click();
+      await page.getByRole("region", { name: "Payment link" }).waitFor();
+      const creationId = new URL(page.url()).searchParams.get("invoiceId");
+      assert.ok(creationId, "Issuing selects the issued invoice");
+      const listing = await read(page, `/api/admin/invoicing?contactId=${contactId}`);
+      const created = listing.invoices.find((invoice) => invoice.id === creationId);
+      assert.equal(created.contact_id, contactId);
       assert.equal(
-        created.result.customerEmail,
-        choices.contacts.find((item) => item.id === contactId).primary_email,
+        created.contact_email,
+        listing.contacts.find((item) => item.id === contactId).primary_email.toLowerCase(),
       );
-      assert.equal(
-        created.result.delivery,
-        "not_requested",
-        "Draft approval must not send an invoice",
-      );
+      assert.equal(created.status, "open", "Issuing opens a payment link; it is not a payment");
       await settled(page);
       results.push({
         scenario,
@@ -344,7 +283,7 @@ try {
         contactId,
         creationId,
         checks:
-          "Exact source/recipient, no opening write, edit retention, source/URL switch invalidation, missing/invalid recovery, keyboard/back navigation, approved fictional tasks and invoice draft, separate send, no overflow",
+          "Exact source/recipient, no opening write, edit retention, source/URL switch invalidation, missing/invalid recovery, keyboard/back navigation, approved fictional tasks, invoice issued for the linked customer with payment separate, no overflow",
       });
       await context.close();
     }

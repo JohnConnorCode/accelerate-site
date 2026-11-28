@@ -429,51 +429,43 @@ try {
         `Client handoff ${width}: preview failure retained input; task identity and reload passed`,
       );
 
-      // Invoice preparation, creation and sending each have separate recorded outcomes.
+      // An invoice draft survives a failed save; issuing opens a payment link, not a payment.
       await goto("superdebate", "invoicing?view=create");
-      await page.getByRole("button", { name: "Use sample invoice", exact: true }).click();
-      await failNext(page, "/api/admin/plugins/workflow");
-      await page.getByRole("button", { name: "Prepare invoice", exact: true }).click();
+      await page.getByRole("heading", { name: "Invoice draft", exact: true }).waitFor();
+      await page.getByLabel("Saved contact (optional)", { exact: true }).selectOption({ index: 1 });
+      await page.getByLabel("Client name", { exact: true }).fill("Fictional Client Co");
+      await page.getByLabel("Invoice description", { exact: true }).fill("Kickoff payment");
+      await page.getByPlaceholder("Service or deliverable").first().fill("Kickoff");
+      await page.getByPlaceholder("0.00").first().fill("2000");
+      await failNext(page, "/api/admin/invoicing");
+      await page.getByRole("button", { name: "Save draft", exact: true }).click();
       await page.getByRole("alert").filter({ hasText: "Controlled workflow failure" }).waitFor();
-      await page.getByRole("button", { name: "Prepare invoice", exact: true }).click();
+      assert.equal(
+        await page.getByLabel("Client name", { exact: true }).inputValue(),
+        "Fictional Client Co",
+        "A failed save keeps the entered invoice",
+      );
+      await page.getByRole("button", { name: "Save draft", exact: true }).click();
+      await page.getByRole("button", { name: "Save changes", exact: true }).waitFor();
       await page.locator(".admin-main").evaluate((element) => {
         element.scrollTop = 0;
       });
       await stable(page);
       await page.screenshot({ path: `${output}/invoice-prepared-${width}.png` });
-      await page.getByRole("button", { name: "Request draft approval", exact: true }).click();
-      const article = page
-        .locator("article")
-        .filter({ has: page.getByRole("button", { name: "Approve & create draft", exact: true }) })
-        .first();
-      const actionId = await article.getAttribute("data-action-id");
-      assert.ok(actionId);
-      await article.getByRole("button", { name: "Approve & create draft", exact: true }).click();
-      const createdInvoice = page.locator(`[data-action-id="${actionId}"]`);
-      await createdInvoice
-        .getByRole("button", { name: "Request sending approval", exact: true })
-        .click();
-      await page
-        .getByRole("button", { name: "Approve & send invoice", exact: true })
-        .first()
-        .click();
-      await page
-        .getByRole("button", { name: "Approve & send invoice", exact: true })
-        .waitFor({ state: "detached" });
+      await page.getByRole("button", { name: "Generate payment link", exact: true }).click();
+      await page.getByRole("region", { name: "Payment link" }).waitFor();
+      const invoiceId = new URL(page.url()).searchParams.get("invoiceId");
+      assert.ok(invoiceId, "Issuing selects the issued invoice");
       await page.reload();
       await ready(page, "superdebate");
-      await page.locator(`[data-action-id="${actionId}"]`).waitFor();
-      const invoice = await page.evaluate(
-        async (id) => await (await fetch(`/api/admin/invoicing?actionId=${id}`)).json(),
-        actionId,
+      const listing = await page.evaluate(
+        async () => await (await fetch("/api/admin/invoicing")).json(),
       );
-      assert.ok(invoice?.invoiceId);
-      assert.notEqual(invoice.status, "paid", "Sending cannot imply payment");
+      const invoice = listing.invoices.find((item) => item.id === invoiceId);
+      assert.ok(invoice?.invoice_number, "The issued invoice is numbered after reload");
+      assert.equal(invoice.status, "open", "Issuing cannot imply payment");
       await stable(page);
       await page.screenshot({ path: `${output}/invoice-${width}.png` });
-      await page.locator(`[data-action-id="${actionId}"]`).scrollIntoViewIfNeeded();
-      await stable(page);
-      await page.screenshot({ path: `${output}/invoice-result-${width}.png` });
       await goto("superdebate", "today");
       await page.locator('[data-business-review="money"]').waitFor();
       await page.getByRole("button", { name: "Refresh Today", exact: true }).click();
@@ -487,7 +479,7 @@ try {
         width,
         inquiry: "confirmed and reloaded",
         onboarding: "created exact task and reloaded",
-        invoice: "created and sent, payment separate",
+        invoice: "saved after a failed attempt and issued, payment separate",
         errors,
         escaped,
       });

@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, ExternalLink, Plus, RefreshCw } from "lucide-react";
@@ -108,6 +108,7 @@ export default function InvoicingPage() {
           listing={listing.data}
           initialInvoiceId={params.get("invoiceId")}
           startNew={params.get("view") === "new" || params.get("view") === "create"}
+          createRequest={params.get("view") === "create" ? params.toString() : null}
           linkedContactId={linkedContact}
         />
       )}
@@ -119,11 +120,14 @@ function InvoiceWorkspace({
   listing,
   initialInvoiceId,
   startNew,
+  createRequest,
   linkedContactId,
 }: {
   listing: Listing;
   initialInvoiceId: string | null;
   startNew: boolean;
+  /** Set when Search or a link asks for a new invoice while this page is open. */
+  createRequest: string | null;
   linkedContactId: string | null;
 }) {
   const cache = useQueryClient();
@@ -215,6 +219,20 @@ function InvoiceWorkspace({
     setIssues([]);
     window.history.replaceState(null, "", `${window.location.pathname}?view=new`);
   }
+  // "Create invoice" from Search or a link can arrive while the page is
+  // already open; each new request opens a blank draft once.
+  const handledCreate = useRef<string | null>(startNew ? createRequest : null);
+  useEffect(() => {
+    if (!createRequest) {
+      handledCreate.current = null;
+      return;
+    }
+    if (handledCreate.current === createRequest) return;
+    handledCreate.current = createRequest;
+    fresh();
+    // fresh() only resets local state and the address bar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createRequest]);
   function duplicate() {
     setSelectedId(null);
     setSaved("null");
