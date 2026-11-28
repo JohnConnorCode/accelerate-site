@@ -54,6 +54,15 @@ export const adminPageGuidance: Record<string, AdminPageGuidance> = {
     ],
     guideHref: "/docs/intelligence/learning-inbox",
   },
+  "command-board": {
+    description:
+      "See each business as a desk of phases and stations that count its open tasks, opportunities, conversations, approvals and balances.",
+    steps: [
+      "Choose a business, open a phase, then select a station to list its records.",
+      "Open a record to work on it in its own screen, where its usual approvals apply.",
+    ],
+    guideHref: "/docs/plugins/command-board",
+  },
   today: {
     description:
       "Find the sales follow-up, client commitment or billing decision that needs attention next.",
@@ -348,6 +357,12 @@ const taskContext: Record<
   string,
   Pick<AdminPageGuidance, "startHint" | "savedOutcome" | "workflowId">
 > = {
+  "command-board": {
+    startHint:
+      "Open a phase and select a station to see the records it counts; choose a mode first if the board is empty.",
+    savedOutcome:
+      "Stations recount live records each time the board opens; changes you make stay on the record you opened.",
+  },
   today: {
     startHint: "Open the source behind a finding before choosing the next action.",
     savedOutcome:
