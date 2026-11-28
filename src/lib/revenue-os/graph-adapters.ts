@@ -6,6 +6,7 @@ import { listCompanies, listContacts, listOpportunities } from "./records";
 import { listActions } from "./actions";
 import { listConversations } from "./conversations";
 import { readCollectionWorkspace } from "./collection-workspace";
+import { listInvoiceGraphRows } from "./invoices";
 import { readEntityLinksForNodes } from "./entity-registry";
 import {
   authorizeGraphSource,
@@ -28,6 +29,7 @@ import {
   type GraphActionRow,
   type GraphAdapterName,
   type GraphCollectionCaseRow,
+  type GraphInvoiceRow,
   type GraphCompanyRow,
   type GraphContactRow,
   type GraphNodeRef,
@@ -246,23 +248,24 @@ export const GRAPH_ADAPTERS: readonly GraphAdapter[] = [
     },
     project: GRAPH_PROJECTIONS.collection_cases,
   }),
-  defineAdapter<GraphActionRow>({
-    name: "invoice_drafts",
+  defineAdapter<GraphInvoiceRow>({
+    name: "invoices",
     async read(db, input) {
       const related = input.relatedTo;
-      if (related && !["action_queue", "contact"].includes(related.type)) return EMPTY;
-      const scoped = { ...input, ids: anchorIds(input, "action_queue") };
-      // Executed draft receipts already in action_queue; a graph read never calls Stripe.
-      const result = await listActions(db, {
-        status: "executed",
-        actionType: "create_stripe_invoice_draft",
-        payloadContactId: related?.type === "contact" ? related.id : undefined,
-        window: windowFor(scoped),
+      if (related && !["invoice", "contact"].includes(related.type)) return EMPTY;
+      const scoped = { ...input, ids: anchorIds(input, "invoice") };
+      const window = windowFor(scoped);
+      // Workspace-owned invoice rows; a graph read never calls Stripe.
+      const rows = await listInvoiceGraphRows(db, {
+        ids: window.ids,
+        afterId: window.afterId,
+        limit: window.limit,
+        contactId: related?.type === "contact" ? related.id : undefined,
+        statuses: input.open ? GRAPH_OPEN_STATES.invoices.open : undefined,
       });
-      if (!result.schemaReady) throw new Error("Invoice draft schema is not installed");
-      return page(result.actions as unknown as GraphActionRow[], scoped);
+      return page(rows as unknown as GraphInvoiceRow[], scoped);
     },
-    project: GRAPH_PROJECTIONS.invoice_drafts,
+    project: GRAPH_PROJECTIONS.invoices,
   }),
 ];
 

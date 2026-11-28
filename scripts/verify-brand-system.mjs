@@ -23,7 +23,6 @@ const serifAllowed = new Set([
   "src/app/layout.tsx",
   "src/lib/site-studio/website-theme.ts",
   "src/components/business/InvoiceDocument.tsx",
-  "src/components/admin/InvoicePageDesigner.module.css",
 ]);
 const signalAllowed = new Set([
   "src/app/globals.css",

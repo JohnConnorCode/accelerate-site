@@ -25,6 +25,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "Refunds and invoice cancellation cannot be undone. Billing profiles and provider receipts are retained. Exact human approval is always required.",
   },
   {
+    actionType: "invoice_change",
+    impact: "external_action",
+    reversibility: "compensable",
+    rationale:
+      "An issued invoice can be voided and a draft edited or deleted through a fresh approved change. Issuing opens a customer payment link; invoice numbers, payments and audit history remain. Exact human approval is always required.",
+  },
+  {
     actionType: "event_ticketing_change",
     impact: "external_action",
     reversibility: "compensable",
@@ -136,15 +143,7 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale:
       "Assigned tasks remain individually editable; no automatic deletion of an approved delivery checklist is implied.",
   },
-  ...["create_stripe_invoice_draft", "send_stripe_invoice", "publish_invoice_page"].map(
-    (actionType) => ({
-      actionType,
-      impact: "external_action" as const,
-      reversibility: "irreversible" as const,
-      rationale:
-        "Creates or sends an external billing document; no automatic compensator is registered, so explicit human approval is permanent.",
-    }),
-  ),
+
   ...[
     "bootstrap_coworker",
     "store_agent_memory",

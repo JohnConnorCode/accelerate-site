@@ -4,32 +4,35 @@ import { AuthorizedMemorySupabase } from "./autonomy-fixture";
 import { bindTenantDatabase } from "../../src/lib/supabase/server";
 import { encryptSecret, encryptTenantSecret } from "../../src/lib/revenue-os/encryption";
 
-/** Controlled Stripe/email transport shared by Collections host and entrypoint tests. */
-type ReferenceInvoice = {
-  tenantId: string;
-  contactId: string;
-  creationActionId: string;
-  creation: { payload: Record<string, unknown>; result: Record<string, unknown> };
-  invoice: Record<string, unknown>;
-};
+/** Controlled invoice records and email transport shared by Collections tests.
+ * Collections read the workspace's own invoices table; Stripe is never called. */
 export function createCollectionsFixture({
   allowSends = false,
-  referenceInvoice,
+  reference,
 }: {
   allowSends?: boolean;
-  referenceInvoice?: ReferenceInvoice;
+  /** Correlates the fixture with an invoice issued by another journey step. */
+  reference?: {
+    tenantId: string;
+    contactId: string;
+    invoiceId: string;
+    number: string;
+    amountCents: number;
+  };
 } = {}) {
   const oldKey = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY;
   process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = "controlled-collections-reminder-fixture";
-  const tenant = referenceInvoice?.tenantId ?? randomUUID(),
-    contact = referenceInvoice?.contactId ?? randomUUID(),
+  const tenant = reference?.tenantId ?? randomUUID(),
+    contact = reference?.contactId ?? randomUUID(),
     caseId = randomUUID(),
-    invoiceAction = referenceInvoice?.creationActionId ?? randomUUID(),
+    invoiceId = reference?.invoiceId ?? randomUUID(),
     observation = randomUUID(),
     workItemId = randomUUID();
-  const config = { modules: { "receivables-collections": true, "stripe-invoicing": true } };
+  const config = { modules: { "receivables-collections": true, invoicing: true } };
   const mem = new AuthorizedMemorySupabase({
-    tenants: [{ id: tenant, name: "Example & Sons", status: "active", config }],
+    tenants: [
+      { id: tenant, slug: "example-sons", name: "Example & Sons", status: "active", config },
+    ],
     contacts: [
       {
         id: contact,
@@ -60,7 +63,7 @@ export function createCollectionsFixture({
       {
         tenant_id: tenant,
         case_id: caseId,
-        creation_action_id: invoiceAction,
+        invoice_id: invoiceId,
         observation_id: observation,
       },
     ],
@@ -68,7 +71,7 @@ export function createCollectionsFixture({
       {
         id: observation,
         tenant_id: tenant,
-        invoice_id: "in_fixture",
+        invoice_id: invoiceId,
         remaining: 7500,
         status: "open",
         due_date: "2025-01-01",
@@ -111,22 +114,7 @@ export function createCollectionsFixture({
         encrypted_credentials: { api_key: encryptSecret("re_controlled_fixture") },
       },
     ],
-    action_queue: [
-      {
-        id: invoiceAction,
-        tenant_id: tenant,
-        action_type: "create_stripe_invoice_draft",
-        status: "executed",
-        payload: {
-          accountId: "acct_fixture",
-          testMode: true,
-          contactId: contact,
-          customerId: "cus_fixture",
-          currency: "usd",
-        },
-        result: { invoiceId: "in_fixture", complete: true },
-      },
-    ],
+    action_queue: [],
   });
   mem.idFactory = () => randomUUID();
   function table(name: string) {
@@ -136,43 +124,47 @@ export function createCollectionsFixture({
   }
   const db = bindTenantDatabase(mem.client, tenant, true);
   const original = globalThis.fetch;
+  const amount = reference?.amountCents ?? 10000;
   const state = {
-    balance: Number(referenceInvoice?.invoice.amount_remaining ?? 7500),
+    balance: reference?.amountCents ?? 7500,
     timeout: false,
     sends: 0,
     reads: 0,
     providerFailure: false,
   };
-  globalThis.fetch = async (input, init) => {
-    const url = new URL(String(input));
-    if (url.hostname === "api.stripe.com") {
-      assert.equal(init?.method ?? "GET", "GET", "Collection reads cannot mutate Stripe");
-      assert.equal(url.pathname, `/v1/invoices/${referenceInvoice?.invoice.id ?? "in_fixture"}`);
+  const encryptedLink = encryptTenantSecret("a".repeat(43), tenant, "invoices", "link_token");
+  const invoiceRow: Record<string, unknown> = {
+    id: invoiceId,
+    tenant_id: tenant,
+    number: reference?.number ?? "INV-0007",
+    contact_id: contact,
+    livemode: false,
+    currency: "usd",
+    amount_cents: amount,
+    due_at: "2025-01-01T00:00:00.000Z",
+    encrypted_link_token: encryptedLink,
+  };
+  // Balance and status follow the controlled payment state.
+  Object.defineProperty(invoiceRow, "amount_paid_cents", {
+    enumerable: true,
+    get: () => amount - state.balance,
+  });
+  Object.defineProperty(invoiceRow, "status", {
+    enumerable: true,
+    get: () => (state.balance ? "open" : "paid"),
+  });
+  // providerFailure now means the invoice record cannot be read.
+  Object.defineProperty(mem.tables, "invoices", {
+    enumerable: true,
+    get: () => {
       state.reads++;
-      if (state.providerFailure)
-        return Response.json(
-          { error: { message: "Controlled provider unavailable" } },
-          { status: 503 },
-        );
-      return Response.json({
-        ...(referenceInvoice?.invoice ?? {}),
-        id: referenceInvoice?.invoice.id ?? "in_fixture",
-        status: state.balance ? "open" : "paid",
-        currency: "usd",
-        amount_due: Number(referenceInvoice?.invoice.amount_due ?? 10000),
-        amount_paid: Number(referenceInvoice?.invoice.amount_due ?? 10000) - state.balance,
-        amount_remaining: state.balance,
-        livemode: false,
-        due_date: referenceInvoice?.invoice.due_date ?? 1735689600,
-        customer: "cus_fixture",
-        hosted_invoice_url: "https://invoice.stripe.com/i/fixture",
-        metadata: {
-          accelerate_tenant_id: tenant,
-          accelerate_action_id: invoiceAction,
-          accelerate_contact_id: contact,
-        },
-      });
-    }
+      return state.providerFailure ? [] : [invoiceRow];
+    },
+  });
+  process.env.NEXT_PUBLIC_SITE_URL ||= "https://accelerate.example.test";
+  globalThis.fetch = async (input) => {
+    const url = new URL(String(input));
+    assert.notEqual(url.hostname, "api.stripe.com", "Collections never call Stripe");
     assert.equal(url.hostname, "api.resend.com", "Unexpected provider request");
     state.sends++;
     assert.ok(allowSends, "Agent entrypoints may never send");
@@ -205,7 +197,7 @@ export function createCollectionsFixture({
     tenant,
     contact,
     caseId,
-    invoiceAction,
+    invoiceId,
     observation,
     workItemId,
     mem,

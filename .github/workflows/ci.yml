@@ -66,7 +66,7 @@ jobs:
             # These existing fixtures run in checks -> test:core. Keep the
             # allowlist explicit; additions require execution-wiring proof.
             case "$path" in
-              scripts/test-first-value-business-journey.ts|scripts/test-demo-business-workflows.ts|scripts/test-stripe-workflow.ts|scripts/test-opportunity-create.ts) ;;
+              scripts/test-first-value-business-journey.ts|scripts/test-demo-business-workflows.ts|scripts/test-invoicing.ts|scripts/test-opportunity-create.ts) ;;
               *) fixtures_only=false ;;
             esac
           done < "$RUNNER_TEMP/changed-files"
@@ -317,6 +317,7 @@ jobs:
           npm run test:content-calendar-actions
           PATH="$(pg_config --bindir):$PATH" npm run test:content-calendar-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:event-ticketing:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:invoicing:postgres
           npm run test:workspace-operations
           PATH="$(pg_config --bindir):$PATH" npm run test:workspace-operations-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning

@@ -1,0 +1,48 @@
+---
+title: Invoicing
+description: Create invoices owned by this workspace, share a branded payment page, and collect payment by bank transfer or card over Stripe's payment rails.
+updated: "2026-11-27"
+---
+
+Invoices live in this workspace's database with their own numbers and a branded
+customer page. Stripe only moves the money: each issued invoice has one
+PaymentIntent that the customer pays on that page by bank transfer (ACH) or
+card. No Stripe Invoice or Billing object is ever created, so Stripe's
+per-invoice Invoicing fee does not apply.
+
+The full operator guide is in `plugins/invoicing/README.md`.
+
+## Create and send an invoice
+
+Open **Invoices**, choose **New invoice**, pick the customer, add line items, a
+due date and the payment methods the customer may use, then choose **Save
+draft**. **Generate payment link** assigns the next invoice number and opens the
+customer's private payment page. Copy the link and send it however you like; no
+email is sent for you. The customer can pay on that page or download a PDF.
+
+## States
+
+- **Draft**: editable, private, no Stripe object.
+- **Awaiting payment**: issued, numbered, payable at the customer link.
+- **Payment processing**: a bank transfer was submitted and is clearing.
+- **Paid**: Stripe confirmed the full amount.
+- **Paid outside Stripe**: recorded manually (check, wire).
+- **Void**: cancelled; its Stripe payment is cancelled too.
+
+Status updates arrive through the Stripe webhook and are also re-checked each
+time the customer opens the page or you choose **Check payment status**.
+
+## Review a payment or refund
+
+Payments taken through invoices appear in **Payments & refunds**. A workspace
+payment offers **Refund payment**: review the amount and reason, then approve
+it. Refunds always need human approval and cannot be undone. **Recent billing
+actions** keeps pending, completed and failed provider results, and **Check
+provider result** reads the current status without changing the original
+receipt.
+
+## Assistant tools
+
+The assistant can read invoices, prepare a draft, propose issuing it, check a
+payment, and preview or propose a refund. Every change it prepares waits in the
+approval queue until an administrator approves it.

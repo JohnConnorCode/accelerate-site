@@ -218,7 +218,7 @@ const setupGuides: Record<string, SetupGuide> = {
   stripe: {
     steps: [
       "Finish the Revenue OS schema check first. The subscription tables and receipts must be present before billing can be enabled.",
-      "Open Integrations and enable Stripe invoicing for this workspace, then connect the Stripe account that should own its recurring plans.",
+      "Open Integrations and enable Invoicing for this workspace, then connect the Stripe account that should own its recurring plans.",
       "Add the Stripe webhook signing secret from the endpoint configured for /api/public/{tenant}/webhooks/stripe.",
       "Create one test-mode plan, complete a test checkout, and confirm the customer account and webhook receipt before switching to live mode.",
     ],

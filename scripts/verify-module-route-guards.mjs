@@ -30,7 +30,7 @@ const MODULE_API_DIRECTORIES = {
   "receivables-collections": ["src/app/api/admin/collections"],
   "command-board": ["src/app/api/admin/board"],
   "form-builder": ["src/app/api/admin/forms"],
-  "stripe-invoicing": ["src/app/api/admin/invoicing"],
+  invoicing: ["src/app/api/admin/invoicing"],
   proposals: ["src/app/api/admin/proposals"],
   campaigns: ["src/app/api/admin/revenue-os/campaigns"],
   "email-studio": ["src/app/api/admin/emails"],

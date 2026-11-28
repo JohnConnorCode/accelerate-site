@@ -140,7 +140,7 @@ function liveContext(overrides: Partial<Parameters<typeof compileBlueprintPlan>[
       { key: "email.draft", available: true, policy: "automatic" as const },
       { key: "email.send", available: true, policy: "approval_required" as const },
     ],
-    modules: ["core-pipeline", "stripe-invoicing"],
+    modules: ["core-pipeline", "invoicing"],
     entityTypes: ["opportunity", "contact"],
     routes: ["/admin/pipeline", "/admin/invoicing"],
     ...overrides,
@@ -155,7 +155,7 @@ async function main() {
   assert.ok(resolved.ready.some((item) => item.key === "email.draft"));
   assert.ok(resolved.approvals.some((item) => item.key === "email.send"));
   assert.equal(resolved.customAppBriefs.length, 0);
-  assert.ok(resolved.moduleTargets.includes("stripe-invoicing"));
+  assert.ok(resolved.moduleTargets.includes("invoicing"));
 
   const unknown = compileBlueprintPlan(
     sampleBlueprint({
@@ -285,7 +285,7 @@ async function main() {
   assert.equal(proposed.length, 1);
   assert.equal(proposed[0]!.actionType, "apply_blueprint_step");
   assert.ok(proposed[0]!.dedupeKey?.includes(blueprintId));
-  assert.ok(enabled.includes("stripe-invoicing"));
+  assert.ok(enabled.includes("invoicing"));
   assert.equal((db.tables.workspace_blueprints[0] as { status: string }).status, "applied");
 
   const second = await applyApprovedBlueprint(

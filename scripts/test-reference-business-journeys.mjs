@@ -33,7 +33,7 @@ const checks = [
   ["test:gmail-draft-provider", ["AC1", "AC2", "AC3", "AC5"]],
   ["test:gmail-followup-workflow", ["AC1", "AC3"]],
   ["test:business-workflows", ["AC1", "AC2", "AC3", "AC5"]],
-  ["test:stripe-workflow", ["AC1", "AC2", "AC3", "AC5"]],
+  ["test:invoicing", ["AC1", "AC2", "AC3", "AC5"]],
   ["test:collections-reminders", ["AC3"]],
   ["test:collections-workspace", ["AC2", "AC3", "AC4"]],
   ["test:collections-agent-tools", ["AC2", "AC3"]],
@@ -82,10 +82,11 @@ try {
     assert.ok(existsSync(artifact), `Missing ${journey} evidence`);
     report.journeys[journey] = JSON.parse(readFileSync(artifact, "utf8"));
   }
-  assert.equal(
-    report.journeys.invoice.creationActionId,
-    report.journeys.collections.creationActionId,
-  );
+  // The collections journey replays the issued invoice through production SQL, so
+  // the shared identity is its Stripe PaymentIntent and invoice number.
+  assert.ok(report.journeys.invoice.issue?.intentId, "Invoice evidence names its payment");
+  assert.equal(report.journeys.invoice.issue.intentId, report.journeys.collections.paymentIntentId);
+  assert.equal(report.journeys.invoice.number, report.journeys.collections.number);
   assert.equal(report.journeys.sales.workItem.status, "completed");
   assert.equal(report.journeys.onboarding.task.status, "completed");
   assert.equal(report.journeys.collections.finalCase.status, "settled");

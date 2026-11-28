@@ -19,7 +19,7 @@ assert.deepEqual(getAdminBreadcrumbs("/admin/invoicing"), [
   { label: "Invoices", href: "/admin/invoicing" },
 ]);
 const invoiceLinks = filterNavSectionsByTenant(adminNavSections, {
-  modules: { "stripe-invoicing": true },
+  modules: { invoicing: true },
 }).flatMap((section) => section.links);
 for (const query of [
   "invoice",
@@ -35,9 +35,9 @@ for (const query of [
   );
 }
 const disabledInvoiceLinks = filterNavSectionsByTenant(adminNavSections, {
-  modules: { "stripe-invoicing": false },
+  modules: { invoicing: false },
 }).flatMap((section) => section.links);
-assert.ok(!disabledInvoiceLinks.some((link) => link.id === "stripe-invoicing"));
+assert.ok(!disabledInvoiceLinks.some((link) => link.id === "invoicing"));
 assert.equal(
   resolveAdminHref("/admin/invoicing?view=create", "northline-roofing"),
   "/demo/command-center/northline-roofing/invoicing?view=create",
@@ -121,10 +121,10 @@ assert.equal(
 );
 const disabled = groupAdminNavLinks(
   filterNavSectionsByTenant(adminNavSections, {
-    modules: { "stripe-invoicing": false, "receivables-collections": false, "site-studio": false },
+    modules: { invoicing: false, "receivables-collections": false, "site-studio": false },
   }),
 ).flatMap((group) => [group.primary!.id, ...group.links.map((link) => link.id)]);
-assert.equal(disabled.includes("stripe-invoicing"), false);
+assert.equal(disabled.includes("invoicing"), false);
 assert.equal(disabled.includes("site-studio"), false);
 console.log(
   "Business navigation: context coverage, unique membership, old-name aliases and disabled Apps passed.",

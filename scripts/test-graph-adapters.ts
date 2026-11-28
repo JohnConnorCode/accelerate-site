@@ -98,7 +98,7 @@ const OB1 = id("8008", 1);
 
 const future = new Date(Date.now() + 86_400_000).toISOString();
 const past = new Date(Date.now() - 86_400_000).toISOString();
-const plugins = { "receivables-collections": true, "stripe-invoicing": true };
+const plugins = { "receivables-collections": true, invoicing: true };
 
 const checks: string[] = [];
 const check = (name: string) => checks.push(name);
@@ -202,18 +202,6 @@ function tenantRows(tenant: string, label: string): Record<string, Row[]> {
         payload: {},
       },
       {
-        id: A_INVOICE,
-        tenant_id: tenant,
-        title: `${label} invoice draft`,
-        action_type: "create_stripe_invoice_draft",
-        status: "executed",
-        entity_type: null,
-        entity_id: null,
-        expires_at: null,
-        created_at: "2026-11-01T00:00:00Z",
-        payload: { contactId: C1, lines: [{ description: "Work", amount: 100 }] },
-      },
-      {
         id: A_OTHER,
         tenant_id: tenant,
         title: "Executed task",
@@ -241,6 +229,18 @@ function tenantRows(tenant: string, label: string): Record<string, Row[]> {
         metadata: {},
       },
     ],
+    invoices: [
+      {
+        id: A_INVOICE,
+        tenant_id: tenant,
+        number: "INV-0001",
+        company_name: `${label} Customer Co`,
+        status: "open",
+        amount_cents: 10000,
+        contact_id: C1,
+        due_at: "2026-10-01T00:00:00Z",
+      },
+    ],
     collection_cases: [
       {
         id: K1,
@@ -256,13 +256,13 @@ function tenantRows(tenant: string, label: string): Record<string, Row[]> {
       },
     ],
     collection_case_invoices: [
-      { tenant_id: tenant, case_id: K1, creation_action_id: A_INVOICE, observation_id: OB1 },
+      { tenant_id: tenant, case_id: K1, invoice_id: A_INVOICE, observation_id: OB1 },
     ],
     collection_observations: [
       {
         id: OB1,
         tenant_id: tenant,
-        invoice_id: "in_fictional",
+        invoice_id: A_INVOICE,
         remaining: 100,
         status: "open",
         due_date: "2026-10-01",
@@ -393,7 +393,7 @@ async function main() {
     approvals: "core-command",
     conversations: "core-conversations",
     collection_cases: "receivables-collections",
-    invoice_drafts: "stripe-invoicing",
+    invoices: "invoicing",
   });
   for (const name of GRAPH_ADAPTER_NAMES)
     assert.equal(
@@ -474,13 +474,13 @@ async function main() {
       `task:${T1}`,
       `task:${T2}`,
       `action_queue:${A_PENDING}`,
-      `action_queue:${A_INVOICE}`,
+      `invoice:${A_INVOICE}`,
       `conversation:${V1}`,
       `collection_case:${K1}`,
     ])
       assert.ok(nodes.has(expected), `missing ${expected}`);
     assert.ok(!nodes.has(`action_queue:${A_EXPIRED}`), "expired approvals stay out");
-    assert.ok(!nodes.has(`action_queue:${A_OTHER}`), "executed non-invoice actions stay out");
+    assert.ok(!nodes.has(`action_queue:${A_OTHER}`), "executed actions stay out of approvals");
     assert.ok(!nodes.has(`contact:${C_B_ONLY}`), "tenant B rows never appear");
     const contact = graph.nodes.find((node) => node.id === `contact:${C1}`)!;
     assert.equal(contact.label, "Alpha Customer", "colliding ids resolve to the bound tenant row");
@@ -496,8 +496,8 @@ async function main() {
       `conversation:${V1} contact contact:${C1}`,
       `conversation:${V1} opportunity opportunity:${O1}`,
       `collection_case:${K1} billing_contact contact:${C1}`,
-      `collection_case:${K1} invoice action_queue:${A_INVOICE}`,
-      `action_queue:${A_INVOICE} customer contact:${C1}`,
+      `collection_case:${K1} invoice invoice:${A_INVOICE}`,
+      `invoice:${A_INVOICE} customer contact:${C1}`,
       `contact:${C1} champion opportunity:${O1}`,
     ])
       assert.ok(edges.has(expected), `missing edge ${expected}`);
@@ -556,7 +556,7 @@ async function main() {
 
   for (const [disabled, adapter] of [
     ["receivables-collections", "collection_cases"],
-    ["stripe-invoicing", "invoice_drafts"],
+    ["invoicing", "invoices"],
   ] as const) {
     const mem = fixture({ modules: { ...plugins, [disabled]: false } });
     const graph = await readWorkspaceGraph(bound(mem, TENANT_A), member(USER.admin), {});
@@ -624,7 +624,7 @@ async function main() {
       `opportunity:${O1}`,
       `task:${T1}`,
       `action_queue:${A_PENDING}`,
-      `action_queue:${A_INVOICE}`,
+      `invoice:${A_INVOICE}`,
       `conversation:${V1}`,
       `collection_case:${K1}`,
     ])
@@ -1071,7 +1071,7 @@ async function main() {
       [C2, C1],
     );
     const actions = await listActions(db, { limit: 100 });
-    assert.equal(actions.actions.length, 4, "the approvals route still lists every status");
+    assert.equal(actions.actions.length, 3, "the approvals route still lists every status");
     assert.equal(actions.actions[0]!.id, A_PENDING, "newest first");
     for (const [route, table] of [
       ["src/app/api/admin/tasks/route.ts", "listTasks("],

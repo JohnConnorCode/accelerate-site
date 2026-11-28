@@ -746,9 +746,15 @@ function demoGraphRows(
       new URL("https://demo.example/api/admin/revenue-os/conversations"),
     ).conversations,
     collection_cases: collectionsEnabled ? seedDemoCollections(pack, business) : [],
-    invoice_drafts: business.actions
-      .filter((a) => a.action_type === "create_stripe_invoice_draft" && a.status === "executed")
-      .map((a) => ({ id: a.id, title: a.title, status: a.status, payload: a.payload })),
+    invoices: business.invoices.map((invoice) => ({
+      id: invoice.id,
+      number: invoice.invoice_number,
+      company_name: invoice.company_name,
+      status: invoice.status,
+      amount_cents: invoice.amount_cents,
+      contact_id: invoice.contact_id ?? null,
+      due_at: invoice.due_at,
+    })),
   };
 }
 
@@ -1024,7 +1030,7 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
         sourceTimestamp: item.created_at,
         priorityReason: item.description,
         recommendedNextAction: "Review the proposed change before approving",
-        href: item.pluginId === "stripe-invoicing" ? "/admin/invoicing" : `/admin/${item.pluginId}`,
+        href: item.pluginId === "invoicing" ? "/admin/invoicing" : `/admin/${item.pluginId}`,
       })),
   );
   const replies = pack.conversations.slice(0, 2).map((item, index) => {
@@ -2708,7 +2714,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     state.contentSeedAt = new Date().toISOString();
     saveState(scenarioId, state);
   }
-  if (!state.business || state.business.version !== 1) {
+  if (!state.business || state.business.version !== 2) {
     state.business = createDemoBusinessState(pack);
     saveState(scenarioId, state);
   }
@@ -3014,7 +3020,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         ),
         collections:
           state.moduleOverrides["receivables-collections"] === false ||
-          state.moduleOverrides["stripe-invoicing"] === false
+          state.moduleOverrides["invoicing"] === false
             ? []
             : seedDemoCollections(pack, business).map(
                 ({
@@ -5452,32 +5458,6 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/work/agent-items")
       return jsonResponse({ items: [], total: 0, page: 1 });
-    if (path === "/api/admin/invoicing/list") {
-      const invoices = business.invoices.map((item) => ({
-        id: item.receipt.invoiceId,
-        number: item.document.number,
-        status: item.receipt.status,
-        currency: item.receipt.currency,
-        amountDue: item.receipt.amountDue,
-        amountPaid: item.receipt.amountPaid,
-        managed: true,
-        remaining: item.receipt.amountRemaining,
-        contactName: item.document.customerName,
-        contactEmail: item.document.customerEmail,
-        dueDate: /^\d{4}-\d{2}-\d{2}$/.test(item.document.dueLabel)
-          ? item.document.dueLabel + "T12:00:00.000Z"
-          : null,
-        hostedInvoiceUrl: item.receipt.hostedInvoiceUrl,
-        createdAt: ago(1),
-      }));
-      return jsonResponse({
-        invoices,
-        hasMore: false,
-        nextCursor: null,
-        connection: `demo:${pack.id}`,
-        testMode: true,
-      });
-    }
     if (path === "/api/admin/contacts" && method === "GET") {
       const payload = legacy(pack, path, state) as { contacts: Array<Record<string, unknown>> };
       return jsonResponse({

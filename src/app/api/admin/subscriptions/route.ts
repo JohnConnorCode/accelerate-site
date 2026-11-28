@@ -16,7 +16,7 @@ const actionSchema = z.discriminatedUnion("action", [
 ]);
 
 export async function GET() {
-  const authorization = await requireAdminForModule("stripe-invoicing");
+  const authorization = await requireAdminForModule("invoicing");
   if (authorization instanceof NextResponse) return authorization;
   try {
     return NextResponse.json(
@@ -33,7 +33,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const authorization = await requireAdminForModule("stripe-invoicing");
+  const authorization = await requireAdminForModule("invoicing");
   if (authorization instanceof NextResponse) return authorization;
   const body = await readBoundedJson(request).catch((error) => {
     console.warn(

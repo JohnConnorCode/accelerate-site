@@ -44,11 +44,9 @@ export async function runDemoAgent(
       throw new Error("Collection identity is outside the fictional scenario");
     Object.assign(item, current);
     for (const invoice of current.invoices) {
-      const stored = sandbox.invoices.find((row) => row.actionId === invoice.creationActionId);
-      if (!stored || stored.receipt.invoiceId !== invoice.invoiceId)
-        throw new Error("Invoice is outside the fictional scenario");
-      stored.receipt.amountRemaining = invoice.remaining;
-      stored.receipt.status = invoice.status;
+      const stored = sandbox.invoices.find((row) => row.id === invoice.invoiceId);
+      if (!stored) throw new Error("Invoice is outside the fictional scenario");
+      stored.status = (invoice.remaining === 0 ? "paid" : invoice.status) as typeof stored.status;
     }
   }
   const runId = randomUUID();

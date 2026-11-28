@@ -204,6 +204,12 @@
       "defaultEnabled": false
     },
     {
+      "id": "invoicing",
+      "name": "Invoicing",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
       "id": "meeting-commitments",
       "name": "Meeting commitments",
       "core": false,
@@ -242,12 +248,6 @@
     {
       "id": "social-marketing",
       "name": "Social Marketing",
-      "core": false,
-      "defaultEnabled": false
-    },
-    {
-      "id": "stripe-invoicing",
-      "name": "Stripe invoicing",
       "core": false,
       "defaultEnabled": false
     }
@@ -682,6 +682,38 @@
       "module": "form-builder"
     },
     {
+      "tool": "get_invoices",
+      "module": "invoicing"
+    },
+    {
+      "tool": "save_invoice_draft",
+      "module": "invoicing"
+    },
+    {
+      "tool": "issue_invoice",
+      "module": "invoicing"
+    },
+    {
+      "tool": "check_invoice_payment",
+      "module": "invoicing"
+    },
+    {
+      "tool": "get_billing_records",
+      "module": "invoicing"
+    },
+    {
+      "tool": "get_billing_action",
+      "module": "invoicing"
+    },
+    {
+      "tool": "preview_billing_change",
+      "module": "invoicing"
+    },
+    {
+      "tool": "propose_billing_change",
+      "module": "invoicing"
+    },
+    {
       "tool": "prepare_meeting_commitments",
       "module": "meeting-commitments"
     },
@@ -820,42 +852,6 @@
     {
       "tool": "propose_social_change",
       "module": "social-marketing"
-    },
-    {
-      "tool": "prepare_stripe_invoicing",
-      "module": "stripe-invoicing"
-    },
-    {
-      "tool": "propose_stripe_invoicing",
-      "module": "stripe-invoicing"
-    },
-    {
-      "tool": "get_billing_action",
-      "module": "stripe-invoicing"
-    },
-    {
-      "tool": "get_billing_records",
-      "module": "stripe-invoicing"
-    },
-    {
-      "tool": "preview_billing_change",
-      "module": "stripe-invoicing"
-    },
-    {
-      "tool": "propose_billing_change",
-      "module": "stripe-invoicing"
-    },
-    {
-      "tool": "propose_stripe_invoice_send",
-      "module": "stripe-invoicing"
-    },
-    {
-      "tool": "preview_invoice_page",
-      "module": "stripe-invoicing"
-    },
-    {
-      "tool": "propose_invoice_page",
-      "module": "stripe-invoicing"
     }
   ],
   "graphAdapterGrants": [
@@ -884,12 +880,12 @@
       "module": "core-contacts"
     },
     {
-      "adapter": "collection_cases",
-      "module": "receivables-collections"
+      "adapter": "invoices",
+      "module": "invoicing"
     },
     {
-      "adapter": "invoice_drafts",
-      "module": "stripe-invoicing"
+      "adapter": "collection_cases",
+      "module": "receivables-collections"
     }
   ],
   "mcpResources": [

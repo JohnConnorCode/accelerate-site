@@ -693,7 +693,7 @@ async function main() {
     planWorkspaceOperations(
       parseBlueprint(DEMO_BLUEPRINT_DETAIL.document),
       liveContext({
-        modules: ["core-pipeline", "stripe-invoicing"],
+        modules: ["core-pipeline", "invoicing"],
         routes: ["/admin/pipeline", "/admin/invoicing"],
       }),
     ),

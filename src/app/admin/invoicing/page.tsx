@@ -1,1092 +1,693 @@
 "use client";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  InvoiceDocument,
-  type InvoiceDocumentData,
-  type InvoiceDesign,
-} from "@/components/business/InvoiceDocument";
-import type { WorkspaceBrand } from "@/lib/revenue-os/branding-contract";
-import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Plus, ReceiptText, RefreshCw, Send, Trash2 } from "lucide-react";
-import { InvoicePageDesigner } from "@/components/admin/InvoicePageDesigner";
+import { Check, Copy, ExternalLink, Plus, RefreshCw } from "lucide-react";
 import { BillingNavigation } from "@/components/admin/BillingNavigation";
 import { PaymentIndex } from "@/components/admin/PaymentIndex";
 import { BillingActivity } from "@/components/admin/BillingActivity";
-import { BillingActionControl } from "@/components/admin/BillingActionControl";
-import { InvoiceIndex } from "@/components/admin/InvoiceIndex";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { adminPageGuidance } from "@/lib/admin/page-guidance";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { DemoBusinessNotice } from "@/components/admin/DemoBusinessNotice";
-import AdminLink from "@/components/admin/AdminLink";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
-import type { WorkflowPreview } from "@/lib/revenue-os/workflow-plugins";
-import { formatInvoiceAmount, type StripeInvoiceReceipt } from "@/lib/revenue-os/stripe-contract";
+import { InvoiceExperience } from "@/components/invoices/InvoiceExperience";
+import { StripeConnectPanel } from "@/components/invoices/StripeConnectPanel";
+import {
+  InvoiceEditorFields,
+  type InvoiceContact,
+  type InvoiceFieldIssue,
+} from "@/components/invoices/InvoiceEditorFields";
+import {
+  emptyInvoiceDraft,
+  invoiceDraftSchema,
+  invoiceStatusLabels as statusNames,
+  invoiceSubtotal,
+  money,
+  type CommercialInvoice,
+  type InvoiceDraft,
+} from "@/lib/invoices/schema";
+import type { InvoiceCommand } from "@/lib/invoices/commands";
+import type { InvoiceBrand } from "@/lib/invoices/brand";
+
 const button = "admin-button admin-button--secondary";
 const primary = "admin-button admin-button--primary";
-const field = "admin-field mt-2";
-type Action = {
-  id: string;
-  action_type: string;
-  title: string;
-  description: string;
-  status: string;
-  error: string | null;
-  result: StripeInvoiceReceipt | null;
-  payload: Record<string, unknown>;
+type Listing = {
+  invoices: CommercialInvoice[];
+  contacts: InvoiceContact[];
+  stripe: { connected: boolean; testMode: boolean; canTakePayments: boolean };
+  brand: InvoiceBrand;
 };
-type Billing = {
-  suggestedInput?: {
-    memo: string;
-    lines: { description: string; quantity: number; unitAmount: number }[];
-  };
-  testMode: boolean;
-  truncated: boolean;
-  contacts: { id: string; full_name: string; primary_email: string }[];
-  customers: { id: string; name: string | null; email: string | null }[];
-  actions: Action[];
+const fieldNames: Record<string, string> = {
+  company_name: "Client name",
+  contact_name: "Contact name",
+  contact_email: "Client email",
+  description: "Invoice description",
+  discount_cents: "Discount",
+  due_date: "Due date",
+  payment_methods: "Payment methods",
 };
-type Line = { description: string; quantity: number; amount: string };
-function minorUnits(value: string) {
-  const match = value.trim().match(/^(0|[1-9]\d{0,6})(?:\.(\d{1,2}))?$/);
-  if (!match) throw new Error("Enter amounts with at most two decimal places");
-  return Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
+function fieldIssues(draft: InvoiceDraft): InvoiceFieldIssue[] {
+  const result = invoiceDraftSchema.safeParse(draft);
+  if (result.success) return [];
+  return result.error.issues.map((i) => ({
+    field: i.path.join("."),
+    message: `${
+      fieldNames[String(i.path[0])] ||
+      (i.path[0] === "lines"
+        ? i.path.length === 1
+          ? "Line items"
+          : `Item ${Number(i.path[1]) + 1} ${i.path[2] === "unit_cents" ? "rate" : String(i.path[2] ?? "")}`
+        : i.path.join(" "))
+    }: ${i.message}`,
+  }));
 }
+const DRAFT_KEYS = Object.keys(emptyInvoiceDraft()) as (keyof InvoiceDraft)[];
+const draftOf = (invoice: CommercialInvoice): InvoiceDraft =>
+  Object.fromEntries(DRAFT_KEYS.map((key) => [key, invoice[key]])) as InvoiceDraft;
+const date = (value: string) =>
+  new Date(value).toLocaleDateString("en-US", { dateStyle: "medium" });
+
+/** Invoicing workspace, ported from SuperDebate's invoice admin: saved
+ * invoices, an editor with a live recipient preview, and the payment link. */
 export default function InvoicingPage() {
   const params = useSearchParams();
-  const contactId = params.get("view") === "create" ? params.get("contactId") || "" : "";
-  return <InvoicingWorkspace key={contactId} initialContactId={contactId} />;
-}
-
-function InvoicingWorkspace({ initialContactId }: { initialContactId: string }) {
-  const [designAction, setDesignAction] = useState<string | null>(null);
-  const demo = useAdminDemo();
-  const params = useSearchParams();
-  const creating = params.get("view") === "create";
   const payments = params.get("view") === "payments";
-  const pageRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    // Query-only navigation switches billing views in place. Start each newly
-    // selected view below the persistent toolbar.
-    pageRef.current?.closest("main")?.scrollTo({ top: 0 });
-  }, [creating, payments]);
-  const demoToken = demo ? params.get("demoInvoice") : null;
-  const demoDocument = useAdminQuery<{
-    brand: WorkspaceBrand;
-    design: InvoiceDesign;
-    document: InvoiceDocumentData;
-  }>(
-    ["admin", "demo-invoice", demoToken],
-    `/api/admin/invoicing/pages?token=${encodeURIComponent(demoToken ?? "")}`,
-    { enabled: Boolean(demoToken) },
+  const linkedContact = params.get("contactId");
+  const listing = useAdminQuery<Listing>(
+    ["admin", "invoicing", linkedContact],
+    `/api/admin/invoicing${linkedContact ? `?contactId=${encodeURIComponent(linkedContact)}` : ""}`,
   );
-  const cache = useQueryClient();
-  const providers = useAdminQuery<{
-    providers: {
-      provider: string;
-      status: string;
-      account_email?: string;
-      credential_version?: number;
-    }[];
-  }>(["tenant", "providers"], "/api/admin/tenant/providers");
-  const stripeConnection = providers.data?.providers.find(
-    (provider) => provider.provider === "stripe",
-  );
-  const connected = stripeConnection?.status === "connected";
-  const connectionKey = `${stripeConnection?.account_email ?? "demo"}:${stripeConnection?.credential_version ?? 0}`;
-  const [contactSearch, setContactSearch] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [webhookSecret, setWebhookSecret] = useState("");
-  const [publishableKey, setPublishableKey] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const [contactId, setContactId] = useState(initialContactId);
-  const billing = useAdminQuery<Billing>(
-    ["admin", "invoicing", connectionKey, appliedSearch, contactId],
-    `/api/admin/invoicing?${new URLSearchParams({ search: appliedSearch, ...(contactId ? { contactId } : {}) })}`,
-    {
-      enabled: connected,
-      placeholderData: (previous, query) =>
-        query?.queryKey[2] === connectionKey ? previous : undefined,
-    },
-  );
-  const [customerId, setCustomerId] = useState("");
-  const [currency, setCurrency] = useState("usd");
-  const [days, setDays] = useState(14);
-  const [memo, setMemo] = useState("");
-  const [lines, setLines] = useState<Line[]>([{ description: "", quantity: 1, amount: "" }]);
-  const [preview, setPreview] = useState<WorkflowPreview | null>(null);
-  const [preparedInput, setPreparedInput] = useState<Record<string, unknown> | null>(null);
-  const [requestId, setRequestId] = useState("");
-  const [liveReceipts, setLiveReceipts] = useState<Record<string, StripeInvoiceReceipt>>({});
-  function edit() {
-    setPreview(null);
-    setPreparedInput(null);
-    setNotice("");
-  }
-  async function perform(operation: () => Promise<void>) {
-    setBusy(true);
-    setError("");
-    setNotice("");
-    try {
-      await operation();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The invoice operation failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function refresh() {
-    await Promise.all([
-      cache.invalidateQueries({ queryKey: ["admin", "invoicing"] }),
-      cache.invalidateQueries({ queryKey: ["admin", "actions"] }),
-      cache.invalidateQueries({ queryKey: ["tenant", "providers"] }),
-    ]);
-  }
-  function connect(event: FormEvent) {
-    event.preventDefault();
-    const accountId = String(
-      new FormData(event.currentTarget as HTMLFormElement).get("accountId") || "",
-    ).trim();
-    void perform(async () => {
-      await fetchJson("/api/admin/tenant/providers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "configure_stripe",
-          apiKey,
-          accountId,
-          ...(publishableKey.trim() ? { publishableKey: publishableKey.trim() } : {}),
-          ...(webhookSecret.trim() ? { webhookSecret: webhookSecret.trim() } : {}),
-        }),
-      });
-      setApiKey("");
-      setWebhookSecret("");
-      setPublishableKey("");
-      setCustomerId("");
-      edit();
-      await cache.invalidateQueries({ queryKey: ["tenant", "providers"] });
-      setNotice("Stripe connected for this workspace.");
-    });
-  }
-  function prepare(event: FormEvent) {
-    event.preventDefault();
-    void perform(async () => {
-      const input = {
-        contactId,
-        customerId,
-        currency,
-        daysUntilDue: days,
-        memo,
-        lines: lines.map((line) => ({
-          description: line.description,
-          quantity: line.quantity,
-          unitAmount: minorUnits(line.amount),
-        })),
-      };
-      const result = await fetchJson<WorkflowPreview>("/api/admin/plugins/workflow", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pluginId: "stripe-invoicing", mode: "preview", input }),
-      });
-      setPreview(result);
-      setPreparedInput(input);
-      setRequestId(crypto.randomUUID());
-    });
-  }
-  function requestApproval() {
-    void perform(async () => {
-      if (!preview || !preparedInput) throw new Error("Prepare the invoice first");
-      await fetchJson("/api/admin/plugins/workflow", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pluginId: "stripe-invoicing",
-          mode: "propose",
-          input: preparedInput,
-          digest: preview.digest,
-          requestId,
-        }),
-      });
-      setPreview(null);
-      setNotice(
-        "Invoice draft is ready for approval below. Nothing has been created in Stripe yet.",
-      );
-      await refresh();
-    });
-  }
-  function decide(id: string, decision: "approve" | "reject" | "retry") {
-    void perform(async () => {
-      try {
-        await fetchJson("/api/admin/revenue-os/actions", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, decision }),
-        });
-        setNotice(
-          decision === "retry"
-            ? "The same operation is ready for review again."
-            : decision === "reject"
-              ? "Invoice action rejected."
-              : "Invoice action completed. Inspect its receipt below.",
-        );
-      } finally {
-        await refresh();
-      }
-    });
-  }
-  const currentContact = billing.data?.contacts.find((contact) => contact.id === contactId);
-  const matchingCustomers =
-    billing.data?.customers.filter(
-      (customer) => customer.email?.toLowerCase() === currentContact?.primary_email?.toLowerCase(),
-    ) ?? [];
-  if (demoToken)
-    return (
-      <div className="space-y-6 pb-10">
-        <PageHeader
-          title="Customer invoice"
-          subtitle="Preview the saved customer invoice. This view is fictional and available only in this demo session."
-          guidance={{
-            description: "Review the customer-facing invoice presentation.",
-            startHint:
-              "Check the recipient, line items, amount and terms, then use Back to invoices to return to the invoice tools.",
-            steps: [
-              "Read the saved customer presentation and its recorded invoice status.",
-              "Return to the invoice tools to review changes or publication actions.",
-            ],
-            savedOutcome:
-              "This preview renders the saved presentation associated with the fictional invoice.",
-            guideHref: "/docs/plugins/stripe-invoicing",
-          }}
-          actions={
-            <AdminLink className={button} href="/admin/invoicing">
-              Back to invoices
-            </AdminLink>
-          }
-        />
-        <DemoBusinessNotice />
-        {demoDocument.error ? (
-          <p role="alert">{demoDocument.error.message}</p>
-        ) : demoDocument.data ? (
-          <InvoiceDocument
-            brand={demoDocument.data.brand}
-            design={demoDocument.data.design}
-            invoice={demoDocument.data.document}
-          />
-        ) : (
-          <p role="status">Loading demo invoice…</p>
-        )}
-      </div>
-    );
   return (
-    <div ref={pageRef} className="space-y-6 pb-10">
+    <div className="space-y-6 pb-10">
       <PageHeader
-        title={creating ? "Create invoice" : payments ? "Payments & refunds" : "Invoices"}
-        guidance={
-          creating
-            ? {
-                ...adminPageGuidance["stripe-invoicing"]!,
-                startHint:
-                  "Choose the billing customer, add line items and terms, then prepare the invoice preview below.",
-              }
-            : payments
-              ? {
-                  description:
-                    "Inspect payment receipts, review a refund and export selected records.",
-                  startHint:
-                    "Find the payment you need, then inspect its receipt or review the available refund.",
-                  steps: [
-                    "Filter the loaded payments by customer, status or date.",
-                    "Choose the refund amount and reason, then approve the exact operation.",
-                    "Check Recent billing actions for the recorded result or request a current provider check.",
-                  ],
-                  savedOutcome:
-                    "Approved refunds retain their original provider result. A pending refund needs a current check before you treat it as complete.",
-                  guideHref: "/docs/plugins/stripe-invoicing#review-a-payment-or-refund",
-                }
-              : undefined
-        }
+        title={payments ? "Payments & refunds" : "Invoices"}
         subtitle={
-          creating
-            ? "Draft creation and sending require separate approvals."
-            : payments
-              ? "Review payment evidence and manage refunds from your workspace."
-              : "Find customer invoices, track payments, and create a new invoice."
-        }
-        actions={
-          creating ? (
-            <AdminLink href="/admin/invoicing" className={button}>
-              All invoices
-            </AdminLink>
-          ) : (
-            <AdminLink href="/admin/invoicing?view=create" className={primary}>
-              <Plus className="size-4" aria-hidden="true" />
-              Create invoice
-            </AdminLink>
-          )
+          payments
+            ? "Review payments and refunds from your Stripe account."
+            : "Clients pay by bank transfer or card on your own invoice page. No Stripe invoice fees."
         }
       />
       <DemoBusinessNotice />
-      {!creating && <BillingNavigation active={payments ? "payments" : "invoices"} />}
-      {!creating &&
-        providers.data &&
-        (payments ? (
-          <PaymentIndex enabled={connected} connectionKey={connectionKey} />
-        ) : (
-          <div id="invoice-list">
-            <InvoiceIndex enabled={connected} connectionKey={connectionKey} />
-          </div>
-        ))}
-      {!creating && <BillingActivity />}
-      <>
-        {(error || providers.error || billing.error) && (
-          <div
-            role="alert"
-            className="rounded-xl border border-[var(--admin-danger)]/30 bg-[var(--admin-danger-soft)] p-4 text-sm"
+      <BillingNavigation active={payments ? "payments" : "invoices"} />
+      {listing.error && !listing.data ? (
+        <p role="alert" className="rounded-xl bg-[var(--admin-danger-soft)] p-4 text-sm">
+          {listing.error.message}
+        </p>
+      ) : !listing.data ? (
+        <p role="status" className="admin-copy">
+          Loading invoices…
+        </p>
+      ) : payments ? (
+        <>
+          <PaymentIndex enabled={listing.data.stripe.connected} connectionKey="stripe" />
+          <BillingActivity />
+        </>
+      ) : (
+        <InvoiceWorkspace
+          listing={listing.data}
+          initialInvoiceId={params.get("invoiceId")}
+          startNew={params.get("view") === "new" || params.get("view") === "create"}
+          linkedContactId={linkedContact}
+        />
+      )}
+    </div>
+  );
+}
+
+function InvoiceWorkspace({
+  listing,
+  initialInvoiceId,
+  startNew,
+  linkedContactId,
+}: {
+  listing: Listing;
+  initialInvoiceId: string | null;
+  startNew: boolean;
+  linkedContactId: string | null;
+}) {
+  const cache = useQueryClient();
+  const { invoices, contacts, stripe, brand } = listing;
+  const seedContact = contacts.find((c) => c.id === linkedContactId);
+  const newDraft = (): InvoiceDraft => ({
+    ...emptyInvoiceDraft(),
+    ...(seedContact
+      ? {
+          contact_id: seedContact.id,
+          company_name: seedContact.full_name,
+          contact_name: seedContact.full_name,
+          contact_email: seedContact.primary_email,
+        }
+      : {}),
+  });
+  const initial = invoices.find((i) => i.id === initialInvoiceId) ?? null;
+  const [selectedId, setSelectedId] = useState<string | null>(initial?.id ?? null);
+  const [composing, setComposing] = useState(Boolean(initial) || startNew);
+  const [draft, setDraft] = useState<InvoiceDraft>(initial ? draftOf(initial) : newDraft());
+  const [saved, setSaved] = useState<string>(JSON.stringify(initial ? draftOf(initial) : null));
+  const [busy, setBusy] = useState(""),
+    [error, setError] = useState(""),
+    [notice, setNotice] = useState(""),
+    [issues, setIssues] = useState<InvoiceFieldIssue[]>([]);
+  const [search, setSearch] = useState(""),
+    [filter, setFilter] = useState("all"),
+    [copied, setCopied] = useState(false),
+    [externalNote, setExternalNote] = useState("");
+  const selected = invoices.find((i) => i.id === selectedId) ?? null;
+  const editable = !selected || selected.status === "draft";
+  const dirty = editable && JSON.stringify(draft) !== saved;
+  const amount = invoiceSubtotal(draft.lines) - draft.discount_cents;
+  const remaining = fieldIssues(draft);
+  const shareLink = selected?.share_url
+    ? new URL(selected.share_url, window.location.origin).href
+    : null;
+  const filtered = useMemo(
+    () =>
+      invoices.filter(
+        (i) =>
+          (filter === "all" ||
+            (filter === "paid" && (i.status === "paid" || i.status === "paid_external")) ||
+            (filter === "open" && (i.status === "open" || i.status === "processing")) ||
+            i.status === filter) &&
+          `${i.company_name} ${i.contact_email} ${i.invoice_number || ""} ${i.description}`
+            .toLowerCase()
+            .includes(search.trim().toLowerCase()),
+      ),
+    [invoices, filter, search],
+  );
+  const outstanding = invoices
+    .filter((i) => i.status === "open" || i.status === "processing")
+    .reduce((n, i) => n + i.amount_cents, 0);
+  const paid = invoices.filter((i) => i.status === "paid").reduce((n, i) => n + i.amount_cents, 0);
+  const draftCount = invoices.filter((i) => i.status === "draft").length;
+  const preview = {
+    ...draft,
+    status: selected?.status || "draft",
+    invoice_number: selected?.invoice_number || null,
+    issued_at: selected?.issued_at || null,
+    due_at: selected?.due_at || null,
+    paid_at: selected?.paid_at || null,
+  };
+  const set = <K extends keyof InvoiceDraft>(key: K, value: InvoiceDraft[K]) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+    setIssues((current) =>
+      current.filter((i) => i.field !== key && !i.field.startsWith(`${String(key)}.`)),
+    );
+  };
+  function choose(invoice: CommercialInvoice) {
+    setSelectedId(invoice.id);
+    setComposing(true);
+    setDraft(draftOf(invoice));
+    setSaved(JSON.stringify(draftOf(invoice)));
+    setError("");
+    setNotice("");
+    setIssues([]);
+    setCopied(false);
+    window.history.replaceState(null, "", `${window.location.pathname}?invoiceId=${invoice.id}`);
+  }
+  function fresh() {
+    setSelectedId(null);
+    setComposing(true);
+    setDraft(newDraft());
+    setSaved("null");
+    setError("");
+    setNotice("");
+    setIssues([]);
+    window.history.replaceState(null, "", `${window.location.pathname}?view=new`);
+  }
+  function duplicate() {
+    setSelectedId(null);
+    setSaved("null");
+    setNotice("Copied into a new draft. Review it, then save.");
+    window.history.replaceState(null, "", `${window.location.pathname}?view=new`);
+  }
+  async function run(command: InvoiceCommand, working: string, success: string) {
+    setBusy(working);
+    setError("");
+    setNotice("");
+    try {
+      const { invoice } = await fetchJson<{ invoice: CommercialInvoice }>("/api/admin/invoicing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(command),
+      });
+      await cache.invalidateQueries({ queryKey: ["admin", "invoicing"] });
+      setSelectedId(invoice.id);
+      setDraft(draftOf(invoice));
+      setSaved(JSON.stringify(draftOf(invoice)));
+      window.history.replaceState(null, "", `${window.location.pathname}?invoiceId=${invoice.id}`);
+      setNotice(success);
+      return invoice;
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "The invoice could not be updated. Your details are retained. Try again.",
+      );
+      return null;
+    } finally {
+      setBusy("");
+    }
+  }
+  async function save() {
+    const found = fieldIssues(draft);
+    setIssues(found);
+    if (found.length) {
+      setError("Complete the highlighted details.");
+      return null;
+    }
+    return run(
+      {
+        operation: "save_draft",
+        id: selected?.id ?? null,
+        revision: selected?.revision ?? null,
+        draft,
+      },
+      "Saving draft…",
+      "Draft saved. It stays private until you generate its payment link.",
+    );
+  }
+  async function generate() {
+    const current = dirty || !selected ? await save() : selected;
+    if (!current) return;
+    await run(
+      { operation: "issue", id: current.id, revision: current.revision },
+      "Generating payment link…",
+      "Payment link ready. Copy it and send it to your client.",
+    );
+  }
+  async function copyLink() {
+    if (!shareLink) return;
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setNotice("Select and copy the payment link below.");
+    }
+  }
+  const locked = Boolean(busy);
+  return (
+    <div className="min-w-0 space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="admin-copy text-sm">
+          {stripe.testMode
+            ? "Stripe test mode · these invoices cannot collect real payments."
+            : "Amounts cover the invoices in this workspace."}
+        </p>
+        <button type="button" className={primary} disabled={locked} onClick={fresh}>
+          <Plus className="size-4" aria-hidden="true" />
+          Create invoice
+        </button>
+      </div>
+      {!stripe.canTakePayments && (
+        <StripeConnectPanel
+          connected={stripe.connected}
+          onConnected={() =>
+            Promise.all([
+              cache.invalidateQueries({ queryKey: ["admin", "invoicing"] }),
+              cache.invalidateQueries({ queryKey: ["tenant", "providers"] }),
+            ]).then(() => undefined)
+          }
+        />
+      )}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Metric title="Unpaid" value={money(outstanding)} detail="Issued and awaiting payment" />
+        <Metric
+          title="Paid on Stripe"
+          value={money(paid)}
+          detail="Excludes payments recorded externally"
+        />
+        <Metric
+          title="Saved drafts"
+          value={String(draftCount)}
+          detail="Not yet shared with the client"
+        />
+      </div>
+      {notice && (
+        <p role="status" className="rounded-xl bg-[var(--admin-success-soft)] p-4 text-sm">
+          {notice}
+        </p>
+      )}
+      <div className="grid min-w-0 gap-5 xl:grid-cols-[300px_minmax(0,1fr)]">
+        <AdminSurface padding="md" className="min-w-0 self-start">
+          <h3 className="text-lg font-semibold">Saved invoices</h3>
+          <input
+            aria-label="Search invoices"
+            className="admin-field mt-4 w-full"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search client or invoice…"
+          />
+          <select
+            aria-label="Filter invoices"
+            className="admin-field mt-3 w-full"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
           >
-            {error || providers.error?.message || billing.error?.message}
-            <button className={`${button} ml-2`} onClick={() => void refresh()} type="button">
-              Refresh invoices
-            </button>
-          </div>
-        )}
-        {notice && (
-          <p role="status" className="rounded-xl bg-[var(--admin-surface-subtle)] p-4 text-sm">
-            {demo ? "Simulated · " : ""}
-            {notice}
-          </p>
-        )}
-        {providers.isPending ? (
-          <p role="status" className="admin-copy">
-            Checking your Stripe connection…
-          </p>
-        ) : providers.error && !providers.data ? null : !connected ? (
-          <AdminSurface padding="lg">
-            <div className="flex items-start gap-3">
-              <ReceiptText className="mt-1 size-6 shrink-0" aria-hidden="true" />
-              <div>
-                <h2 className="text-lg font-semibold">Connect your Stripe account</h2>
-                <p className="admin-copy mt-2 max-w-2xl text-sm leading-6">
-                  Use a restricted key with account, customer, invoice, payment and refund read
-                  access. Enable customer, invoice and refund writes for the actions you need. The
-                  key stays encrypted in this workspace. Verify the workflow in test mode before
-                  using live payments.
-                </p>
-              </div>
-            </div>
-            <form onSubmit={connect} className="mt-5 max-w-xl">
-              <label className="text-sm font-medium" htmlFor="stripe-account-id">
-                Stripe account ID
-              </label>
-              <input
-                id="stripe-account-id"
-                name="accountId"
-                className={field}
-                required
-                pattern="acct_[A-Za-z0-9]+"
-                placeholder="acct_…"
-                autoComplete="off"
-              />
-              <p className="admin-copy mt-2 text-sm">
-                Copy the account ID from Stripe Settings. We reject keys from another account.
-              </p>
-              <label className="text-sm font-medium" htmlFor="stripe-key">
-                Stripe API key
-              </label>
-              <input
-                id="stripe-key"
-                type="password"
-                autoComplete="new-password"
-                value={apiKey}
-                onChange={(event) => setApiKey(event.target.value)}
-                className={field}
-                required
-                minLength={20}
-              />
-              <label className="mt-4 block text-sm font-medium" htmlFor="stripe-publishable-key">
-                Publishable key for workshop payments
-              </label>
-              <input
-                id="stripe-publishable-key"
-                className={field}
-                autoComplete="off"
-                value={publishableKey}
-                onChange={(event) => setPublishableKey(event.target.value)}
-                placeholder="pk_live_… or pk_test_…"
-              />
-              <label className="mt-4 block text-sm font-medium" htmlFor="stripe-webhook-secret">
-                Stripe webhook signing secret{" "}
-                <span className="font-normal text-[var(--admin-muted)]">(optional now)</span>
-              </label>
-              <input
-                id="stripe-webhook-secret"
-                type="password"
-                autoComplete="new-password"
-                value={webhookSecret}
-                onChange={(event) => setWebhookSecret(event.target.value)}
-                className={field}
-                minLength={10}
-              />
-              <button
-                type="submit"
-                className={`${primary} mt-4`}
-                disabled={busy || providers.isPending}
-              >
-                Connect Stripe
-              </button>
-            </form>
-          </AdminSurface>
-        ) : (
-          <>
-            {(!creating || !demo) && (
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {!demo && (
-                  <p className="admin-copy text-sm">
-                    {billing.data?.testMode
-                      ? "Test mode · Stripe invoice emails are not delivered."
-                      : billing.data
-                        ? "Live mode · Approved sending requests a real customer email."
-                        : "Loading billing workspace…"}
-                  </p>
-                )}
-                {!creating && (
-                  <button
-                    type="button"
-                    className={button}
-                    disabled={busy || billing.isFetching}
-                    onClick={() => void refresh()}
-                  >
-                    <RefreshCw className="size-4" aria-hidden="true" />
-                    Refresh history
-                  </button>
-                )}
-              </div>
-            )}
-            {!demo && !creating && (
-              <details className="group rounded-xl border border-[var(--admin-border)] px-4 py-2">
-                <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
-                  Stripe connection settings
-                  <ChevronDown
-                    className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
-                    aria-hidden="true"
-                  />
-                </summary>
-                <p className="admin-copy mt-2 max-w-2xl text-sm leading-6">
-                  Replace the workspace key when rotating credentials. Disconnecting pauses invoice
-                  work and customer pages; recorded operations remain available in the platform
-                  history.
-                </p>
-                <form onSubmit={connect} className="my-4 max-w-xl">
-                  <label className="text-sm font-medium" htmlFor="stripe-replacement-account-id">
-                    Stripe account ID
-                  </label>
-                  <input
-                    id="stripe-replacement-account-id"
-                    name="accountId"
-                    className={field}
-                    required
-                    pattern="acct_[A-Za-z0-9]+"
-                    defaultValue={stripeConnection?.account_email || ""}
-                    autoComplete="off"
-                  />
-                  <label className="text-sm font-medium" htmlFor="stripe-replacement-key">
-                    Replacement Stripe key
-                  </label>
-                  <input
-                    id="stripe-replacement-key"
-                    type="password"
-                    autoComplete="new-password"
-                    className={field}
-                    required
-                    minLength={20}
-                    value={apiKey}
-                    disabled={busy}
-                    onChange={(event) => setApiKey(event.target.value)}
-                  />
-                  <label
-                    className="mt-4 block text-sm font-medium"
-                    htmlFor="stripe-replacement-publishable-key"
-                  >
-                    Publishable key for workshop payments{" "}
-                    <span className="font-normal text-[var(--admin-muted)]">
-                      (leave blank to keep it for the same account)
-                    </span>
-                  </label>
-                  <input
-                    id="stripe-replacement-publishable-key"
-                    className={field}
-                    autoComplete="off"
-                    value={publishableKey}
-                    disabled={busy}
-                    onChange={(event) => setPublishableKey(event.target.value)}
-                    placeholder="pk_live_… or pk_test_…"
-                  />
-                  <label
-                    className="mt-4 block text-sm font-medium"
-                    htmlFor="stripe-replacement-webhook-secret"
-                  >
-                    Replacement webhook signing secret{" "}
-                    <span className="font-normal text-[var(--admin-muted)]">
-                      (leave blank to keep current)
-                    </span>
-                  </label>
-                  <input
-                    id="stripe-replacement-webhook-secret"
-                    type="password"
-                    autoComplete="new-password"
-                    className={field}
-                    minLength={10}
-                    value={webhookSecret}
-                    disabled={busy}
-                    onChange={(event) => setWebhookSecret(event.target.value)}
-                  />
-                  <button type="submit" className={`${button} mt-3`} disabled={busy}>
-                    Verify & replace key
-                  </button>
-                </form>
+            {[
+              ["all", "All invoices"],
+              ["draft", "Drafts"],
+              ["open", "Unpaid"],
+              ["paid", "Paid"],
+              ["void", "Void"],
+            ].map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <div className="mt-4 max-h-[600px] space-y-2 overflow-auto">
+            {filtered.length ? (
+              filtered.map((i) => (
                 <button
+                  key={i.id}
                   type="button"
-                  className={`${button} mb-3`}
-                  disabled={busy}
-                  onClick={() =>
-                    void perform(async () => {
-                      await fetchJson("/api/admin/tenant/providers", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ action: "disconnect", provider: "stripe" }),
-                      });
-                      await providers.refetch();
-                      setApiKey("");
-                      setNotice("Stripe disconnected for this workspace.");
-                    })
-                  }
+                  disabled={locked}
+                  onClick={() => choose(i)}
+                  className={`w-full rounded-xl p-3 text-left transition-colors ${selected?.id === i.id ? "bg-[var(--admin-surface-subtle)] ring-1 ring-[var(--admin-border)]" : "hover:bg-[var(--admin-surface-subtle)]"}`}
                 >
-                  Disconnect Stripe
+                  <span className="flex items-start justify-between gap-2">
+                    <strong className="min-w-0 text-sm break-words">{i.company_name}</strong>
+                    <span className="shrink-0 text-sm tabular-nums">{money(i.amount_cents)}</span>
+                  </span>
+                  <span className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span className="rounded-full bg-[var(--admin-surface-subtle)] px-2 py-1 font-medium">
+                      {statusNames[i.status]}
+                    </span>
+                    <span className="text-[var(--admin-muted)]">
+                      {i.invoice_number || date(i.updated_at || i.created_at)}
+                    </span>
+                  </span>
                 </button>
-              </details>
+              ))
+            ) : (
+              <p className="admin-copy py-6 text-sm">
+                {filter === "draft"
+                  ? "No saved drafts match. Create an invoice to start one."
+                  : "No matching invoices."}
+              </p>
             )}
-            <div id="new-invoice" className="admin-split">
-              <AdminSurface padding="lg">
-                <h2 className="text-lg font-semibold">New customer invoice</h2>
-                <p className="admin-copy mt-2 text-sm">
-                  Keep the CRM contact linked to the existing Stripe billing customer.
-                </p>
-                <div className="mt-5 flex items-end gap-3">
-                  <label className="min-w-0 flex-1 text-sm font-medium">
-                    Find CRM customer
-                    <input
-                      className={field}
-                      type="search"
-                      disabled={busy}
-                      maxLength={100}
-                      value={contactSearch}
-                      onChange={(event) => setContactSearch(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          event.preventDefault();
-                          edit();
-                          setAppliedSearch(contactSearch.trim());
-                          setContactId("");
-                          setCustomerId("");
-                        }
-                      }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className={button}
-                    disabled={busy}
-                    onClick={() => {
-                      edit();
-                      setAppliedSearch(contactSearch.trim());
-                      setContactId("");
-                      setCustomerId("");
-                    }}
-                  >
-                    Search
-                  </button>
-                </div>
-                <form onSubmit={prepare} className="mt-5">
-                  <fieldset disabled={busy} className="space-y-5">
-                    <legend className="sr-only">Invoice details</legend>
-                    {billing.data?.suggestedInput && (
-                      <button
-                        type="button"
-                        className={button}
-                        onClick={() => {
-                          const sample = billing.data!.suggestedInput!;
-                          const contact =
-                            currentContact ?? (!contactId ? billing.data!.contacts[0] : undefined);
-                          if (!contact) return;
-                          edit();
-                          if (!contactId) {
-                            setContactId(contact.id);
-                            setCustomerId(
-                              billing.data!.customers.find((x) => x.email === contact.primary_email)
-                                ?.id ?? "",
-                            );
-                          }
-                          setMemo(sample.memo);
-                          setLines(
-                            sample.lines.map((x) => ({
-                              description: x.description,
-                              quantity: x.quantity,
-                              amount: (x.unitAmount / 100).toFixed(2),
-                            })),
-                          );
-                        }}
-                      >
-                        Use sample invoice
-                      </button>
-                    )}
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="text-sm font-medium">
-                        CRM customer
-                        <select
-                          className={field}
-                          aria-label="CRM customer"
-                          value={contactId}
-                          required
-                          onChange={(event) => {
-                            edit();
-                            setContactId(event.target.value);
-                            setCustomerId("");
-                          }}
-                        >
-                          <option value="">Choose a contact</option>
-                          {billing.data?.contacts.map((contact) => (
-                            <option value={contact.id} key={contact.id}>
-                              {contact.full_name} · {contact.primary_email}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="text-sm font-medium">
-                        Stripe billing customer
-                        <select
-                          className={field}
-                          aria-label="Stripe billing customer"
-                          value={customerId}
-                          required
-                          disabled={!contactId}
-                          onChange={(event) => {
-                            edit();
-                            setCustomerId(event.target.value);
-                          }}
-                        >
-                          <option value="">Choose matching customer</option>
-                          {matchingCustomers.map((customer) => (
-                            <option value={customer.id} key={customer.id}>
-                              {customer.name || customer.email}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                    {contactId &&
-                      !billing.isFetching &&
-                      !billing.error &&
-                      !matchingCustomers.length && (
-                        <div className="space-y-3 rounded-xl bg-[var(--admin-surface-subtle)] p-4">
-                          <p className="admin-copy text-sm">
-                            Create a billing customer using this contact’s name and email, then
-                            select it above. Customer setup does not take a payment.
-                          </p>
-                          <BillingActionControl
-                            key={contactId}
-                            label="Create billing customer"
-                            intent={{ operation: "create_customer", contactId }}
-                          />
-                        </div>
-                      )}
-                    {billing.data?.truncated && (
-                      <p className="admin-copy text-xs">
-                        Refine the customer name search if needed: up to 100 CRM matches are shown.
-                        Stripe billing choices are filtered by the selected contact’s email.
+          </div>
+        </AdminSurface>
+        <div className="min-w-0 space-y-5">
+          {!composing ? (
+            <AdminSurface padding="lg">
+              <h2 className="text-xl font-semibold">
+                {invoices.length ? "Choose an invoice" : "No invoices yet"}
+              </h2>
+              <p className="admin-copy mt-3 max-w-lg text-sm leading-6">
+                {invoices.length
+                  ? "Choose an invoice to edit its details or copy its payment link."
+                  : "Use Create invoice to add a client and agreed amount."}
+              </p>
+            </AdminSurface>
+          ) : (
+            <>
+              <AdminSurface padding="lg" className="min-w-0">
+                <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    {selected?.invoice_number && (
+                      <p className="mb-1 text-xs font-medium text-[var(--admin-muted)]">
+                        {selected.invoice_number}
                       </p>
                     )}
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="text-sm font-medium">
-                        Currency
-                        <select
-                          className={field}
-                          value={currency}
-                          onChange={(event) => {
-                            edit();
-                            setCurrency(event.target.value);
-                          }}
-                        >
-                          {["usd", "eur", "gbp", "cad", "aud"].map((value) => (
-                            <option key={value} value={value}>
-                              {value.toUpperCase()}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="text-sm font-medium">
-                        Payment terms (days)
-                        <input
-                          type="number"
-                          min={1}
-                          max={90}
-                          required
-                          className={field}
-                          value={days}
-                          onChange={(event) => {
-                            edit();
-                            setDays(Number(event.target.value));
-                          }}
-                        />
-                      </label>
+                    <h2 className="text-xl font-semibold">
+                      {editable
+                        ? selected
+                          ? "Edit draft"
+                          : "Invoice draft"
+                        : selected?.company_name}
+                    </h2>
+                    <p className="admin-copy mt-2 text-sm">
+                      {editable
+                        ? dirty
+                          ? "Unsaved changes. Generating the payment link saves them automatically."
+                          : selected
+                            ? "Review the details, then generate the payment link to share with your client."
+                            : "Client and pricing details are required. Billing address is optional."
+                        : selected?.status === "paid" || selected?.status === "paid_external"
+                          ? "This invoice has been paid. Its saved details record the payment."
+                          : selected?.status === "void"
+                            ? "This invoice is void. You can duplicate it for a new agreement."
+                            : "Issued invoices cannot be edited. Void and duplicate it to change the terms."}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs font-medium">
+                    {selected ? statusNames[selected.status] : "New draft"} · USD
+                    {selected?.mode === "test" ? " · Test" : ""}
+                  </span>
+                </div>
+                {editable && (
+                  <div
+                    className={`${dirty || busy ? "sticky top-20 z-10 " : ""}mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[var(--admin-surface-subtle)] p-3`}
+                  >
+                    <div className="text-sm">
+                      {busy ? (
+                        <span role="status">{busy}</span>
+                      ) : (
+                        <span>
+                          {remaining.length
+                            ? `${remaining.length} ${remaining.length === 1 ? "detail" : "details"} to complete`
+                            : "Ready to generate"}
+                        </span>
+                      )}
                     </div>
-                    <fieldset className="space-y-4">
-                      <legend className="mb-3 text-sm font-semibold">Line items</legend>
-                      {lines.map((line, index) => (
-                        <div
-                          key={index}
-                          className="rounded-xl border border-[var(--admin-border)] p-4"
-                        >
-                          <label className="text-xs font-medium">
-                            Description
-                            <input
-                              aria-label={`Line ${index + 1} description`}
-                              className={field}
-                              value={line.description}
-                              required
-                              maxLength={200}
-                              onChange={(event) => {
-                                edit();
-                                setLines(
-                                  lines.map((item, i) =>
-                                    i === index
-                                      ? { ...item, description: event.target.value }
-                                      : item,
-                                  ),
-                                );
-                              }}
-                            />
-                          </label>
-                          <div className="mt-3 grid grid-cols-[1fr_1.3fr_auto] items-end gap-3">
-                            <label className="min-w-0 text-xs font-medium">
-                              Quantity
-                              <input
-                                aria-label={`Line ${index + 1} quantity`}
-                                className={`${field} tabular-nums`}
-                                type="number"
-                                min={1}
-                                max={10000}
-                                required
-                                value={line.quantity}
-                                onChange={(event) => {
-                                  edit();
-                                  setLines(
-                                    lines.map((item, i) =>
-                                      i === index
-                                        ? { ...item, quantity: Number(event.target.value) }
-                                        : item,
-                                    ),
-                                  );
-                                }}
-                              />
-                            </label>
-                            <label className="min-w-0 text-xs font-medium">
-                              Unit price ({currency.toUpperCase()})
-                              <input
-                                aria-label={`Line ${index + 1} unit price`}
-                                className={`${field} tabular-nums`}
-                                inputMode="decimal"
-                                value={line.amount}
-                                required
-                                onChange={(event) => {
-                                  edit();
-                                  setLines(
-                                    lines.map((item, i) =>
-                                      i === index ? { ...item, amount: event.target.value } : item,
-                                    ),
-                                  );
-                                }}
-                              />
-                            </label>
-                            <button
-                              type="button"
-                              className={button}
-                              aria-label={`Remove line ${index + 1}`}
-                              disabled={lines.length === 1 || busy}
-                              onClick={() => {
-                                edit();
-                                setLines(lines.filter((_, i) => i !== index));
-                              }}
-                            >
-                              <Trash2 aria-hidden="true" className="size-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
                       <button
                         type="button"
                         className={button}
-                        disabled={lines.length >= 10 || busy}
+                        disabled={locked || Boolean(selected && !dirty)}
+                        onClick={() => void save()}
+                      >
+                        {selected ? "Save changes" : "Save draft"}
+                      </button>
+                      <button
+                        type="button"
+                        className={primary}
+                        disabled={locked || !stripe.connected}
+                        onClick={() => void generate()}
+                      >
+                        Generate payment link
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {error && (
+                  <div
+                    role="alert"
+                    className="mb-5 rounded-xl bg-[var(--admin-danger-soft)] p-4 text-sm"
+                  >
+                    <p className="font-medium">{error}</p>
+                    {issues.length > 0 && (
+                      <ul className="mt-2 list-disc space-y-1 pl-5">
+                        {issues.map((i) => (
+                          <li key={i.field}>
+                            <a
+                              className="underline underline-offset-2"
+                              href={"#invoice-field-" + i.field}
+                            >
+                              {i.message}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                {shareLink && selected && (
+                  <section
+                    aria-label="Payment link"
+                    className="mb-5 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-success-soft)] p-4"
+                  >
+                    <h3 className="font-semibold">
+                      {selected.status === "open" ? "Payment link ready" : "Recipient link"}
+                    </h3>
+                    <p className="admin-copy mt-1 text-sm">
+                      {selected.status === "open"
+                        ? "Payment has not been received. Share this private link with the client to collect payment."
+                        : `This invoice is ${statusNames[selected.status].toLowerCase()}. The recipient page shows its current status.`}
+                    </p>
+                    <label
+                      className="mt-3 block text-sm font-medium"
+                      htmlFor="invoice-payment-link"
+                    >
+                      Recipient link
+                    </label>
+                    <input
+                      id="invoice-payment-link"
+                      className="admin-field mt-2 w-full"
+                      value={shareLink}
+                      readOnly
+                      onFocus={(e) => e.target.select()}
+                    />
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button type="button" className={button} onClick={() => void copyLink()}>
+                        {copied ? (
+                          <Check className="size-4" aria-hidden="true" />
+                        ) : (
+                          <Copy className="size-4" aria-hidden="true" />
+                        )}
+                        {copied ? "Copied" : "Copy payment link"}
+                      </button>
+                      <a className={button} href={shareLink} target="_blank" rel="noreferrer">
+                        Open recipient page
+                        <ExternalLink className="size-4" aria-hidden="true" />
+                      </a>
+                      {(selected.status === "open" || selected.status === "processing") && (
+                        <button
+                          type="button"
+                          className={button}
+                          disabled={locked}
+                          onClick={() =>
+                            void run(
+                              { operation: "refresh_payment", id: selected.id },
+                              "Checking payment…",
+                              "Payment status checked with Stripe.",
+                            )
+                          }
+                        >
+                          <RefreshCw className="size-4" aria-hidden="true" />
+                          Check payment status
+                        </button>
+                      )}
+                    </div>
+                  </section>
+                )}
+                {editable ? (
+                  <InvoiceEditorFields
+                    draft={draft}
+                    set={set}
+                    issues={issues}
+                    contacts={contacts}
+                    disabled={locked}
+                  />
+                ) : (
+                  <details className="rounded-xl border border-[var(--admin-border)] p-4">
+                    <summary className="min-h-10 cursor-pointer text-sm font-medium">
+                      Saved invoice details
+                    </summary>
+                    <div className="mt-4">
+                      <InvoiceEditorFields
+                        draft={draft}
+                        set={set}
+                        issues={issues}
+                        contacts={contacts}
+                        disabled
+                      />
+                    </div>
+                  </details>
+                )}
+                {selected?.status === "open" && (
+                  <div className="mt-5 grid gap-2 rounded-xl border border-[var(--admin-border)] p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                    <div>
+                      <label className="text-sm font-medium" htmlFor="external-note">
+                        Paid another way? Record how
+                      </label>
+                      <input
+                        id="external-note"
+                        className="admin-field mt-2 w-full"
+                        maxLength={300}
+                        placeholder="Wire received December 2"
+                        value={externalNote}
+                        onChange={(e) => setExternalNote(e.target.value)}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className={button}
+                      disabled={locked || !externalNote.trim()}
+                      onClick={() =>
+                        void run(
+                          {
+                            operation: "record_external_payment",
+                            id: selected.id,
+                            revision: selected.revision,
+                            note: externalNote,
+                          },
+                          "Recording payment…",
+                          "Recorded as paid externally. The online payment was cancelled.",
+                        )
+                      }
+                    >
+                      Mark as paid
+                    </button>
+                  </div>
+                )}
+                {selected && (
+                  <div className="mt-5 flex flex-wrap gap-2 border-t border-[var(--admin-border)] pt-4">
+                    <button type="button" className={button} disabled={locked} onClick={duplicate}>
+                      Duplicate as new draft
+                    </button>
+                    {selected.status === "draft" && (
+                      <button
+                        type="button"
+                        className={button}
+                        disabled={locked}
+                        onClick={() =>
+                          void run(
+                            {
+                              operation: "delete_draft",
+                              id: selected.id,
+                              revision: selected.revision,
+                            },
+                            "Deleting draft…",
+                            "Draft deleted.",
+                          )
+                        }
+                      >
+                        Delete draft
+                      </button>
+                    )}
+                    {selected.status === "open" && (
+                      <button
+                        type="button"
+                        className={button}
+                        disabled={locked}
                         onClick={() => {
-                          edit();
-                          setLines([...lines, { description: "", quantity: 1, amount: "" }]);
+                          if (
+                            window.confirm(
+                              "Void this invoice? The client's link stops accepting payment.",
+                            )
+                          )
+                            void run(
+                              { operation: "void", id: selected.id, revision: selected.revision },
+                              "Voiding invoice…",
+                              "Invoice voided.",
+                            );
                         }}
                       >
-                        <Plus aria-hidden="true" className="size-4" />
-                        Add line item
+                        Void invoice
                       </button>
-                    </fieldset>
-                    <label className="block text-sm font-medium">
-                      Invoice memo
-                      <textarea
-                        className={field}
-                        rows={3}
-                        maxLength={500}
-                        value={memo}
-                        onChange={(event) => {
-                          edit();
-                          setMemo(event.target.value);
-                        }}
-                      />
-                    </label>
-                    <p className="admin-copy text-xs leading-5">
-                      Amounts exclude taxes and discounts. Review account tax requirements before
-                      sending; this workflow does not configure automatic tax or charge a saved
-                      payment method.
-                    </p>
-                    <button type="submit" className={primary} disabled={busy || !billing.data}>
-                      Prepare invoice
-                    </button>
-                  </fieldset>
-                </form>
-              </AdminSurface>
-              <AdminSurface padding="lg">
-                <p className="admin-eyebrow">Review before action</p>
-                <h2 className="mt-2 text-lg font-semibold">
-                  {preview ? preview.title : "Your invoice preview"}
-                </h2>
-                {preview ? (
-                  <>
-                    <p className="admin-copy mt-3 text-sm leading-6">{preview.summary}</p>
-                    <p className="mt-4 text-3xl font-semibold tabular-nums">
-                      {formatInvoiceAmount(
-                        Number(preview.payload.total),
-                        String(preview.payload.currency),
-                      )}
-                    </p>
-                    <button
-                      className={`${primary} mt-5`}
-                      disabled={busy}
-                      onClick={requestApproval}
-                      type="button"
-                    >
-                      Request draft approval
-                    </button>
-                    <p className="admin-copy mt-3 text-xs">
-                      The approval below creates the Stripe draft. Sending remains a separate
-                      decision.
-                    </p>
-                  </>
-                ) : (
-                  <p className="admin-copy mt-3 text-sm leading-6">
-                    Select the customer and line items, then prepare an exact invoice for review.
-                  </p>
+                    )}
+                  </div>
                 )}
               </AdminSurface>
-            </div>
-            {designAction && (
-              <InvoicePageDesigner
-                key={designAction}
-                creationActionId={designAction}
-                onClose={() => setDesignAction(null)}
-                onProposed={refresh}
-              />
-            )}
-            <AdminSurface padding="lg" id="invoice-operations">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">Invoice operations</h2>
-                {creating && (
-                  <button
-                    type="button"
-                    className={button}
-                    disabled={busy || billing.isFetching}
-                    onClick={() => void refresh()}
-                  >
-                    <RefreshCw className="size-4" aria-hidden="true" />
-                    Refresh history
-                  </button>
-                )}
-              </div>
-              <p className="admin-copy mt-2 text-sm">
-                Approvals, provider results, and recoverable failures stay together.
-              </p>
-              {!billing.data?.actions.length && (
-                <p className="admin-copy mt-5 text-sm">
-                  No invoice operations yet. Prepare your first customer invoice above.
-                </p>
-              )}
-              <div className="mt-5 space-y-5">
-                {billing.data?.actions.map((action) => {
-                  const result = liveReceipts[action.id] ?? action.result;
-                  return (
-                    <article
-                      key={action.id}
-                      data-action-id={action.id}
-                      className="rounded-xl border border-[var(--admin-border)] p-4"
-                    >
-                      <div className="flex flex-wrap justify-between gap-2">
-                        <h3 className="font-semibold">{action.title}</h3>
-                        <span className="text-xs font-medium">{action.status}</span>
-                      </div>
-                      <p className="admin-copy mt-2 text-sm leading-6">{action.description}</p>
-                      {action.error && (
-                        <p className="mt-3 text-sm" role="alert">
-                          {action.error}
-                        </p>
-                      )}
-                      {result?.invoiceId && (
-                        <div className="mt-3 space-y-1 text-sm">
-                          <p className="font-medium tabular-nums">
-                            {formatInvoiceAmount(result.amountRemaining, result.currency)}{" "}
-                            outstanding · {formatInvoiceAmount(result.amountPaid, result.currency)}{" "}
-                            paid · {result.status}
-                          </p>
-                          <p className="admin-copy text-xs">
-                            {result.complete
-                              ? demo
-                                ? "Simulated invoice result"
-                                : "Recorded provider result"
-                              : "Partial operation: inspect this invoice before recovery"}{" "}
-                            · {result.invoiceId}
-                          </p>
-                          {result.delivery === "not_sent_test_mode" && (
-                            <p className="text-xs">
-                              {demo
-                                ? "Simulated send completed. No Stripe request or customer email was sent."
-                                : "Stripe accepted the test request. No customer email was sent."}
-                            </p>
-                          )}
-                          {result.delivery === "requested" && (
-                            <p className="text-xs">
-                              Stripe accepted the sending request. This is not proof of email
-                              delivery.
-                            </p>
-                          )}
-                          {result.hostedInvoiceUrl && (
-                            <a
-                              className="inline-flex min-h-10 items-center underline"
-                              href={result.hostedInvoiceUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Open hosted invoice
-                            </a>
-                          )}
-                        </div>
-                      )}
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {action.status === "pending" && (
-                          <>
-                            <button
-                              className={primary}
-                              disabled={busy}
-                              onClick={() => decide(action.id, "approve")}
-                              type="button"
-                            >
-                              {action.action_type === "send_stripe_invoice"
-                                ? "Approve & send invoice"
-                                : action.action_type === "publish_invoice_page"
-                                  ? "Approve & publish page"
-                                  : "Approve & create draft"}
-                            </button>
-                            <button
-                              className={button}
-                              disabled={busy}
-                              onClick={() => decide(action.id, "reject")}
-                              type="button"
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
-                        {action.status === "failed" && (
-                          <button
-                            className={button}
-                            disabled={busy}
-                            onClick={() => decide(action.id, "retry")}
-                            type="button"
-                          >
-                            Retry same operation for review
-                          </button>
-                        )}
-                        {action.action_type === "create_stripe_invoice_draft" &&
-                          result?.invoiceId && (
-                            <>
-                              <button
-                                type="button"
-                                className={button}
-                                disabled={busy}
-                                onClick={() =>
-                                  void perform(async () => {
-                                    const receipt = await fetchJson<StripeInvoiceReceipt>(
-                                      `/api/admin/invoicing?actionId=${encodeURIComponent(action.id)}`,
-                                    );
-                                    setLiveReceipts((previous) => ({
-                                      ...previous,
-                                      [action.id]: receipt,
-                                    }));
-                                  })
-                                }
-                              >
-                                Check payment status
-                              </button>
-                              {action.status === "executed" && (
-                                <button
-                                  type="button"
-                                  className={button}
-                                  disabled={busy}
-                                  onClick={() => setDesignAction(action.id)}
-                                >
-                                  Design customer page
-                                </button>
-                              )}
-                              {action.status === "executed" &&
-                                ["draft", "open"].includes(result.status) && (
-                                  <button
-                                    type="button"
-                                    className={button}
-                                    disabled={busy}
-                                    onClick={() =>
-                                      void perform(async () => {
-                                        await fetchJson("/api/admin/invoicing", {
-                                          method: "POST",
-                                          headers: { "Content-Type": "application/json" },
-                                          body: JSON.stringify({ creationActionId: action.id }),
-                                        });
-                                        setNotice("Sending request is ready for review below.");
-                                        await refresh();
-                                      })
-                                    }
-                                  >
-                                    <Send className="size-4" aria-hidden="true" />
-                                    Request sending approval
-                                  </button>
-                                )}
-                            </>
-                          )}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </AdminSurface>
-          </>
-        )}
-      </>
+              <section className="min-w-0 space-y-3">
+                <h2 className="text-lg font-semibold">Recipient preview</h2>
+                <div className="rounded-2xl bg-[#eeece7] p-3 sm:p-6">
+                  <InvoiceExperience
+                    invoice={preview}
+                    brand={brand}
+                    apiUrl={null}
+                    amount={amount}
+                    preview
+                  />
+                </div>
+              </section>
+            </>
+          )}
+        </div>
+      </div>
     </div>
+  );
+}
+function Metric({ title, value, detail }: { title: string; value: string; detail: string }) {
+  return (
+    <AdminSurface padding="md">
+      <p className="text-xs font-medium text-[var(--admin-muted)]">{title}</p>
+      <strong className="mt-2 block text-2xl font-semibold tabular-nums">{value}</strong>
+      <p className="mt-1 text-xs text-[var(--admin-muted)]">{detail}</p>
+    </AdminSurface>
   );
 }

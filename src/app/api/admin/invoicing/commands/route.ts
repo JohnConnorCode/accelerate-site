@@ -21,7 +21,7 @@ const input = z.discriminatedUnion("mode", [
     .strict(),
 ]);
 export async function POST(request: Request) {
-  const auth = await requireAdminForModule("stripe-invoicing");
+  const auth = await requireAdminForModule("invoicing");
   if (auth instanceof NextResponse) return auth;
   const parsed = input.safeParse(
     await readBoundedJson(request).catch(() => {
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const auth = await requireAdminForModule("stripe-invoicing");
+  const auth = await requireAdminForModule("invoicing");
   if (auth instanceof NextResponse) return auth;
   const actionId = new URL(request.url).searchParams.get("actionId");
   if (!z.uuid().safeParse(actionId).success)

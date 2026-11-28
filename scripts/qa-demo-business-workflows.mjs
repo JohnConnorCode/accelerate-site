@@ -421,7 +421,7 @@ try {
         });
       }
       await page.goto(root + "/plugins");
-      const plugin = page.locator('[data-module-card="stripe-invoicing"]');
+      const plugin = page.locator('[data-module-card="invoicing"]');
       await plugin.getByRole("button", { name: /^Disable / }).click();
       // Visibility can precede completion of the mutation/refetch. Wait for an
       // actionable control and assert stored state before navigating away.
@@ -430,7 +430,7 @@ try {
         page.evaluate(
           (id) =>
             JSON.parse(sessionStorage.getItem(`accelerate:admin-demo:${id}:v3`) || "{}")
-              .moduleOverrides?.["stripe-invoicing"] === false,
+              .moduleOverrides?.["invoicing"] === false,
           scenario,
         );
       assert.equal(await storedDisabled(), true, "Completed disable must be stored before reload");

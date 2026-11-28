@@ -1,40 +1,15 @@
-import { readBoundedJson } from "@/lib/http/bounded-json";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { readBoundedJson } from "@/lib/http/bounded-json";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
-import {
-  stripeBillingChoices,
-  readStripeInvoiceForAction,
-  proposeStripeInvoiceSend,
-} from "@/lib/revenue-os/stripe-invoicing";
+import { listInvoices, runInvoiceCommand } from "@/lib/revenue-os/invoices";
+
 export async function GET(request: Request) {
-  const auth = await requireAdminForModule("stripe-invoicing");
+  const auth = await requireAdminForModule("invoicing");
   if (auth instanceof NextResponse) return auth;
-  const params = new URL(request.url).searchParams;
   try {
-    const actionId = params.get("actionId");
-    if (actionId) {
-      if (!z.uuid().safeParse(actionId).success)
-        return NextResponse.json({ error: "Invalid invoice operation" }, { status: 400 });
-      return NextResponse.json((await readStripeInvoiceForAction(auth.database, actionId)).receipt);
-    }
-    const choices = await stripeBillingChoices(
-      auth.database,
-      params.get("search") || "",
-      params.get("contactId") || undefined,
-    );
-    const { data, error } = await auth.database
-      .from("action_queue")
-      .select("id,action_type,title,description,status,result,error,created_at,payload")
-      .in("action_type", [
-        "create_stripe_invoice_draft",
-        "send_stripe_invoice",
-        "publish_invoice_page",
-      ])
-      .order("created_at", { ascending: false })
-      .limit(50);
-    if (error) throw new Error("Invoice operation history is unavailable");
-    return NextResponse.json({ ...choices, actions: data ?? [] });
+    const contactId = new URL(request.url).searchParams.get("contactId") || undefined;
+    return NextResponse.json(await listInvoices(auth.database, { contactId }));
   } catch (error) {
     console.error("[invoicing] Read failed");
     return NextResponse.json(
@@ -43,31 +18,35 @@ export async function GET(request: Request) {
     );
   }
 }
+
 export async function POST(request: Request) {
-  const auth = await requireAdminForModule("stripe-invoicing");
+  const auth = await requireAdminForModule("invoicing");
   if (auth instanceof NextResponse) return auth;
   let raw: unknown;
   try {
-    raw = await readBoundedJson(request);
-  } catch {
-    console.error("[invoicing] Invalid JSON");
+    raw = await readBoundedJson(request, 64000);
+  } catch (error) {
+    console.warn(
+      "[invoicing] Unreadable invoice request",
+      error instanceof Error ? error.name : "unknown",
+    );
     return NextResponse.json({ error: "Invalid invoice request" }, { status: 400 });
   }
-  const parsed = z.object({ creationActionId: z.uuid() }).strict().safeParse(raw);
-  if (!parsed.success)
-    return NextResponse.json({ error: "Choose an existing invoice" }, { status: 400 });
   try {
-    return NextResponse.json({
-      action: await proposeStripeInvoiceSend(
-        auth.database,
-        parsed.data.creationActionId,
-        auth.user.email || "workspace-member",
-      ),
-    });
-  } catch (error) {
-    console.error("[invoicing] Send proposal refused");
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Invoice sending could not be proposed" },
+      await runInvoiceCommand(auth.database, raw, auth.user.email || "workspace-member"),
+    );
+  } catch (error) {
+    console.error("[invoicing] Command refused");
+    return NextResponse.json(
+      {
+        error:
+          error instanceof z.ZodError
+            ? (error.issues[0]?.message ?? "Check the invoice details")
+            : error instanceof Error
+              ? error.message
+              : "The invoice could not be saved",
+      },
       { status: 422 },
     );
   }

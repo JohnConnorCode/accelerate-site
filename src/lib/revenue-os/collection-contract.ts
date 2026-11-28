@@ -29,8 +29,8 @@ export const collectionCasePatchSchema = z
 
 export type CollectionInvoiceView = {
   observationId?: string;
-  creationActionId: string;
   invoiceId: string;
+  number: string;
   remaining: number;
   status: string;
   dueDate: string | null;

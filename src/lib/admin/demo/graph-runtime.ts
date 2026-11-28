@@ -11,6 +11,7 @@ import {
   windowRows,
   workspaceGraphInputFromQuery,
   type GraphActionRow,
+  type GraphInvoiceRow,
   type GraphAdapterName,
   type GraphCollectionCaseRow,
   type GraphCompanyRow,
@@ -32,7 +33,7 @@ export interface DemoGraphRows {
   approvals: GraphActionRow[];
   conversations: GraphConversationRow[];
   collection_cases: GraphCollectionCaseRow[];
-  invoice_drafts: GraphActionRow[];
+  invoices: GraphInvoiceRow[];
 }
 
 type Rows = Array<{ id: string }>;

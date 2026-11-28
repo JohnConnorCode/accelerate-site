@@ -341,7 +341,7 @@ const demoRows: DemoGraphRows = {
     status: "open",
     nextAction: "Review overdue invoices",
   })),
-  invoice_drafts: [],
+  invoices: [],
 };
 const demoReads = demoBoardReads(demoRows, { modules: { "receivables-collections": true } });
 const demoSummaries = summarizeBoards(seeded, demoReads);

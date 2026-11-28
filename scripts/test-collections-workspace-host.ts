@@ -43,7 +43,7 @@ async function main() {
       {
         tenant_id: tenant,
         case_id: id,
-        creation_action_id: operation,
+        invoice_id: operation,
         observation_id: observation,
       },
     ],
@@ -71,13 +71,15 @@ async function main() {
       },
     ],
     collection_events: [],
-    action_queue: [
+    invoices: [
       {
         id: operation,
         tenant_id: tenant,
-        action_type: "create_stripe_invoice_draft",
-        status: "executed",
-        title: "Invoice source",
+        number: "INV-0001",
+        customer_name: "Canonical customer",
+        company_name: "Canonical customer",
+        contact_id: contact,
+        status: "open",
       },
     ],
   });

@@ -2,7 +2,8 @@ import type { AiCommandStreamEvent } from "@/lib/revenue-os/ai-stream-contract";
 import { getModuleSettings, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 import { z } from "zod";
 import type { DemoScenarioPack } from "./scenarios";
-import type { DemoBusinessState } from "./business-runtime";
+import { demoInvoice, type DemoBusinessState } from "./business-runtime";
+import { emptyInvoiceDraft } from "@/lib/invoices/schema";
 import {
   collectionCasePatchSchema,
   describeCollectionPolicyChange,
@@ -26,54 +27,33 @@ export function seedDemoCollections(pack: DemoScenarioPack, state: DemoBusinessS
   state.collections = Array.from({ length: 6 }, (_, i) => {
     const person = pack.people[i]!,
       id = `00000000-0000-4000-8500-${String(i + 1).padStart(12, "0")}`,
-      actionId = `00000000-0000-4000-8600-${String(i + 1).padStart(12, "0")}`,
-      invoiceId = `in_collectiondemo${i + 1}`;
-    const currency = i === 4 ? "eur" : "usd";
+      invoiceId = `00000000-0000-4000-8600-${String(i + 1).padStart(12, "0")}`;
+    const currency = "usd";
     const total = 10000 + i * 2500,
-      remaining = i === 5 ? 0 : i === 1 ? 7500 : total,
+      remaining = i === 5 ? 0 : total,
       status = i === 5 ? "paid" : "open";
-    state.invoices.push({
-      actionId,
-      receipt: {
-        invoiceId,
-        status,
-        currency,
-        amountDue: total,
-        amountPaid: total - remaining,
-        amountRemaining: remaining,
-        customerEmail: person.email,
-        testMode: true,
-        hostedInvoiceUrl: null,
-        providerRequestId: null,
-        delivery: "not_requested",
-        complete: true,
-      },
-      document: {
-        number: `DEMO-COL-${i + 1}`,
-        customerName: person.name,
-        customerEmail: person.email,
-        currency,
-        lines: [{ description: pack.business.invoiceMemo, amount: total }],
-        total,
-        amountPaid: total - remaining,
-        amountRemaining: remaining,
-        status,
-        dueLabel: day(-20 - i),
-        paymentUrl: null,
-      },
-    });
-    state.actions.push({
-      id: actionId,
-      action_type: "create_stripe_invoice_draft",
-      title: `Collections invoice: ${person.name}`,
-      description: "Simulated collection source invoice",
-      status: "executed",
-      error: null,
-      payload: { contactId: person.id },
-      result: { ...state.invoices[state.invoices.length - 1]!.receipt },
-      pluginId: "stripe-invoicing",
-      created_at: now(),
-    });
+    const number = `INV-${String(900 + i + 1).padStart(4, "0")}`;
+    state.invoices.push(
+      demoInvoice(
+        {
+          ...emptyInvoiceDraft(),
+          contact_id: person.id,
+          company_name: person.name,
+          contact_name: person.name,
+          contact_email: person.email,
+          description: pack.business.invoiceMemo,
+          due_date: day(-20 - i),
+          lines: [{ description: pack.business.invoiceMemo, quantity: 1, unit_cents: total }],
+        },
+        {
+          id: invoiceId,
+          status,
+          invoice_number: number,
+          issued_at: now(),
+          paid_at: status === "paid" ? now() : null,
+        },
+      ),
+    );
     return {
       id,
       contactId: person.id,
@@ -97,8 +77,8 @@ export function seedDemoCollections(pack: DemoScenarioPack, state: DemoBusinessS
               : "Review overdue invoices",
       invoices: [
         {
-          creationActionId: actionId,
           invoiceId,
+          number,
           remaining,
           status,
           dueDate: day(-20 - i),
@@ -157,8 +137,8 @@ export async function handleDemoCollections(
   const cases = seedDemoCollections(pack, state);
   if (!initialized) save();
   const enabled = () => {
-    if (!modules["receivables-collections"] || !modules["stripe-invoicing"])
-      throw new Error("Collections or Stripe invoicing is disabled");
+    if (!modules["receivables-collections"] || !modules["invoicing"])
+      throw new Error("Collections or Invoicing is disabled");
   };
   const find = (id: unknown) => {
     const item = cases.find((c) => c.id === id);
@@ -177,9 +157,11 @@ export async function handleDemoCollections(
   };
   const sync = (c: CollectionCaseView) => {
     for (const i of c.invoices) {
-      const source = state.invoices.find((v) => v.actionId === i.creationActionId)!;
-      i.remaining = source.receipt.amountRemaining;
-      i.status = source.receipt.status;
+      const source = state.invoices.find((v) => v.id === i.invoiceId)!;
+      i.remaining = ["paid", "paid_external", "void"].includes(source.status)
+        ? 0
+        : source.amount_cents;
+      i.status = source.status;
       i.observedAt = now();
     }
     if (c.invoices.every((i) => i.status === "paid" && i.remaining === 0)) {
@@ -212,11 +194,13 @@ export async function handleDemoCollections(
       throw new Error("Reminder cooldown has not elapsed");
     const invoices = c.invoices
       .map((i) => {
-        const source = state.invoices.find((v) => v.actionId === i.creationActionId)!;
+        const source = state.invoices.find((v) => v.id === i.invoiceId)!;
         return {
           ...i,
-          remaining: source.receipt.amountRemaining,
-          status: source.receipt.status,
+          remaining: ["paid", "paid_external", "void"].includes(source.status)
+            ? 0
+            : source.amount_cents,
+          status: source.status,
           url: "#simulated-payment",
         };
       })
@@ -270,8 +254,14 @@ export async function handleDemoCollections(
     };
     const after = { ...before, ...patch };
     const invoices = c.invoices.map((i) => {
-      const source = state.invoices.find((v) => v.actionId === i.creationActionId)!;
-      return { ...i, remaining: source.receipt.amountRemaining, status: source.receipt.status };
+      const source = state.invoices.find((v) => v.id === i.invoiceId)!;
+      return {
+        ...i,
+        remaining: ["paid", "paid_external", "void"].includes(source.status)
+          ? 0
+          : source.amount_cents,
+        status: source.status,
+      };
     });
     if (!invoices.some((i) => i.status === "open" && i.remaining > 0))
       throw new Error("No open balance remains");
@@ -412,9 +402,9 @@ export async function handleDemoCollections(
               .filter((a) => a.pluginId === "receivables-collections" && a.payload.caseId === c.id)
               .map((a) => ({ ...a, actionType: a.action_type, preview: a.payload.preview })),
           })),
-        invoiceOptions: state.actions
-          .filter((a) => a.action_type === "create_stripe_invoice_draft" && a.status === "executed")
-          .map((a) => ({ id: a.id, title: a.title })),
+        invoiceOptions: state.invoices
+          .filter((i) => i.contact_id && (i.status === "open" || i.status === "processing"))
+          .map((i) => ({ id: i.id, title: `${i.invoice_number} · ${i.company_name}` })),
         truncated: false,
         simulated: true,
       });
@@ -429,12 +419,10 @@ export async function handleDemoCollections(
     }
     if (url.pathname === "/api/admin/collections" && method === "POST") {
       enabled();
-      const ids = z.array(z.uuid()).min(1).max(25).parse(body.creationActionIds);
-      const matching = cases.filter((c) =>
-        c.invoices.some((i) => ids.includes(i.creationActionId)),
-      );
-      if (ids.some((id) => !state.invoices.some((invoice) => invoice.actionId === id)))
-        throw new Error("Invoice operation unavailable");
+      const ids = z.array(z.uuid()).min(1).max(25).parse(body.invoiceIds);
+      const matching = cases.filter((c) => c.invoices.some((i) => ids.includes(i.invoiceId)));
+      if (ids.some((id) => !state.invoices.some((invoice) => invoice.id === id)))
+        throw new Error("Invoice unavailable");
       for (const c of matching) {
         sync(c);
         record(c, "observed");
@@ -445,13 +433,9 @@ export async function handleDemoCollections(
       enabled();
       const c = find(body.caseId);
       for (const i of c.invoices) {
-        const source = state.invoices.find((v) => v.actionId === i.creationActionId)!;
-        source.receipt.status = "paid";
-        source.receipt.amountRemaining = 0;
-        source.receipt.amountPaid = source.receipt.amountDue;
-        source.document.status = "paid";
-        source.document.amountRemaining = 0;
-        source.document.amountPaid = source.document.total;
+        const source = state.invoices.find((v) => v.id === i.invoiceId)!;
+        source.status = "paid";
+        source.paid_at = now();
       }
       sync(c);
       record(c, "settled");

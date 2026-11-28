@@ -7,13 +7,6 @@ export const billingCommandSchema = z.discriminatedUnion("operation", [
     .strict(),
   z
     .object({
-      operation: z.literal("void_invoice"),
-      invoiceId: z.string().regex(/^in_[A-Za-z0-9]{1,80}$/),
-      requestId: z.uuid(),
-    })
-    .strict(),
-  z
-    .object({
       operation: z.literal("refund_payment"),
       chargeId: stripeChargeIdSchema,
       amount: z.number().int().positive().max(100000000),
@@ -127,7 +120,7 @@ export function paymentsCsv(payments: BillingPayment[]) {
 
 export const billingReadInputSchema = z
   .object({
-    kind: z.enum(["invoices", "payments"]),
+    kind: z.enum(["payments"]),
     cursor: z.string().max(124).optional(),
     connection: z.string().max(160).optional(),
   })
@@ -144,10 +137,7 @@ export const BILLING_OPERATION_BINDINGS = {
     id: "billing.records.read",
     version: 1,
     scope: "workspace",
-    entrypoints: [
-      { path: "/api/admin/invoicing/list", method: "GET" },
-      { path: "/api/admin/invoicing/payments", method: "GET" },
-    ],
+    entrypoints: [{ path: "/api/admin/invoicing/payments", method: "GET" }],
     verification: ["scripts/test-billing-workspace.ts"],
   },
   preview_billing_change: {
@@ -163,5 +153,47 @@ export const BILLING_OPERATION_BINDINGS = {
     scope: "workspace",
     entrypoints: [{ path: "/api/admin/invoicing/commands", method: "POST", variant: "propose" }],
     verification: ["scripts/test-billing-workspace.ts"],
+  },
+  get_invoices: {
+    id: "invoices.read",
+    version: 1,
+    scope: "workspace",
+    entrypoints: [
+      { path: "/api/admin/invoicing", method: "GET" },
+      {
+        path: "/api/public/[tenantSlug]/invoices/[token]",
+        method: "GET",
+        variant: "Customer opens their private invoice payment page with its link token",
+        audience: "secure-human-handoff",
+      },
+      {
+        path: "/api/public/[tenantSlug]/invoices/[token]/pdf",
+        method: "GET",
+        variant: "Customer downloads their invoice PDF with its link token",
+        audience: "secure-human-handoff",
+      },
+    ],
+    verification: ["scripts/test-invoicing.ts", "scripts/test-invoicing-postgres.mjs"],
+  },
+  save_invoice_draft: {
+    id: "invoices.draft.save",
+    version: 1,
+    scope: "workspace",
+    entrypoints: [{ path: "/api/admin/invoicing", method: "POST", variant: "save_draft" }],
+    verification: ["scripts/test-invoicing.ts", "scripts/test-invoicing-postgres.mjs"],
+  },
+  issue_invoice: {
+    id: "invoices.issue",
+    version: 1,
+    scope: "workspace",
+    entrypoints: [{ path: "/api/admin/invoicing", method: "POST", variant: "issue" }],
+    verification: ["scripts/test-invoicing.ts", "scripts/test-invoicing-postgres.mjs"],
+  },
+  check_invoice_payment: {
+    id: "invoices.payment.refresh",
+    version: 1,
+    scope: "workspace",
+    entrypoints: [{ path: "/api/admin/invoicing", method: "POST", variant: "refresh_payment" }],
+    verification: ["scripts/test-invoicing.ts"],
   },
 } as const;

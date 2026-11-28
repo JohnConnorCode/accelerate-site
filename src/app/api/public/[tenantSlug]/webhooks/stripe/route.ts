@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { resolveTenantProviderSecrets } from "@/lib/tenancy/providers";
 import { processStripeWebhook, verifyStripeSignature } from "@/lib/revenue-os/subscriptions";
 import { processTicketStripeWebhook } from "@/lib/revenue-os/event-ticketing";
+import { processInvoiceStripeWebhook } from "@/lib/revenue-os/invoices";
 
 async function readWebhookBody(request: Request, maxBytes = 262144) {
   const declared = Number(request.headers.get("content-length"));
@@ -58,7 +59,8 @@ export async function POST(request: NextRequest, route: { params: Promise<{ tena
   }
   try {
     const database = createServiceRoleClient(provider.context);
-    const ticket = await processTicketStripeWebhook(database, event);
+    const invoice = await processInvoiceStripeWebhook(database, event);
+    const ticket = invoice.handled ? invoice : await processTicketStripeWebhook(database, event);
     const result = ticket.handled ? ticket : await processStripeWebhook(database, event);
     return NextResponse.json({ received: true, ...result });
   } catch (error) {

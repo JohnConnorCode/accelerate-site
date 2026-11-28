@@ -359,7 +359,7 @@ try {
   for (const [state, file] of [
     ["opportunity", "pipeline/customer-handoff-2026-10-20.png"],
     ["onboarding", "plugins/client-onboarding-context-2026-10-20.png"],
-    ["invoice", "plugins/stripe-invoicing-context-2026-10-20.png"],
+    ["invoice", "plugins/invoicing-context-2026-10-20.png"],
   ]) {
     const frame = frames.get(`ledgerstone-advisory-desktop-${state}`);
     assert.ok(frame, `Missing verified customer workflow frame: ${state}`);

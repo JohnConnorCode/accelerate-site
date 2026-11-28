@@ -603,11 +603,8 @@ async function retryFailedPluginAction(supabase: SupabaseClient, id: string, act
     .in("action_type", [
       "send_collection_reminder",
       "update_collection_policy",
-      "create_stripe_invoice_draft",
-      "send_stripe_invoice",
       "billing_change",
       "create_task_batch",
-      "publish_invoice_page",
       "accept_form_submission",
     ])
     .gt("expires_at", now)

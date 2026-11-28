@@ -3,7 +3,7 @@ import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { readBillingPayments } from "@/lib/revenue-os/billing-workspace";
 import { stripeChargeIdSchema } from "@/lib/revenue-os/stripe-contract";
 export async function GET(request: NextRequest) {
-  const auth = await requireAdminForModule("stripe-invoicing");
+  const auth = await requireAdminForModule("invoicing");
   if (auth instanceof NextResponse) return auth;
   const cursor = request.nextUrl.searchParams.get("starting_after") || undefined;
   if (cursor && !stripeChargeIdSchema.safeParse(cursor).success)

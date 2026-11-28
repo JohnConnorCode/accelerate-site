@@ -100,7 +100,7 @@ const graphReads = {
   opportunities: `SELECT id FROM public.opportunities WHERE tenant_id = '${A}' AND contact_id = '${contactA}' ORDER BY id LIMIT 51`,
   tasks: `SELECT id FROM public.tasks WHERE tenant_id = '${A}' AND (contact_id = '${contactA}' OR (related_type = 'contact' AND related_id = '${contactA}')) ORDER BY id LIMIT 51`,
   approvals: `SELECT id FROM public.action_queue WHERE tenant_id = '${A}' AND status = 'pending' AND (expires_at IS NULL OR expires_at > now()) ORDER BY id LIMIT 51`,
-  invoice_drafts: `SELECT id FROM public.action_queue WHERE tenant_id = '${A}' AND status = 'executed' AND action_type = 'create_stripe_invoice_draft' AND payload->>'contactId' = '${contactA}' ORDER BY id LIMIT 51`,
+  invoices: `SELECT id FROM public.invoices WHERE tenant_id = '${A}' AND contact_id = '${contactA}' ORDER BY id LIMIT 51`,
   conversations: `SELECT id FROM public.conversations WHERE tenant_id = '${A}' ORDER BY id LIMIT 51`,
   // Two exact-sided reads (readEntityLinksForNodes), deduplicated by link id.
   links: `SELECT link_type FROM (SELECT id, link_type FROM public.entity_links WHERE tenant_id = '${A}' AND source_type IN ('contact','company') AND source_id IN ('${contactA}','${companyA}') UNION SELECT id, link_type FROM public.entity_links WHERE tenant_id = '${A}' AND target_type IN ('contact','company') AND target_id IN ('${contactA}','${companyA}')) AS sides ORDER BY 1`,
@@ -133,7 +133,8 @@ CREATE TABLE public.companies (id uuid PRIMARY KEY, tenant_id uuid, name text);
 CREATE TABLE public.opportunities (id uuid PRIMARY KEY, tenant_id uuid, name text, stage text, contact_id uuid, company_id uuid);
 CREATE TABLE public.tasks (id uuid PRIMARY KEY, tenant_id uuid, title text, status text, related_type text, related_id uuid, opportunity_id uuid, contact_id uuid);
 CREATE TABLE public.action_queue (id uuid PRIMARY KEY, tenant_id uuid, title text, status text, action_type text, entity_type text, entity_id text, expires_at timestamptz, payload jsonb NOT NULL DEFAULT '{}');
-CREATE TABLE public.conversations (id uuid PRIMARY KEY, tenant_id uuid, subject text, contact_id uuid, company_id uuid, opportunity_id uuid);`);
+CREATE TABLE public.conversations (id uuid PRIMARY KEY, tenant_id uuid, subject text, contact_id uuid, company_id uuid, opportunity_id uuid);
+CREATE TABLE public.invoices (id uuid PRIMARY KEY, tenant_id uuid, number text, status text, contact_id uuid);`);
   sql(tenantFunctions);
   sql(tenantOwnership);
   sql(tenantPolicies);
@@ -141,6 +142,12 @@ CREATE TABLE public.conversations (id uuid PRIMARY KEY, tenant_id uuid, subject 
   sql(tenantPolicies);
   sql(linkMigration);
   sql(linkMigration);
+  // Same read policy as migrations/20261127200000_owned_invoices.sql.
+  sql(`ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Tenant member invoice reads" ON public.invoices;
+CREATE POLICY "Tenant member invoice reads" ON public.invoices FOR SELECT TO authenticated
+ USING(tenant_id=private.request_tenant_id() AND private.has_active_tenant_membership(tenant_id));
+GRANT SELECT ON public.invoices TO authenticated;`);
   sql(`INSERT INTO public.tenants VALUES ('${A}','active'),('${B}','active');
 INSERT INTO public.tenant_memberships VALUES
   ('${A}','${adminA}','admin@a.example','admin','active'),
@@ -152,9 +159,10 @@ INSERT INTO public.opportunities VALUES (gen_random_uuid(),'${A}','Alpha Deal','
 INSERT INTO public.tasks VALUES (gen_random_uuid(),'${A}','Alpha follow up','pending','contact','${contactA}',NULL,NULL),(gen_random_uuid(),'${B}','Beta follow up','pending','contact','${contactA}',NULL,NULL);
 INSERT INTO public.action_queue VALUES
   (gen_random_uuid(),'${A}','Approve reply','pending','send_gmail_reply','contact','${contactA}',now() + interval '1 day','{}'),
-  (gen_random_uuid(),'${A}','Expired','pending','update_task','contact','${contactA}',now() - interval '1 day','{}'),
-  (gen_random_uuid(),'${A}','Invoice draft','executed','create_stripe_invoice_draft',NULL,NULL,NULL,'{"contactId":"${contactA}"}'),
-  (gen_random_uuid(),'${B}','Foreign invoice','executed','create_stripe_invoice_draft',NULL,NULL,NULL,'{"contactId":"${contactA}"}');
+  (gen_random_uuid(),'${A}','Expired','pending','update_task','contact','${contactA}',now() - interval '1 day','{}');
+INSERT INTO public.invoices VALUES
+  (gen_random_uuid(),'${A}','INV-0001','open','${contactA}'),
+  (gen_random_uuid(),'${B}','INV-0001','open','${contactA}');
 INSERT INTO public.conversations VALUES (gen_random_uuid(),'${A}','Alpha question','${contactA}',NULL,NULL),(gen_random_uuid(),'${B}','Beta question','${contactB}',NULL,NULL);
 INSERT INTO public.entity_links (tenant_id, source_type, source_id, target_type, target_id, link_type) VALUES
   ('${A}','contact','${contactA}','company','${companyA}','champion'),
@@ -174,11 +182,7 @@ INSERT INTO public.entity_links (tenant_id, source_type, source_id, target_type,
   assert.equal(admin.opportunities.length, 1);
   assert.equal(admin.tasks.length, 1, "a tenant-B task naming the tenant-A contact stays hidden");
   assert.equal(admin.approvals.length, 1, "expired proposals are filtered in the query");
-  assert.equal(
-    admin.invoice_drafts.length,
-    1,
-    "a tenant-B invoice naming the contact stays hidden",
-  );
+  assert.equal(admin.invoices.length, 1, "a tenant-B invoice naming the contact stays hidden");
   assert.equal(admin.conversations.length, 1);
   assert.deepEqual(admin.links, ["champion"], "a tenant-B link naming tenant-A ids is invisible");
 

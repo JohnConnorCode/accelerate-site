@@ -184,11 +184,11 @@ customer again. These changes do not retire the retained source tables.
 ## Business workflow exemplar services
 
 - `plugin-host.ts` owns current activation and declared source reads; `workflow-plugins.ts` validates isolated plans and stages reviewed action identities.
-- `stripe-adapter.ts` owns tenant-bound fixed-endpoint provider access; `stripe-invoicing.ts` owns billing identity, exact amounts, approved execution and partial receipts.
+- `stripe-adapter.ts` owns tenant-bound fixed-endpoint provider access (one PaymentIntent per issued invoice; never Stripe Invoices); `invoices.ts` owns workspace invoices, issuing, payment observation and the customer pay page.
 - `twilio-adapter.ts` owns tenant-bound fixed-endpoint Twilio access, webhook signature checks and the uncertain-send receipt; `sms.ts` owns text conversations (one per customer and workspace number), replay-safe inbound recording, STOP and START opt-out, the send target check the `send_sms` action runs, and reconciliation that never resends.
 - `workflow-tasks.ts` validates source state and active assignees, then reuses `tasks.ts` for canonical task effects and resumable checkpoints.
 - `branding-contract.ts` defines the shared public identity; `branding.ts` owns revision/CAS saves that preserve other tenant settings.
-- `invoice-pages.ts` owns AI design traces, reviewed publication, immutable branding snapshots, encrypted/hash-indexed share tokens and revocation. `InvoiceDocument` is the shared renderer for the brand preview, editor and customer page.
+- `InvoiceDocument` and `InvoiceExperience` render the customer invoice page and the admin recipient preview from the same invoice record.
 
 See [Extending Accelerate](../../../docs/contributing/EXTENDING.md#actionable-business-workflow-exemplars) for contracts, limits, setup and controlled verification. Provider integration tests are fixtures, not real Stripe sandbox receipts.
 

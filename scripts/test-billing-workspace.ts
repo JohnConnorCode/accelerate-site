@@ -14,12 +14,10 @@ import {
   proposeBillingCommand,
   executeBillingCommand,
   readBillingPayments,
-  readBillingInvoices,
   readBillingActionReceipt,
 } from "../src/lib/revenue-os/billing-workspace";
 import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
 import { retryPluginAction } from "../src/lib/revenue-os/actions";
-import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import {
   paymentOverview,
   paymentsCsv,
@@ -32,13 +30,6 @@ import {
   createSubscriptionPlan,
   listSubscriptionWorkspace,
 } from "../src/lib/revenue-os/subscriptions";
-import {
-  invoiceIndexPageSchema,
-  invoiceOverview,
-  loadedInvoices,
-  selectInvoices,
-  type InvoiceIndexEntry,
-} from "../src/lib/revenue-os/invoice-index-contract";
 
 async function main() {
   const f = createAdminConfigurationFixture();
@@ -55,7 +46,7 @@ async function main() {
   const foreignContactId = randomUUID();
   f.mem.tables.contacts = [contact, { ...contact, id: foreignContactId, tenant_id: f.other }];
   (f.mem.rows("tenants")[0]!.config as { modules: Record<string, boolean> }).modules = {
-    "stripe-invoicing": true,
+    invoicing: true,
   };
   f.mem.tables.integration_connections = [];
   f.mem.rows("integration_connections").push({
@@ -91,23 +82,6 @@ async function main() {
     receipt_url: "https://pay.stripe.com/receipts/fixture",
     payment_intent: "pi_controlled",
   };
-  const invoice = {
-    id: "in_controlled1",
-    number: "EXAMPLE-1001",
-    status: "open",
-    currency: "usd",
-    amount_due: 10000,
-    amount_paid: 0,
-    amount_remaining: 10000,
-    customer: "cus_controlled1",
-    customer_name: contact.full_name,
-    customer_email: contact.primary_email,
-    livemode: false,
-    metadata: { accelerate_tenant_id: f.tenantId },
-    created: 1792320000,
-    due_date: 1792100000,
-    hosted_invoice_url: null,
-  };
   const refunds: Record<string, unknown>[] = [];
   const customers: Record<string, unknown>[] = [];
   const writes: { path: string; key: string | null }[] = [];
@@ -116,8 +90,6 @@ async function main() {
   let failReads = false;
   let forbiddenReads = false;
   let hostReads = 0;
-  let linkedInvoiceOwner = f.tenantId;
-  let incompleteInvoiceLinks = false;
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input));
     if (
@@ -158,29 +130,6 @@ async function main() {
     if (method === "GET") {
       if (url.pathname === "/v1/charges") return Response.json({ data: [charge], has_more: false });
       if (url.pathname === `/v1/charges/${charge.id}`) return Response.json(charge);
-      if (url.pathname === "/v1/invoices")
-        return Response.json({ data: [invoice], has_more: false });
-      if (url.pathname === "/v1/invoices/in_controlled1") return Response.json(invoice);
-      if (url.pathname === "/v1/invoice_payments") {
-        assert.equal(url.searchParams.get("payment[payment_intent]"), charge.payment_intent);
-        assert.equal(url.searchParams.get("payment[type]"), "payment_intent");
-        assert.equal(url.searchParams.get("expand[]"), "data.invoice");
-        return Response.json({
-          data: [
-            {
-              status: "paid",
-              livemode: false,
-              payment: { type: "payment_intent", payment_intent: charge.payment_intent },
-              invoice: {
-                id: invoice.id,
-                livemode: false,
-                metadata: { accelerate_tenant_id: linkedInvoiceOwner },
-              },
-            },
-          ],
-          has_more: incompleteInvoiceLinks,
-        });
-      }
       if (url.pathname === "/v1/refunds") return Response.json({ data: refunds, has_more: false });
       if (url.pathname === "/v1/customers")
         return Response.json({ data: customers, has_more: false });
@@ -214,11 +163,6 @@ async function main() {
       }
       return Response.json(result, { headers: { "request-id": "req_refund" } });
     }
-    if (url.pathname === "/v1/invoices/in_controlled1/void") {
-      invoice.status = "void";
-      invoice.amount_remaining = 0;
-      return Response.json(invoice);
-    }
     if (url.pathname === "/v1/customers") {
       const result = {
         id: "cus_controlled1",
@@ -231,26 +175,17 @@ async function main() {
     }
     throw new Error(`Unexpected controlled provider write ${url.pathname}`);
   };
-  const toolContext = {
-    supabase: f.db,
-    actorEmail: f.email,
-    tenantConfig: { modules: { "stripe-invoicing": true } },
-  };
   async function stage(command: BillingCommand) {
     const preview = await previewBillingCommand(f.db, command);
     return proposeBillingCommand(f.db, command, preview.digest, f.email);
   }
   try {
-    const invoicePage = await readBillingInvoices(f.db);
-    invoiceIndexPageSchema.parse(invoicePage);
-    assert.equal(invoicePage.invoices[0]!.managed, true);
     const page = await readBillingPayments(f.db);
     assert.equal(page.payments[0]!.refundable, true);
     await assert.rejects(
       () => readBillingPayments(f.db, { connection: "changed" }),
       /connection changed/,
     );
-    await assert.rejects(() => readBillingInvoices(f.db, { cursor: "bad" }), /cursor/);
     failReads = true;
     await assert.rejects(() => readBillingPayments(f.db), /HTTP 503/);
     failReads = false;
@@ -423,26 +358,13 @@ async function main() {
         /exceeds/,
       );
       await assert.rejects(() => previewBillingCommand(f.db, { ...command, amount: -1 }));
+      // Ownership is the PaymentIntent's workspace metadata, copied to its charge.
       charge.metadata.accelerate_tenant_id = "";
-      const invoiceLinked = await previewBillingCommand(f.db, command);
-      assert.deepEqual(invoiceLinked.snapshot.invoiceIds, [invoice.id]);
-      linkedInvoiceOwner = f.other;
       await assert.rejects(() => previewBillingCommand(f.db, command), /belonging/);
-      linkedInvoiceOwner = f.tenantId;
-      incompleteInvoiceLinks = true;
-      await assert.rejects(() => previewBillingCommand(f.db, command), /incomplete/);
-      incompleteInvoiceLinks = false;
       charge.metadata.accelerate_tenant_id = f.tenantId;
-      const toolPreview = (
-        await executeRegisteredRevenueTool(toolContext, "preview_billing_change", { command })
-      ).output as { digest: string };
+      const toolPreview = await previewBillingCommand(f.db, command);
       assert.equal(writes.length, 0, "Preview must never write to Stripe");
-      const action = (
-        await executeRegisteredRevenueTool(toolContext, "propose_billing_change", {
-          command,
-          digest: toolPreview.digest,
-        })
-      ).output as { id: string };
+      const action = (await proposeBillingCommand(f.db, command, toolPreview.digest, f.email))!;
       assert.equal(
         (await stage(command))?.id,
         action.id,
@@ -554,29 +476,6 @@ async function main() {
       );
       f.mem.rows("tenant_memberships")[0]!.status = "active";
       assert.equal(writes.length, count);
-      const voidAction = await stage({
-        operation: "void_invoice",
-        invoiceId: invoice.id,
-        requestId: randomUUID(),
-      });
-      const voidReceipt = (await approveAndExecuteAction(
-        f.db,
-        voidAction!.id,
-        f.email,
-      )) as BillingReceipt;
-      assert.equal(voidReceipt.status, "void");
-      assert.equal(invoice.amount_remaining, 0);
-      invoice.status = "paid";
-      invoice.amount_paid = 10000;
-      await assert.rejects(
-        () =>
-          previewBillingCommand(f.db, {
-            operation: "void_invoice",
-            invoiceId: invoice.id,
-            requestId: randomUUID(),
-          }),
-        /unpaid/,
-      );
       const customer = await stage({
         operation: "create_customer",
         contactId,
@@ -653,40 +552,6 @@ async function main() {
     assert.ok(
       paymentsCsv([{ ...page.payments[0]!, name: "=DANGEROUS()" }]).includes("'=DANGEROUS()"),
     );
-    const base: InvoiceIndexEntry = {
-      ...invoicePage.invoices[0]!,
-      status: "open",
-      remaining: 10000,
-      amountPaid: 0,
-      dueDate: "2026-10-01T12:00:00.000Z",
-    };
-    const entries = [
-      base,
-      { ...base, id: "in_eur", currency: "eur", remaining: 2000 },
-      { ...base, id: "in_draft", status: "draft" as const, amountDue: 5000 },
-      { ...base, id: "in_paid", status: "paid" as const, remaining: 0 },
-      { ...base, id: "in_unknown", remaining: null },
-    ];
-    const summary = invoiceOverview(entries, Date.parse("2026-10-18T12:00:00Z"));
-    assert.equal(summary.unknownBalances, 1);
-    assert.equal(summary.counts.overdue, 2);
-    assert.equal(summary.counts.draft, 1);
-    assert.equal(
-      selectInvoices(entries, {
-        search: "EXAMPLE",
-        status: "overdue",
-        sort: "due",
-        now: Date.parse("2026-10-18T12:00:00Z"),
-      }).length,
-      2,
-    );
-    assert.equal(
-      loadedInvoices([
-        { ...invoicePage, invoices: [base] },
-        { ...invoicePage, invoices: [base] },
-      ]).length,
-      1,
-    );
     for (const [currency, minor, major, digits] of [
       ["JPY", 500, 500, 0],
       ["MGA", 500, 500, 0],
@@ -709,7 +574,7 @@ async function main() {
     }
     assert.ok(f.mem.rows("audit_log").length > 0);
     console.log(
-      "Billing workspace: reviewed UI/AI service parity, exact snapshots across jsonb ordering, tenant/admin boundaries, replay, accepted-refund timeout reconciliation, provider failures, pending receipts, customer dedupe, unpaid invoice cancellation, currency-separated reports and honest partial invoice balances passed. Provider transport is controlled; no live money moved.",
+      "Billing workspace: reviewed UI/AI service parity, exact snapshots across jsonb ordering, tenant/admin boundaries, replay, accepted-refund timeout reconciliation, provider failures, pending receipts, customer dedupe, currency-separated reports and payment ownership by workspace metadata passed. Provider transport is controlled; no live money moved.",
     );
   } finally {
     f.restore();

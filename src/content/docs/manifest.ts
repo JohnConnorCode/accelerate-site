@@ -603,10 +603,10 @@ export const docsManifest: DocsSection[] = [
           "Prepare LinkedIn posts, approve their content and time, and follow publication receipts from your workspace.",
       },
       {
-        slug: ["plugins", "stripe-invoicing"],
-        title: "Stripe invoicing",
+        slug: ["plugins", "invoicing"],
+        title: "Invoicing",
         description:
-          "Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.",
+          "Create invoices owned by this workspace, share a branded payment page, and collect payment by bank transfer or card over Stripe's payment rails.",
       },
       {
         slug: ["plugins", "stripe-subscriptions"],

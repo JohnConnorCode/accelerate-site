@@ -27,12 +27,12 @@ export const GRAPH_ADAPTER_NAMES = [
   "approvals",
   "conversations",
   "collection_cases",
-  "invoice_drafts",
+  "invoices",
 ] as const;
 export type GraphAdapterName = (typeof GRAPH_ADAPTER_NAMES)[number];
 
-/** Canonical source entity per adapter. Approvals and invoice drafts are both
- * action_queue rows, so a reminder about an invoice links to the same node. */
+/** Canonical source entity per adapter. A collection case links to the same
+ * invoice node the invoices adapter projects. */
 export const GRAPH_ADAPTER_SOURCE_TYPES: Record<GraphAdapterName, string> = {
   contacts: "contact",
   companies: "company",
@@ -41,7 +41,7 @@ export const GRAPH_ADAPTER_SOURCE_TYPES: Record<GraphAdapterName, string> = {
   approvals: "action_queue",
   conversations: "conversation",
   collection_cases: "collection_case",
-  invoice_drafts: "action_queue",
+  invoices: "invoice",
 };
 
 export type GraphNodeKind =
@@ -52,7 +52,7 @@ export type GraphNodeKind =
   | "approval"
   | "conversation"
   | "collection_case"
-  | "invoice_draft";
+  | "invoice";
 
 export interface WorkspaceGraphNode {
   /** `sourceType:sourceId`. */
@@ -170,6 +170,7 @@ export const GRAPH_OPEN_STATES = {
   opportunities: { field: "stage", closed: ["won", "lost"] },
   conversations: { field: "status", open: ["open", "waiting"] },
   collection_cases: { field: "status", open: ["open"] },
+  invoices: { field: "status", open: ["draft", "open", "processing"] },
 } as const satisfies Partial<Record<GraphAdapterName, OpenRule>>;
 
 export function isOpenGraphRow(adapter: GraphAdapterName, row: object): boolean {
@@ -342,7 +343,16 @@ export interface GraphCollectionCaseRow {
   currency?: Text;
   status?: Text;
   nextAction?: Text;
-  invoices?: Array<{ creationActionId?: Text }>;
+  invoices?: Array<{ invoiceId?: Text }>;
+}
+export interface GraphInvoiceRow {
+  id: string;
+  number?: Text;
+  company_name?: Text;
+  status?: Text;
+  amount_cents?: number | null;
+  contact_id?: Text;
+  due_at?: Text;
 }
 
 /** Source row shape each adapter's projection accepts. A missing adapter key fails type checking. */
@@ -354,7 +364,7 @@ export interface GraphRowMap {
   approvals: GraphActionRow;
   conversations: GraphConversationRow;
   collection_cases: GraphCollectionCaseRow;
-  invoice_drafts: GraphActionRow;
+  invoices: GraphInvoiceRow;
 }
 export type GraphProjections = {
   [K in GraphAdapterName]: (rows: GraphRowMap[K][]) => GraphProjection;
@@ -504,32 +514,39 @@ export const GRAPH_PROJECTIONS: GraphProjections = {
       edges: rows.flatMap((row, index) => [
         ...edge(nodes[index]!.id, "contact", row.contactId, "billing_contact"),
         ...(row.invoices ?? []).flatMap((invoice) =>
-          edge(nodes[index]!.id, "action_queue", invoice.creationActionId, "invoice"),
+          edge(nodes[index]!.id, "invoice", invoice.invoiceId, "invoice"),
         ),
       ]),
     };
   },
-  invoice_drafts: (rows) => {
+  invoices: (rows) => {
+    const statusLabels: Record<string, string> = {
+      draft: "Draft",
+      open: "Awaiting payment",
+      processing: "Payment processing",
+      paid: "Paid",
+      paid_external: "Paid outside Stripe",
+      void: "Void",
+    };
     const nodes = rows.map((row) =>
       node(
-        "invoice_drafts",
-        "invoice_draft",
+        "invoices",
+        "invoice",
         row.id,
-        text(row.title) ?? "Invoice draft",
-        "Invoice draft",
-        row.status,
-        "/admin/invoicing",
+        [text(row.number), text(row.company_name)].filter(Boolean).join(" · ") || "Invoice",
+        typeof row.amount_cents === "number"
+          ? `$${(row.amount_cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : null,
+        statusLabels[String(row.status)] ?? row.status,
+        `/admin/invoicing?invoiceId=${encodeURIComponent(row.id)}`,
+        { dueAt: row.due_at, attention: row.status === "open" || row.status === "processing" },
       ),
     );
     return {
       nodes,
-      edges: rows.flatMap((row, index) => {
-        const payload =
-          row.payload && typeof row.payload === "object"
-            ? (row.payload as Record<string, unknown>)
-            : {};
-        return edge(nodes[index]!.id, "contact", payload.contactId, "customer");
-      }),
+      edges: rows.flatMap((row, index) =>
+        edge(nodes[index]!.id, "contact", row.contact_id, "customer"),
+      ),
     };
   },
 };

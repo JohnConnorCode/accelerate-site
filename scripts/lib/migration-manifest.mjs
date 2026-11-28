@@ -152,6 +152,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20261019212500_event_embedded_checkout.sql",
   "migrations/20261114180000_command_board.sql",
   "migrations/20261114200000_twilio_sms.sql",
+  "migrations/20261127200000_owned_invoices.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

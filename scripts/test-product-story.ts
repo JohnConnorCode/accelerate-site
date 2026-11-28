@@ -48,7 +48,7 @@ assert.equal(new Set(members).size, members.length);
 for (const sections of [
   adminNavSections,
   filterNavSectionsByTenant(adminNavSections, {
-    modules: { "stripe-invoicing": false, "client-onboarding": false },
+    modules: { invoicing: false, "client-onboarding": false },
   }),
   applyNavLayoutOverride(adminNavSections, {
     order: ["pipeline", "contacts", "today"],
