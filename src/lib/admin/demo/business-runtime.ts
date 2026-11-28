@@ -111,6 +111,12 @@ export function demoInvoice(
     ...fields,
   };
 }
+/** Demo invoices are fictional, so their recipient link opens the invoice in
+ * the demo workspace, where the recipient preview shows the customer page. */
+function withDemoShareLink(pack: DemoScenarioPack, item: CommercialInvoice): CommercialInvoice {
+  if (item.status === "draft" || item.share_url) return item;
+  return { ...item, share_url: `/demo/command-center/${pack.id}/invoicing?invoiceId=${item.id}` };
+}
 export type DemoBusinessState = {
   billing?: DemoBillingState;
   eventTickets?: DemoEventTicketState;
@@ -388,9 +394,13 @@ export async function handleDemoBusinessRequest(
       requireEnabled("invoicing");
       return response({
         simulated: true,
-        invoices: state.invoices,
+        invoices: state.invoices.map((item) => withDemoShareLink(pack, item)),
         contacts: pack.people.map((x) => ({ id: x.id, full_name: x.name, primary_email: x.email })),
-        stripe: { connected: true, testMode: true, canTakePayments: true },
+        stripe: (() => {
+          const stripe = state.configuration?.providers.find((p) => p.provider === "stripe");
+          const connected = !stripe || stripe.status === "connected";
+          return { connected, testMode: true, canTakePayments: connected };
+        })(),
         brand: {
           name: state.brand.name,
           legalName: state.brand.legalName || state.brand.name,
@@ -463,7 +473,7 @@ export async function handleDemoBusinessRequest(
           );
         }
       }
-      return response({ invoice: item, simulated: true });
+      return response({ invoice: withDemoShareLink(pack, item), simulated: true });
     }
     if (path === "/api/admin/plugins/tasks" && method === "GET") {
       const id = url.searchParams.get("pluginId");

@@ -1,4 +1,5 @@
-import { loadStripe, type Stripe, type Appearance } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js/pure";
+import type { Stripe, Appearance } from "@stripe/stripe-js";
 
 export const checkoutAppearance: Appearance = {
   theme: "stripe",

@@ -22,6 +22,9 @@ export function InvoiceExperience({
   preview?: boolean;
 }) {
   const agreement = invoiceAgreementDetails(invoice);
+  // In the admin preview the invoice sits under the page's own heading.
+  const Title = preview ? "h3" : "h1";
+  const Section = preview ? "h4" : "h2";
   const isDraft = !invoice.status || invoice.status === "draft";
   const isPaid = invoice.status === "paid" || invoice.status === "paid_external";
   const invoiceDate =
@@ -53,12 +56,12 @@ export function InvoiceExperience({
         <div className={styles.heroContent}>
           <div className={styles.heroStory}>
             <p className={styles.partnerLabel}>Prepared for</p>
-            <h1>{invoice.company_name || "Your organization"}</h1>
+            <Title className={styles.title}>{invoice.company_name || "Your organization"}</Title>
             <p className={styles.intro}>{invoice.description || "Invoice details"}</p>
             {invoice.service_period && <p className={styles.eventDate}>{invoice.service_period}</p>}
             {agreement && (
               <div className={styles.agreement}>
-                <h2>Agreement details</h2>
+                <Section>Agreement details</Section>
                 <p>{agreement}</p>
               </div>
             )}
@@ -110,7 +113,7 @@ export function InvoiceExperience({
         />
       </div>
       <section className={styles.summary} aria-labelledby="invoice-items-heading">
-        <h2 id="invoice-items-heading">Items and pricing</h2>
+        <Section id="invoice-items-heading">Items and pricing</Section>
         <InvoiceLineItems invoice={invoice} />
         {invoice.notes && (
           <div className={styles.notes}>

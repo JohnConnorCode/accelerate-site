@@ -163,7 +163,7 @@ export async function listInvoices(db: SupabaseClient, options: { contactId?: st
       (client) => ({
         connected: true,
         testMode: client.mode === "test",
-        canTakePayments: Boolean(client.publishableKey && client.webhookSecret),
+        canTakePayments: Boolean(client.publishableKey),
       }),
       () => ({ connected: false, testMode: false, canTakePayments: false }),
     ),

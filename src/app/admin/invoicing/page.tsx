@@ -12,6 +12,7 @@ import { DemoBusinessNotice } from "@/components/admin/DemoBusinessNotice";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { InvoiceExperience } from "@/components/invoices/InvoiceExperience";
+import { StripeConnectPanel } from "@/components/invoices/StripeConnectPanel";
 import {
   InvoiceEditorFields,
   type InvoiceContact,
@@ -299,17 +300,16 @@ function InvoiceWorkspace({
           Create invoice
         </button>
       </div>
-      {!stripe.connected && (
-        <p role="alert" className="rounded-xl bg-[var(--admin-warning-soft)] p-4 text-sm">
-          Connect Stripe in Integrations to generate payment links. You can save and edit drafts
-          now.
-        </p>
-      )}
-      {stripe.connected && !stripe.canTakePayments && (
-        <p role="alert" className="rounded-xl bg-[var(--admin-warning-soft)] p-4 text-sm">
-          Add your Stripe publishable key and webhook signing secret in Integrations so clients can
-          pay online and invoices update to Paid automatically.
-        </p>
+      {!stripe.canTakePayments && (
+        <StripeConnectPanel
+          connected={stripe.connected}
+          onConnected={() =>
+            Promise.all([
+              cache.invalidateQueries({ queryKey: ["admin", "invoicing"] }),
+              cache.invalidateQueries({ queryKey: ["tenant", "providers"] }),
+            ]).then(() => undefined)
+          }
+        />
       )}
       <div className="grid gap-3 sm:grid-cols-3">
         <Metric title="Unpaid" value={money(outstanding)} detail="Issued and awaiting payment" />
