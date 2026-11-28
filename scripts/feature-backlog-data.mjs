@@ -440,6 +440,38 @@ function card({
   };
 }
 
+// Command Board track (2026-11-14 founder brief). Each step stacks on the
+// previous step's handoff commit; the board keeps them independently claimable
+// so founder review of one step does not stall the next.
+const COMMAND_BOARD_INITIATIVE = "Command Board";
+const COMMAND_BOARD_REPOSITORY = {
+  url: "https://github.com/JohnConnorCode/accelerate-site.git",
+  baseBranch: "main",
+  baseCommit: "42027dfbed3c14596c7ddf357c74bdafc56df4c7",
+};
+const COMMAND_BOARD_REFERENCES = [
+  { path: "docs/contracts/WORK-SURFACES.md", reason: "A View projects source records without owning a lifecycle" },
+  { path: "docs/contracts/ADMIN-UX-STANDARDS.md", reason: "Board, detail pane, keyboard, touch and reduced-motion rules" },
+  { path: "docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md", reason: "Admin motion, loading and focus rules (WORK-MOTION covers only public /work)" },
+  { path: "docs/contracts/MULTI-TENANCY-CONTRACT.md", reason: "Tenant-bound reads, caches, breadcrumbs and links" },
+  { path: "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md", reason: "One write path, action_queue approval, no second registry" },
+];
+const COMMAND_BOARD_EXCLUSIONS = [
+  "No production deployment, push or real-recipient send from this card.",
+  "No second plugin registry, write path, task store or approval lifecycle.",
+  "Not built on the platform Feature Board (UNIVERSAL-WORK-BOARD.md forbids business use).",
+];
+const commandBoardVerification = (scoped) => [
+  { command: "npm run verify:agent-contract", expected: "Packet, dependency graph and architecture contracts pass.", environment: "local" },
+  { command: scoped, expected: "Scoped service, tenant and browser checks for this card pass.", environment: "local" },
+  {
+    command: "node scripts/admin-ai-inventory.mjs --check && npm run test:admin-route-inventory",
+    expected: "Both route inventories agree with the final tree.",
+    environment: "local",
+  },
+  { command: "npm run lint && npm run build && git diff --check", expected: "Lint, production build (type check) and diff checks pass.", environment: "local" },
+];
+
 export const featureBacklog = [
   card({
     key: "receivables-collections-plugin",
@@ -8525,6 +8557,368 @@ export const featureBacklog = [
     labels: ["documentation", "clonable"],
     verification:
       "npm run verify:docs with the allow-missing flag removed; npm run test:house-style-copy; npm run test:no-fabricated-claims; npm run verify:public-prerender; npm run build.",
+  }),
+  card({
+    key: "command-board-canvas-view",
+    title: "Render Today and approvals on a reusable canvas view",
+    workstream: "admin",
+    phase: 6,
+    status: "planned",
+    priority: "high",
+    description:
+      "Command Board step 1 of 6. Add a shared pan-and-zoom canvas View that projects existing records as nodes and edges, with semantic zoom, in-view breadcrumbs and the existing right-aligned detail panel instead of pop-ups. The visual base is the MLIVM Command Board prototype (round anchor nodes, dot-grid desk, connector lines), rendered only through admin theme tokens. Prove it by adding a Canvas toggle to Today and to the Work approvals tab.",
+    acceptance: [
+      "src/components/canvas/CanvasView.tsx renders a tree of nodes and edges with pan, zoom, fit and three semantic zoom levels, built on @xyflow/react with dragging, connecting and scroll-zoom disabled.",
+      "Today offers Overview and Canvas views and the Work approvals tab offers List and Canvas views, both URL-backed (?view=canvas) and stable across Back and Forward.",
+      "Opening a node uses the page's existing detail dialog or ActionReviewDialog; the canvas stores no copied status and uses sourceType:sourceId display ids.",
+      "Keyboard-only use works: one tab stop, arrow-key tree navigation, Enter opens, Escape returns focus to the node, + - 0 zoom and fit.",
+      "Touch works: tap opens without starting a drag, one-finger pan, two-finger pinch.",
+      "Reduced motion makes viewport moves instant and nodes have no entrance animation, stagger or idle loop.",
+      "Loading, empty, degraded, error, retry and refreshing states are truthful.",
+      "A 400-node Today snapshot pans and pinches within the frame budget recorded by qa:canvas-view.",
+    ],
+    start:
+      "src/components/admin/TodayWorkspace.tsx; src/app/admin/work/page.tsx; src/components/admin/AdminViewSwitcher.tsx; src/components/admin/AdminDialog.tsx; src/components/admin/ActionReviewDialog.tsx; src/lib/revenue-os/today-snapshot.ts; src/lib/admin/motion.ts; src/app/admin-components.css",
+    guardrails:
+      "The View owns arrangement only, never lifecycle. No new route, Today module type, saved-view schema or font. Theme tokens only; no fixed pixel radii or token overrides. Plain wheel scroll stays page scroll. Clicking a node never starts a drag.",
+    labels: ["admin-ux"],
+    initiative: COMMAND_BOARD_INITIATIVE,
+    workSpec: {
+      packetVersion: 2,
+      businessValue:
+        "Give operators a spatial map of what needs attention and give every later App, starting with the Command Board, one shared canvas instead of bespoke boards.",
+      currentBehavior:
+        "Admin views are tables, kanban boards and lists with page-owned selection. No canvas, graph view or graph library exists. Today and Work already own URL-backed right-aligned detail dialogs.",
+      northstar: {
+        phase: "E",
+        layers: ["See", "Notice"],
+        contribution: "A reusable projection surface that later Apps and graph adapters render into.",
+      },
+      scope: [
+        "Add CanvasView, canvas-model (levels, layout, keyboard neighbours) and canvas-projections for Today and approvals.",
+        "Add the Canvas toggle on Today and the Work approvals tab and keep URL edits additive so ?view survives selection changes.",
+        "Add test:admin-canvas and qa:canvas-view, extend qa-admin-interaction-standard, and add a Canvas views paragraph to ADMIN-UX-STANDARDS.",
+        "Update the Today and approvals guides and the changelog.",
+      ],
+      exclusions: COMMAND_BOARD_EXCLUSIONS,
+      references: COMMAND_BOARD_REFERENCES,
+      workflow: [
+        "Add @xyflow/react with an exact pin and confirm it builds on React 19.3 and Next 16.4; fall back to a CSS-transform canvas with the same props if it does not.",
+        "Build the pure model and its unit test first, then the component, then the two consumers.",
+        "Run the browser journey at desktop and phone widths, open the screenshots, then freeze inventories and build once.",
+      ],
+      failureModes: [
+        "A failed or partial Today region shows a degraded notice instead of an empty canvas.",
+        "A refetch during a gesture does not swap data until the gesture ends.",
+        "An expired or already-decided approval does not render as pending.",
+      ],
+      acceptance: [
+        { id: "AC1", criterion: "Canvas View with pan, zoom, semantic levels and breadcrumbs", environment: "local" },
+        { id: "AC2", criterion: "Today and approvals canvas toggles with URL-backed selection and existing detail panels", environment: "local" },
+        { id: "AC3", criterion: "Keyboard, touch and reduced-motion journeys pass", environment: "local" },
+        { id: "AC4", criterion: "400-node frame budget recorded and met", environment: "local" },
+      ],
+      verification: commandBoardVerification(
+        "npm run test:admin-canvas && npm run test:today-workspace && npm run test:admin-demo-contract && npm run qa:canvas-view",
+      ),
+      requiredCapabilities: ["code", "typescript", "playwright"],
+      repository: COMMAND_BOARD_REPOSITORY,
+    },
+  }),
+  card({
+    key: "command-board-graph-adapters",
+    title: "Project workspace records into canvas nodes through graph adapters",
+    workstream: "platform",
+    phase: 6,
+    status: "planned",
+    priority: "high",
+    description:
+      "Command Board step 2 of 6, building on the canvas view. Add one graph adapter registry that maps contacts, companies, opportunities, tasks, approvals, conversations, collection cases and invoice drafts to nodes and edges by reading through existing services. Modules claim adapters by name the same way they claim AI tools, so disabling a module removes its adapters. Only the admin role exists today, so every adapter fails closed for any other role.",
+    acceptance: [
+      "src/lib/revenue-os/graph-adapters.ts is the only adapter registry; modules claim adapters through graphAdapterNames and verify-module-contract proves every adapter is claimed exactly once.",
+      "Each adapter reads through an existing service or a read extracted from its route handler into src/lib/revenue-os; no adapter writes, calls Stripe or sweeps expired actions.",
+      "Edges come from foreign keys and depth-1 entity_links; an edge exists only when both endpoints are in the result.",
+      "GET /api/admin/revenue-os/graph and the get_workspace_graph AI/MCP tool return the same nodes, with an operation binding, caps (500 nodes, 1,000 edges), cursors and truncated flags.",
+      "Two-tenant tests prove isolation including colliding ids and cross-tenant entity_links rows; a synthetic non-admin membership receives zero nodes; a disabled module omits only its own adapter.",
+      "The demo runtime simulates the graph route using the adapters' pure projection functions.",
+    ],
+    start:
+      "src/lib/revenue-os/entity-registry.ts; src/lib/revenue-os/record-permissions.ts; src/lib/revenue-os/modules.ts; scripts/build-extension-modules.mjs; scripts/verify-module-contract.mjs; src/app/api/admin/tasks/route.ts; src/app/api/admin/revenue-os/pipeline/route.ts; src/app/api/admin/revenue-os/actions/route.ts",
+    guardrails:
+      "No new role, RLS rewrite or second plugin registry. Graph reads never copy status. Restricted-role visibility beyond fail-closed is a separate card.",
+    labels: ["identity", "security"],
+    initiative: COMMAND_BOARD_INITIATIVE,
+    workSpec: {
+      packetVersion: 2,
+      businessValue: "Let any App put live workspace records on a canvas without touching canvas code or widening data access.",
+      currentBehavior:
+        "Several list reads live inline in route handlers. traverseGraph exists but cannot start from core types and has no caller. authorizeRecordAccess allows read for any active member and only one role exists.",
+      northstar: { phase: "E", layers: ["See", "Remember"], contribution: "Read-only graph projection over canonical records." },
+      scope: [
+        "Adapter registry, graphAdapterNames manifest field, authorizeGraphSource fail-closed check.",
+        "Extract inline list reads into records.ts, tasks.ts and actions.ts and point the routes at them.",
+        "Graph route, parity tool, demo simulation, unit and Postgres isolation tests.",
+      ],
+      exclusions: COMMAND_BOARD_EXCLUSIONS,
+      references: COMMAND_BOARD_REFERENCES,
+      workflow: [
+        "Add the registry and permission check with tests first.",
+        "Extract reads one at a time, keeping each route's response identical.",
+        "Add the route and tool, regenerate inventories and the permission reference.",
+      ],
+      failureModes: [
+        "A denied or disabled adapter contributes zero nodes and a per-source receipt instead of failing the whole graph.",
+        "An unbound or foreign-tenant client receives nothing.",
+      ],
+      acceptance: [
+        { id: "AC1", criterion: "Single claimed adapter registry with fail-closed role check", environment: "local" },
+        { id: "AC2", criterion: "Route and AI/MCP tool parity with caps and cursors", environment: "local" },
+        { id: "AC3", criterion: "Tenant isolation and disabled-module tests pass", environment: "local" },
+      ],
+      verification: commandBoardVerification(
+        "npm run test:graph-adapters && npm run test:tenant-isolation && npm run test:ai-tool-gates && npm run test:mcp-server && npm run verify:module-contract",
+      ),
+      requiredCapabilities: ["code"],
+      repository: COMMAND_BOARD_REPOSITORY,
+    },
+  }),
+  card({
+    key: "command-board-app",
+    title: "Ship the Command Board app with Service Mode as workspace data",
+    workstream: "operations",
+    phase: 6,
+    status: "planned",
+    priority: "high",
+    description:
+      "Command Board step 3 of 6, building on graph adapters. Register the command-board App with routes under /admin/board. The board definition (mode, four phases, three stations each, and each station's sources, tools and skills) is tenant-scoped data saved through a revisioned, audited save function, so Real Estate Mode later is data rather than code. Service Mode installs per workspace on request; the first live workspace is MLIVM.",
+    acceptance: [
+      "extensions/command-board.module.json registers the App with a nav link, /admin/board route, three AI tools, a graph adapter, a plugin README and a public docs page.",
+      "One ordered migration adds command_board_definitions and receipts with tenant RLS and a revision-checked, idempotent, audited save function; it is listed in the migration manifest and schema contract and applied and read back.",
+      "Service Mode's 12 stations install for the calling workspace only; installing twice changes nothing.",
+      "Station status is computed at read time from graph adapters and the approval queue; nothing is copied.",
+      "With the module disabled, nav is hidden, its tools are refused by the agent and MCP, and a queued board change fails closed; re-enabling restores everything.",
+      "The northline-roofing demo covers the board; the MLIVM workspace has the module enabled and Service Mode installed.",
+    ],
+    start:
+      "extensions/receivables-collections.module.json; src/app/admin/collections/page.tsx; src/lib/revenue-os/collections.ts; migrations/20260910-today-workspace.sql; src/lib/revenue-os/today-views.ts; src/lib/revenue-os/ai-tools.ts; scripts/verify-module-route-guards.mjs",
+    guardrails:
+      "No hardcoded tenant, no copied status, no Today contribution (closed enum). Board edits by AI stage through action_queue.",
+    labels: ["operations", "automation"],
+    initiative: COMMAND_BOARD_INITIATIVE,
+    workSpec: {
+      packetVersion: 2,
+      businessValue: "Give a service business one spatial operating board whose stations show live work and the skills that act on it.",
+      currentBehavior: "No board definition, mode or station concept exists. Module settings are scalar only.",
+      northstar: { phase: "E", layers: ["See", "Notice", "Act"], contribution: "First App built on the canvas view and graph adapters." },
+      scope: [
+        "Manifest, page, guarded API, service, contract schema, migration, three tools, demo, docs.",
+        "Unspooling tree layout with d3-hierarchy and a docked detail slot on CanvasView.",
+        "Enable and install Service Mode on the MLIVM workspace through the supported path.",
+      ],
+      exclusions: COMMAND_BOARD_EXCLUSIONS,
+      references: COMMAND_BOARD_REFERENCES,
+      workflow: [
+        "Contract schema and migration with Postgres tests first.",
+        "Service, routes and tools, then the workspace UI.",
+        "Demo, docs and inventories, then apply the migration and install on MLIVM.",
+      ],
+      failureModes: [
+        "A stale revision is rejected with a conflict, not overwritten.",
+        "A binding to a removed tool or adapter shows unavailable instead of failing the board.",
+      ],
+      acceptance: [
+        { id: "AC1", criterion: "Registered App with docs and guarded routes", environment: "local" },
+        { id: "AC2", criterion: "Revisioned tenant board definition with Service Mode install", environment: "local" },
+        { id: "AC3", criterion: "Disable/enable acceptance across UI, agent and MCP", environment: "local" },
+        { id: "AC4", criterion: "Migration applied and MLIVM board installed and read back", environment: "production" },
+      ],
+      verification: commandBoardVerification(
+        "npm run verify:migrations && npm run test:command-board && npm run test:ai-module-controls && npm run test:plugin-modules && npm run verify:module-route-guards",
+      ),
+      requiredCapabilities: ["code", "typescript", "postgres", "playwright"],
+      repository: COMMAND_BOARD_REPOSITORY,
+    },
+  }),
+  card({
+    key: "command-board-approval-cards",
+    title: "Show approval cards on the board and the phone approvals feed",
+    workstream: "admin",
+    phase: 6,
+    status: "planned",
+    priority: "medium",
+    description:
+      "Command Board step 4 of 6. Extract a presentational ApprovalCard from ActionReviewDialog and use it as the near-zoom canvas node for proposed actions and as the compact layout of the Work approvals tab, which is the phone feed. Cards open the exact review; approval stays payload-bound in the existing dialog.",
+    acceptance: [
+      "ApprovalCard shows the action consequence, target record, urgency and age from the existing action row, with one opener.",
+      "Board stations and the approvals canvas render pending actions as ApprovalCards at near zoom.",
+      "At compact widths /admin/work?tab=approvals renders cards and is reachable from the mobile dock.",
+      "No approve or reject control appears on a card; decisions happen in ActionReviewDialog.",
+      "Today, Work and the board share the same actions query so a decision updates every surface.",
+    ],
+    start: "src/components/admin/ActionReviewDialog.tsx; src/app/admin/work/page.tsx; src/components/admin/AdminShell.tsx",
+    guardrails: "No new surface, lifecycle or swipe-to-approve.",
+    labels: ["approval"],
+    initiative: COMMAND_BOARD_INITIATIVE,
+    workSpec: {
+      packetVersion: 2,
+      businessValue: "Make proposed actions visible where the operator is working, on desktop and phone, without weakening review.",
+      currentBehavior: "Approvals are reviewed in ActionReviewDialog from Today and Work lists. No card component or phone feed exists.",
+      northstar: { phase: "E", layers: ["Notice", "Act"], contribution: "Shared approval presentation across surfaces." },
+      scope: ["ApprovalCard component, board and canvas use, compact approvals layout."],
+      exclusions: COMMAND_BOARD_EXCLUSIONS,
+      references: COMMAND_BOARD_REFERENCES,
+      workflow: ["Extract the card, swap it into the dialog summary, then use it on the canvas and compact list."],
+      failureModes: ["A card for an action decided elsewhere refreshes to its decided state before review opens."],
+      acceptance: [
+        { id: "AC1", criterion: "ApprovalCard on board, canvas and phone feed", environment: "local" },
+        { id: "AC2", criterion: "Decisions stay in the payload-bound review dialog", environment: "local" },
+      ],
+      verification: commandBoardVerification("npm run test:action-execution && npm run qa:canvas-view && npm run qa:command-board"),
+      requiredCapabilities: ["code", "typescript", "playwright"],
+      repository: COMMAND_BOARD_REPOSITORY,
+    },
+  }),
+  card({
+    key: "command-board-orb-composer",
+    title: "Capture voice, photo and text through the board orb composer",
+    workstream: "ai",
+    phase: 6,
+    status: "planned",
+    priority: "medium",
+    description:
+      "Command Board step 5a of 6. Add the orb as a state-driven composer on the board (idle, listening, thinking) that rests when idle. Voice notes are recorded in the browser, transcribed through the workspace's configured OpenRouter credentials with a registered transcription job, and placed in the composer for review before sending. Photos, documents and text use the existing AI chat attachments. Each input enters through its channel's existing intake path.",
+    acceptance: [
+      "The orb is a Canvas 2D component with idle, listening and thinking states, no idle animation loop, and a static state under reduced motion.",
+      "Microphone permission is enabled only for admin routes through Permissions-Policy; capture uses getUserMedia and MediaRecorder.",
+      "A voice-note-transcription job is registered in the model registry, the gateway sends audio content parts, and a workspace without an audio-capable model gets a clear setup state.",
+      "The transcript lands in the composer for review and is never auto-sent.",
+      "Text, photo and document inputs reuse AdminAIChat attachments and existing intake services; nothing creates a second intake record type.",
+    ],
+    start:
+      "src/components/admin/AdminAIChat.tsx; src/components/admin/AdminAIProvider.tsx; src/lib/ai/openrouter.ts; src/lib/ai/model-registry.ts; next.config.ts; docs/contracts/BRAND-SYSTEM.md",
+    guardrails:
+      "No new AI provider and no three.js. No ambient glow or decorative idle motion. Intake consolidation is out of scope.",
+    labels: ["ai", "inbound"],
+    initiative: COMMAND_BOARD_INITIATIVE,
+    workSpec: {
+      packetVersion: 2,
+      businessValue: "Let an owner talk to the board from a phone and review what was heard before anything happens.",
+      currentBehavior:
+        "No microphone, MediaRecorder or transcription code exists; Permissions-Policy disables the microphone; the OpenRouter gateway sends text content only.",
+      northstar: { phase: "E", layers: ["See", "Act"], contribution: "Voice and media input through the existing AI gateway." },
+      scope: ["Orb component, mic capture, transcription job and gateway content parts, composer integration, policy header."],
+      exclusions: COMMAND_BOARD_EXCLUSIONS,
+      references: COMMAND_BOARD_REFERENCES,
+      workflow: ["Gateway and job with tests, then capture and orb, then composer wiring and browser checks."],
+      failureModes: [
+        "Denied microphone permission leaves text input working and explains how to allow it.",
+        "A transcription failure keeps the recording available for retry and sends nothing.",
+      ],
+      acceptance: [
+        { id: "AC1", criterion: "State-driven orb that rests when idle", environment: "local" },
+        { id: "AC2", criterion: "Voice note transcribed through the workspace AI path into the composer", environment: "local" },
+      ],
+      verification: commandBoardVerification("npm run test:tenant-openrouter && npm run test:ai-command-runtime && npm run qa:command-board"),
+      requiredCapabilities: ["code", "typescript", "playwright"],
+      repository: COMMAND_BOARD_REPOSITORY,
+    },
+  }),
+  card({
+    key: "twilio-messaging-adapter",
+    title: "Connect a workspace's own Twilio number for SMS through the adapter registry",
+    workstream: "integrations",
+    phase: 6,
+    status: "planned",
+    priority: "medium",
+    description:
+      "Command Board step 5b of 6. Add Twilio as a messaging connector in the integration adapter registry following the extsvc-adapter contract. A workspace connects its own account and number; inbound SMS and call-status webhooks are signature-verified and recorded as conversations; outbound SMS is an approval-gated action. Number provisioning is excluded until the founder approves spend.",
+    acceptance: [
+      "twilio-adapter.ts satisfies the extsvc conformance checklist with a pinned origin, bounded requests and deterministic idempotency keys.",
+      "Credentials are verified, encrypted per tenant and never fall back to platform environment credentials.",
+      "The public webhook route verifies the Twilio signature, rejects replays and resolves the tenant from the path, never the payload.",
+      "Inbound SMS becomes a conversation message on the canonical contact through the existing communications service.",
+      "send_sms is staged through proposeAction and executed only after approval, with reversibility and capability entries and a provider receipt.",
+      "Demo and tests use fixtures only; no live Twilio call runs in tests.",
+    ],
+    start:
+      "src/lib/revenue-os/integration-adapters.ts; src/lib/revenue-os/extsvc-adapter-contract.ts; src/lib/revenue-os/stripe-adapter.ts; src/app/api/admin/tenant/providers/route.ts; src/lib/tenancy/providers.ts; src/app/api/public/[tenantSlug]/webhooks/stripe/route.ts",
+    guardrails:
+      "Bring-your-own-number only. No number purchase, no automatic sends, no platform credentials. Consent and opt-out keywords are honoured before any send.",
+    labels: ["integrations", "webhooks"],
+    initiative: COMMAND_BOARD_INITIATIVE,
+    workSpec: {
+      packetVersion: 2,
+      businessValue: "Let a service business text customers from its own number with every outbound message reviewed and receipted.",
+      currentBehavior: "No Twilio, SMS or telephony code exists. WhatsApp is the only messaging adapter.",
+      northstar: { phase: "E", layers: ["See", "Act"], contribution: "A governed messaging connector on the existing adapter registry." },
+      scope: ["Adapter, provider configuration, webhook, inbound mapping, send_sms action, docs, tests."],
+      exclusions: [...COMMAND_BOARD_EXCLUSIONS, "No Twilio number provisioning or other spend."],
+      references: [
+        ...COMMAND_BOARD_REFERENCES,
+        { path: "plugins/extsvc-adapter/README.md", reason: "External service adapter conformance" },
+      ],
+      workflow: ["Adapter and conformance tests, then webhook and inbound mapping, then the approved send action."],
+      failureModes: [
+        "A provider timeout after acceptance records an uncertain receipt and reconciles before any retry.",
+        "A STOP keyword suppresses further sends to that number.",
+      ],
+      acceptance: [
+        { id: "AC1", criterion: "Conformant tenant-scoped Twilio adapter", environment: "local" },
+        { id: "AC2", criterion: "Verified inbound webhook into conversations", environment: "local" },
+        { id: "AC3", criterion: "Approval-gated outbound SMS with receipts", environment: "local" },
+      ],
+      verification: commandBoardVerification(
+        "npm run test:integration-adapter-registry && npm run verify:integration-adapter-encapsulation && npm run test:webhook-security && npm run test:action-reversibility",
+      ),
+      requiredCapabilities: ["code"],
+      repository: COMMAND_BOARD_REPOSITORY,
+    },
+  }),
+  card({
+    key: "command-board-service-skills",
+    title: "Add the six Service Mode skills as approval-gated AI tools",
+    workstream: "ai",
+    phase: 6,
+    status: "planned",
+    priority: "medium",
+    description:
+      "Command Board step 6 of 6. Add Instant Text-Back, Instant Quote, Quote Follow-Up, Booking Reminders, Invoice Chaser and Review Request as AI tools owned by the command-board module and bound to Service Mode stations. Each skill stages its outbound effect in action_queue for per-instance approval. Invoice Chaser reuses Collections; text skills use the Twilio adapter.",
+    acceptance: [
+      "Six tools are registered in ai-tools.ts with contracts, operation bindings and pack membership, claimed by command-board.",
+      "Every outbound effect is staged through proposeAction with grounded content, a dedupe key and exact recipient, content and timing shown for review.",
+      "Invoice Chaser delegates to the existing collection reminder service; Quote skills use proposals; reminders use calendar events.",
+      "Service Mode stations list their skills with live availability; a skill whose connector is missing shows a setup state.",
+      "No skill executes automatically; automatic execution needs a separate approved policy version per skill.",
+    ],
+    start:
+      "src/lib/revenue-os/ai-tools.ts; src/lib/revenue-os/collection-agent-contract.ts; src/lib/revenue-os/collection-reminders.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/action-executor.ts",
+    guardrails:
+      "No cron-to-prompt automation, no automatic sends and no duplicate of Collections or proposal lifecycles. Copy avoids the guardrail-banned phrases for call handling.",
+    labels: ["automation", "ai"],
+    initiative: COMMAND_BOARD_INITIATIVE,
+    workSpec: {
+      packetVersion: 2,
+      businessValue: "Turn the Service Mode stations into working skills that draft the next message for review.",
+      currentBehavior: "Collections reminders and proposals exist. No SMS skills, quote follow-up skill or review-request skill exists.",
+      northstar: { phase: "E", layers: ["Notice", "Act"], contribution: "Station-bound skills on the single tool registry." },
+      scope: ["Six tool contracts and services, station bindings, executor and reversibility entries, docs, demo."],
+      exclusions: [...COMMAND_BOARD_EXCLUSIONS, "No approved autonomous policy versions."],
+      references: COMMAND_BOARD_REFERENCES,
+      workflow: ["One skill at a time with its test, reusing existing services; then station bindings and docs."],
+      failureModes: [
+        "A skill whose target changed since proposal is re-checked at execution and skipped with a receipt.",
+        "A duplicate trigger produces one pending action through its dedupe key.",
+      ],
+      acceptance: [
+        { id: "AC1", criterion: "Six registered, approval-gated skills", environment: "local" },
+        { id: "AC2", criterion: "Skills bound to Service Mode stations with availability", environment: "local" },
+      ],
+      verification: commandBoardVerification(
+        "npm run test:ai-tool-gates && npm run test:ai-operations && npm run test:action-execution && npm run test:command-board",
+      ),
+      requiredCapabilities: ["code"],
+      repository: COMMAND_BOARD_REPOSITORY,
+    },
   }),
 ];
 
