@@ -450,11 +450,26 @@ const COMMAND_BOARD_REPOSITORY = {
   baseCommit: "42027dfbed3c14596c7ddf357c74bdafc56df4c7",
 };
 const COMMAND_BOARD_REFERENCES = [
-  { path: "docs/contracts/WORK-SURFACES.md", reason: "A View projects source records without owning a lifecycle" },
-  { path: "docs/contracts/ADMIN-UX-STANDARDS.md", reason: "Board, detail pane, keyboard, touch and reduced-motion rules" },
-  { path: "docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md", reason: "Admin motion, loading and focus rules (WORK-MOTION covers only public /work)" },
-  { path: "docs/contracts/MULTI-TENANCY-CONTRACT.md", reason: "Tenant-bound reads, caches, breadcrumbs and links" },
-  { path: "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md", reason: "One write path, action_queue approval, no second registry" },
+  {
+    path: "docs/contracts/WORK-SURFACES.md",
+    reason: "A View projects source records without owning a lifecycle",
+  },
+  {
+    path: "docs/contracts/ADMIN-UX-STANDARDS.md",
+    reason: "Board, detail pane, keyboard, touch and reduced-motion rules",
+  },
+  {
+    path: "docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md",
+    reason: "Admin motion, loading and focus rules (WORK-MOTION covers only public /work)",
+  },
+  {
+    path: "docs/contracts/MULTI-TENANCY-CONTRACT.md",
+    reason: "Tenant-bound reads, caches, breadcrumbs and links",
+  },
+  {
+    path: "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    reason: "One write path, action_queue approval, no second registry",
+  },
 ];
 const COMMAND_BOARD_EXCLUSIONS = [
   "No production deployment, push or real-recipient send from this card.",
@@ -462,14 +477,26 @@ const COMMAND_BOARD_EXCLUSIONS = [
   "Not built on the platform Feature Board (UNIVERSAL-WORK-BOARD.md forbids business use).",
 ];
 const commandBoardVerification = (scoped) => [
-  { command: "npm run verify:agent-contract", expected: "Packet, dependency graph and architecture contracts pass.", environment: "local" },
-  { command: scoped, expected: "Scoped service, tenant and browser checks for this card pass.", environment: "local" },
+  {
+    command: "npm run verify:agent-contract",
+    expected: "Packet, dependency graph and architecture contracts pass.",
+    environment: "local",
+  },
+  {
+    command: scoped,
+    expected: "Scoped service, tenant and browser checks for this card pass.",
+    environment: "local",
+  },
   {
     command: "node scripts/admin-ai-inventory.mjs --check && npm run test:admin-route-inventory",
     expected: "Both route inventories agree with the final tree.",
     environment: "local",
   },
-  { command: "npm run lint && npm run build && git diff --check", expected: "Lint, production build (type check) and diff checks pass.", environment: "local" },
+  {
+    command: "npm run lint && npm run build && git diff --check",
+    expected: "Lint, production build (type check) and diff checks pass.",
+    environment: "local",
+  },
 ];
 
 export const featureBacklog = [
@@ -8592,7 +8619,8 @@ export const featureBacklog = [
       northstar: {
         phase: "E",
         layers: ["See", "Notice"],
-        contribution: "A reusable projection surface that later Apps and graph adapters render into.",
+        contribution:
+          "A reusable projection surface that later Apps and graph adapters render into.",
       },
       scope: [
         "Add CanvasView, canvas-model (levels, layout, keyboard neighbours) and canvas-projections for Today and approvals.",
@@ -8613,9 +8641,22 @@ export const featureBacklog = [
         "An expired or already-decided approval does not render as pending.",
       ],
       acceptance: [
-        { id: "AC1", criterion: "Canvas View with pan, zoom, semantic levels and breadcrumbs", environment: "local" },
-        { id: "AC2", criterion: "Today and approvals canvas toggles with URL-backed selection and existing detail panels", environment: "local" },
-        { id: "AC3", criterion: "Keyboard, touch and reduced-motion journeys pass", environment: "local" },
+        {
+          id: "AC1",
+          criterion: "Canvas View with pan, zoom, semantic levels and breadcrumbs",
+          environment: "local",
+        },
+        {
+          id: "AC2",
+          criterion:
+            "Today and approvals canvas toggles with URL-backed selection and existing detail panels",
+          environment: "local",
+        },
+        {
+          id: "AC3",
+          criterion: "Keyboard, touch and reduced-motion journeys pass",
+          environment: "local",
+        },
         { id: "AC4", criterion: "400-node frame budget recorded and met", environment: "local" },
       ],
       verification: commandBoardVerification(
@@ -8650,10 +8691,15 @@ export const featureBacklog = [
     initiative: COMMAND_BOARD_INITIATIVE,
     workSpec: {
       packetVersion: 2,
-      businessValue: "Let any App put live workspace records on a canvas without touching canvas code or widening data access.",
+      businessValue:
+        "Let any App put live workspace records on a canvas without touching canvas code or widening data access.",
       currentBehavior:
         "Several list reads live inline in route handlers. traverseGraph exists but cannot start from core types and has no caller. authorizeRecordAccess allows read for any active member and only one role exists.",
-      northstar: { phase: "E", layers: ["See", "Remember"], contribution: "Read-only graph projection over canonical records." },
+      northstar: {
+        phase: "E",
+        layers: ["See", "Remember"],
+        contribution: "Read-only graph projection over canonical records.",
+      },
       scope: [
         "Adapter registry, graphAdapterNames manifest field, authorizeGraphSource fail-closed check.",
         "Extract inline list reads into records.ts, tasks.ts and actions.ts and point the routes at them.",
@@ -8671,9 +8717,21 @@ export const featureBacklog = [
         "An unbound or foreign-tenant client receives nothing.",
       ],
       acceptance: [
-        { id: "AC1", criterion: "Single claimed adapter registry with fail-closed role check", environment: "local" },
-        { id: "AC2", criterion: "Route and AI/MCP tool parity with caps and cursors", environment: "local" },
-        { id: "AC3", criterion: "Tenant isolation and disabled-module tests pass", environment: "local" },
+        {
+          id: "AC1",
+          criterion: "Single claimed adapter registry with fail-closed role check",
+          environment: "local",
+        },
+        {
+          id: "AC2",
+          criterion: "Route and AI/MCP tool parity with caps and cursors",
+          environment: "local",
+        },
+        {
+          id: "AC3",
+          criterion: "Tenant isolation and disabled-module tests pass",
+          environment: "local",
+        },
       ],
       verification: commandBoardVerification(
         "npm run test:graph-adapters && npm run test:tenant-isolation && npm run test:ai-tool-gates && npm run test:mcp-server && npm run verify:module-contract",
@@ -8707,9 +8765,15 @@ export const featureBacklog = [
     initiative: COMMAND_BOARD_INITIATIVE,
     workSpec: {
       packetVersion: 2,
-      businessValue: "Give a service business one spatial operating board whose stations show live work and the skills that act on it.",
-      currentBehavior: "No board definition, mode or station concept exists. Module settings are scalar only.",
-      northstar: { phase: "E", layers: ["See", "Notice", "Act"], contribution: "First App built on the canvas view and graph adapters." },
+      businessValue:
+        "Give a service business one spatial operating board whose stations show live work and the skills that act on it.",
+      currentBehavior:
+        "No board definition, mode or station concept exists. Module settings are scalar only.",
+      northstar: {
+        phase: "E",
+        layers: ["See", "Notice", "Act"],
+        contribution: "First App built on the canvas view and graph adapters.",
+      },
       scope: [
         "Manifest, page, guarded API, service, contract schema, migration, three tools, demo, docs.",
         "Unspooling tree layout with d3-hierarchy and a docked detail slot on CanvasView.",
@@ -8727,10 +8791,26 @@ export const featureBacklog = [
         "A binding to a removed tool or adapter shows unavailable instead of failing the board.",
       ],
       acceptance: [
-        { id: "AC1", criterion: "Registered App with docs and guarded routes", environment: "local" },
-        { id: "AC2", criterion: "Revisioned tenant board definition with Service Mode install", environment: "local" },
-        { id: "AC3", criterion: "Disable/enable acceptance across UI, agent and MCP", environment: "local" },
-        { id: "AC4", criterion: "Migration applied and MLIVM board installed and read back", environment: "production" },
+        {
+          id: "AC1",
+          criterion: "Registered App with docs and guarded routes",
+          environment: "local",
+        },
+        {
+          id: "AC2",
+          criterion: "Revisioned tenant board definition with Service Mode install",
+          environment: "local",
+        },
+        {
+          id: "AC3",
+          criterion: "Disable/enable acceptance across UI, agent and MCP",
+          environment: "local",
+        },
+        {
+          id: "AC4",
+          criterion: "Migration applied and MLIVM board installed and read back",
+          environment: "production",
+        },
       ],
       verification: commandBoardVerification(
         "npm run verify:migrations && npm run test:command-board && npm run test:ai-module-controls && npm run test:plugin-modules && npm run verify:module-route-guards",
@@ -8755,25 +8835,46 @@ export const featureBacklog = [
       "No approve or reject control appears on a card; decisions happen in ActionReviewDialog.",
       "Today, Work and the board share the same actions query so a decision updates every surface.",
     ],
-    start: "src/components/admin/ActionReviewDialog.tsx; src/app/admin/work/page.tsx; src/components/admin/AdminShell.tsx",
+    start:
+      "src/components/admin/ActionReviewDialog.tsx; src/app/admin/work/page.tsx; src/components/admin/AdminShell.tsx",
     guardrails: "No new surface, lifecycle or swipe-to-approve.",
     labels: ["approval"],
     initiative: COMMAND_BOARD_INITIATIVE,
     workSpec: {
       packetVersion: 2,
-      businessValue: "Make proposed actions visible where the operator is working, on desktop and phone, without weakening review.",
-      currentBehavior: "Approvals are reviewed in ActionReviewDialog from Today and Work lists. No card component or phone feed exists.",
-      northstar: { phase: "E", layers: ["Notice", "Act"], contribution: "Shared approval presentation across surfaces." },
+      businessValue:
+        "Make proposed actions visible where the operator is working, on desktop and phone, without weakening review.",
+      currentBehavior:
+        "Approvals are reviewed in ActionReviewDialog from Today and Work lists. No card component or phone feed exists.",
+      northstar: {
+        phase: "E",
+        layers: ["Notice", "Act"],
+        contribution: "Shared approval presentation across surfaces.",
+      },
       scope: ["ApprovalCard component, board and canvas use, compact approvals layout."],
       exclusions: COMMAND_BOARD_EXCLUSIONS,
       references: COMMAND_BOARD_REFERENCES,
-      workflow: ["Extract the card, swap it into the dialog summary, then use it on the canvas and compact list."],
-      failureModes: ["A card for an action decided elsewhere refreshes to its decided state before review opens."],
-      acceptance: [
-        { id: "AC1", criterion: "ApprovalCard on board, canvas and phone feed", environment: "local" },
-        { id: "AC2", criterion: "Decisions stay in the payload-bound review dialog", environment: "local" },
+      workflow: [
+        "Extract the card, swap it into the dialog summary, then use it on the canvas and compact list.",
       ],
-      verification: commandBoardVerification("npm run test:action-execution && npm run qa:canvas-view && npm run qa:command-board"),
+      failureModes: [
+        "A card for an action decided elsewhere refreshes to its decided state before review opens.",
+      ],
+      acceptance: [
+        {
+          id: "AC1",
+          criterion: "ApprovalCard on board, canvas and phone feed",
+          environment: "local",
+        },
+        {
+          id: "AC2",
+          criterion: "Decisions stay in the payload-bound review dialog",
+          environment: "local",
+        },
+      ],
+      verification: commandBoardVerification(
+        "npm run test:action-execution && npm run qa:canvas-view && npm run qa:command-board",
+      ),
       requiredCapabilities: ["code", "typescript", "playwright"],
       repository: COMMAND_BOARD_REPOSITORY,
     },
@@ -8802,23 +8903,38 @@ export const featureBacklog = [
     initiative: COMMAND_BOARD_INITIATIVE,
     workSpec: {
       packetVersion: 2,
-      businessValue: "Let an owner talk to the board from a phone and review what was heard before anything happens.",
+      businessValue:
+        "Let an owner talk to the board from a phone and review what was heard before anything happens.",
       currentBehavior:
         "No microphone, MediaRecorder or transcription code exists; Permissions-Policy disables the microphone; the OpenRouter gateway sends text content only.",
-      northstar: { phase: "E", layers: ["See", "Act"], contribution: "Voice and media input through the existing AI gateway." },
-      scope: ["Orb component, mic capture, transcription job and gateway content parts, composer integration, policy header."],
+      northstar: {
+        phase: "E",
+        layers: ["See", "Act"],
+        contribution: "Voice and media input through the existing AI gateway.",
+      },
+      scope: [
+        "Orb component, mic capture, transcription job and gateway content parts, composer integration, policy header.",
+      ],
       exclusions: COMMAND_BOARD_EXCLUSIONS,
       references: COMMAND_BOARD_REFERENCES,
-      workflow: ["Gateway and job with tests, then capture and orb, then composer wiring and browser checks."],
+      workflow: [
+        "Gateway and job with tests, then capture and orb, then composer wiring and browser checks.",
+      ],
       failureModes: [
         "Denied microphone permission leaves text input working and explains how to allow it.",
         "A transcription failure keeps the recording available for retry and sends nothing.",
       ],
       acceptance: [
         { id: "AC1", criterion: "State-driven orb that rests when idle", environment: "local" },
-        { id: "AC2", criterion: "Voice note transcribed through the workspace AI path into the composer", environment: "local" },
+        {
+          id: "AC2",
+          criterion: "Voice note transcribed through the workspace AI path into the composer",
+          environment: "local",
+        },
       ],
-      verification: commandBoardVerification("npm run test:tenant-openrouter && npm run test:ai-command-runtime && npm run qa:command-board"),
+      verification: commandBoardVerification(
+        "npm run test:tenant-openrouter && npm run test:ai-command-runtime && npm run qa:command-board",
+      ),
       requiredCapabilities: ["code", "typescript", "playwright"],
       repository: COMMAND_BOARD_REPOSITORY,
     },
@@ -8848,23 +8964,40 @@ export const featureBacklog = [
     initiative: COMMAND_BOARD_INITIATIVE,
     workSpec: {
       packetVersion: 2,
-      businessValue: "Let a service business text customers from its own number with every outbound message reviewed and receipted.",
-      currentBehavior: "No Twilio, SMS or telephony code exists. WhatsApp is the only messaging adapter.",
-      northstar: { phase: "E", layers: ["See", "Act"], contribution: "A governed messaging connector on the existing adapter registry." },
-      scope: ["Adapter, provider configuration, webhook, inbound mapping, send_sms action, docs, tests."],
+      businessValue:
+        "Let a service business text customers from its own number with every outbound message reviewed and receipted.",
+      currentBehavior:
+        "No Twilio, SMS or telephony code exists. WhatsApp is the only messaging adapter.",
+      northstar: {
+        phase: "E",
+        layers: ["See", "Act"],
+        contribution: "A governed messaging connector on the existing adapter registry.",
+      },
+      scope: [
+        "Adapter, provider configuration, webhook, inbound mapping, send_sms action, docs, tests.",
+      ],
       exclusions: [...COMMAND_BOARD_EXCLUSIONS, "No Twilio number provisioning or other spend."],
       references: [
         ...COMMAND_BOARD_REFERENCES,
-        { path: "plugins/extsvc-adapter/README.md", reason: "External service adapter conformance" },
+        {
+          path: "plugins/extsvc-adapter/README.md",
+          reason: "External service adapter conformance",
+        },
       ],
-      workflow: ["Adapter and conformance tests, then webhook and inbound mapping, then the approved send action."],
+      workflow: [
+        "Adapter and conformance tests, then webhook and inbound mapping, then the approved send action.",
+      ],
       failureModes: [
         "A provider timeout after acceptance records an uncertain receipt and reconciles before any retry.",
         "A STOP keyword suppresses further sends to that number.",
       ],
       acceptance: [
         { id: "AC1", criterion: "Conformant tenant-scoped Twilio adapter", environment: "local" },
-        { id: "AC2", criterion: "Verified inbound webhook into conversations", environment: "local" },
+        {
+          id: "AC2",
+          criterion: "Verified inbound webhook into conversations",
+          environment: "local",
+        },
         { id: "AC3", criterion: "Approval-gated outbound SMS with receipts", environment: "local" },
       ],
       verification: commandBoardVerification(
@@ -8898,20 +9031,34 @@ export const featureBacklog = [
     initiative: COMMAND_BOARD_INITIATIVE,
     workSpec: {
       packetVersion: 2,
-      businessValue: "Turn the Service Mode stations into working skills that draft the next message for review.",
-      currentBehavior: "Collections reminders and proposals exist. No SMS skills, quote follow-up skill or review-request skill exists.",
-      northstar: { phase: "E", layers: ["Notice", "Act"], contribution: "Station-bound skills on the single tool registry." },
-      scope: ["Six tool contracts and services, station bindings, executor and reversibility entries, docs, demo."],
+      businessValue:
+        "Turn the Service Mode stations into working skills that draft the next message for review.",
+      currentBehavior:
+        "Collections reminders and proposals exist. No SMS skills, quote follow-up skill or review-request skill exists.",
+      northstar: {
+        phase: "E",
+        layers: ["Notice", "Act"],
+        contribution: "Station-bound skills on the single tool registry.",
+      },
+      scope: [
+        "Six tool contracts and services, station bindings, executor and reversibility entries, docs, demo.",
+      ],
       exclusions: [...COMMAND_BOARD_EXCLUSIONS, "No approved autonomous policy versions."],
       references: COMMAND_BOARD_REFERENCES,
-      workflow: ["One skill at a time with its test, reusing existing services; then station bindings and docs."],
+      workflow: [
+        "One skill at a time with its test, reusing existing services; then station bindings and docs.",
+      ],
       failureModes: [
         "A skill whose target changed since proposal is re-checked at execution and skipped with a receipt.",
         "A duplicate trigger produces one pending action through its dedupe key.",
       ],
       acceptance: [
         { id: "AC1", criterion: "Six registered, approval-gated skills", environment: "local" },
-        { id: "AC2", criterion: "Skills bound to Service Mode stations with availability", environment: "local" },
+        {
+          id: "AC2",
+          criterion: "Skills bound to Service Mode stations with availability",
+          environment: "local",
+        },
       ],
       verification: commandBoardVerification(
         "npm run test:ai-tool-gates && npm run test:ai-operations && npm run test:action-execution && npm run test:command-board",
